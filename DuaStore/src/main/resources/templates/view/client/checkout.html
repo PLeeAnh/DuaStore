@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Thanh toán — DuaStore</title>
+    </head>
+    <body>
+    <div layout:fragment="content">
+        <div class="container-xl py-5">
+            <!-- ★ TODO [Thanh toán]: Implement trang thanh toán / đặt hàng
+                 Cấu trúc gợi ý:
+                 - 2 cột: bên trái form thông tin, bên phải tóm tắt đơn hàng
+                 - Form: Họ tên, SĐT, Email, Địa chỉ (chọn từ sổ địa chỉ hoặc nhập mới),
+                   Ghi chú (textarea)
+                 - Phương thức thanh toán: COD / Chuyển khoản / VNPay
+                 - Phương thức vận chuyển: Giao hàng tiêu chuẩn / Nhanh
+                 - Tóm tắt đơn: danh sách SP, tạm tính, phí ship, giảm giá, tổng cộng
+                 - Nút: "Đặt hàng" (btn-primary, full width)
+                 - Validation các field bắt buộc
+                 - Thêm mã giảm giá (nếu chưa nhập ở giỏ hàng)
+            -->
+            <div class="text-center py-5">
+                <i class="bi bi-credit-card" style="font-size:3rem;color:#ccc;"></i>
+                <p class="text-muted mt-3">Nội dung trang thanh toán sẽ được cập nhật</p>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>

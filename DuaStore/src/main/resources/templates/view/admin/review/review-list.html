@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý đánh giá</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Đánh giá</li>
+    </th:block>
+    <div layout:fragment="content">
+        <!-- ★ TODO [Đánh giá]: Implement trang danh sách đánh giá sản phẩm
+             
+             Cấu trúc gợi ý:
+             1. Page header: adm-page-header với tiêu đề Đánh giá
+             2. Bộ lọc: sản phẩm, số sao, trạng thái duyệt
+             3. adm-table-wrap: table danh sách
+                - Cột: #, Sản phẩm, Khách hàng, Nội dung, Số sao (star display), Trạng thái (badge), Ngày tạo, Thao tác
+             4. Mỗi dòng nút Duyệt / Ẩn / Xóa
+             5. Pagination
+             
+             Link sidebar active: th:classappend="${title == 'Đánh giá' ? ' active' : ''}"
+        -->
+        <div class="adm-page-header">
+            <h4><i class="bi bi-star me-2"></i>Đánh giá</h4>
+        </div>
+        <div class="adm-table-wrap">
+            <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>#</th><th>Sản phẩm</th><th>Khách hàng</th><th>Nội dung</th><th>Sao</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                    <tr><td colspan="7" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </body>
+</html>

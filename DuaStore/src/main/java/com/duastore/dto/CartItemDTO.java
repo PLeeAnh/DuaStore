@@ -1,0 +1,26 @@
+package com.duastore.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CartItemDTO {
+
+    private Integer id;
+    private Integer userId;
+    private Integer productId;
+    private Integer variantId;
+    private String tenSanPham;
+    private String tenBienThe;
+    private String hinhAnh;
+    private BigDecimal giaBan;
+    private Integer soLuong;
+    private BigDecimal thanhTien;
+    private LocalDateTime ngayThem;
+}

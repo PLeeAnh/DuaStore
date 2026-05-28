@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Tìm kiếm — DuaStore</title>
+    </head>
+    <body>
+    <div layout:fragment="content">
+        <div class="container-xl py-5">
+            <!-- ★ TODO [Tìm kiếm]: Implement trang kết quả tìm kiếm sản phẩm
+                 Cấu trúc gợi ý:
+                 - Thanh tìm kiếm + nút Tìm
+                 - Hiển thị từ khóa + số kết quả
+                 - Grid sản phẩm dạng card (giống product-list)
+                 - Bộ lọc: danh mục, giá, thương hiệu (nếu có)
+                 - Sắp xếp: Mới nhất, Giá tăng/giảm dần, Bán chạy
+                 - Pagination
+                 - Nếu không có kết quả: thông báo "Không tìm thấy sản phẩm"
+            -->
+            <div class="text-center py-5">
+                <i class="bi bi-search" style="font-size:3rem;color:#ccc;"></i>
+                <p class="text-muted mt-3">Nội dung trang tìm kiếm sẽ được cập nhật</p>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>

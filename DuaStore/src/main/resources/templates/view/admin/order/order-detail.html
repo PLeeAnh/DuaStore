@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý đơn hàng — Chi tiết</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/order/danh-sach}">Đơn hàng</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
+    </th:block>
+    <div layout:fragment="content">
+        <!-- ★ TODO [Đơn hàng]: Implement trang chi tiết đơn hàng
+             
+             Cấu trúc gợi ý:
+             1. adm-page-header: Mã đơn hàng + trạng thái badge
+             2. Thông tin khách hàng (tên, sđt, địa chỉ)
+             3. Bảng sản phẩm trong đơn (ảnh, tên, SL, giá, thành tiền)
+             4. Tổng tiền, phí ship, giảm giá
+             5. Form cập nhật trạng thái đơn hàng (select + nút Cập nhật)
+             6. Nút: In đơn / Quay lại
+             
+             Bind: th:object="${order}"
+             Hiển thị danh sách orderItems với th:each
+             Link sidebar active: th:classappend="${title == 'Đơn hàng' ? ' active' : ''}"
+        -->
+        <div class="adm-page-header">
+            <h4><i class="bi bi-receipt me-2"></i>Chi tiết đơn hàng #<span th:text="${order.id}">123</span></h4>
+            <a th:href="@{/admin/order/danh-sach}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </a>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="adm-card">
+                    <h6>Thông tin khách hàng</h6>
+                    <p class="mb-1"><strong>Họ tên:</strong> <span th:text="${order.customerName}">---</span></p>
+                    <p class="mb-1"><strong>SĐT:</strong> <span th:text="${order.phone}">---</span></p>
+                    <p class="mb-0"><strong>Địa chỉ:</strong> <span th:text="${order.address}">---</span></p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="adm-card">
+                    <h6>Thông tin đơn hàng</h6>
+                    <p class="mb-1"><strong>Ngày đặt:</strong> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">---</span></p>
+                    <p class="mb-0"><strong>Trạng thái:</strong>
+                        <span class="badge bg-info" th:text="${order.status}">---</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="adm-table-wrap mt-4">
+            <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+                <tbody>
+                    <tr><td colspan="4" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </body>
+</html>

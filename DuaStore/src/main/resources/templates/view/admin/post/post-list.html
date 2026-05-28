@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý bài viết</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Bài viết</li>
+    </th:block>
+    <div layout:fragment="content">
+        <!-- ★ TODO [Bài viết]: Implement trang danh sách bài viết
+             
+             Cấu trúc gợi ý:
+             1. Page header: adm-page-header với tiêu đề Bài viết + nút Thêm mới
+             2. Bộ lọc: danh mục, trạng thái, từ khóa
+             3. adm-table-wrap: table danh sách
+                - Cột: #, Ảnh, Tiêu đề, Danh mục, Tác giả, Trạng thái (badge), Ngày đăng, Thao tác
+             4. Mỗi dòng nút Sửa / Xóa
+             5. Pagination
+             
+             Link sidebar active: th:classappend="${title == 'Bài viết' ? ' active' : ''}"
+        -->
+        <div class="adm-page-header">
+            <h4><i class="bi bi-file-text me-2"></i>Bài viết</h4>
+            <a th:href="@{/admin/post/them-moi}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Thêm mới
+            </a>
+        </div>
+        <div class="adm-table-wrap">
+            <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>#</th><th>Tiêu đề</th><th>Danh mục</th><th>Trạng thái</th><th>Ngày đăng</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                    <tr><td colspan="6" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </body>
+</html>

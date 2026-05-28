@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý khuyến mãi</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Khuyến mãi</li>
+    </th:block>
+    <div layout:fragment="content">
+        <!-- ★ TODO [Khuyến mãi]: Implement trang danh sách khuyến mãi
+             
+             Cấu trúc gợi ý:
+             1. Page header: adm-page-header với tiêu đề Khuyến mãi + nút Thêm mới
+             2. Bộ lọc: trạng thái, loại, từ khóa
+             3. adm-table-wrap: table danh sách
+                - Cột: #, Tên CT, Mã giảm giá, Loại, Giá trị, SL còn, Ngày ĐK-KT, Trạng thái (badge), Thao tác
+             4. Mỗi dòng nút Sửa / Xóa
+             5. Pagination
+             
+             Link sidebar active: th:classappend="${title == 'Khuyến mãi' ? ' active' : ''}"
+        -->
+        <div class="adm-page-header">
+            <h4><i class="bi bi-percent me-2"></i>Khuyến mãi</h4>
+            <a th:href="@{/admin/promotion/them-moi}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Thêm mới
+            </a>
+        </div>
+        <div class="adm-table-wrap">
+            <table class="table table-hover align-middle mb-0">
+                <thead><tr><th>#</th><th>Tên CT</th><th>Mã</th><th>Giá trị</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody>
+                    <tr><td colspan="6" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </body>
+</html>

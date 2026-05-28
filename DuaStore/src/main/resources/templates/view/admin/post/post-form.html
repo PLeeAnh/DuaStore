@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý bài viết — Form</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/post/danh-sach}">Bài viết</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+        <!-- ★ TODO [Bài viết]: Implement form thêm / sửa bài viết
+             
+             Cấu trúc gợi ý:
+             1. adm-page-header: tiêu đề "Thêm bài viết" / "Sửa bài viết"
+             2. adm-form-wrap: form với các field:
+                - Tiêu đề (input text, required)
+                - Slug (input text, auto-generate từ tiêu đề)
+                - Danh mục bài viết (select)
+                - Nội dung (textarea / editor Summernote / CKEditor)
+                - Ảnh đại diện (input file + preview)
+                - Trạng thái (select: Hiển thị / Ẩn / Nháp)
+                - Ngày đăng (datepicker)
+             3. Nút: Lưu / Hủy
+             
+             Bind: th:object="${post}"
+             Link sidebar active: th:classappend="${title == 'Bài viết' ? ' active' : ''}"
+        -->
+        <div class="adm-page-header">
+            <h4><i class="bi bi-file-text me-2"></i>Thêm bài viết</h4>
+        </div>
+        <div class="adm-form-wrap">
+            <form th:action="@{/admin/post/them-moi}" th:object="${post}" method="post" enctype="multipart/form-data" class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{title}" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Danh mục</label>
+                    <select th:field="*{categoryId}" class="form-select">
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">---</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Nội dung</label>
+                    <textarea th:field="*{content}" class="form-control" rows="10"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ảnh đại diện</label>
+                    <input type="file" name="imageFile" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select th:field="*{status}" class="form-select">
+                        <option th:value="PUBLISHED">Hiển thị</option>
+                        <option th:value="DRAFT">Nháp</option>
+                        <option th:value="HIDDEN">Ẩn</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    <a th:href="@{/admin/post/danh-sach}" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    </body>
+</html>

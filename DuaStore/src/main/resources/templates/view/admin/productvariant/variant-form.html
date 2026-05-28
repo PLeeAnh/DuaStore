@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý biến thể — Form</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/product/danh-sach}">Sản phẩm</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/productvariant/danh-sach}">Biến thể</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+        <!-- ★ TODO [Biến thể]: Implement form thêm / sửa biến thể sản phẩm
+             
+             Cấu trúc gợi ý:
+             1. adm-page-header: tiêu đề "Thêm biến thể" / "Sửa biến thể"
+             2. adm-form-wrap: form với các field:
+                - Sản phẩm cha (select, read-only khi edit)
+                - Màu sắc (input text)
+                - Kích thước (input text)
+                - Giá riêng (input number, có thể để trống nếu giống giá SP cha)
+                - Số lượng tồn kho (input number)
+                - SKU (input text)
+                - Ảnh biến thể (input file)
+             3. Nút: Lưu / Hủy
+             
+             Bind: th:object="${variant}"
+             Link sidebar active: th:classappend="${title == 'Biến thể' ? ' active' : ''}"
+        -->
+        <div class="adm-page-header">
+            <h4><i class="bi bi-diagram-3 me-2"></i>Thêm biến thể</h4>
+        </div>
+        <div class="adm-form-wrap">
+            <form th:action="@{/admin/productvariant/them-moi}" th:object="${variant}" method="post" enctype="multipart/form-data" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
+                    <select th:field="*{productId}" class="form-select" required>
+                        <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}">---</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Màu sắc</label>
+                    <input type="text" th:field="*{color}" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Kích thước</label>
+                    <input type="text" th:field="*{size}" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Giá</label>
+                    <input type="number" th:field="*{price}" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Số lượng</label>
+                    <input type="number" th:field="*{stock}" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">SKU</label>
+                    <input type="text" th:field="*{sku}" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Ảnh biến thể</label>
+                    <input type="file" name="imageFile" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    <a th:href="@{/admin/productvariant/danh-sach}" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    </body>
+</html>

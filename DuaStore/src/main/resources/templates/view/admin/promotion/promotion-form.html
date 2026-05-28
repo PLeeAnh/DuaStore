@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý khuyến mãi — Form</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/promotion/danh-sach}">Khuyến mãi</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+        <!-- ★ TODO [Khuyến mãi]: Implement form thêm / sửa khuyến mãi
+             
+             Cấu trúc gợi ý:
+             1. adm-page-header: tiêu đề "Thêm khuyến mãi" / "Sửa khuyến mãi"
+             2. adm-form-wrap: form với các field:
+                - Tên chương trình (input text, required)
+                - Mã giảm giá (input text, unique)
+                - Loại giảm giá (select: % / Số tiền)
+                - Giá trị giảm (input number)
+                - Điều kiện: đơn hàng tối thiểu (input number)
+                - Số lượng mã (input number)
+                - Ngày bắt đầu / Ngày kết thúc (datepicker)
+                - Trạng thái (select: Hoạt động / Tạm dừng / Hết hạn)
+                - Mô tả (textarea)
+             3. Nút: Lưu / Hủy
+             
+             Bind: th:object="${promotion}"
+             Link sidebar active: th:classappend="${title == 'Khuyến mãi' ? ' active' : ''}"
+        -->
+        <div class="adm-page-header">
+            <h4><i class="bi bi-percent me-2"></i>Thêm khuyến mãi</h4>
+        </div>
+        <div class="adm-form-wrap">
+            <form th:action="@{/admin/promotion/them-moi}" th:object="${promotion}" method="post" class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Tên chương trình <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{name}" class="form-control" required />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Mã giảm giá <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{code}" class="form-control" required />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Loại</label>
+                    <select th:field="*{discountType}" class="form-select">
+                        <option th:value="PERCENT">%</option>
+                        <option th:value="AMOUNT">Số tiền</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Giá trị giảm</label>
+                    <input type="number" th:field="*{discountValue}" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Đơn tối thiểu</label>
+                    <input type="number" th:field="*{minOrderAmount}" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Số lượng mã</label>
+                    <input type="number" th:field="*{quantity}" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ngày bắt đầu</label>
+                    <input type="date" th:field="*{startDate}" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ngày kết thúc</label>
+                    <input type="date" th:field="*{endDate}" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select th:field="*{status}" class="form-select">
+                        <option th:value="ACTIVE">Hoạt động</option>
+                        <option th:value="PAUSED">Tạm dừng</option>
+                        <option th:value="EXPIRED">Hết hạn</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Mô tả</label>
+                    <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    <a th:href="@{/admin/promotion/danh-sach}" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    </body>
+</html>
