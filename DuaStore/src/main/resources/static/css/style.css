@@ -855,13 +855,76 @@ a { color: inherit; }
 }
 .ds-float-top {
   bottom: 1.5rem;
-  background: var(--ds-gray-900);
+  background: #1a1a2a;
   color: #fff;
+}
+[data-theme="dark"] .ds-float-top {
+  background: #1a1a28 !important;
+  color: #fff !important;
+  border: 1px solid #333348 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.5) !important;
+}
+[data-theme="dark"] .ds-float-top i,
+[data-theme="dark"] .ds-float-top svg {
+  color: #fff !important;
+  fill: #fff !important;
+}
+[data-theme="dark"] .ds-float-top:hover {
+  background: #252540 !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,.6) !important;
 }
 
 @keyframes ds-pulse {
   0%, 100% { box-shadow: 0 4px 14px rgba(0,104,255,.3); }
   50%       { box-shadow: 0 4px 24px rgba(0,104,255,.6); }
+}
+
+/* ══════════════════════════════════════════
+   PRODUCT DETAIL — Dark mode overrides
+══════════════════════════════════════════ */
+[data-theme="dark"] .product-detail-info .text-muted {
+    color: #d0d0dd !important;
+}
+[data-theme="dark"] .product-detail-info .text-muted strong {
+    color: #e8e8f0 !important;
+}
+
+/* Quantity input — hide spinners + dark mode */
+.quantity-group #qtyInput::-webkit-outer-spin-button,
+.quantity-group #qtyInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.quantity-group #qtyInput[type="number"] {
+    -moz-appearance: textfield;
+}
+.quantity-group #qtyInput {
+    background-color: #ffffff;
+    border-color: #ced4da;
+    color: #212529;
+    height: 38px;
+}
+[data-theme="dark"] .quantity-group #qtyInput {
+    background-color: #1a1a2a;
+    border-color: #333348;
+    color: #ffffff;
+}
+[data-theme="dark"] .quantity-group #qtyInput:focus {
+    background-color: #1a1a2a;
+    border-color: #4a4a6a;
+    color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+/* Variant buttons — active state */
+.variant-btn.btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+.variant-btn.btn-danger:hover {
+    background-color: #bb2d3b !important;
+    border-color: #b02a37 !important;
 }
 
 /* ══════════════════════════════════════════

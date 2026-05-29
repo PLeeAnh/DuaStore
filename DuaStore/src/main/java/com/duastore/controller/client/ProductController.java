@@ -1,54 +1,96 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.duastore.controller.client;
 
+import com.duastore.dto.VariantApiDTO;
+import com.duastore.model.Product;
+import com.duastore.model.ProductVariant;
+import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.client.ProductService;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * ★ ProductController — Controller sản phẩm cho Client
- * 
- * ========== LUỒNG / HƯỚNG DẪN ==========
- * Controller này xử lý các request từ phía client (người dùng cuối)
- * liên quan đến sản phẩm: xem danh sách, chi tiết, tìm kiếm, lọc theo danh mục.
- * 
- * Các view template nằm trong: /WEB-INF/views/client/product/
- * Sử dụng ProductService để lấy dữ liệu.
- * 
- * ★ TODO [Trần Thị B]: @GetMapping("/san-pham") — Danh sách sản phẩm
- *   - Hỗ trợ phân trang (page, size params)
- *   - Hỗ trợ lọc theo danh mục (@RequestParam danhMuc)
- *   - Hỗ trợ tìm kiếm (@RequestParam search)
- *   - Hỗ trợ sắp xếp (price-asc, price-desc, newest, best-selling)
- *   - Trả về view: "client/product/list"
- *   - Đưa dữ liệu vào Model
- * 
- * ★ TODO [Trần Thị B]: @GetMapping("/san-pham/{id}") — Chi tiết sản phẩm
- *   - Lấy Product theo id hoặc slug
- *   - Lấy danh sách ProductVariant (size, color, stock, price)
- *   - Lấy sản phẩm liên quan (cùng danh mục)
- *   - Trả về view: "client/product/detail"
- *   - Xử lý trường hợp không tìm thấy (404)
- * 
- * ★ TODO [Trần Thị B]: Các lọc bổ sung
- *   - @RequestParam(required = false) Long danhMuc
- *   - @RequestParam(required = false) String search
- *   - @RequestParam(defaultValue = "newest") String sort
- *   - @RequestParam(defaultValue = "1") int page
- *   - @RequestParam(defaultValue = "12") int size
- * 
- * ⚠ Lưu ý:
- *   - Sử dụng @Controller (không phải @RestController)
- *   - Inject ProductService, CategoryService (nếu có)
- *   - Tất cả mapping bắt đầu bằng /san-pham
- *   - Cần xử lý slug để SEO-friendly URLs
- */
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+
 @Controller
-@RequestMapping("/san-pham")
 public class ProductController {
-    
+
+    private final ProductService productService;
+    private final ProductVariantRepository variantRepository;
+
+    public ProductController(ProductService productService,
+                              ProductVariantRepository variantRepository) {
+        this.productService = productService;
+        this.variantRepository = variantRepository;
+    }
+
+    @GetMapping("/san-pham")
+    public String list(@RequestParam(required = false) Integer danhMuc,
+                       @RequestParam(required = false) String keyword,
+                       Model model) {
+        model.addAttribute("title", "san-pham");
+
+        List<Product> products;
+        if (keyword != null && !keyword.isBlank()) {
+            products = productService.search(keyword);
+            model.addAttribute("keyword", keyword);
+        } else if (danhMuc != null) {
+            products = productService.findByCategory(danhMuc);
+        } else {
+            products = productService.getDangBan();
+        }
+        model.addAttribute("products", products);
+
+        // Build price map: productId → hiển thị giá variant đầu tiên
+        Map<Integer, String> priceMap = new HashMap<>();
+        if (!products.isEmpty()) {
+            List<Integer> ids = products.stream().map(Product::getId).collect(Collectors.toList());
+            List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
+            Map<Integer, List<ProductVariant>> byProduct = allVariants.stream()
+                .collect(Collectors.groupingBy(ProductVariant::getProductId));
+            for (var entry : byProduct.entrySet()) {
+                ProductVariant v = entry.getValue().get(0);
+                BigDecimal price = v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc();
+                priceMap.put(entry.getKey(), NumberFormat.getNumberInstance(new Locale("vi", "VN")).format(price) + "₫");
+            }
+        }
+        model.addAttribute("priceMap", priceMap);
+
+        return "view/client/product/product-list";
+    }
+
+    @GetMapping("/san-pham/{id}")
+    public String detail(@PathVariable Integer id, Model model) {
+        var product = productService.findById(id);
+        if (product == null) return "redirect:/san-pham?errorMsg=Khong+tim+thay+san+pham";
+
+        List<ProductVariant> variants = productService.getVariants(id);
+        model.addAttribute("title", product.getTenSanPham());
+        model.addAttribute("product", product);
+        model.addAttribute("variants", variants);
+
+        // Group variants by cap type (parsed from tenBienThe, e.g. "50ml - Nắp Gỗ")
+        Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();
+        for (ProductVariant v : variants) {
+            String capType = "Khác";
+            if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
+                String[] parts = v.getTenBienThe().split("\\s*-\\s*");
+                if (parts.length >= 2) capType = parts[1].trim();
+            }
+            grouped.computeIfAbsent(capType, k -> new ArrayList<>()).add(v);
+        }
+        model.addAttribute("groupedVariants", grouped);
+
+        return "view/client/product/product-detail";
+    }
+
+    // ── API for variant switching (AJAX) ──
+
+    @GetMapping("/api/variants/{variantId}")
+    @ResponseBody
+    public VariantApiDTO getVariant(@PathVariable Integer variantId) {
+        return productService.getVariantApi(variantId);
+    }
 }
