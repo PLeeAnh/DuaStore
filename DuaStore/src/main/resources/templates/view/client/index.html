@@ -86,46 +86,38 @@
                 </div>
             </section>
 
-            <!-- ★ TESTIMONIALS — SwiperJS (main.js:239-253), 1/2/3 slides theo viewport
-                 Backend: có thể thay dữ liệu động từ bảng Review -->
-            <section class="ds-testi sr-up">
+            <!-- ★ FEATURES STRIP — Grid 4 cột (mobile 2), icon + title + desc, hover lift -->
+            <section class="ds-features sr-up">
                 <div class="container-xl">
-                    <div class="text-center mb-5">
-                        <span class="ds-section-badge">Khách hàng nói gì</span>
-                        <h2 class="ds-section-title">Phản hồi từ khách hàng</h2>
-                    </div>
-                    <div class="swiper testi-swiper">
-                        <div class="swiper-wrapper">
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">M</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                <p class="ds-testi-text">"Sản phẩm rất đẹp, chất lượng hơn mong đợi. Đóng gói cẩn thận, giao hàng nhanh!"</p>
-                                <div class="ds-testi-name">Minh Anh</div>
-                                <div class="ds-testi-role">Khách hàng thân thiết</div>
-                            </div>
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">T</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                <p class="ds-testi-text">"Bộ ấm trà thủy tinh mua tặng mẹ rất ưng ý. Mẹ khen đẹp và dùng rất tốt."</p>
-                                <div class="ds-testi-name">Tuấn Kiệt</div>
-                                <div class="ds-testi-role">Khách hàng thân thiết</div>
-                            </div>
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">H</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                <p class="ds-testi-text">"Mua set quà tặng đối tác, cảm ơn DuaStore vì dịch vụ chuyên nghiệp và sản phẩm cao cấp."</p>
-                                <div class="ds-testi-name">Hoàng Yến</div>
-                                <div class="ds-testi-role">Doanh nghiệp</div>
-                            </div>
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">Đ</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
-                                <p class="ds-testi-text">"Ly rượu vang pha lê cắt cạnh rất sang. Giá hơi cao nhưng xứng đáng với chất lượng."</p>
-                                <div class="ds-testi-name">Đức Minh</div>
-                                <div class="ds-testi-role">Khách hàng VIP</div>
+                    <div class="row g-3">
+                        <div class="col-6 col-lg-3">
+                            <div class="ds-feature-card">
+                                <i class="bi bi-truck"></i>
+                                <span>Miễn phí vận chuyển</span>
+                                <small>Cho đơn trên 500K</small>
                             </div>
                         </div>
-                        <div class="testi-pagination" style="margin-top:20px;"></div>
+                        <div class="col-6 col-lg-3">
+                            <div class="ds-feature-card">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span>Đổi trả 7 ngày</span>
+                                <small>Hoàn tiền 100%</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="ds-feature-card">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Bảo hành chính hãng</span>
+                                <small>Sản phẩm cao cấp</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="ds-feature-card">
+                                <i class="bi bi-headset"></i>
+                                <span>Hỗ trợ 24/7</span>
+                                <small>Hotline 1900...</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -190,72 +182,7 @@
                     </div>
                 </div>
             </section>
-
-            <!-- ★ FAQ ACCORDION — JS (main.js:217-234), max-height animation, chevron 180°
-                 Backend: có thể thay nội dung từ DB (bảng FAQ/Post) -->
-            <section class="ds-faq sr-up">
-                <div class="container-xl">
-                    <div class="text-center mb-5">
-                        <span class="ds-section-badge">FAQ</span>
-                        <h2 class="ds-section-title">Câu hỏi thường gặp</h2>
-                    </div>
-                    <div class="mx-auto" style="max-width:700px;">
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm phải còn nguyên tem, chưa qua sử dụng.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Thời gian giao hàng bao lâu? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Nội thành Hải Phòng: 1-2 ngày. Các tỉnh khác: 3-5 ngày làm việc. Miễn phí vận chuyển cho đơn trên 500K.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Sản phẩm có bảo hành không? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Tất cả sản phẩm thủy tinh đều được bảo hành 6 tháng về lỗi sản xuất. Bảo hành 12 tháng đối với sản phẩm pha lê.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Có thể đặt hàng theo yêu cầu không? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Có, chúng tôi nhận thiết kế và sản xuất theo yêu cầu riêng cho khách hàng doanh nghiệp và cá nhân.</div></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ★ FEATURES STRIP — Grid 4 cột (mobile 2), icon + title + desc, hover lift -->
-            <section class="ds-features sr-up">
-                <div class="container-xl">
-                    <div class="row g-3">
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-truck"></i>
-                                <span>Miễn phí vận chuyển</span>
-                                <small>Cho đơn trên 500K</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Đổi trả 7 ngày</span>
-                                <small>Hoàn tiền 100%</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-shield-check"></i>
-                                <span>Bảo hành chính hãng</span>
-                                <small>Sản phẩm cao cấp</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-headset"></i>
-                                <span>Hỗ trợ 24/7</span>
-                                <small>Hotline 1900...</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
+            
             <!-- ★ CATEGORIES GRID — 6 items (mobile 2, desktop 3), ScrollReveal (main.js:102)
                  Backend: dữ liệu động từ CategoryService → ${navCategories} -->
             <section class="ds-section">
@@ -323,7 +250,79 @@
                     </div>
                 </div>
             </section>
-
+            
+            <!-- ★ TESTIMONIALS — SwiperJS (main.js:239-253), 1/2/3 slides theo viewport
+                 Backend: có thể thay dữ liệu động từ bảng Review -->
+            <section class="ds-testi sr-up">
+                <div class="container-xl">
+                    <div class="text-center mb-5">
+                        <span class="ds-section-badge">Khách hàng nói gì</span>
+                        <h2 class="ds-section-title">Phản hồi từ khách hàng</h2>
+                    </div>
+                    <div class="swiper testi-swiper">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide ds-testi-slide">
+                                <div class="ds-testi-avatar">M</div>
+                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                                <p class="ds-testi-text">"Sản phẩm rất đẹp, chất lượng hơn mong đợi. Đóng gói cẩn thận, giao hàng nhanh!"</p>
+                                <div class="ds-testi-name">Minh Anh</div>
+                                <div class="ds-testi-role">Khách hàng thân thiết</div>
+                            </div>
+                            <div class="swiper-slide ds-testi-slide">
+                                <div class="ds-testi-avatar">T</div>
+                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                                <p class="ds-testi-text">"Bộ ấm trà thủy tinh mua tặng mẹ rất ưng ý. Mẹ khen đẹp và dùng rất tốt."</p>
+                                <div class="ds-testi-name">Tuấn Kiệt</div>
+                                <div class="ds-testi-role">Khách hàng thân thiết</div>
+                            </div>
+                            <div class="swiper-slide ds-testi-slide">
+                                <div class="ds-testi-avatar">H</div>
+                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                                <p class="ds-testi-text">"Mua set quà tặng đối tác, cảm ơn DuaStore vì dịch vụ chuyên nghiệp và sản phẩm cao cấp."</p>
+                                <div class="ds-testi-name">Hoàng Yến</div>
+                                <div class="ds-testi-role">Doanh nghiệp</div>
+                            </div>
+                            <div class="swiper-slide ds-testi-slide">
+                                <div class="ds-testi-avatar">Đ</div>
+                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
+                                <p class="ds-testi-text">"Ly rượu vang pha lê cắt cạnh rất sang. Giá hơi cao nhưng xứng đáng với chất lượng."</p>
+                                <div class="ds-testi-name">Đức Minh</div>
+                                <div class="ds-testi-role">Khách hàng VIP</div>
+                            </div>
+                        </div>
+                        <div class="testi-pagination" style="margin-top:20px;"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ★ FAQ ACCORDION — JS (main.js:217-234), max-height animation, chevron 180°
+                 Backend: có thể thay nội dung từ DB (bảng FAQ/Post) -->
+            <section class="ds-faq sr-up">
+                <div class="container-xl">
+                    <div class="text-center mb-5">
+                        <span class="ds-section-badge">FAQ</span>
+                        <h2 class="ds-section-title">Câu hỏi thường gặp</h2>
+                    </div>
+                    <div class="mx-auto" style="max-width:700px;">
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm phải còn nguyên tem, chưa qua sử dụng.</div></div>
+                        </div>
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Thời gian giao hàng bao lâu? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Nội thành Hải Phòng: 1-2 ngày. Các tỉnh khác: 3-5 ngày làm việc. Miễn phí vận chuyển cho đơn trên 500K.</div></div>
+                        </div>
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Sản phẩm có bảo hành không? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Tất cả sản phẩm thủy tinh đều được bảo hành 6 tháng về lỗi sản xuất. Bảo hành 12 tháng đối với sản phẩm pha lê.</div></div>
+                        </div>
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Có thể đặt hàng theo yêu cầu không? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Có, chúng tôi nhận thiết kế và sản xuất theo yêu cầu riêng cho khách hàng doanh nghiệp và cá nhân.</div></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     </body>
 </html>
