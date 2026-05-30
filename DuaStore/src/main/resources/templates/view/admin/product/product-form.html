@@ -72,6 +72,36 @@
                         <input type="hidden" th:field="*{hinhAnhChinh}" />
                     </div>
                 </div>
+
+                <div class="col-12">
+                    <label class="form-label">Bộ sưu tập ảnh (Gallery)</label>
+
+                    <!-- Upload zone -->
+                    <div class="gallery-upload-zone" id="galleryUploadZone">
+                        <input type="file" name="galleryFiles" id="galleryInput" accept="image/*" multiple hidden />
+                        <div class="gallery-upload-content">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <p>Kéo thả ảnh vào đây hoặc Click để chọn ảnh</p>
+                            <small>Hỗ trợ JPG, PNG, WEBP</small>
+                        </div>
+                    </div>
+
+                    <!-- Preview các ảnh mới chọn (chưa lưu) -->
+                    <div class="gallery-preview" id="galleryPreview"></div>
+
+                    <!-- Ảnh đã lưu trong DB -->
+                    <div th:if="${not #lists.isEmpty(galleryImages)}" class="gallery-saved">
+                        <label class="form-label mt-2">Ảnh đã lưu</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div th:each="img : ${galleryImages}" class="gallery-saved-item">
+                                <img th:src="@{${img.imageUrl}}" alt="gallery" />
+                                <a th:href="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}"
+                                   class="gallery-remove-btn"
+                                   onclick="return confirm('Xoá ảnh này?')">✕</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="col-md-3">
                     <label class="form-label">Trạng thái</label>
                     <select th:field="*{trangThaiSanPham}" class="form-select">
@@ -94,5 +124,68 @@
             </form>
         </div>
     </div>
+
+    <th:block layout:fragment="extra-script">
+    <script>
+        (function() {
+            const zone = document.getElementById('galleryUploadZone');
+            const input = document.getElementById('galleryInput');
+            const preview = document.getElementById('galleryPreview');
+            const form = input.closest('form');
+            let filesArray = [];
+
+            zone.addEventListener('click', () => input.click());
+
+            input.addEventListener('change', () => {
+                if (input.files) addFiles(Array.from(input.files));
+                input.value = '';
+            });
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('gallery-upload-zone--dragover');
+            });
+            zone.addEventListener('dragleave', () => {
+                zone.classList.remove('gallery-upload-zone--dragover');
+            });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('gallery-upload-zone--dragover');
+                if (e.dataTransfer.files) addFiles(Array.from(e.dataTransfer.files));
+            });
+
+            function addFiles(newFiles) {
+                for (const f of newFiles) {
+                    if (!f.type.startsWith('image/')) continue;
+                    filesArray.push(f);
+                }
+                renderPreview();
+            }
+
+            window.removeGalleryFile = function(index) {
+                filesArray.splice(index, 1);
+                renderPreview();
+            };
+
+            function renderPreview() {
+                preview.innerHTML = '';
+                filesArray.forEach((f, i) => {
+                    const url = URL.createObjectURL(f);
+                    const div = document.createElement('div');
+                    div.className = 'gallery-preview-item';
+                    div.innerHTML =
+                        '<img src="' + url + '" alt="" />' +
+                        '<button type="button" class="gallery-remove-btn" onclick="removeGalleryFile(' + i + ')">✕</button>';
+                    preview.appendChild(div);
+                });
+            }
+
+            // Trước khi submit, thêm gallery files vào FormData
+            form.addEventListener('formdata', (e) => {
+                for (const f of filesArray) e.formData.append('galleryFiles', f);
+            });
+        })();
+    </script>
+    </th:block>
     </body>
 </html>

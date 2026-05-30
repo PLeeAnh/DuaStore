@@ -2,9 +2,12 @@ package com.duastore.service.admin;
 
 import com.duastore.dto.ProductFormDTO;
 import com.duastore.model.Product;
+import com.duastore.model.ProductImage;
+import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.service.FileUploadService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -13,10 +16,14 @@ public class AdminProductService {
 
     private final ProductRepository productRepository;
     private final FileUploadService fileUploadService;
+    private final ProductImageRepository productImageRepository;
 
-    public AdminProductService(ProductRepository productRepository, FileUploadService fileUploadService) {
+    public AdminProductService(ProductRepository productRepository,
+                                FileUploadService fileUploadService,
+                                ProductImageRepository productImageRepository) {
         this.productRepository = productRepository;
         this.fileUploadService = fileUploadService;
+        this.productImageRepository = productImageRepository;
     }
 
     public List<Product> findAll() {
@@ -32,7 +39,13 @@ public class AdminProductService {
     }
 
     public Product save(ProductFormDTO dto) {
-        Product p = (dto.getId() != null) ? productRepository.findById(dto.getId()).orElse(new Product()) : new Product();
+        Product p;
+        if (dto.getId() != null) {
+            p = productRepository.findById(dto.getId()).orElse(null);
+            if (p == null) return null;
+        } else {
+            p = new Product();
+        }
 
         p.setTenSanPham(dto.getTenSanPham());
         p.setMoTa(dto.getMoTa());
@@ -53,7 +66,28 @@ public class AdminProductService {
             p.setHinhAnhChinh(dto.getHinhAnhChinh());
         }
 
-        return productRepository.save(p);
+        Product saved = productRepository.save(p);
+
+        // Save gallery images
+        if (dto.getGalleryFiles() != null) {
+            int order = productImageRepository
+                .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(saved.getId())
+                .size();
+            for (MultipartFile file : dto.getGalleryFiles()) {
+                if (!file.isEmpty()) {
+                    String url = fileUploadService.save(file);
+                    if (url != null) {
+                        ProductImage pi = new ProductImage();
+                        pi.setProductId(saved.getId());
+                        pi.setImageUrl(url);
+                        pi.setSortOrder(order++);
+                        productImageRepository.save(pi);
+                    }
+                }
+            }
+        }
+
+        return saved;
     }
 
     public void delete(Integer id) {
