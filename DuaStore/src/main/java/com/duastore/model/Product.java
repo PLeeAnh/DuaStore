@@ -2,6 +2,7 @@ package com.duastore.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,11 +43,17 @@ public class Product {
     private LocalDateTime ngayCapNhat;
 
     @PrePersist
-    protected void onCreate() { ngayTao = LocalDateTime.now(); }
+    protected void onCreate() { ngayTao = LocalDateTime.now(); ngayCapNhat = LocalDateTime.now(); }
 
     @PreUpdate
     protected void onUpdate() { ngayCapNhat = LocalDateTime.now(); }
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ProductVariant> variants;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "productId")
+    @SQLRestriction("isActive = 1")
+    @jakarta.persistence.OrderBy("sortOrder ASC")
+    private List<ProductImage> galleryImages;
 }

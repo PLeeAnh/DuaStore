@@ -2,7 +2,9 @@ package com.duastore.controller.client;
 
 import com.duastore.dto.VariantApiDTO;
 import com.duastore.model.Product;
+import com.duastore.model.ProductImage;
 import com.duastore.model.ProductVariant;
+import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.ProductService;
 import org.springframework.stereotype.Controller;
@@ -19,11 +21,14 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductVariantRepository variantRepository;
+    private final ProductImageRepository productImageRepository;
 
     public ProductController(ProductService productService,
-                              ProductVariantRepository variantRepository) {
+                              ProductVariantRepository variantRepository,
+                              ProductImageRepository productImageRepository) {
         this.productService = productService;
         this.variantRepository = variantRepository;
+        this.productImageRepository = productImageRepository;
     }
 
     @GetMapping("/san-pham")
@@ -70,6 +75,24 @@ public class ProductController {
         model.addAttribute("title", product.getTenSanPham());
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
+
+        // Build gallery images: ProductImages from DB + fallback to main + variant images
+        List<ProductImage> dbImages = productImageRepository
+            .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id);
+        List<String> galleryImages = new ArrayList<>();
+        if (!dbImages.isEmpty()) {
+            for (ProductImage pi : dbImages) {
+                if (pi.getImageUrl() != null) galleryImages.add(pi.getImageUrl());
+            }
+        } else {
+            if (product.getHinhAnhChinh() != null) galleryImages.add(product.getHinhAnhChinh());
+            for (ProductVariant v : variants) {
+                if (v.getHinhAnh() != null && !galleryImages.contains(v.getHinhAnh())) {
+                    galleryImages.add(v.getHinhAnh());
+                }
+            }
+        }
+        model.addAttribute("galleryImages", galleryImages);
 
         // Group variants by cap type (parsed from tenBienThe, e.g. "50ml - Nắp Gỗ")
         Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();

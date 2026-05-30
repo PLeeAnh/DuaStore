@@ -8,19 +8,20 @@
  
   DuaStore -- Do Thuy Tinh Decor, Hai Phong
 ================================================================================
-  DANH SACH BANG (12 bang — khong thay doi so luong):
-  [1]  Users            -- Tai khoan (khong tinh diem)
-  [2]  Categories       -- Danh muc (phan cap) [NXK]
+  DANH SACH BANG (13 bang):
+  [1]  Users            -- Tai khoan
+  [2]  Categories       -- Danh muc (phan cap) [TK]
   [3]  Products         -- San pham goc [PLA]
-  [4]  ProductVariants  -- Bien the: dung tich, gia, ton kho, hinh anh [PLA]
-  [5]  Addresses        -- Dia chi giao hang [NXK]
-  [6]  Promotions       -- Ma khuyen mai [BTM]
-  [7]  Orders           -- Don hang [NHD]
-  [8]  OrderItems       -- Chi tiet don hang [NHD]
-  [9]  Reviews          -- Danh gia [BTM]
-  [10] CartItems        -- Gio hang [NHD]
-  [11] Posts            -- Blog / Tin tuc [BTM]
-  [12] Wishlists        -- Danh sach yeu thich [NXK]
+  [4]  ProductImages    -- Bo suu tap anh san pham (Gallery Slider) [PLA]
+  [5]  ProductVariants  -- Bien the: dung tich, gia, ton kho, hinh anh [PLA]
+  [6]  Addresses        -- Dia chi giao hang [NXK]
+  [7]  Promotions       -- Ma khuyen mai [BTM]
+  [8]  Orders           -- Don hang [NHD]
+  [9]  OrderItems       -- Chi tiet don hang [NHD]
+  [10] Reviews          -- Danh gia [BTM]
+  [11] CartItems        -- Gio hang [TK]
+  [12] Posts            -- Blog / Tin tuc [BTM]
+  [13] Wishlists        -- Danh sach yeu thich [NXK]
 ================================================================================
   HUONG DAN SU DUNG:
   1. Mo SQL Server Management Studio (SSMS)
@@ -39,6 +40,28 @@ IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'DuaStore')
     CREATE DATABASE DuaStore;
 GO
 USE DuaStore;
+GO
+
+-- ============================================================
+-- BUOC 0.5: XOA BANG CU (drop theo thu tu dao nguoc de tranh loi FK)
+-- ============================================================
+DROP VIEW IF EXISTS vw_PostsPublished;
+DROP VIEW IF EXISTS vw_ProductPrice;
+DROP VIEW IF EXISTS vw_DoanhThu;
+GO
+DROP TABLE IF EXISTS Wishlists;
+DROP TABLE IF EXISTS Posts;
+DROP TABLE IF EXISTS CartItems;
+DROP TABLE IF EXISTS Reviews;
+DROP TABLE IF EXISTS OrderItems;
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Promotions;
+DROP TABLE IF EXISTS Addresses;
+DROP TABLE IF EXISTS ProductVariants;
+DROP TABLE IF EXISTS ProductImages;
+DROP TABLE IF EXISTS Products;
+DROP TABLE IF EXISTS Categories;
+DROP TABLE IF EXISTS Users;
 GO
  
 -- ============================================================
@@ -141,7 +164,31 @@ CREATE TABLE Products (
 GO
  
 -- ============================================================
--- [4] BANG: ProductVariants
+-- [4] BANG: ProductImages (Bo sung tu yeu cau Gallery Slider)
+-- ============================================================
+-- Bo suu tap anh san pham. Admin upload nhieu anh cung luc.
+-- Anh duoc hien thi trong Image Gallery Slider phia Client.
+-- sortOrder: sap xep thu tu hien thi (tang dan).
+-- Khi khong co anh nao trong bang nay → Frontend fallback sang
+-- hinhAnhChinh cua Products + hinhAnh cua ProductVariants.
+-- Phan cong: [PLA] Phung Le Anh
+-- ============================================================
+CREATE TABLE ProductImages (
+    id          INT            IDENTITY(1,1)  NOT NULL,
+    productId   INT                           NOT NULL,
+    imageUrl    NVARCHAR(500)                 NOT NULL,   -- Duong dan /uploads/...
+    sortOrder   INT                           NOT NULL DEFAULT 0,
+    isActive    BIT                           NOT NULL DEFAULT 1,
+    createdAt   DATETIME2(0)                  NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_ProductImages        PRIMARY KEY (id),
+    CONSTRAINT FK_ProductImages_Product FOREIGN KEY (productId)
+        REFERENCES Products(id) ON DELETE CASCADE
+);
+GO
+
+-- ============================================================
+-- [5] BANG: ProductVariants
 -- ============================================================
 -- Moi bien the la 1 SKU (Stock Keeping Unit) cu the.
 -- Vi du: Chai Tron 250ml - Nap Go la 1 bien the, co gia va ton kho rieng.
@@ -199,7 +246,7 @@ CREATE TABLE ProductVariants (
 GO
  
 -- ============================================================
--- [5] BANG: Addresses
+-- [6] BANG: Addresses
 -- ============================================================
 -- Luu nhieu dia chi giao hang cua 1 nguoi dung.
 -- isDefault = 1: dia chi mac dinh tu dong dien vao form checkout.
@@ -226,7 +273,7 @@ CREATE TABLE Addresses (
 GO
  
 -- ============================================================
--- [6] BANG: Promotions
+-- [7] BANG: Promotions
 -- ============================================================
 -- Quan ly ma voucher giam gia.
 -- 2 loai giam: PHAN_TRAM (%) va SO_TIEN (dong co dinh).
@@ -256,7 +303,7 @@ CREATE TABLE Promotions (
 GO
  
 -- ============================================================
--- [7] BANG: Orders
+-- [8] BANG: Orders
 -- ============================================================
 -- Don hang. Co 2 trang thai rieng biet:
 --   trangThaiDon: trang thai xu ly don (CHO_XAC_NHAN → DA_GIAO)
@@ -310,7 +357,7 @@ CREATE TABLE Orders (
 GO
  
 -- ============================================================
--- [8] BANG: OrderItems
+-- [9] BANG: OrderItems
 -- ============================================================
 -- Chi tiet tung san pham trong 1 don hang.
 -- SNAPSHOT: Cac cot tenSanPham, tenBienThe, donGia la snapshot tai thoi diem dat.
@@ -343,7 +390,7 @@ CREATE TABLE OrderItems (
 GO
  
 -- ============================================================
--- [9] BANG: Reviews
+-- [10] BANG: Reviews
 -- ============================================================
 -- Danh gia san pham tu 1-5 sao kem binh luan.
 -- isApproved = 0 mac dinh → Admin phai duyet moi hien thi tren website.
@@ -370,7 +417,7 @@ CREATE TABLE Reviews (
 GO
  
 -- ============================================================
--- [10] BANG: CartItems
+-- [11] BANG: CartItems
 -- ============================================================
 -- Gio hang luu trong DB cho user da dang nhap.
 -- UNIQUE(userId, variantId): dam bao moi bien the chi xuat hien 1 lan trong gio.
@@ -397,7 +444,7 @@ CREATE TABLE CartItems (
 GO
  
 -- ============================================================
--- [11] BANG: Posts  (Bo sung tu bao cao khao sat: PC Market + Chalo Glass)
+-- [12] BANG: Posts  (Bo sung tu bao cao khao sat: PC Market + Chalo Glass)
 -- ============================================================
 -- Bai viet Blog / Tin tuc / Huong dan chon thuy tinh.
 -- 3 trang thai: NHAP (ban nhap) → XUAT_BAN (cong khai) → AN (an trang)
@@ -424,7 +471,7 @@ CREATE TABLE Posts (
 GO
  
 -- ============================================================
--- [12] BANG: Wishlists  (Bo sung tu bao cao khao sat: Chalo Glass)
+-- [13] BANG: Wishlists  (Bo sung tu bao cao khao sat: Chalo Glass)
 -- ============================================================
 -- Danh sach san pham yeu thich cua khach.
 -- UNIQUE(userId, productId): moi SP chi luu 1 lan / user.
@@ -691,18 +738,26 @@ OFFSET 0 ROWS;
 GO
  
 -- ============================================================
--- KIEM TRA NHANH SAU KHI CHAY SCRIPT
+-- KIEM TRA DU LIEU
 -- ============================================================
--- Sau khi chay xong, chay cac lenh nay de kiem tra:
---   SELECT COUNT(*) FROM Users;           -- Ket qua: 2
---   SELECT COUNT(*) FROM Categories;      -- Ket qua: 15
---   SELECT COUNT(*) FROM Products;        -- Ket qua: 6
---   SELECT COUNT(*) FROM ProductVariants; -- Ket qua: 25
---   SELECT hinhAnh FROM ProductVariants WHERE hinhAnh IS NOT NULL; -- Xem anh bien the
+SELECT * FROM Users;
+SELECT * FROM Categories;
+SELECT * FROM Products;
+SELECT * FROM ProductImages;
+SELECT * FROM ProductVariants;
+SELECT * FROM Addresses;
+SELECT * FROM Promotions;
+SELECT * FROM Orders;
+SELECT * FROM OrderItems;
+SELECT * FROM Reviews;
+SELECT * FROM CartItems;
+SELECT * FROM Posts;
+SELECT * FROM Wishlists;
+GO
  
 PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 12';
+PRINT ' Tong so bang  : 13';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Indexes       : 12';
 PRINT ' Mat khau      : admin@123';

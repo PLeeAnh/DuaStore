@@ -17,9 +17,29 @@
 
             <div class="row g-4" th:with="defaultVariant=${#lists.isEmpty(variants) ? null : variants[0]}">
                 <div class="col-md-5">
-                    <div class="position-relative border rounded overflow-hidden bg-light">
-                        <img id="mainImage" th:src="@{${product.hinhAnhChinh} ?: '/images/no-image.png'}"
-                             th:alt="${product.tenSanPham}" class="w-100" style="aspect-ratio:1/1;object-fit:cover;" />
+                    <div class="product-gallery">
+                        <!-- Main image viewer -->
+                        <div class="gallery-main">
+                            <img id="mainImage" th:src="@{${product.hinhAnhChinh}}"
+                                 th:alt="${product.tenSanPham}"
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22 fill=%22%23ddd%22%3E%3Crect width=%22400%22 height=%22400%22/%3E%3Ctext x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2224%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'" />
+                        </div>
+
+                        <!-- Thumbnail slider + navigation -->
+                        <div class="gallery-bottom" th:if="${#lists.size(galleryImages) > 1}">
+                            <button class="gallery-arrow gallery-arrow-left" id="galleryPrev" type="button">❮</button>
+                            <div class="gallery-thumbs-wrapper">
+                                <div class="gallery-thumbs" id="galleryThumbs">
+                                    <div th:each="img, iter : ${galleryImages}"
+                                         class="gallery-thumb" th:classappend="${iter.first} ? 'active' : ''"
+                                         th:data-img="${img}"
+                                         onclick="galleryClick(this)">
+                                        <img th:src="@{${img}}" alt="" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="gallery-arrow gallery-arrow-right" id="galleryNext" type="button">❯</button>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-7 product-detail-info">
@@ -32,13 +52,14 @@
                     </p>
 
                     <div class="my-3">
-                        <span id="productPrice" class="fs-4 fw-bold text-danger me-2"
+                        <span th:if="${defaultVariant != null}" id="productPrice" class="fs-4 fw-bold text-danger me-2"
                               th:text="${defaultVariant.giaKhuyenMai != null
                                         ? #numbers.formatDecimal(defaultVariant.giaKhuyenMai, 0, 'COMMA', 0, 'POINT') + '₫'
                                         : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT') + '₫'}">
                             100,000₫
                         </span>
-                        <span id="productOriginalPrice" th:if="${defaultVariant.giaKhuyenMai != null}"
+                        <span th:if="${defaultVariant == null}" id="productPrice" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
+                        <span id="productOriginalPrice" th:if="${defaultVariant != null && defaultVariant.giaKhuyenMai != null}"
                               class="text-decoration-line-through text-muted small"
                               th:text="${#numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">
                             120,000₫
@@ -86,7 +107,7 @@
                     <ul class="list-unstyled small text-muted">
                         <li th:if="${product.chatLieu}"><i class="bi bi-droplet me-1"></i>Chất liệu: <strong th:text="${product.chatLieu}">—</strong></li>
                         <li th:if="${product.mucDichSuDung}"><i class="bi bi-bullseye me-1"></i>Mục đích: <strong th:text="${product.mucDichSuDung}">—</strong></li>
-                        <li th:if="${product.leadTimeDays}"><i class="bi bi-clock me-1"></i>Thời gian giao: <strong th:text="${product.leadTimeDays} + ' ngày'">—</strong></li>
+                        <li th:if="${product.leadTimeDays != null && product.leadTimeDays > 0}"><i class="bi bi-clock me-1"></i>Thời gian giao: <strong th:text="${product.leadTimeDays} + ' ngày'">—</strong></li>
                         <li th:if="${product.trangThaiSanPham == 'DAT_TRUOC'}"><i class="bi bi-info-circle me-1"></i>Sản phẩm đặt trước</li>
                     </ul>
                 </div>
@@ -98,6 +119,36 @@
     <script>
         let selectedVariantId = null;
         const productId = [[${product.id}]];
+
+        // ── Gallery functions ──
+
+        function galleryClick(el) {
+            document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('mainImage').src = el.dataset.img;
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+
+        function galleryPrev() {
+            const thumbs = document.querySelectorAll('.gallery-thumb');
+            const active = document.querySelector('.gallery-thumb.active');
+            let idx = 0;
+            thumbs.forEach((t, i) => { if (t === active) idx = i; });
+            const nextIdx = (idx - 1 + thumbs.length) % thumbs.length;
+            galleryClick(thumbs[nextIdx]);
+        }
+
+        function galleryNext() {
+            const thumbs = document.querySelectorAll('.gallery-thumb');
+            const active = document.querySelector('.gallery-thumb.active');
+            let idx = 0;
+            thumbs.forEach((t, i) => { if (t === active) idx = i; });
+            const nextIdx = (idx + 1) % thumbs.length;
+            galleryClick(thumbs[nextIdx]);
+        }
+
+        document.getElementById('galleryPrev')?.addEventListener('click', galleryPrev);
+        document.getElementById('galleryNext')?.addEventListener('click', galleryNext);
 
         function initializeVariantSelection() {
             const allBtns = document.querySelectorAll('.variant-btn');
@@ -140,9 +191,17 @@
                     }
                 }
 
-                // Update image
+                // Update image + sync gallery
                 if (this.dataset.image) {
-                    document.getElementById('mainImage').src = this.dataset.image;
+                    const imgSrc = this.dataset.image;
+                    document.getElementById('mainImage').src = imgSrc;
+                    const thumbs = document.querySelectorAll('.gallery-thumb');
+                    for (const t of thumbs) {
+                        if (t.dataset.img === imgSrc) {
+                            galleryClick(t);
+                            break;
+                        }
+                    }
                 }
 
                 // Update stock status

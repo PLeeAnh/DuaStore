@@ -3,7 +3,9 @@ package com.duastore.controller.admin;
 import com.duastore.dto.ProductFormDTO;
 import com.duastore.model.Category;
 import com.duastore.model.Product;
+import com.duastore.model.ProductImage;
 import com.duastore.repository.CategoryRepository;
+import com.duastore.repository.ProductImageRepository;
 import com.duastore.service.admin.AdminProductService;
 import com.duastore.service.admin.AdminVariantService;
 import jakarta.validation.Valid;
@@ -22,13 +24,16 @@ public class AdminProductController {
     private final AdminProductService productService;
     private final AdminVariantService variantService;
     private final CategoryRepository categoryRepository;
+    private final ProductImageRepository productImageRepository;
 
     public AdminProductController(AdminProductService productService,
                                    AdminVariantService variantService,
-                                   CategoryRepository categoryRepository) {
+                                   CategoryRepository categoryRepository,
+                                   ProductImageRepository productImageRepository) {
         this.productService = productService;
         this.variantService = variantService;
         this.categoryRepository = categoryRepository;
+        this.productImageRepository = productImageRepository;
     }
 
     @GetMapping
@@ -102,6 +107,7 @@ public class AdminProductController {
         model.addAttribute("title", "san-pham");
         model.addAttribute("product", dto);
         model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+        model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
         return "view/admin/product/product-form";
     }
 
@@ -110,10 +116,14 @@ public class AdminProductController {
         if (result.hasErrors()) {
             model.addAttribute("title", "san-pham");
             model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+            model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
             return "view/admin/product/product-form";
         }
         dto.setId(id);
-        productService.save(dto);
+        Product saved = productService.save(dto);
+        if (saved == null) {
+            return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+san+pham";
+        }
         return "redirect:/admin/san-pham?successMsg=Cap+nhat+san+pham+thanh+cong";
     }
 
@@ -121,6 +131,18 @@ public class AdminProductController {
     public String delete(@PathVariable Integer id) {
         productService.delete(id);
         return "redirect:/admin/san-pham?successMsg=Da+xoa+san+pham";
+    }
+
+    @GetMapping("/xoa-anh/{imageId}")
+    public String deleteImage(@PathVariable Integer imageId) {
+        ProductImage img = productImageRepository.findById(imageId).orElse(null);
+        if (img == null) {
+            return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+anh";
+        }
+        Integer productId = img.getProductId();
+        img.setActive(false);
+        productImageRepository.save(img);
+        return "redirect:/admin/san-pham/sua/" + productId + "?successMsg=Da+xoa+anh";
     }
 
     // ── Variants ──
