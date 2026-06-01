@@ -3,26 +3,124 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
-    <head>
-        <title>Giỏ hàng — DuaStore</title>
-    </head>
-    <body>
-    <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Giỏ hàng]: Implement trang giỏ hàng
-                 Cấu trúc gợi ý:
-                 - Tiêu đề: "Giỏ hàng của bạn"
-                 - Nếu giỏ trống: hình ảnh + "Giỏ hàng trống" + nút "Mua sắm ngay"
-                 - Nếu có SP: table sản phẩm (ảnh, tên, đơn giá, SL input, thành tiền, nút Xóa)
-                 - Cập nhật số lượng bằng AJAX hoặc form submit
-                 - Tổng tiền + nút "Tiến hành thanh toán"
-                 - Thông tin khuyến mãi / mã giảm giá (input + nút Áp dụng)
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-cart3" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang giỏ hàng sẽ được cập nhật</p>
+<head>
+    <title>Gio hang - DuaStore</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-xl py-5">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}">Trang chu</a></li>
+                <li class="breadcrumb-item active">Gio hang</li>
+            </ol>
+        </nav>
+
+        <h3 class="mb-4">Gio hang cua ban</h3>
+
+        <div th:if="${#lists.isEmpty(cartItems)}" class="text-center py-5">
+            <i class="bi bi-cart3" style="font-size:3rem;color:#ccc;"></i>
+            <p class="text-muted mt-3">Gio hang trong</p>
+            <a th:href="@{/san-pham}" class="btn btn-danger">Mua sam ngay</a>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(cartItems)}" class="row g-4">
+            <div class="col-lg-8">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                        <tr>
+                            <th>San pham</th>
+                            <th class="text-end">Don gia</th>
+                            <th class="text-center" style="width:150px;">So luong</th>
+                            <th class="text-end">Thanh tien</th>
+                            <th class="text-center">Xoa</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${cartItems}">
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <img th:src="@{${item.hinhAnh} ?: '/images/no-image.png'}"
+                                         th:alt="${item.tenSanPham}"
+                                         style="width:72px;height:72px;object-fit:cover;border-radius:6px;" />
+                                    <div>
+                                        <a th:href="@{/san-pham/{id}(id=${item.productId})}"
+                                           class="fw-semibold text-decoration-none text-dark"
+                                           th:text="${item.tenSanPham}">Ten san pham</a>
+                                        <div class="small text-muted" th:text="${item.tenBienThe}">Bien the</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'd'">0d</td>
+                            <td>
+                                <form th:action="@{/gio-hang/cap-nhat/{id}(id=${item.id})}" method="post"
+                                      class="d-flex justify-content-center gap-1">
+                                    <input type="number" name="soLuong" th:value="${item.soLuong}"
+                                           min="1" max="99" class="form-control form-control-sm text-center" />
+                                    <button class="btn btn-outline-secondary btn-sm" type="submit" title="Cap nhat">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="text-end fw-semibold"
+                                th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT')} + 'd'">0d</td>
+                            <td class="text-center">
+                                <a th:href="@{/gio-hang/xoa/{id}(id=${item.id})}"
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Xoa san pham khoi gio hang?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="border rounded-2 p-3">
+                    <h5 class="mb-3">Tong don hang</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tam tinh</span>
+                        <strong th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT')} + 'd'">0d</strong>
+                    </div>
+                    <div class="input-group input-group-sm mb-3">
+                        <input type="text" class="form-control" placeholder="Ma giam gia" />
+                        <button class="btn btn-outline-secondary" type="button">Ap dung</button>
+                    </div>
+                    <a th:href="@{/checkout}" class="btn btn-danger w-100">
+                        Tien hanh thanh toan
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-    </body>
+</div>
+
+<th:block layout:fragment="extra-script">
+<script>
+    document.querySelectorAll('form[action*="/gio-hang/cap-nhat"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const itemId = this.action.substring(this.action.lastIndexOf('/') + 1);
+            const soLuong = parseInt(this.querySelector('input[name="soLuong"]').value) || 1;
+            fetch('/api/cart/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId: parseInt(itemId), soLuong })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Cap nhat that bai');
+                }
+            }).catch(() => this.submit());
+        });
+    });
+</script>
+</th:block>
+</body>
 </html>

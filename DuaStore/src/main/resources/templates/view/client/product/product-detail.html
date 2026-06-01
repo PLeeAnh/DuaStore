@@ -233,7 +233,7 @@
                 body: JSON.stringify({ variantId, soLuong: qty })
             }).then(r => r.json()).then(data => {
                 if (data.success) {
-                    if (typeof updateCartBadge === 'function') updateCartBadge();
+                    if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
                     alert('Đã thêm vào giỏ hàng!');
                 } else {
                     alert(data.message || 'Thêm thất bại');
