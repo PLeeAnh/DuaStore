@@ -1,9 +1,11 @@
 package com.duastore.controller.client;
 
 import com.duastore.dto.VariantApiDTO;
+import com.duastore.model.Category;
 import com.duastore.model.Product;
 import com.duastore.model.ProductImage;
 import com.duastore.model.ProductVariant;
+import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.ProductService;
@@ -22,13 +24,16 @@ public class ProductController {
     private final ProductService productService;
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository productImageRepository;
+    private final CategoryRepository categoryRepository;
 
     public ProductController(ProductService productService,
                               ProductVariantRepository variantRepository,
-                              ProductImageRepository productImageRepository) {
+                              ProductImageRepository productImageRepository,
+                              CategoryRepository categoryRepository) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping("/san-pham")
@@ -42,11 +47,18 @@ public class ProductController {
             products = productService.search(keyword);
             model.addAttribute("keyword", keyword);
         } else if (danhMuc != null) {
-            products = productService.findByCategory(danhMuc);
+            List<Integer> categoryIds = new ArrayList<>();
+            categoryIds.add(danhMuc);
+            categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
+                    .forEach(child -> categoryIds.add(child.getId()));
+            products = productService.findByCategories(categoryIds);
+            categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
         } else {
             products = productService.getDangBan();
         }
         model.addAttribute("products", products);
+        model.addAttribute("categories", categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc());
+        model.addAttribute("selectedCategoryId", danhMuc);
 
         // Build price map: productId → hiển thị giá variant đầu tiên
         Map<Integer, String> priceMap = new HashMap<>();

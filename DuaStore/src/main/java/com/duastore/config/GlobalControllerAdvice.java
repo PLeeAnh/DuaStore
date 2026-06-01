@@ -1,10 +1,13 @@
 package com.duastore.config;
 
+import com.duastore.model.Category;
+import com.duastore.repository.CategoryRepository;
+import com.duastore.service.client.CartService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,18 +18,17 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalControllerAdvice {
 
-    // ── Uncomment khi TK hoàn thành CategoryService ──
-    // private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
+    private final CartService cartService;
 
     // ── Uncomment khi NHD hoàn thành CartService ──
     // private final CartService cartService;
 
     // ── Constructor injection (dùng khi uncomment 2 dòng trên) ──
-    // public GlobalControllerAdvice(CategoryService categoryService,
-    //                               CartService cartService) {
-    //     this.categoryService = categoryService;
-    //     this.cartService     = cartService;
-    // }
+    public GlobalControllerAdvice(CategoryRepository categoryRepository, CartService cartService) {
+        this.categoryRepository = categoryRepository;
+        this.cartService = cartService;
+    }
 
     /**
      * ★ Trả về danh sách danh mục gốc (parentId = null) cho navbar dropdown.
@@ -35,9 +37,8 @@ public class GlobalControllerAdvice {
      *     return categoryService.findRootCategories();
      */
     @ModelAttribute("navCategories")
-    public List<Object> navCategories() {
-        // TODO: return categoryService.findRootCategories();
-        return Collections.emptyList();
+    public List<Category> navCategories() {
+        return categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
     }
 
     /**
@@ -48,10 +49,12 @@ public class GlobalControllerAdvice {
      *     return cartService.countByUserId(userId);
      */
     @ModelAttribute("cartCount")
-    public int cartCount() {
+    public int cartCount(HttpSession session) {
         // TODO: lấy userId từ SecurityContextHolder, rồi:
         // return cartService.countByUserId(userId);
-        return 0;
+        Object value = session.getAttribute("userId");
+        Integer userId = value instanceof Integer id ? id : 1;
+        return cartService.count(userId);
     }
     
     @ModelAttribute("requestURI")

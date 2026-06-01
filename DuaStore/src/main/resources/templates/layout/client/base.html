@@ -69,27 +69,39 @@
                     <div class="ds-mega dropdown-menu p-0">
                         <div class="ds-mega-body">
                             <div class="ds-mega-col">
+                                <th:block th:if="${not #lists.isEmpty(navCategories)}">
+                                    <a class="ds-mega-item" th:each="cat : ${navCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}">
+                                        <span class="ds-mega-icon"><i class="bi bi-grid-3x3-gap"></i></span>
+                                        <span class="ds-mega-text"><strong th:text="${cat.tenDanhMuc}">Danh muc</strong><small th:text="${cat.moTa ?: 'Xem san pham theo danh muc'}">Mo ta</small></span>
+                                    </a>
+                                </th:block>
                                 <div class="ds-mega-label">Danh mục</div>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='chai')}">
+                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                     <span class="ds-mega-icon"><i class="bi bi-box-seam"></i></span>
                                     <span class="ds-mega-text"><strong>Chai thủy tinh</strong><small>Rượu, nước hoa, thực phẩm</small></span>
                                 </a>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='hu')}">
+                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                     <span class="ds-mega-icon"><i class="bi bi-archive"></i></span>
                                     <span class="ds-mega-text"><strong>Hũ thủy tinh</strong><small>Đồ khô, gia vị, bảo quản</small></span>
                                 </a>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='binh')}">
+                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                     <span class="ds-mega-icon"><i class="bi bi-stars"></i></span>
                                     <span class="ds-mega-text"><strong>Bình trang trí</strong><small>Bình hoa, decor, pha lê</small></span>
                                 </a>
                             </div>
                             <div class="ds-mega-col">
+                                <th:block th:each="cat : ${navCategories}">
+                                    <a class="ds-mega-item" th:each="child : ${cat.children}" th:if="${child.active}" th:href="@{/san-pham(danhMuc=${child.id})}">
+                                        <span class="ds-mega-icon"><i class="bi bi-arrow-return-right"></i></span>
+                                        <span class="ds-mega-text"><strong th:text="${child.tenDanhMuc}">Danh muc con</strong><small th:text="${cat.tenDanhMuc}">Danh muc cha</small></span>
+                                    </a>
+                                </th:block>
                                 <div class="ds-mega-label">Bộ sưu tập</div>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='ly')}">
+                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                     <span class="ds-mega-icon"><i class="bi bi-cup-hot"></i></span>
                                     <span class="ds-mega-text"><strong>Ly &amp; Cốc</strong><small>Rượu vang, whisky, champagne</small></span>
                                 </a>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='qua-tang')}">
+                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                     <span class="ds-mega-icon"><i class="bi bi-gift"></i></span>
                                     <span class="ds-mega-text"><strong>Bộ quà tặng</strong><small>Set sinh nhật, cưới hỏi</small></span>
                                 </a>
@@ -137,19 +149,24 @@
                             <i class="bi bi-chevron-down ds-chevron ms-auto"></i>
                         </a>
                         <div class="ds-sub-menu">
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='chai')}">
+                            <th:block th:if="${not #lists.isEmpty(navCategories)}">
+                                <a class="ds-sub-link" th:each="cat : ${navCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}">
+                                    <i class="bi bi-grid-3x3-gap"></i> <span th:text="${cat.tenDanhMuc}">Danh muc</span>
+                                </a>
+                            </th:block>
+                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                 <i class="bi bi-box-seam"></i> Chai thủy tinh
                             </a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='hu')}">
+                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                 <i class="bi bi-archive"></i> Hũ thủy tinh
                             </a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='binh')}">
+                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                 <i class="bi bi-stars"></i> Bình trang trí
                             </a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='ly')}">
+                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                 <i class="bi bi-cup-hot"></i> Ly &amp; Cốc
                             </a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='qua-tang')}">
+                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
                                 <i class="bi bi-gift"></i> Bộ quà tặng
                             </a>
                             <a class="ds-sub-link ds-sub-all" th:href="@{/san-pham}">

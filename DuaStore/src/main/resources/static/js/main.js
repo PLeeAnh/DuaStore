@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateCartBadge(count) {
     const badge = document.getElementById('cartBadge');
     if (!badge) return;
+    count = Number(count) || 0;
     if (count <= 0) {
         badge.classList.add('d-none');
         badge.textContent = '0';
@@ -169,6 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(r => r.json())
             .then(data => {
+                if (data && data.success === false) {
+                    this.textContent = data.message || 'Khong the them';
+                    setTimeout(() => { this.textContent = origText; this.disabled = false; }, 2000);
+                    return;
+                }
                 if (data && typeof data.cartCount !== 'undefined') {
                     updateCartBadge(data.cartCount);
                 }
