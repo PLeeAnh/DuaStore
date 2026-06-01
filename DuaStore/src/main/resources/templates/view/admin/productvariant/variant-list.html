@@ -3,79 +3,41 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-    <head><title>Quản lý biến thể</title></head>
+    <head>
+        <title>Quản lý biến thể</title>
+    </head>
     <body>
     <th:block layout:fragment="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-        <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
-        <li class="breadcrumb-item active">Biến thể</li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/product/danh-sach}">Sản phẩm</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Biến thể</li>
     </th:block>
     <div layout:fragment="content">
+        <!-- ★ TODO [Biến thể]: Implement trang danh sách biến thể
+             
+             Cấu trúc gợi ý:
+             1. Page header: adm-page-header với tiêu đề Biến thể + nút Thêm mới
+             2. Bộ lọc: sản phẩm cha (select)
+             3. adm-table-wrap: table danh sách
+                - Cột: #, Ảnh, Sản phẩm, Màu, Kích thước, SKU, Giá, SL, Thao tác
+             4. Mỗi dòng nút Sửa / Xóa
+             5. Pagination
+             
+             Link sidebar active: th:classappend="${title == 'Biến thể' ? ' active' : ''}"
+        -->
         <div class="adm-page-header">
-            <h4><i class="bi bi-diagram-3 me-2"></i>Biến thể — <span th:text="${product.tenSanPham}">Tên SP</span></h4>
-            <a th:href="@{/admin/bien-the/them-moi/{id}(id=${product.id})}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>Thêm biến thể
+            <h4><i class="bi bi-diagram-3 me-2"></i>Biến thể</h4>
+            <a th:href="@{/admin/productvariant/them-moi}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Thêm mới
             </a>
         </div>
-
-        <!-- Search -->
-        <div class="adm-table-wrap mb-3 p-3">
-            <form th:action="@{/admin/san-pham/{id}/bien-the(id=${product.id})}" method="get" class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label small mb-1">Tìm kiếm</label>
-                    <input type="text" name="keyword" class="form-control form-control-sm"
-                           placeholder="Tên biến thể..." th:value="${keyword}" />
-                </div>
-                <div class="col-md-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                        <i class="bi bi-search me-1"></i>Lọc
-                    </button>
-                    <a th:href="@{/admin/san-pham/{id}/bien-the(id=${product.id})}" class="btn btn-outline-secondary btn-sm" title="Xóa lọc">
-                        <i class="bi bi-x-lg"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
-
         <div class="adm-table-wrap">
             <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>#</th><th>Ảnh</th><th>Tên biến thể</th><th>Dung tích</th><th>Giá gốc</th><th>Giá KM</th><th>Tồn kho</th><th>Mặc định</th><th>Thao tác</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>#</th><th>Sản phẩm</th><th>Màu</th><th>Kích thước</th><th>SKU</th><th>Giá</th><th>SL</th><th>Thao tác</th></tr></thead>
                 <tbody>
-                    <tr th:each="v : ${variants}">
-                        <td th:text="${v.id}">1</td>
-                        <td>
-                            <img th:if="${v.hinhAnh}" th:src="@{${v.hinhAnh}}" alt="" style="width:50px;height:50px;object-fit:cover;border-radius:6px;" />
-                            <span th:unless="${v.hinhAnh}" class="text-muted">—</span>
-                        </td>
-                        <td th:text="${v.tenBienThe}">Tên biến thể</td>
-                        <td th:text="${v.dungTich != null ? v.dungTich + 'ml' : '—'}">250ml</td>
-                        <td th:text="${#numbers.formatDecimal(v.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">100,000₫</td>
-                        <td>
-                            <span th:if="${v.giaKhuyenMai != null}" th:text="${#numbers.formatDecimal(v.giaKhuyenMai, 0, 'COMMA', 0, 'POINT')} + '₫'">90,000₫</span>
-                            <span th:unless="${v.giaKhuyenMai != null}" class="text-muted">—</span>
-                        </td>
-                        <td th:text="${v.soLuongTon}">50</td>
-                        <td>
-                            <span th:if="${v.isDefault}" class="text-success"><i class="bi bi-check-circle-fill"></i></span>
-                            <span th:unless="${v.isDefault}" class="text-muted">—</span>
-                        </td>
-                        <td>
-                            <a th:href="@{/admin/bien-the/sua/{id}(id=${v.id})}" class="btn btn-outline-primary btn-sm me-1" title="Sửa"><i class="bi bi-pencil"></i></a>
-                            <a th:href="@{/admin/bien-the/xoa/{id}(id=${v.id})}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa biến thể này?')" title="Xóa"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(variants)}">
-                        <td colspan="9" class="text-muted text-center py-4">Chưa có biến thể nào</td>
-                    </tr>
+                    <tr><td colspan="8" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
                 </tbody>
             </table>
-        </div>
-        <div class="mt-3">
-            <a th:href="@{/admin/san-pham}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Quay lại danh sách sản phẩm</a>
         </div>
     </div>
     </body>
