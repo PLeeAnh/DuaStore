@@ -3,7 +3,6 @@ package com.duastore.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,8 +16,6 @@ public class CategoryDTO {
     private String tenDanhMuc;
 
     private String moTa;
-    private String hinhAnh;
-    private MultipartFile hinhAnhFile;
 
     private Integer parentId;
     private String tenDanhMucCha;
