@@ -3,95 +3,42 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-    <head><title>Quản lý sản phẩm</title></head>
+    <head>
+        <title>Quản lý sản phẩm</title>
+    </head>
     <body>
     <th:block layout:fragment="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-        <li class="breadcrumb-item active">Sản phẩm</li>
+        <li class="breadcrumb-item active" aria-current="page">Sản phẩm</li>
     </th:block>
     <div layout:fragment="content">
+        <!-- ★ TODO [Sản phẩm]: Implement trang danh sách sản phẩm
+             
+             Cấu trúc gợi ý:
+             1. Page header: adm-page-header với tiêu đề Sản phẩm + nút Thêm mới
+             2. Bộ lọc: danh mục, trạng thái, giá, từ khóa tìm kiếm
+             3. adm-table-wrap: table danh sách
+                - Cột: #, Ảnh, Tên sản phẩm, Danh mục, Giá, SL, Trạng thái (badge), Thao tác
+             4. Mỗi dòng nút Sửa (link tới form) / Xóa
+             5. Nút nhỏ "Quản lý biến thể" cho mỗi sản phẩm
+             6. Pagination
+             
+             Link sidebar active: th:classappend="${title == 'Sản phẩm' ? ' active' : ''}"
+        -->
         <div class="adm-page-header">
             <h4><i class="bi bi-box me-2"></i>Sản phẩm</h4>
-            <a th:href="@{/admin/san-pham/them-moi}" class="btn btn-primary btn-sm">
+            <a th:href="@{/admin/product/them-moi}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>Thêm mới
             </a>
         </div>
-
-        <!-- Search + Filter -->
-        <div class="adm-table-wrap mb-3 p-3">
-            <form th:action="@{/admin/san-pham}" method="get" class="row g-2 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label small mb-1">Tìm kiếm</label>
-                    <input type="text" name="keyword" class="form-control form-control-sm"
-                           placeholder="Tên sản phẩm..." th:value="${keyword}" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small mb-1">Danh mục</label>
-                    <select name="danhMuc" class="form-select form-select-sm">
-                        <option value="">Tất cả</option>
-                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"
-                                th:selected="${danhMuc == cat.id}">DM</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small mb-1">Trạng thái</label>
-                    <select name="trangThai" class="form-select form-select-sm">
-                        <option value="">Tất cả</option>
-                        <option value="DANG_BAN" th:selected="${trangThai == 'DANG_BAN'}">Đang bán</option>
-                        <option value="DAT_TRUOC" th:selected="${trangThai == 'DAT_TRUOC'}">Đặt trước</option>
-                        <option value="NGUNG_BAN" th:selected="${trangThai == 'NGUNG_BAN'}">Ngừng bán</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-1">
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                        <i class="bi bi-search me-1"></i>Lọc
-                    </button>
-                    <a th:href="@{/admin/san-pham}" class="btn btn-outline-secondary btn-sm" title="Xóa lọc">
-                        <i class="bi bi-x-lg"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
-
         <div class="adm-table-wrap">
             <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>#</th><th class="text-center">Ảnh</th><th class="text-center">Tên sản phẩm</th><th class="text-center">Danh mục</th><th class="text-center">Trạng thái</th><th class="text-center">Nổi bật</th><th class="text-center">Thao tác</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>#</th><th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Giá</th><th>SL</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                 <tbody>
-                    <tr th:each="p : ${products}">
-                        <td th:text="${p.id}">1</td>
-                        <td class="text-center">
-                            <img th:if="${p.hinhAnhChinh}" th:src="@{${p.hinhAnhChinh}}" alt="" style="width:50px;height:50px;object-fit:cover;border-radius:6px;" />
-                            <span th:unless="${p.hinhAnhChinh}" class="text-muted">—</span>
-                        </td>
-                        <td>
-                            <a th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}" th:text="${p.tenSanPham}" class="text-decoration-none fw-medium">Tên SP</a>
-                        </td>
-                        <td class="text-center" th:text="${categoryMap.get(p.danhMucId)}">Tên DM</td>
-                        <td class="text-center">
-                            <span th:if="${p.trangThaiSanPham == 'DANG_BAN'}" class="badge bg-success">Đang bán</span>
-                            <span th:if="${p.trangThaiSanPham == 'DAT_TRUOC'}" class="badge bg-warning text-dark">Đặt trước</span>
-                            <span th:if="${p.trangThaiSanPham == 'NGUNG_BAN'}" class="badge bg-secondary">Ngừng bán</span>
-                        </td>
-                        <td class="text-center">
-                            <span th:if="${p.isFeatured}" class="text-success"><i class="bi bi-star-fill"></i></span>
-                            <span th:unless="${p.isFeatured}" class="text-muted">—</span>
-                        </td>
-                        <td class="text-center">
-                            <a th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}" class="btn btn-outline-primary btn-sm me-1" title="Sửa"><i class="bi bi-pencil"></i></a>
-                            <a th:href="@{/admin/san-pham/{id}/bien-the(id=${p.id})}" class="btn btn-outline-info btn-sm me-1" title="Biến thể"><i class="bi bi-diagram-3"></i></a>
-                            <a th:href="@{/admin/san-pham/xoa/{id}(id=${p.id})}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa sản phẩm này?')" title="Xóa"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(products)}">
-                        <td colspan="7" class="text-muted text-center py-4">Chưa có sản phẩm nào</td>
-                    </tr>
+                    <tr><td colspan="8" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
-</body>
+    </body>
 </html>

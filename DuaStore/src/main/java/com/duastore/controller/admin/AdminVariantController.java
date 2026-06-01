@@ -1,80 +1,63 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.duastore.controller.admin;
 
-import com.duastore.dto.ProductVariantFormDTO;
-import com.duastore.service.admin.AdminVariantService;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+/**
+ * ★ AdminVariantController — CRUD biến thể sản phẩm cho Admin
+ * 
+ * ========== LUỒNG / HƯỚNG DẪN ==========
+ * Controller này quản lý các biến thể (size, màu sắc, giá riêng, tồn kho)
+ * của từng sản phẩm. Biến thể cho phép một sản phẩm có nhiều tùy chọn.
+ * 
+ * Tất cả route bắt đầu bằng /admin/san-pham/{productId}/bien-the
+ * View templates nằm trong: /WEB-INF/views/admin/variant/
+ * Sử dụng AdminVariantService để xử lý nghiệp vụ.
+ * 
+ * ★ TODO [Phạm Văn D]: @GetMapping("/admin/san-pham/{productId}/bien-the") — Danh sách
+ *   - Hiển thị danh sách biến thể của một sản phẩm
+ *   - Hiển thị thông tin: size, màu sắc, giá, tồn kho, trạng thái
+ *   - Cho phép thêm mới / sửa / xóa ngay trên bảng (AJAX) hoặc form riêng
+ *   - Trả về view: "admin/variant/list"
+ * 
+ * ★ TODO [Phạm Văn D]: @GetMapping("/admin/san-pham/{productId}/bien-the/them-moi") — Form thêm
+ *   - Form thêm biến thể mới
+ *   - Các trường: size, color, price (mặc định = giá sản phẩm), stock, status
+ *   - Trả về view: "admin/variant/form"
+ * 
+ * ★ TODO [Phạm Văn D]: @PostMapping("/admin/san-pham/{productId}/bien-the/them-moi") — Xử lý thêm
+ *   - Validate dữ liệu (price > 0, stock >= 0)
+ *   - Kiểm tra trùng lặp (size + color đã tồn tại cho product này chưa)
+ *   - Lưu qua AdminVariantService
+ *   - Redirect về /admin/san-pham/{productId}/bien-the
+ * 
+ * ★ TODO [Phạm Văn D]: @GetMapping("/admin/san-pham/{productId}/bien-the/sua/{id}") — Form sửa
+ *   - Load biến thể theo id
+ *   - Điền sẵn dữ liệu vào form
+ *   - Trả về view: "admin/variant/form"
+ * 
+ * ★ TODO [Phạm Văn D]: @PostMapping("/admin/san-pham/{productId}/bien-the/sua/{id}") — Xử lý sửa
+ *   - Update biến thể
+ *   - Redirect về danh sách
+ * 
+ * ★ TODO [Phạm Văn D]: @PostMapping("/admin/san-pham/{productId}/bien-the/xoa/{id}") — Xóa
+ *   - Xóa biến thể
+ *   - Redirect về danh sách
+ * 
+ * ⚠ Lưu ý:
+ *   - Một sản phẩm có thể có nhiều biến thể (size S, M, L — màu đỏ, xanh...)
+ *   - Giá biến thể có thể khác giá sản phẩm gốc (tính năng nâng cao)
+ *   - Cần kiểm tra tồn kho trước khi cho phép đặt hàng
+ *   - Có thể implement quick-edit (AJAX) để cập nhật stock nhanh
+ */
 @Controller
-@RequestMapping("/admin/bien-the")
+@RequestMapping("/admin/san-pham/{productId}/bien-the")
 public class AdminVariantController {
-
-    private final AdminVariantService variantService;
-
-    public AdminVariantController(AdminVariantService variantService) {
-        this.variantService = variantService;
-    }
-
-    @GetMapping("/them-moi/{productId}")
-    public String createForm(@PathVariable Integer productId, Model model) {
-        ProductVariantFormDTO dto = new ProductVariantFormDTO();
-        dto.setProductId(productId);
-        model.addAttribute("variant", dto);
-        model.addAttribute("title", "san-pham");
-        return "view/admin/productvariant/variant-form";
-    }
-
-    @PostMapping("/them-moi")
-    public String create(@Valid ProductVariantFormDTO dto, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("title", "san-pham");
-            return "view/admin/productvariant/variant-form";
-        }
-        var saved = variantService.save(dto);
-        return "redirect:/admin/san-pham/" + saved.getProductId() + "/bien-the?successMsg=Them+bien+the+thanh+cong";
-    }
-
-    @GetMapping("/sua/{id}")
-    public String editForm(@PathVariable Integer id, Model model) {
-        var v = variantService.findById(id);
-        if (v == null) return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+bien+the";
-
-        ProductVariantFormDTO dto = new ProductVariantFormDTO();
-        dto.setId(v.getId());
-        dto.setProductId(v.getProductId());
-        dto.setTenBienThe(v.getTenBienThe());
-        dto.setDungTich(v.getDungTich());
-        dto.setGiaGoc(v.getGiaGoc());
-        dto.setGiaKhuyenMai(v.getGiaKhuyenMai());
-        dto.setSoLuongTon(v.getSoLuongTon());
-        dto.setHinhAnh(v.getHinhAnh());
-        dto.setDefault(v.isDefault());
-
-        model.addAttribute("variant", dto);
-        model.addAttribute("title", "san-pham");
-        return "view/admin/productvariant/variant-form";
-    }
-
-    @PostMapping("/sua/{id}")
-    public String edit(@PathVariable Integer id, @Valid ProductVariantFormDTO dto, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("title", "san-pham");
-            return "view/admin/productvariant/variant-form";
-        }
-        dto.setId(id);
-        var saved = variantService.save(dto);
-        return "redirect:/admin/san-pham/" + saved.getProductId() + "/bien-the?successMsg=Cap+nhat+bien+the+thanh+cong";
-    }
-
-    @GetMapping("/xoa/{id}")
-    public String delete(@PathVariable Integer id) {
-        var v = variantService.findById(id);
-        if (v == null) return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+bien+the";
-        int productId = v.getProductId();
-        variantService.delete(id);
-        return "redirect:/admin/san-pham/" + productId + "/bien-the?successMsg=Da+xoa+bien+the";
-    }
+    
 }
