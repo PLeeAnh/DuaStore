@@ -5,103 +5,60 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <!-- ★ THEME: Inline script CHẠY NGAY trước render → đọc localStorage
-         set data-theme lên <html> → tránh flash trắng/sáng khi reload.
-         Key localStorage: 'duastore-theme' (dùng chung với admin). -->
     <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('duastore-theme')||'light')</script>
-    <!--
-        Tiêu đề tự ghép: trang con đặt <title>X</title> → kết quả "X — DuaStore"
-    -->
     <title layout:title-pattern="$CONTENT_TITLE — DuaStore">DuaStore</title>
 
-    <!-- Bootstrap 5.3 -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
-    <!-- SwiperJS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
-    <!-- Google Fonts: Dancing Script (logo) + DM Sans (body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;display=swap"/>
-    <!-- CSS chính -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
-    <!-- [SLOT] Trang con thêm CSS / meta riêng -->
     <th:block layout:fragment="extra-head"></th:block>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════
-     NAVBAR
-     Design: nền đen, logo cursive, mega dropdown 2 cột
-════════════════════════════════════════════════════ -->
 <nav class="ds-navbar navbar navbar-expand-lg">
     <div class="container-xl">
         <div class="d-flex align-items-center w-100 gap-3">
 
-            <!-- ═══════════════════════════════════════════
-                 EDIT TOGGLE TẠI ĐÂY — nút </> / ✕
-                 Thay đổi icon, style, vị trí tại đây
-                 ═══════════════════════════════════════════ -->
-            <button class="ds-nav-toggle" id="dsNavToggle"
-                    type="button" aria-label="Mở menu">
+            <button class="ds-nav-toggle" id="dsNavToggle" type="button" aria-label="Mở menu">
                 <span class="ds-toggle-text" id="dsToggleIcon">&lt;/&gt;</span>
             </button>
-            <!-- ═══════════════════════════════════════════
-                 KẾT THÚC EDIT TOGGLE
-                 ═══════════════════════════════════════════ -->
-
-            <!-- Logo -->
             <a class="ds-logo me-auto me-lg-0" th:href="@{/}">DuaStore</a>
 
-            <!-- Desktop nav (hidden on mobile) -->
             <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavDesktop">
                 <li><a class="ds-nav-link-desktop" th:href="@{/}">Giới thiệu</a></li>
                 <li class="dropdown">
-                    <a class="ds-nav-link-desktop ds-has-dropdown" href="#"
-                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="ds-nav-link-desktop ds-has-dropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Sản phẩm <i class="bi bi-chevron-down ds-chevron"></i>
                     </a>
                     <div class="ds-mega dropdown-menu p-0">
                         <div class="ds-mega-body">
                             <div class="ds-mega-col">
-                                <th:block th:if="${not #lists.isEmpty(navCategories)}">
-                                    <a class="ds-mega-item" th:each="cat : ${navCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}">
-                                        <span class="ds-mega-icon"><i class="bi bi-grid-3x3-gap"></i></span>
-                                        <span class="ds-mega-text"><strong th:text="${cat.tenDanhMuc}">Danh muc</strong><small th:text="${cat.moTa ?: 'Xem san pham theo danh muc'}">Mo ta</small></span>
-                                    </a>
-                                </th:block>
                                 <div class="ds-mega-label">Danh mục</div>
-                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
+                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='chai')}">
                                     <span class="ds-mega-icon"><i class="bi bi-box-seam"></i></span>
                                     <span class="ds-mega-text"><strong>Chai thủy tinh</strong><small>Rượu, nước hoa, thực phẩm</small></span>
                                 </a>
-                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
+                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='hu')}">
                                     <span class="ds-mega-icon"><i class="bi bi-archive"></i></span>
                                     <span class="ds-mega-text"><strong>Hũ thủy tinh</strong><small>Đồ khô, gia vị, bảo quản</small></span>
                                 </a>
-                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
+                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='binh')}">
                                     <span class="ds-mega-icon"><i class="bi bi-stars"></i></span>
                                     <span class="ds-mega-text"><strong>Bình trang trí</strong><small>Bình hoa, decor, pha lê</small></span>
                                 </a>
                             </div>
                             <div class="ds-mega-col">
-                                <th:block th:each="cat : ${navCategories}">
-                                    <a class="ds-mega-item" th:each="child : ${cat.children}" th:if="${child.active}" th:href="@{/san-pham(danhMuc=${child.id})}">
-                                        <span class="ds-mega-icon"><i class="bi bi-arrow-return-right"></i></span>
-                                        <span class="ds-mega-text"><strong th:text="${child.tenDanhMuc}">Danh muc con</strong><small th:text="${cat.tenDanhMuc}">Danh muc cha</small></span>
-                                    </a>
-                                </th:block>
                                 <div class="ds-mega-label">Bộ sưu tập</div>
-                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
+                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='ly')}">
                                     <span class="ds-mega-icon"><i class="bi bi-cup-hot"></i></span>
                                     <span class="ds-mega-text"><strong>Ly &amp; Cốc</strong><small>Rượu vang, whisky, champagne</small></span>
                                 </a>
-                                <a class="ds-mega-item" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
+                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='qua-tang')}">
                                     <span class="ds-mega-icon"><i class="bi bi-gift"></i></span>
                                     <span class="ds-mega-text"><strong>Bộ quà tặng</strong><small>Set sinh nhật, cưới hỏi</small></span>
                                 </a>
@@ -119,83 +76,40 @@
                 <li><a class="ds-nav-link-desktop" th:href="@{/blog}">Blog</a></li>
                 <li><a class="ds-nav-link-desktop" th:href="@{/lien-he}">Liên hệ</a></li>
             </ul>
-            <!-- /Desktop nav -->
 
-            <!-- ═══════════════════════════════════════════
-                 EDIT MOBILE PANEL TẠI ĐÂY — panel trượt bên trái
-                 ═══════════════════════════════════════════ -->
             <div class="ds-nav-overlay" id="dsNavOverlay"></div>
             <div class="ds-nav-panel" id="dsNavPanel">
                 <div class="ds-nav-panel-header">
                     <a class="ds-logo-panel" th:href="@{/}">DuaStore</a>
                 </div>
                 <ul class="ds-nav-list">
-            <!-- ═══════════════════════════════════════════
-                 KẾT THÚC EDIT MOBILE PANEL
-                 ═══════════════════════════════════════════ -->
-
                     <li class="ds-nav-item">
                         <a class="ds-nav-link" th:href="@{/}">
-                            <i class="bi bi-house"></i>
-                            <span>Giới thiệu</span>
+                            <i class="bi bi-house"></i> <span>Giới thiệu</span>
                         </a>
                     </li>
-
-                    <!-- Sản phẩm với sub-menu -->
                     <li class="ds-nav-item ds-has-sub">
                         <a class="ds-nav-link ds-sub-toggle" href="#">
-                            <i class="bi bi-box-seam"></i>
-                            <span>Sản phẩm</span>
-                            <i class="bi bi-chevron-down ds-chevron ms-auto"></i>
+                            <i class="bi bi-box-seam"></i> <span>Sản phẩm</span> <i class="bi bi-chevron-down ds-chevron ms-auto"></i>
                         </a>
                         <div class="ds-sub-menu">
-                            <th:block th:if="${not #lists.isEmpty(navCategories)}">
-                                <a class="ds-sub-link" th:each="cat : ${navCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}">
-                                    <i class="bi bi-grid-3x3-gap"></i> <span th:text="${cat.tenDanhMuc}">Danh muc</span>
-                                </a>
-                            </th:block>
-                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
-                                <i class="bi bi-box-seam"></i> Chai thủy tinh
-                            </a>
-                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
-                                <i class="bi bi-archive"></i> Hũ thủy tinh
-                            </a>
-                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
-                                <i class="bi bi-stars"></i> Bình trang trí
-                            </a>
-                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
-                                <i class="bi bi-cup-hot"></i> Ly &amp; Cốc
-                            </a>
-                            <a class="ds-sub-link" th:if="${#lists.isEmpty(navCategories)}" th:href="@{/san-pham}">
-                                <i class="bi bi-gift"></i> Bộ quà tặng
-                            </a>
-                            <a class="ds-sub-link ds-sub-all" th:href="@{/san-pham}">
-                                <i class="bi bi-grid"></i> Tất cả sản phẩm
-                            </a>
+                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='chai')}"><i class="bi bi-box-seam"></i> Chai thủy tinh</a>
+                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='hu')}"><i class="bi bi-archive"></i> Hũ thủy tinh</a>
+                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='binh')}"><i class="bi bi-stars"></i> Bình trang trí</a>
+                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='ly')}"><i class="bi bi-cup-hot"></i> Ly &amp; Cốc</a>
+                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='qua-tang')}"><i class="bi bi-gift"></i> Bộ quà tặng</a>
+                            <a class="ds-sub-link ds-sub-all" th:href="@{/san-pham}"><i class="bi bi-grid"></i> Tất cả sản phẩm</a>
                         </div>
                     </li>
-
                     <li class="ds-nav-item">
-                        <a class="ds-nav-link" th:href="@{/blog}">
-                            <i class="bi bi-newspaper"></i>
-                            <span>Blog</span>
-                        </a>
+                        <a class="ds-nav-link" th:href="@{/blog}"><i class="bi bi-newspaper"></i> <span>Blog</span></a>
                     </li>
-
                     <li class="ds-nav-item">
-                        <a class="ds-nav-link" th:href="@{/lien-he}">
-                            <i class="bi bi-envelope"></i>
-                            <span>Liên hệ</span>
-                        </a>
+                        <a class="ds-nav-link" th:href="@{/lien-he}"><i class="bi bi-envelope"></i> <span>Liên hệ</span></a>
                     </li>
-
                 </ul>
 
                 <div class="ds-nav-panel-footer">
-
-                    <!-- ★ PROFILE MOBILE (logged in)
-                         Giống desktop dropdown nhưng ở dạng nav link trong panel
-                         Backend cần set session: loggedIn, userName, userEmail, userInitial -->
                     <div class="ds-panel-profile" th:if="${session.loggedIn}">
                         <div class="ds-panel-profile-header">
                             <span class="ds-profile-avatar" th:text="${session.userInitial}">A</span>
@@ -210,65 +124,101 @@
                         <a class="ds-nav-link" href="#"><i class="bi bi-gear"></i><span>Cài đặt</span></a>
                         <a class="ds-nav-link ds-nav-logout" th:href="@{/dang-xuat}"><i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span></a>
                     </div>
-
-                    <!-- ★ NON-LOGGED-IN: Yêu thích, Giỏ hàng, Đăng nhập, Đăng ký -->
                     <th:block th:unless="${session.loggedIn}">
-                        <a class="ds-nav-link" th:href="@{/wishlist}">
-                            <i class="bi bi-heart"></i>
-                            <span>Yêu thích</span>
-                        </a>
-                        <a class="ds-nav-link" th:href="@{/gio-hang}">
-                            <i class="bi bi-bag"></i>
-                            <span>Giỏ hàng</span>
-                        </a>
+                        <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-heart"></i> <span>Yêu thích</span></a>
+                        <a class="ds-nav-link" th:href="@{/gio-hang}"><i class="bi bi-bag"></i> <span>Giỏ hàng</span></a>
                         <div class="ds-nav-auth mt-2">
                             <a class="ds-btn-outline d-block text-center" th:href="@{/dang-nhap}">Đăng nhập</a>
                             <a class="ds-btn-fill d-block text-center mt-1" th:href="@{/dang-ky}">Đăng ký</a>
                         </div>
                     </th:block>
-
                 </div>
             </div>
-            <!-- /mobile panel -->
 
-            <!-- ═══════════════════════════════════════════
-                 Right: Search + icon actions + auth buttons
-                 EDIT TOGGLE TẠI ĐÂY — search nếu muốn thay đổi
-                 ═══════════════════════════════════════════ -->
+            <!-- RIGHT NAVBAR: SEARCH & POPUPS -->
             <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">
-
-                <!-- Search (luôn hiện) -->
                 <form th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
                     <i class="bi bi-search"></i>
-                    <input type="search" name="keyword"
-                           class="ds-search-inline-input"
-                           placeholder="Tìm sản phẩm..."
-                           th:value="${param.keyword}"
-                           aria-label="Tìm kiếm"/>
+                    <input type="search" name="keyword" class="ds-search-inline-input" placeholder="Tìm sản phẩm..." th:value="${param.keyword}" aria-label="Tìm kiếm"/>
                 </form>
 
-                <!-- Wishlist -->
-                <a class="ds-icon-btn" th:href="@{/wishlist}"
-                   title="Danh sách yêu thích" aria-label="Yêu thích">
-                    <i class="bi bi-heart"></i>
-                </a>
+                <!-- NÚT YÊU THÍCH -->
+                <div class="position-relative d-inline-block">
+                    <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup')" title="Danh sách yêu thích" aria-label="Yêu thích">
+                        <i class="bi bi-heart"></i>
+                    </button>
+                    <!-- POPUP YÊU THÍCH -->
+                    <div id="wishlist-popup" class="custom-popup">
+                        <h6 class="border-bottom pb-2 mb-0 fw-bold">Sản phẩm yêu thích</h6>
+                        <div id="wishlist-items-container">
+                            <div th:if="${#lists.isEmpty(myWishlist)}" class="text-center py-4 text-muted">
+                                <i class="bi bi-heartbreak" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">Chưa có sản phẩm nào</p>
+                            </div>
+                            <div th:each="item : ${myWishlist}" class="popup-item" th:id="'wishlist-item-' + ${item.productId}">
+                                <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <img th:if="${item.hinhAnhHienThi != null}" th:src="@{${item.hinhAnhHienThi}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
+                                    <i th:unless="${item.hinhAnhHienThi != null}" class="bi bi-box-seam text-secondary"></i>
+                                </div>
+                                <div class="popup-item-info">
+                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
+                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
+                                    <button class="btn btn-sm btn-outline-primary mt-2 w-100" th:onclick="'addToCartFromWishlist(' + ${item.productId} + ', null)'">
+                                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                    </button>
+                                </div>
+                                <button class="btn-delete-item" th:onclick="'removeWishlist(' + ${item.productId} + ')'" title="Xóa">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                <!-- Giỏ hàng + badge -->
-                <a class="ds-icon-btn ds-cart-wrap" th:href="@{/gio-hang}"
-                   title="Giỏ hàng" aria-label="Giỏ hàng">
-                    <i class="bi bi-bag"></i>
-                    <span id="cartBadge"
-                          class="ds-cart-badge"
-                          th:text="${cartCount != null ? cartCount : 0}"
-                          th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}">
-                        0
-                    </span>
-                </a>
+                <!-- NÚT GIỎ HÀNG -->
+                <div class="position-relative d-inline-block ds-cart-wrap">
+                    <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
+                        <i class="bi bi-bag"></i>
+                        <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}">0</span>
+                    </button>
+                    <!-- POPUP GIỎ HÀNG -->
+                    <!-- POPUP GIỎ HÀNG -->
+                    <div id="cart-popup" class="custom-popup">
+                        <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
+                        
+                        <div id="cart-items-container">
+                            <!-- Hiển thị khi giỏ hàng trống trống -->
+                            <div th:if="${#lists.isEmpty(myCart)}" class="text-center py-4 text-muted">
+                                <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">Giỏ hàng trống</p>
+                            </div>
+                            
+                            <!-- Vòng lặp quét danh sách sản phẩm từ DB ra màn hình khi F5 -->
+                            <div th:each="item : ${myCart}" class="popup-item" th:id="'cart-item-' + ${item.productId}">
+                                <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <img th:if="${item.hinhAnhHienThi != null}" th:src="@{${item.hinhAnhHienThi}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
+                                    <i th:unless="${item.hinhAnhHienThi != null}" class="bi bi-box-seam text-secondary"></i>
+                                </div>
+                                <div class="popup-item-info">
+                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block" style="max-width: 180px;">Tên SP</a>
+                                    <div class="mt-1">
+                                        Số lượng: <span th:text="${item.soLuong}">1</span> x 
+                                        <span class="text-danger fw-semibold" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</span>
+                                    </div>
+                                </div>
+                                <button class="btn-delete-item" th:onclick="'removeCartItem(' + ${item.productId} + ')'" title="Xóa khỏi giỏ">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 pt-3 border-top">
+                            <a th:href="@{/gio-hang}" class="btn btn-primary w-100 fw-semibold">Thanh toán tất cả</a>
+                        </div>
+                    </div>
+                </div>
 
-                <!-- ★ PROFILE / LOGIN (desktop)
-                     session.loggedIn == true → avatar + dropdown (HS, Hoạt động, Đã lưu, Cài đặt, Theme, ĐX)
-                     session.loggedIn == false/null → nút "Đăng nhập"
-                     Backend set session: loggedIn, userName, userEmail, userInitial -->
+                <!-- PROFILE -->
                 <div class="ds-profile-wrap d-none d-lg-flex align-items-center" th:if="${session.loggedIn}">
                     <button class="ds-profile-trigger" id="dsProfileTrigger" type="button">
                         <span class="ds-profile-avatar" th:text="${session.userInitial}">A</span>
@@ -290,197 +240,108 @@
                         <a class="ds-profile-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
                         <div class="ds-profile-divider"></div>
                         <a class="ds-profile-link" href="#" id="dsProfileThemeToggle">
-                            <i class="bi bi-moon-stars" id="dsProfileThemeIcon"></i>
-                            <span id="dsProfileThemeLabel">Chế độ tối</span>
+                            <i class="bi bi-moon-stars" id="dsProfileThemeIcon"></i> <span id="dsProfileThemeLabel">Chế độ tối</span>
                         </a>
                         <div class="ds-profile-divider"></div>
                         <a class="ds-profile-link ds-profile-logout" th:href="@{/dang-xuat}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
                     </div>
                 </div>
                 <a class="ds-btn-login d-none d-lg-inline-flex align-items-center gap-1" th:href="@{/dang-nhap}" th:unless="${session.loggedIn}">
-                    <i class="bi bi-person"></i>
-                    <span>Đăng nhập</span>
+                    <i class="bi bi-person"></i> <span>Đăng nhập</span>
                 </a>
-                <!-- ═══════════════════════════════════════════
-                     END PROFILE / LOGIN
-                     ═══════════════════════════════════════════ -->
 
             </div>
-            <!-- ═══════════════════════════════════════════
-                 KẾT THÚC EDIT TOGGLE — Right section
-                 ═══════════════════════════════════════════ -->
         </div>
-
-    </div><!-- /container-xl -->
+    </div>
 </nav>
 
-                <!-- ★ FLASH MESSAGES — successMsg/errorMsg → tự ẩn sau 5s (main.js:118-125) -->
-<div class="container-xl px-4"
-     th:if="${successMsg != null or errorMsg != null}">
-    <div th:if="${successMsg}"
-         class="alert alert-success alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <span th:text="${successMsg}"></span>
+<div class="container-xl px-4" th:if="${successMsg != null or errorMsg != null}">
+    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show mt-3 mb-0" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMsg}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
     </div>
-    <div th:if="${errorMsg}"
-         class="alert alert-danger alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <span th:text="${errorMsg}"></span>
+    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show mt-3 mb-0" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMsg}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
     </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════
-     NỘI DUNG CHÍNH
-     Trang con replace nội dung bên trong fragment này
-════════════════════════════════════════════════════ -->
 <main id="main-content">
-    <th:block layout:fragment="content">
-        <!-- Trang con sẽ inject nội dung vào đây -->
-    </th:block>
+    <th:block layout:fragment="content"></th:block>
 </main>
 
-<!-- ════════════════════════════════════════════════════
-     FOOTER
-     Design: nội dung nằm trong card bo góc + copyright row
-════════════════════════════════════════════════════ -->
 <footer class="ds-footer">
     <div class="container-xl">
-
-        <!-- Card chứa nội dung footer -->
         <div class="ds-footer-card">
             <div class="row g-5">
-
-                <!-- Trái: Logo + địa chỉ + social -->
                 <div class="col-12 col-lg-4">
                     <div class="ds-footer-logo">DuaStore</div>
-
-                    <div class="mt-4">
-                        <p class="ds-footer-info-label">Địa chỉ</p>
-                        <p class="ds-footer-info-val">Hải Phòng, Việt Nam</p>
-                    </div>
-
+                    <div class="mt-4"><p class="ds-footer-info-label">Địa chỉ</p><p class="ds-footer-info-val">Hải Phòng, Việt Nam</p></div>
                     <div class="mt-3">
                         <p class="ds-footer-info-label">Liên hệ</p>
-                        <p class="ds-footer-info-val">
-                            <a href="tel:0901234567">0901 234 567</a>
-                        </p>
-                        <p class="ds-footer-info-val">
-                            <a href="mailto:hello@dua.store">hello@dua.store</a>
-                        </p>
+                        <p class="ds-footer-info-val"><a href="tel:0901234567">0901 234 567</a></p>
+                        <p class="ds-footer-info-val"><a href="mailto:hello@dua.store">hello@dua.store</a></p>
                     </div>
-
                     <div class="ds-footer-socials mt-4">
-                        <a href="#" aria-label="Facebook">
-                            <i class="bi bi-facebook"></i>
-                        </a>
-                        <a href="#" aria-label="Instagram">
-                            <i class="bi bi-instagram"></i>
-                        </a>
-                        <a href="#" aria-label="TikTok">
-                            <i class="bi bi-tiktok"></i>
-                        </a>
-                        <a href="#" aria-label="Zalo">
-                            <i class="bi bi-chat-dots-fill"></i>
-                        </a>
-                        <a href="#" aria-label="YouTube">
-                            <i class="bi bi-youtube"></i>
-                        </a>
+                        <a href="#"><i class="bi bi-facebook"></i></a> <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-tiktok"></i></a> <a href="#"><i class="bi bi-chat-dots-fill"></i></a>
+                        <a href="#"><i class="bi bi-youtube"></i></a>
                     </div>
                 </div>
-
-                <!-- Phải: 4 cột link -->
                 <div class="col-12 col-lg-8">
                     <div class="row g-4">
-
                         <div class="col-6 col-md-3">
                             <h6 class="ds-footer-col-title">Cửa hàng</h6>
                             <ul class="ds-footer-links">
-                                <li><a th:href="@{/}">Trang chủ</a></li>
-                                <li><a th:href="@{/san-pham}">Sản phẩm</a></li>
-                                <li><a th:href="@{/blog}">Blog</a></li>
-                                <li><a th:href="@{/lien-he}">Liên hệ</a></li>
+                                <li><a th:href="@{/}">Trang chủ</a></li> <li><a th:href="@{/san-pham}">Sản phẩm</a></li>
+                                <li><a th:href="@{/blog}">Blog</a></li> <li><a th:href="@{/lien-he}">Liên hệ</a></li>
                             </ul>
                         </div>
-
                         <div class="col-6 col-md-3">
                             <h6 class="ds-footer-col-title">Danh mục</h6>
                             <ul class="ds-footer-links">
-                                <li><a th:href="@{/san-pham}">Chai thủy tinh</a></li>
-                                <li><a th:href="@{/san-pham}">Hũ thủy tinh</a></li>
-                                <li><a th:href="@{/san-pham}">Bình trang trí</a></li>
-                                <li><a th:href="@{/san-pham}">Ly &amp; Cốc</a></li>
+                                <li><a th:href="@{/san-pham}">Chai thủy tinh</a></li> <li><a th:href="@{/san-pham}">Hũ thủy tinh</a></li>
+                                <li><a th:href="@{/san-pham}">Bình trang trí</a></li> <li><a th:href="@{/san-pham}">Ly &amp; Cốc</a></li>
                                 <li><a th:href="@{/san-pham}">Quà tặng</a></li>
                             </ul>
                         </div>
-
                         <div class="col-6 col-md-3">
                             <h6 class="ds-footer-col-title">Hỗ trợ</h6>
                             <ul class="ds-footer-links">
-                                <li><a href="#">Hướng dẫn mua hàng</a></li>
-                                <li><a href="#">Chính sách đổi trả</a></li>
-                                <li><a href="#">Chính sách vận chuyển</a></li>
-                                <li><a href="#">Bảo hành sản phẩm</a></li>
+                                <li><a href="#">Hướng dẫn mua hàng</a></li> <li><a href="#">Chính sách đổi trả</a></li>
+                                <li><a href="#">Chính sách vận chuyển</a></li> <li><a href="#">Bảo hành sản phẩm</a></li>
                             </ul>
                         </div>
-
                         <div class="col-6 col-md-3">
                             <h6 class="ds-footer-col-title">Về chúng tôi</h6>
                             <ul class="ds-footer-links">
-                                <li><a href="#">Câu chuyện DuaStore</a></li>
-                                <li><a href="#">Chứng nhận chất lượng</a></li>
-                                <li><a href="#">Đối tác &amp; Bán sỉ</a></li>
-                                <li><a href="#">Tuyển dụng</a></li>
+                                <li><a href="#">Câu chuyện DuaStore</a></li> <li><a href="#">Chứng nhận chất lượng</a></li>
+                                <li><a href="#">Đối tác &amp; Bán sỉ</a></li> <li><a href="#">Tuyển dụng</a></li>
                             </ul>
                         </div>
-
                     </div>
-                </div>
-
-            </div>
-        </div><!-- /ds-footer-card -->
-
-        <!-- Copyright row -->
-            <div class="ds-footer-bottom">
-                <span>© 2026 DuaStore. All rights reserved.</span>
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <div class="ds-footer-legal">
-                    <a href="#">Chính sách bảo mật</a>
-                    <a href="#">Điều khoản dịch vụ</a>
-                    <a href="#">Cookie</a>
                 </div>
             </div>
         </div>
-
-    </div><!-- /container-xl -->
+        <div class="ds-footer-bottom">
+            <span>© 2026 DuaStore. All rights reserved.</span>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="ds-footer-legal">
+                    <a href="#">Chính sách bảo mật</a> <a href="#">Điều khoản dịch vụ</a> <a href="#">Cookie</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </footer>
 
-<!-- Zalo float -->
-<a href="https://zalo.me/0901234567"
-   target="_blank"
-   rel="noopener noreferrer"
-   class="ds-float-zalo"
-   title="Chat Zalo"
-   aria-label="Liên hệ Zalo">
-    <i class="bi bi-chat-dots-fill"></i>
-</a>
+<a href="https://zalo.me/0901234567" target="_blank" rel="noopener noreferrer" class="ds-float-zalo" title="Chat Zalo" aria-label="Liên hệ Zalo"><i class="bi bi-chat-dots-fill"></i></a>
+<button class="ds-float-top" id="backTopBtn" style="display:none" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Lên đầu trang"><i class="bi bi-chevron-up"></i></button>
 
-<!-- Back to top -->
-<button class="ds-float-top" id="backTopBtn"
-        style="display:none"
-        onclick="window.scrollTo({top:0,behavior:'smooth'})"
-        aria-label="Lên đầu trang">
-    <i class="bi bi-chevron-up"></i>
-</button>
-
-<!-- ★ SCRIPTS — thứ tự: Bootstrap → SwiperJS → ScrollReveal → main.js (thêm thư viện trước main.js) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
 <script th:src="@{/js/main.js}"></script>
 
-<!-- [SLOT] Trang con thêm script riêng -->
 <th:block layout:fragment="extra-script"></th:block>
 
 </body>
