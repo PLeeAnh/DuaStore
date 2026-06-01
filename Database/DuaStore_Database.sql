@@ -105,7 +105,6 @@ CREATE TABLE Categories (
     id              INT            IDENTITY(1,1)  NOT NULL,
     tenDanhMuc      NVARCHAR(100)                 NOT NULL,
     moTa            NVARCHAR(500)                 NULL,
-    hinhAnh         NVARCHAR(255)                 NULL,    -- Anh dai dien cho danh muc
     parentId        INT                           NULL,    -- NULL = danh muc goc (cap 1)
     thuTuHienThi    INT                           NOT NULL DEFAULT 0,  -- Sort order tren menu
     isActive        BIT                           NOT NULL DEFAULT 1,

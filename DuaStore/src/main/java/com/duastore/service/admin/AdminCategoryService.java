@@ -40,7 +40,6 @@ public class AdminCategoryService {
         dto.setId(category.getId());
         dto.setTenDanhMuc(category.getTenDanhMuc());
         dto.setMoTa(category.getMoTa());
-        dto.setHinhAnh(category.getHinhAnh());
         dto.setThuTuHienThi(category.getThuTuHienThi());
         dto.setActive(category.isActive());
         if (category.getParent() != null) {
@@ -57,7 +56,6 @@ public class AdminCategoryService {
 
         category.setTenDanhMuc(dto.getTenDanhMuc());
         category.setMoTa(dto.getMoTa());
-        category.setHinhAnh(dto.getHinhAnh());
         category.setThuTuHienThi(dto.getThuTuHienThi() == null ? 0 : dto.getThuTuHienThi());
         category.setActive(dto.isActive());
 

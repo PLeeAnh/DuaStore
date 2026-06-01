@@ -15,7 +15,6 @@ public class Category {
     private String tenDanhMuc;
 
     private String moTa;
-    private String hinhAnh;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parentId")
