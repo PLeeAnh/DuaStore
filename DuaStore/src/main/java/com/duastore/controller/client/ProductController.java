@@ -9,6 +9,7 @@ import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.ProductService;
+import org.springframework.jdbc.core.JdbcTemplate; // THÊM IMPORT NÀY
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -25,15 +26,19 @@ public class ProductController {
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
+    private final JdbcTemplate jdbcTemplate; // THÊM KHAI BÁO NÀY
 
+    // Cập nhật constructor để tự động inject thêm JdbcTemplate
     public ProductController(ProductService productService,
-                              ProductVariantRepository variantRepository,
-                              ProductImageRepository productImageRepository,
-                              CategoryRepository categoryRepository) {
+                             ProductVariantRepository variantRepository,
+                             ProductImageRepository productImageRepository,
+                             CategoryRepository categoryRepository,
+                             JdbcTemplate jdbcTemplate) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
         this.categoryRepository = categoryRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @GetMapping("/san-pham")
@@ -74,6 +79,15 @@ public class ProductController {
             }
         }
         model.addAttribute("priceMap", priceMap);
+
+        // CODE BỔ SUNG: Lấy danh sách ID sản phẩm đã yêu thích để bôi đỏ icon trái tim ở trang danh sách
+        try {
+            Integer userId = 2; // Gán cứng tài khoản Nguyễn Văn An (id=2) để test
+            List<Integer> likedIds = jdbcTemplate.queryForList("SELECT productId FROM Wishlists WHERE userId = ?", Integer.class, userId);
+            model.addAttribute("likedIds", likedIds);
+        } catch (Exception e) {
+            System.out.println("Lỗi đọc likedIds ở trang danh sách sản phẩm: " + e.getMessage());
+        }
 
         return "view/client/product/product-list";
     }
@@ -117,6 +131,15 @@ public class ProductController {
             grouped.computeIfAbsent(capType, k -> new ArrayList<>()).add(v);
         }
         model.addAttribute("groupedVariants", grouped);
+
+        // CODE BỔ SUNG: Lấy danh sách ID sản phẩm đã yêu thích để bôi đỏ icon trái tim ở trang chi tiết
+        try {
+            Integer userId = 2; // Gán cứng tài khoản Nguyễn Văn An (id=2) để test
+            List<Integer> likedIds = jdbcTemplate.queryForList("SELECT productId FROM Wishlists WHERE userId = ?", Integer.class, userId);
+            model.addAttribute("likedIds", likedIds);
+        } catch (Exception e) {
+            System.out.println("Lỗi đọc likedIds ở trang chi tiết sản phẩm: " + e.getMessage());
+        }
 
         return "view/client/product/product-detail";
     }
