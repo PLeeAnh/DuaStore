@@ -1,27 +1,50 @@
 <!DOCTYPE html>
-<html lang="vi"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
-      layout:decorate="~{layout/client/base}">
-    <head>
-        <title>Sổ địa chỉ — DuaStore</title>
-    </head>
-    <body>
-    <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Địa chỉ]: Implement trang sổ địa chỉ (danh sách địa chỉ giao hàng của user)
-                 Cấu trúc gợi ý:
-                 - Tiêu đề: "Sổ địa chỉ" + nút "Thêm địa chỉ mới"
-                 - Danh sách các thẻ địa chỉ (dạng card hoặc list group)
-                 - Mỗi thẻ: Họ tên, SĐT, Địa chỉ đầy đủ, badge "Mặc định"
-                 - Nút: Sửa / Xóa / Đặt làm mặc định
-                 - Nếu chưa có: thông báo + nút Thêm
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-bookmarks" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang sổ địa chỉ sẽ được cập nhật</p>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net/thymeleaf/layout" layout:decorate="~{layout/client/base}">
+<head><title>Sổ địa chỉ — DuaStore</title></head>
+<body>
+    <div layout:fragment="content" class="container-xl py-5">
+        <div class="row">
+            <div class="col-12 col-lg-8 mx-auto">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="ds-section-title mb-0">Địa chỉ của tôi</h2>
+                    <a th:href="@{/address/new}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm địa chỉ mới
+                    </a>
+                </div>
+                <div th:if="${#lists.isEmpty(addresses)}" class="text-center py-5 bg-light rounded-4 border">
+                    <i class="bi bi-geo-alt text-muted" style="font-size: 3rem;"></i><p class="mt-3 text-muted">Bạn chưa có địa chỉ giao hàng nào.</p>
+                </div>
+                <div class="card border-0 shadow-sm rounded-4 mb-3" th:each="addr : ${addresses}">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold mb-0">
+                                <span th:text="${addr.tenNguoiNhan}"></span>
+                                <span th:if="${addr.isDefault}" class="badge bg-success ms-2 rounded-pill fw-normal" style="font-size: 0.75rem;">Mặc định</span>
+                            </h5>
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                    <li><a class="dropdown-item" th:href="@{/address/edit/{id}(id=${addr.id})}"><i class="bi bi-pencil me-2 text-primary"></i> Sửa địa chỉ</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form th:action="@{/address/delete/{id}(id=${addr.id})}" method="post" onsubmit="return confirm('Xóa địa chỉ này?');">
+                                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i> Xóa</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-1"><i class="bi bi-telephone me-2"></i> <span th:text="${addr.soDienThoai}"></span></p>
+                        <p class="text-muted mb-3"><i class="bi bi-geo-alt me-2"></i> <span th:text="${addr.diaChiCuThe + ', ' + addr.phuongXa + ', ' + addr.quanHuyen + ', ' + addr.tinhThanh}"></span></p>
+                        <div th:unless="${addr.isDefault}">
+                            <form th:action="@{/address/set-default/{id}(id=${addr.id})}" method="post">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill">Thiết lập mặc định</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    </body>
+</body>
 </html>

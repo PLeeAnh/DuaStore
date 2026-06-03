@@ -1,25 +1,20 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
-    <!-- ★ layout:decorate → nội dung được inject vào fragment "content"
-         của layout/client/base.html. Xem base.html dòng 315-319. -->
     <head>
         <title>Trang chủ — DuaStore</title>
     </head>
     <body>
         <div layout:fragment="content">
 
-            <!-- ★ HERO SWIPER CAROUSEL — SwiperJS (main.js:84-94), fade+loop+autoplay
-                 Backend: mapping @{/san-pham(danhMuc='...')} đến ProductController -->
+            <!-- HERO CAROUSEL -->
             <section class="ds-hero sr-up">
                 <div class="swiper hero-swiper">
                     <div class="swiper-wrapper">
-
-                        <!-- Slide 1 — Chai thủy tinh -->
+                        <!-- Slide 1 -->
                         <div class="swiper-slide hero-slide" style="background: linear-gradient(135deg, #0a0a23 0%, #1a1a4e 40%, #2d1b69 100%);">
                             <div class="hero-bg-shapes">
-                                <div class="hero-blob hero-blob-1"></div>
-                                <div class="hero-blob hero-blob-2"></div>
+                                <div class="hero-blob hero-blob-1"></div><div class="hero-blob hero-blob-2"></div>
                             </div>
                             <div class="container-xl hero-content">
                                 <div class="row align-items-center g-5">
@@ -28,30 +23,23 @@
                                         <h1 class="hero-title">Chai thủy tinh<br/>thủ công cao cấp</h1>
                                         <p class="hero-desc">Từng đường cắt tinh xảo trên chất liệu thủy tinh borosilicate — chịu nhiệt, bền bỉ, sang trọng.</p>
                                         <div class="hero-actions">
-                                            <a th:href="@{/san-pham(danhMuc='chai')}" class="hero-btn hero-btn-primary">
-                                                Khám phá ngay <i class="bi bi-arrow-right ms-2"></i>
-                                            </a>
-                                            <a th:href="@{/san-pham}" class="hero-btn hero-btn-outline">
-                                                Xem tất cả
-                                            </a>
+                                            <a th:href="@{/san-pham(danhMuc='chai')}" class="hero-btn hero-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                            <a th:href="@{/san-pham}" class="hero-btn hero-btn-outline">Xem tất cả</a>
                                         </div>
                                     </div>
                                     <div class="col-12 col-lg-6 hero-img-col">
                                         <div class="hero-glass-card">
-                                            <div class="hero-glass-inner">
-                                                <i class="bi bi-box-seam" style="font-size:4rem;color:rgba(255,255,255,.5);"></i>
-                                            </div>
+                                            <div class="hero-glass-inner"><i class="bi bi-box-seam" style="font-size:4rem;color:rgba(255,255,255,.5);"></i></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Slide 2 — Bộ quà tặng -->
+                        <!-- Slide 2 -->
                         <div class="swiper-slide hero-slide" style="background: linear-gradient(135deg, #1a0a2e 0%, #2d1b69 40%, #4a1942 100%);">
                             <div class="hero-bg-shapes">
-                                <div class="hero-blob hero-blob-1" style="background:#a78bfa;"></div>
-                                <div class="hero-blob hero-blob-2" style="background:#f472b6;"></div>
+                                <div class="hero-blob hero-blob-1" style="background:#a78bfa;"></div><div class="hero-blob hero-blob-2" style="background:#f472b6;"></div>
                             </div>
                             <div class="container-xl hero-content">
                                 <div class="row align-items-center g-5">
@@ -60,25 +48,18 @@
                                         <h1 class="hero-title">Set quà tặng<br/>cao cấp tinh tế</h1>
                                         <p class="hero-desc">Gói quà sang trọng kèm thiệp viết tay — dành cho những món quà đặc biệt.</p>
                                         <div class="hero-actions">
-                                            <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="hero-btn hero-btn-primary">
-                                                Khám phá ngay <i class="bi bi-arrow-right ms-2"></i>
-                                            </a>
-                                            <a th:href="@{/san-pham}" class="hero-btn hero-btn-outline">
-                                                Xem tất cả
-                                            </a>
+                                            <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="hero-btn hero-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                            <a th:href="@{/san-pham}" class="hero-btn hero-btn-outline">Xem tất cả</a>
                                         </div>
                                     </div>
                                     <div class="col-12 col-lg-6 hero-img-col">
                                         <div class="hero-glass-card">
-                                            <div class="hero-glass-inner">
-                                                <i class="bi bi-gift" style="font-size:4rem;color:rgba(255,255,255,.5);"></i>
-                                            </div>
+                                            <div class="hero-glass-inner"><i class="bi bi-gift" style="font-size:4rem;color:rgba(255,255,255,.5);"></i></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                     <div class="container-xl hero-content" style="padding-top:0;">
                         <div class="hero-pagination" style="text-align:center;margin-top:-40px;position:relative;z-index:2;"></div>
@@ -86,44 +67,19 @@
                 </div>
             </section>
 
-            <!-- ★ FEATURES STRIP — Grid 4 cột (mobile 2), icon + title + desc, hover lift -->
+            <!-- FEATURES STRIP -->
             <section class="ds-features sr-up">
                 <div class="container-xl">
                     <div class="row g-3">
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-truck"></i>
-                                <span>Miễn phí vận chuyển</span>
-                                <small>Cho đơn trên 500K</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Đổi trả 7 ngày</span>
-                                <small>Hoàn tiền 100%</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-shield-check"></i>
-                                <span>Bảo hành chính hãng</span>
-                                <small>Sản phẩm cao cấp</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-lg-3">
-                            <div class="ds-feature-card">
-                                <i class="bi bi-headset"></i>
-                                <span>Hỗ trợ 24/7</span>
-                                <small>Hotline 1900...</small>
-                            </div>
-                        </div>
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-truck"></i><span>Miễn phí vận chuyển</span><small>Cho đơn trên 500K</small></div></div>
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-arrow-counterclockwise"></i><span>Đổi trả 7 ngày</span><small>Hoàn tiền 100%</small></div></div>
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-shield-check"></i><span>Bảo hành chính hãng</span><small>Sản phẩm cao cấp</small></div></div>
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-headset"></i><span>Hỗ trợ 24/7</span><small>Hotline 1900...</small></div></div>
                     </div>
                 </div>
             </section>
 
-            <!-- ★ SẢN PHẨM NỔI BẬT — SwiperJS (main.js:258-271), 1/2/4 slide, "Thêm vào giỏ" → AJAX POST /api/cart/add
-                 Backend: dữ liệu động từ DB + API /api/cart/add trả JSON {cartCount} -->
+            <!-- SẢN PHẨM NỔI BẬT -->
             <section class="ds-product-carousel sr-up">
                 <div class="container-xl">
                     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -138,156 +94,153 @@
                     </div>
                     <div class="swiper product-swiper">
                         <div class="swiper-wrapper">
+                            
+                            <!-- Sản phẩm 1 -->
                             <div class="swiper-slide">
                                 <div class="ds-product-card">
+                                    <button th:classappend="${likedIds != null and #lists.contains(likedIds, 1)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'" onclick="toggleWishlist(this, 1)" title="Thêm vào yêu thích">
+                                        <i th:class="${likedIds != null and #lists.contains(likedIds, 1)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                    </button>
                                     <div class="ds-product-img"><i class="bi bi-box-seam"></i></div>
                                     <div class="ds-product-name">Chai thủy tinh cao cấp</div>
                                     <div><span class="ds-product-price">250.000đ</span><span class="ds-product-old">320.000đ</span></div>
-                                    <button class="ds-add-cart" data-id="1" data-name="Chai thủy tinh cao cấp">Thêm vào giỏ</button>
+                                    <button class="ds-add-cart" data-id="1" data-name="Chai thủy tinh cao cấp" onclick="addToCart(1, null, 1)">Thêm vào giỏ</button>
                                 </div>
                             </div>
+                            
+                            <!-- Sản phẩm 2 -->
                             <div class="swiper-slide">
                                 <div class="ds-product-card">
+                                    <button th:classappend="${likedIds != null and #lists.contains(likedIds, 2)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'" onclick="toggleWishlist(this, 2)" title="Thêm vào yêu thích">
+                                        <i th:class="${likedIds != null and #lists.contains(likedIds, 2)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                    </button>
                                     <div class="ds-product-img"><i class="bi bi-gift"></i></div>
                                     <div class="ds-product-name">Set quà tặng sang trọng</div>
                                     <div><span class="ds-product-price">550.000đ</span></div>
-                                    <button class="ds-add-cart" data-id="2" data-name="Set quà tặng sang trọng">Thêm vào giỏ</button>
+                                    <button class="ds-add-cart" data-id="2" data-name="Set quà tặng sang trọng" onclick="addToCart(2, null, 1)">Thêm vào giỏ</button>
                                 </div>
                             </div>
+                            
+                            <!-- Sản phẩm 3 -->
                             <div class="swiper-slide">
                                 <div class="ds-product-card">
+                                    <button th:classappend="${likedIds != null and #lists.contains(likedIds, 3)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'" onclick="toggleWishlist(this, 3)" title="Thêm vào yêu thích">
+                                        <i th:class="${likedIds != null and #lists.contains(likedIds, 3)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                    </button>
                                     <div class="ds-product-img"><i class="bi bi-cup-hot"></i></div>
                                     <div class="ds-product-name">Ly rượu vang pha lê</div>
                                     <div><span class="ds-product-price">180.000đ</span><span class="ds-product-old">220.000đ</span></div>
-                                    <button class="ds-add-cart" data-id="3" data-name="Ly rượu vang pha lê">Thêm vào giỏ</button>
+                                    <button class="ds-add-cart" data-id="3" data-name="Ly rượu vang pha lê" onclick="addToCart(3, null, 1)">Thêm vào giỏ</button>
                                 </div>
                             </div>
+                            
+                            <!-- Sản phẩm 4 -->
                             <div class="swiper-slide">
                                 <div class="ds-product-card">
+                                    <button th:classappend="${likedIds != null and #lists.contains(likedIds, 4)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'" onclick="toggleWishlist(this, 4)" title="Thêm vào yêu thích">
+                                        <i th:class="${likedIds != null and #lists.contains(likedIds, 4)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                    </button>
                                     <div class="ds-product-img"><i class="bi bi-stars"></i></div>
                                     <div class="ds-product-name">Bình trang trí nghệ thuật</div>
                                     <div><span class="ds-product-price">890.000đ</span></div>
-                                    <button class="ds-add-cart" data-id="4" data-name="Bình trang trí nghệ thuật">Thêm vào giỏ</button>
+                                    <button class="ds-add-cart" data-id="4" data-name="Bình trang trí nghệ thuật" onclick="addToCart(4, null, 1)">Thêm vào giỏ</button>
                                 </div>
                             </div>
+                            
+                            <!-- Sản phẩm 5 -->
                             <div class="swiper-slide">
                                 <div class="ds-product-card">
+                                    <button th:classappend="${likedIds != null and #lists.contains(likedIds, 5)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'" onclick="toggleWishlist(this, 5)" title="Thêm vào yêu thích">
+                                        <i th:class="${likedIds != null and #lists.contains(likedIds, 5)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                    </button>
                                     <div class="ds-product-img"><i class="bi bi-archive"></i></div>
                                     <div class="ds-product-name">Hũ thủy tinh bảo quản</div>
                                     <div><span class="ds-product-price">120.000đ</span></div>
-                                    <button class="ds-add-cart" data-id="5" data-name="Hũ thủy tinh bảo quản">Thêm vào giỏ</button>
+                                    <button class="ds-add-cart" data-id="5" data-name="Hũ thủy tinh bảo quản" onclick="addToCart(5, null, 1)">Thêm vào giỏ</button>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </section>
             
-            <!-- ★ CATEGORIES GRID — 6 items (mobile 2, desktop 3), ScrollReveal (main.js:102)
-                 Backend: dữ liệu động từ CategoryService → ${navCategories} -->
+            <!-- CATEGORIES GRID -->
             <section class="ds-section">
                 <div class="container-xl">
                     <div class="text-center mb-5">
-                        <span class="ds-section-badge">Danh mục</span>
-                        <h2 class="ds-section-title">Khám phá bộ sưu tập</h2>
-                        <p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
+                        <span class="ds-section-badge">Danh mục</span><h2 class="ds-section-title">Khám phá bộ sưu tập</h2><p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
                     </div>
                     <div class="row g-4">
                         <div class="col-6 col-lg-4 sr-card">
                             <a th:href="@{/san-pham(danhMuc='chai')}" class="ds-cat-card">
-                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                    <i class="bi bi-box-seam"></i>
-                                </div>
-                                <h3>Chai thủy tinh</h3>
-                                <p>Chai rượu, nước hoa, thực phẩm</p>
+                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><i class="bi bi-box-seam"></i></div>
+                                <h3>Chai thủy tinh</h3><p>Chai rượu, nước hoa, thực phẩm</p>
                             </a>
                         </div>
                         <div class="col-6 col-lg-4 sr-card">
                             <a th:href="@{/san-pham(danhMuc='hu')}" class="ds-cat-card">
-                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                                    <i class="bi bi-archive"></i>
-                                </div>
-                                <h3>Hũ thủy tinh</h3>
-                                <p>Đựng đồ khô, gia vị, bảo quản</p>
+                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"><i class="bi bi-archive"></i></div>
+                                <h3>Hũ thủy tinh</h3><p>Đựng đồ khô, gia vị, bảo quản</p>
                             </a>
                         </div>
                         <div class="col-6 col-lg-4 sr-card">
                             <a th:href="@{/san-pham(danhMuc='binh')}" class="ds-cat-card">
-                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                                    <i class="bi bi-stars"></i>
-                                </div>
-                                <h3>Bình trang trí</h3>
-                                <p>Bình hoa, decor, pha lê cắt cạnh</p>
+                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"><i class="bi bi-stars"></i></div>
+                                <h3>Bình trang trí</h3><p>Bình hoa, decor, pha lê cắt cạnh</p>
                             </a>
                         </div>
                         <div class="col-6 col-lg-4 sr-card">
                             <a th:href="@{/san-pham(danhMuc='ly')}" class="ds-cat-card">
-                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);">
-                                    <i class="bi bi-cup-hot"></i>
-                                </div>
-                                <h3>Ly &amp; Cốc</h3>
-                                <p>Vang, whisky, champagne cao cấp</p>
+                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);"><i class="bi bi-cup-hot"></i></div>
+                                <h3>Ly &amp; Cốc</h3><p>Vang, whisky, champagne cao cấp</p>
                             </a>
                         </div>
                         <div class="col-6 col-lg-4 sr-card">
                             <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="ds-cat-card">
-                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
-                                    <i class="bi bi-gift"></i>
-                                </div>
-                                <h3>Bộ quà tặng</h3>
-                                <p>Set sinh nhật, cưới hỏi, khai trương</p>
+                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);"><i class="bi bi-gift"></i></div>
+                                <h3>Bộ quà tặng</h3><p>Set sinh nhật, cưới hỏi, khai trương</p>
                             </a>
                         </div>
                         <div class="col-6 col-lg-4 sr-card">
                             <a th:href="@{/san-pham}" class="ds-cat-card">
-                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);">
-                                    <i class="bi bi-grid"></i>
-                                </div>
-                                <h3>Tất cả sản phẩm</h3>
-                                <p>Xem toàn bộ danh mục</p>
+                                <div class="ds-cat-icon" style="background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);"><i class="bi bi-grid"></i></div>
+                                <h3>Tất cả sản phẩm</h3><p>Xem toàn bộ danh mục</p>
                             </a>
                         </div>
                     </div>
                 </div>
             </section>
             
-            <!-- ★ TESTIMONIALS — SwiperJS (main.js:239-253), 1/2/3 slides theo viewport
-                 Backend: có thể thay dữ liệu động từ bảng Review -->
+            <!-- TESTIMONIALS -->
             <section class="ds-testi sr-up">
                 <div class="container-xl">
-                    <div class="text-center mb-5">
-                        <span class="ds-section-badge">Khách hàng nói gì</span>
-                        <h2 class="ds-section-title">Phản hồi từ khách hàng</h2>
-                    </div>
+                    <div class="text-center mb-5"><span class="ds-section-badge">Khách hàng nói gì</span><h2 class="ds-section-title">Phản hồi từ khách hàng</h2></div>
                     <div class="swiper testi-swiper">
                         <div class="swiper-wrapper">
                             <div class="swiper-slide ds-testi-slide">
                                 <div class="ds-testi-avatar">M</div>
                                 <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
                                 <p class="ds-testi-text">"Sản phẩm rất đẹp, chất lượng hơn mong đợi. Đóng gói cẩn thận, giao hàng nhanh!"</p>
-                                <div class="ds-testi-name">Minh Anh</div>
-                                <div class="ds-testi-role">Khách hàng thân thiết</div>
+                                <div class="ds-testi-name">Minh Anh</div><div class="ds-testi-role">Khách hàng thân thiết</div>
                             </div>
                             <div class="swiper-slide ds-testi-slide">
                                 <div class="ds-testi-avatar">T</div>
                                 <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
                                 <p class="ds-testi-text">"Bộ ấm trà thủy tinh mua tặng mẹ rất ưng ý. Mẹ khen đẹp và dùng rất tốt."</p>
-                                <div class="ds-testi-name">Tuấn Kiệt</div>
-                                <div class="ds-testi-role">Khách hàng thân thiết</div>
+                                <div class="ds-testi-name">Tuấn Kiệt</div><div class="ds-testi-role">Khách hàng thân thiết</div>
                             </div>
                             <div class="swiper-slide ds-testi-slide">
                                 <div class="ds-testi-avatar">H</div>
                                 <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
                                 <p class="ds-testi-text">"Mua set quà tặng đối tác, cảm ơn DuaStore vì dịch vụ chuyên nghiệp và sản phẩm cao cấp."</p>
-                                <div class="ds-testi-name">Hoàng Yến</div>
-                                <div class="ds-testi-role">Doanh nghiệp</div>
+                                <div class="ds-testi-name">Hoàng Yến</div><div class="ds-testi-role">Doanh nghiệp</div>
                             </div>
                             <div class="swiper-slide ds-testi-slide">
                                 <div class="ds-testi-avatar">Đ</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
+                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
                                 <p class="ds-testi-text">"Ly rượu vang pha lê cắt cạnh rất sang. Giá hơi cao nhưng xứng đáng với chất lượng."</p>
-                                <div class="ds-testi-name">Đức Minh</div>
-                                <div class="ds-testi-role">Khách hàng VIP</div>
+                                <div class="ds-testi-name">Đức Minh</div><div class="ds-testi-role">Khách hàng VIP</div>
                             </div>
                         </div>
                         <div class="testi-pagination" style="margin-top:20px;"></div>
@@ -295,14 +248,10 @@
                 </div>
             </section>
             
-            <!-- ★ FAQ ACCORDION — JS (main.js:217-234), max-height animation, chevron 180°
-                 Backend: có thể thay nội dung từ DB (bảng FAQ/Post) -->
+            <!-- FAQ ACCORDION -->
             <section class="ds-faq sr-up">
                 <div class="container-xl">
-                    <div class="text-center mb-5">
-                        <span class="ds-section-badge">FAQ</span>
-                        <h2 class="ds-section-title">Câu hỏi thường gặp</h2>
-                    </div>
+                    <div class="text-center mb-5"><span class="ds-section-badge">FAQ</span><h2 class="ds-section-title">Câu hỏi thường gặp</h2></div>
                     <div class="mx-auto" style="max-width:700px;">
                         <div class="ds-faq-item">
                             <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>

@@ -3,41 +3,67 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-    <head>
-        <title>Quản lý danh mục</title>
-    </head>
-    <body>
-    <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Danh mục</li>
-    </th:block>
-    <div layout:fragment="content">
-        <!-- ★ TODO [Danh mục]: Implement trang danh sách danh mục
-             
-             Cấu trúc gợi ý:
-             1. Page header: adm-page-header với tiêu đề Danh mục + nút Thêm mới
-             2. Nội dung: adm-table-wrap chứa table danh sách
-                - Cột: #, Tên, Mô tả, Trạng thái (badge), Ngày tạo, Thao tác
-             3. Mỗi dòng có nút Sửa / Xóa
-             4. Pagination nếu cần
-             
-             Xem dashboard.html để tham khảo cấu trúc.
-             Link sidebar active: th:classappend="${title == 'Danh mục' ? ' active' : ''}"
-        -->
-        <div class="adm-page-header">
-            <h4><i class="bi bi-tags me-2"></i>Danh mục</h4>
-            <a th:href="@{/admin/category/them-moi}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>Thêm mới
-            </a>
-        </div>
-        <div class="adm-table-wrap">
-            <table class="table table-hover align-middle mb-0">
-                <thead><tr><th>#</th><th>Tên</th><th>Mô tả</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-                <tbody>
-                    <tr><td colspan="5" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
-                </tbody>
-            </table>
-        </div>
+<head><title>Quan ly danh muc</title></head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Danh muc</li>
+</th:block>
+<div layout:fragment="content">
+    <div class="adm-page-header">
+        <h4><i class="bi bi-tags me-2"></i>Danh muc</h4>
+        <a th:href="@{/admin/danh-muc/them-moi}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Them moi
+        </a>
     </div>
-    </body>
+
+    <div class="adm-table-wrap">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Ten danh muc</th>
+                <th>Danh muc cha</th>
+                <th>Mo ta</th>
+                <th class="text-center">Thu tu</th>
+                <th class="text-center">Trang thai</th>
+                <th class="text-center">Thao tac</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="cat : ${categories}">
+                <td th:text="${cat.id}">1</td>
+                <td>
+                    <span class="fw-semibold" th:text="${cat.tenDanhMuc}">Ten danh muc</span>
+                </td>
+                <td>
+                    <span th:if="${cat.parent != null}" th:text="${cat.parent.tenDanhMuc}">Cha</span>
+                    <span th:unless="${cat.parent != null}" class="text-muted">Goc</span>
+                </td>
+                <td class="text-muted" th:text="${cat.moTa ?: '-'}">Mo ta</td>
+                <td class="text-center" th:text="${cat.thuTuHienThi ?: 0}">0</td>
+                <td class="text-center">
+                    <span th:if="${cat.active}" class="badge bg-success">Hien thi</span>
+                    <span th:unless="${cat.active}" class="badge bg-secondary">An</span>
+                </td>
+                <td class="text-center">
+                    <a th:href="@{/admin/danh-muc/sua/{id}(id=${cat.id})}"
+                       class="btn btn-outline-primary btn-sm me-1" title="Sua">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a th:href="@{/admin/danh-muc/xoa/{id}(id=${cat.id})}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('An danh muc nay?')" title="An">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(categories)}">
+                <td colspan="7" class="text-muted text-center py-4">Chua co danh muc nao</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
 </html>

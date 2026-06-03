@@ -1,28 +1,27 @@
 <!DOCTYPE html>
-<html lang="vi"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
-      layout:decorate="~{layout/client/base}">
-    <head>
-        <title>Thêm / Sửa địa chỉ — DuaStore</title>
-    </head>
-    <body>
-    <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Địa chỉ]: Implement form thêm / sửa địa chỉ giao hàng
-                 Cấu trúc gợi ý:
-                 - Tiêu đề trang: "Thêm địa chỉ mới" / "Sửa địa chỉ"
-                 - Form với các field: Họ tên, SĐT, Tỉnh/TP (select), Quận/Huyện (select),
-                   Phường/Xã (select), Địa chỉ chi tiết (textarea), Mặc định (checkbox)
-                 - Nút: Lưu (btn-primary) / Hủy (btn-outline-secondary)
-                 - Validation: required fields
-                 - Template nằm trong tài khoản người dùng (user layout)
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-geo-alt" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang địa chỉ sẽ được cập nhật</p>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net/thymeleaf/layout" layout:decorate="~{layout/client/base}">
+<head><title th:text="${address.id == null ? 'Thêm địa chỉ — DuaStore' : 'Sửa địa chỉ — DuaStore'}"></title></head>
+<body>
+    <div layout:fragment="content" class="container-xl py-5">
+        <div class="row"><div class="col-12 col-lg-6 mx-auto"><div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-4">
+                <a th:href="@{/address}" class="btn btn-light rounded-circle me-3"><i class="bi bi-arrow-left"></i></a>
+                <h3 class="ds-section-title mb-0" th:text="${address.id == null ? 'Thêm địa chỉ mới' : 'Sửa địa chỉ'}"></h3>
             </div>
-        </div>
+            <form th:action="@{/address/save}" th:object="${address}" method="post">
+                <input type="hidden" th:field="*{id}" /> <input type="hidden" th:field="*{userId}" />
+                <div class="mb-3"><label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{tenNguoiNhan}" required></div>
+                <div class="mb-3"><label class="form-label fw-medium">SĐT <span class="text-danger">*</span></label><input type="tel" class="form-control rounded-3 py-2" th:field="*{soDienThoai}" required></div>
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-4"><label class="form-label fw-medium">Tỉnh/TP <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{tinhThanh}" required></div>
+                    <div class="col-sm-4"><label class="form-label fw-medium">Quận/Huyện <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{quanHuyen}" required></div>
+                    <div class="col-sm-4"><label class="form-label fw-medium">Phường/Xã <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{phuongXa}" required></div>
+                </div>
+                <div class="mb-4"><label class="form-label fw-medium">Địa chỉ cụ thể <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{diaChiCuThe}" required></div>
+                <div class="form-check form-switch mb-4"><input class="form-check-input" type="checkbox" role="switch" th:field="*{isDefault}" id="isDefaultCheck"><label class="form-check-label user-select-none" for="isDefaultCheck">Đặt làm địa chỉ mặc định</label></div>
+                <div class="d-grid"><button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold">Lưu địa chỉ</button></div>
+            </form>
+        </div></div></div></div>
     </div>
-    </body>
+</body>
 </html>

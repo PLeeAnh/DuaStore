@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateCartBadge(count) {
     const badge = document.getElementById('cartBadge');
     if (!badge) return;
+    count = Number(count) || 0;
     if (count <= 0) {
         badge.classList.add('d-none');
         badge.textContent = '0';
@@ -169,6 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(r => r.json())
             .then(data => {
+                if (data && data.success === false) {
+                    this.textContent = data.message || 'Khong the them';
+                    setTimeout(() => { this.textContent = origText; this.disabled = false; }, 2000);
+                    return;
+                }
                 if (data && typeof data.cartCount !== 'undefined') {
                     updateCartBadge(data.cartCount);
                 }
@@ -294,3 +300,104 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// ĐÓNG / MỞ POPUP (Yêu thích & Giỏ hàng)
+function togglePopup(popupId) {
+    document.querySelectorAll('.custom-popup').forEach(popup => { if(popup.id !== popupId) popup.style.display = 'none'; });
+    const popup = document.getElementById(popupId);
+    popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+}
+
+document.addEventListener('click', function(event) {
+    const btnWishlist = document.getElementById('btn-wishlist-toggle'); const popupWishlist = document.getElementById('wishlist-popup');
+    const btnCart = document.getElementById('btn-cart-toggle'); const popupCart = document.getElementById('cart-popup');
+    if (btnWishlist && popupWishlist && !btnWishlist.contains(event.target) && !popupWishlist.contains(event.target)) popupWishlist.style.display = 'none';
+    if (btnCart && popupCart && !btnCart.contains(event.target) && !popupCart.contains(event.target)) popupCart.style.display = 'none';
+});
+
+// XỬ LÝ CLICK THẢ TIM BẰNG FETCH API
+function toggleWishlist(btnElement, productId) {
+    const icon = btnElement.querySelector('i');
+    const container = document.getElementById('wishlist-items-container');
+    const card = btnElement.closest('.ds-product-card');
+    const productName = card ? card.querySelector('.ds-product-name').innerText : 'Sản phẩm ' + productId;
+    const productPrice = card ? card.querySelector('.ds-product-price').innerText : '';
+
+    fetch('/api/wishlist/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: productId }) })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            if (btnElement.classList.contains('active')) {
+                btnElement.classList.remove('active'); icon.classList.replace('bi-heart-fill', 'bi-heart');
+                const itemToRemove = document.getElementById('wishlist-item-' + productId);
+                if(itemToRemove) itemToRemove.remove();
+            } else {
+                btnElement.classList.add('active'); icon.classList.replace('bi-heart', 'bi-heart-fill');
+                const emptyMsg = container.querySelector('.text-muted.text-center');
+                if(emptyMsg) emptyMsg.remove();
+                
+                const html = `<div class="popup-item" id="wishlist-item-${productId}"><div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-box-seam text-secondary"></i></div><div class="popup-item-info"><a href="/san-pham/${productId}">${productName}</a><div class="text-danger fw-semibold mt-1">${productPrice}</div><button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="addToCartFromWishlist(${productId}, null)"><i class="bi bi-cart-plus"></i> Thêm vào giỏ</button></div><button class="btn-delete-item" onclick="removeWishlist(${productId})" title="Xóa"><i class="bi bi-x-circle"></i></button></div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            }
+        }
+    }).catch(error => console.log("Lỗi: ", error));
+}
+
+// XỬ LÝ CLICK THÊM VÀO GIỎ BẰNG FETCH API
+function addToCart(productId, variantId, quantity) {
+    const container = document.getElementById('cart-items-container');
+    const cartPopup = document.getElementById('cart-popup');
+    const btnAdd = document.querySelector(`.ds-add-cart[data-id="${productId}"]`);
+    const productName = btnAdd ? btnAdd.getAttribute('data-name') : 'Sản phẩm ' + productId;
+    const card = btnAdd ? btnAdd.closest('.ds-product-card') : null;
+    const productPrice = card ? card.querySelector('.ds-product-price').innerText : 'Đang cập nhật';
+    
+    fetch('/api/cart/add-popup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: productId, variantId: variantId, quantity: quantity }) })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            if(!document.getElementById('cart-item-' + productId)) {
+                const html = `<div class="popup-item" id="cart-item-${productId}"><div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-box-seam text-secondary"></i></div><div class="popup-item-info"><a href="/san-pham/${productId}" class="text-truncate d-block" style="max-width: 180px;">${productName}</a><div class="mt-1">Số lượng: ${quantity} x <span class="text-danger fw-semibold">${productPrice}</span></div></div><button class="btn-delete-item" onclick="removeCartItem(${productId})" title="Xóa khỏi giỏ"><i class="bi bi-x-circle"></i></button></div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            }
+            alert("Đã thêm " + productName + " vào giỏ hàng!");
+            if (cartPopup) {
+                const wlPopup = document.getElementById('wishlist-popup'); if(wlPopup) wlPopup.style.display = 'none';
+                cartPopup.style.display = 'block'; setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
+            }
+        }
+    }).catch(error => console.log("Lỗi: ", error));
+}
+
+function removeWishlist(wishlistId) {
+    const item = document.getElementById('wishlist-item-' + wishlistId); if (item) item.remove();
+    fetch('/api/wishlist/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: wishlistId }) });
+    const btnHeart = document.querySelector(`.btn-wishlist-card[onclick*="toggleWishlist(this, ${wishlistId})"]`);
+    if(btnHeart) { btnHeart.classList.remove('active'); btnHeart.querySelector('i').classList.replace('bi-heart-fill', 'bi-heart'); }
+}
+// ==========================================
+// LOGIC XÓA GIỎ HÀNG (Đã đồng bộ với Java)
+// ==========================================
+function removeCartItem(cartItemId) {
+    // 1. Xóa tạm hiệu ứng trên màn hình trước cho mượt
+    const item = document.getElementById('cart-item-' + cartItemId);
+    if (item) item.remove();
+    
+    // 2. Gửi lệnh ngầm xuống Java bằng Fetch API để xóa thật trong SQL Server
+    fetch('/api/cart/remove-item', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: cartItemId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 3. Sau khi CSDL xóa thành công, tự động F5 lại trang 
+            // để cập nhật lại số lượng badge đỏ trên icon túi hàng
+            window.location.reload(); 
+        } else {
+            alert("Lỗi hệ thống: " + data.message);
+        }
+    })
+    .catch(error => console.error("Lỗi kết nối API xóa:", error));
+}
+function addToCartFromWishlist(productId, variantId) { addToCart(productId, variantId, 1); }
