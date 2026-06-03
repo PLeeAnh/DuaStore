@@ -39,6 +39,16 @@ public class AdminPromotionService {
             if (promotion.getDaDung() == null) promotion.setDaDung(0);
             if (promotion.getIsActive() == null) promotion.setIsActive(true);
         }
+        if (promotion.getMaCode() != null) {
+            String code = promotion.getMaCode().toUpperCase().trim();
+            promotionRepository.findAll().stream()
+                    .filter(p -> p.getMaCode().equalsIgnoreCase(code))
+                    .filter(p -> promotion.getId() == null || !promotion.getId().equals(p.getId()))
+                    .findFirst()
+                    .ifPresent(p -> {
+                        throw new RuntimeException("Mã giảm giá \"" + promotion.getMaCode() + "\" đã tồn tại");
+                    });
+        }
         return promotionRepository.save(promotion);
     }
 
