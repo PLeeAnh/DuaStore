@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Thêm / Sửa địa chỉ — DuaStore</title>
+    </head>
+    <body>
+    <div layout:fragment="content">
+        <div class="container-xl py-5">
+            <!-- ★ TODO [Địa chỉ]: Implement form thêm / sửa địa chỉ giao hàng
+                 Cấu trúc gợi ý:
+                 - Tiêu đề trang: "Thêm địa chỉ mới" / "Sửa địa chỉ"
+                 - Form với các field: Họ tên, SĐT, Tỉnh/TP (select), Quận/Huyện (select),
+                   Phường/Xã (select), Địa chỉ chi tiết (textarea), Mặc định (checkbox)
+                 - Nút: Lưu (btn-primary) / Hủy (btn-outline-secondary)
+                 - Validation: required fields
+                 - Template nằm trong tài khoản người dùng (user layout)
+            -->
+            <div class="text-center py-5">
+                <i class="bi bi-geo-alt" style="font-size:3rem;color:#ccc;"></i>
+                <p class="text-muted mt-3">Nội dung trang địa chỉ sẽ được cập nhật</p>
+            </div>
+        </div>
+    </div>
+    </body>
+</html>
