@@ -4,7 +4,6 @@ import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.Order;
 import com.duastore.service.client.OrderService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,12 +22,15 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    private Integer getUserId() {
+        return 2;
+    }
+
     @GetMapping
     public String listOrders(@RequestParam(defaultValue = "0") int page,
                              @RequestParam(required = false) String trangThai,
-                             HttpSession session, Model model) {
-        Integer userId = (Integer) session.getAttribute("userId");
-        if (userId == null) return "redirect:/";
+                             Model model) {
+        Integer userId = getUserId();
 
         Page<Order> orderPage;
         if (trangThai != null && !trangThai.isBlank()) {
@@ -46,9 +48,8 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public String orderDetail(@PathVariable Integer id, HttpSession session, Model model) {
-        Integer userId = (Integer) session.getAttribute("userId");
-        if (userId == null) return "redirect:/";
+    public String orderDetail(@PathVariable Integer id, Model model) {
+        Integer userId = getUserId();
 
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);
@@ -64,9 +65,8 @@ public class OrderController {
     }
 
     @PostMapping("/huy/{id}")
-    public String cancelOrder(@PathVariable Integer id, HttpSession session, RedirectAttributes ra) {
-        Integer userId = (Integer) session.getAttribute("userId");
-        if (userId == null) return "redirect:/";
+    public String cancelOrder(@PathVariable Integer id, RedirectAttributes ra) {
+        Integer userId = getUserId();
 
         try {
             orderService.cancelOrder(userId, id);
