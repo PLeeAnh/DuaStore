@@ -9,7 +9,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
  
 /**
  * DTO dùng cho form Thêm / Sửa sản phẩm (Admin)
@@ -51,7 +50,4 @@ public class ProductFormDTO {
  
     /** true = hiển thị trên trang chủ */
     private boolean isFeatured = false;
-
-    /** Gallery images uploaded by admin */
-    private List<MultipartFile> galleryFiles;
 }

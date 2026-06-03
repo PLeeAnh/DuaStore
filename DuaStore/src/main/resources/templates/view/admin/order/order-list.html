@@ -3,38 +3,81 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-    <head>
-        <title>Quản lý đơn hàng</title>
-    </head>
-    <body>
-    <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
-    </th:block>
-    <div layout:fragment="content">
-        <!-- ★ TODO [Đơn hàng]: Implement trang danh sách đơn hàng
-             
-             Cấu trúc gợi ý:
-             1. Page header: adm-page-header với tiêu đề Đơn hàng
-             2. Bộ lọc: trạng thái (select), ngày, từ khóa
-             3. adm-table-wrap: table danh sách
-                - Cột: #, Mã ĐH, Khách hàng, SĐT, Tổng tiền, Trạng thái (badge màu), Ngày đặt, Thao tác
-             4. Mỗi dòng nút Xem chi tiết
-             5. Pagination
-             
-             Link sidebar active: th:classappend="${title == 'Đơn hàng' ? ' active' : ''}"
-        -->
-        <div class="adm-page-header">
-            <h4><i class="bi bi-receipt me-2"></i>Đơn hàng</h4>
-        </div>
-        <div class="adm-table-wrap">
-            <table class="table table-hover align-middle mb-0">
-                <thead><tr><th>#</th><th>Mã ĐH</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th><th>Thao tác</th></tr></thead>
-                <tbody>
-                    <tr><td colspan="7" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
-                </tbody>
-            </table>
-        </div>
+<head>
+    <title>Quản lý đơn hàng</title>
+</head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
+    <li class="breadcrumb-item active">Đơn hàng</li>
+</th:block>
+<div layout:fragment="content">
+    <div class="adm-page-header">
+        <h4><i class="bi bi-receipt me-2"></i>Đơn hàng</h4>
     </div>
-    </body>
+    <div class="adm-table-wrap">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Mã ĐH</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Thanh toán</th>
+                    <th>Ngày đặt</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="order, stat : ${orders}">
+                    <td th:text="${stat.index + 1 + (currentPage * 20)}"></td>
+                    <td class="fw-medium" th:text="${order.maDon}"></td>
+                    <td th:text="${order.tenNguoiNhan}"></td>
+                    <td th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT') + '₫'}"></td>
+                    <td>
+                        <th:block th:switch="${order.trangThaiDon}">
+                            <span th:case="'CHO_XAC_NHAN'" class="badge bg-warning text-dark">Chờ xác nhận</span>
+                            <span th:case="'DA_XAC_NHAN'" class="badge bg-info text-dark">Đã xác nhận</span>
+                            <span th:case="'DANG_GIAO'" class="badge bg-primary">Đang giao</span>
+                            <span th:case="'DA_GIAO'" class="badge bg-success">Đã giao</span>
+                            <span th:case="'DA_HUY'" class="badge bg-danger">Đã hủy</span>
+                        </th:block>
+                    </td>
+                    <td>
+                        <th:block th:switch="${order.trangThaiTT}">
+                            <span th:case="'CHUA_THANH_TOAN'" class="badge bg-warning text-dark">Chưa TT</span>
+                            <span th:case="'DA_THANH_TOAN'" class="badge bg-success">Đã TT</span>
+                            <span th:case="'HOAN_TIEN'" class="badge bg-danger">Hoàn tiền</span>
+                        </th:block>
+                    </td>
+                    <td th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy')}"></td>
+                    <td>
+                        <a th:href="@{/admin/don-hang/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(orders)}">
+                    <td colspan="8" class="text-muted text-center py-4">Chưa có dữ liệu</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <nav th:if="${totalPages > 1}" class="mt-3">
+        <ul class="pagination justify-content-center mb-0">
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage - 1})}">«</a>
+            </li>
+            <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/admin/don-hang(page=${i})}" th:text="${i + 1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage + 1})}">»</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+</body>
 </html>

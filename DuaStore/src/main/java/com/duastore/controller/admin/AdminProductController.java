@@ -1,164 +1,69 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.duastore.controller.admin;
 
-import com.duastore.dto.ProductFormDTO;
-import com.duastore.model.Category;
-import com.duastore.model.Product;
-import com.duastore.model.ProductImage;
-import com.duastore.repository.CategoryRepository;
-import com.duastore.repository.ProductImageRepository;
-import com.duastore.service.admin.AdminProductService;
-import com.duastore.service.admin.AdminVariantService;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
+/**
+ * ★ AdminProductController — CRUD sản phẩm cho Admin
+ * 
+ * ========== LUỒNG / HƯỚNG DẪN ==========
+ * Controller này quản lý các thao tác CRUD sản phẩm từ phía admin.
+ * Tất cả route bắt đầu bằng /admin/san-pham.
+ * 
+ * View templates nằm trong: /WEB-INF/views/admin/product/
+ * Sử dụng AdminProductService để xử lý nghiệp vụ.
+ * 
+ * ★ TODO [Lê Văn C]: @GetMapping("/admin/san-pham") — Danh sách
+ *   - Hiển thị danh sách tất cả sản phẩm (phân trang)
+ *   - Hiển thị trạng thái: còn hàng / hết hàng / ngừng bán
+ *   - Có ô tìm kiếm + lọc theo danh mục
+ *   - Trả về view: "admin/product/list"
+ * 
+ * ★ TODO [Lê Văn C]: @GetMapping("/admin/san-pham/them-moi") — Form thêm
+ *   - Hiển thị form tạo sản phẩm mới
+ *   - Load danh sách danh mục cho dropdown
+ *   - Trả về view: "admin/product/form"
+ *   - Đưa đối tượng Product (rỗng) vào Model attribute "product"
+ * 
+ * ★ TODO [Lê Văn C]: @PostMapping("/admin/san-pham/them-moi") — Xử lý thêm
+ *   - Nhận dữ liệu từ form (Product + MultipartFile ảnh)
+ *   - Validate dữ liệu (tên không trống, giá > 0, v.v.)
+ *   - Upload ảnh qua FileUploadService (hoặc xử lý trực tiếp)
+ *   - Lưu vào DB qua AdminProductService
+ *   - Redirect về /admin/san-pham kèm flash message
+ *   - BindingResult kiểm tra lỗi validate
+ * 
+ * ★ TODO [Lê Văn C]: @GetMapping("/admin/san-pham/sua/{id}") — Form sửa
+ *   - Load sản phẩm theo id
+ *   - Đưa vào Model attribute "product"
+ *   - Hiển thị ảnh hiện tại
+ *   - Trả về view: "admin/product/form"
+ * 
+ * ★ TODO [Lê Văn C]: @PostMapping("/admin/san-pham/sua/{id}") — Xử lý sửa
+ *   - Nhận dữ liệu từ form + MultipartFile (có thể null)
+ *   - Validate + upload ảnh mới nếu có
+ *   - Update sản phẩm
+ *   - Redirect về /admin/san-pham
+ * 
+ * ★ TODO [Lê Văn C]: @PostMapping("/admin/san-pham/xoa/{id}") — Xóa
+ *   - Xóa mềm (cập nhật status = 0) hoặc xóa cứng
+ *   - Kiểm tra sản phẩm có trong đơn hàng không trước khi xóa
+ *   - Redirect về /admin/san-pham
+ * 
+ * ⚠ Lưu ý:
+ *   - Sử dụng @Valid cho validation (Jakarta Bean Validation)
+ *   - Xử lý upload ảnh qua MultipartFile
+ *   - Sử dụng RedirectAttributes cho flash messages
+ *   - Phân biệt thêm mới và chỉnh sửa trong cùng form
+ */
 @Controller
 @RequestMapping("/admin/san-pham")
 public class AdminProductController {
-
-    private final AdminProductService productService;
-    private final AdminVariantService variantService;
-    private final CategoryRepository categoryRepository;
-    private final ProductImageRepository productImageRepository;
-
-    public AdminProductController(AdminProductService productService,
-                                   AdminVariantService variantService,
-                                   CategoryRepository categoryRepository,
-                                   ProductImageRepository productImageRepository) {
-        this.productService = productService;
-        this.variantService = variantService;
-        this.categoryRepository = categoryRepository;
-        this.productImageRepository = productImageRepository;
-    }
-
-    @GetMapping
-    public String list(@RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) Integer danhMuc,
-                       @RequestParam(required = false) String trangThai,
-                       Model model) {
-        model.addAttribute("title", "san-pham");
-
-        if (keyword != null && keyword.isBlank()) keyword = null;
-        if (trangThai != null && trangThai.isBlank()) trangThai = null;
-
-        boolean hasFilter = (keyword != null)
-                         || danhMuc != null
-                         || (trangThai != null);
-
-        if (hasFilter) {
-            model.addAttribute("products", productService.search(keyword, danhMuc, trangThai));
-        } else {
-            model.addAttribute("products", productService.findAll());
-        }
-
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("danhMuc", danhMuc);
-        model.addAttribute("trangThai", trangThai);
-        List<Category> cats = categoryRepository.findByIsActiveTrue();
-        model.addAttribute("categories", cats);
-        model.addAttribute("categoryMap", cats.stream().collect(Collectors.toMap(Category::getId, Category::getTenDanhMuc)));
-        return "view/admin/product/product-list";
-    }
-
-    @GetMapping("/them-moi")
-    public String createForm(Model model) {
-        model.addAttribute("title", "san-pham");
-        model.addAttribute("product", new ProductFormDTO());
-        model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
-        return "view/admin/product/product-form";
-    }
-
-    @PostMapping("/them-moi")
-    public String create(@Valid ProductFormDTO dto, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("title", "san-pham");
-            model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
-            return "view/admin/product/product-form";
-        }
-        productService.save(dto);
-        return "redirect:/admin/san-pham?successMsg=Them+san+pham+thanh+cong";
-    }
-
-    @GetMapping("/sua/{id}")
-    public String editForm(@PathVariable Integer id, Model model) {
-        Product p = productService.findById(id);
-        if (p == null) return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+san+pham";
-
-        ProductFormDTO dto = new ProductFormDTO();
-        dto.setId(p.getId());
-        dto.setTenSanPham(p.getTenSanPham());
-        dto.setMoTa(p.getMoTa());
-        dto.setChatLieu(p.getChatLieu());
-        dto.setXuatXu(p.getXuatXu());
-        dto.setMucDichSuDung(p.getMucDichSuDung());
-        dto.setThuongHieu(p.getThuongHieu());
-        dto.setKinhLoai(p.getKinhLoai());
-        dto.setDanhMucId(p.getDanhMucId());
-        dto.setHinhAnhChinh(p.getHinhAnhChinh());
-        dto.setTrangThaiSanPham(p.getTrangThaiSanPham());
-        dto.setLeadTimeDays(p.getLeadTimeDays());
-        dto.setFeatured(p.isFeatured());
-
-        model.addAttribute("title", "san-pham");
-        model.addAttribute("product", dto);
-        model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
-        model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
-        return "view/admin/product/product-form";
-    }
-
-    @PostMapping("/sua/{id}")
-    public String edit(@PathVariable Integer id, @Valid ProductFormDTO dto, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("title", "san-pham");
-            model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
-            model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
-            return "view/admin/product/product-form";
-        }
-        dto.setId(id);
-        Product saved = productService.save(dto);
-        if (saved == null) {
-            return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+san+pham";
-        }
-        return "redirect:/admin/san-pham?successMsg=Cap+nhat+san+pham+thanh+cong";
-    }
-
-    @GetMapping("/xoa/{id}")
-    public String delete(@PathVariable Integer id) {
-        productService.delete(id);
-        return "redirect:/admin/san-pham?successMsg=Da+xoa+san+pham";
-    }
-
-    @GetMapping("/xoa-anh/{imageId}")
-    public String deleteImage(@PathVariable Integer imageId) {
-        ProductImage img = productImageRepository.findById(imageId).orElse(null);
-        if (img == null) {
-            return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+anh";
-        }
-        Integer productId = img.getProductId();
-        img.setActive(false);
-        productImageRepository.save(img);
-        return "redirect:/admin/san-pham/sua/" + productId + "?successMsg=Da+xoa+anh";
-    }
-
-    // ── Variants ──
-
-    @GetMapping("/{id}/bien-the")
-    public String variantList(@PathVariable Integer id,
-                              @RequestParam(required = false) String keyword,
-                              Model model) {
-        model.addAttribute("title", "san-pham");
-        model.addAttribute("product", productService.findById(id));
-        if (keyword != null && !keyword.isBlank()) {
-            model.addAttribute("variants", variantService.searchByProductId(id, keyword));
-        } else {
-            model.addAttribute("variants", variantService.findByProductId(id));
-        }
-        model.addAttribute("keyword", keyword);
-        return "view/admin/productvariant/variant-list";
-    }
+    
 }
