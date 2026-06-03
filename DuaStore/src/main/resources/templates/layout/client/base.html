@@ -204,10 +204,7 @@
                             <i class="bi bi-bag"></i>
                             <span>Giỏ hàng</span>
                         </a>
-                        <div class="ds-nav-auth mt-2">
-                            <a class="ds-btn-outline d-block text-center" th:href="@{/dang-nhap}">Đăng nhập</a>
-                            <a class="ds-btn-fill d-block text-center mt-1" th:href="@{/dang-ky}">Đăng ký</a>
-                        </div>
+
                     </th:block>
 
                 </div>
@@ -280,10 +277,7 @@
                         <a class="ds-profile-link ds-profile-logout" th:href="@{/dang-xuat}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
                     </div>
                 </div>
-                <a class="ds-btn-login d-none d-lg-inline-flex align-items-center gap-1" th:href="@{/dang-nhap}" th:unless="${session.loggedIn}">
-                    <i class="bi bi-person"></i>
-                    <span>Đăng nhập</span>
-                </a>
+
                 <!-- ═══════════════════════════════════════════
                      END PROFILE / LOGIN
                      ═══════════════════════════════════════════ -->

@@ -28,7 +28,7 @@ public class OrderController {
                              @RequestParam(required = false) String trangThai,
                              HttpSession session, Model model) {
         Integer userId = (Integer) session.getAttribute("userId");
-        if (userId == null) return "redirect:/dang-nhap";
+        if (userId == null) return "redirect:/";
 
         Page<Order> orderPage;
         if (trangThai != null && !trangThai.isBlank()) {
@@ -48,7 +48,7 @@ public class OrderController {
     @GetMapping("/{id}")
     public String orderDetail(@PathVariable Integer id, HttpSession session, Model model) {
         Integer userId = (Integer) session.getAttribute("userId");
-        if (userId == null) return "redirect:/dang-nhap";
+        if (userId == null) return "redirect:/";
 
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);
@@ -66,7 +66,7 @@ public class OrderController {
     @PostMapping("/huy/{id}")
     public String cancelOrder(@PathVariable Integer id, HttpSession session, RedirectAttributes ra) {
         Integer userId = (Integer) session.getAttribute("userId");
-        if (userId == null) return "redirect:/dang-nhap";
+        if (userId == null) return "redirect:/";
 
         try {
             orderService.cancelOrder(userId, id);
