@@ -3,72 +3,65 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-    <head>
-        <title>Quản lý biến thể — Form</title>
-    </head>
+    <head><title>Quản lý biến thể — Form</title></head>
     <body>
     <th:block layout:fragment="breadcrumb">
         <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-        <li class="breadcrumb-item"><a th:href="@{/admin/product/danh-sach}">Sản phẩm</a></li>
-        <li class="breadcrumb-item"><a th:href="@{/admin/productvariant/danh-sach}">Biến thể</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Form</li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
+        <li class="breadcrumb-item active" th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Form</li>
     </th:block>
     <div layout:fragment="content">
-        <!-- ★ TODO [Biến thể]: Implement form thêm / sửa biến thể sản phẩm
-             
-             Cấu trúc gợi ý:
-             1. adm-page-header: tiêu đề "Thêm biến thể" / "Sửa biến thể"
-             2. adm-form-wrap: form với các field:
-                - Sản phẩm cha (select, read-only khi edit)
-                - Màu sắc (input text)
-                - Kích thước (input text)
-                - Giá riêng (input number, có thể để trống nếu giống giá SP cha)
-                - Số lượng tồn kho (input number)
-                - SKU (input text)
-                - Ảnh biến thể (input file)
-             3. Nút: Lưu / Hủy
-             
-             Bind: th:object="${variant}"
-             Link sidebar active: th:classappend="${title == 'Biến thể' ? ' active' : ''}"
-        -->
         <div class="adm-page-header">
-            <h4><i class="bi bi-diagram-3 me-2"></i>Thêm biến thể</h4>
+            <h4><i class="bi bi-diagram-3 me-2"></i><span th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Thêm biến thể</span></h4>
         </div>
         <div class="adm-form-wrap">
-            <form th:action="@{/admin/productvariant/them-moi}" th:object="${variant}" method="post" enctype="multipart/form-data" class="row g-3">
+            <form th:action="${variant.id != null} ? @{/admin/bien-the/sua/{id}(id=${variant.id})} : @{/admin/bien-the/them-moi}"
+                  th:object="${variant}" method="post" enctype="multipart/form-data" class="row g-3">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{productId}" />
+
                 <div class="col-md-6">
-                    <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
-                    <select th:field="*{productId}" class="form-select" required>
-                        <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}">---</option>
-                    </select>
+                    <label class="form-label">Tên biến thể <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{tenBienThe}" class="form-control" required />
+                    <div th:if="${#fields.hasErrors('tenBienThe')}" th:errors="*{tenBienThe}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Màu sắc</label>
-                    <input type="text" th:field="*{color}" class="form-control" />
+                    <label class="form-label">Dung tích (ml)</label>
+                    <input type="number" th:field="*{dungTich}" class="form-control" min="0" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Kích thước</label>
-                    <input type="text" th:field="*{size}" class="form-control" />
+                    <label class="form-label">Tồn kho</label>
+                    <input type="number" th:field="*{soLuongTon}" class="form-control" min="0" />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Giá gốc <span class="text-danger">*</span></label>
+                    <input type="number" th:field="*{giaGoc}" class="form-control" required min="0" step="1" />
+                    <div th:if="${#fields.hasErrors('giaGoc')}" th:errors="*{giaGoc}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Giá</label>
-                    <input type="number" th:field="*{price}" class="form-control" />
+                    <label class="form-label">Giá khuyến mãi</label>
+                    <input type="number" th:field="*{giaKhuyenMai}" class="form-control" min="0" step="1" />
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Số lượng</label>
-                    <input type="number" th:field="*{stock}" class="form-control" />
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check">
+                        <input type="checkbox" th:field="*{default}" class="form-check-input" id="isDefault" />
+                        <label class="form-check-label" for="isDefault">Biến thể mặc định</label>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">SKU</label>
-                    <input type="text" th:field="*{sku}" class="form-control" />
-                </div>
+
                 <div class="col-12">
                     <label class="form-label">Ảnh biến thể</label>
-                    <input type="file" name="imageFile" class="form-control" />
+                    <input type="file" th:name="hinhAnhFile" class="form-control" accept="image/*" />
+                    <div th:if="${variant.hinhAnh}" class="mt-2">
+                        <img th:src="@{${variant.hinhAnh}}" alt="preview" style="max-width:100px;border-radius:6px;" />
+                        <input type="hidden" th:field="*{hinhAnh}" />
+                    </div>
                 </div>
-                <div class="col-12">
+
+                <div class="col-12 border-top pt-3">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-                    <a th:href="@{/admin/productvariant/danh-sach}" class="btn btn-secondary">Hủy</a>
+                    <a th:href="@{/admin/san-pham/{id}/bien-the(id=${variant.productId})}" class="btn btn-secondary">Hủy</a>
                 </div>
             </form>
         </div>
