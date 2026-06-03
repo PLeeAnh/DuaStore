@@ -8,24 +8,147 @@
     </head>
     <body>
     <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Thanh toán]: Implement trang thanh toán / đặt hàng
-                 Cấu trúc gợi ý:
-                 - 2 cột: bên trái form thông tin, bên phải tóm tắt đơn hàng
-                 - Form: Họ tên, SĐT, Email, Địa chỉ (chọn từ sổ địa chỉ hoặc nhập mới),
-                   Ghi chú (textarea)
-                 - Phương thức thanh toán: COD / Chuyển khoản / VNPay
-                 - Phương thức vận chuyển: Giao hàng tiêu chuẩn / Nhanh
-                 - Tóm tắt đơn: danh sách SP, tạm tính, phí ship, giảm giá, tổng cộng
-                 - Nút: "Đặt hàng" (btn-primary, full width)
-                 - Validation các field bắt buộc
-                 - Thêm mã giảm giá (nếu chưa nhập ở giỏ hàng)
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-credit-card" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang thanh toán sẽ được cập nhật</p>
+        <div class="container-xl py-4">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div th:if="${error}" class="alert alert-danger d-flex align-items-center gap-2 py-2" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                        <span th:text="${error}"></span>
+                    </div>
+
+                    <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt me-2"></i>Địa chỉ giao hàng</h5>
+                    <div th:if="${#lists.isEmpty(addresses)}" class="alert alert-warning py-2">
+                        Chưa có địa chỉ. <a th:href="@{/address}" class="alert-link">Thêm địa chỉ mới</a>
+                    </div>
+
+                    <form th:action="@{/checkout}" th:object="${checkoutRequest}" method="post" id="checkoutForm">
+                        <div th:if="${not #lists.isEmpty(addresses)}" class="mb-4">
+                            <div class="row g-2">
+                                <div class="col-md-6" th:each="a : ${addresses}">
+                                    <label class="address-radio d-block">
+                                        <input type="radio" name="addressId" th:value="${a.id}"
+                                               th:checked="${a.isDefault}" required />
+                                        <div class="border rounded p-3" style="cursor:pointer">
+                                            <strong th:text="${a.tenNguoiNhan}"></strong>
+                                            <span class="text-muted ms-2" th:text="${a.soDienThoai}"></span>
+                                            <span th:if="${a.isDefault}" class="badge bg-primary ms-2">Mặc định</span>
+                                            <div class="small text-muted mt-1" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5 class="fw-bold mb-3"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="phuongThucGiaoHang"
+                                       id="shipTT" value="SHIP" checked onchange="updateShipFee()" />
+                                <label class="form-check-label d-flex justify-content-between w-100" for="shipTT">
+                                    <span>Giao hàng tiêu chuẩn</span>
+                                    <span class="text-muted">30.000đ</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="phuongThucGiaoHang"
+                                       id="shipNhanh" value="NHANH" onchange="updateShipFee()" />
+                                <label class="form-check-label d-flex justify-content-between w-100" for="shipNhanh">
+                                    <span>Giao hàng nhanh</span>
+                                    <span class="text-muted">50.000đ</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5 class="fw-bold mb-3"><i class="bi bi-credit-card me-2"></i>Phương thức thanh toán</h5>
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="phuongThucTT"
+                                       id="ttCOD" value="COD" checked required />
+                                <label class="form-check-label" for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="phuongThucTT"
+                                       id="ttCK" value="CHUYEN_KHOAN" />
+                                <label class="form-check-label" for="ttCK">Chuyển khoản ngân hàng</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="phuongThucTT"
+                                       id="ttVNPay" value="VNPAY" />
+                                <label class="form-check-label" for="ttVNPay">VNPay</label>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
+                        <div class="input-group mb-4" style="max-width:400px">
+                            <input type="text" name="maCode" class="form-control" placeholder="Nhập mã giảm giá" />
+                            <button class="btn btn-outline-primary" type="button" id="applyPromoBtn">Áp dụng</button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú đơn hàng</label>
+                            <textarea name="ghiChu" class="form-control" rows="2" placeholder="Ghi chú (không bắt buộc)"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">Đặt hàng</button>
+                    </form>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Tóm tắt đơn hàng</h6>
+                            <div th:each="item : ${cartItems}" class="d-flex gap-2 mb-2">
+                                <img th:src="@{${item.hinhAnh}}" alt="" class="rounded" style="width:50px;height:50px;object-fit:cover" />
+                                <div class="flex-grow-1 small">
+                                    <div class="text-truncate" th:text="${item.tenSanPham}"></div>
+                                    <div class="text-muted" th:text="${item.tenBienThe}"></div>
+                                    <div class="d-flex justify-content-between">
+                                        <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                        <span class="text-muted">x<span th:text="${item.soLuong}"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Tạm tính</span>
+                                <span th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="subtotalDisplay"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Phí vận chuyển</span>
+                                <span id="shipFeeDisplay">30.000đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Giảm giá</span>
+                                <span id="discountDisplay">0đ</span>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Tổng cộng</span>
+                                <span th:text="${#numbers.formatDecimal(subtotal + 30000, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="totalDisplay"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function updateShipFee() {
+            const fee = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value === 'NHANH' ? 50000 : 30000;
+            document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + 'đ';
+            updateTotal();
+        }
+        function updateTotal() {
+            const subtotalEl = document.getElementById('subtotalDisplay');
+            const subtotal = parseInt(subtotalEl.textContent.replace(/[^0-9]/g, '')) || 0;
+            const fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
+            const discount = parseInt(document.getElementById('discountDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
+            document.getElementById('totalDisplay').textContent = (subtotal + fee - discount).toLocaleString('vi-VN') + 'đ';
+        }
+    </script>
     </body>
 </html>
