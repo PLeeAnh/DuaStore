@@ -1480,3 +1480,39 @@ a { color: inherit; }
   .ds-footer-legal { flex-wrap: wrap; gap: 12px; }
   .ds-float-zalo { bottom: 4.5rem; }
 }
+/* ---- NÚT TIM TRANG CHI TIẾT SẢN PHẨM ---- */
+.btn-detail-wishlist {
+    background: var(--ds-gray-100);
+    border: 1px solid var(--ds-border);
+    color: var(--ds-gray-500);
+    width: 45px;   /* Chiều rộng nút */
+    height: 45px;  /* Chiều cao tự động bằng nút Thêm vào giỏ */
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.btn-detail-wishlist:hover,
+.btn-detail-wishlist.active {
+    background: #ffffff;
+    color: #ef4444;      /* Đổi sang màu đỏ khi hover hoặc kích hoạt */
+    border-color: #ef4444;
+}
+
+/* Đồng bộ giao diện tối (Dark Mode) */
+[data-theme="dark"] .btn-detail-wishlist {
+    background: #1a1a2a;
+    border-color: #333348;
+    color: #a0a0b8;
+}
+[data-theme="dark"] .btn-detail-wishlist:hover,
+[data-theme="dark"] .btn-detail-wishlist.active {
+    background: #22223a;
+    color: #f87171;
+    border-color: #f87171;
+}
