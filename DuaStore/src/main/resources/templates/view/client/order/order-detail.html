@@ -3,26 +3,168 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
-    <head>
-        <title>Chi tiết đơn hàng — DuaStore</title>
-    </head>
-    <body>
-    <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Đơn hàng]: Implement trang chi tiết đơn hàng (client)
-                 Cấu trúc gợi ý:
-                 - Mã đơn hàng + trạng thái (timeline hoặc badge)
-                 - Thông tin giao hàng: người nhận, SĐT, địa chỉ
-                 - Danh sách sản phẩm: ảnh, tên, SL, giá, thành tiền
-                 - Tổng tiền, phí ship, giảm giá
-                 - Nút: "Mua lại" / "Liên hệ hỗ trợ"
-                 - Nếu đã giao: nút "Đánh giá sản phẩm"
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-receipt-cutoff" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang chi tiết đơn hàng sẽ được cập nhật</p>
+<head>
+    <title>Chi tiết đơn hàng — DuaStore</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-xl py-5">
+        <a th:href="@{/tai-khoan/don-hang}" class="btn btn-outline-secondary btn-sm mb-3">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại
+        </a>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="fw-bold mb-0" th:text="${order.maDon}"></h4>
+                            <th:block th:switch="${order.trangThaiDon}">
+                                <span th:case="'CHO_XAC_NHAN'" class="badge bg-warning text-dark fs-6">Chờ xác nhận</span>
+                                <span th:case="'DA_XAC_NHAN'" class="badge bg-info text-dark fs-6">Đã xác nhận</span>
+                                <span th:case="'DANG_GIAO'" class="badge bg-primary fs-6">Đang giao</span>
+                                <span th:case="'DA_GIAO'" class="badge bg-success fs-6">Đã giao</span>
+                                <span th:case="'DA_HUY'" class="badge bg-danger fs-6">Đã hủy</span>
+                            </th:block>
+                        </div>
+                        <small class="text-muted" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></small>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-truck me-2"></i>Trạng thái</h5>
+                        <div class="d-flex justify-content-between position-relative">
+                            <div class="text-center"
+                                 th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' || order.trangThaiDon == 'DA_XAC_NHAN' || order.trangThaiDon == 'DANG_GIAO' || order.trangThaiDon == 'DA_GIAO'} ? '' : 'text-muted'">
+                                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-1" style="width:40px;height:40px;"><i class="bi bi-check-lg"></i></div>
+                                <small>Chờ xác nhận</small>
+                            </div>
+                            <div class="flex-grow-1 border-top mt-4 mx-2"></div>
+                            <div class="text-center"
+                                 th:classappend="${order.trangThaiDon == 'DA_XAC_NHAN' || order.trangThaiDon == 'DANG_GIAO' || order.trangThaiDon == 'DA_GIAO'} ? '' : 'text-muted'">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1 border"
+                                     th:classappend="${order.trangThaiDon == 'DA_XAC_NHAN' || order.trangThaiDon == 'DANG_GIAO' || order.trangThaiDon == 'DA_GIAO'} ? 'bg-success text-white border-0' : ''" style="width:40px;height:40px;"><i class="bi bi-check-lg"></i></div>
+                                <small>Đã xác nhận</small>
+                            </div>
+                            <div class="flex-grow-1 border-top mt-4 mx-2"></div>
+                            <div class="text-center"
+                                 th:classappend="${order.trangThaiDon == 'DANG_GIAO' || order.trangThaiDon == 'DA_GIAO'} ? '' : 'text-muted'">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1 border"
+                                     th:classappend="${order.trangThaiDon == 'DANG_GIAO' || order.trangThaiDon == 'DA_GIAO'} ? 'bg-success text-white border-0' : ''" style="width:40px;height:40px;"><i class="bi bi-truck"></i></div>
+                                <small>Đang giao</small>
+                            </div>
+                            <div class="flex-grow-1 border-top mt-4 mx-2"></div>
+                            <div class="text-center"
+                                 th:classappend="${order.trangThaiDon == 'DA_GIAO'} ? '' : 'text-muted'">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1 border"
+                                     th:classappend="${order.trangThaiDon == 'DA_GIAO'} ? 'bg-success text-white border-0' : ''" style="width:40px;height:40px;"><i class="bi bi-house-check"></i></div>
+                                <small>Đã giao</small>
+                            </div>
+                        </div>
+                        <th:block th:if="${order.trangThaiDon == 'DA_HUY'}">
+                            <div class="alert alert-danger mt-3 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Đơn hàng đã bị hủy</div>
+                        </th:block>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <span class="fw-medium">Thanh toán:</span>
+                                <th:block th:switch="${order.trangThaiTT}">
+                                    <span th:case="'CHUA_THANH_TOAN'" class="text-warning">Chưa thanh toán</span>
+                                    <span th:case="'DA_THANH_TOAN'" class="text-success">Đã thanh toán</span>
+                                    <span th:case="'HOAN_TIEN'" class="text-danger">Hoàn tiền</span>
+                                </th:block>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-box me-2"></i>Sản phẩm</h5>
+                        <div th:each="item : ${items}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                            <div class="flex-shrink-0">
+                                <img th:src="${item.hinhAnhSP}" th:alt="${item.tenSanPham}"
+                                     class="rounded" style="width:80px;height:80px;object-fit:cover;"
+                                     onerror="this.src='/images/placeholder.svg'"/>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1" th:text="${item.tenSanPham}"></h6>
+                                <small class="text-muted" th:text="${item.tenBienThe}"></small>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                                    <span class="text-muted">x<span th:text="${item.soLuong}"></span></span>
+                                    <span class="fw-semibold" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-geo-alt me-2"></i>Giao hàng</h5>
+                        <p class="mb-1 fw-medium" th:text="${order.tenNguoiNhan}"></p>
+                        <p class="mb-1 text-muted" th:text="${order.soDienThoai}"></p>
+                        <p class="mb-0 text-muted" th:text="${order.diaChi}"></p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-credit-card me-2"></i>Thanh toán</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phương thức:</span>
+                            <th:block th:switch="${order.phuongThucTT}">
+                                <span th:case="'COD'">COD</span>
+                                <span th:case="'CHUYEN_KHOAN'">Chuyển khoản</span>
+                                <span th:case="'VNPAY'">VNPay</span>
+                            </th:block>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Giao hàng:</span>
+                            <th:block th:switch="${order.phuongThucGiaoHang}">
+                                <span th:case="'SHIP'">Giao tận nơi</span>
+                                <span th:case="'NHAN_TAI_CONG'">Nhận tại cửa hàng</span>
+                            </th:block>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="fw-semibold mb-3"><i class="bi bi-receipt me-2"></i>Chi tiết</h5>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tiền hàng:</span>
+                            <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí ship:</span>
+                            <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                        </div>
+                        <div th:if="${order.tienGiam > 0}" class="d-flex justify-content-between mb-2 text-success">
+                            <span class="text-muted">Giảm giá:</span>
+                            <span>-<span th:text="${#numbers.formatDecimal(order.tienGiam, 0, 'COMMA', 0, 'POINT') + '₫'}"></span></span>
+                        </div>
+                        <hr/>
+                        <div class="d-flex justify-content-between fw-bold fs-5">
+                            <span>Tổng:</span>
+                            <span class="text-danger" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                        </div>
+                        <form th:if="${order.trangThaiDon == 'CHO_XAC_NHAN'}"
+                              th:action="@{/tai-khoan/don-hang/huy/{id}(id=${order.id})}"
+                              method="post"
+                              onsubmit="return confirm('Hủy đơn hàng này?')" class="mt-4">
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="bi bi-x-circle me-2"></i>Hủy đơn hàng
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    </body>
+</div>
+</body>
 </html>

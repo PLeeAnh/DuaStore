@@ -3,28 +3,102 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
-    <head>
-        <title>Lịch sử đơn hàng — DuaStore</title>
-    </head>
-    <body>
-    <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Đơn hàng]: Implement trang lịch sử đơn hàng
-                 Cấu trúc gợi ý:
-                 - Tiêu đề: "Lịch sử đơn hàng"
-                 - Bộ lọc: trạng thái (tất cả, chờ xác nhận, đang giao, đã giao, đã hủy)
-                 - Danh sách đơn hàng (card hoặc table):
-                   - Mã ĐH, ngày đặt, tổng tiền, trạng thái (badge)
-                   - Danh sách sản phẩm tóm tắt (ảnh + tên)
-                   - Nút: "Xem chi tiết" / "Mua lại" / "Hủy đơn" (nếu có thể)
-                 - Pagination
-                 - Nếu chưa có đơn: thông báo + nút mua sắm
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-clock-history" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang lịch sử đơn hàng sẽ được cập nhật</p>
-            </div>
+<head>
+    <title>Lịch sử đơn hàng — DuaStore</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-xl py-5">
+        <h2 class="fw-bold mb-4">Lịch sử đơn hàng</h2>
+
+        <div class="mb-4 d-flex gap-2 flex-wrap">
+            <a th:href="@{/tai-khoan/don-hang}"
+               class="btn btn-sm"
+               th:classappend="${#strings.isEmpty(trangThai)} ? 'btn-dark' : 'btn-outline-secondary'">Tất cả</a>
+            <a th:href="@{/tai-khoan/don-hang(trangThai='CHO_XAC_NHAN')}"
+               class="btn btn-sm"
+               th:classappend="${trangThai == 'CHO_XAC_NHAN'} ? 'btn-dark' : 'btn-outline-secondary'">Chờ xác nhận</a>
+            <a th:href="@{/tai-khoan/don-hang(trangThai='DA_XAC_NHAN')}"
+               class="btn btn-sm"
+               th:classappend="${trangThai == 'DA_XAC_NHAN'} ? 'btn-dark' : 'btn-outline-secondary'">Đã xác nhận</a>
+            <a th:href="@{/tai-khoan/don-hang(trangThai='DANG_GIAO')}"
+               class="btn btn-sm"
+               th:classappend="${trangThai == 'DANG_GIAO'} ? 'btn-dark' : 'btn-outline-secondary'">Đang giao</a>
+            <a th:href="@{/tai-khoan/don-hang(trangThai='DA_GIAO')}"
+               class="btn btn-sm"
+               th:classappend="${trangThai == 'DA_GIAO'} ? 'btn-dark' : 'btn-outline-secondary'">Đã giao</a>
+            <a th:href="@{/tai-khoan/don-hang(trangThai='DA_HUY')}"
+               class="btn btn-sm"
+               th:classappend="${trangThai == 'DA_HUY'} ? 'btn-dark' : 'btn-outline-secondary'">Đã hủy</a>
         </div>
+
+        <th:block th:if="${#lists.isEmpty(orders)}">
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">Chưa có đơn hàng nào</p>
+                <a th:href="@{/san-pham}" class="btn btn-primary">Mua sắm ngay</a>
+            </div>
+        </th:block>
+
+        <th:block th:unless="${#lists.isEmpty(orders)}">
+            <div class="d-flex flex-column gap-3">
+                <div th:each="order : ${orders}" class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong class="fs-6" th:text="${order.maDon}"></strong>
+                                <br/><small class="text-muted" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></small>
+                            </div>
+                            <th:block th:switch="${order.trangThaiDon}">
+                                <span th:case="'CHO_XAC_NHAN'" class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                <span th:case="'DA_XAC_NHAN'" class="badge bg-info text-dark">Đã xác nhận</span>
+                                <span th:case="'DANG_GIAO'" class="badge bg-primary">Đang giao</span>
+                                <span th:case="'DA_GIAO'" class="badge bg-success">Đã giao</span>
+                                <span th:case="'DA_HUY'" class="badge bg-danger">Đã hủy</span>
+                            </th:block>
+                        </div>
+                        <div class="d-flex gap-2 mb-2 flex-wrap">
+                            <th:block th:each="item : ${order.orderItems}" th:if="${itemStat.index < 3}">
+                                <img th:src="${item.hinhAnhSP}" th:alt="${item.tenSanPham}"
+                                     class="rounded" style="width:48px;height:48px;object-fit:cover;"
+                                     onerror="this.src='/images/placeholder.svg'"/>
+                            </th:block>
+                            <span th:if="${order.orderItems.size() > 3}"
+                                  class="d-flex align-items-center text-muted small">+<span th:text="${order.orderItems.size() - 3}"></span></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-danger fs-5" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT') + '₫'}"></span>
+                            <div class="d-flex gap-2">
+                                <a th:href="@{/tai-khoan/don-hang/{id}(id=${order.id})}"
+                                   class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                                <form th:if="${order.trangThaiDon == 'CHO_XAC_NHAN'}"
+                                      th:action="@{/tai-khoan/don-hang/huy/{id}(id=${order.id})}"
+                                      method="post"
+                                      onsubmit="return confirm('Hủy đơn hàng này?')">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Hủy</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav th:if="${totalPages > 1}" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/tai-khoan/don-hang(page=${currentPage - 1}, trangThai=${trangThai})}">«</a>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/tai-khoan/don-hang(page=${i}, trangThai=${trangThai})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/tai-khoan/don-hang(page=${currentPage + 1}, trangThai=${trangThai})}">»</a>
+                    </li>
+                </ul>
+            </nav>
+        </th:block>
     </div>
-    </body>
+</div>
+</body>
 </html>
