@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.dto.ReviewRequestDTO;
 import com.duastore.dto.VariantApiDTO;
 import com.duastore.model.Category;
 import com.duastore.model.Product;
@@ -9,10 +10,13 @@ import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.ProductService;
-import org.springframework.jdbc.core.JdbcTemplate; // THÊM IMPORT NÀY
+import com.duastore.service.client.ReviewService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -26,18 +30,20 @@ public class ProductController {
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
-    private final JdbcTemplate jdbcTemplate; // THÊM KHAI BÁO NÀY
+    private final ReviewService reviewService;
+    private final JdbcTemplate jdbcTemplate;
 
-    // Cập nhật constructor để tự động inject thêm JdbcTemplate
     public ProductController(ProductService productService,
                              ProductVariantRepository variantRepository,
                              ProductImageRepository productImageRepository,
                              CategoryRepository categoryRepository,
+                             ReviewService reviewService,
                              JdbcTemplate jdbcTemplate) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
         this.categoryRepository = categoryRepository;
+        this.reviewService = reviewService;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -141,7 +147,33 @@ public class ProductController {
             System.out.println("Lỗi đọc likedIds ở trang chi tiết sản phẩm: " + e.getMessage());
         }
 
+        // Đánh giá sản phẩm
+        model.addAttribute("reviews", reviewService.getApprovedReviews(id));
+        try {
+            Integer userId = 2;
+            model.addAttribute("hasReviewed", reviewService.hasReviewed(userId, id));
+        } catch (Exception e) {
+            model.addAttribute("hasReviewed", false);
+        }
+
         return "view/client/product/product-detail";
+    }
+
+    // ── Danh gia san pham ──
+
+    @PostMapping("/san-pham/{id}/danh-gia")
+    public String submitReview(@PathVariable Integer id,
+                               @ModelAttribute ReviewRequestDTO request,
+                               RedirectAttributes ra) {
+        Integer userId = 2;
+        request.setProductId(id);
+        try {
+            reviewService.createReview(userId, request);
+            ra.addFlashAttribute("successMsg", "Cảm ơn bạn đã đánh giá! Đánh giá sẽ được hiển thị sau khi duyệt.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/san-pham/" + id;
     }
 
     // ── API for variant switching (AJAX) ──

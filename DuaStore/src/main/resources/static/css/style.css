@@ -1516,3 +1516,39 @@ a { color: inherit; }
     color: #f87171;
     border-color: #f87171;
 }
+
+/* ══════════════════════════════════════════
+   REVIEWS / DANH GIA SAN PHAM
+══════════════════════════════════════════ */
+.review-stars { color: #f59e0b; font-size: 1.1rem; letter-spacing: 2px; }
+
+.star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; }
+.star-rating input { display: none; }
+.star-rating label {
+    font-size: 1.8rem; color: #ddd; cursor: pointer;
+    transition: color .15s; user-select: none;
+}
+.star-rating label:hover,
+.star-rating label.hover,
+.star-rating label:hover ~ label,
+.star-rating label.hover ~ label { color: #f59e0b; }
+.star-rating input:checked ~ label,
+.star-rating label.selected,
+.star-rating label.selected ~ label { color: #f59e0b; }
+
+.review-item { background: #fafafa; }
+[data-theme="dark"] .review-item { background: #1a1a2a; border-color: #333348; }
+[data-theme="dark"] .review-item .text-muted { color: #a0a0b8 !important; }
+
+/* ══════════════════════════════════════════
+   BLOG / BAI VIET (CLIENT)
+══════════════════════════════════════════ */
+.blog-card { border-radius: 12px; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.blog-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.1) !important; }
+.blog-card .card-title a { color: inherit; }
+.blog-card .card-title a:hover { color: var(--bs-danger); }
+.blog-detail h2 { font-size: 1.75rem; line-height: 1.4; }
+.blog-content { font-size: 1rem; line-height: 1.8; color: #374151; }
+.blog-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
+[data-theme="dark"] .blog-content { color: #d1d5db; }
+[data-theme="dark"] .blog-content img { opacity: .9; }
