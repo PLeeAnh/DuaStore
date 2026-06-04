@@ -12,31 +12,89 @@
         <li class="breadcrumb-item active" aria-current="page">Bài viết</li>
     </th:block>
     <div layout:fragment="content">
-        <!-- ★ TODO [Bài viết]: Implement trang danh sách bài viết
-             
-             Cấu trúc gợi ý:
-             1. Page header: adm-page-header với tiêu đề Bài viết + nút Thêm mới
-             2. Bộ lọc: danh mục, trạng thái, từ khóa
-             3. adm-table-wrap: table danh sách
-                - Cột: #, Ảnh, Tiêu đề, Danh mục, Tác giả, Trạng thái (badge), Ngày đăng, Thao tác
-             4. Mỗi dòng nút Sửa / Xóa
-             5. Pagination
-             
-             Link sidebar active: th:classappend="${title == 'Bài viết' ? ' active' : ''}"
-        -->
         <div class="adm-page-header">
             <h4><i class="bi bi-file-text me-2"></i>Bài viết</h4>
-            <a th:href="@{/admin/post/them-moi}" class="btn btn-primary btn-sm">
+            <a th:href="@{/admin/bai-viet/them-moi}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>Thêm mới
             </a>
         </div>
+        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show mt-2">
+            <span th:text="${successMsg}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show mt-2">
+            <span th:text="${errorMsg}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <div class="adm-table-wrap">
             <table class="table table-hover align-middle mb-0">
-                <thead><tr><th>#</th><th>Tiêu đề</th><th>Danh mục</th><th>Trạng thái</th><th>Ngày đăng</th><th>Thao tác</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Tác giả</th>
+                        <th>Trạng thái</th>
+                        <th>Lượt xem</th>
+                        <th>Ngày đăng</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <tr><td colspan="6" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
+                    <tr th:each="p, iter : ${posts}">
+                        <td th:text="${iter.index + 1 + currentPage * 20}"></td>
+                        <td>
+                            <img th:if="${p.hinhAnh != null}"
+                                 th:src="@{${p.hinhAnh}}" alt=""
+                                 style="width:50px;height:50px;object-fit:cover;border-radius:4px;"
+                                 onerror="this.style.display='none'" />
+                            <span th:unless="${p.hinhAnh != null}" class="text-muted">—</span>
+                        </td>
+                        <td>
+                            <span th:text="${p.tieuDe}"></span>
+                            <small th:if="${p.tomTat != null}" class="d-block text-muted" th:text="${p.tomTat}"></small>
+                        </td>
+                        <td th:text="${tacGiaMap.get(p.tacGiaId) != null ? tacGiaMap.get(p.tacGiaId) : '—'}"></td>
+                        <td>
+                            <span th:if="${p.trangThai == 'XUAT_BAN'}" class="badge bg-success">Xuất bản</span>
+                            <span th:if="${p.trangThai == 'NHAP'}" class="badge bg-warning text-dark">Nháp</span>
+                            <span th:if="${p.trangThai == 'AN'}" class="badge bg-secondary">Ẩn</span>
+                        </td>
+                        <td th:text="${p.luotXem}"></td>
+                        <td th:text="${#temporals.format(p.ngayTao, 'dd/MM/yyyy')}"></td>
+                        <td>
+                            <a th:href="@{/admin/bai-viet/sua/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/admin/bai-viet/xoa/{id}(id=${p.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Xóa bài viết này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(posts)}">
+                        <td colspan="8" class="text-muted text-center py-4">Chưa có dữ liệu</td>
+                    </tr>
                 </tbody>
             </table>
+        </div>
+        <div th:if="${totalPages > 1}" class="mt-3">
+            <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
+                        <a class="page-link" th:href="@{/admin/bai-viet(page=${currentPage - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? active">
+                        <a class="page-link" th:href="@{/admin/bai-viet(page=${i})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? disabled">
+                        <a class="page-link" th:href="@{/admin/bai-viet(page=${currentPage + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
     </body>
