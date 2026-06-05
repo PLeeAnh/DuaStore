@@ -46,5 +46,7 @@ public class CartController {
         }
 
         return "view/client/cart/cart"; // Trỏ đúng về file cart.html của bạn
+    private Integer currentUserId(HttpSession session) {
+        return 2;
     }
 }

@@ -1,0 +1,57 @@
+package com.duastore.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "Posts")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Post {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(nullable = false, length = 300)
+    private String tieuDe;
+
+    @Column(length = 500)
+    private String tomTat;
+
+    @Column(columnDefinition = "NVARCHAR(MAX)")
+    private String noiDung;
+
+    @Column(length = 255)
+    private String hinhAnh;
+
+    private Integer tacGiaId;
+
+    @Column(nullable = false, length = 15)
+    private String trangThai = "NHAP";
+
+    @Column(nullable = false)
+    private Integer luotXem = 0;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime ngayTao;
+
+    private LocalDateTime ngayCapNhat;
+
+    @PrePersist
+    protected void onCreate() {
+        ngayTao = LocalDateTime.now();
+        ngayCapNhat = LocalDateTime.now();
+        if (trangThai == null) trangThai = "NHAP";
+        if (luotXem == null) luotXem = 0;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        ngayCapNhat = LocalDateTime.now();
+    }
+}

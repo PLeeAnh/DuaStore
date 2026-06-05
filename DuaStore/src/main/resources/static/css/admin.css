@@ -831,3 +831,4 @@ body.adm-body {
   .adm-main { margin-left: 0; }
   .adm-sidebar-mobile-open ~ .adm-main { margin-left: 0; }
 }
+.review-admin-stars { color: #f59e0b; font-size: 1rem; letter-spacing: 1px; white-space: nowrap; }

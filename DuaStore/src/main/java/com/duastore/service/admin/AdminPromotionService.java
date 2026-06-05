@@ -32,25 +32,26 @@ public class AdminPromotionService {
     }
 
     public Promotion savePromotion(Promotion promotion) {
-        if (promotion.getId() != null) {
-            Promotion existing = getPromotionById(promotion.getId());
-            promotion.setDaDung(existing.getDaDung());
-        } else {
-            if (promotion.getDaDung() == null) promotion.setDaDung(0);
-            if (promotion.getIsActive() == null) promotion.setIsActive(true);
+    String code = promotion.getMaCode().toUpperCase().trim();
+    promotion.setMaCode(code);
+
+    // Check trùng mã bằng DB (bỏ qua chính nó nếu là sửa)
+    promotionRepository.findByMaCodeIgnoreCase(code).ifPresent(p -> {
+        if (promotion.getId() == null || !promotion.getId().equals(p.getId())) {
+            throw new RuntimeException("Mã giảm giá \"" + code + "\" đã tồn tại");
         }
-        if (promotion.getMaCode() != null) {
-            String code = promotion.getMaCode().toUpperCase().trim();
-            promotionRepository.findAll().stream()
-                    .filter(p -> p.getMaCode().equalsIgnoreCase(code))
-                    .filter(p -> promotion.getId() == null || !promotion.getId().equals(p.getId()))
-                    .findFirst()
-                    .ifPresent(p -> {
-                        throw new RuntimeException("Mã giảm giá \"" + promotion.getMaCode() + "\" đã tồn tại");
-                    });
-        }
-        return promotionRepository.save(promotion);
+    });
+
+    // Nếu sửa: Giữ nguyên số lượt đã dùng
+    if (promotion.getId() != null) {
+        Promotion existing = getPromotionById(promotion.getId());
+        promotion.setDaDung(existing.getDaDung());
+    } else {
+        promotion.setDaDung(0);
     }
+
+    return promotionRepository.save(promotion);
+}
 
     public void deletePromotion(Integer id) {
         Promotion p = getPromotionById(id);
