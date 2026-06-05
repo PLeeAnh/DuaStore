@@ -50,10 +50,6 @@ public class CartController {
     }
 
     private Integer currentUserId(HttpSession session) {
-        Object value = session.getAttribute("userId");
-        if (value instanceof Integer id) {
-            return id;
-        }
-        return 1;
+        return 2;
     }
 }
