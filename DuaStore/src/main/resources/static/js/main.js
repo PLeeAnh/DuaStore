@@ -423,3 +423,50 @@ function removeCartItem(cartItemId) {
     })
     .catch(error => console.error("Lỗi xóa giỏ hàng:", error));
 }
+/* =====================================================
+   TĂNG GIẢM SỐ LƯỢNG TRỰC TIẾP TRONG POPUP (CỰC MƯỢT)
+===================================================== */
+function updatePopupQty(variantId, delta) {
+    const qtySpan = document.getElementById('popup-qty-' + variantId);
+    const priceSpan = document.getElementById('popup-price-' + variantId);
+    if (!qtySpan) return;
+    
+    // 1. Lấy số lượng hiện tại
+    let currentQty = parseInt(qtySpan.innerText) || 1;
+    let newQty = currentQty + delta;
+    
+    // 2. Nếu giảm về 0 thì hỏi người dùng có muốn xóa không
+    if (newQty < 1) {
+        if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+            removeCartItem(variantId);
+        }
+        return;
+    }
+
+    // 3. Tự động tính tiền và nhảy số ngay lập tức trên màn hình (UX siêu mượt)
+    qtySpan.innerText = newQty;
+    if (priceSpan) {
+        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
+        let newTotal = unitPrice * newQty;
+        priceSpan.innerText = newTotal.toLocaleString('vi-VN') + 'đ';
+    }
+
+    // 4. Gọi API cập nhật ngầm xuống Database
+    fetch('/api/cart/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId: variantId, soLuong: newQty })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            // Cập nhật số lượng trên cái vòng tròn đỏ của Icon Giỏ hàng
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+        } else {
+            // Nếu có lỗi mạng, trả lại số cũ
+            alert(data.message || 'Cập nhật thất bại!');
+            qtySpan.innerText = currentQty;
+        }
+    }).catch(() => {
+        alert('Lỗi kết nối hệ thống. Vui lòng thử lại!');
+        qtySpan.innerText = currentQty; // Trả lại số cũ nếu rớt mạng
+    });
+}
