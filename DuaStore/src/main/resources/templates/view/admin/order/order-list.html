@@ -12,28 +12,64 @@
         <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
     </th:block>
     <div layout:fragment="content">
-        <!-- ★ TODO [Đơn hàng]: Implement trang danh sách đơn hàng
-             
-             Cấu trúc gợi ý:
-             1. Page header: adm-page-header với tiêu đề Đơn hàng
-             2. Bộ lọc: trạng thái (select), ngày, từ khóa
-             3. adm-table-wrap: table danh sách
-                - Cột: #, Mã ĐH, Khách hàng, SĐT, Tổng tiền, Trạng thái (badge màu), Ngày đặt, Thao tác
-             4. Mỗi dòng nút Xem chi tiết
-             5. Pagination
-             
-             Link sidebar active: th:classappend="${title == 'Đơn hàng' ? ' active' : ''}"
-        -->
+        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show" th:text="${successMsg}">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" th:text="${errorMsg}">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <div class="adm-page-header">
             <h4><i class="bi bi-receipt me-2"></i>Đơn hàng</h4>
         </div>
         <div class="adm-table-wrap">
             <table class="table table-hover align-middle mb-0">
-                <thead><tr><th>#</th><th>Mã ĐH</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th><th>Thao tác</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Mã ĐH</th>
+                        <th>Khách hàng</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày đặt</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <tr><td colspan="7" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
+                    <tr th:each="o, iter : ${orders}">
+                        <td th:text="${iter.index + 1 + currentPage * 20}"></td>
+                        <td><strong th:text="${o.maDon}"></strong></td>
+                        <td><span th:text="${o.tenNguoiNhan}"></span><br/><small class="text-muted" th:text="${o.soDienThoai}"></small></td>
+                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                        <td>
+                            <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : 'bg-secondary'}"
+                                  th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon}"></span>
+                        </td>
+                        <td th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <a th:href="@{/admin/don-hang/{id}(id=${o.id})}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(orders)}">
+                        <td colspan="7" class="text-muted text-center py-4">Chưa có đơn hàng</td>
+                    </tr>
                 </tbody>
             </table>
+        </div>
+        <div th:if="${totalPages > 1}" class="mt-3">
+            <nav>
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? active">
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${i})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? disabled">
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
     </body>
