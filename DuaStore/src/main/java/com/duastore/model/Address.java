@@ -34,10 +34,4 @@ public class Address {
 
     @Column(name = "isDefault", nullable = false)
     private Boolean isDefault = false;
-
-    @Column(name = "latitude")
-    private Double latitude;
-
-    @Column(name = "longitude")
-    private Double longitude;
 }

@@ -47,6 +47,10 @@ public class CartController {
 
         return "view/client/cart/cart"; // Trỏ đúng về file cart.html của bạn
     private Integer currentUserId(HttpSession session) {
-        return 2;
+        Object value = session.getAttribute("userId");
+        if (value instanceof Integer id) {
+            return id;
+        }
+        return 1;
     }
 }

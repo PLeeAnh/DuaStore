@@ -5,7 +5,6 @@ import com.duastore.repository.CategoryRepository;
 import com.duastore.service.client.CartService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -21,9 +20,6 @@ public class GlobalControllerAdvice {
 
     private final CategoryRepository categoryRepository;
     private final CartService cartService;
-
-    @Value("${google.maps.api.key}")
-    private String googleMapsApiKey;
 
     // ── Uncomment khi NHD hoàn thành CartService ──
     // private final CartService cartService;
@@ -52,14 +48,13 @@ public class GlobalControllerAdvice {
      *     Long userId = getCurrentUserId();
      *     return cartService.countByUserId(userId);
      */
-    @ModelAttribute("googleMapsApiKey")
-    public String googleMapsApiKey() {
-        return googleMapsApiKey;
-    }
-
     @ModelAttribute("cartCount")
-    public int cartCount() {
-        return cartService.count(2);
+    public int cartCount(HttpSession session) {
+        // TODO: lấy userId từ SecurityContextHolder, rồi:
+        // return cartService.countByUserId(userId);
+        Object value = session.getAttribute("userId");
+        Integer userId = value instanceof Integer id ? id : 1;
+        return cartService.count(userId);
     }
     
     @ModelAttribute("requestURI")
