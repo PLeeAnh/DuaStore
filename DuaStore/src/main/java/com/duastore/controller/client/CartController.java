@@ -1,104 +1,50 @@
 package com.duastore.controller.client;
 
-import com.duastore.dto.CartItemDTO;
-import com.duastore.repository.ProductVariantRepository;
-import com.duastore.service.client.CartService;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Controller
 public class CartController {
 
-    private final CartService cartService;
-    private final ProductVariantRepository variantRepository;
-
-    public CartController(CartService cartService, ProductVariantRepository variantRepository) {
-        this.cartService = cartService;
-        this.variantRepository = variantRepository;
-    }
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @GetMapping("/gio-hang")
-    public String cart(HttpSession session, Model model) {
-        Integer userId = currentUserId(session);
-        List<CartItemDTO> items = cartService.getItems(userId);
-        model.addAttribute("title", "gio-hang");
-        model.addAttribute("cartItems", items);
-        model.addAttribute("cartTotal", cartService.total(items));
-        return "view/client/cart/cart";
-    }
+    public String viewCart(Model model) {
+        model.addAttribute("title", "Giỏ hàng của bạn");
+        Integer userId = 2; // Dùng chung tài khoản test
 
-    @PostMapping("/gio-hang/cap-nhat/{id}")
-    public String update(@PathVariable Integer id,
-                         @RequestParam Integer soLuong,
-                         HttpSession session) {
-        cartService.updateQuantity(currentUserId(session), id, soLuong);
-        return "redirect:/gio-hang";
-    }
+        try {
+            // Lấy danh sách sản phẩm trong giỏ (tương tự như Popup)
+            String sql = "SELECT c.productId, c.variantId, p.tenSanPham, v.tenBienThe, " +
+                         "COALESCE(v.giaKhuyenMai, v.giaGoc) as giaBan, " +
+                         "COALESCE(v.hinhAnh, p.hinhAnhChinh) as hinhAnhHienThi, c.soLuong " +
+                         "FROM CartItems c " +
+                         "JOIN Products p ON c.productId = p.id " +
+                         "JOIN ProductVariants v ON c.variantId = v.id " +
+                         "WHERE c.userId = ?";
+            List<Map<String, Object>> cartItems = jdbcTemplate.queryForList(sql, userId);
+            model.addAttribute("cartItems", cartItems);
 
-    @GetMapping("/gio-hang/xoa/{id}")
-    public String remove(@PathVariable Integer id, HttpSession session) {
-        cartService.remove(currentUserId(session), id);
-        return "redirect:/gio-hang";
-    }
+            // Tính tổng tiền
+            double total = 0;
+            for (Map<String, Object> item : cartItems) {
+                double price = ((Number) item.get("giaBan")).doubleValue();
+                int qty = ((Number) item.get("soLuong")).intValue();
+                total += price * qty;
+            }
+            model.addAttribute("totalPrice", total);
 
-    @PostMapping("/api/cart/add")
-    @ResponseBody
-    public Map<String, Object> add(@RequestBody Map<String, Integer> body, HttpSession session) {
-        Integer variantId = body.get("variantId");
-        if (variantId == null && body.get("productId") != null) {
-            variantId = variantRepository.findByProductIdAndIsDefaultTrue(body.get("productId"))
-                    .or(() -> variantRepository.findByProductIdAndIsActiveTrue(body.get("productId")).stream().findFirst())
-                    .map(v -> v.getId())
-                    .orElse(null);
+        } catch (Exception e) {
+            System.out.println("Lỗi load trang giỏ hàng: " + e.getMessage());
         }
-        Integer quantity = body.get("soLuong") != null ? body.get("soLuong") : body.get("quantity");
-        CartService.CartResult result = cartService.add(currentUserId(session), variantId, quantity);
-        return response(result);
-    }
 
-    @PostMapping("/api/cart/update")
-    @ResponseBody
-    public Map<String, Object> updateApi(@RequestBody Map<String, Integer> body, HttpSession session) {
-        CartService.CartResult result = cartService.updateQuantity(
-                currentUserId(session),
-                body.get("itemId"),
-                body.get("soLuong")
-        );
-        return response(result);
-    }
-
-    @GetMapping("/api/cart/count")
-    @ResponseBody
-    public Map<String, Object> count(HttpSession session) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("cartCount", cartService.count(currentUserId(session)));
-        return data;
-    }
-
-    private Map<String, Object> response(CartService.CartResult result) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("success", result.success());
-        data.put("message", result.message());
-        data.put("cartCount", result.cartCount());
-        return data;
-    }
-
-    private Integer currentUserId(HttpSession session) {
-        Object value = session.getAttribute("userId");
-        if (value instanceof Integer id) {
-            return id;
-        }
-        return 1;
+        return "view/client/cart/cart"; // Trỏ đúng về file cart.html của bạn
     }
 }

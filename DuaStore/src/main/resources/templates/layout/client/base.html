@@ -187,27 +187,25 @@
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
                         
                         <div id="cart-items-container">
-                            <!-- Hiển thị khi giỏ hàng trống trống -->
                             <div th:if="${#lists.isEmpty(myCart)}" class="text-center py-4 text-muted">
                                 <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
                                 <p class="mt-2 mb-0">Giỏ hàng trống</p>
                             </div>
                             
-                            <!-- Vòng lặp quét danh sách sản phẩm từ DB ra màn hình khi F5 -->
-                            <div th:each="item : ${myCart}" class="popup-item" th:id="'cart-item-' + ${item.productId}">
+                            <div th:each="item : ${myCart}" class="popup-item" th:id="'cart-item-' + ${item.variantId}">
                                 <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
                                     <img th:if="${item.hinhAnhHienThi != null}" th:src="@{${item.hinhAnhHienThi}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
                                     <i th:unless="${item.hinhAnhHienThi != null}" class="bi bi-box-seam text-secondary"></i>
                                 </div>
                                 <div class="popup-item-info">
-                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block" style="max-width: 180px;">Tên SP</a>
+                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-truncate d-block" style="max-width: 180px;" th:text="${item.tenSanPham}">Tên SP</a>
+                                    <div class="small text-muted" th:text="${item.tenBienThe}"></div>
                                     <div class="mt-1">
                                         Số lượng: <span th:text="${item.soLuong}">1</span> x 
                                         <span class="text-danger fw-semibold" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</span>
                                     </div>
                                 </div>
-                                <button class="btn-delete-item" th:onclick="'removeCartItem(' + ${item.productId} + ')'" title="Xóa khỏi giỏ">
-                                    <i class="bi bi-x-circle"></i>
+                                <button class="btn-delete-item" th:onclick="'removeCartItem(' + ${item.variantId} + ')'" title="Xóa khỏi giỏ">
                                 </button>
                             </div>
                         </div>
