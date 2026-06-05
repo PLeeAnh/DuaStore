@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net/thymeleaf/layout" layout:decorate="~{layout/client/base}">
-<head><title th:text="${address.id == null ? 'Thêm địa chỉ — DuaStore' : 'Sửa địa chỉ — DuaStore'}"></title></head>
+<head>
+    <title th:text="${address.id == null ? 'Thêm địa chỉ — DuaStore' : 'Sửa địa chỉ — DuaStore'}"></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+</head>
 <body>
     <div layout:fragment="content" class="container-xl py-5">
         <div class="row"><div class="col-12 col-lg-6 mx-auto"><div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4 p-md-5">
@@ -8,20 +11,133 @@
                 <a th:href="@{/address}" class="btn btn-light rounded-circle me-3"><i class="bi bi-arrow-left"></i></a>
                 <h3 class="ds-section-title mb-0" th:text="${address.id == null ? 'Thêm địa chỉ mới' : 'Sửa địa chỉ'}"></h3>
             </div>
-            <form th:action="@{/address/save}" th:object="${address}" method="post">
-                <input type="hidden" th:field="*{id}" /> <input type="hidden" th:field="*{userId}" />
-                <div class="mb-3"><label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{tenNguoiNhan}" required></div>
-                <div class="mb-3"><label class="form-label fw-medium">SĐT <span class="text-danger">*</span></label><input type="tel" class="form-control rounded-3 py-2" th:field="*{soDienThoai}" required></div>
-                <div class="row g-3 mb-3">
-                    <div class="col-sm-4"><label class="form-label fw-medium">Tỉnh/TP <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{tinhThanh}" required></div>
-                    <div class="col-sm-4"><label class="form-label fw-medium">Quận/Huyện <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{quanHuyen}" required></div>
-                    <div class="col-sm-4"><label class="form-label fw-medium">Phường/Xã <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{phuongXa}" required></div>
+
+            <form th:action="@{/address/save}" th:object="${address}" method="post" id="addressForm">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{userId}" />
+                <input type="hidden" th:field="*{latitude}" id="latitude" />
+                <input type="hidden" th:field="*{longitude}" id="longitude" />
+
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Địa chỉ trên bản đồ</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="mapSearchInput" class="form-control rounded-3 py-2"
+                               placeholder="Nhập địa chỉ..." autocomplete="off" />
+                        <button class="btn btn-primary rounded-3" onclick="searchMap()" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <div id="mapContainer" style="border-radius:10px;overflow:hidden;">
+                        <iframe id="googleMapFrame"
+                            src="https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13"
+                            width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy">
+                        </iframe>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="getMyLocation()">
+                            <i class="bi bi-crosshair me-1"></i>Dùng vị trí hiện tại
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="clearMap()">
+                            <i class="bi bi-x-circle me-1"></i>Xoá
+                        </button>
+                    </div>
+                    <div id="mapStatus" class="form-text small text-muted mt-1"></div>
                 </div>
-                <div class="mb-4"><label class="form-label fw-medium">Địa chỉ cụ thể <span class="text-danger">*</span></label><input type="text" class="form-control rounded-3 py-2" th:field="*{diaChiCuThe}" required></div>
-                <div class="form-check form-switch mb-4"><input class="form-check-input" type="checkbox" role="switch" th:field="*{isDefault}" id="isDefaultCheck"><label class="form-check-label user-select-none" for="isDefaultCheck">Đặt làm địa chỉ mặc định</label></div>
-                <div class="d-grid"><button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold">Lưu địa chỉ</button></div>
+
+                <input type="hidden" th:field="*{tinhThanh}" id="tinhThanh" />
+                <input type="hidden" th:field="*{quanHuyen}" id="quanHuyen" />
+                <input type="hidden" th:field="*{phuongXa}" id="phuongXa" />
+                <input type="hidden" th:field="*{diaChiCuThe}" id="diaChiCuThe" />
+
+<div class="mb-3">
+                    <label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control rounded-3 py-2" th:field="*{tenNguoiNhan}" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">SĐT <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control rounded-3 py-2" th:field="*{soDienThoai}" required />
+                </div>
+
+<div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" role="switch" th:field="*{isDefault}" id="isDefaultCheck" />
+                    <label class="form-check-label user-select-none" for="isDefaultCheck">Đặt làm địa chỉ mặc định</label>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold">Lưu địa chỉ</button>
+                </div>
             </form>
-        </div></div></div></div>
+        </div></div></div></div></div>
     </div>
+
+
+    <th:block layout:fragment="extra-script">
+    <script>
+    function searchMap() {
+        var q = document.getElementById('mapSearchInput').value.trim();
+        if (!q) return;
+        var encoded = encodeURIComponent(q + ', Việt Nam');
+        document.getElementById('googleMapFrame').src =
+            'https://maps.google.com/maps?q=' + encoded + '&output=embed&z=16';
+        parseAndFillAddress(q);
+        document.getElementById('mapStatus').textContent = 'Đã tìm: ' + q;
+    }
+
+    function getMyLocation() {
+        if (!navigator.geolocation) {
+            document.getElementById('mapStatus').textContent = 'Trình duyệt không hỗ trợ GPS';
+            return;
+        }
+        document.getElementById('mapStatus').textContent = 'Đang lấy vị trí...';
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            var lat = pos.coords.latitude;
+            var lng = pos.coords.longitude;
+            document.getElementById('googleMapFrame').src =
+                'https://maps.google.com/maps?q=' + lat + ',' + lng + '&output=embed&z=16';
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&accept-language=vi')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var a = data.address || {};
+                    document.getElementById('tinhThanh').value = a.city || a.state || a.town || '';
+                    document.getElementById('quanHuyen').value = a.suburb || a.county || a.district || '';
+                    document.getElementById('phuongXa').value = a.quarter || a.neighbourhood || a.village || '';
+                    document.getElementById('diaChiCuThe').value =
+                        (a.house_number ? a.house_number + ' ' : '') + (a.road || '');
+                    document.getElementById('mapStatus').textContent =
+                        'Vị trí: ' + (data.display_name || lat + ', ' + lng);
+                })
+                .catch(function() {
+                    document.getElementById('mapStatus').textContent = 'Không thể lấy thông tin địa chỉ';
+                });
+        }, function() {
+            document.getElementById('mapStatus').textContent = 'Không thể lấy vị trí. Kiểm tra quyền GPS.';
+        });
+    }
+
+    function parseAndFillAddress(q) {
+        var parts = q.split(',').map(function(s) { return s.trim(); });
+        var len = parts.length;
+        if (len >= 1) document.getElementById('diaChiCuThe').value = parts[0];
+        if (len >= 2) document.getElementById('phuongXa').value = parts[1];
+        if (len >= 3) document.getElementById('quanHuyen').value = parts[2];
+        if (len >= 4) document.getElementById('tinhThanh').value = parts[3];
+    }
+
+    function clearMap() {
+        document.getElementById('mapSearchInput').value = '';
+        document.getElementById('googleMapFrame').src =
+            'https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13';
+        document.getElementById('latitude').value = '';
+        document.getElementById('longitude').value = '';
+        document.getElementById('mapStatus').textContent = '';
+    }
+
+    document.getElementById('mapSearchInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); searchMap(); }
+    });
+    </script>
+    </th:block>
 </body>
 </html>

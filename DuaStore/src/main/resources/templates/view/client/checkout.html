@@ -39,12 +39,18 @@
                             </div>
                         </div>
 
+                        <div class="text-end mb-3">
+                            <a th:href="@{/address}" class="btn btn-outline-primary btn-sm rounded-pill">
+                                <i class="bi bi-pencil me-1"></i>Quản lý địa chỉ
+                            </a>
+                        </div>
+
                         <hr />
                         <h5 class="fw-bold mb-3"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
                         <div class="mb-4">
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="radio" name="phuongThucGiaoHang"
-                                       id="shipTT" value="SHIP" checked onchange="updateShipFee()" />
+                                       id="shipTT" value="SHIP" checked />
                                 <label class="form-check-label d-flex justify-content-between w-100" for="shipTT">
                                     <span>Giao hàng tiêu chuẩn</span>
                                     <span class="text-muted">30.000đ</span>
@@ -52,7 +58,7 @@
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="phuongThucGiaoHang"
-                                       id="shipNhanh" value="NHANH" onchange="updateShipFee()" />
+                                       id="shipNhanh" value="NHAN_TAI_CONG" />
                                 <label class="form-check-label d-flex justify-content-between w-100" for="shipNhanh">
                                     <span>Giao hàng nhanh</span>
                                     <span class="text-muted">50.000đ</span>
@@ -82,10 +88,11 @@
 
                         <hr />
                         <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
-                        <div class="input-group mb-4" style="max-width:400px">
+                        <div class="input-group" style="max-width:400px">
                             <input type="text" name="maCode" class="form-control" placeholder="Nhập mã giảm giá" />
                             <button class="btn btn-outline-primary" type="button" id="applyPromoBtn">Áp dụng</button>
                         </div>
+                        <div id="promoStatus" class="mb-4"></div>
 
                         <div class="mb-3">
                             <label class="form-label">Ghi chú đơn hàng</label>
@@ -118,16 +125,16 @@
                             </div>
                             <div class="d-flex justify-content-between small mb-1">
                                 <span>Phí vận chuyển</span>
-                                <span id="shipFeeDisplay">30.000đ</span>
+                                <span th:text="${#numbers.formatDecimal(phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="shipFeeDisplay"></span>
                             </div>
                             <div class="d-flex justify-content-between small mb-1">
                                 <span>Giảm giá</span>
-                                <span id="discountDisplay">0đ</span>
+                                <span th:text="${tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}" id="discountDisplay"></span>
                             </div>
                             <hr />
                             <div class="d-flex justify-content-between fw-bold">
                                 <span>Tổng cộng</span>
-                                <span th:text="${#numbers.formatDecimal(subtotal + 30000, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="totalDisplay"></span>
+                                <span th:text="${#numbers.formatDecimal(tongTam, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="totalDisplay"></span>
                             </div>
                         </div>
                     </div>
@@ -136,19 +143,74 @@
         </div>
     </div>
 
+    <th:block layout:fragment="extra-script">
     <script>
-        function updateShipFee() {
-            const fee = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value === 'NHANH' ? 50000 : 30000;
-            document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + 'đ';
-            updateTotal();
-        }
-        function updateTotal() {
-            const subtotalEl = document.getElementById('subtotalDisplay');
-            const subtotal = parseInt(subtotalEl.textContent.replace(/[^0-9]/g, '')) || 0;
-            const fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
-            const discount = parseInt(document.getElementById('discountDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
-            document.getElementById('totalDisplay').textContent = (subtotal + fee - discount).toLocaleString('vi-VN') + 'đ';
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentDiscount = 0;
+            let currentPromoCode = '';
+
+            function updateShipFee() {
+                const fee = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value === 'NHAN_TAI_CONG' ? 50000 : 30000;
+                document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + '\u0111';
+                updateTotal();
+            }
+            function updateTotal() {
+                const subtotalEl = document.getElementById('subtotalDisplay');
+                const subtotal = parseInt(subtotalEl.textContent.replace(/[^0-9]/g, '')) || 0;
+                const fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
+                const total = subtotal + fee - currentDiscount;
+                document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '\u0111';
+            }
+
+            document.querySelectorAll('input[name="phuongThucGiaoHang"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    updateShipFee();
+                });
+            });
+
+            document.getElementById('applyPromoBtn').addEventListener('click', function() {
+                const maCode = document.querySelector('input[name="maCode"]').value.trim();
+                if (!maCode) return;
+
+                const subtotalEl = document.getElementById('subtotalDisplay');
+                const subtotal = parseInt(subtotalEl.textContent.replace(/[^0-9]/g, '')) || 0;
+                const btn = this;
+                btn.disabled = true;
+                btn.textContent = '\u0110ang ki\u1EC3m tra...';
+
+                fetch('/checkout/ap-dung-ma?maCode=' + encodeURIComponent(maCode) + '&subtotal=' + subtotal, {
+                    method: 'POST'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        currentDiscount = parseInt(data.tienGiam) || 0;
+                        currentPromoCode = maCode;
+                        document.getElementById('discountDisplay').textContent = '-' + currentDiscount.toLocaleString('vi-VN') + '\u0111';
+                        document.getElementById('discountDisplay').className = 'text-danger';
+                        document.getElementById('promoStatus').textContent = data.message;
+                        document.getElementById('promoStatus').className = 'text-success small mt-1';
+                    } else {
+                        currentDiscount = 0;
+                        currentPromoCode = '';
+                        document.getElementById('discountDisplay').textContent = '0\u0111';
+                        document.getElementById('discountDisplay').className = '';
+                        document.getElementById('promoStatus').textContent = data.message;
+                        document.getElementById('promoStatus').className = 'text-danger small mt-1';
+                    }
+                    updateTotal();
+                })
+                .catch(function() {
+                    document.getElementById('promoStatus').textContent = 'L\u1ED7i k\u1EBFt n\u1ED1i, vui l\u00F2ng th\u1EED l\u1EA1i';
+                    document.getElementById('promoStatus').className = 'text-danger small mt-1';
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = '\u00C1p d\u1EE5ng';
+                });
+            });
+        });
     </script>
+    </th:block>
     </body>
 </html>
