@@ -33,7 +33,7 @@ mvn spring-boot:run
 
 | TV | Vai trò | Phụ trách |
 |----|---------|-----------|
-| **PLA** | Nhóm trưởng | Products, Variants, Security, Dashboard, UI |
+| **PLA** | Nhóm trưởng | Products, Variants, Image, Security, Dashboard, UI |
 | **NHD** | Backend | Orders, OrderItems |
 | **TK** | Backend | Categories, CartItems, Checkout |
 | **BTM** | Backend | Promotions, Reviews, Posts |
