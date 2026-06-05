@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,8 @@ public class CartController {
         }
 
         return "view/client/cart/cart"; // Trỏ đúng về file cart.html của bạn
+    }
+
     private Integer currentUserId(HttpSession session) {
         Object value = session.getAttribute("userId");
         if (value instanceof Integer id) {
