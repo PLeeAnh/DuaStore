@@ -5,11 +5,9 @@
 'use strict';
 
 /* ══════════════════════════════════════════
-   EDIT TOGGLE TẠI ĐÂY — Mobile nav toggle (☰ / ✕)
-   Sửa openNav/closeNav, icon swap, sub-menu tại đây
+   MOBILE NAV TOGGLE (☰ / ✕)
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-
     const toggle = document.getElementById('dsNavToggle');
     const panel  = document.getElementById('dsNavPanel');
     const overlay = document.getElementById('dsNavOverlay');
@@ -48,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.addEventListener('click', closeNav);
     }
 
-    /* ── Sub-menu toggle trong panel (giống pattern toggle chính) ── */
+    /* ── Sub-menu toggle trong panel ── */
     document.querySelectorAll('.ds-sub-toggle').forEach(btn => {
         const menu = btn.nextElementSibling;
         if (btn && menu) {
@@ -68,24 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ── Đóng panel khi click link ── */
     document.querySelectorAll('.ds-nav-panel .ds-nav-link, .ds-nav-panel .ds-sub-link').forEach(link => {
         link.addEventListener('click', () => {
-            // Chỉ đóng nếu không phải sub-toggle
             if (!link.classList.contains('ds-sub-toggle')) {
                 setTimeout(closeNav, 200);
             }
         });
     });
-
 });
-/* ══════════════════════════════════════════
-   KẾT THÚC EDIT TOGGLE
-══════════════════════════════════════════ */
 
-/* ── SwiperJS Hero Carousel ──
-   ★ Cấu hình: fade effect, loop 5s, pagination dots
-   ★ Xem HTML trong index.html → cần đúng class .hero-swiper + .hero-pagination */
+
+/* ── SwiperJS Hero Carousel ── */
 document.addEventListener('DOMContentLoaded', () => {
     const heroSwiperEl = document.querySelector('.hero-swiper');
-    if (heroSwiperEl) {
+    if (heroSwiperEl && typeof Swiper !== 'undefined') {
         new Swiper('.hero-swiper', {
             loop: true,
             effect: 'fade',
@@ -95,13 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/* ── ScrollReveal ──
-   ★ Các class gắn vào HTML:
-     .sr-card   → category grid (mỗi card cách 200ms)
-     .sr-up     → section từ dưới lên (hero, testimonials, FAQ, product carousel)
-     .sr-left   → từ trái sang (dự trữ)
-     .sr-right  → từ phải sang (dự trữ)
-   ★ Import từ CDN trong base.html dòng 457 */
+
+/* ── ScrollReveal ── */
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof ScrollReveal !== 'undefined') {
         const sr = ScrollReveal({
@@ -114,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
 /* ── Back to top button ── */
 const backTopBtn = document.getElementById('backTopBtn');
 if (backTopBtn) {
@@ -121,6 +109,7 @@ if (backTopBtn) {
         backTopBtn.style.display = window.scrollY > 400 ? 'flex' : 'none';
     }, { passive: true });
 }
+
 
 /* ── Auto-dismiss flash alerts sau 5 giây ── */
 document.addEventListener('DOMContentLoaded', () => {
@@ -132,10 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* ── Cập nhật số lượng badge giỏ hàng ──
-   Gọi hàm này sau AJAX thêm vào giỏ:
-   updateCartBadge(newCount);
-*/
+
+/* ── Cập nhật số lượng badge giỏ hàng ── */
 function updateCartBadge(count) {
     const badge = document.getElementById('cartBadge');
     if (!badge) return;
@@ -149,48 +136,9 @@ function updateCartBadge(count) {
     }
 }
 
-/* ── AJAX thêm vào giỏ hàng ──
-   ★ Button có class .ds-add-cart + data-id (productId) + data-name
-   ★ Gửi POST /api/cart/add → backend trả JSON { cartCount: N }
-   ★ Thành công: gọi updateCartBadge(N) + hiện "✓ Đã thêm" 2s
-   ★ Backend CẦN tạo endpoint POST /api/cart/add */
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.ds-add-cart').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const name = this.dataset.name;
-            const origText = this.textContent;
-            this.textContent = '⏳';
-            this.disabled = true;
-
-            fetch('/api/cart/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: parseInt(id), quantity: 1 })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data && data.success === false) {
-                    this.textContent = data.message || 'Khong the them';
-                    setTimeout(() => { this.textContent = origText; this.disabled = false; }, 2000);
-                    return;
-                }
-                if (data && typeof data.cartCount !== 'undefined') {
-                    updateCartBadge(data.cartCount);
-                }
-                this.textContent = '✓ Đã thêm';
-                setTimeout(() => { this.textContent = origText; this.disabled = false; }, 2000);
-            })
-            .catch(() => {
-                this.textContent = '✗ Lỗi';
-                setTimeout(() => { this.textContent = origText; this.disabled = false; }, 2000);
-            });
-        });
-    });
-});
 
 /* ══════════════════════════════════════════
-   THEME TOGGLE (client — inside profile dropdown)
+   THEME TOGGLE (Client)
 ══════════════════════════════════════════ */
 (function() {
     function getTheme() { return localStorage.getItem('duastore-theme') || 'light'; }
@@ -208,8 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); setTheme(getTheme() === 'dark' ? 'light' : 'dark'); });
 })();
 
+
 /* ══════════════════════════════════════════
-   PROFILE MENU (client)
+   PROFILE MENU (Client)
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
     const trigger = document.getElementById('dsProfileTrigger');
@@ -229,25 +178,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
 /* ══════════════════════════════════════════
    FAQ ACCORDION
-
-   ★ Cơ chế: click câu hỏi → mở/đóng bằng max-height animation
-     (không dùng Bootstrap collapse vì cần transition mượt)
-   ★ Click câu hỏi khác → đóng cái đang mở trước, mở cái mới
-   ★ Chevron xoay 180° nhờ CSS: [aria-expanded="true"] i { transform: rotate(180deg) }
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.ds-faq-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const body = btn.nextElementSibling;
             const isOpen = btn.getAttribute('aria-expanded') === 'true';
-            // close all
             document.querySelectorAll('.ds-faq-btn').forEach(b => {
                 b.setAttribute('aria-expanded', 'false');
                 b.nextElementSibling.style.maxHeight = '0';
             });
-            // open clicked
             if (!isOpen) {
                 btn.setAttribute('aria-expanded', 'true');
                 body.style.maxHeight = body.scrollHeight + 'px';
@@ -256,11 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+
 /* ══════════════════════════════════════════
    TESTIMONIALS SWIPER
-
-   ★ Xem HTML trong index.html section .ds-testi
-   ★ breakpoints: mobile 1 → tablet 2 → desktop 3 item / slide
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
     const el = document.querySelector('.testi-swiper');
@@ -278,12 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+
 /* ══════════════════════════════════════════
    PRODUCT CAROUSEL SWIPER
-
-   ★ Mỗi card sản phẩm chứa nút .ds-add-cart (AJAX)
-   ★ breakpoints: mobile 1 → tablet 2 → desktop 4 item / slide
-   ★ Xem HTML trong index.html section .ds-product-carousel
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
     const el = document.querySelector('.product-swiper');
@@ -300,104 +238,188 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-// ĐÓNG / MỞ POPUP (Yêu thích & Giỏ hàng)
+
+
+/* ══════════════════════════════════════════
+   POPUP YÊU THÍCH & GIỎ HÀNG
+══════════════════════════════════════════ */
+// ĐÓNG / MỞ POPUP
 function togglePopup(popupId) {
-    document.querySelectorAll('.custom-popup').forEach(popup => { if(popup.id !== popupId) popup.style.display = 'none'; });
+    document.querySelectorAll('.custom-popup').forEach(popup => { 
+        if(popup.id !== popupId) popup.style.display = 'none'; 
+    });
     const popup = document.getElementById(popupId);
-    popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+    if(popup) popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
 }
 
+// Click ra ngoài để ẩn popup
 document.addEventListener('click', function(event) {
-    const btnWishlist = document.getElementById('btn-wishlist-toggle'); const popupWishlist = document.getElementById('wishlist-popup');
-    const btnCart = document.getElementById('btn-cart-toggle'); const popupCart = document.getElementById('cart-popup');
-    if (btnWishlist && popupWishlist && !btnWishlist.contains(event.target) && !popupWishlist.contains(event.target)) popupWishlist.style.display = 'none';
-    if (btnCart && popupCart && !btnCart.contains(event.target) && !popupCart.contains(event.target)) popupCart.style.display = 'none';
+    const btnWishlist = document.getElementById('btn-wishlist-toggle'); 
+    const popupWishlist = document.getElementById('wishlist-popup');
+    const btnCart = document.getElementById('btn-cart-toggle'); 
+    const popupCart = document.getElementById('cart-popup');
+    
+    if (btnWishlist && popupWishlist && !btnWishlist.contains(event.target) && !popupWishlist.contains(event.target)) {
+        popupWishlist.style.display = 'none';
+    }
+    if (btnCart && popupCart && !btnCart.contains(event.target) && !popupCart.contains(event.target)) {
+        popupCart.style.display = 'none';
+    }
 });
 
-// XỬ LÝ CLICK THẢ TIM BẰNG FETCH API
+
+/* ══════════════════════════════════════════
+   XỬ LÝ CLICK THẢ TIM BẰNG FETCH API 
+   (Hỗ trợ trang chủ + trang chi tiết bốc đúng dữ liệu)
+══════════════════════════════════════════ */
 function toggleWishlist(btnElement, productId) {
     const icon = btnElement.querySelector('i');
     const container = document.getElementById('wishlist-items-container');
-    const card = btnElement.closest('.ds-product-card');
-    const productName = card ? card.querySelector('.ds-product-name').innerText : 'Sản phẩm ' + productId;
-    const productPrice = card ? card.querySelector('.ds-product-price').innerText : '';
+    
+    let productName = 'Sản phẩm ' + productId;
+    let productPrice = 'Đang cập nhật';
+    let productImg = '';
 
-    fetch('/api/wishlist/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: productId }) })
+    // Phân biệt Trang chủ và Trang chi tiết
+    const card = btnElement.closest('.ds-product-card');
+    if (card) {
+        const nameEl = card.querySelector('.ds-product-name');
+        const priceEl = card.querySelector('.ds-product-price');
+        if (nameEl) productName = nameEl.innerText;
+        if (priceEl) productPrice = priceEl.innerText;
+    } else {
+        const detailName = document.querySelector('.product-detail-info h3');
+        const detailPrice = document.getElementById('productPrice');
+        const detailImg = document.getElementById('mainImage');
+        if (detailName) productName = detailName.innerText;
+        if (detailPrice) productPrice = detailPrice.innerText;
+        if (detailImg) productImg = detailImg.src;
+    }
+
+    fetch('/api/wishlist/toggle', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ productId: productId }) 
+    })
     .then(response => response.json())
     .then(data => {
         if(data.success) {
             if (btnElement.classList.contains('active')) {
-                btnElement.classList.remove('active'); icon.classList.replace('bi-heart-fill', 'bi-heart');
+                // Hủy thích
+                btnElement.classList.remove('active'); 
+                icon.classList.replace('bi-heart-fill', 'bi-heart');
                 const itemToRemove = document.getElementById('wishlist-item-' + productId);
                 if(itemToRemove) itemToRemove.remove();
             } else {
-                btnElement.classList.add('active'); icon.classList.replace('bi-heart', 'bi-heart-fill');
-                const emptyMsg = container.querySelector('.text-muted.text-center');
+                // Thêm thích
+                btnElement.classList.add('active'); 
+                icon.classList.replace('bi-heart', 'bi-heart-fill');
+                
+                const emptyMsg = container?.querySelector('.text-muted.text-center');
                 if(emptyMsg) emptyMsg.remove();
                 
-                const html = `<div class="popup-item" id="wishlist-item-${productId}"><div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-box-seam text-secondary"></i></div><div class="popup-item-info"><a href="/san-pham/${productId}">${productName}</a><div class="text-danger fw-semibold mt-1">${productPrice}</div><button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="addToCartFromWishlist(${productId}, null)"><i class="bi bi-cart-plus"></i> Thêm vào giỏ</button></div><button class="btn-delete-item" onclick="removeWishlist(${productId})" title="Xóa"><i class="bi bi-x-circle"></i></button></div>`;
-                container.insertAdjacentHTML('beforeend', html);
+                let imgHtml = `<i class="bi bi-box-seam text-secondary"></i>`;
+                if (productImg && productImg.trim() !== '') {
+                    imgHtml = `<img src="${productImg}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">`;
+                }
+
+                if (container) {
+                    const html = `
+                        <div class="popup-item" id="wishlist-item-${productId}">
+                            <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                ${imgHtml}
+                            </div>
+                            <div class="popup-item-info">
+                                <a href="/san-pham/${productId}">${productName}</a>
+                                <div class="text-danger fw-semibold mt-1">${productPrice}</div>
+                                <button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="addToCartFromWishlist(${productId}, null)">
+                                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                </button>
+                            </div>
+                            <button class="btn-delete-item" onclick="removeWishlist(${productId})" title="Xóa"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', html);
+                }
             }
         }
-    }).catch(error => console.log("Lỗi: ", error));
+    }).catch(error => console.error("Lỗi yêu thích: ", error));
 }
 
-// XỬ LÝ CLICK THÊM VÀO GIỎ BẰNG FETCH API
+// Xóa Yêu thích trực tiếp từ nút (X) trong popup
+function removeWishlist(wishlistId) {
+    const item = document.getElementById('wishlist-item-' + wishlistId); 
+    if (item) item.remove();
+    
+    fetch('/api/wishlist/toggle', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ productId: wishlistId }) 
+    });
+    
+    // Tắt màu đỏ của nút tim ngoài giao diện (nếu đang đứng ở trang có chứa SP đó)
+    const btnHearts = document.querySelectorAll(`.btn-wishlist-card[onclick*="toggleWishlist(this, ${wishlistId})"], .btn-detail-wishlist[onclick*="toggleWishlist(this, ${wishlistId})"]`);
+    btnHearts.forEach(btnHeart => {
+        btnHeart.classList.remove('active'); 
+        const icon = btnHeart.querySelector('i');
+        if(icon) icon.classList.replace('bi-heart-fill', 'bi-heart');
+    });
+}
+
+
+/* ══════════════════════════════════════════
+   XỬ LÝ GIỎ HÀNG (Fetch API)
+══════════════════════════════════════════ */
 function addToCart(productId, variantId, quantity) {
     const container = document.getElementById('cart-items-container');
     const cartPopup = document.getElementById('cart-popup');
+    
     const btnAdd = document.querySelector(`.ds-add-cart[data-id="${productId}"]`);
     const productName = btnAdd ? btnAdd.getAttribute('data-name') : 'Sản phẩm ' + productId;
     const card = btnAdd ? btnAdd.closest('.ds-product-card') : null;
     const productPrice = card ? card.querySelector('.ds-product-price').innerText : 'Đang cập nhật';
     
-    fetch('/api/cart/add-popup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: productId, variantId: variantId, quantity: quantity }) })
+    fetch('/api/cart/add-popup', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ productId: productId, variantId: variantId, quantity: quantity }) 
+    })
     .then(response => response.json())
     .then(data => {
         if(data.success) {
-            if(!document.getElementById('cart-item-' + productId)) {
-                const html = `<div class="popup-item" id="cart-item-${productId}"><div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-box-seam text-secondary"></i></div><div class="popup-item-info"><a href="/san-pham/${productId}" class="text-truncate d-block" style="max-width: 180px;">${productName}</a><div class="mt-1">Số lượng: ${quantity} x <span class="text-danger fw-semibold">${productPrice}</span></div></div><button class="btn-delete-item" onclick="removeCartItem(${productId})" title="Xóa khỏi giỏ"><i class="bi bi-x-circle"></i></button></div>`;
-                container.insertAdjacentHTML('beforeend', html);
-            }
             alert("Đã thêm " + productName + " vào giỏ hàng!");
             if (cartPopup) {
-                const wlPopup = document.getElementById('wishlist-popup'); if(wlPopup) wlPopup.style.display = 'none';
-                cartPopup.style.display = 'block'; setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
+                const wlPopup = document.getElementById('wishlist-popup'); 
+                if(wlPopup) wlPopup.style.display = 'none';
+                cartPopup.style.display = 'block'; 
+                setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
             }
+            // Reload lại trang để đồng bộ HTML popup từ Thymeleaf GlobalControllerAdvice
+            setTimeout(() => { window.location.reload(); }, 1000);
         }
-    }).catch(error => console.log("Lỗi: ", error));
+    }).catch(error => console.error("Lỗi giỏ hàng: ", error));
 }
 
-function removeWishlist(wishlistId) {
-    const item = document.getElementById('wishlist-item-' + wishlistId); if (item) item.remove();
-    fetch('/api/wishlist/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ productId: wishlistId }) });
-    const btnHeart = document.querySelector(`.btn-wishlist-card[onclick*="toggleWishlist(this, ${wishlistId})"]`);
-    if(btnHeart) { btnHeart.classList.remove('active'); btnHeart.querySelector('i').classList.replace('bi-heart-fill', 'bi-heart'); }
+function addToCartFromWishlist(productId, variantId) { 
+    addToCart(productId, variantId, 1); 
 }
-// ==========================================
-// LOGIC XÓA GIỎ HÀNG (Đã đồng bộ với Java)
-// ==========================================
+
 function removeCartItem(cartItemId) {
-    // 1. Xóa tạm hiệu ứng trên màn hình trước cho mượt
     const item = document.getElementById('cart-item-' + cartItemId);
     if (item) item.remove();
     
-    // 2. Gửi lệnh ngầm xuống Java bằng Fetch API để xóa thật trong SQL Server
     fetch('/api/cart/remove-item', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: cartItemId })
+        body: JSON.stringify({ variantId: cartItemId })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // 3. Sau khi CSDL xóa thành công, tự động F5 lại trang 
-            // để cập nhật lại số lượng badge đỏ trên icon túi hàng
             window.location.reload(); 
         } else {
             alert("Lỗi hệ thống: " + data.message);
         }
     })
-    .catch(error => console.error("Lỗi kết nối API xóa:", error));
+    .catch(error => console.error("Lỗi xóa giỏ hàng:", error));
 }
-function addToCartFromWishlist(productId, variantId) { addToCart(productId, variantId, 1); }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class CartWishlistApiController {
         return ResponseEntity.ok(response);
     }
 
-    // 2. THÊM VÀO GIỎ HÀNG (Đã đổi sang add-popup để tránh trùng lặp với code cũ của nhóm)
+    // 2. THÊM VÀO GIỎ HÀNG
     @PostMapping("/cart/add-popup")
     public ResponseEntity<Map<String, Object>> addToCart(@RequestBody Map<String, Integer> payload) {
         Map<String, Object> response = new HashMap<>();
@@ -67,24 +68,39 @@ public class CartWishlistApiController {
         return ResponseEntity.ok(response);
     }
 
-    // 3. XÓA SẢN PHẨM KHỎI GIỎ HÀNG TRONG CSDL
+    // 3. XÓA SẢN PHẨM KHỎI GIỎ HÀNG (Sửa thành xóa theo variantId)
     @PostMapping("/cart/remove-item")
     public ResponseEntity<Map<String, Object>> removeCartItem(@RequestBody Map<String, Integer> payload) {
         Map<String, Object> response = new HashMap<>();
         Integer userId = 2; 
-        Integer productId = payload.get("productId");
+        Integer variantId = payload.get("variantId"); // <-- Đổi thành lấy variantId
 
         try {
-            jdbcTemplate.update("DELETE FROM CartItems WHERE userId = ? AND productId = ?", userId, productId);
-            
+            jdbcTemplate.update("DELETE FROM CartItems WHERE userId = ? AND variantId = ?", userId, variantId);
             response.put("success", true);
-            response.put("message", "Đã xóa sản phẩm thành công");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "Lỗi xóa DB: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
-} 
+
+    // 4. API CẬP NHẬT SỐ LƯỢNG (Sửa thành cập nhật theo variantId)
+    @PostMapping("/cart/update")
+    public ResponseEntity<Map<String, Object>> updateCartItem(@RequestBody Map<String, Integer> payload) {
+        Map<String, Object> response = new HashMap<>();
+        Integer userId = 2; 
+        Integer variantId = payload.get("variantId"); // <-- Đổi thành lấy variantId
+        Integer soLuong = payload.get("soLuong");
+
+        try {
+            jdbcTemplate.update("UPDATE CartItems SET soLuong = ? WHERE userId = ? AND variantId = ?", soLuong, userId, variantId);
+            response.put("success", true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi cập nhật CSDL: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+}
