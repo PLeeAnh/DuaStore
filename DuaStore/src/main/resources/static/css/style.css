@@ -1528,9 +1528,8 @@ a { color: inherit; }
     transition: color .15s; user-select: none;
 }
 .star-rating label:hover,
-.star-rating label.hover,
-.star-rating label:hover ~ label,
-.star-rating label.hover ~ label { color: #f59e0b; }
+.star-rating label:hover ~ label { color: #f59e0b; }
+.star-rating input:checked + label,
 .star-rating input:checked ~ label,
 .star-rating label.selected,
 .star-rating label.selected ~ label { color: #f59e0b; }

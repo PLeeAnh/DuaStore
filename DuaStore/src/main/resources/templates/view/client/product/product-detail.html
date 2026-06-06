@@ -323,21 +323,7 @@
             el.innerHTML = '★'.repeat(score) + '☆'.repeat(5 - score);
         });
 
-        // ── Highlight star on hover/click ──
-        document.querySelectorAll('.star-rating label').forEach(function(label) {
-            label.addEventListener('mouseenter', function() {
-                let el = this;
-                while (el) {
-                    el.classList.add('hover');
-                    el = el.previousElementSibling;
-                }
-            });
-            label.addEventListener('mouseleave', function() {
-                document.querySelectorAll('.star-rating label').forEach(function(l) {
-                    l.classList.remove('hover');
-                });
-            });
-        });
+        // ── Star click: persist selection ──
         document.querySelectorAll('.star-rating input').forEach(function(input) {
             input.addEventListener('change', function() {
                 document.querySelectorAll('.star-rating label').forEach(function(l) {
@@ -345,8 +331,8 @@
                 });
                 let el = this.nextElementSibling;
                 while (el) {
-                    el.classList.add('selected');
-                    el = el.previousElementSibling;
+                    if (el.tagName === 'LABEL') el.classList.add('selected');
+                    el = el.nextElementSibling;
                 }
             });
         });
