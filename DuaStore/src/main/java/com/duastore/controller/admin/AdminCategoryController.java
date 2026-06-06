@@ -78,7 +78,7 @@ public class AdminCategoryController {
         return "redirect:/admin/danh-muc?successMsg=Cap+nhat+danh+muc+thanh+cong";
     }
 
-    @GetMapping("/xoa/{id}")
+    @PostMapping("/xoa/{id}")
     public String delete(@PathVariable Integer id) {
         if (!categoryService.softDelete(id)) {
             return "redirect:/admin/danh-muc?errorMsg=Khong+tim+thay+danh+muc";

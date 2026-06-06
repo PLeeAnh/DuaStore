@@ -1,8 +1,8 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.Address;
 import com.duastore.repository.AddressRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,28 +12,33 @@ import java.util.List;
 @RequestMapping("/address")
 public class AddressController {
 
-    @Autowired
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
+    private final SecurityUtil securityUtil;
 
-    // 1. Giao diện danh sách địa chỉ: http://localhost:8080/address
+    public AddressController(AddressRepository addressRepository, SecurityUtil securityUtil) {
+        this.addressRepository = addressRepository;
+        this.securityUtil = securityUtil;
+    }
+
     @GetMapping
     public String listAddresses(Model model) {
-        Integer userId = 2; // Gán cứng tài khoản Nguyễn Văn An để test
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) return "redirect:/dang-nhap";
         List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(userId);
         model.addAttribute("addresses", addresses);
         return "view/client/address/address-list";
     }
 
-    // 2. Giao diện form thêm mới: http://localhost:8080/address/new
     @GetMapping("/new")
     public String showAddForm(Model model) {
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) return "redirect:/dang-nhap";
         Address address = new Address();
-        address.setUserId(2); // Gán sẵn userId = 2 cho thực thể
+        address.setUserId(userId);
         model.addAttribute("address", address);
         return "view/client/address/address-form";
     }
 
-    // 3. Giao diện form sửa địa chỉ
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable("id") Integer id, Model model) {
         Address address = addressRepository.findById(id).orElse(null);
@@ -44,18 +49,18 @@ public class AddressController {
         return "view/client/address/address-form";
     }
 
-    // 4. Xử lý Lưu dữ liệu (Hỗ trợ cả Thêm mới và Cập nhật)
     @PostMapping("/save")
     public String saveAddress(@ModelAttribute("address") Address address) {
-        address.setUserId(2); // Đảm bảo luôn luôn lưu cho tài khoản test id=2
-        
-        // Xử lý Task 22: Nếu người dùng đặt địa chỉ này làm mặc định
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) return "redirect:/dang-nhap";
+        address.setUserId(userId);
+
         if (Boolean.TRUE.equals(address.getIsDefault())) {
-            addressRepository.clearDefaultAddressByUserId(2); // Gỡ mặc định các địa chỉ cũ
+            addressRepository.clearDefaultAddressByUserId(userId);
         }
-        
+
         addressRepository.save(address);
-        return "redirect:/address"; // Lưu xong tự quay về trang danh sách
+        return "redirect:/address";
     }
 
     // 5. Xử lý Xóa địa chỉ
@@ -68,7 +73,9 @@ public class AddressController {
     // 6. Xử lý đặt địa chỉ mặc định nhanh ngoài danh sách
     @PostMapping("/set-default/{id}")
     public String setDefault(@PathVariable("id") Integer id) {
-        addressRepository.clearDefaultAddressByUserId(2);
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) return "redirect:/dang-nhap";
+        addressRepository.clearDefaultAddressByUserId(userId);
         Address address = addressRepository.findById(id).orElse(null);
         if (address != null) {
             address.setIsDefault(true);

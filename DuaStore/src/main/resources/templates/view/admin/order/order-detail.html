@@ -13,10 +13,12 @@
         <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
     </th:block>
     <div layout:fragment="content">
-        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show" th:text="${successMsg}">
+        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${successMsg}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" th:text="${errorMsg}">
+        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${errorMsg}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <div class="adm-page-header">

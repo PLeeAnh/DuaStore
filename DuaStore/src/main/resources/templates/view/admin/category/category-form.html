@@ -3,18 +3,18 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-<head><title>Quan ly danh muc - Form</title></head>
+<head><title>Quản lý danh mục - Form</title></head>
 <body>
 <th:block layout:fragment="breadcrumb">
     <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-    <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc}">Danh muc</a></li>
-    <li class="breadcrumb-item active" th:text="${category.id != null} ? 'Sua danh muc' : 'Them danh muc'">Form</li>
+    <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc}">Danh mục</a></li>
+    <li class="breadcrumb-item active" th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Form</li>
 </th:block>
 <div layout:fragment="content">
     <div class="adm-page-header">
         <h4>
             <i class="bi bi-tags me-2"></i>
-            <span th:text="${category.id != null} ? 'Sua danh muc' : 'Them danh muc'">Them danh muc</span>
+            <span th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Thêm danh mục</span>
         </h4>
     </div>
 
@@ -24,49 +24,49 @@
             <input type="hidden" th:field="*{id}" />
 
             <div class="col-md-6">
-                <label class="form-label">Ten danh muc <span class="text-danger">*</span></label>
-                <input type="text" th:field="*{tenDanhMuc}" class="form-control" required />
+                <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                <input type="text" th:field="*{tenDanhMuc}" class="form-control" required maxlength="100" />
                 <div th:if="${#fields.hasErrors('tenDanhMuc')}" th:errors="*{tenDanhMuc}" class="text-danger small"></div>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Danh muc cha</label>
+                <label class="form-label">Danh mục cha</label>
                 <select th:field="*{parentId}" class="form-select">
-                    <option value="">Danh muc goc</option>
+                    <option value="">Danh mục gốc</option>
                     <option th:each="parent : ${parents}"
                             th:value="${parent.id}"
-                            th:text="${parent.tenDanhMuc}">Danh muc cha</option>
+                            th:text="${parent.tenDanhMuc}">Danh mục cha</option>
                 </select>
             </div>
 
             <div class="col-12">
-                <label class="form-label">Mo ta</label>
-                <textarea th:field="*{moTa}" class="form-control" rows="3"></textarea>
+                <label class="form-label">Mô tả</label>
+                <textarea th:field="*{moTa}" class="form-control" rows="3" maxlength="500"></textarea>
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Hinh anh</label>
+                <label class="form-label">Hình ảnh</label>
                 <input type="text" th:field="*{hinhAnh}" class="form-control" placeholder="/images/category.png" />
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Thu tu hien thi</label>
-                <input type="number" th:field="*{thuTuHienThi}" class="form-control" min="0" />
+                <label class="form-label">Thứ tự hiển thị</label>
+                <input type="number" th:field="*{thuTuHienThi}" class="form-control" min="0" max="9999" />
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Trang thai</label>
+                <label class="form-label">Trạng thái</label>
                 <select th:field="*{active}" class="form-select">
-                    <option th:value="true">Hien thi</option>
-                    <option th:value="false">An</option>
+                    <option th:value="true">Hiển thị</option>
+                    <option th:value="false">Ẩn</option>
                 </select>
             </div>
 
             <div class="col-12 border-top pt-3">
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i>Luu
+                    <i class="bi bi-check-lg me-1"></i>Lưu
                 </button>
-                <a th:href="@{/admin/danh-muc}" class="btn btn-secondary">Huy</a>
+                <a th:href="@{/admin/danh-muc}" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>

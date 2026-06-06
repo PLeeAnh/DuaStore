@@ -63,7 +63,7 @@
                                         : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT') + '₫'}">
                             100,000₫
                         </span>
-                        <span th:if="${defaultVariant == null}" id="productPrice" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
+                        <span th:if="${defaultVariant == null}" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
                         <span id="productOriginalPrice" th:if="${defaultVariant != null && defaultVariant.giaKhuyenMai != null}"
                               class="text-decoration-line-through text-muted small"
                               th:text="${#numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">
@@ -299,8 +299,7 @@
             }).then(r => r.json()).then(data => {
                 if (data.success) {
                     if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-                    alert('Đã thêm sản phẩm vào giỏ hàng!');
-                    
+
                     const cartPopup = document.getElementById('cart-popup');
                     if (cartPopup) {
                         const wlPopup = document.getElementById('wishlist-popup'); 
