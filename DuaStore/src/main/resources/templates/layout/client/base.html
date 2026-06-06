@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
+    <script th:src="@{/js/main.js}"></script>
     <th:block layout:fragment="extra-head"></th:block>
 </head>
 <body>
@@ -109,29 +110,13 @@
                     </li>
                 </ul>
 
-                <div class="ds-nav-panel-footer">
-                    <div class="ds-panel-profile" th:if="${session.loggedIn}">
-                        <div class="ds-panel-profile-header">
-                            <span class="ds-profile-avatar" th:text="${session.userInitial}">A</span>
-                            <div>
-                                <div class="ds-panel-profile-name" th:text="${session.userName}">Admin</div>
-                                <div class="ds-panel-profile-email" th:text="${session.userEmail}">admin@dua.store</div>
-                            </div>
-                        </div>
-                        <a class="ds-nav-link" th:href="@{/tai-khoan}"><i class="bi bi-person"></i><span>Hồ sơ</span></a>
-                        <a class="ds-nav-link" href="#"><i class="bi bi-activity"></i><span>Hoạt động</span></a>
-                        <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-bookmark"></i><span>Đã lưu</span></a>
-                        <a class="ds-nav-link" href="#"><i class="bi bi-gear"></i><span>Cài đặt</span></a>
-                        <a class="ds-nav-link ds-nav-logout" th:href="@{/dang-xuat}"><i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span></a>
+                <div class="ds-nav-panel-footer" th:unless="${session.loggedIn}">
+                    <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-heart"></i> <span>Yêu thích</span></a>
+                    <a class="ds-nav-link" th:href="@{/gio-hang}"><i class="bi bi-bag"></i> <span>Giỏ hàng</span></a>
+                    <div class="ds-nav-auth mt-2">
+                        <a class="ds-btn-outline d-block text-center" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
+                        <a class="ds-btn-fill d-block text-center mt-1" th:href="@{/dang-ky}">Đăng ký</a>
                     </div>
-                    <th:block th:unless="${session.loggedIn}">
-                        <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-heart"></i> <span>Yêu thích</span></a>
-                        <a class="ds-nav-link" th:href="@{/gio-hang}"><i class="bi bi-bag"></i> <span>Giỏ hàng</span></a>
-                        <div class="ds-nav-auth mt-2">
-                            <a class="ds-btn-outline d-block text-center" th:href="@{/dang-nhap}">Đăng nhập</a>
-                            <a class="ds-btn-fill d-block text-center mt-1" th:href="@{/dang-ky}">Đăng ký</a>
-                        </div>
-                    </th:block>
                 </div>
             </div>
 
@@ -224,56 +209,132 @@
                     </div>
                 </div>
 
-                <div class="ds-profile-wrap d-none d-lg-flex align-items-center" th:if="${session.loggedIn}">
-                    <button class="ds-profile-trigger" id="dsProfileTrigger" type="button">
-                        <span class="ds-profile-avatar" th:text="${session.userInitial}">A</span>
-                        <span class="ds-profile-name" th:text="${session.userName}">Admin</span>
-                        <i class="bi bi-chevron-down ds-profile-chevron"></i>
+                <!-- PROFILE BUTTON + POPUP (like wishlist/cart) -->
+                <div class="position-relative d-inline-block">
+                    <button class="ds-icon-btn" id="btn-profile-toggle" onclick="togglePopup('profile-popup')" title="Tài khoản" aria-label="Tài khoản">
+                        <i class="bi bi-person-circle"></i>
                     </button>
-                    <div class="ds-profile-dropdown" id="dsProfileDropdown">
-                        <div class="ds-profile-header">
-                            <span class="ds-profile-avatar lg" th:text="${session.userInitial}">A</span>
-                            <div>
-                                <div class="fw-semibold" th:text="${session.userName}">Admin</div>
-                                <small class="text-muted" th:text="${session.userEmail}">admin@dua.store</small>
+                    <div id="profile-popup" class="custom-popup" style="width: 240px;">
+                        <th:block th:if="${session.loggedIn}">
+                            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom" style="border-color:var(--ds-border);">
+                                <span class="ds-profile-avatar lg flex-shrink-0" th:text="${session.userInitial}">A</span>
+                                <div class="text-truncate">
+                                    <div class="fw-semibold text-truncate" th:text="${session.userName}" style="color:var(--ds-text);font-size:0.9rem;">User</div>
+                                    <small class="text-muted text-truncate d-block" th:text="${session.userEmail}" style="font-size:0.78rem;">user@email.com</small>
+                                </div>
                             </div>
-                        </div>
-                        <div class="ds-profile-divider"></div>
-                        <a class="ds-profile-link" th:href="@{/tai-khoan}"><i class="bi bi-person"></i> Hồ sơ</a>
-                        <a class="ds-profile-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
-                        <a class="ds-profile-link" th:href="@{/wishlist}"><i class="bi bi-bookmark"></i> Đã lưu</a>
-                        <a class="ds-profile-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
-                        <div class="ds-profile-divider"></div>
-                        <a class="ds-profile-link" href="#" id="dsProfileThemeToggle">
-                            <i class="bi bi-moon-stars" id="dsProfileThemeIcon"></i> <span id="dsProfileThemeLabel">Chế độ tối</span>
-                        </a>
-                        <div class="ds-profile-divider"></div>
-                        <a class="ds-profile-link ds-profile-logout" th:href="@{/dang-xuat}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
+                            <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
+                            <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                            <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
+                                <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
+                            </form>
+                        </th:block>
+                        <th:block th:unless="${session.loggedIn}">
+                            <div class="text-center py-3">
+                                <i class="bi bi-person-circle" style="font-size:2.5rem;color:var(--ds-gray-400);"></i>
+                                <p class="mt-2 mb-3 text-muted" style="font-size:0.85rem;">Đăng nhập để xem hồ sơ</p>
+                                <a class="btn d-block w-100 mb-2 fw-semibold" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"
+                                   style="background:#FFD84D;color:#0A0A0A;border:none;border-radius:8px;font-size:0.85rem;">Đăng nhập</a>
+                                <a th:href="@{/dang-ky}" class="d-block text-center fw-medium" style="color:#FFD84D;text-decoration:none;font-size:0.82rem;">Đăng ký</a>
+                            </div>
+                        </th:block>
                     </div>
                 </div>
-                <a class="ds-btn-login d-none d-lg-inline-flex align-items-center gap-1" th:href="@{/dang-nhap}" th:unless="${session.loggedIn}">
-                    <i class="bi bi-person"></i> <span>Đăng nhập</span>
-                </a>
 
             </div>
         </div>
     </div>
 </nav>
 
-<div class="container-xl px-4" th:if="${successMsg != null or errorMsg != null}">
-    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMsg}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-    </div>
-    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMsg}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-    </div>
-</div>
-
 <main id="main-content">
     <th:block layout:fragment="content"></th:block>
 </main>
+
+<!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:#141414;border:1px solid #2A2A2A;border-radius:16px;">
+            <form th:action="@{/tai-khoan/cap-nhat}" method="post">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold" style="color:#F0F0F0;">Hồ sơ của tôi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4">
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:#B0B0B0;">Họ tên</label>
+                        <input type="text" name="hoTen" th:value="${session.userName}" class="form-control" required
+                               style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.65rem 1rem;"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:#B0B0B0;">Tên đăng nhập</label>
+                        <input type="text" th:value="${session.userUsername}" class="form-control" disabled
+                               style="background:#111;border:1px solid #2A2A2A;color:#666;border-radius:8px;padding:0.65rem 1rem;"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:#B0B0B0;">Email</label>
+                        <input type="email" th:value="${session.userEmail}" class="form-control" disabled
+                               style="background:#111;border:1px solid #2A2A2A;color:#666;border-radius:8px;padding:0.65rem 1rem;"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:#B0B0B0;">Số điện thoại</label>
+                        <input type="text" name="soDienThoai" th:value="${session.userPhone}" class="form-control" placeholder="Chưa cập nhật"
+                               style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.65rem 1rem;"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:#B0B0B0;">Vai trò</label>
+                        <input type="text" th:value="${session.userRole}" class="form-control" disabled
+                               style="background:#111;border:1px solid #2A2A2A;color:#666;border-radius:8px;padding:0.65rem 1rem;"/>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="submit" class="btn px-4 py-2 fw-semibold"
+                            style="background:#FFD84D;color:#0A0A0A;border:none;border-radius:8px;">Lưu thay đổi</button>
+                    <button type="button" class="btn px-4 py-2 fw-semibold"
+                            style="background:transparent;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Login Modal (auto-open if loginError param) -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="background:#141414;border:1px solid #2A2A2A;border-radius:16px;">
+            <div class="modal-header border-0">
+                <a th:href="@{/}" class="auth-logo" style="font-family:'Dancing Script',cursive;font-size:1.5rem;color:#FFD84D;text-decoration:none;">DuaStore</a>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pb-0">
+                <div id="loginError" class="alert alert-danger py-2 mb-3 d-none" style="font-size:0.85rem;background:#2A1515;border:1px solid #4A2020;color:#FF6B6B;border-radius:8px;">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Sai tên đăng nhập hoặc mật khẩu
+                </div>
+                <form action="/dang-nhap" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:#B0B0B0;">Tên đăng nhập</label>
+                        <input type="text" name="username" class="form-control" required
+                               style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.6rem 1rem;"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small" style="color:#B0B0B0;">Mật khẩu</label>
+                        <input type="password" name="password" class="form-control" required minlength="6"
+                               style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.6rem 1rem;"/>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember-me" id="loginRememberMe"/>
+                        <label class="form-check-label small" for="loginRememberMe" style="color:#8A8A8A;">Ghi nhớ đăng nhập</label>
+                    </div>
+                    <button type="submit" class="btn w-100 py-2 fw-bold"
+                            style="background:#FFD84D;color:#0A0A0A;border:none;border-radius:8px;">Đăng nhập</button>
+                </form>
+                <div class="text-center mt-3 mb-2" style="font-size:0.82rem;color:#8A8A8A;">
+                    Chưa có tài khoản? <a th:href="@{/dang-ky}" class="auth-link" style="color:#FFD84D;text-decoration:none;font-weight:500;">Đăng ký</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <footer class="ds-footer">
     <div class="container-xl">
@@ -345,8 +406,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
-<script th:src="@{/js/main.js}"></script>
-<script th:src="@{/js/main.js}"></script>
 
 <!-- CHÈN THÊM ĐOẠN NÀY ĐỂ VÔ HIỆU HÓA CACHE TRÌNH DUYỆT -->
 <script>
@@ -389,10 +448,16 @@ function updatePopupQty(itemId, delta) {
 }
 </script>
 
-<th:block layout:fragment="extra-script"></th:block>
-
-</body>
-</html>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('loginError')) {
+        var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.show();
+        document.getElementById('loginError')?.classList.remove('d-none');
+    }
+});
+</script>
 
 <th:block layout:fragment="extra-script"></th:block>
 

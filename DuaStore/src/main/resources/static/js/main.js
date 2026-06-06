@@ -63,8 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    /* ── Đóng panel khi click link ── */
-    document.querySelectorAll('.ds-nav-panel .ds-nav-link, .ds-nav-panel .ds-sub-link').forEach(link => {
+    /* ── Đóng panel khi click link (trừ nút theme toggle) ── */
+    document.querySelectorAll('.ds-nav-panel .ds-nav-link:not(.ds-nav-no-close), .ds-nav-panel .ds-sub-link').forEach(link => {
         link.addEventListener('click', () => {
             if (!link.classList.contains('ds-sub-toggle')) {
                 setTimeout(closeNav, 200);
@@ -111,16 +111,6 @@ if (backTopBtn) {
 }
 
 
-/* ── Auto-dismiss flash alerts sau 5 giây ── */
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.alert.alert-dismissible').forEach(el => {
-        setTimeout(() => {
-            const instance = bootstrap.Alert.getOrCreateInstance(el);
-            if (instance) instance.close();
-        }, 5000);
-    });
-});
-
 
 /* ── Cập nhật số lượng badge giỏ hàng ── */
 function updateCartBadge(count) {
@@ -139,22 +129,26 @@ function updateCartBadge(count) {
 
 /* ══════════════════════════════════════════
    THEME TOGGLE (Client)
+   Fix: chạy trong DOMContentLoaded để DOM sẵn sàng
 ══════════════════════════════════════════ */
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     function getTheme() { return localStorage.getItem('duastore-theme') || 'light'; }
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('duastore-theme', theme);
         const isDark = theme === 'dark';
-        const icon = document.getElementById('dsProfileThemeIcon');
-        const label = document.getElementById('dsProfileThemeLabel');
-        if (icon) icon.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
-        if (label) label.textContent = isDark ? 'Chế độ sáng' : 'Chế độ tối';
+        document.querySelectorAll('[id$="ThemeIcon"]').forEach(el => {
+            el.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
+        });
+        document.querySelectorAll('[id$="ThemeLabel"]').forEach(el => {
+            el.textContent = isDark ? 'Chế độ sáng' : 'Chế độ tối';
+        });
     }
     setTheme(getTheme());
-    const btn = document.getElementById('dsProfileThemeToggle');
-    if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); setTheme(getTheme() === 'dark' ? 'light' : 'dark'); });
-})();
+    document.querySelectorAll('[id$="ThemeToggle"]').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.preventDefault(); setTheme(getTheme() === 'dark' ? 'light' : 'dark'); });
+    });
+});
 
 
 /* ══════════════════════════════════════════
@@ -258,12 +252,17 @@ document.addEventListener('click', function(event) {
     const popupWishlist = document.getElementById('wishlist-popup');
     const btnCart = document.getElementById('btn-cart-toggle'); 
     const popupCart = document.getElementById('cart-popup');
+    const btnProfile = document.getElementById('btn-profile-toggle');
+    const popupProfile = document.getElementById('profile-popup');
     
     if (btnWishlist && popupWishlist && !btnWishlist.contains(event.target) && !popupWishlist.contains(event.target)) {
         popupWishlist.style.display = 'none';
     }
     if (btnCart && popupCart && !btnCart.contains(event.target) && !popupCart.contains(event.target)) {
         popupCart.style.display = 'none';
+    }
+    if (btnProfile && popupProfile && !btnProfile.contains(event.target) && !popupProfile.contains(event.target)) {
+        popupProfile.style.display = 'none';
     }
 });
 
@@ -303,47 +302,50 @@ function toggleWishlist(btnElement, productId) {
     })
     .then(response => response.json())
     .then(data => {
-        if(data.success) {
-            if (btnElement.classList.contains('active')) {
-                // Hủy thích
-                btnElement.classList.remove('active'); 
-                icon.classList.replace('bi-heart-fill', 'bi-heart');
-                const itemToRemove = document.getElementById('wishlist-item-' + productId);
-                if(itemToRemove) itemToRemove.remove();
-            } else {
-                // Thêm thích
-                btnElement.classList.add('active'); 
-                icon.classList.replace('bi-heart', 'bi-heart-fill');
-                
-                const emptyMsg = container?.querySelector('.text-muted.text-center');
-                if(emptyMsg) emptyMsg.remove();
-                
-                let imgHtml = `<i class="bi bi-box-seam text-secondary"></i>`;
-                if (productImg && productImg.trim() !== '') {
-                    imgHtml = `<img src="${productImg}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">`;
-                }
+        if (!data.success) {
+            if (data.message && data.message.includes('dang nhap')) {
+                window.location.href = '/dang-nhap';
+                return;
+            }
+            return;
+        }
+        if (btnElement.classList.contains('active')) {
+            btnElement.classList.remove('active'); 
+            icon.classList.replace('bi-heart-fill', 'bi-heart');
+            const itemToRemove = document.getElementById('wishlist-item-' + productId);
+            if(itemToRemove) itemToRemove.remove();
+        } else {
+            btnElement.classList.add('active'); 
+            icon.classList.replace('bi-heart', 'bi-heart-fill');
+            
+            const emptyMsg = container?.querySelector('.text-muted.text-center');
+            if(emptyMsg) emptyMsg.remove();
+            
+            let imgHtml = `<i class="bi bi-box-seam text-secondary"></i>`;
+            if (productImg && productImg.trim() !== '') {
+                imgHtml = `<img src="${productImg}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">`;
+            }
 
-                if (container) {
-                    const html = `
-                        <div class="popup-item" id="wishlist-item-${productId}">
-                            <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                ${imgHtml}
-                            </div>
-                            <div class="popup-item-info">
-                                <a href="/san-pham/${productId}">${productName}</a>
-                                <div class="text-danger fw-semibold mt-1">${productPrice}</div>
-                                <button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="addToCartFromWishlist(${productId}, null)">
-                                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                </button>
-                            </div>
-                            <button class="btn-delete-item" onclick="removeWishlist(${productId})" title="Xóa"><i class="bi bi-x-circle"></i></button>
+            if (container) {
+                const html = `
+                    <div class="popup-item" id="wishlist-item-${productId}">
+                        <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            ${imgHtml}
                         </div>
-                    `;
-                    container.insertAdjacentHTML('beforeend', html);
-                }
+                        <div class="popup-item-info">
+                            <a href="/san-pham/${productId}">${productName}</a>
+                            <div class="text-danger fw-semibold mt-1">${productPrice}</div>
+                            <button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="addToCartFromWishlist(${productId}, null)">
+                                <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                            </button>
+                        </div>
+                        <button class="btn-delete-item" onclick="removeWishlist(${productId})" title="Xóa"><i class="bi bi-x-circle"></i></button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
             }
         }
-    }).catch(error => console.error("Lỗi yêu thích: ", error));
+    }).catch(error => console.error("Loi yeu thich: ", error));
 }
 
 // Xóa Yêu thích trực tiếp từ nút (X) trong popup
@@ -386,18 +388,21 @@ function addToCart(productId, variantId, quantity) {
     })
     .then(response => response.json())
     .then(data => {
-        if(data.success) {
-            alert("Đã thêm " + productName + " vào giỏ hàng!");
-            if (cartPopup) {
-                const wlPopup = document.getElementById('wishlist-popup'); 
-                if(wlPopup) wlPopup.style.display = 'none';
-                cartPopup.style.display = 'block'; 
-                setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
+        if (!data.success) {
+            if (data.message && data.message.includes('dang nhap')) {
+                window.location.href = '/dang-nhap';
+                return;
             }
-            // Reload lại trang để đồng bộ HTML popup từ Thymeleaf GlobalControllerAdvice
-            setTimeout(() => { window.location.reload(); }, 1000);
+            return;
         }
-    }).catch(error => console.error("Lỗi giỏ hàng: ", error));
+        if (cartPopup) {
+            const wlPopup = document.getElementById('wishlist-popup'); 
+            if(wlPopup) wlPopup.style.display = 'none';
+            cartPopup.style.display = 'block'; 
+            setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
+        }
+        setTimeout(() => { window.location.reload(); }, 1000);
+    }).catch(error => console.error("Loi gio hang: ", error));
 }
 
 function addToCartFromWishlist(productId, variantId) { 
@@ -470,3 +475,199 @@ function updatePopupQty(variantId, delta) {
         qtySpan.innerText = currentQty; // Trả lại số cũ nếu rớt mạng
     });
 }
+
+
+/* ══════════════════════════════════════════
+   PRODUCT CARD ENHANCEMENTS (Variant, Quantity, Countdown)
+══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+
+    /* ── Helper: get card context ── */
+    function getCard(el) {
+        return el.closest('.ds-product-card');
+    }
+
+    function getActiveVariant(card) {
+        const active = card.querySelector('.ds-variant-chip.active');
+        if (active) return active;
+        const first = card.querySelector('.ds-variant-chip:not(.oos)');
+        return first || card.querySelector('.ds-variant-chip');
+    }
+
+    /* ── Variant chip click ── */
+    document.addEventListener('click', function(e) {
+        const chip = e.target.closest('.ds-variant-chip');
+        if (!chip || chip.classList.contains('oos')) return;
+        e.preventDefault();
+
+        const card = getCard(chip);
+        if (!card) return;
+
+        card.querySelectorAll('.ds-variant-chip').forEach(function(c) {
+            c.classList.remove('active');
+        });
+        chip.classList.add('active');
+
+        var newPrice = chip.getAttribute('data-price');
+        var newOrig = chip.getAttribute('data-original');
+        var newStock = parseInt(chip.getAttribute('data-stock')) || 0;
+        var variantId = chip.getAttribute('data-variantid');
+
+        var stockEl = card.querySelector('.ds-stock-info');
+        if (stockEl) {
+            if (newStock > 0) {
+                stockEl.textContent = newStock <= 3
+                    ? '⚠ Chỉ còn ' + newStock + ' sản phẩm'
+                    : 'Còn lại: ' + newStock + ' sản phẩm';
+                stockEl.className = 'ds-stock-info' + (newStock <= 3 ? ' warning' : '');
+            } else {
+                stockEl.textContent = 'Hết hàng';
+                stockEl.className = 'ds-stock-info oos';
+            }
+            stockEl.style.display = '';
+        }
+        card.classList.toggle('oos', newStock <= 0);
+
+        var priceBtn = card.querySelector('.ds-card-add-cart');
+        if (priceBtn) {
+            priceBtn.disabled = (newStock <= 0);
+            var amountEl = priceBtn.querySelector('.ds-price-btn-amount');
+            if (amountEl) amountEl.textContent = parseInt(newPrice).toLocaleString('vi-VN') + 'đ';
+        }
+
+        var qtyVal = card.querySelector('.ds-qty-val');
+        if (qtyVal) qtyVal.textContent = '1';
+        var minus = card.querySelector('.ds-qty-minus');
+        if (minus) minus.disabled = true;
+    });
+
+    /* ── Quantity +/- with stock check ── */
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.ds-qty-btn');
+        if (!btn) return;
+        var card = getCard(btn);
+        if (!card) return;
+
+        var qtyEl = card.querySelector('.ds-qty-val');
+        var currentQty = parseInt(qtyEl.textContent) || 1;
+
+        var activeChip = getActiveVariant(card);
+        var maxStock = activeChip
+            ? parseInt(activeChip.getAttribute('data-stock')) || 99
+            : 99;
+
+        var minus = card.querySelector('.ds-qty-minus');
+        var plus = card.querySelector('.ds-qty-plus');
+
+        if (btn.classList.contains('ds-qty-plus')) {
+            if (currentQty < maxStock) {
+                currentQty++;
+            } else {
+                plus.style.color = '#ef4444';
+                setTimeout(function() { plus.style.color = ''; }, 600);
+                return;
+            }
+        } else if (btn.classList.contains('ds-qty-minus')) {
+            if (currentQty > 1) {
+                currentQty--;
+            }
+        }
+
+        qtyEl.textContent = currentQty;
+        minus.disabled = (currentQty <= 1);
+        plus.disabled = (currentQty >= maxStock);
+    });
+
+    /* ── Add to cart from card ── */
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.ds-card-add-cart');
+        if (!btn || btn.disabled) return;
+        var card = getCard(btn);
+        if (!card) return;
+
+        /* Visual toggle */
+        btn.classList.add('active');
+
+        var productId = btn.getAttribute('data-id');
+        var qty = parseInt(card.querySelector('.ds-qty-val').textContent) || 1;
+
+        var activeChip = getActiveVariant(card);
+        var variantId = activeChip
+            ? parseInt(activeChip.getAttribute('data-variantid'))
+            : null;
+
+        fetch('/api/cart/add-popup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                productId: parseInt(productId),
+                variantId: variantId,
+                quantity: qty
+            })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) {
+                if (typeof updateCartBadge === 'function') {
+                    updateCartBadge(data.cartCount);
+                }
+                var cartPopup = document.getElementById('cart-popup');
+                if (cartPopup) {
+                    var wlPopup = document.getElementById('wishlist-popup');
+                    if (wlPopup) wlPopup.style.display = 'none';
+                    cartPopup.style.display = 'block';
+                    setTimeout(function() { cartPopup.style.display = 'none'; }, 3000);
+                }
+                setTimeout(function() {
+                    btn.classList.remove('active');
+                    window.location.reload();
+                }, 1200);
+            } else {
+                btn.classList.remove('active');
+                if (data.message && data.message.includes('dang nhap')) {
+                    window.location.href = '/dang-nhap';
+                } else {
+                    alert(data.message || 'Them that bai');
+                }
+            }
+        }).catch(function() {
+            btn.classList.remove('active');
+            alert('Loi ket noi he thong');
+        });
+    });
+
+    /* ── Flash sale countdown timer ── */
+    var timers = document.querySelectorAll('.ds-flash-timer');
+    timers.forEach(function(timer) {
+        var endStr = timer.getAttribute('data-end');
+        if (!endStr) return;
+        var endDate = new Date(endStr);
+
+        function tick() {
+            var now = new Date();
+            var diff = endDate - now;
+            var span = timer.querySelector('.flash-countdown');
+            if (!span) return;
+
+            if (diff <= 0) {
+                span.textContent = 'Đã kết thúc';
+                timer.style.opacity = '.5';
+                return;
+            }
+
+            var days = Math.floor(diff / 86400000);
+            if (days > 0) {
+                span.textContent = days + ' days left';
+            } else {
+                var hours = Math.floor(diff / 3600000);
+                var minutes = Math.floor((diff % 3600000) / 60000);
+                var seconds = Math.floor((diff % 60000) / 1000);
+                span.textContent =
+                    String(hours).padStart(2, '0') + 'h ' +
+                    String(minutes).padStart(2, '0') + 'm ' +
+                    String(seconds).padStart(2, '0') + 's';
+            }
+        }
+
+        tick();
+        setInterval(tick, 1000);
+    });
+});

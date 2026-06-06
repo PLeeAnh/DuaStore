@@ -127,13 +127,13 @@ public class AdminProductController {
         return "redirect:/admin/san-pham?successMsg=Cap+nhat+san+pham+thanh+cong";
     }
 
-    @GetMapping("/xoa/{id}")
+    @PostMapping("/xoa/{id}")
     public String delete(@PathVariable Integer id) {
         productService.delete(id);
         return "redirect:/admin/san-pham?successMsg=Da+xoa+san+pham";
     }
 
-    @GetMapping("/xoa-anh/{imageId}")
+    @PostMapping("/xoa-anh/{imageId}")
     public String deleteImage(@PathVariable Integer imageId) {
         ProductImage img = productImageRepository.findById(imageId).orElse(null);
         if (img == null) {

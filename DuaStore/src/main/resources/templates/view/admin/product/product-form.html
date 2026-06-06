@@ -95,9 +95,9 @@
                         <div class="d-flex flex-wrap gap-2">
                             <div th:each="img : ${galleryImages}" class="gallery-saved-item">
                                 <img th:src="@{${img.imageUrl}}" alt="gallery" />
-                                <a th:href="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}"
-                                   class="gallery-remove-btn"
-                                   onclick="return confirm('Xoá ảnh này?')">✕</a>
+                                <form th:action="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}" method="post" onsubmit="return confirm('Xoá ảnh này?')" style="position:absolute;top:5px;right:5px;margin:0;padding:0;">
+                                    <button type="submit" class="gallery-remove-btn" style="position:static;display:flex;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:13px;cursor:pointer;align-items:center;justify-content:center;padding:0;">✕</button>
+                                </form>
                             </div>
                         </div>
                     </div>

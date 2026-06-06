@@ -1215,48 +1215,401 @@ a { color: inherit; }
   line-height: 1.7;
 }
 
+/* ── Equal height cards ── */
+.product-swiper .swiper-slide {
+  height: auto;
+}
+.product-swiper .swiper-slide > .ds-product-card,
+.product-swiper .swiper-slide > div > .ds-product-card {
+  width: 100%;
+}
+.row:has(> [class*="col-"] > .ds-product-card) > [class*="col-"] {
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+}
+
 /* ══════════════════════════════════════════
-   PRODUCT CAROUSEL
+   PRODUCT CARDS — Nâng cấp UI/UX
+   Hover: zoom ảnh (scale 1.05), hiện qty selector, đổi màu giá
+   OOS: mờ + badge + disable button
+   Flash sale: timer "X days left"
 ══════════════════════════════════════════ */
 .ds-product-carousel { padding: 70px 0; }
+
 .ds-product-card {
+  position: relative;
   background: var(--ds-card-bg);
   border: 1px solid var(--ds-border);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: var(--ds-r);
+  padding: 0;
   text-align: center;
-  transition: box-shadow .2s, transform .2s;
+  transition: box-shadow .3s ease, transform .3s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-.ds-product-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.08); transform: translateY(-3px); }
+.ds-product-card:hover {
+  box-shadow: 0 12px 36px rgba(0,0,0,.1);
+  transform: translateY(-4px);
+}
+
+/* ── Image wrapper (1:1, object-fit cover, zoom on hover) ── */
+.ds-product-img-wrap {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--ds-gray-100);
+}
+.ds-product-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s ease;
+}
+.ds-product-card:hover .ds-product-img-wrap img {
+  transform: scale(1.05);
+}
 .ds-product-img {
   width: 100%;
-  height: 160px;
-  background: var(--ds-gray-100);
-  border-radius: 10px;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.5rem;
   color: var(--ds-gray-400);
-  margin-bottom: 12px;
 }
-.ds-product-name { font-size: .88rem; font-weight: 600; color: var(--ds-gray-900); margin-bottom: 4px; }
-.ds-product-price { font-size: 1rem; font-weight: 700; color: var(--ds-primary, #2563EB); }
-.ds-product-old { font-size: .78rem; color: var(--ds-gray-400); text-decoration: line-through; margin-left: 6px; }
-.ds-add-cart {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 5px 16px;
+
+/* ── Badges ── */
+.ds-badge-sale {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ef4444;
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  z-index: 2;
+}
+.ds-badge-oos {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,.75);
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 6px;
+  z-index: 2;
+  letter-spacing: .05em;
+}
+
+/* ── Card body (content below image) ── */
+.ds-card-body {
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 6px;
+}
+
+/* ── Product name ── */
+.ds-product-name {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ds-gray-900);
+  text-decoration: none;
+  overflow: hidden;
+  line-height: 0;
+  height: 0;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* ── Product name overlay (chèn trên ảnh, ở nguyên vị trí) ── */
+.ds-product-name-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 28px 10px 8px;
+  background: linear-gradient(transparent 30%, rgba(255,255,255,.85));
+  color: #000;
+  font-size: .88rem;
+  font-weight: 600;
+  text-align: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* ── Stock + qty chồng nhau: stock mờ → qty hiện ── */
+.ds-stock-qty-row {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 1.6em;
+}
+.ds-stock-qty-row .ds-stock-info,
+.ds-stock-qty-row .ds-qty-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Stock info (swap opacity với qty trên hover card) ── */
+.ds-stock-info {
+  font-size: .72rem;
+  color: var(--ds-gray-500);
+  font-weight: 500;
+  opacity: 1;
+  transition: opacity .2s;
+}
+.ds-stock-info.warning {
+  color: #ef4444;
+}
+.ds-stock-info.oos {
+  color: var(--ds-gray-400);
+}
+.ds-product-card:hover .ds-stock-info {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Flash timer (pill absolute trên ảnh, góc trái) ── */
+.ds-flash-timer {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #475569;
+  border: none;
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.ds-flash-timer i { font-size: .7rem; }
+[data-theme="dark"] .ds-flash-timer {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+/* ── Card actions (variants) — thu gọn = card ngắn, hover giãn ra ── */
+.ds-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: max-height .35s ease, opacity .25s ease;
+}
+.ds-product-card:hover .ds-card-actions {
+  max-height: 300px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Variant label (giống chi tiết sản phẩm) ── */
+.ds-variant-label-text {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--ds-gray-500);
+  text-align: left;
+  margin-bottom: 2px;
+}
+.ds-variant-label-text::before {
+  content: "▸ ";
+}
+
+/* ── Variant chips (giống chi tiết sản phẩm) ── */
+.ds-variant-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ds-variant-chip {
+  padding: 4px 12px;
+  font-size: .72rem;
+  font-weight: 500;
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ds-gray-700);
+  cursor: pointer;
+  transition: all .15s ease;
+  line-height: 1.4;
+}
+.ds-variant-chip:hover {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+.ds-variant-chip.active {
+  background: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: #fff !important;
+}
+.ds-variant-chip.oos {
+  opacity: .35;
+  pointer-events: none;
+  text-decoration: line-through;
+}
+[data-theme="dark"] .ds-variant-chip {
+  border-color: var(--ds-gray-500);
+  color: var(--ds-gray-500);
+}
+[data-theme="dark"] .ds-variant-chip:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
+[data-theme="dark"] .ds-variant-chip.active {
+  background: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: #fff !important;
+}
+
+/* ── Quantity selector (ẩn mặc định, hiện trên hover, co giãn) ── */
+.ds-qty-row {
+  display: flex;
+  justify-content: center;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: max-height .35s ease, opacity .25s ease;
+}
+.ds-product-card:hover .ds-qty-row {
+  max-height: 80px;
+  opacity: 1;
+  pointer-events: auto;
+}
+.ds-qty-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--ds-border);
+  border-radius: 100px;
+  overflow: hidden;
+  background: var(--ds-card-bg);
+}
+.ds-qty-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--ds-gray-700);
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .1s;
+}
+.ds-qty-btn:hover { background: var(--ds-gray-100); }
+.ds-qty-val {
+  width: 26px;
+  text-align: center;
   font-size: .78rem;
   font-weight: 600;
-  border: 1px solid var(--ds-primary);
+}
+
+/* ── Add-to-cart button (full-width, bottom) ── */
+.ds-price-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--ds-primary);
   border-radius: 100px;
   background: transparent;
   color: var(--ds-primary);
+  font-size: .82rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background .15s, color .15s;
+  transition: all .25s ease;
+  line-height: 1.4;
+  margin-top: auto;
 }
-.ds-add-cart:hover { background: var(--ds-primary); color: #fff; }
+.ds-price-btn:hover {
+  background: var(--ds-primary);
+  color: #fff !important;
+}
+.ds-price-btn:active {
+  transform: scale(.97);
+}
+.ds-price-btn.active {
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  color: #fff !important;
+}
+.ds-price-btn-label { font-weight: 400; }
+.ds-price-btn-amount { font-weight: 700; margin-left: 4px; }
+.ds-cart-icon-indicator {
+  display: none;
+  font-size: 1.1rem;
+}
+.ds-price-btn.active .ds-cart-icon-indicator {
+  display: inline-flex;
+}
+
+/* ── Out of Stock ── */
+.ds-product-card.oos {
+  opacity: .55;
+}
+.ds-product-card.oos .ds-product-img-wrap img {
+  filter: grayscale(1) contrast(1.1);
+}
+.ds-product-card.oos .ds-price-btn,
+.ds-product-card.oos .ds-qty-btn {
+  cursor: not-allowed;
+  opacity: .5;
+  pointer-events: none;
+}
+
+/* ── Dark theme ── */
+[data-theme="dark"] .ds-product-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+[data-theme="dark"] .ds-product-img-wrap {
+  background: #1a1a1a;
+}
+[data-theme="dark"] .ds-product-name {
+  color: var(--ds-gray-700);
+}
+[data-theme="dark"] .ds-qty-btn {
+  color: #ccc;
+}
+[data-theme="dark"] .ds-qty-btn:hover {
+  background: #2a2a2a;
+}
+[data-theme="dark"] .ds-price-btn {
+  border-color: var(--ds-primary);
+  color: var(--ds-primary);
+}
+[data-theme="dark"] .ds-price-btn:hover {
+  background: var(--ds-primary);
+  color: #fff !important;
+}
 
 /* ══════════════════════════════════════════
    POPUP YÊU THÍCH & GIỎ HÀNG (WISH/CART)
@@ -1338,6 +1691,31 @@ a { color: inherit; }
   color: var(--ds-primary);
 }
 
+/* ---- POPUP LINK (profile popup) ---- */
+.ds-popup-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 6px;
+  font-size: .85rem;
+  color: var(--ds-gray-900);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.ds-popup-link:hover {
+  background: var(--ds-gray-100);
+}
+.ds-popup-link i {
+  width: 18px;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--ds-gray-500);
+}
+[data-theme="dark"] .ds-popup-link { color: var(--ds-gray-700); }
+[data-theme="dark"] .ds-popup-link:hover { background: #2a2a2a; }
+[data-theme="dark"] .ds-popup-link i { color: #888; }
+
 /* ---- CẤU HÌNH THANH CUỘN CHO POPUP ---- */
 #wishlist-items-container,
 #cart-items-container {
@@ -1369,10 +1747,6 @@ a { color: inherit; }
 }
 
 /* ---- NÚT THẢ TIM TRÊN CARD SẢN PHẨM ---- */
-.ds-product-card {
-  position: relative;
-}
-
 .btn-wishlist-card {
   position: absolute;
   top: 12px;
