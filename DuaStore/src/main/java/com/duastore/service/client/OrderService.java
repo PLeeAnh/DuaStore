@@ -46,7 +46,7 @@ public class OrderService {
     }
 
     private static final String[] PHUONG_THUC_TT = {"COD", "CHUYEN_KHOAN", "VNPAY"};
-    private static final String[] PHUONG_THUC_GH = {"SHIP", "NHANH"};
+    private static final String[] PHUONG_THUC_GH = {"SHIP", "NHAN_TAI_CONG"};
     private static final BigDecimal PHI_SHIP = new BigDecimal("30000");
     private static final BigDecimal PHI_SHIP_NHANH = new BigDecimal("50000");
 
@@ -110,6 +110,8 @@ public class OrderService {
             promo.setDaDung(promo.getDaDung() + 1);
         }
 
+        if (order.getTienGiam() == null) order.setTienGiam(BigDecimal.ZERO);
+
         BigDecimal tong = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam());
         if (tong.compareTo(BigDecimal.ZERO) < 0) tong = BigDecimal.ZERO;
         order.setTongThanhToan(tong);
@@ -136,11 +138,11 @@ public class OrderService {
     }
 
     private BigDecimal calculateShipFee(String phuongThucGH) {
-        if ("NHANH".equalsIgnoreCase(phuongThucGH)) return PHI_SHIP_NHANH;
+        if ("NHAN_TAI_CONG".equalsIgnoreCase(phuongThucGH)) return PHI_SHIP_NHANH;
         return PHI_SHIP;
     }
 
-    private void validatePromotion(Promotion promo, BigDecimal tienHang) {
+    public void validatePromotion(Promotion promo, BigDecimal tienHang) {
         if (!promo.getIsActive()) throw new RuntimeException("Mã giảm giá không hoạt động");
         if (promo.getDenNgay() != null && promo.getDenNgay().isBefore(LocalDateTime.now()))
             throw new RuntimeException("Mã giảm giá đã hết hạn");
@@ -152,7 +154,7 @@ public class OrderService {
             throw new RuntimeException("Đơn hàng tối thiểu " + promo.getDonHangToiThieu() + "đ để áp dụng mã");
     }
 
-    private BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang) {
+    public BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang) {
         BigDecimal discount;
         if ("PHAN_TRAM".equals(promo.getLoaiGiam())) {
             discount = tienHang.multiply(promo.getGiaTriGiam()).divide(new BigDecimal("100"));
