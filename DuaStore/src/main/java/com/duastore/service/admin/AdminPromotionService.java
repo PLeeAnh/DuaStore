@@ -9,6 +9,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @Transactional
 public class AdminPromotionService {
@@ -19,8 +21,17 @@ public class AdminPromotionService {
         this.promotionRepository = promotionRepository;
     }
 
+    public void autoExpirePromotions() {
+        var expired = promotionRepository.findByIsActiveTrueAndDenNgayBefore(LocalDateTime.now());
+        for (Promotion p : expired) {
+            p.setIsActive(false);
+            promotionRepository.save(p);
+        }
+    }
+
     @Transactional(readOnly = true)
     public Page<Promotion> getAllPromotions(int page, int size) {
+        autoExpirePromotions();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         return promotionRepository.findAll(pageable);
     }

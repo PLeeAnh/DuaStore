@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -100,14 +102,12 @@ public class OrderService {
 
         if (maCode != null && !maCode.isBlank()) {
             Promotion promo = promotionRepository.findByMaCodeAndIsActiveTrue(maCode.toUpperCase().trim())
-                    .orElse(null);
-            if (promo != null) {
-                validatePromotion(promo, tienHang);
-                BigDecimal tienGiam = calculateDiscount(promo, tienHang);
-                order.setTienGiam(tienGiam);
-                order.setPromotion(promo);
-                promo.setDaDung(promo.getDaDung() + 1);
-            }
+                    .orElseThrow(() -> new RuntimeException("Mã giảm giá \"" + maCode + "\" không tồn tại hoặc đã bị vô hiệu hóa"));
+            validatePromotion(promo, tienHang);
+            BigDecimal tienGiam = calculateDiscount(promo, tienHang);
+            order.setTienGiam(tienGiam);
+            order.setPromotion(promo);
+            promo.setDaDung(promo.getDaDung() + 1);
         }
 
         BigDecimal tong = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam());
@@ -197,6 +197,56 @@ public class OrderService {
         }
         order.setTrangThaiDon("DA_HUY");
         orderRepository.save(order);
+    }
+
+    public Map<String, Object> validateCouponForApi(String maCode, BigDecimal tienHang) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", false);
+
+        if (maCode == null || maCode.isBlank()) {
+            result.put("message", "Vui lòng nhập mã giảm giá");
+            return result;
+        }
+
+        Promotion promo = promotionRepository.findByMaCodeAndIsActiveTrue(maCode.toUpperCase().trim())
+                .orElse(null);
+        if (promo == null) {
+            result.put("message", "Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa");
+            return result;
+        }
+
+        result.put("loaiGiam", promo.getLoaiGiam());
+        result.put("giaTriGiam", promo.getGiaTriGiam());
+        result.put("giamToiDa", promo.getGiamToiDa());
+        result.put("donHangToiThieu", promo.getDonHangToiThieu());
+        result.put("tenChuongTrinh", promo.getTenChuongTrinh());
+
+        try {
+            validatePromotion(promo, tienHang);
+            BigDecimal discount = calculateDiscount(promo, tienHang);
+            result.put("valid", true);
+            result.put("discount", discount);
+            result.put("message", "Áp dụng mã thành công! Giảm " + formatDiscount(promo, discount));
+        } catch (RuntimeException e) {
+            result.put("message", e.getMessage());
+        }
+
+        return result;
+    }
+
+    private String formatDiscount(Promotion promo, BigDecimal discount) {
+        if ("PHAN_TRAM".equals(promo.getLoaiGiam())) {
+            String pct = promo.getGiaTriGiam().stripTrailingZeros().toPlainString();
+            if (promo.getGiamToiDa() != null) {
+                return pct + "% (tối đa " + formatVND(promo.getGiamToiDa()) + ")";
+            }
+            return pct + "%";
+        }
+        return formatVND(discount);
+    }
+
+    private String formatVND(BigDecimal amount) {
+        return String.format("%,.0fđ", amount);
     }
 
     public OrderDTO convertToDTO(Order order) {

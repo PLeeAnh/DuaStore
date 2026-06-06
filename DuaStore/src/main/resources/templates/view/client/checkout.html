@@ -82,10 +82,11 @@
 
                         <hr />
                         <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
-                        <div class="input-group mb-4" style="max-width:400px">
-                            <input type="text" name="maCode" class="form-control" placeholder="Nhập mã giảm giá" />
-                            <button class="btn btn-outline-primary" type="button" id="applyPromoBtn">Áp dụng</button>
+                        <div class="input-group mb-1" style="max-width:400px">
+                            <input type="text" name="maCode" class="form-control" id="checkoutPromoInput" placeholder="Nhập mã giảm giá" />
+                            <button class="btn btn-outline-primary" type="button" id="checkoutApplyPromo">Áp dụng</button>
                         </div>
+                        <div id="checkoutPromoMsg" class="small mb-3"></div>
 
                         <div class="mb-3">
                             <label class="form-label">Ghi chú đơn hàng</label>
@@ -136,7 +137,11 @@
         </div>
     </div>
 
+<th:block layout:fragment="extra-script">
+    <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
     <script>
+        let appliedDiscount = 0;
+
         function updateShipFee() {
             const fee = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value === 'NHANH' ? 50000 : 30000;
             document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + 'đ';
@@ -146,9 +151,36 @@
             const subtotalEl = document.getElementById('subtotalDisplay');
             const subtotal = parseInt(subtotalEl.textContent.replace(/[^0-9]/g, '')) || 0;
             const fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
-            const discount = parseInt(document.getElementById('discountDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
-            document.getElementById('totalDisplay').textContent = (subtotal + fee - discount).toLocaleString('vi-VN') + 'đ';
+            document.getElementById('totalDisplay').textContent = (subtotal + fee - appliedDiscount).toLocaleString('vi-VN') + 'đ';
         }
+
+        document.getElementById('checkoutApplyPromo')?.addEventListener('click', function() {
+            const input = document.getElementById('checkoutPromoInput');
+            const msgEl = document.getElementById('checkoutPromoMsg');
+            const code = input.value.trim();
+            if (!code) { msgEl.innerHTML = '<span class="text-danger">Vui lòng nhập mã</span>'; return; }
+            const subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
+            msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
+            fetch('/api/coupon/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ maCode: code, subtotal })
+            }).then(r => r.json()).then(data => {
+                if (data.valid) {
+                    msgEl.innerHTML = '<span class="text-success">&#10003; ' + data.message + '</span>';
+                    appliedDiscount = parseInt(data.discount) || 0;
+                    document.getElementById('discountDisplay').textContent = appliedDiscount.toLocaleString('vi-VN') + 'đ';
+                } else {
+                    msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
+                    appliedDiscount = 0;
+                    document.getElementById('discountDisplay').textContent = '0đ';
+                }
+                updateTotal();
+            }).catch(() => {
+                msgEl.innerHTML = '<span class="text-danger">Lỗi kết nối, vui lòng thử lại</span>';
+            });
+        });
     </script>
+</th:block>
     </body>
 </html>
