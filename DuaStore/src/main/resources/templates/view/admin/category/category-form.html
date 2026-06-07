@@ -6,7 +6,6 @@
 <head><title>Quản lý danh mục - Form</title></head>
 <body>
 <th:block layout:fragment="breadcrumb">
-    <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
     <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc}">Danh mục</a></li>
     <li class="breadcrumb-item active" th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Form</li>
 </th:block>

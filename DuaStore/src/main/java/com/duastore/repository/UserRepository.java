@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
+    Optional<User> findByResetToken(String resetToken);
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true AND u.role = :role")
     long countByRoleAndIsActiveTrue(@Param("role") String role);

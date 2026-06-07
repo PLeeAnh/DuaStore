@@ -26,27 +26,7 @@
   /* surface dùng cho card, footer, v.v. */
   --ds-card-bg  : #ffffff;
 }
-[data-theme="dark"] {
-  --ds-gray-100 : #1a1a1a;
-  --ds-gray-200 : #2a2a2a;
-  --ds-gray-400 : #666;
-  --ds-gray-500 : #999;
-  --ds-gray-700 : #ccc;
-  --ds-gray-900 : #e5e5e5;
-  --ds-border   : #333;
-  --ds-primary  : #3b82f6;
-  --ds-card-bg  : #1a1a1a;
-}
-[data-theme="dark"] body { background: #0a0a0a; color: #e5e5e5; }
 
-/* Dark theme — surface shadows */
-[data-theme="dark"] .ds-feature-card:hover,
-[data-theme="dark"] .ds-cat-card:hover,
-[data-theme="dark"] .ds-product-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,.4);
-}
-[data-theme="dark"] .ds-section-badge { background: #2a2a2a; color: #aaa; }
-[data-theme="dark"] .ds-navbar a:not(.ds-nav-link):not(.ds-btn-login) { color: #e5e5e5; }
 
 /* ── BASE ── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -82,10 +62,7 @@ a { color: inherit; }
 }
 .ds-logo:hover { color: var(--ds-white); opacity: .75; }
 
-/* ══════════════════════════════════════════
-   EDIT TOGGLE TẠI ĐÂY — Hamburger ☰ / ✕ (Client)
-   Thay đổi style nút toggle tại đây
-══════════════════════════════════════════ */
+/* Hamburger toggle */
 .ds-nav-toggle {
   background: transparent;
   border: 1px solid rgba(255,255,255,.2);
@@ -112,9 +89,7 @@ a { color: inherit; }
   line-height: 1;
   user-select: none;
 }
-/* ══════════════════════════════════════════
-   KẾT THÚC EDIT TOGGLE
-══════════════════════════════════════════ */
+
 
 /* Side panel — mobile nav overlay */
 .ds-nav-overlay {
@@ -257,15 +232,6 @@ a { color: inherit; }
 .ds-panel-profile-name { font-size: .85rem; font-weight: 600; color: #fff; }
 .ds-panel-profile-email { font-size: .72rem; color: rgba(255,255,255,.5); }
 
-/* Desktop nav list — hiện trên lg+ */
-.ds-nav-list-desktop {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: none;
-  align-items: center;
-  gap: 4px;
-}
 .ds-nav-link-desktop {
   display: flex;
   align-items: center;
@@ -436,9 +402,7 @@ a { color: inherit; }
 }
 .ds-btn-fill:hover { opacity: .85; color: var(--ds-black); }
 
-/* ══════════════════════════════════════════
-   EDIT SEARCH TẠI ĐÂY — always visible inline
-══════════════════════════════════════════ */
+/* Search inline */
 .ds-search-inline {
   display: flex;
   align-items: center;
@@ -471,9 +435,7 @@ a { color: inherit; }
 }
 .ds-search-inline-input::placeholder { color: rgba(255,255,255,.35); }
 .ds-search-inline-input:focus { width: 180px; }
-/* ══════════════════════════════════════════
-   KẾT THÚC EDIT SEARCH
-══════════════════════════════════════════ */
+
 
 /* ══════════════════════════════════════════
    HERO SWIPER CAROUSEL
@@ -856,21 +818,7 @@ a { color: inherit; }
   background: #1a1a2a;
   color: #fff;
 }
-[data-theme="dark"] .ds-float-top {
-  background: #1a1a28 !important;
-  color: #fff !important;
-  border: 1px solid #333348 !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,.5) !important;
-}
-[data-theme="dark"] .ds-float-top i,
-[data-theme="dark"] .ds-float-top svg {
-  color: #fff !important;
-  fill: #fff !important;
-}
-[data-theme="dark"] .ds-float-top:hover {
-  background: #252540 !important;
-  box-shadow: 0 6px 16px rgba(0,0,0,.6) !important;
-}
+
 
 @keyframes ds-pulse {
   0%, 100% { box-shadow: 0 4px 14px rgba(0,104,255,.3); }
@@ -880,12 +828,7 @@ a { color: inherit; }
 /* ══════════════════════════════════════════
    PRODUCT DETAIL — Dark mode overrides
 ══════════════════════════════════════════ */
-[data-theme="dark"] .product-detail-info .text-muted {
-    color: #d0d0dd !important;
-}
-[data-theme="dark"] .product-detail-info .text-muted strong {
-    color: #e8e8f0 !important;
-}
+
 
 /* Quantity input — hide spinners + dark mode */
 .quantity-group #qtyInput::-webkit-outer-spin-button,
@@ -902,17 +845,7 @@ a { color: inherit; }
     color: #212529;
     height: 38px;
 }
-[data-theme="dark"] .quantity-group #qtyInput {
-    background-color: #1a1a2a;
-    border-color: #333348;
-    color: #ffffff;
-}
-[data-theme="dark"] .quantity-group #qtyInput:focus {
-    background-color: #1a1a2a;
-    border-color: #4a4a6a;
-    color: #ffffff;
-    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
-}
+
 
 /* Variant buttons — active state */
 .variant-btn.btn-danger {
@@ -950,10 +883,6 @@ a { color: inherit; }
     object-fit: cover;
     display: block;
 }
-[data-theme="dark"] .gallery-main {
-    background: #1a1a1a;
-}
-
 /* Bottom row: arrows + thumbs */
 .gallery-bottom {
     display: flex;
@@ -985,15 +914,6 @@ a { color: inherit; }
     background: var(--ds-gray-100);
     border-color: var(--ds-gray-400);
 }
-[data-theme="dark"] .gallery-arrow {
-    color: #aaa;
-    border-color: #333;
-}
-[data-theme="dark"] .gallery-arrow:hover {
-    background: #2a2a2a;
-    border-color: #555;
-}
-
 /* Thumbnail wrapper (overflow hidden + fade edges) */
 .gallery-thumbs-wrapper {
     flex: 1;
@@ -1043,11 +963,6 @@ a { color: inherit; }
     object-fit: cover;
     display: block;
 }
-[data-theme="dark"] .gallery-thumb.active {
-    border-color: #ffffff;
-    box-shadow: 0 0 0 2px rgba(255,255,255,.2);
-}
-
 /* ══════════════════════════════════════════
    PROFILE MENU (Desktop dropdown)
    ★ session.loggedIn == true → avatar + dropdown (HS, Đã lưu, Cài đặt, Theme, ĐX)
@@ -1105,7 +1020,7 @@ a { color: inherit; }
   visibility: visible;
   transform: translateY(0);
 }
-[data-theme="dark"] .ds-profile-dropdown { background: #1a1a2a; color: #eee; }
+
 .ds-profile-header {
   display: flex;
   align-items: center;
@@ -1114,7 +1029,6 @@ a { color: inherit; }
 }
 .ds-profile-header small { font-size: .78rem; color: #888; }
 .ds-profile-divider { height: 1px; background: #eee; margin: 0; }
-[data-theme="dark"] .ds-profile-divider { background: #333; }
 .ds-profile-link {
   display: flex;
   align-items: center;
@@ -1126,12 +1040,9 @@ a { color: inherit; }
   transition: background .1s;
 }
 .ds-profile-link:hover { background: #f5f5f5; }
-[data-theme="dark"] .ds-profile-link { color: #ccc; }
-[data-theme="dark"] .ds-profile-link:hover { background: #222; }
 .ds-profile-link i { width: 18px; text-align: center; font-size: .95rem; }
 .ds-profile-logout { color: #dc3545; }
 .ds-profile-logout:hover { background: #fef2f2; color: #dc3545; }
-[data-theme="dark"] .ds-profile-logout:hover { background: #2a0a0a; color: #f87171; }
 
 /* ══════════════════════════════════════════
    LOGIN BUTTON (navbar, desktop)
@@ -1153,7 +1064,7 @@ a { color: inherit; }
    TESTIMONIALS
 ══════════════════════════════════════════ */
 .ds-testi { padding: 70px 0; background: var(--ds-gray-100); }
-[data-theme="dark"] .ds-testi { background: #111; }
+
 .ds-testi-slide {
   text-align: center;
   padding: 20px;
@@ -1405,10 +1316,7 @@ a { color: inherit; }
   pointer-events: none;
 }
 .ds-flash-timer i { font-size: .7rem; }
-[data-theme="dark"] .ds-flash-timer {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-}
+
 
 /* ── Card actions (variants) — thu gọn = card ngắn, hover giãn ra ── */
 .ds-card-actions {
@@ -1472,19 +1380,7 @@ a { color: inherit; }
   pointer-events: none;
   text-decoration: line-through;
 }
-[data-theme="dark"] .ds-variant-chip {
-  border-color: var(--ds-gray-500);
-  color: var(--ds-gray-500);
-}
-[data-theme="dark"] .ds-variant-chip:hover {
-  border-color: #f87171;
-  color: #f87171;
-}
-[data-theme="dark"] .ds-variant-chip.active {
-  background: #dc3545 !important;
-  border-color: #dc3545 !important;
-  color: #fff !important;
-}
+
 
 /* ── Quantity selector (ẩn mặc định, hiện trên hover, co giãn) ── */
 .ds-qty-row {
@@ -1504,72 +1400,102 @@ a { color: inherit; }
 .ds-qty-selector {
   display: flex;
   align-items: center;
-  border: 1px solid var(--ds-border);
-  border-radius: 100px;
-  overflow: hidden;
-  background: var(--ds-card-bg);
+  border-radius: 8px;
+  background: #f8f8f8;
+  padding: 4px;
+  gap: 4px;
 }
 .ds-qty-btn {
   width: 28px;
   height: 28px;
   border: none;
-  background: transparent;
-  color: var(--ds-gray-700);
-  font-size: .9rem;
-  font-weight: 600;
+  background: #272727;
+  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background .1s;
+  transition: background .2s;
+  border-radius: 6px;
+  padding: 0;
 }
-.ds-qty-btn:hover { background: var(--ds-gray-100); }
+.ds-qty-btn:hover { background: #4d4d4d; }
+.ds-qty-btn:disabled { background: #ebebeb; color: #a3a3a3; cursor: not-allowed; }
+.ds-qty-btn svg {
+  width: 12px;
+  height: 12px;
+}
 .ds-qty-val {
-  width: 26px;
+  width: 48px;
+  height: 28px;
   text-align: center;
-  font-size: .78rem;
+  font-size: .85rem;
   font-weight: 600;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 2px 0;
+  color: var(--ds-gray-900);
 }
 
-/* ── Add-to-cart button (full-width, bottom) ── */
+/* ── Add-to-cart button (SVG wave + cart design) ── */
 .ds-price-btn {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: 1.5px solid var(--ds-primary);
-  border-radius: 100px;
-  background: transparent;
-  color: var(--ds-primary);
-  font-size: .82rem;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: #363636;
+  color: #fff;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all .25s ease;
+  transition: all 0.3s ease-in-out;
   line-height: 1.4;
   margin-top: auto;
+  height: 48px;
 }
 .ds-price-btn:hover {
-  background: var(--ds-primary);
-  color: #fff !important;
+  background: #fbfb24 !important;
+  color: #272727 !important;
 }
 .ds-price-btn:active {
   transform: scale(.97);
 }
-.ds-price-btn.active {
-  background: #22c55e !important;
-  border-color: #22c55e !important;
-  color: #fff !important;
+.ds-price-btn.added {
+  background: #363636;
+  color: #fff;
 }
 .ds-price-btn-label { font-weight: 400; }
-.ds-price-btn-amount { font-weight: 700; margin-left: 4px; }
-.ds-cart-icon-indicator {
-  display: none;
-  font-size: 1.1rem;
+.ds-price-btn-amount {
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
 }
-.ds-price-btn.active .ds-cart-icon-indicator {
-  display: inline-flex;
+.btn-wave-svg {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: auto;
+  pointer-events: none;
+  color: #f96f68;
+  transition: color 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transform-origin: top right;
+}
+.ds-price-btn:hover .btn-wave-svg {
+  color: #272727;
+}
+.ds-price-btn:hover .btn-wave-svg [stroke="white"] { stroke: #272727; }
+.ds-price-btn:hover .btn-wave-svg [fill="white"] { fill: #272727; }
+.ds-price-btn.added .btn-wave-svg {
+  display: block;
+  color: #22c55e;
 }
 
 /* ── Out of Stock ── */
@@ -1587,29 +1513,7 @@ a { color: inherit; }
 }
 
 /* ── Dark theme ── */
-[data-theme="dark"] .ds-product-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,.4);
-}
-[data-theme="dark"] .ds-product-img-wrap {
-  background: #1a1a1a;
-}
-[data-theme="dark"] .ds-product-name {
-  color: var(--ds-gray-700);
-}
-[data-theme="dark"] .ds-qty-btn {
-  color: #ccc;
-}
-[data-theme="dark"] .ds-qty-btn:hover {
-  background: #2a2a2a;
-}
-[data-theme="dark"] .ds-price-btn {
-  border-color: var(--ds-primary);
-  color: var(--ds-primary);
-}
-[data-theme="dark"] .ds-price-btn:hover {
-  background: var(--ds-primary);
-  color: #fff !important;
-}
+
 
 /* ══════════════════════════════════════════
    POPUP YÊU THÍCH & GIỎ HÀNG (WISH/CART)
@@ -1712,9 +1616,7 @@ a { color: inherit; }
   font-size: 1rem;
   color: var(--ds-gray-500);
 }
-[data-theme="dark"] .ds-popup-link { color: var(--ds-gray-700); }
-[data-theme="dark"] .ds-popup-link:hover { background: #2a2a2a; }
-[data-theme="dark"] .ds-popup-link i { color: #888; }
+
 
 /* ---- CẤU HÌNH THANH CUỘN CHO POPUP ---- */
 #wishlist-items-container,
@@ -1778,26 +1680,74 @@ a { color: inherit; }
   border-color: #ef4444;
 }
 
-/* ---- CẤU HÌNH DARK THEME BỔ SUNG ---- */
-[data-theme="dark"] .custom-popup {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+/* ── Auth Modal (login / register / forgot-password) ── */
+.modal-auth .modal-dialog { max-width:600px; width:600px; }
+.modal-auth .modal-content { min-height:600px; border-radius:1rem; overflow:hidden; display:flex; flex-direction:column; }
+.modal-auth .ds-auth-body { flex:1; display:flex; flex-direction:column; justify-content:center; }
+@media (max-width:640px) {
+  .modal-auth .modal-dialog { max-width:calc(100vw - 2rem); width:100%; }
+  .modal-auth .modal-content { min-height:auto; }
 }
+.ds-auth-header { background:#1a1a1a; padding:1.25rem 1.5rem; text-align:center; position:relative; flex-shrink:0; }
+.ds-auth-header .logo { font-family:'Dancing Script',cursive; font-size:1.5rem; color:#FFD84D; }
+.ds-auth-accent { height:4px; background:linear-gradient(90deg,#FFD84D,#D4A800); flex-shrink:0; }
+.ds-auth-accent-fade { height:4px; background:linear-gradient(90deg,rgba(255,216,77,.3),rgba(212,168,0,.3)); }
+.ds-auth-body { padding:2.5rem 2.5rem 2rem; flex:1; display:flex; flex-direction:column; }
+.ds-auth-body form { flex:1; display:flex; flex-direction:column; }
+.ds-auth-body form .ds-auth-btn { margin-top:auto; }
+.ds-auth-grow { flex:1; }
+.ds-auth-field { display:flex; align-items:center; gap:.6rem; border:1.5px solid #d1d5db; border-radius:.85rem; padding:.75rem 1rem; background:#f9fafb; transition:border-color .2s; }
+.ds-auth-field:focus-within { border-color:#6b7280; }
+.ds-auth-field i { color:#9ca3af; font-size:1.15rem; flex-shrink:0; }
+.ds-auth-field input { flex:1; border:none; background:transparent; outline:none; font-size:.95rem; padding:0; }
+.ds-auth-field .toggle-eye { background:none; border:none; color:#9ca3af; padding:0; cursor:pointer; line-height:1; }
+.ds-auth-field .toggle-eye:hover { color:#4b5563; }
+.ds-auth-btn { width:100%; border:none; border-radius:.85rem; padding:.82rem; font-size:1rem; font-weight:700; background:#e5e7eb; color:#9ca3af; cursor:not-allowed; transition:all .2s; letter-spacing:.3px; }
+.ds-auth-btn.active { background:#111827; color:#fff; cursor:pointer; }
+.ds-auth-btn.active:hover { background:#000; }
+.ds-auth-error { font-size:.78rem; color:#ef4444; display:none; align-items:center; gap:4px; margin-top:6px; }
+.ds-auth-error.show { display:flex; }
+.ds-auth-error i { font-size:.85rem; }
+.ds-auth-link { color:#6b7280; font-size:.82rem; text-decoration:none; transition:color .2s; cursor:pointer; }
+.ds-auth-link:hover { color:#111827; }
+.ds-auth-google { width:48px; height:48px; border-radius:50%; border:1px solid #d1d5db; display:flex; align-items:center; justify-content:center; background:#fff; margin:0 auto; transition:all .2s; cursor:pointer; text-decoration:none; color:inherit; }
+.ds-auth-google:hover { background:#f3f4f6; border-color:#bbb; transform:scale(1.05); }
+.ds-auth-code-wrap { display:flex; gap:.5rem; }
+.ds-auth-code-wrap .ds-auth-field { flex:1; }
+.ds-auth-code-btn { white-space:nowrap; background:#e5e7eb; border:none; border-radius:.75rem; padding:.6rem 1rem; font-size:.85rem; font-weight:600; color:#6b7280; cursor:pointer; transition:all .2s; }
+.ds-auth-code-btn:hover { background:#d1d5db; color:#374151; }
+.ds-auth-check { display:flex; align-items:center; gap:.5rem; font-size:.82rem; color:#6b7280; }
+.ds-auth-check input { accent-color:#111827; width:16px; height:16px; margin:0; }
+.ds-auth-back { position:absolute; left:.75rem; top:50%; transform:translateY(-50%); background:none; border:none; color:#FFD84D; font-size:1.3rem; cursor:pointer; padding:.25rem .5rem; transition:opacity .2s; }
+.ds-auth-back:hover { opacity:.8; }
+.ds-auth-code-inline { background:none; border:none; color:#6b7280; font-weight:600; font-size:.85rem; cursor:pointer; padding:0; white-space:nowrap; transition:color .2s; }
+.ds-auth-code-inline::before { content:'| '; color:#d1d5db; font-weight:400; }
+.ds-auth-code-inline:hover { color:#111827; }
+.ds-auth-success { font-size:.82rem; color:#16a34a; display:none; align-items:center; gap:4px; margin-bottom:.75rem; }
+.ds-auth-success.show { display:flex; }
 
-[data-theme="dark"] .btn-delete-item {
-  color: #f87171;
-}
+/* Hero slide gradients */
+.hero-slide:nth-child(1) { background:linear-gradient(135deg,#0a0a23 0%,#1a1a4e 40%,#2d1b69 100%); }
+.hero-slide:nth-child(2) { background:linear-gradient(135deg,#1a0a2e 0%,#2d1b69 40%,#4a1942 100%); }
+.hero-slide:nth-child(2) .hero-blob-1 { background:#a78bfa; }
+.hero-slide:nth-child(2) .hero-blob-2 { background:#f472b6; }
+.hero-glass-icon { font-size:4rem; color:rgba(255,255,255,.5); }
+.hero-pagination-wrap { padding-top:0; }
 
-[data-theme="dark"] .btn-wishlist-card {
-  background: rgba(26, 26, 42, 0.9);
-  border-color: #333348;
-  color: #a0a0b8;
-}
+/* Category icon gradients */
+.ds-cat-icon-chai { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); }
+.ds-cat-icon-hu { background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%); }
+.ds-cat-icon-binh { background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%); }
+.ds-cat-icon-ly { background:linear-gradient(135deg,#a18cd1 0%,#fbc2eb 100%); }
+.ds-cat-icon-qua-tang { background:linear-gradient(135deg,#ffecd2 0%,#fcb69f 100%); }
+.ds-cat-icon-all { background:linear-gradient(135deg,#89f7fe 0%,#66a6ff 100%); }
 
-[data-theme="dark"] .btn-wishlist-card:hover,
-[data-theme="dark"] .btn-wishlist-card.active {
-  color: #f87171;
-  border-color: #f87171;
-}
+/* Product list extras */
+.ds-faq-wrap { max-width: 700px; }
+.testi-pagination { margin-top: 20px; }
+.ds-empty-icon { font-size:3rem; color:#ccc; }
+.ds-badge-oos-btn { display:flex; align-items:center; justify-content:center; min-height:46px; background:#e5e5e5; color:#999; border-radius:8px; font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; }
+.ds-badge-dat-truoc { top:8px; right:8px; font-size:.7rem; z-index:5; }
 
 /* ══════════════════════════════════════════
    RESPONSIVE
@@ -1853,6 +1803,12 @@ a { color: inherit; }
   .ds-footer-legal { flex-wrap: wrap; gap: 12px; }
   .ds-float-zalo { bottom: 4.5rem; }
 }
+/* Touch devices: luôn hiện qty + card-actions (không hover) */
+@media (hover: none) and (pointer: coarse) {
+  .ds-qty-row { max-height: 80px; opacity: 1; pointer-events: auto; }
+  .ds-card-actions { max-height: 300px; opacity: 1; pointer-events: auto; }
+  .ds-stock-info { display: none; }
+}
 /* ---- NÚT TIM TRANG CHI TIẾT SẢN PHẨM ---- */
 .btn-detail-wishlist {
     background: var(--ds-gray-100);
@@ -1877,19 +1833,6 @@ a { color: inherit; }
     border-color: #ef4444;
 }
 
-/* Đồng bộ giao diện tối (Dark Mode) */
-[data-theme="dark"] .btn-detail-wishlist {
-    background: #1a1a2a;
-    border-color: #333348;
-    color: #a0a0b8;
-}
-[data-theme="dark"] .btn-detail-wishlist:hover,
-[data-theme="dark"] .btn-detail-wishlist.active {
-    background: #22223a;
-    color: #f87171;
-    border-color: #f87171;
-}
-
 /* ══════════════════════════════════════════
    REVIEWS / DANH GIA SAN PHAM
 ══════════════════════════════════════════ */
@@ -1909,8 +1852,7 @@ a { color: inherit; }
 .star-rating label.selected ~ label { color: #f59e0b; }
 
 .review-item { background: #fafafa; }
-[data-theme="dark"] .review-item { background: #1a1a2a; border-color: #333348; }
-[data-theme="dark"] .review-item .text-muted { color: #a0a0b8 !important; }
+
 
 /* ══════════════════════════════════════════
    BLOG / BAI VIET (CLIENT)
@@ -1922,5 +1864,3 @@ a { color: inherit; }
 .blog-detail h2 { font-size: 1.75rem; line-height: 1.4; }
 .blog-content { font-size: 1rem; line-height: 1.8; color: #374151; }
 .blog-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
-[data-theme="dark"] .blog-content { color: #d1d5db; }
-[data-theme="dark"] .blog-content img { opacity: .9; }

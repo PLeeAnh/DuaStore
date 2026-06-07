@@ -70,7 +70,7 @@
                             120,000₫
                         </span>
                         <span id="stockStatus" th:if="${defaultVariant != null && defaultVariant.soLuongTon <= 0}"
-                              class="badge bg-danger ms-2">Hết hàng</span>
+                              class="badge bg-danger ms-2">Bán hết</span>
                     </div>
 
                     <div th:if="${product.moTa}" class="mb-3">
@@ -104,9 +104,12 @@
                             <button class="btn btn-outline-secondary btn-sm" type="button" onclick="qtyChange(1)">+</button>
                         </div>
                         
-                        <button id="addToCartBtn" class="btn btn-danger flex-grow-1 fw-semibold py-2 rounded-3" onclick="addToCart()" style="height: 45px;">
+                        <button id="addToCartBtn" class="btn btn-danger flex-grow-1 fw-semibold py-2 rounded-3" onclick="addToCart()"
+                                th:if="${defaultVariant != null && defaultVariant.soLuongTon > 0}">
                             <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
                         </button>
+                        <span th:unless="${defaultVariant != null && defaultVariant.soLuongTon > 0}"
+                              class="btn btn-secondary flex-grow-1 fw-semibold py-2 rounded-3 disabled" style="height:45px;cursor:default;opacity:.65;">Bán hết</span>
                         
                         <button class="btn-detail-wishlist"
                                 onclick="togglePopup('wishlist-popup')"

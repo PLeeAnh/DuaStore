@@ -74,6 +74,9 @@ public class CartWishlistApiController {
                 jdbcTemplate.update("INSERT INTO CartItems (userId, productId, variantId, soLuong) VALUES (?, ?, ?, ?)", userId, productId, variantId, quantity);
             }
             response.put("success", true);
+            String countSql = "SELECT COUNT(*) FROM CartItems WHERE userId = ?";
+            Integer cartCount = jdbcTemplate.queryForObject(countSql, Integer.class, userId);
+            response.put("cartCount", cartCount);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -88,8 +91,24 @@ public class CartWishlistApiController {
         try {
             Integer userId = getUserId();
             Integer variantId = payload.get("variantId");
+
+            String getProductSql = "SELECT productId FROM CartItems WHERE userId = ? AND variantId = ?";
+            Integer productId = jdbcTemplate.queryForObject(getProductSql, Integer.class, userId, variantId);
+
             jdbcTemplate.update("DELETE FROM CartItems WHERE userId = ? AND variantId = ?", userId, variantId);
             response.put("success", true);
+
+            String countSql = "SELECT COUNT(*) FROM CartItems WHERE userId = ?";
+            Integer cartCount = jdbcTemplate.queryForObject(countSql, Integer.class, userId);
+            response.put("cartCount", cartCount);
+
+            Integer remaining = 0;
+            if (productId != null) {
+                String remainingSql = "SELECT COUNT(*) FROM CartItems WHERE userId = ? AND productId = ?";
+                remaining = jdbcTemplate.queryForObject(remainingSql, Integer.class, userId, productId);
+            }
+            response.put("remainingItems", remaining);
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);

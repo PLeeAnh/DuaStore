@@ -4,27 +4,6 @@
   --font-body        : 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-logo        : 'Dancing Script', cursive;
 
-  --ef-bg            : #0A0A0A;
-  --ef-surface       : #141414;
-  --ef-surface-hover : #1E1E1E;
-  --ef-primary       : #FFD84D;
-  --ef-primary-dim   : #D4A800;
-  --ef-primary-glow  : 0 0 20px rgba(255,216,77,0.12);
-  --ef-primary-glow-hover: 0 0 25px rgba(255,216,77,0.2);
-  --ef-border        : #2A2A2A;
-  --ef-text          : #F0F0F0;
-  --ef-text-muted    : #8A8A8A;
-  --ef-blue          : #60B0E0;
-  --ef-red           : #FF4D6A;
-  --ef-green         : #4ADE80;
-  --adm-sidebar-bg   : #0A0A0A;
-  --adm-sidebar-hover: rgba(255,216,77,0.08);
-  --adm-sidebar-act  : rgba(255,216,77,0.15);
-  --adm-sidebar-txt  : #8A8A8A;
-  --adm-bg           : var(--ef-bg);
-}
-
-[data-theme="light"] {
   --ef-bg            : #F5F5F0;
   --ef-surface       : #FFFFFF;
   --ef-surface-hover : #F0EFE8;
@@ -128,21 +107,7 @@ body.adm-body {
   padding: .6rem .5rem .8rem;
   border-top: 1px solid var(--ef-border);
 }
-.adm-theme-btn {
-  background: none;
-  border: none;
-  width: 100%;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: .875rem;
-  text-align: left;
-  margin-top: 2px;
-  color: var(--adm-sidebar-txt);
-  padding: .48rem .75rem;
-  border-radius: 8px;
-  transition: background .15s, color .15s;
-}
-.adm-theme-btn:hover { background: var(--adm-sidebar-hover); color: var(--ef-primary); }
+
 
 .adm-main {
   margin-left: var(--adm-sidebar-w);
@@ -512,6 +477,8 @@ body.adm-body {
 
 /* Uniform action buttons in tables (mobile) */
 @media (max-width: 767px) {
+  .adm-table-wrap { overflow-x: auto; }
+  .adm-content { padding: 1rem; }
   .adm-table-wrap form[style*="inline"] { display: inline-flex !important; }
   .adm-table-wrap .btn-sm {
     height: 32px;
