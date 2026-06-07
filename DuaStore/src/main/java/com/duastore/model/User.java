@@ -44,6 +44,12 @@ public class User {
     @Column
     private LocalDateTime ngayCapNhat;
 
+    @Column(length = 255)
+    private String resetToken;
+
+    @Column
+    private LocalDateTime resetTokenExpiry;
+
     @PrePersist
     protected void onCreate() {
         ngayTao = LocalDateTime.now();

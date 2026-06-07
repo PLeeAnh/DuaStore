@@ -63,14 +63,14 @@
                                         : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT') + '₫'}">
                             100,000₫
                         </span>
-                        <span th:if="${defaultVariant == null}" id="productPrice" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
+                        <span th:if="${defaultVariant == null}" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
                         <span id="productOriginalPrice" th:if="${defaultVariant != null && defaultVariant.giaKhuyenMai != null}"
                               class="text-decoration-line-through text-muted small"
                               th:text="${#numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">
                             120,000₫
                         </span>
                         <span id="stockStatus" th:if="${defaultVariant != null && defaultVariant.soLuongTon <= 0}"
-                              class="badge bg-danger ms-2">Hết hàng</span>
+                              class="badge bg-danger ms-2">Bán hết</span>
                     </div>
 
                     <div th:if="${product.moTa}" class="mb-3">
@@ -104,9 +104,12 @@
                             <button class="btn btn-outline-secondary btn-sm" type="button" onclick="qtyChange(1)">+</button>
                         </div>
                         
-                        <button id="addToCartBtn" class="btn btn-danger flex-grow-1 fw-semibold py-2 rounded-3" onclick="addToCart()" style="height: 45px;">
+                        <button id="addToCartBtn" class="btn btn-danger flex-grow-1 fw-semibold py-2 rounded-3" onclick="addToCart()"
+                                th:if="${defaultVariant != null && defaultVariant.soLuongTon > 0}">
                             <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
                         </button>
+                        <span th:unless="${defaultVariant != null && defaultVariant.soLuongTon > 0}"
+                              class="btn btn-secondary flex-grow-1 fw-semibold py-2 rounded-3 disabled" style="height:45px;cursor:default;opacity:.65;">Bán hết</span>
                         
                         <button class="btn-detail-wishlist"
                                 onclick="togglePopup('wishlist-popup')"
@@ -299,8 +302,7 @@
             }).then(r => r.json()).then(data => {
                 if (data.success) {
                     if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-                    alert('Đã thêm sản phẩm vào giỏ hàng!');
-                    
+
                     const cartPopup = document.getElementById('cart-popup');
                     if (cartPopup) {
                         const wlPopup = document.getElementById('wishlist-popup'); 
@@ -323,21 +325,7 @@
             el.innerHTML = '★'.repeat(score) + '☆'.repeat(5 - score);
         });
 
-        // ── Highlight star on hover/click ──
-        document.querySelectorAll('.star-rating label').forEach(function(label) {
-            label.addEventListener('mouseenter', function() {
-                let el = this;
-                while (el) {
-                    el.classList.add('hover');
-                    el = el.previousElementSibling;
-                }
-            });
-            label.addEventListener('mouseleave', function() {
-                document.querySelectorAll('.star-rating label').forEach(function(l) {
-                    l.classList.remove('hover');
-                });
-            });
-        });
+        // ── Star click: persist selection ──
         document.querySelectorAll('.star-rating input').forEach(function(input) {
             input.addEventListener('change', function() {
                 document.querySelectorAll('.star-rating label').forEach(function(l) {
@@ -345,8 +333,8 @@
                 });
                 let el = this.nextElementSibling;
                 while (el) {
-                    el.classList.add('selected');
-                    el = el.previousElementSibling;
+                    if (el.tagName === 'LABEL') el.classList.add('selected');
+                    el = el.nextElementSibling;
                 }
             });
         });

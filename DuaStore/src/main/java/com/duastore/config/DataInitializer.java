@@ -1,8 +1,11 @@
 package com.duastore.config;
 
 import com.duastore.model.Promotion;
+import com.duastore.model.User;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -13,13 +16,42 @@ import java.util.List;
 public class DataInitializer implements CommandLineRunner {
 
     private final PromotionRepository promotionRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DataInitializer(PromotionRepository promotionRepository) {
+    public DataInitializer(PromotionRepository promotionRepository,
+                           UserRepository userRepository,
+                           PasswordEncoder passwordEncoder) {
         this.promotionRepository = promotionRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
+        seedUsers();
+        seedPromotions();
+    }
+
+    private void seedUsers() {
+        String adminUsername = "admin";
+        String adminPassword = "admin@123";
+
+        User admin = userRepository.findByUsername(adminUsername).orElse(null);
+        if (admin == null) {
+            admin = new User();
+            admin.setUsername(adminUsername);
+            admin.setEmail("admin@duastore.vn");
+            admin.setHoTen("Quản Trị Viên");
+            admin.setSoDienThoai("0901234567");
+            admin.setRole("ADMIN");
+            admin.setIsActive(true);
+        }
+        admin.setPassword(passwordEncoder.encode(adminPassword));
+        userRepository.save(admin);
+    }
+
+    private void seedPromotions() {
         List<Promotion> existing = promotionRepository.findAll();
         if (!existing.isEmpty()) {
             for (Promotion p : existing) {

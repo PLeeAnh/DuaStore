@@ -5,9 +5,11 @@ import com.duastore.model.Post;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.admin.AdminPostService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -57,7 +59,14 @@ public class AdminPostController {
     }
 
     @PostMapping("/them-moi")
-    public String create(@ModelAttribute PostDTO dto, RedirectAttributes ra) {
+    public String create(@Valid @ModelAttribute PostDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
+        if (result.hasErrors()) {
+            model.addAttribute("title", "bai-viet");
+            model.addAttribute("post", dto);
+            model.addAttribute("formAction", "/admin/bai-viet/them-moi");
+            model.addAttribute("users", userRepository.findAll());
+            return "view/admin/post/post-form";
+        }
         try {
             adminPostService.save(dto);
             ra.addFlashAttribute("successMsg", "Thêm bài viết thành công");
@@ -92,7 +101,14 @@ public class AdminPostController {
     }
 
     @PostMapping("/sua/{id}")
-    public String edit(@PathVariable Integer id, @ModelAttribute PostDTO dto, RedirectAttributes ra) {
+    public String edit(@PathVariable Integer id, @Valid @ModelAttribute PostDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
+        if (result.hasErrors()) {
+            model.addAttribute("title", "bai-viet");
+            model.addAttribute("post", dto);
+            model.addAttribute("formAction", "/admin/bai-viet/sua/" + id);
+            model.addAttribute("users", userRepository.findAll());
+            return "view/admin/post/post-form";
+        }
         try {
             dto.setId(id);
             adminPostService.save(dto);

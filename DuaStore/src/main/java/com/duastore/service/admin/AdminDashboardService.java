@@ -1,53 +1,84 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.duastore.service.admin;
 
+import com.duastore.model.Order;
+import com.duastore.model.Product;
+import com.duastore.repository.OrderRepository;
+import com.duastore.repository.ProductRepository;
+import com.duastore.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-/**
- * ★ AdminDashboardService — Service thống kê Dashboard Admin
- * 
- * ========== LUỒNG / HƯỚNG DẪN ==========
- * Service cung cấp dữ liệu thống kê cho trang dashboard của admin.
- * Các số liệu bao gồm: tổng sản phẩm, tổng đơn hàng, doanh thu, khách hàng, v.v.
- * 
- * Cần inject các Repository tương ứng để truy vấn dữ liệu.
- * Có thể sử dụng @Query với aggregate functions (COUNT, SUM) hoặc native queries.
- * 
- * ★ TODO [Hoàng Văn G]: Thống kê tổng quan
- *   - long getTotalProducts() — Tổng số sản phẩm (status = 1)
- *   - long getTotalOrders() — Tổng số đơn hàng
- *   - BigDecimal getTotalRevenue() — Tổng doanh thu (SUM các đơn đã hoàn thành)
- *   - long getTotalCustomers() — Tổng số khách hàng
- *   - Map<String, Long> getOrderStatusCounts() — Đếm số đơn theo trạng thái
- * 
- * ★ TODO [Hoàng Văn G]: Thống kê theo thời gian
- *   - BigDecimal getRevenueByDate(LocalDate date) — Doanh thu theo ngày
- *   - BigDecimal getRevenueByMonth(int year, int month) — Doanh thu theo tháng
- *   - BigDecimal getRevenueByYear(int year) — Doanh thu theo năm
- *   - List<Object[]> getDailyRevenueLast30Days() — Doanh thu 30 ngày gần nhất
- * 
- * ★ TODO [Hoàng Văn G]: Thống kê bổ sung
- *   - List<Product> getTopSellingProducts(int limit) — Top sản phẩm bán chạy
- *   - List<Category> getTopCategories() — Danh mục bán chạy
- *   - long getNewOrdersToday() — Đơn hàng mới hôm nay
- *   - long getPendingOrders() — Đơn hàng chưa xử lý
- * 
- * ★ TODO [Hoàng Văn G]: DTO cho Dashboard
- *   - Tạo class DashboardStats để gom các số liệu
- *   - Hoặc trả về Map<String, Object> linh hoạt
- *   - Tạo class RevenueChartData cho biểu đồ
- * 
- * ⚠ Lưu ý:
- *   - Đánh dấu @Service
- *   - Sử dụng @Transactional(readOnly = true) cho tất cả method
- *   - Các truy vấn phức tạp nên dùng native query hoặc JPQL
- *   - Cache kết quả nếu dữ liệu ít thay đổi (@Cacheable)
- *   - Cần xử lý khi chưa có đơn hàng/dữ liệu (trả về 0 hoặc BigDecimal.ZERO)
- */
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
+@Transactional(readOnly = true)
 public class AdminDashboardService {
-    
+
+    private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
+
+    public AdminDashboardService(ProductRepository productRepository,
+                                  OrderRepository orderRepository,
+                                  UserRepository userRepository) {
+        this.productRepository = productRepository;
+        this.orderRepository = orderRepository;
+        this.userRepository = userRepository;
+    }
+
+    public long getTotalProducts() {
+        return productRepository.findDangBan().size();
+    }
+
+    public long getTodayOrders() {
+        LocalDateTime start = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        LocalDateTime end = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+        return orderRepository.countByNgayDatBetween(start, end);
+    }
+
+    public String getMonthlyRevenue() {
+        LocalDate now = LocalDate.now();
+        LocalDateTime start = LocalDateTime.of(now.withDayOfMonth(1), LocalTime.MIN);
+        LocalDateTime end = LocalDateTime.of(now.withDayOfMonth(now.lengthOfMonth()), LocalTime.MAX);
+        BigDecimal total = orderRepository.sumTongThanhToanByTrangThaiDonAndNgayDatBetween(start, end);
+        return formatVND(total);
+    }
+
+    public long getTotalCustomers() {
+        return userRepository.countByRoleAndIsActiveTrue("USER");
+    }
+
+    public Map<String, Long> getOrderStatusCounts() {
+        List<Object[]> rows = orderRepository.countGroupByTrangThaiDon();
+        Map<String, Long> map = new LinkedHashMap<>();
+        map.put("CHO_XAC_NHAN", 0L);
+        map.put("DA_XAC_NHAN", 0L);
+        map.put("DANG_GIAO", 0L);
+        map.put("DA_GIAO", 0L);
+        map.put("DA_HUY", 0L);
+        for (Object[] row : rows) {
+            map.put((String) row[0], (Long) row[1]);
+        }
+        return map;
+    }
+
+    public List<Order> getRecentOrders() {
+        return orderRepository.findTop10ByOrderByNgayDatDesc(PageRequest.of(0, 10));
+    }
+
+    private String formatVND(BigDecimal amount) {
+        if (amount == null) return "0 ₫";
+        long value = amount.longValue();
+        if (value >= 1_000_000) {
+            return String.format("%,d", value / 1_000_000) + "," + String.format("%03d", value % 1_000_000 / 1_000) + " triệu ₫";
+        }
+        return String.format("%,d ₫", value);
+    }
 }

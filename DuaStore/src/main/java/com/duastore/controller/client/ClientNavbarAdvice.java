@@ -1,6 +1,6 @@
 package com.duastore.controller.client;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.duastore.config.security.SecurityUtil;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -9,20 +9,27 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import java.util.List;
 import java.util.Map;
 
-// Đổi tên class để không bị xung đột với file cũ của dự án
 @ControllerAdvice(basePackages = "com.duastore.controller.client")
 public class ClientNavbarAdvice {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+    private final SecurityUtil securityUtil;
 
-    // Hàm này sẽ TỰ ĐỘNG CHẠY trước khi load bất kỳ trang web nào của Client
+    public ClientNavbarAdvice(JdbcTemplate jdbcTemplate, SecurityUtil securityUtil) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.securityUtil = securityUtil;
+    }
+
     @ModelAttribute
     public void addGlobalAttributes(Model model) {
-        try {
-            Integer userId = 2; // Vẫn dùng tài khoản test Nguyễn Văn An (id=2)
+        model.addAttribute("myCart", List.of());
+        model.addAttribute("myWishlist", List.of());
+        model.addAttribute("likedIds", List.of());
 
-            // 1. Tự động bơm dữ liệu Giỏ Hàng vào Navbar (Đã sửa lỗi trùng lặp & lấy đúng giá biến thể)
+        try {
+            Integer userId = securityUtil.getCurrentUserId();
+            if (userId == null) return;
+
             String cartSql = "SELECT c.productId, c.variantId, p.tenSanPham, v.tenBienThe, " +
                              "COALESCE(v.giaKhuyenMai, v.giaGoc) as giaBan, " +
                              "COALESCE(v.hinhAnh, p.hinhAnhChinh) as hinhAnhHienThi, c.soLuong " +
@@ -30,25 +37,17 @@ public class ClientNavbarAdvice {
                              "JOIN Products p ON c.productId = p.id " +
                              "JOIN ProductVariants v ON c.variantId = v.id " +
                              "WHERE c.userId = ?";
-            List<Map<String, Object>> myCart = jdbcTemplate.queryForList(cartSql, userId);
-            model.addAttribute("myCart", myCart);
+            model.addAttribute("myCart", jdbcTemplate.queryForList(cartSql, userId));
 
-            String countSql = "SELECT SUM(soLuong) FROM CartItems WHERE userId = ?";
-            Integer cartCount = jdbcTemplate.queryForObject(countSql, Integer.class, userId);
-            model.addAttribute("cartCount", cartCount != null ? cartCount : 0);
-
-            // 2. Tự động bơm dữ liệu Yêu Thích vào Navbar
             String wishSql = "SELECT DISTINCT w.productId, p.tenSanPham, p.giaBan, p.hinhAnhHienThi " +
                              "FROM Wishlists w JOIN vw_ProductPrice p ON w.productId = p.id WHERE w.userId = ?";
-            List<Map<String, Object>> myWishlist = jdbcTemplate.queryForList(wishSql, userId);
-            model.addAttribute("myWishlist", myWishlist);
+            model.addAttribute("myWishlist", jdbcTemplate.queryForList(wishSql, userId));
 
-            // Bơm danh sách các ID đã thích để bôi đỏ trái tim
-            List<Integer> likedIds = jdbcTemplate.queryForList("SELECT productId FROM Wishlists WHERE userId = ?", Integer.class, userId);
-            model.addAttribute("likedIds", likedIds);
+            model.addAttribute("likedIds",
+                jdbcTemplate.queryForList("SELECT productId FROM Wishlists WHERE userId = ?", Integer.class, userId));
 
         } catch (Exception e) {
-            System.out.println("Lỗi ClientNavbarAdvice: " + e.getMessage());
+            System.out.println("Loi ClientNavbarAdvice: " + e.getMessage());
         }
     }
 }

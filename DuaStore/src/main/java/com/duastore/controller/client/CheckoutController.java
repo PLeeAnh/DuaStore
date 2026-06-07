@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.CartItemDTO;
 import com.duastore.dto.CheckoutRequestDTO;
 import com.duastore.model.Address;
@@ -30,18 +31,21 @@ public class CheckoutController {
     private final CartService cartService;
     private final AddressRepository addressRepository;
     private final PromotionRepository promotionRepository;
+    private final SecurityUtil securityUtil;
 
     public CheckoutController(OrderService orderService, CartService cartService,
                               AddressRepository addressRepository,
-                              PromotionRepository promotionRepository) {
+                              PromotionRepository promotionRepository,
+                              SecurityUtil securityUtil) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
         this.promotionRepository = promotionRepository;
+        this.securityUtil = securityUtil;
     }
 
     private Integer getUserId() {
-        return 2;
+        return securityUtil.getCurrentUserId();
     }
 
     @GetMapping

@@ -6,7 +6,6 @@
     <head><title>Quản lý biến thể — Form</title></head>
     <body>
     <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
         <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
         <li class="breadcrumb-item active" th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Form</li>
     </th:block>
