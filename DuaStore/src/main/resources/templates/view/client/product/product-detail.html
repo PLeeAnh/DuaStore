@@ -116,6 +116,7 @@
                                 type="button"
                                 title="Xem danh sách yêu thích của bạn">
                             <i class="bi bi-heart"></i>
+                            <span id="detailWishlistBadge" class="ds-cart-badge" th:text="${#lists.size(myWishlist)}" th:classappend="${#lists.isEmpty(myWishlist)} ? ' d-none' : ''">0</span>
                         </button>
                     </div>
 
