@@ -104,8 +104,8 @@
                             <button class="btn btn-outline-secondary btn-sm" type="button" onclick="qtyChange(1)">+</button>
                         </div>
                         
-                        <button id="addToCartBtn" class="btn btn-danger flex-grow-1 fw-semibold py-2 rounded-3" onclick="addToCart()"
-                                th:if="${defaultVariant != null && defaultVariant.soLuongTon > 0}">
+<button id="addToCartBtn" class="btn btn-danger flex-grow-1 fw-semibold py-2 rounded-3" type="button" onclick="addToCart()"
+        th:if="${defaultVariant != null && defaultVariant.soLuongTon > 0}">
                             <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
                         </button>
                         <span th:unless="${defaultVariant != null && defaultVariant.soLuongTon > 0}"
@@ -285,36 +285,15 @@
 
         function addToCart() {
             const variantId = selectedVariantId;
-            if (!variantId) {
-                alert('Vui lòng chọn biến thể sản phẩm');
-                return;
-            }
+            if (!variantId) return;
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-            
             fetch('/api/cart/add-popup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    productId: productId,
-                    variantId: variantId, 
-                    quantity: qty 
-                })
+                body: JSON.stringify({ productId: productId, variantId: variantId, quantity: qty })
             }).then(r => r.json()).then(data => {
-                if (data.success) {
-                    if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-
-                    const cartPopup = document.getElementById('cart-popup');
-                    if (cartPopup) {
-                        const wlPopup = document.getElementById('wishlist-popup'); 
-                        if(wlPopup) wlPopup.style.display = 'none';
-                        cartPopup.style.display = 'block'; 
-                        setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
-                    }
-                    setTimeout(() => { window.location.reload(); }, 1000);
-                } else {
-                    alert(data.message || 'Thêm thất bại');
-                }
-            }).catch(() => alert('Lỗi kết nối hệ thống'));
+                if (data.success && typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+            }).catch(function() {});
         }
 
         initializeVariantSelection();

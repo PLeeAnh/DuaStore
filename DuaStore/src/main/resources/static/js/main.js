@@ -175,42 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
         plus.disabled = (qty >= maxStock);
     });
 
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.ds-card-add-cart');
-        if (!btn || btn.disabled) return;
-        const card = getCard(btn);
-        if (!card) return;
-        const productId = btn.getAttribute('data-id');
-        const qty = parseInt(card.querySelector('.ds-qty-val').value) || 1;
-        const activeChip = getActiveVariant(card);
-        const variantId = activeChip ? parseInt(activeChip.getAttribute('data-variantid')) : null;
-
-        fetch('/api/cart/add-popup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: parseInt(productId), variantId, quantity: qty })
-        }).then(r => r.json()).then(data => {
-            if (data.success) {
-                btn.classList.add('added');
-                addCartPopupItem(card, productId, variantId, qty);
-                if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-                const cp = document.getElementById('cart-popup');
-                if (cp) {
-                    const wp = document.getElementById('wishlist-popup');
-                    if (wp) wp.style.display = 'none';
-                    cp.style.display = 'block';
-                    setTimeout(() => cp.style.display = 'none', 3000);
-                }
-            } else {
-                if (data.message && data.message.includes('dang nhap')) showLoginPopup();
-                else alert(data.message || 'Thêm thất bại');
-            }
-        }).catch(err => {
-            alert('Lỗi kết nối hệ thống');
-            console.error('Lỗi thêm giỏ hàng:', err);
-        });
-    });
-
     /* ═══ FLASH SALE COUNTDOWN ═══ */
     document.querySelectorAll('.ds-flash-timer').forEach(timer => {
         const endStr = timer.getAttribute('data-end');
@@ -423,23 +387,38 @@ function addToCart(productId, variantId, quantity) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId, variantId, quantity })
     }).then(r => r.json()).then(data => {
-        if (!data.success) {
-            if (data.message && data.message.includes('dang nhap')) showLoginPopup();
-            return;
-        }
-        if (btnAdd) btnAdd.classList.add('added');
-        if (card) addCartPopupItem(card, productId, variantId, quantity);
-        const cp = document.getElementById('cart-popup');
-        if (cp && card) {
-            const wp = document.getElementById('wishlist-popup');
-            if (wp) wp.style.display = 'none';
-            cp.style.display = 'block';
-            setTimeout(() => cp.style.display = 'none', 3000);
+        if (data.success) {
+            if (btnAdd) btnAdd.classList.add('added');
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
         }
     }).catch(error => console.error("Lỗi giỏ hàng: ", error));
 }
 
 function addToCartFromWishlist(productId, variantId) { addToCart(productId, variantId, 1); }
+
+function addToCartFromCard(btn) {
+    if (!btn || btn.disabled) return;
+    const card = btn.closest('.ds-product-card');
+    if (!card) return;
+    const productId = btn.getAttribute('data-id');
+    const qty = parseInt(card.querySelector('.ds-qty-val').value) || 1;
+    const activeChip = card.querySelector('.ds-variant-chip.active')
+        || card.querySelector('.ds-variant-chip:not(.oos)')
+        || card.querySelector('.ds-variant-chip');
+    const variantId = activeChip ? parseInt(activeChip.getAttribute('data-variantid')) : null;
+    fetch('/api/cart/add-popup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: parseInt(productId), variantId, quantity: qty })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.success) {
+            btn.classList.add('added');
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+        }
+    }).catch(function(err) {
+        console.error('Lỗi thêm giỏ hàng:', err);
+    });
+}
 
 function removeCartItem(cartItemId) {
     const item = document.getElementById('cart-item-' + cartItemId);
