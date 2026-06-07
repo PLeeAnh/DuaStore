@@ -50,4 +50,5 @@ public class ClientNavbarAdvice {
             System.out.println("Loi ClientNavbarAdvice: " + e.getMessage());
         }
     }
+    
 }

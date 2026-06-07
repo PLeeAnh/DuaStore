@@ -215,10 +215,26 @@ function updateCartBadge(count) {
 }
 
 /* ═══ POPUP TOGGLE ═══ */
+// ĐÓNG / MỞ POPUP (Tích hợp tự động ẩn chấm đỏ thông báo)
 function togglePopup(popupId) {
-    document.querySelectorAll('.custom-popup').forEach(p => { if (p.id !== popupId) p.style.display = 'none'; });
+    document.querySelectorAll('.custom-popup').forEach(popup => { 
+        if(popup.id !== popupId) popup.style.display = 'none'; 
+    });
+    
     const popup = document.getElementById(popupId);
-    if (popup) popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+    if(popup) {
+        popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+        
+        // LÔ-GÍC MỚI: Ẩn chấm đỏ ngay khi người dùng đã bấm "xem" popup
+        if (popup.style.display === 'block') {
+            if (popupId === 'wishlist-popup') {
+                document.getElementById('wishlistBadge')?.classList.add('d-none');
+                document.getElementById('detailWishlistBadge')?.classList.add('d-none');
+            } else if (popupId === 'cart-popup') {
+                document.getElementById('cartBadge')?.classList.add('d-none');
+            }
+        }
+    }
 }
 document.addEventListener('click', function(e) {
     ['wishlist', 'cart', 'profile'].forEach(type => {
@@ -360,8 +376,16 @@ function toggleWishlist(btnElement, productId) {
                         '<button class="btn-delete-item" onclick="removeWishlist(' + productId + ')" title="Xóa"><i class="bi bi-x-circle"></i></button>' +
                     '</div>');
             }
+            // CHƯA THÍCH -> THÊM YÊU THÍCH
+                btnElement.classList.add('active'); 
+                icon.classList.replace('bi-heart', 'bi-heart-fill');
+                
+                // --- THÊM 2 DÒNG NÀY VÀO ĐỂ HIỆN LẠI CHẤM ĐỎ ---
+                document.getElementById('wishlistBadge')?.classList.remove('d-none');
+                document.getElementById('detailWishlistBadge')?.classList.remove('d-none');
         }
     }).catch(error => console.error("Lỗi yêu thích: ", error));
+    
 }
 
 function removeWishlist(wishlistId) {
