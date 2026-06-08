@@ -145,9 +145,7 @@
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
                                     <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
-                                    <button class="btn btn-sm btn-outline-primary mt-2 w-100" th:onclick="'addToCartFromWishlist(' + ${item.productId} + ', null)'">
-                                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                    </button>
+                                    
                                 </div>
                                 <button class="btn-delete-item" th:onclick="'removeWishlist(' + ${item.productId} + ')'" title="Xóa">
                                     <i class="bi bi-x-circle"></i>
@@ -715,15 +713,137 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    /* ── Mark cards as .added if product in cart ── */
-    document.querySelectorAll('#cart-items-container .popup-item[data-productid]').forEach(function(item) {
-        var pid = item.getAttribute('data-productid');
-        document.querySelectorAll('.ds-product-card[data-productid="' + pid + '"]').forEach(function(card) {
-            var btn = card.querySelector('.ds-card-add-cart');
-            if (btn) btn.classList.add('added');
-        });
-    });
+    
 });
+</script>   
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- 1. LÔ-GÍC GHI NHỚ CHO GIỎ HÀNG ---
+    const cartItems = document.querySelectorAll('#cart-items-container .popup-item');
+    let currentCartState = [];
+    cartItems.forEach(item => {
+        const qtySpan = item.querySelector('span[id^="popup-qty-"]');
+        const qty = qtySpan ? qtySpan.innerText.trim() : '1';
+        currentCartState.push(item.id + '-qty-' + qty);
+    });
+
+    let viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
+    let hasNewCart = currentCartState.some(state => !viewedCartState.includes(state));
+
+    const cBadge = document.getElementById('cartBadge');
+    if (cBadge) {
+        if (hasNewCart && currentCartState.length > 0) {
+            cBadge.classList.remove('d-none');
+        } else {
+            cBadge.classList.add('d-none');
+        }
+    }
+
+    // --- 2. LÔ-GÍC GHI NHỚ CHO YÊU THÍCH ---
+    const wishlistItems = document.querySelectorAll('#wishlist-items-container .popup-item');
+    let currentWishlistState = [];
+    wishlistItems.forEach(item => currentWishlistState.push(item.id));
+
+    let viewedWishlistState = JSON.parse(localStorage.getItem('viewedWishlistState') || '[]');
+    let hasNewWishlist = currentWishlistState.some(state => !viewedWishlistState.includes(state));
+
+    const wBadge = document.getElementById('wishlistBadge');
+    const dwBadge = document.getElementById('detailWishlistBadge'); 
+
+    if (hasNewWishlist && currentWishlistState.length > 0) {
+        if(wBadge) wBadge.classList.remove('d-none');
+        if(dwBadge) dwBadge.classList.remove('d-none');
+    } else {
+        if(wBadge) wBadge.classList.add('d-none');
+        if(dwBadge) dwBadge.classList.add('d-none');
+    }
+});
+
+/* ── HÀM BẬT/TẮT POPUP ── */
+function togglePopup(popupId) {
+    document.querySelectorAll('.custom-popup').forEach(function(popup) { 
+        if(popup.id !== popupId) popup.style.display = 'none'; 
+    });
+    
+    var popup = document.getElementById(popupId);
+    if(popup) {
+        var isOpening = (popup.style.display !== 'block');
+        popup.style.display = isOpening ? 'block' : 'none';
+        
+        if (isOpening) {
+            if (popupId === 'wishlist-popup') {
+                var wBadge = document.getElementById('wishlistBadge');
+                if(wBadge) wBadge.classList.add('d-none');
+                var dwBadge = document.getElementById('detailWishlistBadge');
+                if(dwBadge) dwBadge.classList.add('d-none');
+
+                const items = document.querySelectorAll('#wishlist-items-container .popup-item');
+                let states = [];
+                items.forEach(i => states.push(i.id));
+                localStorage.setItem('viewedWishlistState', JSON.stringify(states));
+
+            } else if (popupId === 'cart-popup') {
+                var cBadge = document.getElementById('cartBadge');
+                if(cBadge) cBadge.classList.add('d-none');
+
+                const items = document.querySelectorAll('#cart-items-container .popup-item');
+                let states = [];
+                items.forEach(item => {
+                    const qtySpan = item.querySelector('span[id^="popup-qty-"]');
+                    const qty = qtySpan ? qtySpan.innerText.trim() : '1';
+                    states.push(item.id + '-qty-' + qty);
+                });
+                localStorage.setItem('viewedCartState', JSON.stringify(states));
+            }
+        }
+    }
+}
+
+/* ── HÀM TĂNG GIẢM SỐ LƯỢNG ── */
+function updatePopupQty(itemId, delta) {
+    const qtySpan = document.getElementById('popup-qty-' + itemId);
+    const priceSpan = document.getElementById('popup-price-' + itemId);
+    
+    if (!qtySpan) return;
+    
+    let currentQty = parseInt(qtySpan.innerText) || 1;
+    let newQty = currentQty + delta;
+    
+    if (newQty < 1) {
+        if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+            removeCartItem(itemId);
+        }
+        return;
+    }
+
+    qtySpan.innerText = newQty;
+    if (priceSpan) {
+        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
+        priceSpan.innerText = (unitPrice * newQty).toLocaleString('vi-VN') + 'đ';
+    }
+
+    const items = document.querySelectorAll('#cart-items-container .popup-item');
+    let states = [];
+    items.forEach(item => {
+        const span = item.querySelector('span[id^="popup-qty-"]');
+        const q = span ? span.innerText.trim() : '1';
+        states.push(item.id + '-qty-' + q);
+    });
+    localStorage.setItem('viewedCartState', JSON.stringify(states));
+
+    fetch('/api/cart/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty }) 
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && typeof updateCartBadge === 'function') {
+            updateCartBadge(data.cartCount);
+        }
+    })
+    .catch(err => console.log("Lỗi đồng bộ giỏ hàng: ", err));
+}
 </script>
 
 <th:block layout:fragment="extra-script"></th:block>
