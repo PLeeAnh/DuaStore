@@ -133,7 +133,8 @@
 
                                 <button class="ds-price-btn ds-card-add-cart" type="button"
                                         th:data-id="${p.id}"
-                                        th:if="${v != null and v.soLuongTon > 0}">
+                                        th:if="${v != null and v.soLuongTon > 0}"
+                                        onclick="addToCartFromCard(this);return false">
                                     <span class="ds-price-btn-text">
                                         <strong class="ds-price-btn-amount"
                                                 th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'COMMA', 0, 'POINT')} + 'đ'">100.000đ</strong>
