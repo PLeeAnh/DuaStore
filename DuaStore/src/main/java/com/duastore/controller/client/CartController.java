@@ -67,17 +67,6 @@ public class CartController {
         return response(result);
     }
 
-    @PostMapping("/api/cart/update")
-    @ResponseBody
-    public Map<String, Object> updateApi(@RequestBody Map<String, Integer> body, HttpSession session) {
-        CartService.CartResult result = cartService.updateQuantity(
-                currentUserId(session),
-                body.get("itemId"),
-                body.get("soLuong")
-        );
-        return response(result);
-    }
-
     @GetMapping("/api/cart/count")
     @ResponseBody
     public Map<String, Object> count(HttpSession session) {

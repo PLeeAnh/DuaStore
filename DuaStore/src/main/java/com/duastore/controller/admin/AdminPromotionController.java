@@ -2,11 +2,14 @@ package com.duastore.controller.admin;
 
 import com.duastore.model.Promotion;
 import com.duastore.service.admin.AdminPromotionService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.util.StringUtils;
 
 @Controller
 @RequestMapping("/admin/khuyen-mai")
@@ -37,7 +40,23 @@ public class AdminPromotionController {
     }
 
     @PostMapping("/them-moi")
-    public String create(@ModelAttribute Promotion promotion, RedirectAttributes ra) {
+    public String create(@Valid @ModelAttribute Promotion promotion, BindingResult result, RedirectAttributes ra) {
+        if (result.hasErrors()) {
+            ra.addFlashAttribute("errorMsg", "Vui lòng kiểm tra lại thông tin khuyến mãi");
+            return "redirect:/admin/khuyen-mai/them-moi";
+        }
+        if (promotion.getGiaTriGiam() != null && promotion.getGiaTriGiam().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            ra.addFlashAttribute("errorMsg", "Giá trị giảm phải lớn hơn 0");
+            return "redirect:/admin/khuyen-mai/them-moi";
+        }
+        if (!StringUtils.hasText(promotion.getTenChuongTrinh()) || promotion.getTenChuongTrinh().length() > 200) {
+            ra.addFlashAttribute("errorMsg", "Tên chương trình không hợp lệ");
+            return "redirect:/admin/khuyen-mai/them-moi";
+        }
+        if (!StringUtils.hasText(promotion.getMaCode()) || promotion.getMaCode().length() > 50) {
+            ra.addFlashAttribute("errorMsg", "Mã code không hợp lệ");
+            return "redirect:/admin/khuyen-mai/them-moi";
+        }
         try {
             adminPromotionService.savePromotion(promotion);
             ra.addFlashAttribute("successMsg", "Thêm khuyến mãi thành công");
@@ -61,7 +80,15 @@ public class AdminPromotionController {
     }
 
     @PostMapping("/sua/{id}")
-    public String edit(@PathVariable Integer id, @ModelAttribute Promotion promotion, RedirectAttributes ra) {
+    public String edit(@PathVariable Integer id, @Valid @ModelAttribute Promotion promotion, BindingResult result, RedirectAttributes ra) {
+        if (result.hasErrors()) {
+            ra.addFlashAttribute("errorMsg", "Vui lòng kiểm tra lại thông tin khuyến mãi");
+            return "redirect:/admin/khuyen-mai/sua/" + id;
+        }
+        if (promotion.getGiaTriGiam() != null && promotion.getGiaTriGiam().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            ra.addFlashAttribute("errorMsg", "Giá trị giảm phải lớn hơn 0");
+            return "redirect:/admin/khuyen-mai/sua/" + id;
+        }
         try {
             promotion.setId(id);
             adminPromotionService.savePromotion(promotion);

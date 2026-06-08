@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.Order;
@@ -17,13 +18,15 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final SecurityUtil securityUtil;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, SecurityUtil securityUtil) {
         this.orderService = orderService;
+        this.securityUtil = securityUtil;
     }
 
     private Integer getUserId() {
-        return 2;
+        return securityUtil.getCurrentUserId();
     }
 
     @GetMapping

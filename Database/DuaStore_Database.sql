@@ -19,7 +19,7 @@
   [8]  Orders           -- Don hang [NHD]
   [9]  OrderItems       -- Chi tiet don hang [NHD]
   [10] Reviews          -- Danh gia [BTM]
-  [11] CartItems        -- Gio hang [TK]
+  [11] CartItems        -- Gio hang [NXK]
   [12] Posts            -- Blog / Tin tuc [BTM]
   [13] Wishlists        -- Danh sach yeu thich [NXK]
 ================================================================================
@@ -83,8 +83,10 @@ CREATE TABLE Users (
     role        NVARCHAR(20)                  NOT NULL   DEFAULT 'USER',  -- 'USER' hoac 'ADMIN'
     isActive    BIT                           NOT NULL   DEFAULT 1,       -- 0 = khoa tai khoan
     ngayTao     DATETIME2(0)                  NOT NULL   DEFAULT GETDATE(),
-    ngayCapNhat DATETIME2(0)                  NULL,
- 
+    resetToken      NVARCHAR(255)                  NULL,       -- Token dat lai mat khau
+    resetTokenExpiry DATETIME2(0)                   NULL,       -- Thoi gian het han token
+    ngayCapNhat     DATETIME2(0)                   NULL,
+  
     CONSTRAINT PK_Users          PRIMARY KEY (id),
     CONSTRAINT UQ_Users_Email    UNIQUE (email),       -- Khong cho 2 tai khoan trung email
     CONSTRAINT UQ_Users_Username UNIQUE (username),    -- Khong cho 2 tai khoan trung username
@@ -735,7 +737,175 @@ WHERE  trangThai = 'XUAT_BAN'
 ORDER BY ngayTao DESC
 OFFSET 0 ROWS;
 GO
+
+-- ============================================================
+-- SEED DU LIEU SAN PHAM NOI BAT (isFeatured = 1)
+-- Chay sau khi tao bang xong
+-- ============================================================
+
+IF NOT EXISTS (SELECT 1 FROM Categories WHERE id = 1)
+BEGIN
+    SET IDENTITY_INSERT Categories ON;
+    INSERT INTO Categories (id, tenDanhMuc, moTa, parentId, thuTuHienThi, isActive)
+    VALUES
+    (1, N'Chai thủy tinh', N'Chai đựng rượu, dầu ăn, nước hoa, tinh dầu', NULL, 1, 1),
+    (2, N'Hũ thủy tinh', N'Hũ đựng thực phẩm, gia vị, đồ khô, mật ong', NULL, 2, 1),
+    (3, N'Bình trang trí', N'Bình hoa, bình decor, bình pha lê cao cấp', NULL, 3, 1),
+    (4, N'Ly & Cốc', N'Ly rượu vang, whisky, champagne, cốc nước', NULL, 4, 1),
+    (5, N'Phụ kiện thủy tinh', N'Nắp, vòi, ống hút, dụng cụ pha chế', NULL, 5, 1),
+    (6, N'Chai rượu',  N'Chai đựng rượu vang, rượu whisky',  1, 1, 1),
+    (7, N'Chai tinh dầu', N'Chai nhỏ đựng tinh dầu, nước hoa', 1, 2, 1),
+    (8, N'Hũ gia vị',  N'Hũ nhỏ đựng gia vị, muối, tiêu',     2, 1, 1),
+    (9, N'Hũ bảo quản', N'Hũ lớn đựng thực phẩm khô, ngũ cốc', 2, 2, 1),
+    (10, N'Bình hoa',  N'Bình cắm hoa các loại',              3, 1, 1),
+    (11, N'Bình decor', N'Bình trang trí nội thất',           3, 2, 1),
+    (12, N'Ly vang',   N'Ly uống rượu vang, champagne',       4, 1, 1),
+    (13, N'Cốc nước',  N'Cốc uống nước hàng ngày',            4, 2, 1);
+    SET IDENTITY_INSERT Categories OFF;
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM Products WHERE id = 1)
+BEGIN
+    SET IDENTITY_INSERT Products ON;
+    INSERT INTO Products (id, tenSanPham, moTa, chatLieu, xuatXu, mucDichSuDung, thuongHieu, danhMucId, hinhAnhChinh, trangThaiSanPham, leadTimeDays, isFeatured, isActive, ngayTao, ngayCapNhat)
+    VALUES
+    (1, N'Chai rượu vang thủy tinh cao cấp 750ml', N'Chai rượu vang thủy tinh cao cấp thiết kế sang trọng, thân chai dày, miệng chai gia công tỉ mỉ, nắp gỗ tự nhiên.', N'Thủy tinh Borosilicate', N'Việt Nam', N'Đựng rượu vang, rượu whisky, trưng bày', N'DuaStore Premium', 6, '/images/products/chai-ruou-vang-750.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (2, N'Bộ 6 chai tinh dầu thủy tinh 10ml', N'Bộ 6 chai thủy tinh nhỏ 10ml có ống nhỏ giọt thủy tinh. Dùng đựng tinh dầu, nước hoa, serum.', N'Thủy tinh trong suốt', N'Việt Nam', N'Đựng tinh dầu, nước hoa, mỹ phẩm handmade', N'DuaStore', 7, '/images/products/bo-chai-tinh-dau-10ml.jpg', 'DANG_BAN', 2, 1, 1, GETDATE(), GETDATE()),
+    (3, N'Hũ mật ong thủy tinh 500ml có vòi', N'Hũ thủy tinh 500ml có vòi inox 304 và nắp gỗ. Dùng đựng mật ong, siro, nước trái cây.', N'Thủy tinh + Inox 304', N'Việt Nam', N'Đựng mật ong, siro, nước ép', N'DuaStore Home', 9, '/images/products/hu-mat-ong-500.jpg', 'DANG_BAN', 5, 1, 1, GETDATE(), GETDATE()),
+    (4, N'Bộ 4 hũ gia vị thủy tinh 100ml', N'Bộ 4 hũ thủy tinh vuông 100ml nắp inox, kèm khay gỗ. Phù hợp đựng muối, tiêu, đường, bột ngọt.', N'Thủy tinh + Inox', N'Việt Nam', N'Đựng gia vị nhà bếp', N'DuaStore Home', 8, '/images/products/bo-hu-gia-vi.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (5, N'Bình hoa thủy tinh pha lê 30cm', N'Bình hoa thủy tinh pha lê cao cấp 30cm, mặt cắt kim cương. Phù hợp bàn ăn, phòng khách.', N'Pha lê K9', N'Trung Quốc', N'Cắm hoa tươi, hoa khô, trang trí nội thất', N'Crystal Lux', 10, '/images/products/binh-hoa-pha-le-30.jpg', 'DANG_BAN', 7, 1, 1, GETDATE(), GETDATE()),
+    (6, N'Bình decor thủy tinh hình trụ 25cm', N'Bình thủy tinh hình trụ cao 25cm, nắp gỗ sồi. Trang trí bàn làm việc, kệ sách.', N'Thủy tinh Borosilicate', N'Việt Nam', N'Trang trí nội thất, quà tặng', N'DuaStore Decor', 11, '/images/products/binh-tru-decor-25.jpg', 'DANG_BAN', 4, 1, 1, GETDATE(), GETDATE()),
+    (7, N'Bộ 4 ly rượu vang thủy tinh 350ml', N'Bộ 4 ly rượu vang thủy tinh trong suốt 350ml, thân ly mỏng nhẹ, chân ly vững chãi.', N'Thủy tinh không chì', N'Việt Nam', N'Uống rượu vang, champagne', N'DuaStore Premium', 12, '/images/products/bo-4-ly-vang-350.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (8, N'Bộ 6 cốc nước thủy tinh 300ml', N'Bộ 6 cốc nước thủy tinh 300ml, thành dày chắc chắn, miệng cốc mài tròn đều.', N'Thủy tinh cường lực', N'Việt Nam', N'Uống nước hàng ngày', N'DuaStore Home', 13, '/images/products/bo-6-coc-nuoc-300.jpg', 'DANG_BAN', 2, 1, 1, GETDATE(), GETDATE()),
+    (9, N'Chai nước hoa thủy tinh 50ml có vòi xịt', N'Chai nước hoa thủy tinh mini 50ml có vòi xịt inox và nắp từ tính.', N'Thủy tinh + Inox', N'Việt Nam', N'Đựng nước hoa, xịt khoáng', N'DuaStore', 7, '/images/products/chai-nuoc-hoa-50.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (10, N'Bộ 3 hũ thủy tinh bảo quản 1L', N'Bộ 3 hũ thủy tinh dung tích 1L, nắp kín silicone. Bảo quản gạo, ngũ cốc, mì ống.', N'Thủy tinh + Silicone', N'Việt Nam', N'Bảo quản thực phẩm khô', N'DuaStore Home', 9, '/images/products/bo-3-hu-bao-quan-1l.jpg', 'DANG_BAN', 5, 1, 1, GETDATE(), GETDATE()),
+    -- Thêm 12 sản phẩm mới
+    (11, N'Chai rượu whisky thủy tinh 1L cao cấp', N'Chai thủy tinh dung tích 1L thiết kế mạnh mẽ, nắp chai bằng gỗ sồi và niêm phong sáp ong.', N'Thủy tinh Borosilicate', N'Việt Nam', N'Đựng rượu whisky, rượu mạnh, trưng bày', N'DuaStore Premium', 6, '/images/products/chai-whisky-1l.jpg', 'DANG_BAN', 4, 1, 1, GETDATE(), GETDATE()),
+    (12, N'Hũ đựng trà thủy tinh 500ml', N'Hũ thủy tinh dung tích 500ml có nắp silicone kín khí, giữ trà luôn thơm mới.', N'Thủy tinh Borosilicate', N'Việt Nam', N'Đựng trà, cafe, thảo mộc khô', N'DuaStore Home', 9, '/images/products/hu-dung-tra-500.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (13, N'Bộ 6 ly champagne thủy tinh 200ml', N'Bộ 6 ly champagne thủy tinh cao cấp 200ml, thân ly thon dài, chân thanh mảnh.', N'Thủy tinh không chì', N'Việt Nam', N'Uống champagne, rượu vang trắng', N'DuaStore Premium', 12, '/images/products/bo-6-ly-champagne-200.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (14, N'Bình hoa thủy tinh mini 15cm', N'Bình hoa thủy tinh mini cao 15cm, miệng loe, phù hợp cắm hoa nhỏ bàn làm việc.', N'Thủy tinh trong suốt', N'Việt Nam', N'Cắm hoa nhỏ, trang trí bàn', N'DuaStore Decor', 10, '/images/products/binh-hoa-mini-15.jpg', 'DANG_BAN', 2, 1, 1, GETDATE(), GETDATE()),
+    (15, N'Chai dầu olive thủy tinh 250ml có vòi', N'Chai thủy tinh 250ml có vòi nhỏ giọt inox và nắp gỗ. Dùng đựng dầu olive, dầu ăn.', N'Thủy tinh + Inox 304', N'Việt Nam', N'Đựng dầu olive, giấm, nước sốt', N'DuaStore Home', 1, '/images/products/chai-dau-olive-250.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (16, N'Hũ đựng kẹo thủy tinh 300ml', N'Hũ thủy tinh 300ml nắp gỗ, thân hũ có gân nổi trang trí. Đựng kẹo, snack, đồ khô.', N'Thủy tinh Borosilicate', N'Việt Nam', N'Đựng kẹo, snack, bánh quy', N'DuaStore Home', 9, '/images/products/hu-dung-keo-300.jpg', 'DANG_BAN', 2, 1, 1, GETDATE(), GETDATE()),
+    (17, N'Bộ 4 cốc bia thủy tinh 500ml', N'Bộ 4 cốc bia thủy tinh dung tích 500ml, thành dày, tay cầm chắc chắn.', N'Thủy tinh cường lực', N'Việt Nam', N'Uống bia, nước giải khát', N'DuaStore Home', 13, '/images/products/bo-4-coc-bia-500.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (18, N'Bình decor thủy tinh màu hổ phách 20cm', N'Bình thủy tinh màu hổ phách 20cm, nắp gỗ, phong cách vintage.', N'Thủy tinh màu', N'Việt Nam', N'Trang trí nội thất, quà tặng', N'DuaStore Decor', 11, '/images/products/binh-ho-phach-20.jpg', 'DANG_BAN', 5, 1, 1, GETDATE(), GETDATE()),
+    (19, N'Chai rượu sake thủy tinh 300ml', N'Chai rượu sake thủy tinh 300ml kiểu Nhật Bản, miệng rộng, nắp nhựa cao cấp.', N'Thủy tinh Borosilicate', N'Việt Nam', N'Đựng rượu sake, rượu trắng', N'DuaStore Premium', 6, '/images/products/chai-sake-300.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (20, N'Bộ 2 hũ đựng cafe thủy tinh 250ml', N'Bộ 2 hũ thủy tinh 250ml nắp kín silicone, nhãn cafe/trà trang trí.', N'Thủy tinh + Silicone', N'Việt Nam', N'Đựng cafe hạt, cafe bột, trà', N'DuaStore Home', 8, '/images/products/bo-2-hu-cafe-250.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE()),
+    (21, N'Bộ 6 ly cocktail thủy tinh 250ml', N'Bộ 6 ly cocktail thủy tinh 250ml chân cao, phù hợp pha chế mocktail, cocktail.', N'Thủy tinh không chì', N'Việt Nam', N'Pha chế cocktail, nước ép, trái cây', N'DuaStore Premium', 12, '/images/products/bo-6-ly-cocktail-250.jpg', 'DANG_BAN', 4, 1, 1, GETDATE(), GETDATE()),
+    (22, N'Bộ 5 chai thủy tinh đựng gia vị 50ml', N'Bộ 5 chai thủy tinh nhỏ 50ml kèm khay gỗ, nắp inox. Đựng tiêu, muối, ớt bột, nghệ, đường.', N'Thủy tinh + Inox', N'Việt Nam', N'Đựng gia vị khô nhà bếp', N'DuaStore Home', 8, '/images/products/bo-5-chai-gia-vi-50.jpg', 'DANG_BAN', 3, 1, 1, GETDATE(), GETDATE());
+    SET IDENTITY_INSERT Products OFF;
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM ProductVariants WHERE id = 1)
+BEGIN
+    SET IDENTITY_INSERT ProductVariants ON;
+    INSERT INTO ProductVariants (id, productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault, isActive)
+    VALUES
+    (1, 1, N'750ml - Trong suốt', 750, 85000, NULL, 50, NULL, 1, 1),
+    (2, 1, N'750ml - Xanh dương', 750, 95000, 85000, 30, NULL, 0, 1),
+    (3, 1, N'750ml - Xanh lá',    750, 95000, 85000, 25, NULL, 0, 1),
+    (4, 2, N'10ml - Trong suốt',  10,  45000, NULL, 100, NULL, 1, 1),
+    (5, 2, N'10ml - Hổ phách',    10,  55000, NULL, 80,  NULL, 0, 1),
+    (6, 3, N'500ml - Trong suốt', 500, 120000, 99000, 40, NULL, 1, 1),
+    (7, 4, N'4x100ml - Vuông',    100, 135000, NULL, 60, NULL, 1, 1),
+    (8, 5, N'30cm - Trong suốt',  0,   250000, NULL, 20, NULL, 1, 1),
+    (9, 5, N'30cm - Màu khói',    0,   280000, 250000, 15, NULL, 0, 1),
+    (10, 6, N'25cm - Trong suốt',  0,  110000, NULL, 35, NULL, 1, 1),
+    (11, 7, N'350ml - Trong suốt', 350, 180000, NULL, 45, NULL, 1, 1),
+    (12, 7, N'350ml - Màu khói',   350, 210000, 180000, 30, NULL, 0, 1),
+    (13, 8, N'300ml - Trong suốt', 300, 95000, NULL, 70, NULL, 1, 1),
+    (14, 9, N'50ml - Trong suốt',  50,  65000, NULL, 90, NULL, 1, 1),
+    (15, 10, N'3x1L - Trong suốt', 1000, 165000, NULL, 40, NULL, 1, 1),
+    -- Biến thể 12 sản phẩm mới
+    (16, 11, N'1L - Trong suốt',     1000, 180000, NULL, 30, NULL, 1, 1),
+    (17, 11, N'1L - Màu khói',       1000, 210000, 180000, 20, NULL, 0, 1),
+    (18, 12, N'500ml - Trong suốt',  500,  135000, NULL, 40, NULL, 1, 1),
+    (19, 12, N'500ml - Màu trà',     500,  155000, NULL, 25, NULL, 0, 1),
+    (20, 13, N'200ml - Trong suốt',  200,  220000, NULL, 35, NULL, 1, 1),
+    (21, 13, N'200ml - Màu khói',    200,  250000, 220000, 20, NULL, 0, 1),
+    (22, 14, N'15cm - Trong suốt',   0,    75000,  NULL, 60, NULL, 1, 1),
+    (23, 14, N'15cm - Xanh mint',    0,    90000,  75000,  40, NULL, 0, 1),
+    (24, 15, N'250ml - Trong suốt',  250,  95000,  NULL, 45, NULL, 1, 1),
+    (25, 16, N'300ml - Trong suốt',  300,  85000,  NULL, 50, NULL, 1, 1),
+    (26, 16, N'300ml - Màu xanh',    300,  100000, 85000,  30, NULL, 0, 1),
+    (27, 17, N'500ml - Trong suốt',  500,  130000, NULL, 40, NULL, 1, 1),
+    (28, 18, N'20cm - Hổ phách',     0,    160000, NULL, 25, NULL, 1, 1),
+    (29, 18, N'20cm - Xanh coban',   0,    180000, 160000, 15, NULL, 0, 1),
+    (30, 19, N'300ml - Trong suốt',  300,  70000,  NULL, 55, NULL, 1, 1),
+    (31, 20, N'2x250ml - Trong suốt',250,  125000, NULL, 35, NULL, 1, 1),
+    (32, 21, N'250ml - Trong suốt',  250,  200000, NULL, 30, NULL, 1, 1),
+    (33, 21, N'250ml - Màu khói',    250,  230000, 200000, 20, NULL, 0, 1),
+    (34, 22, N'5x50ml - Trong suốt', 50,   110000, NULL, 60, NULL, 1, 1);
+    SET IDENTITY_INSERT ProductVariants OFF;
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM ProductImages WHERE id = 1)
+BEGIN
+    SET IDENTITY_INSERT ProductImages ON;
+    INSERT INTO ProductImages (id, productId, imageUrl, sortOrder, isActive, createdAt)
+    VALUES
+    (1, 1, '/images/products/chai-ruou-vang-750.jpg',   1, 1, GETDATE()),
+    (2, 1, '/images/products/chai-ruou-vang-750-2.jpg', 2, 1, GETDATE()),
+    (3, 2, '/images/products/bo-chai-tinh-dau-10ml.jpg', 1, 1, GETDATE()),
+    (4, 2, '/images/products/bo-chai-tinh-dau-10ml-2.jpg',2,1, GETDATE()),
+    (5, 3, '/images/products/hu-mat-ong-500.jpg',       1, 1, GETDATE()),
+    (6, 3, '/images/products/hu-mat-ong-500-2.jpg',     2, 1, GETDATE()),
+    (7, 4, '/images/products/bo-hu-gia-vi.jpg',         1, 1, GETDATE()),
+    (8, 4, '/images/products/bo-hu-gia-vi-2.jpg',       2, 1, GETDATE()),
+    (9, 5, '/images/products/binh-hoa-pha-le-30.jpg',   1, 1, GETDATE()),
+    (10, 5, '/images/products/binh-hoa-pha-le-30-2.jpg',2, 1, GETDATE()),
+    (11, 6, '/images/products/binh-tru-decor-25.jpg',   1, 1, GETDATE()),
+    (12, 6, '/images/products/binh-tru-decor-25-2.jpg', 2, 1, GETDATE()),
+    (13, 7, '/images/products/bo-4-ly-vang-350.jpg',    1, 1, GETDATE()),
+    (14, 7, '/images/products/bo-4-ly-vang-350-2.jpg',  2, 1, GETDATE()),
+    (15, 8, '/images/products/bo-6-coc-nuoc-300.jpg',   1, 1, GETDATE()),
+    (16, 8, '/images/products/bo-6-coc-nuoc-300-2.jpg', 2, 1, GETDATE()),
+    (17, 9, '/images/products/chai-nuoc-hoa-50.jpg',    1, 1, GETDATE()),
+    (18, 9, '/images/products/chai-nuoc-hoa-50-2.jpg',  2, 1, GETDATE()),
+    (19, 10, '/images/products/bo-3-hu-bao-quan-1l.jpg',1, 1, GETDATE()),
+    (20, 10, '/images/products/bo-3-hu-bao-quan-1l-2.jpg',2,1, GETDATE()),
+    -- Hình ảnh 12 sản phẩm mới
+    (21, 11, '/images/products/chai-whisky-1l.jpg',       1, 1, GETDATE()),
+    (22, 11, '/images/products/chai-whisky-1l-2.jpg',     2, 1, GETDATE()),
+    (23, 12, '/images/products/hu-dung-tra-500.jpg',      1, 1, GETDATE()),
+    (24, 12, '/images/products/hu-dung-tra-500-2.jpg',    2, 1, GETDATE()),
+    (25, 13, '/images/products/bo-6-ly-champagne-200.jpg', 1, 1, GETDATE()),
+    (26, 13, '/images/products/bo-6-ly-champagne-200-2.jpg',2,1, GETDATE()),
+    (27, 14, '/images/products/binh-hoa-mini-15.jpg',     1, 1, GETDATE()),
+    (28, 14, '/images/products/binh-hoa-mini-15-2.jpg',   2, 1, GETDATE()),
+    (29, 15, '/images/products/chai-dau-olive-250.jpg',  1, 1, GETDATE()),
+    (30, 15, '/images/products/chai-dau-olive-250-2.jpg', 2, 1, GETDATE()),
+    (31, 16, '/images/products/hu-dung-keo-300.jpg',      1, 1, GETDATE()),
+    (32, 16, '/images/products/hu-dung-keo-300-2.jpg',    2, 1, GETDATE()),
+    (33, 17, '/images/products/bo-4-coc-bia-500.jpg',     1, 1, GETDATE()),
+    (34, 17, '/images/products/bo-4-coc-bia-500-2.jpg',   2, 1, GETDATE()),
+    (35, 18, '/images/products/binh-ho-phach-20.jpg',     1, 1, GETDATE()),
+    (36, 18, '/images/products/binh-ho-phach-20-2.jpg',   2, 1, GETDATE()),
+    (37, 19, '/images/products/chai-sake-300.jpg',        1, 1, GETDATE()),
+    (38, 19, '/images/products/chai-sake-300-2.jpg',      2, 1, GETDATE()),
+    (39, 20, '/images/products/bo-2-hu-cafe-250.jpg',     1, 1, GETDATE()),
+    (40, 20, '/images/products/bo-2-hu-cafe-250-2.jpg',   2, 1, GETDATE()),
+    (41, 21, '/images/products/bo-6-ly-cocktail-250.jpg', 1, 1, GETDATE()),
+    (42, 21, '/images/products/bo-6-ly-cocktail-250-2.jpg',2,1, GETDATE()),
+    (43, 22, '/images/products/bo-5-chai-gia-vi-50.jpg',  1, 1, GETDATE()),
+    (44, 22, '/images/products/bo-5-chai-gia-vi-50-2.jpg', 2, 1, GETDATE());
+    SET IDENTITY_INSERT ProductImages OFF;
+END
+GO
+
+PRINT '✅ Seed du lieu san pham noi bat hoan tat!';
+GO
  
+PRINT '====================================================';
+PRINT ' DuaStore Database - San sang su dung!';
+PRINT ' Tong so bang  : 13';
+PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
+PRINT ' Indexes       : 12';
+PRINT ' Mat khau      : admin@123';
+PRINT '====================================================';
+
 -- ============================================================
 -- KIEM TRA DU LIEU
 -- ============================================================
@@ -753,11 +923,3 @@ SELECT * FROM CartItems;
 SELECT * FROM Posts;
 SELECT * FROM Wishlists;
 GO
- 
-PRINT '====================================================';
-PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 13';
-PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
-PRINT ' Indexes       : 12';
-PRINT ' Mat khau      : admin@123';
-PRINT '====================================================';
