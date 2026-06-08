@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<!-- ★ layout:decorate → inject vào layout/admin/base
-     Xem base.html dòng 191-194 -->
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
@@ -12,29 +10,23 @@
 
     <body>
 
-    <!-- ★ Breadcrumb: inject vào fragment breadcrumb của layout
-         Xem base.html dòng 129-131 -->
     <th:block layout:fragment="breadcrumb">
         <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
     </th:block>
 
-    <!-- ★ Nội dung chính: inject vào fragment content của layout -->
     <div layout:fragment="content">
 
-        <!-- Page header -->
         <div class="adm-page-header">
             <h4><i class="bi bi-speedometer2 me-2"></i>Dashboard</h4>
         </div>
 
-        <!-- ★ Stat cards — 4 cột, hiện dùng "--" placeholder
-             Backend gửi: totalProducts, todayOrders, monthlyRevenue, totalCustomers -->
         <div class="row g-3 mb-4">
 
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="adm-stat p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="adm-stat-lbl">Tổng sản phẩm</span>
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#1D4ED8">
+                        <div class="adm-stat-icon" style="background:rgba(255,216,77,0.12);color:var(--ef-primary)">
                             <i class="bi bi-box-seam"></i>
                         </div>
                     </div>
@@ -46,13 +38,15 @@
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="adm-stat p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="adm-stat-lbl">Đơn hàng hôm nay</span>
-                        <div class="adm-stat-icon" style="background:#DCFCE7;color:#16A34A">
+                        <span class="adm-stat-lbl">Đơn hôm nay</span>
+                        <div class="adm-stat-icon" style="background:rgba(74,222,128,0.12);color:var(--ef-green)">
                             <i class="bi bi-bag-check"></i>
                         </div>
                     </div>
                     <div class="adm-stat-val" th:text="${todayOrders} ?: '--'">--</div>
-                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">Chờ xác nhận</div>
+                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">
+                        Chờ: <span th:text="${pendingOrders} ?: 0"></span>
+                    </div>
                 </div>
             </div>
 
@@ -60,12 +54,12 @@
                 <div class="adm-stat p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="adm-stat-lbl">Doanh thu tháng</span>
-                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
+                        <div class="adm-stat-icon" style="background:rgba(255,216,77,0.12);color:var(--ef-primary)">
                             <i class="bi bi-currency-exchange"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${monthlyRevenue} ?: '--'">--</div>
-                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">VNĐ</div>
+                    <div class="adm-stat-val" style="font-size:1.15rem" th:text="${monthlyRevenue} ?: '--'">--</div>
+                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">Đã giao: <span th:text="${deliveredOrders} ?: 0"></span></div>
                 </div>
             </div>
 
@@ -73,7 +67,7 @@
                 <div class="adm-stat p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="adm-stat-lbl">Khách hàng</span>
-                        <div class="adm-stat-icon" style="background:#EDE9FE;color:#7C3AED">
+                        <div class="adm-stat-icon" style="background:rgba(255,216,77,0.12);color:var(--ef-primary)">
                             <i class="bi bi-people"></i>
                         </div>
                     </div>
@@ -84,19 +78,80 @@
 
         </div>
 
-        <!-- Welcome card -->
-        <div class="adm-table-wrap p-4">
-            <div class="text-center py-4">
-                <i class="bi bi-gem" style="font-size:3rem;color:#1D4ED8;opacity:.6"></i>
-                <h5 class="mt-3 fw-700">Chào mừng đến với DuaStore Admin</h5>
-                <p class="text-muted">Website bán đồ thủy tinh decor cao cấp — Hải Phòng</p>
-                <div class="d-flex justify-content-center gap-3 mt-3">
-                    <a th:href="@{/admin/san-pham}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-box-seam me-1"></i>Quản lý sản phẩm
-                    </a>
-                    <a th:href="@{/admin/don-hang}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-bag-check me-1"></i>Xem đơn hàng
-                    </a>
+        <div class="row g-3">
+            <div class="col-12 col-lg-8">
+                <div class="adm-table-wrap">
+                    <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
+                        <strong style="font-size:.875rem">Đơn hàng gần đây</strong>
+                        <a th:href="@{/admin/don-hang}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày đặt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="o : ${recentOrders}" th:unless="${#lists.isEmpty(recentOrders)}">
+                                <td><a th:href="@{/admin/don-hang/chi-tiet/{id}(id=${o.id})}" th:text="${o.maDon}">#DH001</a></td>
+                                <td th:text="${o.snapTenNguoiNhan}">Nguyễn Văn A</td>
+                                <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">1,000,000 ₫</td>
+                                <td>
+                                    <span th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" class="status-cho-xac-nhan">Chờ xác nhận</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_XAC_NHAN'}" class="status-da-xac-nhan">Đã xác nhận</span>
+                                    <span th:if="${o.trangThaiDon == 'DANG_GIAO'}" class="status-dang-giao">Đang giao</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_GIAO'}" class="status-da-giao">Đã giao</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_HUY'}" class="status-da-huy">Đã hủy</span>
+                                </td>
+                                <td style="font-size:.82rem;color:var(--ef-text-muted)" th:text="${#temporals.format(o.ngayDat, 'dd/MM HH:mm')}">01/01 12:00</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(recentOrders)}">
+                                <td colspan="5" class="text-center text-muted py-3">Chưa có đơn hàng nào</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+                <div class="adm-table-wrap p-3">
+                    <strong style="font-size:.875rem">Thống kê trạng thái</strong>
+                    <div class="mt-3 d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Chờ xác nhận</span>
+                            <span class="badge bg-warning" th:text="${pendingOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã xác nhận</span>
+                            <span class="badge bg-secondary" th:text="${confirmedOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đang giao</span>
+                            <span class="badge bg-secondary" th:text="${shippingOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã giao</span>
+                            <span class="badge bg-success" th:text="${deliveredOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã hủy</span>
+                            <span class="badge bg-danger" th:text="${cancelledOrders} ?: 0">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="adm-table-wrap p-3 mt-3 text-center">
+                    <i class="bi bi-gem" style="font-size:2.5rem;color:var(--ef-primary);opacity:.5"></i>
+                    <h6 class="mt-2 mb-1" style="font-size:.9rem">DuaStore Admin</h6>
+                    <p class="text-muted mb-0" style="font-size:.78rem">FPT Polytechnic Hải Phòng</p>
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <a th:href="@{/admin/san-pham}" class="btn btn-sm btn-primary">Sản phẩm</a>
+                        <a th:href="@{/admin/don-hang}" class="btn btn-sm btn-outline-primary">Đơn hàng</a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -5,7 +5,6 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('duastore-theme')||'light')</script>
     <title layout:title-pattern="$CONTENT_TITLE — DuaStore">DuaStore</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
@@ -16,6 +15,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
+    <script th:src="@{/js/main.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
 </head>
 <body>
@@ -109,45 +109,27 @@
                     </li>
                 </ul>
 
-                <div class="ds-nav-panel-footer">
-                    <div class="ds-panel-profile" th:if="${session.loggedIn}">
-                        <div class="ds-panel-profile-header">
-                            <span class="ds-profile-avatar" th:text="${session.userInitial}">A</span>
-                            <div>
-                                <div class="ds-panel-profile-name" th:text="${session.userName}">Admin</div>
-                                <div class="ds-panel-profile-email" th:text="${session.userEmail}">admin@dua.store</div>
-                            </div>
-                        </div>
-                        <a class="ds-nav-link" th:href="@{/tai-khoan}"><i class="bi bi-person"></i><span>Hồ sơ</span></a>
-                        <a class="ds-nav-link" href="#"><i class="bi bi-activity"></i><span>Hoạt động</span></a>
-                        <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-bookmark"></i><span>Đã lưu</span></a>
-                        <a class="ds-nav-link" href="#"><i class="bi bi-gear"></i><span>Cài đặt</span></a>
-                        <a class="ds-nav-link ds-nav-logout" th:href="@{/dang-xuat}"><i class="bi bi-box-arrow-right"></i><span>Đăng xuất</span></a>
+                <div class="ds-nav-panel-footer" th:unless="${session.loggedIn}">
+                    <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-heart"></i> <span>Yêu thích</span></a>
+                    <a class="ds-nav-link" th:href="@{/gio-hang}"><i class="bi bi-bag"></i> <span>Giỏ hàng</span></a>
+                    <div class="ds-nav-auth mt-2">
+                        <a class="ds-btn-outline d-block text-center" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
+                        <a class="ds-btn-fill d-block text-center mt-1" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Đăng ký</a>
                     </div>
-                    <th:block th:unless="${session.loggedIn}">
-                        <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-heart"></i> <span>Yêu thích</span></a>
-                        <a class="ds-nav-link" th:href="@{/gio-hang}"><i class="bi bi-bag"></i> <span>Giỏ hàng</span></a>
-                        <div class="ds-nav-auth mt-2">
-                            <a class="ds-btn-outline d-block text-center" th:href="@{/dang-nhap}">Đăng nhập</a>
-                            <a class="ds-btn-fill d-block text-center mt-1" th:href="@{/dang-ky}">Đăng ký</a>
-                        </div>
-                    </th:block>
                 </div>
             </div>
 
-            <!-- RIGHT NAVBAR: SEARCH & POPUPS -->
             <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">
                 <form th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
                     <i class="bi bi-search"></i>
                     <input type="search" name="keyword" class="ds-search-inline-input" placeholder="Tìm sản phẩm..." th:value="${param.keyword}" aria-label="Tìm kiếm"/>
                 </form>
 
-                <!-- NÚT YÊU THÍCH -->
                 <div class="position-relative d-inline-block">
                     <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup')" title="Danh sách yêu thích" aria-label="Yêu thích">
                         <i class="bi bi-heart"></i>
+                        <span id="wishlistBadge" class="ds-cart-badge" th:text="${#lists.size(myWishlist)}" th:classappend="${#lists.isEmpty(myWishlist)} ? ' d-none' : ''">0</span>
                     </button>
-                    <!-- POPUP YÊU THÍCH -->
                     <div id="wishlist-popup" class="custom-popup">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Sản phẩm yêu thích</h6>
                         <div id="wishlist-items-container">
@@ -162,113 +144,353 @@
                                 </div>
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
-                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>
-                                    <button class="btn btn-sm btn-outline-primary mt-2 w-100" th:onclick="'addToCartFromWishlist(' + ${item.productId} + ', null)'">
-                                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                    </button>
+                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>                                 
                                 </div>
                                 <button class="btn-delete-item" th:onclick="'removeWishlist(' + ${item.productId} + ')'" title="Xóa">
                                     <i class="bi bi-x-circle"></i>
                                 </button>
-                            </div>
-                        </div>
-                    </div>
+        </div>
+    </div>
+</div>
+
                 </div>
 
-                <!-- NÚT GIỎ HÀNG -->
+                <!-- NÚT GIỎ HÀNG VÀ POPUP -->
                 <div class="position-relative d-inline-block ds-cart-wrap">
                     <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
                         <i class="bi bi-bag"></i>
-                        <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}">0</span>
+                        <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}"></span>
                     </button>
-                    <!-- POPUP GIỎ HÀNG -->
-                    <!-- POPUP GIỎ HÀNG -->
-                    <div id="cart-popup" class="custom-popup">
+                    
+                    <div id="cart-popup" class="custom-popup" style="width: 340px;">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
                         
-                        <div id="cart-items-container">
-                            <!-- Hiển thị khi giỏ hàng trống trống -->
+                        <div id="cart-items-container" class="mt-2" style="max-height: 400px; overflow-y: auto;">
                             <div th:if="${#lists.isEmpty(myCart)}" class="text-center py-4 text-muted">
                                 <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
                                 <p class="mt-2 mb-0">Giỏ hàng trống</p>
                             </div>
                             
-                            <!-- Vòng lặp quét danh sách sản phẩm từ DB ra màn hình khi F5 -->
-                            <div th:each="item : ${myCart}" class="popup-item" th:id="'cart-item-' + ${item.productId}">
-                                <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                    <img th:if="${item.hinhAnhHienThi != null}" th:src="@{${item.hinhAnhHienThi}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
-                                    <i th:unless="${item.hinhAnhHienThi != null}" class="bi bi-box-seam text-secondary"></i>
+                            <!-- Dùng biến uid thông minh để tương thích với mọi loại Java DTO -->
+                            <div th:each="item : ${myCart}" th:with="uid=${item.variantId != null ? item.variantId : item.id}" class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" th:id="'cart-item-' + ${uid}" th:data-productid="${item.productId}">
+                                <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                                    <img th:if="${item.hinhAnhHienThi != null or item.hinhAnh != null}" th:src="@{${item.hinhAnhHienThi != null ? item.hinhAnhHienThi : item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
+                                    <i th:unless="${item.hinhAnhHienThi != null or item.hinhAnh != null}" class="bi bi-box-seam text-secondary"></i>
                                 </div>
-                                <div class="popup-item-info">
-                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block" style="max-width: 180px;">Tên SP</a>
-                                    <div class="mt-1">
-                                        Số lượng: <span th:text="${item.soLuong}">1</span> x 
-                                        <span class="text-danger fw-semibold" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</span>
+                                <div class="popup-item-info flex-grow-1">
+                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold" style="max-width: 180px; font-size: 0.9rem;">Tên SP</a>
+                                    <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
+                                    
+                                    <div class="d-flex align-items-center">
+                                        <div class="input-group input-group-sm" style="width: 85px;">
+                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">-</button>
+                                            <span class="form-control text-center py-0 px-1" th:id="'popup-qty-' + ${uid}" th:text="${item.soLuong}">1</span>
+                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
+                                        </div>
+                                        
+                                        <span class="text-danger fw-semibold ms-auto popup-item-price" 
+                                              th:id="'popup-price-' + ${uid}" 
+                                              th:data-price="${item.giaBan}"
+                                              style="font-size: 0.9rem;" 
+                                              th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</span>
                                     </div>
                                 </div>
-                                <button class="btn-delete-item" th:onclick="'removeCartItem(' + ${item.productId} + ')'" title="Xóa khỏi giỏ">
-                                    <i class="bi bi-x-circle"></i>
+                                <button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ">
+                                    <i class="bi bi-trash text-danger"></i>
                                 </button>
                             </div>
                         </div>
                         
-                        <div class="mt-3 pt-3 border-top">
-                            <a th:href="@{/gio-hang}" class="btn btn-primary w-100 fw-semibold">Thanh toán tất cả</a>
+                        <div class="mt-2 pt-2" th:unless="${#lists.isEmpty(myCart)}">
+                            <a th:href="@{/checkout}" class="btn btn-danger w-100 fw-semibold py-2">Thanh toán tất cả</a>
                         </div>
                     </div>
                 </div>
 
-                <!-- PROFILE -->
-                <div class="ds-profile-wrap d-none d-lg-flex align-items-center" th:if="${session.loggedIn}">
-                    <button class="ds-profile-trigger" id="dsProfileTrigger" type="button">
-                        <span class="ds-profile-avatar" th:text="${session.userInitial}">A</span>
-                        <span class="ds-profile-name" th:text="${session.userName}">Admin</span>
-                        <i class="bi bi-chevron-down ds-profile-chevron"></i>
+                <!-- PROFILE BUTTON + POPUP (like wishlist/cart) (logged-in only) -->
+                <div class="position-relative d-inline-block">
+                    <button class="ds-icon-btn" id="btn-profile-toggle"
+                            th:onclick="${session.loggedIn} ? 'togglePopup(\'profile-popup\')' : 'showLoginPopup()'"
+                            title="Tài khoản" aria-label="Tài khoản">
+                        <i class="bi bi-person-circle"></i>
                     </button>
-                    <div class="ds-profile-dropdown" id="dsProfileDropdown">
-                        <div class="ds-profile-header">
-                            <span class="ds-profile-avatar lg" th:text="${session.userInitial}">A</span>
-                            <div>
-                                <div class="fw-semibold" th:text="${session.userName}">Admin</div>
-                                <small class="text-muted" th:text="${session.userEmail}">admin@dua.store</small>
+                    <div id="profile-popup" class="custom-popup" style="width:240px;" th:if="${session.loggedIn}">
+                        <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom" style="border-color:var(--ds-border);">
+                            <span class="ds-profile-avatar lg flex-shrink-0" th:text="${session.userInitial}">A</span>
+                            <div class="text-truncate">
+                                <div class="fw-semibold text-truncate" th:text="${session.userName}" style="color:var(--ds-text);font-size:0.9rem;">User</div>
+                                <small class="text-muted text-truncate d-block" th:text="${session.userEmail}" style="font-size:0.78rem;">user@email.com</small>
                             </div>
                         </div>
-                        <div class="ds-profile-divider"></div>
-                        <a class="ds-profile-link" th:href="@{/tai-khoan}"><i class="bi bi-person"></i> Hồ sơ</a>
-                        <a class="ds-profile-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
-                        <a class="ds-profile-link" th:href="@{/wishlist}"><i class="bi bi-bookmark"></i> Đã lưu</a>
-                        <a class="ds-profile-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
-                        <div class="ds-profile-divider"></div>
-                        <a class="ds-profile-link" href="#" id="dsProfileThemeToggle">
-                            <i class="bi bi-moon-stars" id="dsProfileThemeIcon"></i> <span id="dsProfileThemeLabel">Chế độ tối</span>
-                        </a>
-                        <div class="ds-profile-divider"></div>
-                        <a class="ds-profile-link ds-profile-logout" th:href="@{/dang-xuat}"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+                        <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
+                        <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
+                        <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                        <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
+                            <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
+                        </form>
                     </div>
                 </div>
-                <a class="ds-btn-login d-none d-lg-inline-flex align-items-center gap-1" th:href="@{/dang-nhap}" th:unless="${session.loggedIn}">
-                    <i class="bi bi-person"></i> <span>Đăng nhập</span>
-                </a>
 
             </div>
         </div>
     </div>
 </nav>
 
-<div class="container-xl px-4" th:if="${successMsg != null or errorMsg != null}">
-    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMsg}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-    </div>
-    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show mt-3 mb-0" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMsg}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-    </div>
-</div>
-
 <main id="main-content">
     <th:block layout:fragment="content"></th:block>
 </main>
+
+<!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-sm">
+            <form th:action="@{/tai-khoan/cap-nhat}" method="post">
+                <div class="modal-header">
+                    <h5 class="fw-bold">Hồ sơ của tôi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Họ tên</label>
+                        <input type="text" name="hoTen" th:value="${session.userName}" class="form-control" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Tên đăng nhập</label>
+                        <input type="text" th:value="${session.userUsername}" class="form-control" disabled/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Email</label>
+                        <input type="email" th:value="${session.userEmail}" class="form-control" disabled/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Số điện thoại</label>
+                        <input type="text" name="soDienThoai" th:value="${session.userPhone}" class="form-control" placeholder="Chưa cập nhật"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Vai trò</label>
+                        <input type="text" th:value="${session.userRole}" class="form-control" disabled/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark px-4 py-2 fw-semibold">Lưu thay đổi</button>
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div class="modal fade modal-auth" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="ds-auth-header">
+                <div class="logo">DuaStore</div>
+            </div>
+            <div class="ds-auth-accent"></div>
+
+            <div class="ds-auth-body">
+                <div id="loginServerError" class="ds-auth-error" style="margin-bottom:.75rem;">
+                    <i class="bi bi-exclamation-circle"></i><span>Sai tên đăng nhập hoặc mật khẩu</span>
+                </div>
+
+                <form action="/dang-nhap" method="POST" novalidate>
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-envelope"></i>
+                            <input type="text" name="username" placeholder="Tên đăng nhập hoặc email"
+                                   id="loginEmail" autocomplete="username" required>
+                        </div>
+                        <div class="ds-auth-error" id="loginEmailError">
+                            <i class="bi bi-exclamation-circle"></i><span>Vui lòng nhập tên đăng nhập hoặc email</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="password" placeholder="Nhập mật khẩu"
+                                   id="loginPassword" autocomplete="current-password" required minlength="6">
+                            <button type="button" class="toggle-eye" onclick="togglePass('loginPassword',this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="ds-auth-error" id="loginPassError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="ds-auth-grow"></div>
+
+                    <button type="submit" class="ds-auth-btn" id="loginSubmitBtn" disabled>Đăng nhập</button>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <a class="ds-auth-link" data-bs-toggle="modal" data-bs-target="#registerModal">Đăng ký tài khoản</a>
+                        <a class="ds-auth-link" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Quên mật khẩu?</a>
+                    </div>
+
+                    <div class="ds-auth-accent-fade mt-3 mb-3"></div>
+
+                    <a class="ds-auth-google" th:href="@{/oauth2/authorization/google}" title="Đăng nhập với Google">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+                             width="20" height="20" alt="Google">
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Register Modal -->
+<div class="modal fade modal-auth" id="registerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="ds-auth-header">
+                <button type="button" class="ds-auth-back" onclick="switchModal('#registerModal','#loginModal')">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <div class="logo">DuaStore</div>
+            </div>
+            <div class="ds-auth-accent"></div>
+
+            <div class="ds-auth-body">
+                <div id="registerError" class="ds-auth-error" style="margin-bottom:.5rem;">
+                    <i class="bi bi-exclamation-circle"></i><span></span>
+                </div>
+                <div id="registerSuccess" class="ds-auth-success">
+                    <i class="bi bi-check-circle"></i><span>Đăng ký thành công! Vui lòng đăng nhập.</span>
+                </div>
+                <form id="registerForm" onsubmit="return registerSubmit(event)" novalidate>
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-envelope"></i>
+                            <input type="email" name="email" placeholder="Nhập email" id="regEmail" required>
+                        </div>
+                        <div class="ds-auth-error" id="regEmailError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-key"></i>
+                            <input type="text" name="verificationCode" placeholder="Nhập mã xác thực" id="regCode" required>
+                            <button type="button" class="ds-auth-code-inline" id="regSendCodeBtn">Gửi</button>
+                        </div>
+                        <div class="ds-auth-error" id="regCodeError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="password" placeholder="Nhập mật khẩu" id="regPassword" required minlength="6">
+                            <button type="button" class="toggle-eye" onclick="togglePass('regPassword',this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="ds-auth-error" id="regPassError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu" id="regConfirmPass" required>
+                            <button type="button" class="toggle-eye" onclick="togglePass('regConfirmPass',this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="ds-auth-error" id="regConfirmError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="ds-auth-check mb-3">
+                        <input type="checkbox" id="regTerms">
+                        <label for="regTerms">Agree to the Terms of Service and Privacy Policy</label>
+                    </div>
+
+                    <div class="ds-auth-grow"></div>
+
+                    <button type="submit" class="ds-auth-btn" id="regSubmitBtn" disabled>Đăng ký</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal fade modal-auth" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="ds-auth-header">
+                <button type="button" class="ds-auth-back" onclick="switchModal('#forgotPasswordModal','#loginModal')">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <div class="logo">DuaStore</div>
+            </div>
+            <div class="ds-auth-accent"></div>
+
+            <div class="ds-auth-body">
+                <form id="forgotForm" novalidate>
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-envelope"></i>
+                            <input type="email" placeholder="Nhập email" id="forgotEmail" required>
+                        </div>
+                        <div class="ds-auth-error" id="forgotEmailError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-key"></i>
+                            <input type="text" placeholder="Nhập mã xác thực" id="forgotCode" required>
+                            <button type="button" class="ds-auth-code-inline" id="forgotSendCodeBtn">Gửi</button>
+                        </div>
+                        <div class="ds-auth-error" id="forgotCodeError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" placeholder="Mật khẩu mới" id="forgotPass" required minlength="6">
+                            <button type="button" class="toggle-eye" onclick="togglePass('forgotPass',this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="ds-auth-error" id="forgotPassError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-lock"></i>
+                            <input type="password" placeholder="Nhập lại mật khẩu mới" id="forgotConfirmPass" required>
+                            <button type="button" class="toggle-eye" onclick="togglePass('forgotConfirmPass',this)">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="ds-auth-error" id="forgotConfirmError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="ds-auth-grow"></div>
+
+                    <button type="submit" class="ds-auth-btn" id="forgotSubmitBtn" disabled>Xác nhận</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <footer class="ds-footer">
     <div class="container-xl">
@@ -340,7 +562,288 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
-<script th:src="@{/js/main.js}"></script>
+
+<script>
+/* ── Auth modal helpers ── */
+function togglePass(id, btn) {
+    var inp = document.getElementById(id);
+    var ico = btn.querySelector('i');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'bi bi-eye'; }
+    else { inp.type = 'password'; ico.className = 'bi bi-eye-slash'; }
+    
+}
+function switchModal(from, to) {
+    bootstrap.Modal.getInstance(document.querySelector(from))?.hide();
+    new bootstrap.Modal(document.querySelector(to)).show();
+}
+function showAuthError(el) { if (el) el.classList.add('show'); }
+function hideAuthError(el) { if (el) el.classList.remove('show'); }
+
+document.addEventListener('DOMContentLoaded', function() {
+    /* ── Login error param ── */
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('loginError')) {
+        var m = new bootstrap.Modal(document.getElementById('loginModal'));
+        m.show();
+        showAuthError(document.getElementById('loginServerError'));
+    }
+
+    /* ── Blur validation: show error when field loses focus and empty ── */
+    document.querySelectorAll('.ds-auth-field input').forEach(function(inp) {
+        var err = inp.closest('.mb-3')?.querySelector('.ds-auth-error');
+        if (!err) return;
+        inp.addEventListener('blur', function() {
+            if (!inp.value.trim()) showAuthError(err); else hideAuthError(err);
+        });
+        inp.addEventListener('input', function() {
+            if (inp.value.trim()) hideAuthError(err);
+        });
+    });
+
+    /* ── Login form ── */
+    var loginForm = document.querySelector('#loginModal form');
+    if (loginForm) {
+        loginForm.addEventListener('input', function() {
+            var email = document.getElementById('loginEmail')?.value.trim() || '';
+            var pass = document.getElementById('loginPassword')?.value.trim() || '';
+            var btn = document.getElementById('loginSubmitBtn');
+            var ok = email.length > 0 && pass.length >= 6;
+            if (btn) { btn.disabled = !ok; btn.classList.toggle('active', ok); }
+        });
+    }
+
+    /* ── Register form ── */
+    var regForm = document.getElementById('registerForm');
+    if (regForm) {
+        regForm.addEventListener('input', function() {
+            var email = document.getElementById('regEmail')?.value.trim() || '';
+            var pass = document.getElementById('regPassword')?.value.trim() || '';
+            var confirm = document.getElementById('regConfirmPass')?.value.trim() || '';
+            var terms = document.getElementById('regTerms');
+            var btn = document.getElementById('regSubmitBtn');
+            var ok = email.includes('@') && pass.length >= 6 && confirm === pass && terms?.checked;
+            if (btn) { btn.disabled = !ok; btn.classList.toggle('active', ok); }
+        });
+        document.getElementById('regTerms')?.addEventListener('change', function() { regForm.dispatchEvent(new Event('input')); });
+    }
+
+    /* ── Forgot form ── */
+    var forgotForm = document.getElementById('forgotForm');
+    if (forgotForm) {
+        forgotForm.addEventListener('input', function() {
+            var email = document.getElementById('forgotEmail')?.value.trim() || '';
+            var pass = document.getElementById('forgotPass')?.value.trim() || '';
+            var confirm = document.getElementById('forgotConfirmPass')?.value.trim() || '';
+            var btn = document.getElementById('forgotSubmitBtn');
+            var ok = email.includes('@') && pass.length >= 6 && confirm === pass;
+            if (btn) { btn.disabled = !ok; btn.classList.toggle('active', ok); }
+        });
+    }
+
+    /* ── Send code buttons ── */
+    document.querySelectorAll('.ds-auth-code-inline').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var field = this.closest('.ds-auth-field')?.querySelector('input[type="email"]');
+            var emailField = field || document.getElementById('regEmail') || document.getElementById('forgotEmail');
+            var email = emailField?.value.trim();
+            if (!email || !email.includes('@')) {
+                var errEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
+                if (errEl) { errEl.querySelector('span').textContent = 'Email không hợp lệ'; errEl.classList.add('show'); }
+                return;
+            }
+            var orig = this.textContent;
+            this.disabled = true;
+            this.textContent = 'Đang gửi...';
+            fetch('/api/auth/send-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.success) {
+                    btn.textContent = 'Đã gửi';
+                    setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
+                } else {
+                    btn.textContent = 'Thử lại';
+                    setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
+                }
+            }).catch(function() {
+                btn.textContent = 'Lỗi';
+                setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
+            });
+        });
+    });
+
+    /* ── Forgot password submit ── */
+    document.getElementById('forgotForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var email = document.getElementById('forgotEmail')?.value.trim();
+        var code = document.getElementById('forgotCode')?.value.trim();
+        var pass = document.getElementById('forgotPass')?.value.trim();
+        var btn = document.getElementById('forgotSubmitBtn');
+        if (!email || !code || !pass) return;
+        btn.disabled = true;
+        btn.textContent = 'Đang xử lý...';
+        fetch('/api/auth/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, code: code })
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) {
+                fetch('/quen-mat-khau', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ email: email, password: pass })
+                }).then(function(r) { return r.text(); }).then(function() {
+                    btn.textContent = 'Thành công!';
+                    setTimeout(function() {
+                        bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'))?.hide();
+                        showLoginPopup();
+                    }, 1000);
+                });
+            } else {
+                var errEl = document.getElementById('forgotCodeError');
+                if (errEl) { errEl.querySelector('span').textContent = 'Mã xác thực không đúng'; errEl.classList.add('show'); }
+                btn.disabled = false;
+                btn.textContent = 'OK';
+            }
+        }).catch(function() {
+            btn.disabled = false;
+            btn.textContent = 'OK';
+        });
+    });
+
+    
+});
+</script>   
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- 1. LÔ-GÍC GHI NHỚ CHO GIỎ HÀNG ---
+    const cartItems = document.querySelectorAll('#cart-items-container .popup-item');
+    let currentCartState = [];
+    cartItems.forEach(item => {
+        const qtySpan = item.querySelector('span[id^="popup-qty-"]');
+        const qty = qtySpan ? qtySpan.innerText.trim() : '1';
+        currentCartState.push(item.id + '-qty-' + qty);
+    });
+
+    let viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
+    let hasNewCart = currentCartState.some(state => !viewedCartState.includes(state));
+
+    const cBadge = document.getElementById('cartBadge');
+    if (cBadge) {
+        if (hasNewCart && currentCartState.length > 0) {
+            cBadge.classList.remove('d-none');
+        } else {
+            cBadge.classList.add('d-none');
+        }
+    }
+
+    // --- 2. LÔ-GÍC GHI NHỚ CHO YÊU THÍCH ---
+    const wishlistItems = document.querySelectorAll('#wishlist-items-container .popup-item');
+    let currentWishlistState = [];
+    wishlistItems.forEach(item => currentWishlistState.push(item.id));
+
+    let viewedWishlistState = JSON.parse(localStorage.getItem('viewedWishlistState') || '[]');
+    let hasNewWishlist = currentWishlistState.some(state => !viewedWishlistState.includes(state));
+
+    const wBadge = document.getElementById('wishlistBadge');
+    const dwBadge = document.getElementById('detailWishlistBadge'); 
+
+    if (hasNewWishlist && currentWishlistState.length > 0) {
+        if(wBadge) wBadge.classList.remove('d-none');
+        if(dwBadge) dwBadge.classList.remove('d-none');
+    } else {
+        if(wBadge) wBadge.classList.add('d-none');
+        if(dwBadge) dwBadge.classList.add('d-none');
+    }
+});
+
+/* ── HÀM BẬT/TẮT POPUP ── */
+function togglePopup(popupId) {
+    document.querySelectorAll('.custom-popup').forEach(function(popup) { 
+        if(popup.id !== popupId) popup.style.display = 'none'; 
+    });
+    
+    var popup = document.getElementById(popupId);
+    if(popup) {
+        var isOpening = (popup.style.display !== 'block');
+        popup.style.display = isOpening ? 'block' : 'none';
+        
+        if (isOpening) {
+            if (popupId === 'wishlist-popup') {
+                var wBadge = document.getElementById('wishlistBadge');
+                if(wBadge) wBadge.classList.add('d-none');
+                var dwBadge = document.getElementById('detailWishlistBadge');
+                if(dwBadge) dwBadge.classList.add('d-none');
+
+                const items = document.querySelectorAll('#wishlist-items-container .popup-item');
+                let states = [];
+                items.forEach(i => states.push(i.id));
+                localStorage.setItem('viewedWishlistState', JSON.stringify(states));
+
+            } else if (popupId === 'cart-popup') {
+                var cBadge = document.getElementById('cartBadge');
+                if(cBadge) cBadge.classList.add('d-none');
+
+                const items = document.querySelectorAll('#cart-items-container .popup-item');
+                let states = [];
+                items.forEach(item => {
+                    const qtySpan = item.querySelector('span[id^="popup-qty-"]');
+                    const qty = qtySpan ? qtySpan.innerText.trim() : '1';
+                    states.push(item.id + '-qty-' + qty);
+                });
+                localStorage.setItem('viewedCartState', JSON.stringify(states));
+            }
+        }
+    }
+}
+
+/* ── HÀM TĂNG GIẢM SỐ LƯỢNG ── */
+function updatePopupQty(itemId, delta) {
+    const qtySpan = document.getElementById('popup-qty-' + itemId);
+    const priceSpan = document.getElementById('popup-price-' + itemId);
+    
+    if (!qtySpan) return;
+    
+    let currentQty = parseInt(qtySpan.innerText) || 1;
+    let newQty = currentQty + delta;
+    
+    if (newQty < 1) {
+        if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+            removeCartItem(itemId);
+        }
+        return;
+    }
+
+    qtySpan.innerText = newQty;
+    if (priceSpan) {
+        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
+        priceSpan.innerText = (unitPrice * newQty).toLocaleString('vi-VN') + 'đ';
+    }
+
+    const items = document.querySelectorAll('#cart-items-container .popup-item');
+    let states = [];
+    items.forEach(item => {
+        const span = item.querySelector('span[id^="popup-qty-"]');
+        const q = span ? span.innerText.trim() : '1';
+        states.push(item.id + '-qty-' + q);
+    });
+    localStorage.setItem('viewedCartState', JSON.stringify(states));
+
+    fetch('/api/cart/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty }) 
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && typeof updateCartBadge === 'function') {
+            updateCartBadge(data.cartCount);
+        }
+    })
+    .catch(err => console.log("Lỗi đồng bộ giỏ hàng: ", err));
+}
+</script>
 
 <th:block layout:fragment="extra-script"></th:block>
 

@@ -4,25 +4,54 @@
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
     <head>
-        <title>Bài viết — DuaStore</title>
+        <title th:text="${post.tieuDe} + ' — DuaStore'">Bài viết — DuaStore</title>
     </head>
     <body>
     <div layout:fragment="content">
         <div class="container-xl py-5">
-            <!-- ★ TODO [Blog]: Implement trang chi tiết bài viết
-                 Cấu trúc gợi ý:
-                 - Ảnh đại diện (full width)
-                 - Tiêu đề bài viết (h2)
-                 - Thông tin: tác giả, ngày đăng, danh mục
-                 - Nội dung bài viết (HTML)
-                 - Chia sẻ: Facebook, Twitter
-                 - Bài viết liên quan (grid 3-4 card cuối trang)
-                 - Comment / bình luận (nếu có)
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-file-earmark-text" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang chi tiết bài viết sẽ được cập nhật</p>
-            </div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/blog}">Bài viết</a></li>
+                    <li class="breadcrumb-item active" th:text="${post.tieuDe}">Tieu de</li>
+                </ol>
+            </nav>
+
+            <article class="blog-detail">
+                <h2 class="fw-bold mb-3" th:text="${post.tieuDe}">Tieu de</h2>
+
+                <div class="d-flex align-items-center gap-3 text-muted small mb-4">
+                    <span th:if="${tacGia != null}">
+                        <i class="bi bi-person me-1"></i><span th:text="${tacGia}">Tac gia</span>
+                    </span>
+                    <span>
+                        <i class="bi bi-calendar me-1"></i><span th:text="${#temporals.format(post.ngayTao, 'dd/MM/yyyy')}"></span>
+                    </span>
+                    <span>
+                        <i class="bi bi-eye me-1"></i><span th:text="${post.luotXem} + ' lượt xem'"></span>
+                    </span>
+                </div>
+
+                <div th:if="${post.hinhAnh != null}" class="mb-4">
+                    <img th:src="@{${post.hinhAnh}}" alt=""
+                         class="w-100 rounded"
+                         style="max-height:400px;object-fit:cover;" />
+                </div>
+
+                <div th:if="${post.tomTat != null}"
+                     class="mb-4 p-3 bg-light rounded fst-italic text-muted"
+                     th:text="${post.tomTat}">
+                </div>
+
+                <div class="blog-content" th:utext="${post.noiDung}">
+                </div>
+
+                <div class="mt-5 pt-3 border-top">
+                    <a th:href="@{/blog}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+                    </a>
+                </div>
+            </article>
         </div>
     </div>
     </body>

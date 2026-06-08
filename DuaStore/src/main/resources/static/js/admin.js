@@ -71,29 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* ── Admin theme toggle ──
-       ★ Dùng CHUNG localStorage key 'duastore-theme' với client
-         → đổi theme bên admin tự động đồng bộ bên client (và ngược lại)
-       ★ CSS: dùng [data-theme="dark"] selector giống client
-       ★ Inline script trong <head> base.html (admin) set data-theme trước render
-       ★ Hỗ trợ 2 toggle: profile dropdown (#admProfileThemeToggle) + sidebar (#admSidebarThemeToggle) */
-    function adminGetTheme() { return localStorage.getItem('duastore-theme') || 'light'; }
-    function adminSetTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('duastore-theme', theme);
-        const isDark = theme === 'dark';
-        document.querySelectorAll('[id$="ThemeIcon"]').forEach(el => {
-            el.className = isDark ? 'bi bi-sun' : 'bi bi-moon-stars';
-        });
-        document.querySelectorAll('[id$="ThemeLabel"]').forEach(el => {
-            el.textContent = isDark ? 'Chế độ sáng' : 'Chế độ tối';
-        });
-    }
-    adminSetTheme(adminGetTheme());
-    document.querySelectorAll('[id$="ThemeToggle"]').forEach(btn => {
-        btn.addEventListener('click', (e) => { e.preventDefault(); adminSetTheme(adminGetTheme() === 'dark' ? 'light' : 'dark'); });
-    });
-
     /* ── Auto-dismiss alerts sau 4 giây ── */
     document.querySelectorAll('.alert.alert-dismissible').forEach(el => {
         setTimeout(() => {

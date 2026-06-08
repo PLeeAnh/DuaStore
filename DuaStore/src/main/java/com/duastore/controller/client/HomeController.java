@@ -1,53 +1,73 @@
 package com.duastore.controller.client;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.duastore.model.FlashSale;
+import com.duastore.model.Product;
+import com.duastore.model.ProductVariant;
+import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.client.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import java.util.List;
-import java.util.Map;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class HomeController {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final ProductService productService;
+    private final FlashSaleRepository flashSaleRepository;
+    private final ProductVariantRepository variantRepository;
+
+    public HomeController(ProductService productService,
+                          FlashSaleRepository flashSaleRepository,
+                          ProductVariantRepository variantRepository) {
+        this.productService = productService;
+        this.flashSaleRepository = flashSaleRepository;
+        this.variantRepository = variantRepository;
+    }
 
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "Trang chủ");
-        
-        try {
-            Integer userId = 2; // Tài khoản test Nguyễn Văn An
-            
-            // --- 1. LẤY SẢN PHẨM YÊU THÍCH ---
-            String sql = "SELECT DISTINCT w.productId, p.tenSanPham, p.giaBan, p.hinhAnhHienThi " +
-                         "FROM Wishlists w " +
-                         "JOIN vw_ProductPrice p ON w.productId = p.id " +
-                         "WHERE w.userId = ?";
-            List<Map<String, Object>> myWishlist = jdbcTemplate.queryForList(sql, userId);
-            model.addAttribute("myWishlist", myWishlist); 
-            
-            List<Integer> likedIds = jdbcTemplate.queryForList("SELECT productId FROM Wishlists WHERE userId = ?", Integer.class, userId);
-            model.addAttribute("likedIds", likedIds);
-            
-            // --- 2. CODE THÊM MỚI: LẤY SẢN PHẨM TRONG GIỎ HÀNG ---
-            String cartSql = "SELECT c.productId, p.tenSanPham, p.giaBan, p.hinhAnhHienThi, c.soLuong " +
-                             "FROM CartItems c " +
-                             "JOIN vw_ProductPrice p ON c.productId = p.id " +
-                             "WHERE c.userId = ?";
-            List<Map<String, Object>> myCart = jdbcTemplate.queryForList(cartSql, userId);
-            model.addAttribute("myCart", myCart); // Gửi danh sách giỏ hàng ra HTML
 
-            // Tự động tính tổng số lượng để hiển thị lên Badge màu đỏ bên cạnh Icon chiếc túi
-            String countSql = "SELECT SUM(soLuong) FROM CartItems WHERE userId = ?";
-            Integer cartCount = jdbcTemplate.queryForObject(countSql, Integer.class, userId);
-            model.addAttribute("cartCount", cartCount != null ? cartCount : 0);
+        List<Product> featured = productService.getFeatured();
+        model.addAttribute("featuredProducts", featured);
 
-        } catch (Exception e) {
-            System.out.println("Lỗi đọc DB: " + e.getMessage());
+        Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
+        Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
+        if (!featured.isEmpty()) {
+            List<Integer> ids = featured.stream().map(Product::getId).collect(Collectors.toList());
+            List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
+            for (FlashSale fs : activeFlashSales) {
+                flashSaleMap.put(fs.getProductId(), fs);
+            }
+            List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
+            variantsMap = allVariants.stream()
+                .collect(Collectors.groupingBy(ProductVariant::getProductId));
         }
+        model.addAttribute("flashSaleMap", flashSaleMap);
+        model.addAttribute("variantsMap", variantsMap);
+
+        // Group variants by cap type for card display
+        Map<Integer, Map<String, List<ProductVariant>>> groupedVariantsMap = new HashMap<>();
+        for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
+            Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();
+            for (ProductVariant v : entry.getValue()) {
+                String capType = "Phân loại";
+                if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
+                    String[] parts = v.getTenBienThe().split("\\s*-\\s*");
+                    if (parts.length >= 2) capType = parts[1].trim();
+                } else if (v.getDungTich() != null) {
+                    capType = "Dung tích";
+                }
+                grouped.computeIfAbsent(capType, k -> new ArrayList<>()).add(v);
+            }
+            groupedVariantsMap.put(entry.getKey(), grouped);
+        }
+        model.addAttribute("groupedVariantsMap", groupedVariantsMap);
 
         return "view/client/index";
     }
