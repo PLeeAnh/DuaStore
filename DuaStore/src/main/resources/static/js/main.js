@@ -404,18 +404,54 @@ function removeWishlist(wishlistId) {
 }
 
 /* ═══ CART ═══ */
-function addToCart(productId, variantId, quantity) {
-    const card = document.querySelector('.ds-product-card[data-productid="' + productId + '"]');
-    const btnAdd = card ? card.querySelector('.ds-card-add-cart') : null;
-    fetch('/api/cart/add-popup', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, variantId, quantity })
-    }).then(r => r.json()).then(data => {
+function addToCart(productId, variantId) {
+    // 1. Gọi API thêm vào giỏ hàng
+    fetch('/api/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: productId, variantId: variantId, quantity: 1 })
+    })
+    .then(r => r.json())
+    .then(data => {
         if (data.success) {
-            if (btnAdd) btnAdd.classList.add('added');
-            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+            // 2. Cập nhật số lượng trên icon giỏ hàng (Badge)
+            const cartBadge = document.getElementById('cartBadge');
+            if(cartBadge) {
+                cartBadge.classList.remove('d-none');
+                cartBadge.innerText = parseInt(cartBadge.innerText) + 1;
+            }
+
+            // 3. TỰ ĐỘNG CHÈN ITEM VÀO POPUP (Phần này bạn đang thiếu)
+            const container = document.getElementById('cart-items-container');
+            if (container) {
+                // Bạn có thể tạo HTML dựa trên dữ liệu 'data' trả về từ Server
+                const newItemHtml = `
+                    <div class="popup-item" id="cart-item-${productId}">
+                        <div style="width: 50px; height: 50px; background: #eee; margin-right: 15px;">
+                            <img src="${data.imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div class="popup-item-info">
+                            <div>${data.productName}</div>
+                            <div class="text-danger">${data.price.toLocaleString('vi-VN')}đ</div>
+                        </div>
+                        <button onclick="removeCartItem(${productId})" class="btn-delete-item">×</button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', newItemHtml);
+            }
+
+            // 4. Bật popup lên để người dùng thấy là đã thêm thành công
+            const cartPopup = document.getElementById('cart-popup');
+            if (cartPopup) {
+                cartPopup.style.display = 'block';
+                // Tự tắt sau 3s cho đỡ vướng
+                setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
+            }
+        } else {
+            alert(data.message || 'Thêm vào giỏ không thành công');
         }
-    }).catch(error => console.error("Lỗi giỏ hàng: ", error));
+    })
+    .catch(err => console.log('Lỗi thêm giỏ hàng:', err));
 }
 
 function addToCartFromWishlist(productId, variantId) { addToCart(productId, variantId, 1); }

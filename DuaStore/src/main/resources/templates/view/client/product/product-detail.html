@@ -277,17 +277,62 @@
         }
 
         function addToCart() {
-            const variantId = selectedVariantId;
-            if (!variantId) return;
-            const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-            fetch('/api/cart/add-popup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: productId, variantId: variantId, quantity: qty })
-            }).then(r => r.json()).then(data => {
-                if (data.success && typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-            }).catch(function() {});
+    const variantId = selectedVariantId;
+    if (!variantId) {
+        alert('Vui lòng chọn biến thể sản phẩm');
+        return;
+    }
+    const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+    
+    // Gọi API thêm hàng
+    fetch('/api/cart/add-popup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            productId: productId,
+            variantId: variantId, 
+            quantity: qty 
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // 1. Cập nhật số lượng trên icon giỏ hàng (Badge)
+            const cartBadge = document.getElementById('cartBadge');
+            if (cartBadge) {
+                cartBadge.classList.remove('d-none');
+                cartBadge.innerText = data.cartCount; 
+            }
+
+            // 2. TỰ ĐỘNG LÀM MỚI NỘI DUNG POPUP MÀ KHÔNG CẦN F5
+            // Chúng ta gọi lại trang giỏ hàng bằng fetch để lấy HTML mới nhất
+            fetch('/gio-hang')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newCartItems = doc.getElementById('cart-items-container');
+                const currentContainer = document.getElementById('cart-items-container');
+                
+                // Thay thế nội dung cũ bằng nội dung mới lấy từ Server
+                if (newCartItems && currentContainer) {
+                    currentContainer.innerHTML = newCartItems.innerHTML;
+                    console.log("Đã cập nhật danh sách sản phẩm trong Popup!");
+                }
+            });
+
+            // 3. Hiện Popup lên 3 giây để người dùng thấy là đã thêm thành công
+            const cartPopup = document.getElementById('cart-popup');
+            if (cartPopup) {
+                cartPopup.style.display = 'block';
+                setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
+            }
+        } else {
+            alert(data.message || 'Thêm thất bại');
         }
+    })
+    .catch(() => alert('Lỗi kết nối hệ thống'));
+}
 
         initializeVariantSelection();
 
