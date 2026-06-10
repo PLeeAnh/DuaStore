@@ -277,62 +277,100 @@
         }
 
         function addToCart() {
-    const variantId = selectedVariantId;
-    if (!variantId) {
-        alert('Vui lòng chọn biến thể sản phẩm');
-        return;
-    }
-    const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-    
-    // Gọi API thêm hàng
-    fetch('/api/cart/add-popup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            productId: productId,
-            variantId: variantId, 
-            quantity: qty 
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            // 1. Cập nhật số lượng trên icon giỏ hàng (Badge)
-            const cartBadge = document.getElementById('cartBadge');
-            if (cartBadge) {
-                cartBadge.classList.remove('d-none');
-                cartBadge.innerText = data.cartCount; 
-            }
+            const variantId = selectedVariantId;
+            if (!variantId) return;
+            const qty = parseInt(document.getElementById('qtyInput').value) || 1;
 
-            // 2. TỰ ĐỘNG LÀM MỚI NỘI DUNG POPUP MÀ KHÔNG CẦN F5
-            // Chúng ta gọi lại trang giỏ hàng bằng fetch để lấy HTML mới nhất
-            fetch('/gio-hang')
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newCartItems = doc.getElementById('cart-items-container');
-                const currentContainer = document.getElementById('cart-items-container');
-                
-                // Thay thế nội dung cũ bằng nội dung mới lấy từ Server
-                if (newCartItems && currentContainer) {
-                    currentContainer.innerHTML = newCartItems.innerHTML;
-                    console.log("Đã cập nhật danh sách sản phẩm trong Popup!");
+            // 1. Lấy thông tin sản phẩm từ giao diện hiện tại
+            const btn = document.querySelector('.variant-btn[data-id="' + variantId + '"]');
+            const rawPrice = btn ? parseInt(btn.dataset.price) : 0;
+            const variantName = btn ? btn.innerText : 'Mặc định';
+            const productName = document.querySelector('.product-detail-info h3').innerText;
+            const imgSrc = document.getElementById('mainImage').src;
+
+            fetch('/api/cart/add-popup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: productId, variantId: variantId, quantity: qty })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    // Cập nhật số đếm badge
+                    if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+                    
+                    // 2. Tự động thêm phần tử HTML vào popup giỏ hàng
+                    addCartPopupItemFromDetail(productId, variantId, qty, productName, imgSrc, variantName, rawPrice);
+                    
+                    // 3. (Tùy chọn) Hiển thị thông báo để báo hiệu cho user
+                    alert('Đã thêm sản phẩm vào giỏ hàng!');
+                    // Hoặc dùng hàm togglePopup('cart-popup') nếu bạn muốn tự động mở popup giỏ hàng ra cho user xem.
+                } else {
+                    alert('Lỗi: ' + data.message);
                 }
+            }).catch(function(err) {
+                console.error(err);
+                alert('Có lỗi kết nối xảy ra!');
             });
-
-            // 3. Hiện Popup lên 3 giây để người dùng thấy là đã thêm thành công
-            const cartPopup = document.getElementById('cart-popup');
-            if (cartPopup) {
-                cartPopup.style.display = 'block';
-                setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
-            }
-        } else {
-            alert(data.message || 'Thêm thất bại');
         }
-    })
-    .catch(() => alert('Lỗi kết nối hệ thống'));
-}
+
+        // Hàm hỗ trợ: tự động tạo HTML cho giỏ hàng mà không cần load lại trang
+        function addCartPopupItemFromDetail(productId, variantId, qty, productName, imgSrc, variantName, rawPrice) {
+            const container = document.getElementById('cart-items-container');
+            if (!container) return;
+
+            // Xóa thông báo "Giỏ hàng trống" (nếu đang trống)
+            const emptyMsg = container.querySelector('.text-center.text-muted');
+            if (emptyMsg) emptyMsg.remove();
+
+            const imgHtml = imgSrc
+                ? '<img src="' + imgSrc + '" class="w-100 h-100 object-fit-cover" alt="SP">'
+                : '<i class="bi bi-box-seam text-secondary"></i>';
+            const priceFmt = rawPrice.toLocaleString('vi-VN') + 'đ';
+
+            // Nếu sản phẩm đã tồn tại trong popup, chỉ cần cộng dồn số lượng và cập nhật giá
+            const existing = document.getElementById('cart-item-' + variantId);
+            if (existing) {
+                const qtySpan = existing.querySelector('#popup-qty-' + variantId);
+                if (qtySpan) {
+                    const newQty = parseInt(qtySpan.textContent) + qty;
+                    qtySpan.textContent = newQty;
+                    const ps = existing.querySelector('#popup-price-' + variantId);
+                    if (ps) ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + 'đ';
+                }
+                return;
+            }
+
+            // Nếu sản phẩm chưa có, tạo cấu trúc thẻ HTML mới
+            const html = '<div class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" id="cart-item-' + variantId + '" data-productid="' + productId + '">' +
+                '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
+                '<div class="popup-item-info flex-grow-1">' +
+                    '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + productName + '</a>' +
+                    '<div class="small text-muted mb-2" style="font-size:0.8rem;">' + variantName + '</div>' +
+                    '<div class="d-flex align-items-center">' +
+                        '<div class="input-group input-group-sm" style="width:85px;">' +
+                            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',-1)">-</button>' +
+                            '<span class="form-control text-center py-0 px-1" id="popup-qty-' + variantId + '">' + qty + '</span>' +
+                            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',1)">+</button>' +
+                        '</div>' +
+                        '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + variantId + '" data-price="' + rawPrice + '">' + priceFmt + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" onclick="removeCartItem(' + variantId + ')"><i class="bi bi-trash text-danger"></i></button>' +
+            '</div>';
+            
+            // Đẩy phần tử HTML vừa tạo vào danh sách giỏ hàng
+            container.insertAdjacentHTML('beforeend', html);
+
+            // Tự động thêm nút "Thanh toán tất cả" ở dưới cùng nếu chưa có
+            if (!document.querySelector('#cart-popup .mt-2.pt-2')) {
+                const popup = document.getElementById('cart-popup');
+                if (popup) {
+                    const div = document.createElement('div');
+                    div.className = 'mt-2 pt-2';
+                    div.innerHTML = '<a href="/checkout" class="btn btn-danger w-100 fw-semibold py-2">Thanh toán tất cả</a>';
+                    popup.appendChild(div);
+                }
+            }
+        }
 
         initializeVariantSelection();
 

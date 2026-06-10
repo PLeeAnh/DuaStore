@@ -146,9 +146,7 @@
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
                                     <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>                                 
                                 </div>
-                                <button class="btn-delete-item" th:onclick="'removeWishlist(' + ${item.productId} + ')'" title="Xóa">
-                                    <i class="bi bi-x-circle"></i>
-                                </button>
+                                
         </div>
     </div>
 </div>
