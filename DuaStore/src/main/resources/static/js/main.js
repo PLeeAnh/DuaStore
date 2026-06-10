@@ -216,26 +216,38 @@ function updateCartBadge(count) {
 
 /* ═══ POPUP TOGGLE ═══ */
 // ĐÓNG / MỞ POPUP (Tích hợp tự động ẩn chấm đỏ thông báo)
+/* ═══ POPUP TOGGLE ═══ */
 function togglePopup(popupId) {
-    document.querySelectorAll('.custom-popup').forEach(popup => { 
-        if(popup.id !== popupId) popup.style.display = 'none'; 
+    document.querySelectorAll('.custom-popup').forEach(p => { 
+        if (p.id !== popupId) p.style.display = 'none'; 
     });
     
     const popup = document.getElementById(popupId);
-    if(popup) {
-        popup.style.display = (popup.style.display === 'block') ? 'none' : 'block';
+    if (popup) {
+        popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
         
-        // LÔ-GÍC MỚI: Ẩn chấm đỏ ngay khi người dùng đã bấm "xem" popup
-        if (popup.style.display === 'block') {
-            if (popupId === 'wishlist-popup') {
-                document.getElementById('wishlistBadge')?.classList.add('d-none');
-                document.getElementById('detailWishlistBadge')?.classList.add('d-none');
-            } else if (popupId === 'cart-popup') {
-                document.getElementById('cartBadge')?.classList.add('d-none');
-            }
+        // Xử lý ẩn chấm đỏ khi mở popup yêu thích (giữ nguyên từ bản sửa trước)
+        if (popupId === 'wishlist-popup' && popup.style.display === 'block') {
+            document.getElementById('wishlistBadge')?.classList.add('d-none');
+            document.getElementById('detailWishlistBadge')?.classList.add('d-none');
         }
     }
 }
+
+document.addEventListener('click', function(e) {
+    // 🛠 QUAN TRỌNG: Ngăn popup đóng khi click vào nút thùng rác (phần tử vừa bị xóa khỏi DOM)
+    if (!document.body.contains(e.target)) return;
+
+    ['wishlist', 'cart', 'profile'].forEach(type => {
+        const btn = document.getElementById('btn-' + type + '-toggle');
+        const popup = document.getElementById(type + '-popup');
+        
+        // Nếu click ra ngoài cả nút bật và popup thì mới đóng
+        if (btn && popup && !btn.contains(e.target) && !popup.contains(e.target)) {
+            popup.style.display = 'none';
+        }
+    });
+});
 document.addEventListener('click', function(e) {
     ['wishlist', 'cart', 'profile'].forEach(type => {
         const btn = document.getElementById('btn-' + type + '-toggle');
@@ -323,6 +335,7 @@ function registerSubmit(event) {
 }
 
 /* ═══ WISHLIST ═══ */
+/* ═══ WISHLIST ═══ */
 function toggleWishlist(btnElement, productId) {
     const icon = btnElement.querySelector('i');
     const container = document.getElementById('wishlist-items-container');
@@ -330,6 +343,7 @@ function toggleWishlist(btnElement, productId) {
     let productPrice = 'Đang cập nhật';
     let productImg = '';
     const card = btnElement.closest('.ds-product-card');
+    
     if (card) {
         const nameEl = card.querySelector('.ds-product-name');
         const priceEl = card.querySelector('.ds-price-btn-amount');
@@ -343,6 +357,7 @@ function toggleWishlist(btnElement, productId) {
         if (detailPrice) productPrice = detailPrice.innerText;
         if (detailImg) productImg = detailImg.src;
     }
+    
     fetch('/api/wishlist/toggle', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId })
@@ -352,43 +367,47 @@ function toggleWishlist(btnElement, productId) {
             return;
         }
         if (btnElement.classList.contains('active')) {
+            // HỦY YÊU THÍCH
             btnElement.classList.remove('active');
             icon.classList.replace('bi-heart-fill', 'bi-heart');
             const item = document.getElementById('wishlist-item-' + productId);
             if (item) item.remove();
         } else {
+            // THÊM YÊU THÍCH
             btnElement.classList.add('active');
             icon.classList.replace('bi-heart', 'bi-heart-fill');
             const emptyMsg = container?.querySelector('.text-muted.text-center');
             if (emptyMsg) emptyMsg.remove();
+            
             const imgHtml = productImg && productImg.trim()
                 ? '<img src="' + productImg + '" class="w-100 h-100 object-fit-cover" alt="SP">'
                 : '<i class="bi bi-box-seam text-secondary"></i>';
+                
             if (container) {
+                // ĐÃ XÓA NÚT THÊM VÀO GIỎ HÀNG Ở ĐÂY
                 container.insertAdjacentHTML('beforeend',
                     '<div class="popup-item" id="wishlist-item-' + productId + '">' +
                         '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:15px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
                         '<div class="popup-item-info">' +
                             '<a href="/san-pham/' + productId + '">' + productName + '</a>' +
                             '<div class="text-danger fw-semibold mt-1">' + productPrice + '</div>' +
-                            '<button class="btn btn-sm btn-outline-primary mt-2 w-100" onclick="addToCartFromWishlist(' + productId + ', null)"><i class="bi bi-cart-plus"></i> Thêm vào giỏ</button>' +
                         '</div>' +
                         '<button class="btn-delete-item" onclick="removeWishlist(' + productId + ')" title="Xóa"><i class="bi bi-x-circle"></i></button>' +
                     '</div>');
             }
-            // CHƯA THÍCH -> THÊM YÊU THÍCH
-                btnElement.classList.add('active'); 
-                icon.classList.replace('bi-heart', 'bi-heart-fill');
-                
-                // --- THÊM 2 DÒNG NÀY VÀO ĐỂ HIỆN LẠI CHẤM ĐỎ ---
-                document.getElementById('wishlistBadge')?.classList.remove('d-none');
-                document.getElementById('detailWishlistBadge')?.classList.remove('d-none');
+            
+            // HIỆN LẠI CHẤM ĐỎ THÔNG BÁO CÓ SẢN PHẨM MỚI
+            document.getElementById('wishlistBadge')?.classList.remove('d-none');
+            document.getElementById('detailWishlistBadge')?.classList.remove('d-none');
         }
     }).catch(error => console.error("Lỗi yêu thích: ", error));
-    
 }
 
+/* ═══ WISHLIST (Xóa) ═══ */
 function removeWishlist(wishlistId) {
+    // Ngăn chặn sự kiện click lan ra ngoài (khóa chặt popup)
+    if (window.event) { window.event.stopPropagation(); window.event.preventDefault(); }
+
     const item = document.getElementById('wishlist-item-' + wishlistId);
     if (item) item.remove();
     fetch('/api/wishlist/toggle', {
@@ -404,54 +423,23 @@ function removeWishlist(wishlistId) {
 }
 
 /* ═══ CART ═══ */
-function addToCart(productId, variantId) {
-    // 1. Gọi API thêm vào giỏ hàng
-    fetch('/api/cart/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: productId, variantId: variantId, quantity: 1 })
-    })
-    .then(r => r.json())
-    .then(data => {
+function addToCart(productId, variantId, quantity) {
+    const card = document.querySelector('.ds-product-card[data-productid="' + productId + '"]');
+    const btnAdd = card ? card.querySelector('.ds-card-add-cart') : null;
+    fetch('/api/cart/add-popup', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, variantId, quantity })
+    }).then(r => r.json()).then(data => {
         if (data.success) {
-            // 2. Cập nhật số lượng trên icon giỏ hàng (Badge)
-            const cartBadge = document.getElementById('cartBadge');
-            if(cartBadge) {
-                cartBadge.classList.remove('d-none');
-                cartBadge.innerText = parseInt(cartBadge.innerText) + 1;
+            if (btnAdd) btnAdd.classList.add('added');
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+            
+            // ---> THÊM DÒNG NÀY ĐỂ RENDER ITEM VÀO POPUP <---
+            if (card) {
+                addCartPopupItem(card, productId, variantId, quantity);
             }
-
-            // 3. TỰ ĐỘNG CHÈN ITEM VÀO POPUP (Phần này bạn đang thiếu)
-            const container = document.getElementById('cart-items-container');
-            if (container) {
-                // Bạn có thể tạo HTML dựa trên dữ liệu 'data' trả về từ Server
-                const newItemHtml = `
-                    <div class="popup-item" id="cart-item-${productId}">
-                        <div style="width: 50px; height: 50px; background: #eee; margin-right: 15px;">
-                            <img src="${data.imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <div class="popup-item-info">
-                            <div>${data.productName}</div>
-                            <div class="text-danger">${data.price.toLocaleString('vi-VN')}đ</div>
-                        </div>
-                        <button onclick="removeCartItem(${productId})" class="btn-delete-item">×</button>
-                    </div>
-                `;
-                container.insertAdjacentHTML('beforeend', newItemHtml);
-            }
-
-            // 4. Bật popup lên để người dùng thấy là đã thêm thành công
-            const cartPopup = document.getElementById('cart-popup');
-            if (cartPopup) {
-                cartPopup.style.display = 'block';
-                // Tự tắt sau 3s cho đỡ vướng
-                setTimeout(() => { cartPopup.style.display = 'none'; }, 3000);
-            }
-        } else {
-            alert(data.message || 'Thêm vào giỏ không thành công');
         }
-    })
-    .catch(err => console.log('Lỗi thêm giỏ hàng:', err));
+    }).catch(error => console.error("Lỗi giỏ hàng: ", error));
 }
 
 function addToCartFromWishlist(productId, variantId) { addToCart(productId, variantId, 1); }
@@ -474,13 +462,20 @@ function addToCartFromCard(btn) {
         if (data.success) {
             btn.classList.add('added');
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+
+            // ---> THÊM DÒNG NÀY ĐỂ RENDER ITEM VÀO POPUP <---
+            addCartPopupItem(card, productId, variantId, qty);
         }
     }).catch(function(err) {
         console.error('Lỗi thêm giỏ hàng:', err);
     });
 }
 
+/* ═══ CART (Xóa) ═══ */
 function removeCartItem(cartItemId) {
+    // Ngăn chặn sự kiện click lan ra ngoài (khóa chặt popup)
+    if (window.event) { window.event.stopPropagation(); window.event.preventDefault(); }
+
     const item = document.getElementById('cart-item-' + cartItemId);
     const pid = item ? item.getAttribute('data-productid') : null;
     if (item) item.remove();
@@ -507,8 +502,11 @@ function removeCartItem(cartItemId) {
     }).catch(error => console.error("Lỗi xóa giỏ hàng:", error));
 }
 
-/* ═══ UPDATE POPUP QTY ═══ */
+/* ═══ UPDATE POPUP QTY (+/- số lượng) ═══ */
 function updatePopupQty(variantId, delta) {
+    // Ngăn chặn sự kiện click lan ra ngoài (khóa chặt popup)
+    if (window.event) { window.event.stopPropagation(); window.event.preventDefault(); }
+
     const qtySpan = document.getElementById('popup-qty-' + variantId);
     const priceSpan = document.getElementById('popup-price-' + variantId);
     if (!qtySpan) return;
