@@ -19,8 +19,17 @@
             <span th:text="${errorMsg}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+        <div th:if="${not tatCa and pendingOrders > 0}" class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>Bạn có <strong th:text="${pendingOrders}"></strong> đơn hàng đang chờ xác nhận.</span>
+            <a th:href="@{/admin/don-hang(tatCa=true)}" class="ms-auto btn btn-sm btn-outline-warning">Xem danh sách</a>
+        </div>
         <div class="adm-page-header">
             <h4><i class="bi bi-receipt me-2"></i>Đơn hàng</h4>
+            <div class="btn-group btn-group-sm">
+                <a th:href="@{/admin/don-hang(tatCa=false)}" class="btn" th:classappend="${not tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Đơn của tôi</a>
+                <a th:href="@{/admin/don-hang(tatCa=true)}" class="btn" th:classappend="${tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Tất cả</a>
+            </div>
         </div>
         <div class="adm-table-wrap">
             <table class="table table-hover align-middle mb-0">
@@ -42,8 +51,8 @@
                         <td><span th:text="${o.tenNguoiNhan}"></span><br/><small class="text-muted" th:text="${o.soDienThoai}"></small></td>
                         <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                         <td>
-                            <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : 'bg-secondary'}"
-                                  th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon}"></span>
+                            <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : o.trangThaiDon == 'DA_THANH_TOAN' ? 'bg-primary' : o.trangThaiDon == 'DA_NHAN_HANG' ? 'bg-success' : 'bg-secondary'}"
+                                  th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon == 'DA_THANH_TOAN' ? 'Đã thanh toán' : o.trangThaiDon == 'DA_NHAN_HANG' ? 'Đã nhận hàng' : o.trangThaiDon}"></span>
                         </td>
                         <td th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
@@ -60,14 +69,14 @@
             <nav>
                 <ul class="pagination pagination-sm justify-content-center mb-0">
                     <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage - 1})}">&laquo;</a>
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage - 1}, tatCa=${tatCa})}">&laquo;</a>
                     </li>
                     <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                         th:classappend="${i == currentPage} ? active">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${i})}" th:text="${i + 1}"></a>
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${i}, tatCa=${tatCa})}" th:text="${i + 1}"></a>
                     </li>
                     <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? disabled">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage + 1})}">&raquo;</a>
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage + 1}, tatCa=${tatCa})}">&raquo;</a>
                     </li>
                 </ul>
             </nav>

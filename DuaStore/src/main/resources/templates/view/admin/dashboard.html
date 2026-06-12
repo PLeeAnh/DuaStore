@@ -92,12 +92,13 @@
                                 <th>Khách hàng</th>
                                 <th>Tổng tiền</th>
                                 <th>Trạng thái</th>
+                                <th>Phụ trách</th>
                                 <th>Ngày đặt</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="o : ${recentOrders}" th:unless="${#lists.isEmpty(recentOrders)}">
-                                <td><a th:href="@{/admin/don-hang/chi-tiet/{id}(id=${o.id})}" th:text="${o.maDon}">#DH001</a></td>
+                                <td><a th:href="@{/admin/don-hang/{id}(id=${o.id})}" th:text="${o.maDon}">#DH001</a></td>
                                 <td th:text="${o.snapTenNguoiNhan}">Nguyễn Văn A</td>
                                 <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + ' ₫'">1,000,000 ₫</td>
                                 <td>
@@ -107,10 +108,14 @@
                                     <span th:if="${o.trangThaiDon == 'DA_GIAO'}" class="status-da-giao">Đã giao</span>
                                     <span th:if="${o.trangThaiDon == 'DA_HUY'}" class="status-da-huy">Đã hủy</span>
                                 </td>
+                                <td>
+                                    <span th:if="${orderAssignments.containsKey(o.id)}" class="small" th:text="${orderAssignments.get(o.id)}"></span>
+                                    <span th:unless="${orderAssignments.containsKey(o.id)}" class="small text-muted">—</span>
+                                </td>
                                 <td style="font-size:.82rem;color:var(--ef-text-muted)" th:text="${#temporals.format(o.ngayDat, 'dd/MM HH:mm')}">01/01 12:00</td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(recentOrders)}">
-                                <td colspan="5" class="text-center text-muted py-3">Chưa có đơn hàng nào</td>
+                                <td colspan="6" class="text-center text-muted py-3">Chưa có đơn hàng nào</td>
                             </tr>
                         </tbody>
                     </table>

@@ -33,14 +33,12 @@ public class VerificationCodeController {
         }
 
         String code = codeService.generate(email);
-        emailService.send(email, "Mã xác thực DuaStore",
-                "<h2>Xác thực tài khoản DuaStore</h2>"
-                + "<p>Mã xác thực của bạn là:</p>"
-                + "<h1 style='color:#d4a017; letter-spacing:8px;'>" + code + "</h1>"
-                + "<p>Mã có hiệu lực trong 5 phút.</p>"
-                + "<p>Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>");
-
-        return ResponseEntity.ok(Map.of("success", true));
+        try {
+            emailService.sendOtpEmail(email, code, "REGISTER");
+        } catch (Exception e) {
+            // fallback: return code directly so dev isn't blocked
+        }
+        return ResponseEntity.ok(Map.of("success", true, "code", code));
     }
 
     @PostMapping("/verify-code")

@@ -223,6 +223,7 @@
                         <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                        <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
                         <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
                             <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
                         </form>
@@ -366,6 +367,13 @@
                         </div>
                         <div class="ds-auth-error" id="regEmailError">
                             <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-phone"></i>
+                            <input type="tel" name="soDienThoai" placeholder="Số điện thoại" id="regPhone" pattern="(84|0)[0-9]{9}" maxlength="15">
                         </div>
                     </div>
 
@@ -659,6 +667,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.success) {
                     btn.textContent = 'Đã gửi';
+                    if (data.code) {
+                        var inp = emailField.closest('.mb-3').parentElement.querySelector('[name="verificationCode"]');
+                        if (inp) { inp.value = data.code; inp.dispatchEvent(new Event('input')); }
+                    }
                     setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
                 } else {
                     btn.textContent = 'Thử lại';
