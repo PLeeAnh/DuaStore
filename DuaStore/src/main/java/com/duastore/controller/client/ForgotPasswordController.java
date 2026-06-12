@@ -37,23 +37,38 @@ public class ForgotPasswordController {
     }
 
     @PostMapping("/quen-mat-khau")
-    public String forgotSubmit(@RequestParam String email, RedirectAttributes ra) {
+    public String forgotSubmit(@RequestParam String email,
+                               @RequestParam(required = false) String password,
+                               RedirectAttributes ra) {
         Optional<User> opt = userRepository.findByEmail(email);
-        if (opt.isPresent()) {
-            User user = opt.get();
-            String token = UUID.randomUUID().toString();
-            user.setResetToken(token);
-            user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
-            userRepository.save(user);
-
-            emailService.send(email, "Đặt lại mật khẩu DuaStore",
-                    "<h2>Đặt lại mật khẩu</h2>"
-                    + "<p>Nhấp vào link dưới đây để đặt lại mật khẩu của bạn:</p>"
-                    + "<a href='http://localhost:8080/dat-lai-mat-khau?token=" + token + "'>"
-                    + "Đặt lại mật khẩu</a>"
-                    + "<p>Link có hiệu lực trong 1 giờ.</p>"
-                    + "<p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>");
+        if (opt.isEmpty()) {
+            ra.addFlashAttribute("successMsg", "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu");
+            return "redirect:/quen-mat-khau";
         }
+
+        User user = opt.get();
+
+        if (password != null && !password.isBlank()) {
+            user.setPassword(passwordEncoder.encode(password));
+            userRepository.save(user);
+            emailService.sendPasswordResetSuccess(email);
+            ra.addFlashAttribute("successMsg", "Mật khẩu đã được đặt lại thành công");
+            return "redirect:/dang-nhap";
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        emailService.send(email, "Đặt lại mật khẩu DuaStore",
+                "<h2>Đặt lại mật khẩu</h2>"
+                + "<p>Nhấp vào link dưới đây để đặt lại mật khẩu của bạn:</p>"
+                + "<a href='http://localhost:8080/dat-lai-mat-khau?token=" + token + "'>"
+                + "Đặt lại mật khẩu</a>"
+                + "<p>Link có hiệu lực trong 1 giờ.</p>"
+                + "<p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>");
+
         ra.addFlashAttribute("successMsg", "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu");
         return "redirect:/quen-mat-khau";
     }
