@@ -23,8 +23,8 @@
                             <h5 class="fw-bold mb-1">Mã đơn: <span th:text="${order.maDon}"></span></h5>
                             <small class="text-muted" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></small>
                         </div>
-                        <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : 'bg-secondary'}"
-                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon}"></span>
+                        <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_THANH_TOAN' ? 'bg-primary' : order.trangThaiDon == 'DA_NHAN_HANG' ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_THANH_TOAN' ? 'Đã thanh toán' : order.trangThaiDon == 'DA_NHAN_HANG' ? 'Đã nhận hàng' : order.trangThaiDon}"></span>
                     </div>
                 </div>
             </div>

@@ -43,8 +43,20 @@
                     <p class="mb-1"><strong>PT thanh toán:</strong> <span th:text="${order.phuongThucTT == 'COD' ? 'COD' : order.phuongThucTT == 'CHUYEN_KHOAN' ? 'Chuyển khoản' : order.phuongThucTT}"></span></p>
                     <p class="mb-1"><strong>PT giao hàng:</strong> <span th:text="${order.phuongThucGiaoHang == 'NHANH' ? 'Giao nhanh' : 'Giao tiêu chuẩn'}"></span></p>
                     <p class="mb-0"><strong>Trạng thái:</strong>
-                        <span class="badge" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : 'bg-secondary'}"
-                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon}"></span>
+                        <span class="badge" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon}"></span>
+                    </p>
+                </div>
+                <div class="adm-card mt-3" th:if="${assignment != null}">
+                    <h6>Admin phụ trách</h6>
+                    <p class="mb-0">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <strong th:text="${assignment.admin.hoTen}"></strong>
+                        <span class="text-muted small" th:text="'(' + ${assignment.admin.email} + ')'"></span>
+                        <br/>
+                        <span class="text-muted small">
+                            Phân lúc: <span th:text="${#temporals.format(assignment.ngayPhan, 'dd/MM/yyyy HH:mm')}"></span>
+                        </span>
                     </p>
                 </div>
             </div>
@@ -95,6 +107,18 @@
                         <span class="text-danger fs-5" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
                     </div>
                 </div>
+                <div class="adm-card mt-3" th:if="${not #lists.isEmpty(logs)}">
+                    <h6>Lịch sử thao tác</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li th:each="log : ${logs}" class="mb-2 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <strong th:text="${log.admin.hoTen}"></strong>
+                                <span class="text-muted" th:text="${#temporals.format(log.ngayTao, 'dd/MM/yyyy HH:mm')}"></span>
+                            </div>
+                            <div class="text-muted" th:text="${log.moTa}"></div>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="col-md-6">
                 <div class="adm-card">
@@ -104,6 +128,7 @@
                             <label class="form-label small">Trạng thái đơn</label>
                             <select th:field="*{trangThaiDon}" class="form-select form-select-sm">
                                 <option value="CHO_XAC_NHAN">Chờ xác nhận</option>
+                                <option value="DA_XAC_NHAN">Đã xác nhận</option>
                                 <option value="DANG_GIAO">Đang giao</option>
                                 <option value="DA_GIAO">Đã giao</option>
                                 <option value="DA_HUY">Đã hủy</option>

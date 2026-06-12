@@ -27,6 +27,15 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o ORDER BY o.ngayDat DESC")
     List<Order> findTop10ByOrderByNgayDatDesc(Pageable pageable);
 
+    @Query("SELECT o FROM Order o ORDER BY CASE WHEN o.trangThaiDon = 'CHO_XAC_NHAN' THEN 0 ELSE 1 END, o.ngayDat DESC")
+    Page<Order> findAllOrderByPriority(Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE o.id IN :ids ORDER BY CASE WHEN o.trangThaiDon = 'CHO_XAC_NHAN' THEN 0 ELSE 1 END, o.ngayDat DESC")
+    Page<Order> findByIdsWithPriority(@Param("ids") List<Integer> ids, Pageable pageable);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.trangThaiDon = :trangThaiDon AND o.id IN :ids")
+    long countByTrangThaiDonAndIdIn(@Param("trangThaiDon") String trangThaiDon, @Param("ids") List<Integer> ids);
+
     @Query("SELECT o.trangThaiDon, COUNT(o) FROM Order o GROUP BY o.trangThaiDon")
     List<Object[]> countGroupByTrangThaiDon();
 

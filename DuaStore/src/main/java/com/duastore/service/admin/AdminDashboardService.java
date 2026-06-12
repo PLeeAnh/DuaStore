@@ -2,6 +2,7 @@ package com.duastore.service.admin;
 
 import com.duastore.model.Order;
 import com.duastore.model.Product;
+import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.UserRepository;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,13 +26,16 @@ public class AdminDashboardService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final OrderAssignmentRepository orderAssignmentRepository;
 
     public AdminDashboardService(ProductRepository productRepository,
                                   OrderRepository orderRepository,
-                                  UserRepository userRepository) {
+                                  UserRepository userRepository,
+                                  OrderAssignmentRepository orderAssignmentRepository) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
+        this.orderAssignmentRepository = orderAssignmentRepository;
     }
 
     public long getTotalProducts() {
@@ -71,6 +76,17 @@ public class AdminDashboardService {
 
     public List<Order> getRecentOrders() {
         return orderRepository.findTop10ByOrderByNgayDatDesc(PageRequest.of(0, 10));
+    }
+
+    public Map<Integer, String> getOrderAssignments(List<Order> orders) {
+        Map<Integer, String> map = new HashMap<>();
+        for (Order o : orders) {
+            try {
+                var ass = orderAssignmentRepository.findByOrderId(o.getId());
+                ass.ifPresent(a -> map.put(o.getId(), a.getAdmin().getHoTen()));
+            } catch (Exception ignored) {}
+        }
+        return map;
     }
 
     private String formatVND(BigDecimal amount) {

@@ -4,6 +4,7 @@ import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,13 +16,23 @@ public class SecurityUtil {
         this.userRepository = userRepository;
     }
 
+    private String resolveEmail(Authentication auth) {
+        if (auth.getPrincipal() instanceof OAuth2User oauth2) {
+            String email = (String) oauth2.getAttributes().get("email");
+            if (email != null) return email;
+        }
+        return auth.getName();
+    }
+
     public Integer getCurrentUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return null;
         }
-        String username = auth.getName();
-        return userRepository.findByUsername(username)
+        String email = resolveEmail(auth);
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null) return user.getId();
+        return userRepository.findByUsername(email)
                 .map(User::getId)
                 .orElse(null);
     }
@@ -31,7 +42,10 @@ public class SecurityUtil {
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return null;
         }
-        return userRepository.findByUsername(auth.getName()).orElse(null);
+        String email = resolveEmail(auth);
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null) return user;
+        return userRepository.findByUsername(email).orElse(null);
     }
 
     public boolean isAuthenticated() {

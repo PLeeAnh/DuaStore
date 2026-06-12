@@ -21,4 +21,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findAllBy(Pageable pageable);
 
     Page<User> findByRole(String role, Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.role = 'ADMIN' AND u.isActive = true")
+    java.util.List<User> findAllActiveAdmins();
 }

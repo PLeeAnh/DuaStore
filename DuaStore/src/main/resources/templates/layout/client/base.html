@@ -225,6 +225,7 @@
                         <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                        <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
                         <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
                             <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
                         </form>

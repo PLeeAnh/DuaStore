@@ -101,6 +101,75 @@ public class EmailService {
         }
     }
 
+    public void sendOrderSuccessEmail(String toEmail, String hoTen, String maDon,
+                                       String ngayDat, String diaChi, String phuongThucTT,
+                                       String phuongThucGH, String tongTien,
+                                       String danhSachSP) {
+        try {
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setFrom(fromEmail, "DuaStore");
+            helper.setTo(toEmail);
+            helper.setSubject("[DuaStore] Đặt hàng thành công - " + maDon);
+
+            String html = """
+                <html><body style="font-family:Arial;background:#f5f5f5;padding:40px 0;">
+                  <table width="560" align="center"
+                         style="background:#fff;border-radius:16px;overflow:hidden;
+                                box-shadow:0 4px 24px rgba(0,0,0,.1);">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#e53935,#c62828);
+                                 padding:32px;text-align:center;">
+                        <div style="color:#fff;font-size:24px;font-weight:800;">DuaStore</div>
+                        <div style="color:rgba(255,255,255,.8);font-size:13px;">Đồ Thủy Tinh Cao Cấp</div>
+                        <div style="color:#fff;font-size:16px;margin-top:12px;">&#10003; Đặt hàng thành công</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:36px 40px;">
+                        <p style="font-size:15px;color:#616161;">Xin chào <strong>%s</strong>,</p>
+                        <p style="font-size:14px;color:#616161;line-height:1.6;">
+                          Đơn hàng <strong style="color:#e53935;">%s</strong> đã được đặt thành công vào lúc <strong>%s</strong>.
+                        </p>
+
+                        <table style="width:100%%;border-collapse:collapse;margin-top:16px;">
+                          <tr><td style="padding:6px 0;font-size:13px;color:#9e9e9e;width:120px;">Địa chỉ nhận</td>
+                              <td style="padding:6px 0;font-size:14px;color:#424242;">%s</td></tr>
+                          <tr><td style="padding:6px 0;font-size:13px;color:#9e9e9e;">Thanh toán</td>
+                              <td style="padding:6px 0;font-size:14px;color:#424242;">%s</td></tr>
+                          <tr><td style="padding:6px 0;font-size:13px;color:#9e9e9e;">Giao hàng</td>
+                              <td style="padding:6px 0;font-size:14px;color:#424242;">%s</td></tr>
+                        </table>
+
+                        <div style="border-top:1px solid #eee;margin:20px 0;padding-top:16px;">
+                          <div style="font-size:14px;font-weight:600;color:#424242;margin-bottom:12px;">Sản phẩm đã đặt</div>
+                          %s
+                        </div>
+
+                        <div style="border-top:2px solid #e53935;padding-top:16px;text-align:right;">
+                          <span style="font-size:22px;font-weight:800;color:#e53935;">%s</span>
+                        </div>
+
+                        <p style="font-size:13px;color:#9e9e9e;margin-top:24px;">
+                          Cảm ơn bạn đã mua sắm tại DuaStore!<br/>
+                          Mọi thắc mắc vui lòng liên hệ <strong>0901 234 567</strong>
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="background:#f9f9f9;padding:16px;text-align:center;border-top:1px solid #eee;">
+                        <span style="font-size:12px;color:#bdbdbd;">&copy; 2025 DuaStore</span>
+                      </td>
+                    </tr>
+                  </table>
+                </body></html>
+                """.formatted(hoTen, maDon, ngayDat, diaChi, phuongThucTT, phuongThucGH, danhSachSP, tongTien);
+
+            helper.setText(html, true);
+            mailSender.send(msg);
+        } catch (Exception ignored) {}
+    }
+
     public void sendPasswordResetSuccess(String toEmail) {
         try {
             MimeMessage msg = mailSender.createMimeMessage();
