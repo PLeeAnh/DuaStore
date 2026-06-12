@@ -366,12 +366,19 @@ function toggleWishlist(btnElement, productId) {
             if (data.message && data.message.includes('dang nhap')) showLoginPopup();
             return;
         }
+        
         if (btnElement.classList.contains('active')) {
             // HỦY YÊU THÍCH
             btnElement.classList.remove('active');
             icon.classList.replace('bi-heart-fill', 'bi-heart');
+            
+            // Xóa phần tử khỏi danh sách popup
             const item = document.getElementById('wishlist-item-' + productId);
             if (item) item.remove();
+            
+            // => GỌI HÀM CẬP NHẬT ĐỂ TRỪ SỐ TRÊN BADGE
+            refreshWishlistBadgeCount();
+            
         } else {
             // THÊM YÊU THÍCH
             btnElement.classList.add('active');
@@ -384,7 +391,7 @@ function toggleWishlist(btnElement, productId) {
                 : '<i class="bi bi-box-seam text-secondary"></i>';
                 
             if (container) {
-                // ĐÃ XÓA NÚT THÊM VÀO GIỎ HÀNG Ở ĐÂY
+                // Thêm phần tử mới vào danh sách popup
                 container.insertAdjacentHTML('beforeend',
                     '<div class="popup-item" id="wishlist-item-' + productId + '">' +
                         '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:15px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
@@ -396,25 +403,35 @@ function toggleWishlist(btnElement, productId) {
                     '</div>');
             }
             
-            // HIỆN LẠI CHẤM ĐỎ THÔNG BÁO CÓ SẢN PHẨM MỚI
-            document.getElementById('wishlistBadge')?.classList.remove('d-none');
-            document.getElementById('detailWishlistBadge')?.classList.remove('d-none');
+            // => GỌI HÀM CẬP NHẬT ĐỂ CỘNG SỐ TRÊN BADGE VÀ HIỂN THỊ
+            refreshWishlistBadgeCount();
         }
     }).catch(error => console.error("Lỗi yêu thích: ", error));
 }
 
 /* ═══ WISHLIST (Xóa) ═══ */
 function removeWishlist(wishlistId) {
-    // Ngăn chặn sự kiện click lan ra ngoài (khóa chặt popup)
-    if (window.event) { window.event.stopPropagation(); window.event.preventDefault(); }
+    // Ngăn chặn sự kiện click lan ra ngoài (khóa chặt popup không bị đóng đột ngột)
+    if (window.event) { 
+        window.event.stopPropagation(); 
+        window.event.preventDefault(); 
+    }
 
+    // Xóa thẻ HTML của sản phẩm đó khỏi popup
     const item = document.getElementById('wishlist-item-' + wishlistId);
     if (item) item.remove();
+
+    // => GỌI HÀM CẬP NHẬT LẠI SỐ TRÊN ICON NGAY SAU KHI XÓA
+    refreshWishlistBadgeCount();
+
+    // Bắn API gọi Server để xóa trong CSDL
     fetch('/api/wishlist/toggle', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: wishlistId })
     }).catch(error => console.error('Lỗi xóa wishlist:', error));
 
+    // Reset lại màu nút trái tim ở ngoài trang web (chuyển từ Đỏ -> Xám)
     document.querySelectorAll('.btn-wishlist-card[onclick*="toggleWishlist(this, ' + wishlistId + ')"], .btn-detail-wishlist[onclick*="toggleWishlist(this, ' + wishlistId + ')"]').forEach(btn => {
         btn.classList.remove('active');
         const ic = btn.querySelector('i');
