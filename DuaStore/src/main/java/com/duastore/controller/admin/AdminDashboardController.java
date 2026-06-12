@@ -35,6 +35,7 @@ public class AdminDashboardController {
 
         List<Order> recentOrders = dashboardService.getRecentOrders();
         model.addAttribute("recentOrders", recentOrders);
+        model.addAttribute("orderAssignments", dashboardService.getOrderAssignments(recentOrders));
 
         return "view/admin/dashboard";
     }

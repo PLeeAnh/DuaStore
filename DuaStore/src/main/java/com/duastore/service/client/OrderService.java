@@ -5,6 +5,7 @@ import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.*;
 import com.duastore.repository.*;
+import com.duastore.service.ShippingFeeService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,11 +32,12 @@ public class OrderService {
     private final PromotionRepository promotionRepository;
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
+    private final ShippingFeeService shippingFeeService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
                         CartService cartService, AddressRepository addressRepository,
                         PromotionRepository promotionRepository, UserRepository userRepository,
-                        CartItemRepository cartItemRepository) {
+                        CartItemRepository cartItemRepository, ShippingFeeService shippingFeeService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -43,12 +45,11 @@ public class OrderService {
         this.promotionRepository = promotionRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
+        this.shippingFeeService = shippingFeeService;
     }
 
     private static final String[] PHUONG_THUC_TT = {"COD", "CHUYEN_KHOAN", "VNPAY"};
     private static final String[] PHUONG_THUC_GH = {"SHIP", "NHAN_TAI_CONG"};
-    private static final BigDecimal PHI_SHIP = new BigDecimal("30000");
-    private static final BigDecimal PHI_SHIP_NHANH = new BigDecimal("50000");
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
@@ -76,7 +77,7 @@ public class OrderService {
         order.setPhuongThucTT(phuongThucTT);
         order.setPhuongThucGiaoHang(phuongThucGiaoHang);
         order.setGhiChu(ghiChu);
-        order.setPhiVanChuyen(calculateShipFee(phuongThucGiaoHang));
+        order.setPhiVanChuyen(calculateShipFee(address, phuongThucGiaoHang));
 
         BigDecimal tienHang = BigDecimal.ZERO;
         for (CartItem ci : cartItems) {
@@ -137,9 +138,8 @@ public class OrderService {
                 + (a.getTinhThanh() != null ? a.getTinhThanh() : "");
     }
 
-    private BigDecimal calculateShipFee(String phuongThucGH) {
-        if ("NHAN_TAI_CONG".equalsIgnoreCase(phuongThucGH)) return PHI_SHIP_NHANH;
-        return PHI_SHIP;
+    private BigDecimal calculateShipFee(Address address, String phuongThucGH) {
+        return shippingFeeService.calculateFee(address, phuongThucGH);
     }
 
     public void validatePromotion(Promotion promo, BigDecimal tienHang) {
