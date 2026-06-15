@@ -119,7 +119,7 @@ public class OrderService {
 
         order = orderRepository.save(order);
 
-        cartItemRepository.deleteAll(cartItems);
+//        cartItemRepository.deleteAll(cartItems);
 
         return order;
     }
