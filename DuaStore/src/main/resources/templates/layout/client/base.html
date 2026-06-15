@@ -125,12 +125,14 @@
                     <input type="search" name="keyword" class="ds-search-inline-input" placeholder="Tìm sản phẩm..." th:value="${param.keyword}" aria-label="Tìm kiếm"/>
                 </form>
 
-                <div class="position-relative d-inline-block">
-                    <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup')" title="Danh sách yêu thích" aria-label="Yêu thích">
-                        <i class="bi bi-heart"></i>
-                        <span id="wishlistBadge" class="ds-cart-badge" th:text="${#lists.size(myWishlist)}" th:classappend="${#lists.isEmpty(myWishlist)} ? ' d-none' : ''">0</span>
-                    </button>
-                    <div id="wishlist-popup" class="custom-popup">
+                <div class="position-relative d-inline-block ds-wishlist-wrap">
+    <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup')" title="Danh sách yêu thích" aria-label="Yêu thích">
+        <i class="bi bi-heart"></i>
+        <span id="wishlistBadge" class="ds-wishlist-badge" 
+              th:text="${myWishlist != null ? #lists.size(myWishlist) : 0}" 
+              th:classappend="${(myWishlist == null || #lists.isEmpty(myWishlist)) ? ' d-none' : ''}">0</span>
+    </button>
+    <div id="wishlist-popup" class="custom-popup">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Sản phẩm yêu thích</h6>
                         <div id="wishlist-items-container">
                             <div th:if="${#lists.isEmpty(myWishlist)}" class="text-center py-4 text-muted">
@@ -154,13 +156,12 @@
                 </div>
 
                 <!-- NÚT GIỎ HÀNG VÀ POPUP -->
-                <div class="position-relative d-inline-block ds-cart-wrap">
-                    <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
-                        <i class="bi bi-bag"></i>
-                        <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}"></span>
-                    </button>
-                    
-                    <div id="cart-popup" class="custom-popup" style="width: 340px;">
+<div class="position-relative d-inline-block ds-cart-wrap">
+    <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
+        <i class="bi bi-bag"></i>
+        <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}">0</span>
+    </button>
+    <div id="cart-popup" class="custom-popup" style="width: 340px;">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
                         
                         <div id="cart-items-container" class="mt-2" style="max-height: 400px; overflow-y: auto;">
@@ -200,8 +201,8 @@
                         </div>
                         
                         <div class="mt-2 pt-2" th:unless="${#lists.isEmpty(myCart)}">
-                            <a th:href="@{/checkout}" class="btn btn-danger w-100 fw-semibold py-2">Thanh toán tất cả</a>
-                        </div>
+    <a th:href="@{/gio-hang}" class="btn btn-danger w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
+</div>
                     </div>
                 </div>
 
@@ -852,6 +853,31 @@ function updatePopupQty(itemId, delta) {
         }
     })
     .catch(err => console.log("Lỗi đồng bộ giỏ hàng: ", err));
+}
+function refreshWishlistBadgeCount() {
+    // Đếm số lượng thẻ sản phẩm đang nằm trong popup container
+    let currentCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
+    let badge = document.getElementById('wishlistBadge');
+    
+    if (!badge) return;
+    
+    if (currentCount > 0) {
+        badge.textContent = currentCount;
+        badge.classList.remove('d-none'); // Hiển thị badge che icon
+    } else {
+        badge.classList.add('d-none'); // Ẩn badge nếu không còn sản phẩm nào
+        
+        // Hiển thị trạng thái trống kèm icon trái tim tan vỡ
+        let container = document.getElementById('wishlist-items-container');
+        if (container && !container.querySelector('.bi-heartbreak')) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-heartbreak" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Chưa có sản phẩm nào</p>
+                </div>
+            `;
+        }
+    }
 }
 </script>
 

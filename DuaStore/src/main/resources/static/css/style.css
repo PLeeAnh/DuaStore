@@ -355,24 +355,37 @@ a { color: inherit; }
 .ds-icon-btn:hover { background: rgba(255,255,255,.1); color: var(--ds-white); }
 
 /* Cart badge */
-/* Cart badge - Đã sửa thành dấu chấm đỏ */
-.ds-cart-wrap { position: relative; }
-.ds-cart-badge {
-  position: absolute;
-  top: 8px;
-  right: 6px;
-  width: 10px;      /* Thu nhỏ thành hình tròn */
-  height: 10px;     /* Thu nhỏ thành hình tròn */
-  background: #ef4444;
-  border-radius: 50%;
-  
-  /* Phần quan trọng: Giấu con số bên trong đi */
-  color: transparent; 
-  font-size: 0;       
-  padding: 0;
-  pointer-events: none;
+/* =====================================================
+   BADGE CHE HOÀN TOÀN ICON (ÁP DỤNG CHO CẢ CART & WISHLIST)
+   ===================================================== */
+.ds-cart-wrap, .ds-wishlist-wrap { 
+  position: relative; 
+  display: inline-block; 
 }
 
+.ds-cart-badge, .ds-wishlist-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #ef4444; 
+  color: #ffffff !important; 
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 50%; /* ĐÃ SỬA TẠI ĐÂY: Bo tròn 50% để tạo hình tròn hoàn hảo */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 /* Auth buttons */
 .ds-btn-outline {
   background: transparent;

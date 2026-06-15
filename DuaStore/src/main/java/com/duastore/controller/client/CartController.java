@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.CartItemDTO;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.CartService;
@@ -22,19 +23,31 @@ public class CartController {
 
     private final CartService cartService;
     private final ProductVariantRepository variantRepository;
+    private final SecurityUtil securityUtil; // Thêm SecurityUtil để đồng bộ ID người dùng
 
-    public CartController(CartService cartService, ProductVariantRepository variantRepository) {
+    public CartController(CartService cartService, ProductVariantRepository variantRepository, SecurityUtil securityUtil) {
         this.cartService = cartService;
         this.variantRepository = variantRepository;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping("/gio-hang")
     public String cart(HttpSession session, Model model) {
-        Integer userId = currentUserId(session);
+        Integer userId = currentUserId();
+        if (userId == null) {
+            return "redirect:/login"; // Nếu chưa đăng nhập thì chuyển hướng sang trang login
+        }
+        
         List<CartItemDTO> items = cartService.getItems(userId);
         model.addAttribute("title", "gio-hang");
         model.addAttribute("cartItems", items);
-        model.addAttribute("cartTotal", cartService.total(items));
+        
+        // Đvector ĐÃ SỬA LỖI 1: Đổi từ "cartTotal" thành "totalPrice" để khớp 100% với file cart.html
+        model.addAttribute("totalPrice", cartService.total(items)); 
+        
+        // Bổ sung thêm cartCount để đồng bộ hiển thị số lượng trên Badge của Navbar
+        model.addAttribute("cartCount", cartService.count(userId));
+        
         return "view/client/cart/cart";
     }
 
@@ -42,13 +55,19 @@ public class CartController {
     public String update(@PathVariable Integer id,
                          @RequestParam Integer soLuong,
                          HttpSession session) {
-        cartService.updateQuantity(currentUserId(session), id, soLuong);
+        Integer userId = currentUserId();
+        if (userId != null) {
+            cartService.updateQuantity(userId, id, soLuong);
+        }
         return "redirect:/gio-hang";
     }
 
     @GetMapping("/gio-hang/xoa/{id}")
     public String remove(@PathVariable Integer id, HttpSession session) {
-        cartService.remove(currentUserId(session), id);
+        Integer userId = currentUserId();
+        if (userId != null) {
+            cartService.remove(userId, id);
+        }
         return "redirect:/gio-hang";
     }
 
@@ -63,7 +82,7 @@ public class CartController {
                     .orElse(null);
         }
         Integer quantity = body.get("soLuong") != null ? body.get("soLuong") : body.get("quantity");
-        CartService.CartResult result = cartService.add(currentUserId(session), variantId, quantity);
+        CartService.CartResult result = cartService.add(currentUserId(), variantId, quantity);
         return response(result);
     }
 
@@ -71,7 +90,7 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> count(HttpSession session) {
         Map<String, Object> data = new HashMap<>();
-        data.put("cartCount", cartService.count(currentUserId(session)));
+        data.put("cartCount", cartService.count(currentUserId()));
         return data;
     }
 
@@ -83,7 +102,8 @@ public class CartController {
         return data;
     }
 
-    private Integer currentUserId(HttpSession session) {
-        return 2;
+    // Đvector ĐÃ SỬA LỖI 2: Lấy User ID động từ SecurityUtil thay vì fix cứng return 2 như trước
+    private Integer currentUserId() {
+        return securityUtil.getCurrentUserId();
     }
 }
