@@ -11,6 +11,7 @@ import com.duastore.model.User;
 import com.duastore.repository.AddressRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.service.EmailService;
+import com.duastore.service.PaymentService;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.OrderService;
@@ -39,13 +40,15 @@ public class CheckoutController {
     private final SecurityUtil securityUtil;
     private final ShippingFeeService shippingFeeService;
     private final EmailService emailService;
+    private final PaymentService paymentService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
                               AddressRepository addressRepository,
                               PromotionRepository promotionRepository,
                               SecurityUtil securityUtil,
                               ShippingFeeService shippingFeeService,
-                              EmailService emailService) {
+                              EmailService emailService,
+                              PaymentService paymentService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -53,6 +56,7 @@ public class CheckoutController {
         this.securityUtil = securityUtil;
         this.shippingFeeService = shippingFeeService;
         this.emailService = emailService;
+        this.paymentService = paymentService;
     }
 
     private Integer getUserId() {
@@ -155,6 +159,9 @@ public class CheckoutController {
                 );
             } catch (Exception ignored) {}
 
+            if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                return "redirect:/checkout/chuyen-khoan/" + order.getId();
+            }
             return "redirect:/checkout/thanh-cong/" + order.getId();
         } catch (RuntimeException e) {
             List<CartItemDTO> cartItems = cartService.getItems(userId);
@@ -175,6 +182,50 @@ public class CheckoutController {
             model.addAttribute("title", "Thanh toán");
             return "view/client/checkout";
         }
+    }
+
+    @PostMapping("/api/create")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> apiCreateOrder(@Valid @ModelAttribute("checkoutRequest") CheckoutRequestDTO req,
+                                                               BindingResult result) {
+        Map<String, Object> res = new HashMap<>();
+        Integer userId = getUserId();
+        if (userId == null) {
+            res.put("success", false);
+            res.put("message", "Vui lòng đăng nhập");
+            return ResponseEntity.ok(res);
+        }
+        if (result.hasErrors()) {
+            res.put("success", false);
+            res.put("message", "Dữ liệu không hợp lệ");
+            return ResponseEntity.ok(res);
+        }
+        try {
+            Order order = orderService.processCheckout(
+                    userId, req.getAddressId(), req.getPhuongThucTT(),
+                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+            );
+            if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
+            }
+            res.put("success", true);
+            res.put("orderId", order.getId());
+            res.put("maDon", order.getMaDon());
+        } catch (RuntimeException e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/api/qr-info")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> apiQrInfo(@RequestParam long amount) {
+        Map<String, Object> res = new HashMap<>();
+        res.put("qrUrl", paymentService.generateVietQrUrl("DUASTORE", amount));
+        res.put("accountNumber", paymentService.getAccountNumber());
+        res.put("accountName", paymentService.getAccountName());
+        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/ap-dung-ma")
@@ -202,6 +253,67 @@ public class CheckoutController {
             res.put("message", e.getMessage());
         }
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/chuyen-khoan/{id}")
+    public String chuyenKhoan(@PathVariable Integer id, Model model) {
+        Integer userId = getUserId();
+        try {
+            Order order = orderService.getOrderByUserAndId(userId, id);
+            if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                return "redirect:/checkout/thanh-cong/" + id;
+            }
+            if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                return "redirect:/checkout/thanh-cong/" + id;
+            }
+            String qrUrl = paymentService.generateVietQrUrl(order.getMaDon(),
+                    order.getTongThanhToan().longValue());
+            model.addAttribute("order", orderService.convertToDTO(order));
+            model.addAttribute("qrUrl", qrUrl);
+            model.addAttribute("bankCode", paymentService.getBankCode());
+            model.addAttribute("accountNumber", paymentService.getAccountNumber());
+            model.addAttribute("accountName", paymentService.getAccountName());
+            model.addAttribute("title", "Thanh toán chuyển khoản");
+            return "view/client/payment";
+        } catch (RuntimeException e) {
+            return "redirect:/";
+        }
+    }
+
+    @PostMapping("/chuyen-khoan/{id}/xac-nhan")
+    public String xacNhanChuyenKhoan(@PathVariable Integer id) {
+        Integer userId = getUserId();
+        try {
+            Order order = orderService.getOrderByUserAndId(userId, id);
+            if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                return "redirect:/checkout/thanh-cong/" + id;
+            }
+            orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
+
+            try {
+                User user = order.getUser();
+                String tt = "Chuyển khoản";
+                String gh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+                StringBuilder itemsHtml = new StringBuilder();
+                for (OrderItem item : order.getOrderItems()) {
+                    itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
+                            .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
+                            .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
+                            .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(String.format("%,.0fđ", item.getThanhTien())).append("</div></div>");
+                }
+                emailService.sendOrderSuccessEmail(
+                        user.getEmail(), user.getHoTen(), order.getMaDon(),
+                        order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                        order.getSnapDiaChi(), tt, gh,
+                        String.format("%,.0fđ", order.getTongThanhToan()),
+                        itemsHtml.toString()
+                );
+            } catch (Exception ignored) {}
+
+            return "redirect:/checkout/thanh-cong/" + id;
+        } catch (RuntimeException e) {
+            return "redirect:/";
+        }
     }
 
     @GetMapping("/thanh-cong/{id}")

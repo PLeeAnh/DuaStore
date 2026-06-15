@@ -37,7 +37,7 @@ public class AdminActionLog {
     @Column(columnDefinition = "nvarchar(max)")
     private String giaTriMoi;
 
-    @Column
+    @Column(columnDefinition = "nvarchar(max)")
     private String moTa;
 
     @Column(nullable = false, updatable = false)

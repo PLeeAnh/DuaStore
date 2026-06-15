@@ -101,6 +101,31 @@ public class AddressController {
         return "redirect:/address";
     }
 
+    @PostMapping("/api/save")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> apiSaveAddress(@ModelAttribute Address address) {
+        Map<String, Object> res = new HashMap<>();
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) {
+            res.put("success", false);
+            res.put("message", "Vui lòng đăng nhập");
+            return ResponseEntity.ok(res);
+        }
+        try {
+            address.setUserId(userId);
+            if (Boolean.TRUE.equals(address.getIsDefault())) {
+                addressRepository.clearDefaultAddressByUserId(userId);
+            }
+            geocodingService.geocodeIfMissing(address);
+            addressRepository.save(address);
+            res.put("success", true);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(res);
+    }
+
     @PostMapping("/api/set-default/{id}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> apiSetDefault(@PathVariable("id") Integer id) {
