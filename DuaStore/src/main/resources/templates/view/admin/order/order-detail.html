@@ -43,8 +43,8 @@
                     <p class="mb-1"><strong>PT thanh toán:</strong> <span th:text="${order.phuongThucTT == 'COD' ? 'COD' : order.phuongThucTT == 'CHUYEN_KHOAN' ? 'Chuyển khoản' : order.phuongThucTT}"></span></p>
                     <p class="mb-1"><strong>PT giao hàng:</strong> <span th:text="${order.phuongThucGiaoHang == 'NHANH' ? 'Giao nhanh' : 'Giao tiêu chuẩn'}"></span></p>
                     <p class="mb-0"><strong>Trạng thái:</strong>
-                        <span class="badge" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : 'bg-secondary'}"
-                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon}"></span>
+                        <span class="badge" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon}"></span>
                     </p>
                 </div>
                 <div class="adm-card mt-3" th:if="${assignment != null}">
@@ -123,6 +123,12 @@
             <div class="col-md-6">
                 <div class="adm-card">
                     <h6>Cập nhật trạng thái</h6>
+                    <th:block th:if="${order.trangThaiDon == 'DA_HOAN_THANH' and not isAssignedAdmin}">
+                        <div class="text-muted small">
+                            <i class="bi bi-lock-fill me-1"></i>Đơn đã hoàn thành, chỉ admin phụ trách mới có thể chỉnh sửa.
+                        </div>
+                    </th:block>
+                    <th:block th:if="${order.trangThaiDon != 'DA_HOAN_THANH' or isAssignedAdmin}">
                     <form th:action="@{/admin/don-hang/{id}/cap-nhat-trang-thai(id=${order.id})}" th:object="${statusDTO}" method="post">
                         <div class="mb-2">
                             <label class="form-label small">Trạng thái đơn</label>
@@ -131,6 +137,7 @@
                                 <option value="DA_XAC_NHAN">Đã xác nhận</option>
                                 <option value="DANG_GIAO">Đang giao</option>
                                 <option value="DA_GIAO">Đã giao</option>
+                                <option value="DA_HOAN_THANH">Đã hoàn thành</option>
                                 <option value="DA_HUY">Đã hủy</option>
                             </select>
                         </div>
@@ -144,6 +151,7 @@
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
                     </form>
+                    </th:block>
                 </div>
             </div>
         </div>

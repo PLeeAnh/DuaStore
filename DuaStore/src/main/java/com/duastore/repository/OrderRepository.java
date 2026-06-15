@@ -40,4 +40,19 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Object[]> countGroupByTrangThaiDon();
 
     long countByTrangThaiDon(String trangThaiDon);
+
+    @Query("SELECT o FROM Order o WHERE " +
+           "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND " +
+           "(:trangThai IS NULL OR o.trangThaiDon = :trangThai) " +
+           "ORDER BY CASE WHEN o.trangThaiDon = 'CHO_XAC_NHAN' THEN 0 ELSE 1 END, o.ngayDat DESC")
+    Page<Order> searchOrders(@Param("q") String q, @Param("trangThai") String trangThai, Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE o.id IN :ids AND " +
+           "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND " +
+           "(:trangThai IS NULL OR o.trangThaiDon = :trangThai) " +
+           "ORDER BY CASE WHEN o.trangThaiDon = 'CHO_XAC_NHAN' THEN 0 ELSE 1 END, o.ngayDat DESC")
+    Page<Order> searchOrdersByIds(@Param("ids") List<Integer> ids,
+                                   @Param("q") String q,
+                                   @Param("trangThai") String trangThai,
+                                   Pageable pageable);
 }

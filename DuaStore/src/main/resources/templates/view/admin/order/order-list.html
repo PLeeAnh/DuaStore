@@ -11,52 +11,79 @@
         <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
     </th:block>
     <div layout:fragment="content">
-        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show">
+        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show py-2">
             <span th:text="${successMsg}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show">
+        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show py-2">
             <span th:text="${errorMsg}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <div th:if="${not tatCa and pendingOrders > 0}" class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3">
             <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>Bạn có <strong th:text="${pendingOrders}"></strong> đơn hàng đang chờ xác nhận.</span>
-            <a th:href="@{/admin/don-hang(tatCa=true)}" class="ms-auto btn btn-sm btn-outline-warning">Xem danh sách</a>
+            <span>Bạn có <strong th:text="${pendingOrders}"></strong> đơn đang chờ xác nhận.</span>
+            <a th:href="@{/admin/don-hang(tatCa=true)}" class="ms-auto btn btn-sm btn-outline-warning">Xem tất cả</a>
         </div>
-        <div class="adm-page-header">
-            <h4><i class="bi bi-receipt me-2"></i>Đơn hàng</h4>
-            <div class="btn-group btn-group-sm">
-                <a th:href="@{/admin/don-hang(tatCa=false)}" class="btn" th:classappend="${not tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Đơn của tôi</a>
-                <a th:href="@{/admin/don-hang(tatCa=true)}" class="btn" th:classappend="${tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Tất cả</a>
+
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Đơn hàng</h5>
+                <div class="btn-group btn-group-sm">
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=false)}" class="btn" th:classappend="${not tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Của tôi</a>
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=true)}" class="btn" th:classappend="${tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Tất cả</a>
+                </div>
             </div>
+            <form class="d-flex gap-2" th:action="@{/admin/don-hang}" method="get">
+                <input type="hidden" name="tatCa" th:value="${tatCa}" />
+                <input type="text" name="q" class="form-control form-control-sm" style="width:220px" placeholder="Mã đơn, tên khách hàng..." th:value="${q}" />
+                <select name="trangThai" class="form-select form-select-sm" style="width:auto">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="CHO_XAC_NHAN" th:selected="${trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
+                    <option value="DA_XAC_NHAN" th:selected="${trangThai == 'DA_XAC_NHAN'}">Đã xác nhận</option>
+                    <option value="DANG_GIAO" th:selected="${trangThai == 'DANG_GIAO'}">Đang giao</option>
+                    <option value="DA_GIAO" th:selected="${trangThai == 'DA_GIAO'}">Đã giao</option>
+                    <option value="DA_HOAN_THANH" th:selected="${trangThai == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
+                    <option value="DA_HUY" th:selected="${trangThai == 'DA_HUY'}">Đã hủy</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-search"></i></button>
+            </form>
         </div>
+
         <div class="adm-table-wrap">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-sm table-hover align-middle mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>Mã ĐH</th>
                         <th>Khách hàng</th>
                         <th>Tổng tiền</th>
-                        <th>Trạng thái</th>
+                        <th style="min-width:140px">Trạng thái</th>
                         <th>Ngày đặt</th>
-                        <th>Thao tác</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="o, iter : ${orders}">
-                        <td th:text="${iter.index + 1 + currentPage * 20}"></td>
+                        <td class="text-muted small" th:text="${iter.index + 1 + currentPage * 20}"></td>
                         <td><strong th:text="${o.maDon}"></strong></td>
-                        <td><span th:text="${o.tenNguoiNhan}"></span><br/><small class="text-muted" th:text="${o.soDienThoai}"></small></td>
-                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
                         <td>
-                            <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : o.trangThaiDon == 'DA_THANH_TOAN' ? 'bg-primary' : o.trangThaiDon == 'DA_NHAN_HANG' ? 'bg-success' : 'bg-secondary'}"
-                                  th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon == 'DA_THANH_TOAN' ? 'Đã thanh toán' : o.trangThaiDon == 'DA_NHAN_HANG' ? 'Đã nhận hàng' : o.trangThaiDon}"></span>
+                            <span th:text="${o.tenNguoiNhan}"></span>
+                            <small class="text-muted d-block" th:text="${o.soDienThoai}"></small>
                         </td>
-                        <td th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'" class="fw-semibold"></td>
                         <td>
-                            <a th:href="@{/admin/don-hang/{id}(id=${o.id})}" class="btn btn-sm btn-outline-primary">Chi tiết</a>
+                            <select class="form-select form-select-sm border-0 bg-transparent fw-semibold status-select" th:data-id="${o.id}">
+                                <option value="CHO_XAC_NHAN" th:selected="${o.trangThaiDon == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
+                                <option value="DA_XAC_NHAN" th:selected="${o.trangThaiDon == 'DA_XAC_NHAN'}">Đã xác nhận</option>
+                                <option value="DANG_GIAO" th:selected="${o.trangThaiDon == 'DANG_GIAO'}">Đang giao</option>
+                                <option value="DA_GIAO" th:selected="${o.trangThaiDon == 'DA_GIAO'}">Đã giao</option>
+                                <option value="DA_HOAN_THANH" th:selected="${o.trangThaiDon == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
+                                <option value="DA_HUY" th:selected="${o.trangThaiDon == 'DA_HUY'}">Đã hủy</option>
+                            </select>
+                        </td>
+                        <td class="small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <a th:href="@{/admin/don-hang/{id}(id=${o.id})}" class="btn btn-sm btn-outline-primary px-2 py-0">Chi tiết</a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(orders)}">
@@ -65,22 +92,44 @@
                 </tbody>
             </table>
         </div>
+
         <div th:if="${totalPages > 1}" class="mt-3">
             <nav>
                 <ul class="pagination pagination-sm justify-content-center mb-0">
                     <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage - 1}, tatCa=${tatCa})}">&laquo;</a>
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage - 1}, tatCa=${tatCa}, q=${q}, trangThai=${trangThai})}">&laquo;</a>
                     </li>
                     <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                         th:classappend="${i == currentPage} ? active">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${i}, tatCa=${tatCa})}" th:text="${i + 1}"></a>
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${i}, tatCa=${tatCa}, q=${q}, trangThai=${trangThai})}" th:text="${i + 1}"></a>
                     </li>
                     <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? disabled">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage + 1}, tatCa=${tatCa})}">&raquo;</a>
+                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage + 1}, tatCa=${tatCa}, q=${q}, trangThai=${trangThai})}">&raquo;</a>
                     </li>
                 </ul>
             </nav>
         </div>
     </div>
+    <th:block layout:fragment="scripts">
+    <script>
+    function statusColor(v) { return {'CHO_XAC_NHAN':'#664d03','DA_HUY':'#dc3545'}[v] || '#198754'; }
+    document.querySelectorAll('.status-select').forEach(function(sel) {
+        sel.style.color = statusColor(sel.value);
+        sel.addEventListener('change', function() {
+            var id = this.dataset.id, val = this.value, orig = this.value, load = document.createElement('small');
+            load.className = 'text-muted ms-1'; load.textContent = '...';
+            this.parentNode.appendChild(load);
+            fetch('/admin/don-hang/api/' + id + '/cap-nhat-trang-thai?trangThai=' + encodeURIComponent(val), {method:'POST'})
+            .then(function(r){return r.json()})
+            .then(function(d){
+                load.remove();
+                if (d.success) { sel.style.color = statusColor(val); }
+                else { sel.value = orig; alert(d.message || 'Lỗi'); }
+            })
+            .catch(function(){ load.remove(); sel.value = orig; alert('Lỗi kết nối'); });
+        });
+    });
+    </script>
+    </th:block>
     </body>
 </html>

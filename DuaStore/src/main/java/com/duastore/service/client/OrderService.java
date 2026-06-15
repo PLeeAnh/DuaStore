@@ -192,6 +192,13 @@ public class OrderService {
     }
 
     @Transactional
+    public void updatePaymentStatus(Integer orderId, String trangThaiTT) {
+        Order order = getOrderById(orderId);
+        order.setTrangThaiTT(trangThaiTT);
+        orderRepository.save(order);
+    }
+
+    @Transactional
     public void cancelOrder(Integer userId, Integer orderId) {
         Order order = getOrderByUserAndId(userId, orderId);
         if (!"CHO_XAC_NHAN".equals(order.getTrangThaiDon())) {
