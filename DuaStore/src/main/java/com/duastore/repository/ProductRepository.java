@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findByDanhMucIdAndIsActiveTrue(Integer danhMucId);
+    List<Product> findByDanhMucIdInAndIsActiveTrue(List<Integer> danhMucIds);
     List<Product> findByIsFeaturedTrueAndIsActiveTrue();
     List<Product> findByIsActiveTrueOrderByNgayTaoDesc();
 

@@ -69,7 +69,7 @@ public class AdminVariantController {
         return "redirect:/admin/san-pham/" + saved.getProductId() + "/bien-the?successMsg=Cap+nhat+bien+the+thanh+cong";
     }
 
-    @GetMapping("/xoa/{id}")
+    @PostMapping("/xoa/{id}")
     public String delete(@PathVariable Integer id) {
         var v = variantService.findById(id);
         if (v == null) return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+bien+the";

@@ -1,28 +1,217 @@
 <!DOCTYPE html>
-<html lang="vi"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
-      layout:decorate="~{layout/client/base}">
-    <head>
-        <title>Thêm / Sửa địa chỉ — DuaStore</title>
-    </head>
-    <body>
-    <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Địa chỉ]: Implement form thêm / sửa địa chỉ giao hàng
-                 Cấu trúc gợi ý:
-                 - Tiêu đề trang: "Thêm địa chỉ mới" / "Sửa địa chỉ"
-                 - Form với các field: Họ tên, SĐT, Tỉnh/TP (select), Quận/Huyện (select),
-                   Phường/Xã (select), Địa chỉ chi tiết (textarea), Mặc định (checkbox)
-                 - Nút: Lưu (btn-primary) / Hủy (btn-outline-secondary)
-                 - Validation: required fields
-                 - Template nằm trong tài khoản người dùng (user layout)
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-geo-alt" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang địa chỉ sẽ được cập nhật</p>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net/thymeleaf/layout" layout:decorate="~{layout/client/base}">
+<head>
+    <title th:text="${address.id == null ? 'Thêm địa chỉ — DuaStore' : 'Sửa địa chỉ — DuaStore'}"></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+</head>
+<body>
+    <div layout:fragment="content" class="container-xl py-5">
+        <div class="row"><div class="col-12 col-lg-6 mx-auto"><div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4 p-md-5">
+            <div class="d-flex align-items-center mb-4">
+                <a th:href="${returnUrl != null ? returnUrl : '/address'}" class="btn btn-light rounded-circle me-3"><i class="bi bi-arrow-left"></i></a>
+                <h3 class="ds-section-title mb-0" th:text="${address.id == null ? 'Thêm địa chỉ mới' : 'Sửa địa chỉ'}"></h3>
+                <a th:if="${returnUrl != null}" th:href="${returnUrl}" class="btn btn-outline-secondary btn-sm rounded-pill ms-auto">
+                    <i class="bi bi-arrow-return-left me-1"></i>Quay lại thanh toán
+                </a>
             </div>
-        </div>
+
+            <form th:action="@{/address/save}" th:object="${address}" method="post" id="addressForm">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{userId}" />
+                <input type="hidden" name="returnUrl" th:value="${returnUrl}" />
+                <input type="hidden" th:field="*{latitude}" id="latitude" />
+                <input type="hidden" th:field="*{longitude}" id="longitude" />
+
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Địa chỉ trên bản đồ</label>
+                    <div class="input-group mb-2 position-relative">
+                        <input type="text" id="mapSearchInput" class="form-control rounded-3 py-2"
+                               placeholder="Nhập địa chỉ..." autocomplete="off" />
+                        <button class="btn btn-primary rounded-3" onclick="searchMap()" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                        <div id="suggestionBox" class="list-group position-absolute w-100 rounded-3 shadow-sm"
+                             style="z-index:9999;top:100%;display:none;max-height:250px;overflow-y:auto;"></div>
+                    </div>
+                    <div id="mapContainer" style="border-radius:10px;overflow:hidden;">
+                        <iframe id="googleMapFrame"
+                            src="https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13"
+                            width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy">
+                        </iframe>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="getMyLocation()">
+                            <i class="bi bi-crosshair me-1"></i>Dùng vị trí hiện tại
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="clearMap()">
+                            <i class="bi bi-x-circle me-1"></i>Xoá
+                        </button>
+                    </div>
+                    <div id="mapStatus" class="form-text small text-muted mt-1"></div>
+                </div>
+
+                <input type="hidden" th:field="*{tinhThanh}" id="tinhThanh" />
+                <input type="hidden" th:field="*{quanHuyen}" id="quanHuyen" />
+                <input type="hidden" th:field="*{phuongXa}" id="phuongXa" />
+                <input type="hidden" th:field="*{diaChiCuThe}" id="diaChiCuThe" />
+
+<div class="mb-3">
+                    <label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control rounded-3 py-2" th:field="*{tenNguoiNhan}" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-medium">SĐT <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control rounded-3 py-2" th:field="*{soDienThoai}" required />
+                </div>
+
+<div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" role="switch" th:field="*{isDefault}" id="isDefaultCheck" />
+                    <label class="form-check-label user-select-none" for="isDefaultCheck">Đặt làm địa chỉ mặc định</label>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold">Lưu địa chỉ</button>
+                </div>
+            </form>
+        </div></div></div></div></div>
     </div>
-    </body>
+
+
+    <th:block layout:fragment="extra-script">
+    <script>
+    function searchMap() {
+        var q = document.getElementById('mapSearchInput').value.trim();
+        if (!q) return;
+        var encoded = encodeURIComponent(q + ', Việt Nam');
+        document.getElementById('googleMapFrame').src =
+            'https://maps.google.com/maps?q=' + encoded + '&output=embed&z=16';
+        document.getElementById('mapStatus').textContent = 'Đang tra cứu...';
+        fetch('https://nominatim.openstreetmap.org/search?q=' + encoded + '&format=json&limit=1')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.length > 0) {
+                    var loc = data[0];
+                    document.getElementById('latitude').value = loc.lat;
+                    document.getElementById('longitude').value = loc.lon;
+                    var parts = (loc.display_name || q).split(',').map(function(s) { return s.trim(); });
+                    var len = parts.length;
+                    if (len >= 1) document.getElementById('diaChiCuThe').value = parts[0];
+                    if (len >= 2) document.getElementById('phuongXa').value = parts[1];
+                    if (len >= 3) document.getElementById('quanHuyen').value = parts[2];
+                    if (len >= 4) document.getElementById('tinhThanh').value = parts[len - 1];
+                    document.getElementById('mapStatus').textContent = 'Đã tìm: ' + (loc.display_name || q);
+                } else {
+                    parseAndFillAddress(q);
+                    document.getElementById('mapStatus').textContent = 'Đã tìm (không có tọa độ): ' + q;
+                }
+            })
+            .catch(function() {
+                parseAndFillAddress(q);
+                document.getElementById('mapStatus').textContent = 'Đã tìm (lỗi tra cứu tọa độ): ' + q;
+            });
+    }
+
+    function getMyLocation() {
+        if (!navigator.geolocation) {
+            document.getElementById('mapStatus').textContent = 'Trình duyệt không hỗ trợ GPS';
+            return;
+        }
+        document.getElementById('mapStatus').textContent = 'Đang lấy vị trí...';
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            var lat = pos.coords.latitude;
+            var lng = pos.coords.longitude;
+            document.getElementById('googleMapFrame').src =
+                'https://maps.google.com/maps?q=' + lat + ',' + lng + '&output=embed&z=16';
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&accept-language=vi')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var a = data.address || {};
+                    document.getElementById('tinhThanh').value = a.city || a.state || a.town || '';
+                    document.getElementById('quanHuyen').value = a.suburb || a.county || a.district || '';
+                    document.getElementById('phuongXa').value = a.quarter || a.neighbourhood || a.village || '';
+                    document.getElementById('diaChiCuThe').value =
+                        (a.house_number ? a.house_number + ' ' : '') + (a.road || '');
+                    document.getElementById('mapStatus').textContent =
+                        'Vị trí: ' + (data.display_name || lat + ', ' + lng);
+                })
+                .catch(function() {
+                    document.getElementById('mapStatus').textContent = 'Không thể lấy thông tin địa chỉ';
+                });
+        }, function() {
+            document.getElementById('mapStatus').textContent = 'Không thể lấy vị trí. Kiểm tra quyền GPS.';
+        });
+    }
+
+    function parseAndFillAddress(q) {
+        var parts = q.split(',').map(function(s) { return s.trim(); });
+        var len = parts.length;
+        if (len >= 1) document.getElementById('diaChiCuThe').value = parts[0];
+        if (len >= 2) document.getElementById('phuongXa').value = parts[1];
+        if (len >= 3) document.getElementById('quanHuyen').value = parts[2];
+        if (len >= 4) document.getElementById('tinhThanh').value = parts[3];
+    }
+
+    function clearMap() {
+        document.getElementById('mapSearchInput').value = '';
+        document.getElementById('googleMapFrame').src =
+            'https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13';
+        document.getElementById('latitude').value = '';
+        document.getElementById('longitude').value = '';
+        document.getElementById('mapStatus').textContent = '';
+    }
+
+    document.getElementById('mapSearchInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); searchMap(); }
+    });
+
+    var debounceTimer;
+    document.getElementById('mapSearchInput').addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        var q = this.value.trim();
+        if (q.length < 3) { document.getElementById('suggestionBox').style.display = 'none'; return; }
+        debounceTimer = setTimeout(function() {
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q + ', Việt Nam') + '&format=json&limit=5')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var box = document.getElementById('suggestionBox');
+                    box.innerHTML = '';
+                    if (!data || data.length === 0) { box.style.display = 'none'; return; }
+                    data.forEach(function(loc) {
+                        var item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item list-group-item-action py-2 text-start';
+                        item.textContent = loc.display_name;
+                        item.addEventListener('click', function() {
+                            document.getElementById('mapSearchInput').value = loc.display_name;
+                            document.getElementById('latitude').value = loc.lat;
+                            document.getElementById('longitude').value = loc.lon;
+                            var parts = (loc.display_name || '').split(',').map(function(s) { return s.trim(); });
+                            var len = parts.length;
+                            document.getElementById('diaChiCuThe').value = len >= 1 ? parts[0] : '';
+                            document.getElementById('phuongXa').value = len >= 2 ? parts[1] : '';
+                            document.getElementById('quanHuyen').value = len >= 3 ? parts[2] : '';
+                            document.getElementById('tinhThanh').value = len >= 4 ? parts[len - 1] : '';
+                            document.getElementById('googleMapFrame').src =
+                                'https://maps.google.com/maps?q=' + loc.lat + ',' + loc.lon + '&output=embed&z=16';
+                            document.getElementById('mapStatus').textContent = 'Đã chọn: ' + loc.display_name;
+                            box.style.display = 'none';
+                        });
+                        box.appendChild(item);
+                    });
+                    box.style.display = 'block';
+                });
+        }, 300);
+    });
+
+    document.addEventListener('click', function(e) {
+        var box = document.getElementById('suggestionBox');
+        if (!e.target.closest('#mapSearchInput') && !e.target.closest('#suggestionBox')) {
+            box.style.display = 'none';
+        }
+    });
+    </script>
+    </th:block>
+</body>
 </html>

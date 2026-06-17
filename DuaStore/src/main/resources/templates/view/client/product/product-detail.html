@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="vi"
-      xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
     <head><title th:text="${product.tenSanPham} + ' — DuaStore'">Chi tiết — DuaStore</title></head>
@@ -18,14 +16,20 @@
             <div class="row g-4" th:with="defaultVariant=${#lists.isEmpty(variants) ? null : variants[0]}">
                 <div class="col-md-5">
                     <div class="product-gallery">
-                        <!-- Main image viewer -->
-                        <div class="gallery-main">
+                        <div class="gallery-main position-relative">
+                            
+                            <button th:classappend="${likedIds != null and #lists.contains(likedIds, product.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
+                                    th:onclick="'toggleWishlist(this, ' + ${product.id} + ')'"
+                                    type="button"
+                                    title="Thêm vào danh sách yêu thích">
+                                <i th:class="${likedIds != null and #lists.contains(likedIds, product.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                            </button>
+
                             <img id="mainImage" th:src="@{${product.hinhAnhChinh}}"
                                  th:alt="${product.tenSanPham}"
                                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22 fill=%22%23ddd%22%3E%3Crect width=%22400%22 height=%22400%22/%3E%3Ctext x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2224%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'" />
                         </div>
 
-                        <!-- Thumbnail slider + navigation -->
                         <div class="gallery-bottom" th:if="${#lists.size(galleryImages) > 1}">
                             <button class="gallery-arrow gallery-arrow-left" id="galleryPrev" type="button">❮</button>
                             <div class="gallery-thumbs-wrapper">
@@ -42,6 +46,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="col-md-7 product-detail-info">
                     <h3 th:text="${product.tenSanPham}">Tên sản phẩm</h3>
                     <p class="text-muted small mb-1" th:if="${product.thuongHieu}">
@@ -58,21 +63,20 @@
                                         : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT') + '₫'}">
                             100,000₫
                         </span>
-                        <span th:if="${defaultVariant == null}" id="productPrice" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
+                        <span th:if="${defaultVariant == null}" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
                         <span id="productOriginalPrice" th:if="${defaultVariant != null && defaultVariant.giaKhuyenMai != null}"
                               class="text-decoration-line-through text-muted small"
                               th:text="${#numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">
                             120,000₫
                         </span>
                         <span id="stockStatus" th:if="${defaultVariant != null && defaultVariant.soLuongTon <= 0}"
-                              class="badge bg-danger ms-2">Hết hàng</span>
+                              class="badge bg-danger ms-2">Bán hết</span>
                     </div>
 
                     <div th:if="${product.moTa}" class="mb-3">
                         <p class="text-muted" th:text="${product.moTa}">Mô tả ngắn</p>
                     </div>
 
-                    <!-- Variants grouped by cap type -->
                     <div th:if="${not #lists.isEmpty(variants)}" class="mb-3">
                         <div th:each="entry : ${groupedVariants}">
                             <label class="form-label fw-semibold mt-2 mb-1" th:text="${'▸ ' + entry.key}">Chọn loại nắp</label>
@@ -99,9 +103,13 @@
                             <input type="number" id="qtyInput" class="form-control text-center" value="1" min="1" />
                             <button class="btn btn-outline-secondary btn-sm" type="button" onclick="qtyChange(1)">+</button>
                         </div>
-                        <button id="addToCartBtn" class="btn btn-danger flex-grow-1" onclick="addToCart()">
+                        
+<button id="addToCartBtn" class="btn btn-danger flex-grow-1 fw-semibold py-2 rounded-3" type="button" onclick="addToCart()"
+        th:if="${defaultVariant != null && defaultVariant.soLuongTon > 0}">
                             <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ
                         </button>
+                        <span th:unless="${defaultVariant != null && defaultVariant.soLuongTon > 0}"
+                              class="btn btn-secondary flex-grow-1 fw-semibold py-2 rounded-3 disabled" style="height:45px;cursor:default;opacity:.65;">Bán hết</span>
                     </div>
 
                     <ul class="list-unstyled small text-muted">
@@ -113,6 +121,57 @@
                 </div>
             </div>
         </div>
+
+        <div class="container-xl py-4">
+            <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show">
+                <span th:text="${successMsg}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show">
+                <span th:text="${errorMsg}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <h5 class="fw-bold mb-4"><i class="bi bi-star me-2"></i>Đánh giá sản phẩm</h5>
+
+            <div th:if="${#lists.isEmpty(reviews)}" class="text-muted mb-4">Chưa có đánh giá nào.</div>
+
+            <div th:each="rv : ${reviews}" class="review-item mb-3 p-3 rounded border">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <strong th:text="${rv.hoTen != null ? rv.hoTen : 'Ẩn danh'}"></strong>
+                    <span class="review-stars" th:data-score="${rv.danhGia}"></span>
+                    <small class="text-muted" th:text="${#temporals.format(rv.ngayTao, 'dd/MM/yyyy')}"></small>
+                </div>
+                <p class="mb-0 text-muted" th:if="${rv.binhLuan != null}" th:text="${rv.binhLuan}"></p>
+            </div>
+
+            <div class="border rounded p-4 mt-3" th:unless="${hasReviewed}">
+                <h6 class="fw-bold mb-3">Viết đánh giá của bạn</h6>
+                <form th:action="@{/san-pham/{id}/danh-gia(id=${product.id})}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Chất lượng sản phẩm</label>
+                        <div class="star-rating">
+                            <input type="radio" name="danhGia" value="5" id="star5" required />
+                            <label for="star5" title="5 sao">★</label>
+                            <input type="radio" name="danhGia" value="4" id="star4" />
+                            <label for="star4" title="4 sao">★</label>
+                            <input type="radio" name="danhGia" value="3" id="star3" />
+                            <label for="star3" title="3 sao">★</label>
+                            <input type="radio" name="danhGia" value="2" id="star2" />
+                            <label for="star2" title="2 sao">★</label>
+                            <input type="radio" name="danhGia" value="1" id="star1" />
+                            <label for="star1" title="1 sao">★</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bình luận</label>
+                        <textarea name="binhLuan" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Gửi đánh giá</button>
+                </form>
+            </div>
+            <p th:if="${hasReviewed}" class="text-muted mt-3">Bạn đã đánh giá sản phẩm này.</p>
+        </div>
     </div>
 
     <th:block layout:fragment="extra-script">
@@ -121,7 +180,6 @@
         const productId = [[${product.id}]];
 
         // ── Gallery functions ──
-
         function galleryClick(el) {
             document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
             el.classList.add('active');
@@ -152,12 +210,10 @@
 
         function initializeVariantSelection() {
             const allBtns = document.querySelectorAll('.variant-btn');
-            // Un-select all first
             allBtns.forEach(b => {
                 b.classList.remove('btn-danger');
                 b.classList.add('btn-outline-secondary');
             });
-            // Select first non-disabled variant, or first variant if all disabled
             let target = document.querySelector('.variant-btn:not([disabled])');
             if (!target) target = document.querySelector('.variant-btn');
             if (target) {
@@ -222,26 +278,121 @@
 
         function addToCart() {
             const variantId = selectedVariantId;
-            if (!variantId) {
-                alert('Vui lòng chọn biến thể sản phẩm');
-                return;
-            }
+            if (!variantId) return;
             const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-            fetch('/api/cart/add', {
+
+            // 1. Lấy thông tin sản phẩm từ giao diện hiện tại
+            const btn = document.querySelector('.variant-btn[data-id="' + variantId + '"]');
+            const rawPrice = btn ? parseInt(btn.dataset.price) : 0;
+            const variantName = btn ? btn.innerText : 'Mặc định';
+            const productName = document.querySelector('.product-detail-info h3').innerText;
+            const imgSrc = document.getElementById('mainImage').src;
+
+            fetch('/api/cart/add-popup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ variantId, soLuong: qty })
+                body: JSON.stringify({ productId: productId, variantId: variantId, quantity: qty })
             }).then(r => r.json()).then(data => {
                 if (data.success) {
-                    if (typeof updateCartBadge === 'function') updateCartBadge();
-                    alert('Đã thêm vào giỏ hàng!');
+                    // Cập nhật số đếm badge
+                    if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+                    
+                    // 2. Tự động thêm phần tử HTML vào popup giỏ hàng
+                    addCartPopupItemFromDetail(productId, variantId, qty, productName, imgSrc, variantName, rawPrice);
+                    
+                    // 3. (Tùy chọn) Hiển thị thông báo để báo hiệu cho user
+                    alert('Đã thêm sản phẩm vào giỏ hàng!');
+                    // Hoặc dùng hàm togglePopup('cart-popup') nếu bạn muốn tự động mở popup giỏ hàng ra cho user xem.
                 } else {
-                    alert(data.message || 'Thêm thất bại');
+                    alert('Lỗi: ' + data.message);
                 }
-            }).catch(() => alert('Lỗi kết nối'));
+            }).catch(function(err) {
+                console.error(err);
+                alert('Có lỗi kết nối xảy ra!');
+            });
+        }
+
+        // Hàm hỗ trợ: tự động tạo HTML cho giỏ hàng mà không cần load lại trang
+        function addCartPopupItemFromDetail(productId, variantId, qty, productName, imgSrc, variantName, rawPrice) {
+            const container = document.getElementById('cart-items-container');
+            if (!container) return;
+
+            // Xóa thông báo "Giỏ hàng trống" (nếu đang trống)
+            const emptyMsg = container.querySelector('.text-center.text-muted');
+            if (emptyMsg) emptyMsg.remove();
+
+            const imgHtml = imgSrc
+                ? '<img src="' + imgSrc + '" class="w-100 h-100 object-fit-cover" alt="SP">'
+                : '<i class="bi bi-box-seam text-secondary"></i>';
+            const priceFmt = rawPrice.toLocaleString('vi-VN') + 'đ';
+
+            // Nếu sản phẩm đã tồn tại trong popup, chỉ cần cộng dồn số lượng và cập nhật giá
+            const existing = document.getElementById('cart-item-' + variantId);
+            if (existing) {
+                const qtySpan = existing.querySelector('#popup-qty-' + variantId);
+                if (qtySpan) {
+                    const newQty = parseInt(qtySpan.textContent) + qty;
+                    qtySpan.textContent = newQty;
+                    const ps = existing.querySelector('#popup-price-' + variantId);
+                    if (ps) ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + 'đ';
+                }
+                return;
+            }
+
+            // Nếu sản phẩm chưa có, tạo cấu trúc thẻ HTML mới
+            const html = '<div class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" id="cart-item-' + variantId + '" data-productid="' + productId + '">' +
+                '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
+                '<div class="popup-item-info flex-grow-1">' +
+                    '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + productName + '</a>' +
+                    '<div class="small text-muted mb-2" style="font-size:0.8rem;">' + variantName + '</div>' +
+                    '<div class="d-flex align-items-center">' +
+                        '<div class="input-group input-group-sm" style="width:85px;">' +
+                            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',-1)">-</button>' +
+                            '<span class="form-control text-center py-0 px-1" id="popup-qty-' + variantId + '">' + qty + '</span>' +
+                            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',1)">+</button>' +
+                        '</div>' +
+                        '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + variantId + '" data-price="' + rawPrice + '">' + priceFmt + '</span>' +
+                    '</div>' +
+                '</div>' +
+                '<button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" onclick="removeCartItem(' + variantId + ')"><i class="bi bi-trash text-danger"></i></button>' +
+            '</div>';
+            
+            // Đẩy phần tử HTML vừa tạo vào danh sách giỏ hàng
+            container.insertAdjacentHTML('beforeend', html);
+
+            // Tự động thêm nút "Thanh toán tất cả" ở dưới cùng nếu chưa có
+            if (!document.querySelector('#cart-popup .mt-2.pt-2')) {
+                const popup = document.getElementById('cart-popup');
+                if (popup) {
+                    const div = document.createElement('div');
+                    div.className = 'mt-2 pt-2';
+                    div.innerHTML = '<a href="/checkout" class="btn btn-danger w-100 fw-semibold py-2">Thanh toán tất cả</a>';
+                    popup.appendChild(div);
+                }
+            }
         }
 
         initializeVariantSelection();
+
+        // ── Render star rating for reviews ──
+        document.querySelectorAll('.review-stars').forEach(function(el) {
+            const score = parseInt(el.dataset.score) || 0;
+            el.innerHTML = '★'.repeat(score) + '☆'.repeat(5 - score);
+        });
+
+        // ── Star click: persist selection ──
+        document.querySelectorAll('.star-rating input').forEach(function(input) {
+            input.addEventListener('change', function() {
+                document.querySelectorAll('.star-rating label').forEach(function(l) {
+                    l.classList.remove('selected');
+                });
+                let el = this.nextElementSibling;
+                while (el) {
+                    if (el.tagName === 'LABEL') el.classList.add('selected');
+                    el = el.nextElementSibling;
+                }
+            });
+        });
     </script>
     </th:block>
     </body>

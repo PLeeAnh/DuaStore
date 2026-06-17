@@ -9,18 +9,38 @@
     <body>
     <div layout:fragment="content">
         <div class="container-xl py-5">
-            <!-- ★ TODO [Blog]: Implement trang danh sách bài viết
-                 Cấu trúc gợi ý:
-                 - Tiêu đề: "Bài viết" hoặc "Tin tức"
-                 - Grid bài viết dạng card (3-4 cột)
-                 - Mỗi card: ảnh, tiêu đề, mô tả ngắn, ngày đăng, danh mục
-                 - Bộ lọc: danh mục blog
-                 - Pagination
-                 - Nếu chưa có bài viết: thông báo
-            -->
-            <div class="text-center py-5">
+            <h4 class="fw-bold mb-4"><i class="bi bi-newspaper me-2"></i>Bài viết</h4>
+
+            <div th:if="${#lists.isEmpty(posts)}" class="text-center py-5">
                 <i class="bi bi-newspaper" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang danh sách bài viết sẽ được cập nhật</p>
+                <p class="text-muted mt-3">Chưa có bài viết nào.</p>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(posts)}" class="row g-4">
+                <div th:each="p : ${posts}" class="col-md-4 col-6">
+                    <div class="card blog-card h-100 border-0 shadow-sm">
+                        <div class="position-relative overflow-hidden" style="aspect-ratio:16/9;">
+                            <img th:if="${p.hinhAnh != null}"
+                                 th:src="@{${p.hinhAnh}}" alt=""
+                                 class="card-img-top"
+                                 style="width:100%;height:100%;object-fit:cover;" />
+                            <div th:unless="${p.hinhAnh != null}"
+                                 class="d-flex align-items-center justify-content-center h-100 bg-light"
+                                 style="color:#ccc;font-size:2.5rem;">
+                                <i class="bi bi-image"></i>
+                            </div>
+                        </div>
+                        <div class="card-body d-flex flex-column p-3">
+                            <small class="text-muted mb-1" th:text="${#temporals.format(p.ngayTao, 'dd/MM/yyyy')}"></small>
+                            <h6 class="card-title mb-2" style="font-size:0.95rem;">
+                                <a th:href="@{/blog/{id}(id=${p.id})}"
+                                   th:text="${p.tieuDe}"
+                                   class="text-decoration-none text-dark stretched-link">Tieu de</a>
+                            </h6>
+                            <p class="card-text small text-muted mb-0" th:if="${p.tomTat != null}" th:text="${p.tomTat}"></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

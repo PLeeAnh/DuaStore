@@ -8,24 +8,655 @@
     </head>
     <body>
     <div layout:fragment="content">
-        <div class="container-xl py-5">
-            <!-- ★ TODO [Thanh toán]: Implement trang thanh toán / đặt hàng
-                 Cấu trúc gợi ý:
-                 - 2 cột: bên trái form thông tin, bên phải tóm tắt đơn hàng
-                 - Form: Họ tên, SĐT, Email, Địa chỉ (chọn từ sổ địa chỉ hoặc nhập mới),
-                   Ghi chú (textarea)
-                 - Phương thức thanh toán: COD / Chuyển khoản / VNPay
-                 - Phương thức vận chuyển: Giao hàng tiêu chuẩn / Nhanh
-                 - Tóm tắt đơn: danh sách SP, tạm tính, phí ship, giảm giá, tổng cộng
-                 - Nút: "Đặt hàng" (btn-primary, full width)
-                 - Validation các field bắt buộc
-                 - Thêm mã giảm giá (nếu chưa nhập ở giỏ hàng)
-            -->
-            <div class="text-center py-5">
-                <i class="bi bi-credit-card" style="font-size:3rem;color:#ccc;"></i>
-                <p class="text-muted mt-3">Nội dung trang thanh toán sẽ được cập nhật</p>
+        <div class="container-xl py-4">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div th:if="${error}" class="alert alert-danger d-flex align-items-center gap-2 py-2" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                        <span th:text="${error}"></span>
+                    </div>
+
+                    <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt me-2"></i>Địa chỉ giao hàng</h5>
+                    <div th:if="${#lists.isEmpty(addresses)}" class="alert alert-warning py-2">
+                        Chưa có địa chỉ. <a th:href="@{/address}" class="alert-link">Thêm địa chỉ mới</a>
+                    </div>
+
+                    <form th:action="@{/checkout}" th:object="${checkoutRequest}" method="post" id="checkoutForm">
+                        <div th:if="${not #lists.isEmpty(addresses)}" class="mb-4">
+                            <div class="row g-2">
+                                <div class="col-md-6" th:each="a : ${addresses}">
+                                    <label class="address-radio d-block"
+                                           th:data-lat="${a.latitude}" th:data-lng="${a.longitude}">
+                                        <input type="radio" name="addressId" th:value="${a.id}"
+                                               th:checked="${a.isDefault}" required />
+                                        <div class="border rounded p-3" style="cursor:pointer">
+                                            <strong th:text="${a.tenNguoiNhan}"></strong>
+                                            <span class="text-muted ms-2" th:text="${a.soDienThoai}"></span>
+                                            <span th:if="${a.isDefault}" class="badge bg-primary ms-2">Mặc định</span>
+                                            <div class="small text-muted mt-1" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end mb-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="openAddressModal()">
+                                <i class="bi bi-pencil me-1"></i>Quản lý địa chỉ
+                            </button>
+                        </div>
+
+                        <hr />
+                        <h5 class="fw-bold mb-3"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="phuongThucGiaoHang"
+                                       id="shipTT" value="SHIP" checked />
+                                <label class="form-check-label d-flex justify-content-between w-100" for="shipTT">
+                                    <span>Giao hàng tiêu chuẩn</span>
+                                     <span class="text-muted" id="shipTTPrice">10,000đ</span>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="phuongThucGiaoHang"
+                                       id="shipNhanh" value="NHAN_TAI_CONG" />
+                                <label class="form-check-label d-flex justify-content-between w-100" for="shipNhanh">
+                                    <span>Giao hàng nhanh</span>
+                                    <span class="text-muted" id="shipNhanhPrice">10,000đ</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5 class="fw-bold mb-3"><i class="bi bi-credit-card me-2"></i>Phương thức thanh toán</h5>
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="phuongThucTT"
+                                       id="ttCOD" value="COD" checked required />
+                                <label class="form-check-label" for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="phuongThucTT"
+                                       id="ttCK" value="CHUYEN_KHOAN" />
+                                <label class="form-check-label" for="ttCK">Chuyển khoản ngân hàng</label>
+                                <div id="ckInfo" class="small text-muted mt-1 ms-4" style="display:none;">
+                                    <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
+                                </div>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="phuongThucTT"
+                                       id="ttVNPay" value="VNPAY" />
+                                <label class="form-check-label" for="ttVNPay">VNPay</label>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
+                        <div class="input-group mb-1" style="max-width:400px">
+                            <input type="text" name="maCode" class="form-control" id="checkoutPromoInput" placeholder="Nhập mã giảm giá" />
+                            <button class="btn btn-outline-primary" type="button" id="checkoutApplyPromo">Áp dụng</button>
+                        </div>
+                        <div id="checkoutPromoMsg" class="small mb-3"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú đơn hàng</label>
+                            <textarea name="ghiChu" class="form-control" rows="2" placeholder="Ghi chú (không bắt buộc)"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">Đặt hàng</button>
+                    </form>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-3">Tóm tắt đơn hàng</h6>
+                            <div th:each="item : ${cartItems}" class="d-flex gap-2 mb-2">
+                                <img th:src="@{${item.hinhAnh}}" alt="" class="rounded" style="width:50px;height:50px;object-fit:cover" />
+                                <div class="flex-grow-1 small">
+                                    <div class="text-truncate" th:text="${item.tenSanPham}"></div>
+                                    <div class="text-muted" th:text="${item.tenBienThe}"></div>
+                                    <div class="d-flex justify-content-between">
+                                        <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                        <span class="text-muted">x<span th:text="${item.soLuong}"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Tạm tính</span>
+                                <span th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="subtotalDisplay"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Phí vận chuyển</span>
+                                <span th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 10000, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="shipFeeDisplay"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Giảm giá</span>
+                                <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}" id="discountDisplay"></span>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Tổng cộng</span>
+                                <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 10000), 0, 'COMMA', 0, 'POINT')} + 'đ'" id="totalDisplay"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        <!-- Modal thanh toán chuyển khoản -->
+        <div class="modal fade" id="qrPaymentModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+              <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold modal-title">Quét mã QR để thanh toán</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body pt-3 text-center">
+                <div class="mb-3">
+                  <img id="qrPaymentImage" src="" alt="QR thanh toán"
+                       class="img-fluid rounded-3 border" style="max-width:260px;width:100%" />
+                </div>
+                <div class="bg-light rounded-3 p-3 mb-3 text-start small">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Ngân hàng</span>
+                    <span class="fw-medium">Techcombank</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Số tài khoản</span>
+                    <span class="fw-medium" id="qrAccountNumber"></span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Chủ tài khoản</span>
+                    <span class="fw-medium" id="qrAccountName"></span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Mã đơn</span>
+                    <span class="fw-medium" id="qrMaDon"></span>
+                  </div>
+                  <div class="d-flex justify-content-between">
+                    <span class="text-muted">Số tiền</span>
+                    <span class="fw-bold text-danger" id="qrAmount"></span>
+                  </div>
+                </div>
+                <div class="alert alert-warning small py-2 mb-3">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Sau khi chuyển khoản, bấm <strong>"Đã thanh toán"</strong> để hoàn tất.
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Đóng</button>
+                  <button type="button" class="btn btn-success rounded-pill flex-fill fw-semibold" id="qrConfirmBtn">
+                    <i class="bi bi-check-circle me-1"></i>Đã thanh toán
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
+
+        <!-- Modal quản lý địa chỉ -->
+        <div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+              <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold modal-title" id="addressModalTitle">Quản lý địa chỉ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body pt-3">
+                <!-- Danh sách địa chỉ -->
+                <div id="addressModalList">
+                   <div th:each="a : ${addresses}" class="card border mb-2">
+                    <div class="card-body py-2 px-3">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                          <strong th:text="${a.tenNguoiNhan}"></strong>
+                          <span class="text-muted ms-2" th:text="${a.soDienThoai}"></span>
+                          <span th:if="${a.isDefault}" class="badge bg-primary ms-2">Mặc định</span>
+                          <div class="small text-muted" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
+                        </div>
+                        <div class="d-flex gap-1 flex-shrink-0">
+                          <a th:href="@{/address/edit/{id}(id=${a.id}, returnUrl='/checkout')}" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-pencil"></i></a>
+                          <button class="btn btn-sm btn-outline-secondary rounded-pill" th:unless="${a.isDefault}" th:onclick="'setDefaultAddress(' + ${a.id} + ')'">Mặc định</button>
+                          <button class="btn btn-sm btn-outline-danger rounded-pill" th:onclick="'deleteAddress(' + ${a.id} + ')'"><i class="bi bi-trash"></i></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm rounded-pill mt-2" onclick="showAddressForm()">
+                    <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
+                  </button>
+                </div>
+
+                <!-- Form thêm địa chỉ (ẩn ban đầu) -->
+                <div id="addressModalForm" style="display:none;">
+                  <div class="mb-3">
+                    <label class="form-label fw-medium small">Địa chỉ trên bản đồ <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm mb-1 position-relative">
+                      <input type="text" id="modalDiaChiCuThe" class="form-control rounded-3" placeholder="Nhập địa chỉ..." required autocomplete="off" />
+                      <button class="btn btn-outline-primary rounded-3" type="button" onclick="modalSearchMap()"><i class="bi bi-search"></i></button>
+                      <div id="modalSuggestionBox" class="list-group position-absolute w-100 rounded-3 shadow-sm"
+                           style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                    </div>
+                    <div id="modalMapContainer" style="border-radius:8px;overflow:hidden;">
+                      <iframe id="modalGoogleMapFrame"
+                          src="https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13"
+                          width="100%" height="220" style="border:0;" allowfullscreen="" loading="lazy">
+                      </iframe>
+                    </div>
+                    <div class="d-flex gap-2 mt-1">
+                      <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="modalGetMyLocation()">
+                        <i class="bi bi-crosshair me-1"></i>Vị trí hiện tại
+                      </button>
+                      <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="modalClearMap()">
+                        <i class="bi bi-x-circle me-1"></i>Xoá
+                      </button>
+                    </div>
+                    <div id="modalMapStatus" class="form-text small text-muted mt-1"></div>
+                    <input type="hidden" id="modalLatitude" />
+                    <input type="hidden" id="modalLongitude" />
+                    <input type="hidden" id="modalPhuongXa" />
+                    <input type="hidden" id="modalQuanHuyen" />
+                    <input type="hidden" id="modalTinhThanh" />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-medium small">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" id="modalTenNguoiNhan" class="form-control form-control-sm rounded-3" required />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label fw-medium small">SĐT <span class="text-danger">*</span></label>
+                    <input type="tel" id="modalSoDienThoai" class="form-control form-control-sm rounded-3" required />
+                  </div>
+                  <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="modalIsDefault" />
+                    <label class="form-check-label small" for="modalIsDefault">Đặt làm địa chỉ mặc định</label>
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill" onclick="showAddressList()">Hủy</button>
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill" onclick="saveAddressFromModal()">Lưu địa chỉ</button>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Đóng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+<th:block layout:fragment="extra-script">
+    <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
+    <script th:inline="javascript">
+        var STORE_LAT = [[${storeLat}]];
+        var STORE_LNG = [[${storeLng}]];
+        var appliedDiscount = 0;
+
+        function openAddressModal() {
+            document.getElementById('addressModalList').style.display = 'block';
+            document.getElementById('addressModalForm').style.display = 'none';
+            document.getElementById('addressModalTitle').textContent = 'Quản lý địa chỉ';
+            new bootstrap.Modal(document.getElementById('addressModal')).show();
+        }
+        function showAddressForm() {
+            document.getElementById('addressModalList').style.display = 'none';
+            document.getElementById('addressModalForm').style.display = 'block';
+            document.getElementById('addressModalTitle').textContent = 'Thêm địa chỉ mới';
+            document.getElementById('modalTenNguoiNhan').value = '';
+            document.getElementById('modalSoDienThoai').value = '';
+            document.getElementById('modalDiaChiCuThe').value = '';
+            document.getElementById('modalPhuongXa').value = '';
+            document.getElementById('modalQuanHuyen').value = '';
+            document.getElementById('modalTinhThanh').value = '';
+            document.getElementById('modalLatitude').value = '';
+            document.getElementById('modalLongitude').value = '';
+            document.getElementById('modalIsDefault').checked = false;
+            document.getElementById('modalMapStatus').textContent = '';
+            document.getElementById('modalGoogleMapFrame').src =
+                'https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13';
+        }
+        function showAddressList() {
+            document.getElementById('addressModalList').style.display = 'block';
+            document.getElementById('addressModalForm').style.display = 'none';
+            document.getElementById('addressModalTitle').textContent = 'Quản lý địa chỉ';
+        }
+        function modalSearchMap() {
+            var q = document.getElementById('modalDiaChiCuThe').value.trim();
+            if (!q) return;
+            var encoded = encodeURIComponent(q + ', Việt Nam');
+            document.getElementById('modalGoogleMapFrame').src =
+                'https://maps.google.com/maps?q=' + encoded + '&output=embed&z=16';
+            document.getElementById('modalMapStatus').textContent = 'Đang tra cứu...';
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encoded + '&format=json&limit=1')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.length > 0) {
+                        var loc = data[0];
+                        document.getElementById('modalLatitude').value = loc.lat;
+                        document.getElementById('modalLongitude').value = loc.lon;
+                        var parts = (loc.display_name || q).split(',').map(function(s) { return s.trim(); });
+                        var len = parts.length;
+                        if (len >= 1) document.getElementById('modalDiaChiCuThe').value = parts[0];
+                        if (len >= 2) document.getElementById('modalPhuongXa').value = parts[1];
+                        if (len >= 3) document.getElementById('modalQuanHuyen').value = parts[2];
+                        if (len >= 4) document.getElementById('modalTinhThanh').value = parts[len - 1];
+                        document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + (loc.display_name || q);
+                    } else {
+                        document.getElementById('modalMapStatus').textContent = 'Không tìm thấy địa chỉ';
+                    }
+                })
+                .catch(function() {
+                    document.getElementById('modalMapStatus').textContent = 'Lỗi tra cứu';
+                });
+        }
+        function modalGetMyLocation() {
+            if (!navigator.geolocation) {
+                document.getElementById('modalMapStatus').textContent = 'Trình duyệt không hỗ trợ GPS';
+                return;
+            }
+            document.getElementById('modalMapStatus').textContent = 'Đang lấy vị trí...';
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                var lat = pos.coords.latitude;
+                var lng = pos.coords.longitude;
+                document.getElementById('modalGoogleMapFrame').src =
+                    'https://maps.google.com/maps?q=' + lat + ',' + lng + '&output=embed&z=16';
+                document.getElementById('modalLatitude').value = lat;
+                document.getElementById('modalLongitude').value = lng;
+                fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&accept-language=vi')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        var a = data.address || {};
+                        document.getElementById('modalTinhThanh').value = a.city || a.state || a.town || '';
+                        document.getElementById('modalQuanHuyen').value = a.suburb || a.county || a.district || '';
+                        document.getElementById('modalPhuongXa').value = a.quarter || a.neighbourhood || a.village || '';
+                        document.getElementById('modalDiaChiCuThe').value =
+                            (a.house_number ? a.house_number + ' ' : '') + (a.road || '');
+                        document.getElementById('modalMapStatus').textContent =
+                            'Vị trí: ' + (data.display_name || lat + ', ' + lng);
+                    })
+                    .catch(function() {
+                        document.getElementById('modalMapStatus').textContent = 'Không thể lấy thông tin địa chỉ';
+                    });
+            }, function() {
+                document.getElementById('modalMapStatus').textContent = 'Không thể lấy vị trí. Kiểm tra quyền GPS.';
+            });
+        }
+        function modalClearMap() {
+            document.getElementById('modalDiaChiCuThe').value = '';
+            document.getElementById('modalGoogleMapFrame').src =
+                'https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13';
+            document.getElementById('modalLatitude').value = '';
+            document.getElementById('modalLongitude').value = '';
+            document.getElementById('modalMapStatus').textContent = '';
+        }
+
+        var modalDebounceTimer;
+        document.addEventListener('input', function(e) {
+            if (e.target.id !== 'modalDiaChiCuThe') return;
+            clearTimeout(modalDebounceTimer);
+            var q = e.target.value.trim();
+            var box = document.getElementById('modalSuggestionBox');
+            if (q.length < 3) { box.style.display = 'none'; return; }
+            modalDebounceTimer = setTimeout(function() {
+                fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q + ', Việt Nam') + '&format=json&limit=5')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        box.innerHTML = '';
+                        if (!data || data.length === 0) { box.style.display = 'none'; return; }
+                        data.forEach(function(loc) {
+                            var item = document.createElement('button');
+                            item.type = 'button';
+                            item.className = 'list-group-item list-group-item-action py-2 text-start';
+                            item.textContent = loc.display_name;
+                            item.addEventListener('click', function() {
+                                document.getElementById('modalDiaChiCuThe').value = loc.display_name;
+                                document.getElementById('modalLatitude').value = loc.lat;
+                                document.getElementById('modalLongitude').value = loc.lon;
+                                var parts = (loc.display_name || '').split(',').map(function(s) { return s.trim(); });
+                                var len = parts.length;
+                                document.getElementById('modalDiaChiCuThe').value = len >= 1 ? parts[0] : '';
+                                document.getElementById('modalPhuongXa').value = len >= 2 ? parts[1] : '';
+                                document.getElementById('modalQuanHuyen').value = len >= 3 ? parts[2] : '';
+                                document.getElementById('modalTinhThanh').value = len >= 4 ? parts[len - 1] : '';
+                                document.getElementById('modalGoogleMapFrame').src =
+                                    'https://maps.google.com/maps?q=' + loc.lat + ',' + loc.lon + '&output=embed&z=16';
+                                document.getElementById('modalMapStatus').textContent = 'Đã chọn: ' + loc.display_name;
+                                box.style.display = 'none';
+                            });
+                            box.appendChild(item);
+                        });
+                        box.style.display = 'block';
+                    });
+            }, 300);
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.target.id === 'modalDiaChiCuThe' && e.key === 'Enter') {
+                e.preventDefault();
+                modalSearchMap();
+            }
+        });
+        document.addEventListener('click', function(e) {
+            var box = document.getElementById('modalSuggestionBox');
+            if (!e.target.closest('#modalDiaChiCuThe') && !e.target.closest('#modalSuggestionBox')) {
+                if (box) box.style.display = 'none';
+            }
+        });
+        function parseAndFillModalAddress(q) {
+            var parts = q.split(',').map(function(s) { return s.trim(); });
+            var len = parts.length;
+            if (len >= 1) document.getElementById('modalDiaChiCuThe').value = parts[0];
+            if (len >= 2) document.getElementById('modalPhuongXa').value = parts[1];
+            if (len >= 3) document.getElementById('modalQuanHuyen').value = parts[2];
+            if (len >= 4) document.getElementById('modalTinhThanh').value = parts[3];
+        }
+        function saveAddressFromModal() {
+            var ten = document.getElementById('modalTenNguoiNhan').value.trim();
+            var sdt = document.getElementById('modalSoDienThoai').value.trim();
+            var dc = document.getElementById('modalDiaChiCuThe').value.trim();
+            if (!ten) { alert('Vui lòng nhập họ tên'); return; }
+            if (!sdt) { alert('Vui lòng nhập SĐT'); return; }
+            if (!dc) { alert('Vui lòng nhập địa chỉ'); return; }
+
+            var formData = new URLSearchParams();
+            formData.append('tenNguoiNhan', ten);
+            formData.append('soDienThoai', sdt);
+            formData.append('diaChiCuThe', dc);
+            formData.append('phuongXa', document.getElementById('modalPhuongXa').value.trim());
+            formData.append('quanHuyen', document.getElementById('modalQuanHuyen').value.trim());
+            formData.append('tinhThanh', document.getElementById('modalTinhThanh').value.trim());
+            formData.append('latitude', document.getElementById('modalLatitude').value);
+            formData.append('longitude', document.getElementById('modalLongitude').value);
+            formData.append('isDefault', document.getElementById('modalIsDefault').checked);
+
+            fetch('/address/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message || 'Lưu thất bại');
+                }
+            })
+            .catch(function() {
+                alert('Lỗi kết nối');
+            });
+        }
+        function setDefaultAddress(id) {
+            fetch('/address/api/set-default/' + id, { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) location.reload();
+                });
+        }
+        function deleteAddress(id) {
+            if (!confirm('Xoá địa chỉ này?')) return;
+            fetch('/address/api/delete/' + id, { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) location.reload();
+                });
+        }
+
+        function getSelectedAddressId() {
+            const sel = document.querySelector('input[name="addressId"]:checked');
+            return sel ? sel.value : null;
+        }
+
+        function updateShipFee() {
+            const addrId = getSelectedAddressId();
+            const method = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value || 'SHIP';
+            if (!addrId) return;
+
+            function fetchFee(m, cb) {
+                fetch('/checkout/shipping-fee?addressId=' + addrId + '&method=' + m)
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.success) cb(data.fee);
+                    });
+            }
+
+            fetchFee(method, function(fee) {
+                document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('en-US') + 'đ';
+                updateTotal();
+            });
+            fetchFee('SHIP', function(fee) {
+                document.getElementById('shipTTPrice').textContent = fee.toLocaleString('en-US') + 'đ';
+            });
+            fetchFee('NHAN_TAI_CONG', function(fee) {
+                document.getElementById('shipNhanhPrice').textContent = fee.toLocaleString('en-US') + 'đ';
+            });
+        }
+
+        function updateTotal() {
+            const subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
+            const fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
+            const total = subtotal + fee - appliedDiscount;
+            document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('en-US') + 'đ';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('addressModal')?.addEventListener('hidden.bs.modal', function() {
+                location.reload();
+            });
+
+            // QR payment confirm: create order + mark paid
+            document.getElementById('qrConfirmBtn')?.addEventListener('click', function() {
+                var btn = this;
+                btn.disabled = true;
+                btn.textContent = 'Đang xử lý...';
+
+                var form = document.getElementById('checkoutForm');
+                var formData = new FormData(form);
+
+                fetch('/checkout/api/create', {
+                    method: 'POST',
+                    body: new URLSearchParams(formData)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        window.location.href = '/checkout/thanh-cong/' + data.orderId;
+                    } else {
+                        alert(data.message || 'Đặt hàng thất bại');
+                        btn.disabled = false;
+                        btn.textContent = 'Đã thanh toán';
+                    }
+                })
+                .catch(function() {
+                    alert('Lỗi kết nối');
+                    btn.disabled = false;
+                    btn.textContent = 'Đã thanh toán';
+                });
+            });
+
+            // Chống bấm đặt hàng 2 lần cho COD
+            document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
+                var tt = document.querySelector('input[name="phuongThucTT"]:checked');
+                if (!tt) return;
+
+                if (tt.value === 'CHUYEN_KHOAN') {
+                    e.preventDefault();
+
+                    var totalEl = document.getElementById('totalDisplay');
+                    var amount = parseInt(totalEl.textContent.replace(/[^0-9]/g, '')) || 0;
+
+                    fetch('/checkout/api/qr-info?amount=' + amount)
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        document.getElementById('qrPaymentImage').src = data.qrUrl;
+                        document.getElementById('qrAccountNumber').textContent = data.accountNumber;
+                        document.getElementById('qrAccountName').textContent = data.accountName;
+                        document.getElementById('qrMaDon').textContent = '';
+                        document.getElementById('qrAmount').textContent = amount.toLocaleString('en-US') + 'đ';
+                        new bootstrap.Modal(document.getElementById('qrPaymentModal')).show();
+                    })
+                    .catch(function() {
+                        alert('Không thể tạo mã QR, vui lòng thử lại');
+                    });
+                } else {
+                    var btn = document.querySelector('#checkoutForm button[type="submit"]');
+                    if (btn._submitted) {
+                        e.preventDefault();
+                        return;
+                    }
+                    btn._submitted = true;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+                }
+            });
+
+            document.querySelectorAll('input[name="phuongThucGiaoHang"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    updateShipFee();
+                });
+            });
+
+            document.querySelectorAll('input[name="phuongThucTT"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    document.getElementById('ckInfo').style.display =
+                        el.value === 'CHUYEN_KHOAN' && el.checked ? 'block' : 'none';
+                });
+            });
+
+            document.querySelectorAll('input[name="addressId"]').forEach(function(el) {
+                el.addEventListener('change', function() {
+                    updateShipFee();
+                });
+            });
+
+            document.getElementById('checkoutApplyPromo')?.addEventListener('click', function() {
+                const input = document.getElementById('checkoutPromoInput');
+                const msgEl = document.getElementById('checkoutPromoMsg');
+                const code = input.value.trim();
+                if (!code) { msgEl.innerHTML = '<span class="text-danger">Vui lòng nhập mã</span>'; return; }
+                const subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
+                msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
+                fetch('/api/coupon/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ maCode: code, subtotal })
+                }).then(r => r.json()).then(function(data) {
+                    if (data.valid) {
+                        msgEl.innerHTML = '<span class="text-success">&#10003; ' + data.message + '</span>';
+                        appliedDiscount = parseInt(data.discount) || 0;
+                        document.getElementById('discountDisplay').textContent = '-' + appliedDiscount.toLocaleString('en-US') + 'đ';
+                        document.getElementById('discountDisplay').className = 'text-danger';
+                    } else {
+                        msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
+                        appliedDiscount = 0;
+                        document.getElementById('discountDisplay').textContent = '0đ';
+                        document.getElementById('discountDisplay').className = '';
+                    }
+                    updateTotal();
+                }).catch(function() {
+                    msgEl.innerHTML = '<span class="text-danger">Lỗi kết nối, vui lòng thử lại</span>';
+                });
+            });
+        });
+    </script>
+</th:block>
     </body>
 </html>

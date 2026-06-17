@@ -36,6 +36,13 @@ public class ProductService {
         return productRepository.findByDanhMucIdAndIsActiveTrue(danhMucId);
     }
 
+    public List<Product> findByCategories(List<Integer> danhMucIds) {
+        if (danhMucIds == null || danhMucIds.isEmpty()) {
+            return List.of();
+        }
+        return productRepository.findByDanhMucIdInAndIsActiveTrue(danhMucIds);
+    }
+
     public Product findById(Integer id) {
         Product p = productRepository.findById(id).orElse(null);
         if (p != null && !p.isActive()) return null;

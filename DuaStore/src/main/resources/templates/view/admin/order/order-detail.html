@@ -8,57 +8,152 @@
     </head>
     <body>
     <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-        <li class="breadcrumb-item"><a th:href="@{/admin/order/danh-sach}">Đơn hàng</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/don-hang}">Đơn hàng</a></li>
         <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
     </th:block>
     <div layout:fragment="content">
-        <!-- ★ TODO [Đơn hàng]: Implement trang chi tiết đơn hàng
-             
-             Cấu trúc gợi ý:
-             1. adm-page-header: Mã đơn hàng + trạng thái badge
-             2. Thông tin khách hàng (tên, sđt, địa chỉ)
-             3. Bảng sản phẩm trong đơn (ảnh, tên, SL, giá, thành tiền)
-             4. Tổng tiền, phí ship, giảm giá
-             5. Form cập nhật trạng thái đơn hàng (select + nút Cập nhật)
-             6. Nút: In đơn / Quay lại
-             
-             Bind: th:object="${order}"
-             Hiển thị danh sách orderItems với th:each
-             Link sidebar active: th:classappend="${title == 'Đơn hàng' ? ' active' : ''}"
-        -->
+        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show">
+            <span th:text="${successMsg}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show">
+            <span th:text="${errorMsg}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <div class="adm-page-header">
-            <h4><i class="bi bi-receipt me-2"></i>Chi tiết đơn hàng #<span th:text="${order.id}">123</span></h4>
-            <a th:href="@{/admin/order/danh-sach}" class="btn btn-outline-secondary btn-sm">
+            <h4><i class="bi bi-receipt me-2"></i>Chi tiết đơn hàng #<span th:text="${order.maDon}"></span></h4>
+            <a th:href="@{/admin/don-hang}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Quay lại
             </a>
         </div>
+
         <div class="row g-4">
             <div class="col-md-6">
                 <div class="adm-card">
                     <h6>Thông tin khách hàng</h6>
-                    <p class="mb-1"><strong>Họ tên:</strong> <span th:text="${order.customerName}">---</span></p>
-                    <p class="mb-1"><strong>SĐT:</strong> <span th:text="${order.phone}">---</span></p>
-                    <p class="mb-0"><strong>Địa chỉ:</strong> <span th:text="${order.address}">---</span></p>
+                    <p class="mb-1"><strong>Họ tên:</strong> <span th:text="${order.tenNguoiNhan}"></span></p>
+                    <p class="mb-1"><strong>SĐT:</strong> <span th:text="${order.soDienThoai}"></span></p>
+                    <p class="mb-0"><strong>Địa chỉ:</strong> <span th:text="${order.diaChi}"></span></p>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="adm-card">
                     <h6>Thông tin đơn hàng</h6>
-                    <p class="mb-1"><strong>Ngày đặt:</strong> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">---</span></p>
+                    <p class="mb-1"><strong>Ngày đặt:</strong> <span th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></span></p>
+                    <p class="mb-1"><strong>PT thanh toán:</strong> <span th:text="${order.phuongThucTT == 'COD' ? 'COD' : order.phuongThucTT == 'CHUYEN_KHOAN' ? 'Chuyển khoản' : order.phuongThucTT}"></span></p>
+                    <p class="mb-1"><strong>PT giao hàng:</strong> <span th:text="${order.phuongThucGiaoHang == 'NHANH' ? 'Giao nhanh' : 'Giao tiêu chuẩn'}"></span></p>
                     <p class="mb-0"><strong>Trạng thái:</strong>
-                        <span class="badge bg-info" th:text="${order.status}">---</span>
+                        <span class="badge" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon}"></span>
+                    </p>
+                </div>
+                <div class="adm-card mt-3" th:if="${assignment != null}">
+                    <h6>Admin phụ trách</h6>
+                    <p class="mb-0">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <strong th:text="${assignment.admin.hoTen}"></strong>
+                        <span class="text-muted small" th:text="'(' + ${assignment.admin.email} + ')'"></span>
+                        <br/>
+                        <span class="text-muted small">
+                            Phân lúc: <span th:text="${#temporals.format(assignment.ngayPhan, 'dd/MM/yyyy HH:mm')}"></span>
+                        </span>
                     </p>
                 </div>
             </div>
         </div>
+
         <div class="adm-table-wrap mt-4">
             <table class="table table-hover align-middle mb-0">
-                <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+                <thead>
+                    <tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+                </thead>
                 <tbody>
-                    <tr><td colspan="4" class="text-muted text-center py-4">Chưa có dữ liệu</td></tr>
+                    <tr th:each="item : ${items}">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img th:src="@{${item.hinhAnhSP}}" alt="" class="rounded" style="width:50px;height:50px;object-fit:cover" />
+                                <div>
+                                    <div class="fw-semibold small" th:text="${item.tenSanPham}"></div>
+                                    <div class="text-muted small" th:text="${item.tenBienThe}"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td th:text="${item.soLuong}"></td>
+                        <td th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                        <td th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                    </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="adm-card">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Tạm tính</span>
+                        <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Phí vận chuyển</span>
+                        <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Giảm giá</span>
+                        <span class="text-danger" th:text="${#numbers.formatDecimal(order.tienGiam, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between fw-bold">
+                        <span>Tổng cộng</span>
+                        <span class="text-danger fs-5" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    </div>
+                </div>
+                <div class="adm-card mt-3" th:if="${not #lists.isEmpty(logs)}">
+                    <h6>Lịch sử thao tác</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li th:each="log : ${logs}" class="mb-2 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <strong th:text="${log.admin.hoTen}"></strong>
+                                <span class="text-muted" th:text="${#temporals.format(log.ngayTao, 'dd/MM/yyyy HH:mm')}"></span>
+                            </div>
+                            <div class="text-muted" th:text="${log.moTa}"></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="adm-card">
+                    <h6>Cập nhật trạng thái</h6>
+                    <th:block th:if="${order.trangThaiDon == 'DA_HOAN_THANH' and not isAssignedAdmin}">
+                        <div class="text-muted small">
+                            <i class="bi bi-lock-fill me-1"></i>Đơn đã hoàn thành, chỉ admin phụ trách mới có thể chỉnh sửa.
+                        </div>
+                    </th:block>
+                    <th:block th:if="${order.trangThaiDon != 'DA_HOAN_THANH' or isAssignedAdmin}">
+                    <form th:action="@{/admin/don-hang/{id}/cap-nhat-trang-thai(id=${order.id})}" th:object="${statusDTO}" method="post">
+                        <div class="mb-2">
+                            <label class="form-label small">Trạng thái đơn</label>
+                            <select th:field="*{trangThaiDon}" class="form-select form-select-sm">
+                                <option value="CHO_XAC_NHAN">Chờ xác nhận</option>
+                                <option value="DA_XAC_NHAN">Đã xác nhận</option>
+                                <option value="DANG_GIAO">Đang giao</option>
+                                <option value="DA_GIAO">Đã giao</option>
+                                <option value="DA_HOAN_THANH">Đã hoàn thành</option>
+                                <option value="DA_HUY">Đã hủy</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">Trạng thái thanh toán</label>
+                            <select th:field="*{trangThaiTT}" class="form-select form-select-sm">
+                                <option value="">-- Giữ nguyên --</option>
+                                <option value="CHUA_THANH_TOAN">Chưa thanh toán</option>
+                                <option value="DA_THANH_TOAN">Đã thanh toán</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+                    </form>
+                    </th:block>
+                </div>
+            </div>
         </div>
     </div>
     </body>

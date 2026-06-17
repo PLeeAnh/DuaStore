@@ -1,59 +1,63 @@
 package com.duastore.config;
 
+import com.duastore.config.security.SecurityUtil;
+import com.duastore.model.Category;
+import com.duastore.model.User;
+import com.duastore.repository.CategoryRepository;
+import com.duastore.service.client.CartService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.util.Collections;
 import java.util.List;
 
-/**
- * ★ GlobalControllerAdvice — inject dữ liệu GLOBAL vào mọi template
- *  @ModelAttribute: navCategories (dropdown), cartCount (badge), requestURI (active nav)
- *  Backend: inject CategoryService + CartService, xóa placeholder
- */
 @ControllerAdvice
 public class GlobalControllerAdvice {
 
-    // ── Uncomment khi TK hoàn thành CategoryService ──
-    // private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
+    private final CartService cartService;
+    private final SecurityUtil securityUtil;
 
-    // ── Uncomment khi NHD hoàn thành CartService ──
-    // private final CartService cartService;
+    @Value("${google.maps.api.key}")
+    private String googleMapsApiKey;
 
-    // ── Constructor injection (dùng khi uncomment 2 dòng trên) ──
-    // public GlobalControllerAdvice(CategoryService categoryService,
-    //                               CartService cartService) {
-    //     this.categoryService = categoryService;
-    //     this.cartService     = cartService;
-    // }
-
-    /**
-     * ★ Trả về danh sách danh mục gốc (parentId = null) cho navbar dropdown.
-     *   Placeholder hiện tại trả về danh sách rỗng.
-     *   Khi có CategoryService, đổi thành:
-     *     return categoryService.findRootCategories();
-     */
-    @ModelAttribute("navCategories")
-    public List<Object> navCategories() {
-        // TODO: return categoryService.findRootCategories();
-        return Collections.emptyList();
+    public GlobalControllerAdvice(CategoryRepository categoryRepository,
+                                  CartService cartService,
+                                  SecurityUtil securityUtil) {
+        this.categoryRepository = categoryRepository;
+        this.cartService = cartService;
+        this.securityUtil = securityUtil;
     }
 
-    /**
-     * ★ Trả về số sản phẩm trong giỏ hàng của người dùng đang đăng nhập.
-     *   Placeholder hiện tại trả về 0.
-     *   Khi có CartService + Security, đổi thành:
-     *     Long userId = getCurrentUserId();
-     *     return cartService.countByUserId(userId);
-     */
+    @ModelAttribute("navCategories")
+    public List<Category> navCategories() {
+        try {
+            return categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
+        } catch (Exception e) {
+            System.out.println("Loi navCategories: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    @ModelAttribute("googleMapsApiKey")
+    public String googleMapsApiKey() {
+        return googleMapsApiKey;
+    }
+
     @ModelAttribute("cartCount")
     public int cartCount() {
-        // TODO: lấy userId từ SecurityContextHolder, rồi:
-        // return cartService.countByUserId(userId);
-        return 0;
+        try {
+            Integer userId = securityUtil.getCurrentUserId();
+            if (userId == null) return 0;
+            return cartService.count(userId);
+        } catch (Exception e) {
+            System.out.println("Loi cartCount: " + e.getMessage());
+            return 0;
+        }
     }
-    
+
     @ModelAttribute("requestURI")
     public String getRequestURI(HttpServletRequest request) {
         return request.getRequestURI();

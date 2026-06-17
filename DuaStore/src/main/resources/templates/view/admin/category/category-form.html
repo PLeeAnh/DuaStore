@@ -3,55 +3,72 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-    <head>
-        <title>Quản lý danh mục — Form</title>
-    </head>
-    <body>
-    <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/admin}">Admin</a></li>
-        <li class="breadcrumb-item"><a th:href="@{/admin/category/danh-sach}">Danh mục</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Form</li>
-    </th:block>
-    <div layout:fragment="content">
-        <!-- ★ TODO [Danh mục]: Implement form thêm / sửa danh mục
-             
-             Cấu trúc gợi ý:
-             1. adm-page-header: tiêu đề "Thêm danh mục" / "Sửa danh mục"
-             2. adm-form-wrap: form với các field:
-                - Tên danh mục (input text, required)
-                - Mô tả (textarea)
-                - Trạng thái (select: Hiển thị / Ẩn)
-             3. Nút: Lưu (btn-primary) / Hủy (btn-secondary)
-             
-             Bind object: th:object="${category}"
-             Xử lý edit: th:action="${category.id != null} ? @{/admin/category/cap-nhat} : @{/admin/category/them-moi}
-        -->
-        <div class="adm-page-header">
-            <h4><i class="bi bi-tags me-2"></i>Thêm danh mục</h4>
-        </div>
-        <div class="adm-form-wrap">
-            <form th:action="@{/admin/category/them-moi}" th:object="${category}" method="post" class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
-                    <input type="text" th:field="*{name}" class="form-control" required />
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Mô tả</label>
-                    <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Trạng thái</label>
-                    <select th:field="*{active}" class="form-select">
-                        <option th:value="true">Hiển thị</option>
-                        <option th:value="false">Ẩn</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-                    <a th:href="@{/admin/category/danh-sach}" class="btn btn-secondary">Hủy</a>
-                </div>
-            </form>
-        </div>
+<head><title>Quản lý danh mục - Form</title></head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc}">Danh mục</a></li>
+    <li class="breadcrumb-item active" th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Form</li>
+</th:block>
+<div layout:fragment="content">
+    <div class="adm-page-header">
+        <h4>
+            <i class="bi bi-tags me-2"></i>
+            <span th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Thêm danh mục</span>
+        </h4>
     </div>
-    </body>
+
+    <div class="adm-form-wrap">
+        <form th:action="${category.id != null} ? @{/admin/danh-muc/sua/{id}(id=${category.id})} : @{/admin/danh-muc/them-moi}"
+              th:object="${category}" method="post" class="row g-3">
+            <input type="hidden" th:field="*{id}" />
+
+            <div class="col-md-6">
+                <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                <input type="text" th:field="*{tenDanhMuc}" class="form-control" required maxlength="100" />
+                <div th:if="${#fields.hasErrors('tenDanhMuc')}" th:errors="*{tenDanhMuc}" class="text-danger small"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Danh mục cha</label>
+                <select th:field="*{parentId}" class="form-select">
+                    <option value="">Danh mục gốc</option>
+                    <option th:each="parent : ${parents}"
+                            th:value="${parent.id}"
+                            th:text="${parent.tenDanhMuc}">Danh mục cha</option>
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Mô tả</label>
+                <textarea th:field="*{moTa}" class="form-control" rows="3" maxlength="500"></textarea>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Hình ảnh</label>
+                <input type="text" th:field="*{hinhAnh}" class="form-control" placeholder="/images/category.png" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Thứ tự hiển thị</label>
+                <input type="number" th:field="*{thuTuHienThi}" class="form-control" min="0" max="9999" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Trạng thái</label>
+                <select th:field="*{active}" class="form-select">
+                    <option th:value="true">Hiển thị</option>
+                    <option th:value="false">Ẩn</option>
+                </select>
+            </div>
+
+            <div class="col-12 border-top pt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
+                <a th:href="@{/admin/danh-muc}" class="btn btn-secondary">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
 </html>
