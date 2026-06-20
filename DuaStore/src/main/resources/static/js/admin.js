@@ -1,10 +1,9 @@
 /* =====================================================
    DuaStore — admin.js
-===================================================== */
+   ===================================================== */
 
 'use strict';
 
-/* ── CSRF: auto-inject token into same-origin non-GET fetch ── */
 (function() {
     const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
     const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
@@ -28,17 +27,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    /* ══════════════════════════════════════════
-       EDIT TOGGLE TẠI ĐÂY — Admin sidebar toggle (☰ / ✕)
-
-       ★ Desktop (≥992px): sidebar luôn hiện, toggle ẩn (CSS)
-       ★ Mobile (<992px):
-          - click toggle → sidebar trượt vào (thêm/remove lớp .adm-sidebar-mobile-open)
-          - click .adm-main → đóng sidebar
-          - resize lên desktop → tự động đóng sidebar mobile
-
-       ★ CSS: .adm-sidebar-mobile-open trong admin.css dòng 393
-    ══════════════════════════════════════════ */
+    /* ── Sidebar toggle ── */
     const toggle = document.getElementById('admNavToggle');
     const sidebar = document.querySelector('.adm-sidebar');
     const icon = document.getElementById('admToggleIcon');
@@ -50,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const isOpen = sidebar.classList.toggle('adm-sidebar-mobile-open');
             toggle.setAttribute('aria-label', isOpen ? 'Đóng menu' : 'Mở menu');
+            if (icon) {
+                icon.className = isOpen ? 'bi bi-x' : 'bi bi-list';
+            }
             if (isMobile()) {
                 document.body.style.overflow = isOpen ? 'hidden' : '';
             }
@@ -61,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isMobile() && sidebar.classList.contains('adm-sidebar-mobile-open')) {
                     sidebar.classList.remove('adm-sidebar-mobile-open');
                     document.body.style.overflow = '';
+                    if (icon) icon.className = 'bi bi-list';
                 }
             });
         }
@@ -69,14 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isMobile() && sidebar.classList.contains('adm-sidebar-mobile-open')) {
                 sidebar.classList.remove('adm-sidebar-mobile-open');
                 document.body.style.overflow = '';
+                if (icon) icon.className = 'bi bi-list';
             }
         });
     }
-    /* ══════════════════════════════════════════
-       KẾT THÚC EDIT TOGGLE
-    ══════════════════════════════════════════ */
 
-    /* ── Profile menu admin ── */
+    /* ── Profile menu ── */
     const admTrigger = document.getElementById('admProfileTrigger');
     const admDropdown = document.getElementById('admProfileDropdown');
     if (admTrigger && admDropdown) {
@@ -93,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* ── Toast notification system ── */
+    /* ── Toast notification ── */
     var toastTriggers = document.querySelectorAll('[data-toast-msg]');
     var toastContainer = document.getElementById('toastContainer');
     toastTriggers.forEach(function(el) {

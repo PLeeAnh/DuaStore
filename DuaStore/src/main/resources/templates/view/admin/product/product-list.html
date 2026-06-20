@@ -11,10 +11,13 @@
     <div layout:fragment="content">
 
         <div class="adm-page-header">
-            <div class="adm-page-header-top">
-                <h4><i class="bi bi-box me-2"></i>Sản phẩm</h4>
+            <div>
+                <h4 class="mb-0"><i class="bi bi-box me-2"></i>Sản phẩm</h4>
+                <p class="mb-0">Quản lý tất cả sản phẩm trong cửa hàng. (<span th:text="${totalItems}">0</span> sản phẩm)</p>
             </div>
-            <p>Quản lý tất cả sản phẩm trong cửa hàng. (<span th:text="${totalItems}">0</span> sản phẩm)</p>
+            <a th:href="@{/admin/san-pham/them-moi}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Thêm mới
+            </a>
         </div>
 
         <div class="adm-tab-nav">
@@ -60,7 +63,7 @@
                     </div>
                     <div class="col-md-2 d-flex gap-1">
                         <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                            <i class="bi bi-search me-1"></i>Lọc
+                            <i class="bi bi-funnel me-1"></i>Lọc
                         </button>
                         <a th:href="@{/admin/san-pham}" class="btn btn-outline-secondary btn-sm" title="Xóa lọc">
                             <i class="bi bi-x-lg"></i>
@@ -81,7 +84,7 @@
                     <tr th:each="p : ${products}">
                         <td th:text="${p.id}" class="text-muted">1</td>
                         <td class="text-center">
-                            <img th:if="${p.hinhAnhChinh}" th:src="@{${p.hinhAnhChinh}}" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:12px;" />
+                            <img th:if="${p.hinhAnhChinh}" th:src="@{${p.hinhAnhChinh}}" alt="" class="adm-thumb" />
                             <span th:unless="${p.hinhAnhChinh}" class="text-muted">—</span>
                         </td>
                         <td>
@@ -103,10 +106,10 @@
                             <span th:unless="${p.isFeatured}" class="text-muted">—</span>
                         </td>
                         <td class="text-center">
-                            <a th:href="@{/admin/san-pham/them-moi}" class="btn btn-outline-success btn-sm me-1 rounded-pill" title="Thêm mới"><i class="bi bi-plus-lg"></i></a>
-                            <a th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}" class="btn btn-outline-primary btn-sm me-1 rounded-pill" title="Sửa"><i class="bi bi-pencil"></i></a>
+                            <a th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}" class="btn btn-outline-info btn-sm btn-icon me-1" title="Chi tiết"><i class="bi bi-eye"></i></a>
+                            <a th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}" class="btn btn-outline-primary btn-sm btn-icon me-1" title="Sửa"><i class="bi bi-pencil"></i></a>
                             <form th:action="@{/admin/san-pham/xoa/{id}(id=${p.id})}" method="post" style="display:inline" onsubmit="return confirm('Xóa sản phẩm này?')">
-                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill" title="Xóa"><i class="bi bi-trash"></i></button>
+                                <button type="submit" class="btn btn-outline-danger btn-sm btn-icon" title="Xóa"><i class="bi bi-trash"></i></button>
                             </form>
                         </td>
                     </tr>

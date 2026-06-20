@@ -11,20 +11,6 @@
         <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
     </th:block>
     <div layout:fragment="content">
-        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show py-2">
-            <span th:text="${successMsg}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show py-2">
-            <span th:text="${errorMsg}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <div th:if="${not tatCa and pendingOrders > 0}" class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>Bạn có <strong th:text="${pendingOrders}"></strong> đơn đang chờ xác nhận.</span>
-            <a th:href="@{/admin/don-hang(tatCa=true)}" class="ms-auto btn btn-sm btn-outline-warning">Xem tất cả</a>
-        </div>
-
         <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
             <div class="d-flex align-items-center gap-2">
                 <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Đơn hàng</h5>
@@ -49,8 +35,9 @@
                     <option value="">Thanh toán</option>
                     <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
                     <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
+                    <option value="CONG_NO" th:selected="${trangThaiTT == 'CONG_NO'}">Công nợ</option>
                 </select>
-                <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-search"></i></button>
+                <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-funnel"></i></button>
             </form>
         </div>
 
