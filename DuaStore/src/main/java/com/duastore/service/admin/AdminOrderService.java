@@ -47,19 +47,22 @@ public class AdminOrderService {
     private final OrderItemRepository orderItemRepository;
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
+    private final OrderNoteService orderNoteService;
 
     public AdminOrderService(OrderRepository orderRepository,
                              AdminLogService adminLogService,
                              OrderAssignmentRepository assignmentRepository,
                              OrderItemRepository orderItemRepository,
                              ProductVariantRepository variantRepository,
-                             OrderStatusLogService orderStatusLogService) {
+                             OrderStatusLogService orderStatusLogService,
+                             OrderNoteService orderNoteService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
         this.orderItemRepository = orderItemRepository;
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
+        this.orderNoteService = orderNoteService;
     }
 
     @Transactional(readOnly = true)
@@ -189,6 +192,19 @@ public class AdminOrderService {
         if ("DA_HUY".equals(trangThaiDon)) {
             return deleteOrderWithLog(id, oldStatus, admin, request);
         }
+
+        // Auto-set payment to CONG_NO when completing unpaid order
+        if ("DA_HOAN_THANH".equals(trangThaiDon)) {
+            Order o = orderRepository.findById(id).orElse(null);
+            if (o != null && "CHUA_THANH_TOAN".equals(o.getTrangThaiTT())) {
+                String oldPayment = o.getTrangThaiTT();
+                updatePaymentStatus(id, "CONG_NO");
+                adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
+                        oldPayment, "CONG_NO",
+                        "Ghi nhận công nợ khi hoàn thành đơn", request);
+            }
+        }
+
         String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         updateOrderStatus(id, trangThaiDon);
 
@@ -214,6 +230,8 @@ public class AdminOrderService {
                 "Xóa đơn hàng (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""),
                 request);
         assignmentRepository.findByOrderId(id).ifPresent(assignmentRepository::delete);
+        orderStatusLogService.deleteByOrderId(id);
+        orderNoteService.deleteByOrderId(id);
         orderRepository.deleteById(id);
         return stockMsg;
     }

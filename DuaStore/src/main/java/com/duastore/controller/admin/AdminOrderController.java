@@ -13,6 +13,8 @@ import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/admin/don-hang")
 public class AdminOrderController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminOrderController.class);
 
     private final AdminOrderService adminOrderService;
     private final OrderService orderService;
@@ -100,6 +104,39 @@ public class AdminOrderController {
         return "view/admin/order/order-list";
     }
 
+    @GetMapping("/{id}/debug")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_READ)")
+    public ResponseEntity<Map<String, Object>> debugOrder(@PathVariable Integer id) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            Order order = adminOrderService.getOrderById(id);
+            OrderDTO orderDTO = orderService.convertToDTO(order);
+            result.put("order", orderDTO);
+            var logs = adminLogService.getLogsByOrder(id);
+            result.put("logsCount", logs.size());
+            var assignment = adminLogService.getAssignmentByOrder(id);
+            result.put("hasAssignment", assignment != null);
+            var statusLogs = orderStatusLogService.getLogsByOrder(id);
+            result.put("statusLogsCount", statusLogs.size());
+            for (var sl : statusLogs) {
+                if (sl.getNguoiThucHien() != null) sl.getNguoiThucHien().getHoTen();
+            }
+            var notes = orderNoteService.getNotesByOrder(id);
+            result.put("notesCount", notes.size());
+            for (var n : notes) {
+                n.getAdmin().getHoTen();
+            }
+            result.put("success", true);
+        } catch (Exception e) {
+            log.error("DEBUG Loi khi lay data don hang #{}: {}", id, e.getMessage(), e);
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            result.put("type", e.getClass().getName());
+        }
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_READ)")
     public String orderDetail(@PathVariable Integer id, Model model) {
@@ -125,6 +162,7 @@ public class AdminOrderController {
             model.addAttribute("title", "Chi tiết đơn hàng");
             return "view/admin/order/order-detail";
         } catch (Exception e) {
+            log.error("Loi khi xem chi tiet don hang #{}: {}", id, e.getMessage(), e);
             return "redirect:/admin/don-hang";
         }
     }
@@ -156,6 +194,14 @@ public class AdminOrderController {
 
             String oldStatus = order.getTrangThaiDon();
             String oldPayment = order.getTrangThaiTT();
+
+            // Show confirmation modal when completing unpaid order
+            if ("DA_HOAN_THANH".equals(dto.getTrangThaiDon())
+                    && "CHUA_THANH_TOAN".equals(oldPayment)
+                    && !"true".equals(request.getParameter("confirmed"))) {
+                ra.addFlashAttribute("showConfirmModal", true);
+                return "redirect:/admin/don-hang/" + id;
+            }
 
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, dto.getTrangThaiDon(), oldStatus, admin, request);
             String msg;
@@ -202,6 +248,17 @@ public class AdminOrderController {
             }
 
             String oldStatus = order.getTrangThaiDon();
+
+            // Check if confirmation needed for unpaid completion
+            if ("DA_HOAN_THANH".equals(trangThai)
+                    && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())
+                    && !"true".equals(request.getParameter("confirmed"))) {
+                result.put("success", false);
+                result.put("needsConfirmation", true);
+                result.put("message", "Khách hàng chưa thanh toán. Bạn có chắc muốn hoàn thành đơn hàng này không?");
+                return ResponseEntity.ok(result);
+            }
+
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, trangThai, oldStatus, admin, request);
             String msg;
             if ("DA_HUY".equals(trangThai)) {

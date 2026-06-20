@@ -14,7 +14,7 @@
   [3]  Products         -- San pham goc [PLA]
   [4]  ProductImages    -- Bo suu tap anh san pham (Gallery Slider) [PLA]
   [5]  ProductVariants  -- Bien the: dung tich, gia, ton kho, hinh anh [PLA]
-  [6]  Addresses        -- Dia chi giao hang [NXK]
+  [6]  Addresses        -- Dia chi giao hang [NHD]
   [7]  Promotions       -- Ma khuyen mai [BTM]
   [8]  Orders           -- Don hang [NHD]
   [9]  OrderItems       -- Chi tiet don hang [NHD]

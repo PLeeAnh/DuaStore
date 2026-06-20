@@ -36,4 +36,9 @@ public class OrderStatusLogService {
     public List<OrderStatusLog> getLogsByOrder(Integer orderId) {
         return repository.findByOrderIdOrderByThoiGianAsc(orderId);
     }
+
+    @Transactional
+    public void deleteByOrderId(Integer orderId) {
+        repository.deleteByOrderId(orderId);
+    }
 }

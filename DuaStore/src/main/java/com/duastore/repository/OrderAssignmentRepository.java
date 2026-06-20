@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment, Integer> {
-    @EntityGraph(attributePaths = {"admin"})
+    @Query("SELECT oa FROM OrderAssignment oa JOIN FETCH oa.admin WHERE oa.order.id = ?1")
     Optional<OrderAssignment> findByOrderId(Integer orderId);
     List<OrderAssignment> findByAdminId(Integer adminId, Sort sort);
     List<OrderAssignment> findByAdminIdAndTrangThai(Integer adminId, String trangThai);

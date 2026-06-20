@@ -10,9 +10,11 @@ import com.duastore.model.Promotion;
 import com.duastore.model.User;
 import com.duastore.repository.AddressRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.model.OrderEventType;
 import com.duastore.service.EmailService;
 import com.duastore.service.PaymentService;
 import com.duastore.service.ShippingFeeService;
+import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.OrderService;
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ public class CheckoutController {
     private final ShippingFeeService shippingFeeService;
     private final EmailService emailService;
     private final PaymentService paymentService;
+    private final OrderStatusLogService orderStatusLogService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
                               AddressRepository addressRepository,
@@ -48,7 +51,8 @@ public class CheckoutController {
                               SecurityUtil securityUtil,
                               ShippingFeeService shippingFeeService,
                               EmailService emailService,
-                              PaymentService paymentService) {
+                              PaymentService paymentService,
+                              OrderStatusLogService orderStatusLogService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -57,6 +61,7 @@ public class CheckoutController {
         this.shippingFeeService = shippingFeeService;
         this.emailService = emailService;
         this.paymentService = paymentService;
+        this.orderStatusLogService = orderStatusLogService;
     }
 
     private Integer getUserId() {
@@ -289,6 +294,7 @@ public class CheckoutController {
                 return "redirect:/checkout/thanh-cong/" + id;
             }
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
+            orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
 
             try {
                 User user = order.getUser();

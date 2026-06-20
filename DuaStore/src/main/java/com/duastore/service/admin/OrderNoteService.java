@@ -31,4 +31,9 @@ public class OrderNoteService {
     public List<OrderNote> getNotesByOrder(Integer orderId) {
         return repository.findByOrderIdOrderByNgayTaoAsc(orderId);
     }
+
+    @Transactional
+    public void deleteByOrderId(Integer orderId) {
+        repository.deleteByOrderId(orderId);
+    }
 }

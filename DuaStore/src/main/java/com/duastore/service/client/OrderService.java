@@ -299,6 +299,7 @@ public class OrderService {
         dto.setId(order.getId());
         dto.setMaDon(order.getMaDon());
         dto.setUserId(order.getUser().getId());
+        dto.setUserEmail(order.getUser().getEmail());
         dto.setTenNguoiNhan(order.getSnapTenNguoiNhan());
         dto.setSoDienThoai(order.getSnapSoDienThoai());
         dto.setDiaChi(order.getSnapDiaChi());

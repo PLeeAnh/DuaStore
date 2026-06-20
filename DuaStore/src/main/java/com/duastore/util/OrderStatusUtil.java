@@ -1,5 +1,6 @@
 package com.duastore.util;
 
+import com.duastore.model.OrderEventType;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,33 @@ public final class OrderStatusUtil {
 
     public static List<String> getOrderedStatuses() {
         return ORDERED_STATUSES;
+    }
+
+    public static int getTotalSteps() {
+        return ORDERED_STATUSES.size();
+    }
+
+    public static String getBadgeClass(OrderEventType eventType) {
+        if (eventType == null) return "bg-secondary";
+        return switch (eventType) {
+            case CREATE_ORDER -> "bg-primary";
+            case ASSIGN_ADMIN -> "bg-info";
+            case STATUS_CHANGE -> "bg-success";
+            case CANCEL_ORDER -> "bg-danger";
+            default -> "bg-secondary";
+        };
+    }
+
+    public static String getIconClass(OrderEventType eventType) {
+        if (eventType == null) return "bi-clock";
+        return switch (eventType) {
+            case CREATE_ORDER -> "bi-cart-plus";
+            case ASSIGN_ADMIN -> "bi-person-check";
+            case STATUS_CHANGE -> "bi-arrow-left-right";
+            case CANCEL_ORDER -> "bi-x-circle";
+            case PAYMENT_CONFIRMED -> "bi-credit-card";
+            default -> "bi-clock";
+        };
     }
 
     private OrderStatusUtil() {}
