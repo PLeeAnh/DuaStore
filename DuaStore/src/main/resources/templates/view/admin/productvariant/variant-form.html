@@ -31,6 +31,7 @@
                 <div class="col-md-3">
                     <label class="form-label">Tồn kho</label>
                     <input type="number" th:field="*{soLuongTon}" class="form-control" min="0" />
+                    <div th:if="${#fields.hasErrors('soLuongTon')}" th:errors="*{soLuongTon}" class="text-danger small"></div>
                 </div>
 
                 <div class="col-md-4">

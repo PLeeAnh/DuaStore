@@ -59,14 +59,14 @@
                     <div class="my-3">
                         <span th:if="${defaultVariant != null}" id="productPrice" class="fs-4 fw-bold text-danger me-2"
                               th:text="${defaultVariant.giaKhuyenMai != null
-                                        ? #numbers.formatDecimal(defaultVariant.giaKhuyenMai, 0, 'COMMA', 0, 'POINT') + '₫'
-                                        : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT') + '₫'}">
+                                        ? #numbers.formatDecimal(defaultVariant.giaKhuyenMai, 0, 0) + '₫'
+                                        : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 0) + '₫'}">
                             100,000₫
                         </span>
                         <span th:if="${defaultVariant == null}" class="fs-4 fw-bold text-danger me-2">Liên hệ</span>
                         <span id="productOriginalPrice" th:if="${defaultVariant != null && defaultVariant.giaKhuyenMai != null}"
                               class="text-decoration-line-through text-muted small"
-                              th:text="${#numbers.formatDecimal(defaultVariant.giaGoc, 0, 'COMMA', 0, 'POINT')} + '₫'">
+                              th:text="${#numbers.formatDecimal(defaultVariant.giaGoc, 0, 0)} + '₫'">
                             120,000₫
                         </span>
                         <span id="stockStatus" th:if="${defaultVariant != null && defaultVariant.soLuongTon <= 0}"
@@ -132,6 +132,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
 
+            <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded border" th:if="${reviewCount > 0}">
+                <div class="text-center" style="min-width:80px">
+                    <div class="fw-bold" style="font-size:2rem;color:var(--ef-primary)" th:text="${#numbers.formatDecimal(avgRating, 1, 1)}">4.5</div>
+                    <div class="small text-muted" th:text="${reviewCount} + ' đánh giá'">10 đánh giá</div>
+                </div>
+                <div class="star-rating-readonly" th:data-score="${#numbers.convert(avgRating, 'int')}"></div>
+            </div>
+
             <h5 class="fw-bold mb-4"><i class="bi bi-star me-2"></i>Đánh giá sản phẩm</h5>
 
             <div th:if="${#lists.isEmpty(reviews)}" class="text-muted mb-4">Chưa có đánh giá nào.</div>
@@ -143,11 +151,12 @@
                     <small class="text-muted" th:text="${#temporals.format(rv.ngayTao, 'dd/MM/yyyy')}"></small>
                 </div>
                 <p class="mb-0 text-muted" th:if="${rv.binhLuan != null}" th:text="${rv.binhLuan}"></p>
+                <img th:if="${rv.hinhAnh != null}" th:src="@{${rv.hinhAnh}}" alt="Hình ảnh đánh giá" class="mt-2 rounded" style="max-width:200px;max-height:200px;object-fit:cover;" />
             </div>
 
             <div class="border rounded p-4 mt-3" th:unless="${hasReviewed}">
                 <h6 class="fw-bold mb-3">Viết đánh giá của bạn</h6>
-                <form th:action="@{/san-pham/{id}/danh-gia(id=${product.id})}" method="post">
+                <form th:action="@{/san-pham/{id}/danh-gia(id=${product.id})}" method="post" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label">Chất lượng sản phẩm</label>
                         <div class="star-rating">
@@ -167,10 +176,33 @@
                         <label class="form-label">Bình luận</label>
                         <textarea name="binhLuan" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hình ảnh (không bắt buộc)</label>
+                        <input type="file" name="hinhAnh" class="form-control form-control-sm" accept="image/*" />
+                    </div>
                     <button type="submit" class="btn btn-danger">Gửi đánh giá</button>
                 </form>
             </div>
             <p th:if="${hasReviewed}" class="text-muted mt-3">Bạn đã đánh giá sản phẩm này.</p>
+        </div>
+
+        <div class="container-xl py-4" th:if="${not #lists.isEmpty(relatedProducts)}">
+            <h5 class="fw-bold mb-4"><i class="bi bi-boxes me-2"></i>Sản phẩm liên quan</h5>
+            <div class="row g-3">
+                <div class="col-6 col-md-4 col-lg-2" th:each="rp : ${relatedProducts}">
+                    <div class="card product-card h-100 border-0 shadow-sm">
+                        <a th:href="@{/san-pham/{id}(id=${rp.id})}">
+                            <img th:src="@{${rp.hinhAnhChinh}}" class="card-img-top" th:alt="${rp.tenSanPham}" />
+                        </a>
+                        <div class="card-body text-center p-2">
+                            <h6 class="card-title small" th:text="${rp.tenSanPham}">Name</h6>
+                            <span class="text-danger fw-bold small" th:if="${relatedVariantsMap.containsKey(rp.id)}">
+                                <th:block th:text="${#numbers.formatDecimal(relatedVariantsMap[rp.id][0].giaKhuyenMai != null ? relatedVariantsMap[rp.id][0].giaKhuyenMai : relatedVariantsMap[rp.id][0].giaGoc, 0, 0) + '₫'}">0₫</th:block>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -376,6 +408,10 @@
 
         // ── Render star rating for reviews ──
         document.querySelectorAll('.review-stars').forEach(function(el) {
+            const score = parseInt(el.dataset.score) || 0;
+            el.innerHTML = '★'.repeat(score) + '☆'.repeat(5 - score);
+        });
+        document.querySelectorAll('.star-rating-readonly').forEach(function(el) {
             const score = parseInt(el.dataset.score) || 0;
             el.innerHTML = '★'.repeat(score) + '☆'.repeat(5 - score);
         });

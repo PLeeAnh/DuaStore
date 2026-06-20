@@ -16,44 +16,141 @@
 
         <div class="row">
             <aside class="col-lg-3 mb-4">
-                <div class="list-group shadow-sm">
-                    <a th:href="@{/san-pham}"
-                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                       th:classappend="${selectedCategoryId == null} ? ' active' : ''">
-                        Tat ca danh muc
-                        <i class="bi bi-grid"></i>
-                    </a>
-                    <div th:each="cat : ${categories}">
-                        <a th:href="@{/san-pham(danhMuc=${cat.id})}"
-                           class="list-group-item list-group-item-action fw-semibold"
-                           th:classappend="${selectedCategoryId == cat.id} ? ' active' : ''"
-                           th:text="${cat.tenDanhMuc}">Danh muc</a>
-                        <a th:each="child : ${cat.children}"
-                           th:if="${child.active}"
-                           th:href="@{/san-pham(danhMuc=${child.id})}"
-                           class="list-group-item list-group-item-action ps-4 small"
-                           th:classappend="${selectedCategoryId == child.id} ? ' active' : ''"
-                           th:text="${child.tenDanhMuc}">Danh muc con</a>
+                <!-- Category filter -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-white fw-semibold py-2">Danh mục</div>
+                    <div class="list-group list-group-flush">
+                        <a th:href="@{/san-pham}"
+                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                           th:classappend="${selectedCategoryId == null and minPrice == null and maxPrice == null and dungTich == null and kieuNap == null and sortBy == 'newest'} ? ' active' : ''">
+                            Tất cả
+                            <i class="bi bi-grid"></i>
+                        </a>
+                        <div th:each="cat : ${categories}" class="ds-cat-group">
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center fw-semibold"
+                                 th:classappend="${selectedCategoryId == cat.id} ? ' active' : ''">
+                                <a th:href="@{/san-pham(danhMuc=${cat.id})}"
+                                   class="text-decoration-none text-reset flex-grow-1"
+                                   th:text="${cat.tenDanhMuc}">Danh muc</a>
+                                <a th:if="${not #lists.isEmpty(cat.children)}"
+                                   th:attr="data-bs-toggle='collapse', href='|#cat-${cat.id}|'"
+                                   role="button" class="ds-cat-toggle"
+                                   onclick="this.classList.toggle('open')">
+                                    <i class="bi bi-chevron-down"></i>
+                                </a>
+                            </div>
+                            <div th:if="${not #lists.isEmpty(cat.children)}"
+                                 th:attr="id='|cat-${cat.id}|'"
+                                 class="collapse ds-cat-children"
+                                 th:classappend="${selectedCategoryId != null and (selectedCategoryId == cat.id or #lists.contains(cat.children.![id], selectedCategoryId))} ? 'show' : ''">
+                                <a th:each="child : ${cat.children}"
+                                   th:if="${child.active}"
+                                   th:href="@{/san-pham(danhMuc=${child.id})}"
+                                   class="list-group-item list-group-item-action ds-cat-child"
+                                   th:classappend="${selectedCategoryId == child.id} ? ' active' : ''"
+                                   th:text="${child.tenDanhMuc}">Danh muc con</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Filter form -->
+                <form th:action="@{/san-pham}" method="get" class="card shadow-sm mb-3">
+                    <div class="card-header bg-white fw-semibold py-2">Bộ lọc</div>
+                    <div class="card-body">
+                        <input type="hidden" name="danhMuc" th:value="${selectedCategoryId}" th:if="${selectedCategoryId != null}" />
+                        <input type="hidden" name="keyword" th:value="${keyword}" th:if="${keyword != null}" />
+
+                        <!-- Price range -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-medium text-muted">Khoảng giá</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="number" name="minPrice" class="form-control form-control-sm" placeholder="Từ"
+                                       th:value="${minPrice}" step="1000" min="0" />
+                                <span class="text-muted">-</span>
+                                <input type="number" name="maxPrice" class="form-control form-control-sm" placeholder="Đến"
+                                       th:value="${maxPrice}" step="1000" min="0" />
+                            </div>
+                        </div>
+
+                        <!-- Dung tich (Volume) -->
+                        <div class="mb-3" th:if="${not #lists.isEmpty(distinctVolumes)}">
+                            <label class="form-label small fw-medium text-muted">Dung tích</label>
+                            <div class="d-flex flex-wrap gap-1">
+                                <button type="submit" name="dungTich" th:value="${vol}"
+                                        class="btn btn-sm ds-filter-chip"
+                                        th:classappend="${dungTich == vol} ? 'active btn-primary' : 'btn-outline-secondary'"
+                                        th:each="vol : ${distinctVolumes}"
+                                        th:text="${vol} + 'ml'">50ml</button>
+                            </div>
+                        </div>
+
+                        <!-- Cap type -->
+                        <div class="mb-3" th:if="${not #lists.isEmpty(distinctCapTypes)}">
+                            <label class="form-label small fw-medium text-muted">Kiểu nắp</label>
+                            <div class="d-flex flex-wrap gap-1">
+                                <button type="submit" name="kieuNap" th:value="${cap}"
+                                        class="btn btn-sm ds-filter-chip"
+                                        th:classappend="${kieuNap == cap} ? 'active btn-primary' : 'btn-outline-secondary'"
+                                        th:each="cap : ${distinctCapTypes}"
+                                        th:text="${cap}">Nắp Gỗ</button>
+                            </div>
+                        </div>
+
+                        <!-- Shape -->
+                        <div class="mb-3" th:if="${not #lists.isEmpty(distinctShapes)}">
+                            <label class="form-label small fw-medium text-muted">Hình dạng</label>
+                            <div class="d-flex flex-wrap gap-1">
+                                <button type="submit" name="hinhDang" th:value="${shape}"
+                                        class="btn btn-sm ds-filter-chip"
+                                        th:classappend="${hinhDang == shape} ? 'active btn-primary' : 'btn-outline-secondary'"
+                                        th:each="shape : ${distinctShapes}"
+                                        th:text="${shape}">Tròn</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm w-100 mt-2">
+                            <i class="bi bi-funnel"></i> Áp dụng
+                        </button>
+                        <a th:href="@{/san-pham(danhMuc=${selectedCategoryId}, keyword=${keyword})}"
+                           class="btn btn-outline-secondary btn-sm w-100 mt-1">
+                            <i class="bi bi-x-circle"></i> Xóa lọc
+                        </a>
+                    </div>
+                </form>
             </aside>
 
             <div class="col-lg-9">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span th:if="${keyword != null}">
-                        Ket qua tim kiem: "<strong th:text="${keyword}">keyword</strong>"
-                    </span>
-                    <span th:if="${keyword == null && selectedCategory != null}">
-                        Danh muc: <strong th:text="${selectedCategory.tenDanhMuc}">Danh muc</strong>
-                    </span>
-                    <span th:if="${keyword == null && selectedCategory == null}">
-                        <strong th:text="${#lists.size(products)}">0</strong> san pham
-                    </span>
+                <!-- Header bar with info + sort -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <div>
+                        <span th:if="${keyword != null}">
+                            Kết quả tìm kiếm: "<strong th:text="${keyword}">keyword</strong>"
+                        </span>
+                        <span th:if="${keyword == null && selectedCategory != null}">
+                            Danh mục: <strong th:text="${selectedCategory.tenDanhMuc}">Danh muc</strong>
+                        </span>
+                        <span th:if="${keyword == null && selectedCategory == null}">
+                            <strong th:text="${totalItems}">0</strong> sản phẩm
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted" th:if="${totalItems > 0}">
+                            <strong th:text="${currentPage * pageSize + 1}">1</strong>-<strong th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">12</strong> / <strong th:text="${totalItems}">0</strong>
+                        </small>
+                        <select name="sortBy" onchange="location.href=this.value"
+                                class="form-select form-select-sm" style="width:auto;">
+                            <option th:each="opt : ${ { 'newest': 'Mới nhất', 'name_asc': 'Tên A-Z', 'name_desc': 'Tên Z-A' } }"
+                                    th:value="@{/san-pham(page=0, size=${pageSize}, danhMuc=${selectedCategoryId}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice}, dungTich=${dungTich}, kieuNap=${kieuNap}, hinhDang=${hinhDang}, sortBy=${opt.key})}"
+                                    th:selected="${sortBy == opt.key}"
+                                    th:text="${opt.value}">Mới nhất</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div th:if="${#lists.isEmpty(products)}" class="text-center py-5">
                     <i class="bi bi-inbox ds-empty-icon"></i>
-                    <p class="text-muted mt-3">Khong tim thay san pham nao</p>
+                    <p class="text-muted mt-3">Không tìm thấy sản phẩm nào</p>
                 </div>
 
                 <div th:unless="${#lists.isEmpty(products)}" class="row g-3">
@@ -76,7 +173,7 @@
                                         <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
                                     </div>
                                     <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-                                          th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 'COMMA', 0, 'POINT')}%|">-15%</span>
+                                          th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
                                     <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
                                     <span th:if="${p.trangThaiSanPham == 'DAT_TRUOC'}"
                                            class="badge bg-warning text-dark position-absolute ds-badge-dat-truoc">Đặt trước</span>
@@ -91,6 +188,8 @@
 
                             <div class="ds-card-body">
                                 <a th:href="@{/san-pham/{id}(id=${p.id})}" class="ds-product-name" th:text="${p.tenSanPham}">Tên SP</a>
+
+                                <div class="star-rating-readonly small" th:if="${avgRatings != null and avgRatings.containsKey(p.id)}" th:data-score="${#numbers.convert(avgRatings.get(p.id), 'int')}"></div>
 
                                 <div class="ds-stock-qty-row">
                                 <span th:if="${v != null}"
@@ -137,7 +236,7 @@
                                         onclick="addToCartFromCard(this);return false">
                                     <span class="ds-price-btn-text">
                                         <strong class="ds-price-btn-amount"
-                                                th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'COMMA', 0, 'POINT')} + 'đ'">100.000đ</strong>
+                                                th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 0)} + 'đ'">100.000đ</strong>
                                     </span>
                                     <svg viewBox="0 0 40 45" fill="none" class="btn-wave-svg">
                                         <g>
@@ -157,9 +256,58 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Pagination -->
+                <div class="bg-white p-4 rounded-3 shadow-sm border mt-4" style="border-color:#f0f0f0;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <small class="text-muted fw-medium" th:if="${totalItems > 0}" style="font-size:.85rem;">
+                            Hiển thị <strong th:text="${currentPage * pageSize + 1}">1</strong>-<strong th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">12</strong> trong tổng số <strong th:text="${totalItems}">0</strong> sản phẩm
+                        </small>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <form th:action="@{/san-pham}" method="get" class="d-inline">
+                            <input type="hidden" name="danhMuc" th:value="${danhMuc}" th:if="${danhMuc != null}" />
+                            <input type="hidden" name="keyword" th:value="${keyword}" th:if="${keyword != null}" />
+                            <input type="hidden" name="minPrice" th:value="${minPrice}" th:if="${minPrice != null}" />
+                            <input type="hidden" name="maxPrice" th:value="${maxPrice}" th:if="${maxPrice != null}" />
+                            <input type="hidden" name="dungTich" th:value="${dungTich}" th:if="${dungTich != null}" />
+                            <input type="hidden" name="kieuNap" th:value="${kieuNap}" th:if="${kieuNap != null}" />
+                            <input type="hidden" name="hinhDang" th:value="${hinhDang}" th:if="${hinhDang != null}" />
+                            <input type="hidden" name="sortBy" th:value="${sortBy}" th:if="${sortBy != 'newest'}" />
+                            <input type="hidden" name="page" value="0" />
+                            <select name="size" onchange="this.form.submit()" class="ds-pagination-size-select">
+                                <option th:each="s : ${ {12, 24, 36, 60} }" th:value="${s}" th:selected="${s == pageSize}" th:text="'Hiển thị ' + ${s}"></option>
+                            </select>
+                        </form>
+                        <nav th:if="${totalPages > 1}">
+                            <div class="d-flex align-items-center gap-1">
+                                <a th:href="@{/san-pham(page=${currentPage - 1}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice}, dungTich=${dungTich}, kieuNap=${kieuNap}, hinhDang=${hinhDang}, sortBy=${sortBy})}"
+                                   class="ds-pagination-nav-btn"
+                                   th:classappend="${currentPage == 0} ? 'disabled' : ''"
+                                   th:attr="tabindex=${currentPage == 0} ? '-1' : ''">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                </a>
+                                <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                   th:href="@{/san-pham(page=${i}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice}, dungTich=${dungTich}, kieuNap=${kieuNap}, hinhDang=${hinhDang}, sortBy=${sortBy})}"
+                                   class="ds-pagination-btn"
+                                   th:classappend="${i == currentPage} ? 'active' : ''"
+                                   th:text="${i + 1}">1</a>
+                                <a th:href="@{/san-pham(page=${currentPage + 1}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword}, minPrice=${minPrice}, maxPrice=${maxPrice}, dungTich=${dungTich}, kieuNap=${kieuNap}, hinhDang=${hinhDang}, sortBy=${sortBy})}"
+                                   class="ds-pagination-nav-btn"
+                                   th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''"
+                                   th:attr="tabindex=${currentPage >= totalPages - 1} ? '-1' : ''">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </a>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<th:block layout:fragment="extra-script">
+</th:block>
 </body>
 </html>

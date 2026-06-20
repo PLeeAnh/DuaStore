@@ -276,7 +276,7 @@
                             <td class="align-middle">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="product-img-wrapper">
-                                        <img th:src="${item.hinhAnhHienThi != null ? item.hinhAnhHienThi : '/images/no-image.png'}" 
+                                        <img th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}" 
                                              th:alt="${item.tenSanPham}">
                                     </div>
                                     <div>
@@ -290,7 +290,7 @@
                                 </div>
                             </td>
                             <td class="text-center align-middle">
-                                <span class="unit-price text-muted" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span class="unit-price text-muted" th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + 'đ'"></span>
                             </td>
                             <td class="text-center align-middle">
                                 <div class="quantity-control-wrapper mx-auto">
@@ -300,7 +300,7 @@
                                 </div>
                             </td>
                             <td class="text-end align-middle">
-                                <span class="total-price-cell fw-bold" th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span class="total-price-cell fw-bold" th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 0)} + 'đ'"></span>
                             </td>
                         </tr>
                     </tbody>
@@ -315,7 +315,7 @@
                 <div class="checkout-summary-area">
                     <div class="summary-line">
                         <span class="subtotal-label">TỔNG TẠM TÍNH:</span>
-                        <span class="subtotal-value" th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span class="subtotal-value" th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 0)} + 'đ'"></span>
                     </div>
                     <p class="shipping-info-text">Thuế và phí ship tính khi thanh toán.</p>
                     <a th:href="@{/checkout}" class="btn-checkout-main">THANH TOÁN NGAY</a>

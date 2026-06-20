@@ -3,13 +3,13 @@ package com.duastore.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @ToString(exclude = {"password"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class User {
@@ -32,8 +32,13 @@ public class User {
     @Column(length = 15)
     private String soDienThoai;
 
-    @Column(nullable = false, length = 20)
-    private String role;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles;
 
     @Column(nullable = false)
     private Boolean isActive;
@@ -54,7 +59,6 @@ public class User {
     protected void onCreate() {
         ngayTao = LocalDateTime.now();
         if (isActive == null) isActive = true;
-        if (role == null) role = "USER";
     }
 
     @PreUpdate

@@ -1,6 +1,8 @@
 package com.duastore.repository;
 
 import com.duastore.model.ProductVariant;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,9 +16,28 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     List<ProductVariant> findByProductId(Integer productId);
     Optional<ProductVariant> findByProductIdAndIsDefaultTrue(Integer productId);
 
+    List<ProductVariant> findByIsActiveTrueOrderByIdAsc();
+    Page<ProductVariant> findByIsActiveTrueOrderByIdAsc(Pageable pageable);
+
+    @Query("SELECT v FROM ProductVariant v WHERE v.isActive = true " +
+           "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "ORDER BY v.id ASC")
+    List<ProductVariant> searchAll(@Param("keyword") String keyword);
+
+    @Query("SELECT v FROM ProductVariant v WHERE v.isActive = true " +
+           "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "ORDER BY v.id ASC")
+    Page<ProductVariant> searchAllPaged(@Param("keyword") String keyword, Pageable pageable);
+
     @Query("SELECT v FROM ProductVariant v WHERE v.productId = :productId AND v.isActive = true " +
            "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "ORDER BY v.id ASC")
     List<ProductVariant> searchByProductId(@Param("productId") Integer productId,
                                            @Param("keyword") String keyword);
+
+    @Query("SELECT DISTINCT v.dungTich FROM ProductVariant v WHERE v.isActive = true AND v.dungTich IS NOT NULL ORDER BY v.dungTich ASC")
+    List<Integer> findDistinctDungTich();
+
+    @Query("SELECT DISTINCT v.tenBienThe FROM ProductVariant v WHERE v.isActive = true AND v.tenBienThe IS NOT NULL ORDER BY v.tenBienThe ASC")
+    List<String> findDistinctTenBienThe();
 }

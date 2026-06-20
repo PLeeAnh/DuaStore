@@ -29,6 +29,9 @@ public class Review {
     @Column(length = 1000)
     private String binhLuan;
 
+    @Column(length = 500)
+    private String hinhAnh;
+
     @Column(nullable = false)
     private Boolean isApproved = false;
 

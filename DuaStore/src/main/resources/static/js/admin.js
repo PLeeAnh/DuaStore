@@ -4,6 +4,28 @@
 
 'use strict';
 
+/* ── CSRF: auto-inject token into same-origin non-GET fetch ── */
+(function() {
+    const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+    const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+    if (!token || !header) return;
+    const orig = window.fetch;
+    window.fetch = function(url, opts) {
+        opts = opts || {};
+        if (!opts.method || opts.method.toUpperCase() === 'GET') return orig.call(this, url, opts);
+        const isSameOrigin = typeof url === 'string' && (url.startsWith('/') || new URL(url, location.origin).origin === location.origin);
+        if (isSameOrigin) {
+            opts.headers = opts.headers || {};
+            if (opts.headers instanceof Headers) {
+                opts.headers.set(header, token);
+            } else {
+                opts.headers[header] = token;
+            }
+        }
+        return orig.call(this, url, opts);
+    };
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
 
     /* ══════════════════════════════════════════
@@ -71,12 +93,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* ── Auto-dismiss alerts sau 4 giây ── */
-    document.querySelectorAll('.alert.alert-dismissible').forEach(el => {
-        setTimeout(() => {
-            const instance = bootstrap.Alert.getOrCreateInstance(el);
-            if (instance) instance.close();
-        }, 4000);
+    /* ── Toast notification system ── */
+    var toastTriggers = document.querySelectorAll('[data-toast-msg]');
+    var toastContainer = document.getElementById('toastContainer');
+    toastTriggers.forEach(function(el) {
+        var msg = el.getAttribute('data-toast-msg');
+        var type = el.getAttribute('data-toast-type') || 'success';
+        var icons = { success: 'bi-check-circle-fill text-success', error: 'bi-x-circle-fill text-danger', warning: 'bi-exclamation-triangle-fill text-warning' };
+        var titles = { success: 'Thành công', error: 'Lỗi', warning: 'Cảnh báo' };
+        var toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+        if (toastContainer) {
+            toastContainer.insertAdjacentHTML('beforeend',
+                '<div id="' + toastId + '" class="toast" role="alert" data-bs-delay="4000">' +
+                '<div class="toast-header">' +
+                '<i class="bi ' + (icons[type] || icons.success) + ' me-2"></i>' +
+                '<strong class="me-auto">' + (titles[type] || titles.success) + '</strong>' +
+                '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
+                '</div>' +
+                '<div class="toast-body">' + msg + '</div>' +
+                '</div>');
+            var toastEl = document.getElementById(toastId);
+            if (toastEl) {
+                var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+                toast.show();
+                toastEl.addEventListener('hidden.bs.toast', function() { toastEl.remove(); });
+            }
+        }
+        el.remove();
     });
 
     /* ── Confirm xóa ── */

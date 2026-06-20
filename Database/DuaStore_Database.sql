@@ -353,7 +353,7 @@ CREATE TABLE Orders (
     CONSTRAINT CK_Orders_TT        CHECK (phuongThucTT       IN ('CHUYEN_KHOAN','COD','VNPAY')),
     CONSTRAINT CK_Orders_GH        CHECK (phuongThucGiaoHang IN ('SHIP','NHAN_TAI_CONG')),
     CONSTRAINT CK_Orders_ThanhToan CHECK (trangThaiTT        IN ('CHUA_THANH_TOAN','DA_THANH_TOAN','HOAN_TIEN')),
-    CONSTRAINT CK_Orders_TrangThai CHECK (trangThaiDon       IN ('CHO_XAC_NHAN','DA_XAC_NHAN','DANG_GIAO','DA_GIAO','DA_HUY'))
+    CONSTRAINT CK_Orders_TrangThai CHECK (trangThaiDon       IN ('CHO_XAC_NHAN','DA_XAC_NHAN','DANG_GIAO','DA_GIAO','DA_HOAN_THANH','DA_HUY'))
 );
 GO
  

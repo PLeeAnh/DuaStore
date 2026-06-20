@@ -6,6 +6,10 @@ import com.duastore.model.ProductImage;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.service.FileUploadService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,8 +34,18 @@ public class AdminProductService {
         return productRepository.findByIsActiveTrueOrderByNgayTaoDesc();
     }
 
+    public Page<Product> findAllPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findByIsActiveTrueOrderByNgayTaoDesc(pageable);
+    }
+
     public List<Product> search(String keyword, Integer danhMucId, String trangThai) {
         return productRepository.searchWithFilters(keyword, danhMucId, trangThai);
+    }
+
+    public Page<Product> searchPaged(String keyword, Integer danhMucId, String trangThai, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.searchWithFiltersPaged(keyword, danhMucId, trangThai, pageable);
     }
 
     public Product findById(Integer id) {

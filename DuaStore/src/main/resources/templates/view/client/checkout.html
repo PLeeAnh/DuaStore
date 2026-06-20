@@ -61,7 +61,7 @@
                                 <input class="form-check-input" type="radio" name="phuongThucGiaoHang"
                                        id="shipNhanh" value="NHAN_TAI_CONG" />
                                 <label class="form-check-label d-flex justify-content-between w-100" for="shipNhanh">
-                                    <span>Giao hàng nhanh</span>
+                                    <span>Nhận tại cửa hàng</span>
                                     <span class="text-muted" id="shipNhanhPrice">10,000đ</span>
                                 </label>
                             </div>
@@ -75,7 +75,7 @@
                                        id="ttCOD" value="COD" checked required />
                                 <label class="form-check-label" for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
                             </div>
-                            <div class="form-check mb-2">
+                            <div class="form-check">
                                 <input class="form-check-input" type="radio" name="phuongThucTT"
                                        id="ttCK" value="CHUYEN_KHOAN" />
                                 <label class="form-check-label" for="ttCK">Chuyển khoản ngân hàng</label>
@@ -83,11 +83,7 @@
                                     <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
                                 </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="phuongThucTT"
-                                       id="ttVNPay" value="VNPAY" />
-                                <label class="form-check-label" for="ttVNPay">VNPay</label>
-                            </div>
+                        </div>
                         </div>
 
                         <hr />
@@ -117,7 +113,7 @@
                                     <div class="text-truncate" th:text="${item.tenSanPham}"></div>
                                     <div class="text-muted" th:text="${item.tenBienThe}"></div>
                                     <div class="d-flex justify-content-between">
-                                        <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                        <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + 'đ'"></span>
                                         <span class="text-muted">x<span th:text="${item.soLuong}"></span></span>
                                     </div>
                                 </div>
@@ -125,20 +121,20 @@
                             <hr />
                             <div class="d-flex justify-content-between small mb-1">
                                 <span>Tạm tính</span>
-                                <span th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="subtotalDisplay"></span>
+                                <span th:text="${#numbers.formatDecimal(subtotal, 0, 0)} + 'đ'" id="subtotalDisplay"></span>
                             </div>
                             <div class="d-flex justify-content-between small mb-1">
                                 <span>Phí vận chuyển</span>
-                                <span th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 10000, 0, 'COMMA', 0, 'POINT')} + 'đ'" id="shipFeeDisplay"></span>
+                                <span th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 10000, 0, 0)} + 'đ'" id="shipFeeDisplay"></span>
                             </div>
                             <div class="d-flex justify-content-between small mb-1">
                                 <span>Giảm giá</span>
-                                <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}" id="discountDisplay"></span>
+                                <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 0) + 'đ' : '0đ'}" id="discountDisplay"></span>
                             </div>
                             <hr />
                             <div class="d-flex justify-content-between fw-bold">
                                 <span>Tổng cộng</span>
-                                <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 10000), 0, 'COMMA', 0, 'POINT')} + 'đ'" id="totalDisplay"></span>
+                                 <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 10000), 0, 0)} + 'đ'" id="totalDisplay"></span>
                             </div>
                         </div>
                     </div>

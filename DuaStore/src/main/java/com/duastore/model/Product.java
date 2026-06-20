@@ -24,6 +24,7 @@ public class Product {
     private String mucDichSuDung;
     private String thuongHieu;
     private String kinhLoai;
+    private String hinhDang;
 
     @Column(nullable = false)
     private Integer danhMucId;

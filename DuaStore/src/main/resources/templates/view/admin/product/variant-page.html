@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head><title>Quản lý biến thể</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
+        <li class="breadcrumb-item active">Biến thể</li>
+    </th:block>
+    <div layout:fragment="content">
+
+        <div class="adm-page-header">
+            <div class="adm-page-header-top">
+                <h4><i class="bi bi-box me-2"></i>Sản phẩm</h4>
+            </div>
+            <p>Quản lý tất cả sản phẩm trong cửa hàng.</p>
+        </div>
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
+                <i class="bi bi-list-ul"></i>Danh sách
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
+                <i class="bi bi-diagram-3"></i>Biến thể
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'thong-so' ? ' active' : ''}" th:href="@{/admin/san-pham/thong-so}">
+                <i class="bi bi-sliders"></i>Thông số
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
+                <i class="bi bi-images"></i>Hình ảnh
+            </a>
+        </div>
+
+        <div class="adm-page-header">
+            <div class="adm-page-header-top">
+                <h4 class="fs-5"><i class="bi bi-diagram-3 me-2"></i>Biến thể</h4>
+            </div>
+            <p>Danh sách tất cả biến thể sản phẩm.</p>
+        </div>
+
+        <div class="adm-card mb-4">
+            <div class="adm-card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">Tìm kiếm</label>
+                        <input type="text" name="keyword" class="form-control form-control-sm"
+                               placeholder="Tên biến thể..." th:value="${keyword}" />
+                    </div>
+                    <div class="col-md-2 d-flex gap-1">
+                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                            <i class="bi bi-search me-1"></i>Lọc
+                        </button>
+                        <a th:href="@{/admin/san-pham/bien-the}" class="btn btn-outline-secondary btn-sm rounded-pill" title="Xóa lọc">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th><th>Sản phẩm</th><th>Tên biến thể</th><th class="text-center">Dung tích</th><th class="text-center">Giá gốc</th><th class="text-center">Giá KM</th><th class="text-center">Tồn kho</th><th class="text-center">Mặc định</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="v : ${variants}">
+                        <td class="text-muted" th:text="${v.id}">1</td>
+                        <td>
+                            <a th:href="@{/admin/san-pham/sua/{id}(id=${v.productId})}" class="text-decoration-none fw-semibold" th:text="${productNames.get(v.productId)}">Tên SP</a>
+                        </td>
+                        <td th:text="${v.tenBienThe}">Tên biến thể</td>
+                        <td class="text-center" th:text="${v.dungTich != null ? v.dungTich + 'ml' : '—'}">250ml</td>
+                        <td class="text-center" th:text="${#numbers.formatDecimal(v.giaGoc, 0, 0)} + '₫'">100,000₫</td>
+                        <td class="text-center">
+                            <span th:if="${v.giaKhuyenMai != null}" th:text="${#numbers.formatDecimal(v.giaKhuyenMai, 0, 0)} + '₫'">90,000₫</span>
+                            <span th:unless="${v.giaKhuyenMai != null}" class="text-muted">—</span>
+                        </td>
+                        <td class="text-center" th:text="${v.soLuongTon}">50</td>
+                        <td class="text-center">
+                            <span th:if="${v.isDefault}" class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+                            <span th:unless="${v.isDefault}" class="text-muted">—</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(variants)}">
+                        <td colspan="8" class="text-muted text-center py-5">Chưa có biến thể nào</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+    </div>
+    </body>
+</html>

@@ -3,8 +3,14 @@ package com.duastore.controller.admin;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.User;
 import com.duastore.service.admin.AdminOrderService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.List;
 
 @ControllerAdvice(basePackages = "com.duastore.controller.admin")
 public class AdminControllerAdvice {
@@ -27,5 +33,25 @@ public class AdminControllerAdvice {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    @ModelAttribute("userPermissions")
+    public Set<String> getUserPermissions(Authentication auth) {
+        if (auth == null) return Set.of();
+
+        Set<String> roleAuthorities = Set.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_USER");
+        Set<String> perms = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(a -> !roleAuthorities.contains(a))
+                .collect(Collectors.toSet());
+
+        if (auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()))) {
+            return Set.of("DASHBOARD_READ","PRODUCT_READ","CATEGORY_READ",
+                          "ORDER_READ","PROMOTION_READ","POST_READ",
+                          "REVIEW_READ","USER_READ","ROLE_READ","AUDIT_LOG_READ");
+        }
+
+        return perms;
     }
 }

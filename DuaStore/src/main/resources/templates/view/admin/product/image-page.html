@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head><title>Hình ảnh sản phẩm</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
+        <li class="breadcrumb-item active">Hình ảnh</li>
+    </th:block>
+    <div layout:fragment="content">
+
+        <div class="adm-page-header">
+            <div class="adm-page-header-top">
+                <h4><i class="bi bi-box me-2"></i>Sản phẩm</h4>
+            </div>
+            <p>Quản lý tất cả sản phẩm trong cửa hàng.</p>
+        </div>
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
+                <i class="bi bi-list-ul"></i>Danh sách
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
+                <i class="bi bi-diagram-3"></i>Biến thể
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'thong-so' ? ' active' : ''}" th:href="@{/admin/san-pham/thong-so}">
+                <i class="bi bi-sliders"></i>Thông số
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
+                <i class="bi bi-images"></i>Hình ảnh
+            </a>
+        </div>
+
+        <div class="adm-page-header">
+            <div class="adm-page-header-top">
+                <h4 class="fs-5"><i class="bi bi-images me-2"></i>Hình ảnh sản phẩm</h4>
+            </div>
+            <p>Quản lý hình ảnh đại diện và thư viện ảnh sản phẩm.</p>
+        </div>
+
+        <div class="adm-table-wrap">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th><th class="text-center">Ảnh chính</th><th>Tên sản phẩm</th><th class="text-center">Số ảnh gallery</th><th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${products}">
+                        <td class="text-muted" th:text="${p.id}">1</td>
+                        <td class="text-center">
+                            <img th:if="${p.hinhAnhChinh}" th:src="@{${p.hinhAnhChinh}}" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:12px;" />
+                            <span th:unless="${p.hinhAnhChinh}" class="text-muted">—</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}" class="text-decoration-none fw-semibold" th:text="${p.tenSanPham}">Tên SP</a>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge rounded-pill bg-info" th:text="${imageCounts.get(p.id)}">0</span>
+                        </td>
+                        <td class="text-center">
+                            <a th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}" class="btn btn-outline-primary btn-sm rounded-pill" title="Quản lý ảnh">
+                                <i class="bi bi-images"></i> Quản lý
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(products)}">
+                        <td colspan="5" class="text-muted text-center py-5">Chưa có sản phẩm nào</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+    </div>
+    </body>
+</html>

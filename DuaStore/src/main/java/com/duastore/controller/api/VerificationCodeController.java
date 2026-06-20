@@ -36,9 +36,9 @@ public class VerificationCodeController {
         try {
             emailService.sendOtpEmail(email, code, "REGISTER");
         } catch (Exception e) {
-            // fallback: return code directly so dev isn't blocked
+            // ignore
         }
-        return ResponseEntity.ok(Map.of("success", true, "code", code));
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @PostMapping("/verify-code")

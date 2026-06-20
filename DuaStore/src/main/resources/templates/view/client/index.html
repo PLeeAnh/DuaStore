@@ -114,7 +114,7 @@
                                                 <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
                                             </div>
                                             <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-                                                  th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 'COMMA', 0, 'POINT')}%|">-15%</span>
+                                                  th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
                                             <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
                                             <div class="ds-flash-timer" th:if="${fs != null}"
                                                  th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
@@ -174,7 +174,7 @@
                                                 onclick="addToCartFromCard(this);return false">
                                             <span class="ds-price-btn-text">
                                                 <strong class="ds-price-btn-amount"
-                                                        th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'COMMA', 0, 'POINT')} + 'đ'">250.000đ</strong>
+                                                        th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 0)} + 'đ'">250.000đ</strong>
                                             </span>
                                             <svg viewBox="0 0 40 45" fill="none" class="btn-wave-svg">
                                                 <g>

@@ -2,6 +2,7 @@ package com.duastore.service.admin;
 
 import com.duastore.model.Order;
 import com.duastore.model.OrderAssignment;
+import com.duastore.model.OrderEventType;
 import com.duastore.model.OrderItem;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.OrderAssignmentRepository;
@@ -14,35 +15,57 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class AdminOrderService {
 
+    private static final Map<String, Set<String>> VALID_TRANSITIONS = new LinkedHashMap<>();
+    private static final Map<String, String> STATUS_NAMES = new LinkedHashMap<>();
+
+    static {
+        VALID_TRANSITIONS.put("CHO_XAC_NHAN", Set.of("DA_XAC_NHAN", "DA_HUY"));
+        VALID_TRANSITIONS.put("DA_XAC_NHAN", Set.of("DANG_GIAO", "DA_HUY"));
+        VALID_TRANSITIONS.put("DANG_GIAO", Set.of("DA_GIAO", "DA_HUY"));
+        VALID_TRANSITIONS.put("DA_GIAO", Set.of("DA_HOAN_THANH", "DA_HUY"));
+        VALID_TRANSITIONS.put("DA_HOAN_THANH", Set.of());
+        VALID_TRANSITIONS.put("DA_HUY", Set.of());
+
+        STATUS_NAMES.put("CHO_XAC_NHAN", "Chờ xác nhận");
+        STATUS_NAMES.put("DA_XAC_NHAN", "Đã xác nhận");
+        STATUS_NAMES.put("DANG_GIAO", "Đang giao");
+        STATUS_NAMES.put("DA_GIAO", "Đã giao");
+        STATUS_NAMES.put("DA_HOAN_THANH", "Đã hoàn thành");
+        STATUS_NAMES.put("DA_HUY", "Đã hủy");
+    }
+
     private final OrderRepository orderRepository;
     private final AdminLogService adminLogService;
     private final OrderAssignmentRepository assignmentRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProductVariantRepository variantRepository;
+    private final OrderStatusLogService orderStatusLogService;
 
     public AdminOrderService(OrderRepository orderRepository,
                              AdminLogService adminLogService,
                              OrderAssignmentRepository assignmentRepository,
                              OrderItemRepository orderItemRepository,
-                             ProductVariantRepository variantRepository) {
+                             ProductVariantRepository variantRepository,
+                             OrderStatusLogService orderStatusLogService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
         this.orderItemRepository = orderItemRepository;
         this.variantRepository = variantRepository;
+        this.orderStatusLogService = orderStatusLogService;
     }
 
     @Transactional(readOnly = true)
-    public Page<Order> getAllOrders(int page, int size, String q, String trangThai) {
+    public Page<Order> getAllOrders(int page, int size, String q, String trangThai, String trangThaiTT) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Order> orders = orderRepository.searchOrders(q, trangThai, pageable);
+        Page<Order> orders = orderRepository.searchOrders(q, trangThai, trangThaiTT, pageable);
         for (Order o : orders.getContent()) {
             adminLogService.tuDongPhanDon(o);
         }
@@ -50,7 +73,7 @@ public class AdminOrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Order> getMyOrders(Integer adminId, int page, int size, String q, String trangThai) {
+    public Page<Order> getMyOrders(Integer adminId, int page, int size, String q, String trangThai, String trangThaiTT) {
         List<OrderAssignment> assignments = assignmentRepository.findActiveByAdminId(adminId, "DANG_XU_LY");
         if (assignments.isEmpty()) {
             return Page.empty();
@@ -60,7 +83,7 @@ public class AdminOrderService {
                 .collect(Collectors.toList());
 
         Pageable pageable = PageRequest.of(page, size);
-        return orderRepository.searchOrdersByIds(ids, q, trangThai, pageable);
+        return orderRepository.searchOrdersByIds(ids, q, trangThai, trangThaiTT, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -98,20 +121,50 @@ public class AdminOrderService {
         orderRepository.save(order);
     }
 
+    public static Set<String> getValidNextStatuses(String currentStatus) {
+        return VALID_TRANSITIONS.getOrDefault(currentStatus, Set.of());
+    }
+
+    public static String getStatusName(String code) {
+        return STATUS_NAMES.getOrDefault(code, code);
+    }
+
+    public String validateTransition(String oldStatus, String newStatus) {
+        if (oldStatus == null || newStatus == null) {
+            return "Trạng thái không hợp lệ";
+        }
+        if (oldStatus.equals(newStatus)) {
+            return "Trạng thái mới phải khác trạng thái hiện tại";
+        }
+        Set<String> allowed = getValidNextStatuses(oldStatus);
+        if (!allowed.contains(newStatus)) {
+            return "Không thể chuyển từ " + getStatusName(oldStatus) + " sang " + getStatusName(newStatus);
+        }
+        return null;
+    }
+
     private String adjustStock(Integer orderId, String newStatus, String oldStatus) {
-        if ("DA_XAC_NHAN".equals(newStatus) && "CHO_XAC_NHAN".equals(oldStatus)) {
+        if ("DA_GIAO".equals(newStatus)) {
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {
                 if (item.getVariantId() == null) continue;
                 ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
                 if (variant == null) continue;
-                variant.setSoLuongTon(variant.getSoLuongTon() - item.getSoLuong());
+                int newStock = variant.getSoLuongTon() - item.getSoLuong();
+                if (newStock < 0) {
+                    throw new IllegalArgumentException("Sản phẩm \"" + item.getTenSanPham() + "\" không đủ tồn kho (" + variant.getSoLuongTon() + ") để giao " + item.getSoLuong());
+                }
+                variant.setSoLuongTon(newStock);
                 variantRepository.save(variant);
                 count += item.getSoLuong();
             }
-            return "Đã trừ " + count + " sản phẩm vào tồn kho.";
-        } else if ("DA_HUY".equals(newStatus) && !"CHO_XAC_NHAN".equals(oldStatus) && !"DA_HUY".equals(oldStatus)) {
+            return "Đã trừ " + count + " sản phẩm khỏi tồn kho.";
+        }
+        if ("DA_HUY".equals(newStatus)) {
+            if (!"DA_GIAO".equals(oldStatus)) {
+                return null;
+            }
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {
@@ -129,11 +182,39 @@ public class AdminOrderService {
 
     public String updateOrderStatusWithLog(Integer id, String trangThaiDon, String oldStatus,
                                            com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
+        String error = validateTransition(oldStatus, trangThaiDon);
+        if (error != null) {
+            throw new IllegalArgumentException(error);
+        }
+        if ("DA_HUY".equals(trangThaiDon)) {
+            return deleteOrderWithLog(id, oldStatus, admin, request);
+        }
         String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         updateOrderStatus(id, trangThaiDon);
+
+        Order order = orderRepository.findById(id).orElse(null);
+        orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, null);
+
         adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_DON",
                 oldStatus, trangThaiDon,
                 "Cập nhật trạng thái đơn từ " + oldStatus + " → " + trangThaiDon, request);
+        return stockMsg;
+    }
+
+    public String deleteOrderWithLog(Integer id, String oldStatus,
+                                     com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
+        String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
+
+        Order order = orderRepository.findById(id).orElse(null);
+        orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, null,
+                "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")");
+
+        adminLogService.ghiLogDonHang(admin, id, "XOA_DON_HANG",
+                oldStatus, null,
+                "Xóa đơn hàng (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""),
+                request);
+        assignmentRepository.findByOrderId(id).ifPresent(assignmentRepository::delete);
+        orderRepository.deleteById(id);
         return stockMsg;
     }
 

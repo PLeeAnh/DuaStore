@@ -1,6 +1,8 @@
 package com.duastore.config.security;
 
+import com.duastore.model.Role;
 import com.duastore.model.User;
+import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,10 +20,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
-    public CustomOAuth2UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CustomOAuth2UserService(UserRepository userRepository,
+                                   PasswordEncoder passwordEncoder,
+                                   RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -41,7 +47,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setUsername(email.split("@")[0] + "_" + UUID.randomUUID().toString().substring(0, 4));
             user.setHoTen(name != null ? name : email);
             user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
-            user.setRole("USER");
+            Role userRole = roleRepository.findByName("USER");
+            user.setRoles(Set.of(userRole));
             user.setIsActive(true);
             userRepository.save(user);
         } else if (!user.getIsActive()) {
@@ -49,7 +56,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         Set<GrantedAuthority> authorities = new HashSet<>(oauth2User.getAuthorities());
-        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(r -> "ADMIN".equals(r.getName()) || "SUPER_ADMIN".equals(r.getName()));
+        if (isAdmin) {
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
 

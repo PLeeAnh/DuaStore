@@ -10,10 +10,29 @@
         <li class="breadcrumb-item active" th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Form</li>
     </th:block>
     <div layout:fragment="content">
+
         <div class="adm-page-header">
-            <h4><i class="bi bi-box me-2"></i><span th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Thêm sản phẩm</span></h4>
+            <div class="adm-page-header-top">
+                <h4><i class="bi bi-box me-2"></i><span th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Thêm sản phẩm</span></h4>
+            </div>
+            <p th:text="${product.id != null} ? 'Chỉnh sửa thông tin sản phẩm.' : 'Tạo sản phẩm mới cho cửa hàng.'">Thông tin sản phẩm.</p>
         </div>
-        <div class="adm-form-wrap">
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
+                <i class="bi bi-list-ul"></i>Danh sách
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
+                <i class="bi bi-diagram-3"></i>Biến thể
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'thong-so' ? ' active' : ''}" th:href="@{/admin/san-pham/thong-so}">
+                <i class="bi bi-sliders"></i>Thông số
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
+                <i class="bi bi-images"></i>Hình ảnh
+            </a>
+        </div>
+        <div class="adm-card"><div class="adm-card-body">
             <form th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
                   th:object="${product}" method="post" enctype="multipart/form-data" class="row g-3">
                 <input type="hidden" th:field="*{id}" />
@@ -87,19 +106,6 @@
 
                     <!-- Preview các ảnh mới chọn (chưa lưu) -->
                     <div class="gallery-preview" id="galleryPreview"></div>
-
-                    <!-- Ảnh đã lưu trong DB -->
-                    <div th:if="${not #lists.isEmpty(galleryImages)}" class="gallery-saved">
-                        <label class="form-label mt-2">Ảnh đã lưu</label>
-                        <div class="d-flex flex-wrap gap-2">
-                            <div th:each="img : ${galleryImages}" class="gallery-saved-item">
-                                <img th:src="@{${img.imageUrl}}" alt="gallery" />
-                                <form th:action="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}" method="post" onsubmit="return confirm('Xoá ảnh này?')" style="position:absolute;top:5px;right:5px;margin:0;padding:0;">
-                                    <button type="submit" class="gallery-remove-btn" style="position:static;display:flex;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:13px;cursor:pointer;align-items:center;justify-content:center;padding:0;">✕</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Trạng thái</label>
@@ -121,7 +127,24 @@
                     <a th:href="@{/admin/san-pham}" class="btn btn-secondary">Hủy</a>
                 </div>
             </form>
-        </div>
+
+            <!-- Ảnh đã lưu (outside main form to avoid nested form) -->
+            <div th:if="${not #lists.isEmpty(galleryImages)}" class="row g-3 mt-0">
+                <div class="col-12">
+                    <div class="gallery-saved">
+                        <label class="form-label">Ảnh đã lưu</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div th:each="img : ${galleryImages}" class="gallery-saved-item">
+                                <img th:src="@{${img.imageUrl}}" alt="gallery" />
+                                <form th:action="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}" method="post" onsubmit="return confirm('Xoá ảnh này?')" style="position:absolute;top:5px;right:5px;margin:0;padding:0;">
+                                    <button type="submit" class="gallery-remove-btn" style="position:static;display:flex;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:13px;cursor:pointer;align-items:center;justify-content:center;padding:0;">✕</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div></div>
     </div>
 
     <th:block layout:fragment="extra-script">

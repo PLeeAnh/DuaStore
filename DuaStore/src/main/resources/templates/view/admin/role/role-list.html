@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+<head><title>Quản lý vai trò</title></head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item active" aria-current="page">Phân quyền</li>
+</th:block>
+<div layout:fragment="content">
+    <div class="adm-page-header">
+        <h4><i class="bi bi-shield-lock me-2"></i>Phân quyền</h4>
+        <a th:href="@{/admin/vai-tro/them-moi}" class="btn btn-primary btn-sm"
+           th:if="${#authorization.expression('@sec.hasPermission(''ROLE_CREATE'')')}">
+            <i class="bi bi-plus-lg me-1"></i>Thêm vai trò
+        </a>
+    </div>
+
+    <div class="adm-table-wrap">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Tên vai trò</th>
+                <th>Mô tả</th>
+                <th class="text-center">Số quyền</th>
+                <th>Ngày tạo</th>
+                <th class="text-center">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${roles}">
+                <td class="text-muted" th:text="${r.id}">1</td>
+                <td>
+                    <span class="badge bg-dark" th:text="${r.name}">ADMIN</span>
+                </td>
+                <td th:text="${r.moTa ?: '--'}">Mô tả</td>
+                <td class="text-center" th:text="${r.permissions != null ? #sets.size(r.permissions) : 0}">0</td>
+                <td th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
+                <td class="text-center">
+                    <a th:href="@{/admin/vai-tro/sua/{id}(id=${r.id})}"
+                       class="btn btn-outline-primary btn-sm me-1" title="Sửa">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form th:action="@{/admin/vai-tro/xoa/{id}(id=${r.id})}" method="post"
+                          style="display:inline"
+                          th:if="${r.name != 'SUPER_ADMIN' and r.name != 'ADMIN' and r.name != 'USER'}"
+                          onsubmit="return confirm('Xóa vai trò này?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                    <span th:if="${r.name == 'SUPER_ADMIN' or r.name == 'ADMIN' or r.name == 'USER'}"
+                          class="text-muted small">Mặc định</span>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(roles)}">
+                <td colspan="6" class="text-muted text-center py-4">Chưa có vai trò nào</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
