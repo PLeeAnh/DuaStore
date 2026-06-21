@@ -147,27 +147,7 @@ public class AdminOrderService {
     }
 
     private String adjustStock(Integer orderId, String newStatus, String oldStatus) {
-        if ("DA_GIAO".equals(newStatus)) {
-            List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-            int count = 0;
-            for (OrderItem item : items) {
-                if (item.getVariantId() == null) continue;
-                ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
-                if (variant == null) continue;
-                int newStock = variant.getSoLuongTon() - item.getSoLuong();
-                if (newStock < 0) {
-                    throw new IllegalArgumentException("Sản phẩm \"" + item.getTenSanPham() + "\" không đủ tồn kho (" + variant.getSoLuongTon() + ") để giao " + item.getSoLuong());
-                }
-                variant.setSoLuongTon(newStock);
-                variantRepository.save(variant);
-                count += item.getSoLuong();
-            }
-            return "Đã trừ " + count + " sản phẩm khỏi tồn kho.";
-        }
         if ("DA_HUY".equals(newStatus)) {
-            if (!"DA_GIAO".equals(oldStatus)) {
-                return null;
-            }
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {
@@ -178,7 +158,7 @@ public class AdminOrderService {
                 variantRepository.save(variant);
                 count += item.getSoLuong();
             }
-            return "Đã hoàn lại " + count + " sản phẩm vào tồn kho.";
+            return count > 0 ? "Đã hoàn lại " + count + " sản phẩm vào tồn kho." : null;
         }
         return null;
     }
