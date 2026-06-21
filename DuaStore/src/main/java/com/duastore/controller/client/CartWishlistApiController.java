@@ -93,22 +93,43 @@ public class CartWishlistApiController {
     }
 
     @PostMapping("/cart/update")
-    public ResponseEntity<Map<String, Object>> updateCartItem(@RequestBody Map<String, Integer> payload) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Integer userId = getUserId();
-            Integer variantId = payload.get("variantId");
-            Integer soLuong = payload.get("soLuong");
-            if (variantId == null) throw new RuntimeException("Thiếu thông tin biến thể");
-            if (soLuong == null || soLuong < 1) throw new RuntimeException("Số lượng không hợp lệ");
-            cartService.updateQuantityByVariantId(userId, variantId, soLuong);
-            response.put("success", true);
-            response.put("cartCount", cartService.count(userId));
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+public ResponseEntity<Map<String, Object>> updateCartItem(@RequestBody Map<String, Integer> payload) {
+
+    Map<String, Object> response = new HashMap<>();
+
+    try {
+
+        Integer userId = getUserId();
+        Integer variantId = payload.get("variantId");
+        Integer soLuong = payload.get("soLuong");
+
+        if (variantId == null) {
+            throw new RuntimeException("Thiếu thông tin biến thể");
         }
+
+        if (soLuong == null || soLuong < 1) {
+            throw new RuntimeException("Số lượng không hợp lệ");
+        }
+
+        CartService.CartResult result =
+                cartService.updateQuantityByVariantId(
+                        userId,
+                        variantId,
+                        soLuong
+                );
+
+        response.put("success", result.success());
+        response.put("message", result.message());
+        response.put("cartCount", result.cartCount());
+
+        return ResponseEntity.ok(response);
+
+    } catch (Exception e) {
+
+        response.put("success", false);
+        response.put("message", e.getMessage());
+
+        return ResponseEntity.badRequest().body(response);
     }
+}
 }

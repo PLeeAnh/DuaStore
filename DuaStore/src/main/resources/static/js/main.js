@@ -231,27 +231,54 @@ if (backTopBtn) {
 function updateCartBadge(count) {
     const badge = document.getElementById('cartBadge');
     if (!badge) return;
+
     count = Number(count) || 0;
-    if (count <= 0) { badge.classList.add('d-none'); badge.textContent = '0'; }
-    else { badge.classList.remove('d-none'); badge.textContent = count > 99 ? '99+' : String(count); }
+
+    if (count <= 0) {
+        badge.classList.add('d-none');
+        return;
+    }
+
+    badge.textContent = count > 99 ? '99+' : String(count);
+
+    const viewed = localStorage.getItem('cartViewed');
+
+    if (!viewed) {
+        badge.classList.remove('d-none');
+    }
+    
 }
 
 /* ═══ POPUP TOGGLE ═══ */
 // ĐÓNG / MỞ POPUP (Tích hợp tự động ẩn chấm đỏ thông báo)
 /* ═══ POPUP TOGGLE ═══ */
 function togglePopup(popupId) {
-    document.querySelectorAll('.custom-popup').forEach(p => { 
-        if (p.id !== popupId) p.style.display = 'none'; 
+    document.querySelectorAll('.custom-popup').forEach(p => {
+        if (p.id !== popupId) p.style.display = 'none';
     });
-    
+
     const popup = document.getElementById(popupId);
+
     if (popup) {
-        popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
-        
-        // Xử lý ẩn chấm đỏ khi mở popup yêu thích (giữ nguyên từ bản sửa trước)
-        if (popupId === 'wishlist-popup' && popup.style.display === 'block') {
-            document.getElementById('wishlistBadge')?.classList.add('d-none');
-            document.getElementById('detailWishlistBadge')?.classList.add('d-none');
+        popup.style.display =
+            popup.style.display === 'block' ? 'none' : 'block';
+
+        // Wishlist
+        if (popupId === 'wishlist-popup' &&
+            popup.style.display === 'block') {
+
+            document.getElementById('wishlistBadge')
+                ?.classList.add('d-none');
+        }
+
+        // Cart
+        if (popupId === 'cart-popup' &&
+            popup.style.display === 'block') {
+
+            document.getElementById('cartBadge')
+                ?.classList.add('d-none');
+
+            localStorage.setItem('cartViewed', 'true');
         }
     }
 }
@@ -556,20 +583,38 @@ function updatePopupQty(variantId, delta) {
         if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) removeCartItem(variantId);
         return;
     }
+    
+    // Tạm cập nhật UI trước cho mượt
     qtySpan.innerText = next;
     if (priceSpan) {
         const unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
         priceSpan.innerText = (unit * next).toLocaleString('vi-VN') + 'đ';
     }
+    
     fetch('/api/cart/update', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variantId, soLuong: next })
+        // ✅ ĐÃ SỬA: Thay soLuong thành quantity để khớp với Spring Boot DTO
+        body: JSON.stringify({ variantId: variantId, quantity: next }) 
     }).then(r => r.json()).then(data => {
-        if (data.success) { if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount); }
-        else { alert(data.message || 'Cập nhật thất bại!'); qtySpan.innerText = cur; }
+        if (data.success) { 
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount); 
+        }
+        else { 
+            alert(data.message || 'Cập nhật thất bại!'); 
+            // Rollback UI nếu server báo lỗi (VD: Không đủ tồn kho)
+            qtySpan.innerText = cur; 
+            if (priceSpan) {
+                const unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
+                priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + 'đ';
+            }
+        }
     }).catch(err => {
         alert('Lỗi kết nối hệ thống. Vui lòng thử lại!');
         qtySpan.innerText = cur;
+        if (priceSpan) {
+            const unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
+            priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + 'đ';
+        }
         console.error('Lỗi cập nhật SL:', err);
     });
 }

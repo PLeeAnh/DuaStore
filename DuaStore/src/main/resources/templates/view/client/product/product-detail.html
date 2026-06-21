@@ -323,6 +323,11 @@
             selectedVariantId = parseInt(el.dataset.variantId);
             selectedPrice = parseInt(el.dataset.price);
             selectedStock = parseInt(el.dataset.stock);
+            const qtyInput = document.getElementById('qtyInput');
+
+if (parseInt(qtyInput.value) > selectedStock) {
+    qtyInput.value = selectedStock;
+}
 
             // Update group label: "Loại nắp đã chọn: Nắp gỗ"
             const group = el.dataset.group;
@@ -385,11 +390,40 @@
 
         // ── Quantity ──
         function qtyChange(delta) {
-            const input = document.getElementById('qtyInput');
-            let val = parseInt(input.value) || 1;
-            val = Math.max(1, val + delta);
-            input.value = val;
-        }
+    const input = document.getElementById('qtyInput');
+    let val = parseInt(input.value) || 1;
+
+    val += delta;
+
+    if (val < 1) {
+        val = 1;
+    }
+
+    if (selectedStock > 0 && val > selectedStock) {
+        val = selectedStock;
+    }
+
+    input.value = val;
+    
+}
+document.querySelectorAll('.variant-chip').forEach(btn => {
+    btn.addEventListener('click', function() {
+        selectVariant(this);
+    });
+});
+
+document.getElementById('qtyInput').addEventListener('input', function () {
+    let qty = parseInt(this.value) || 1;
+
+    if (qty < 1) qty = 1;
+
+    if (selectedStock > 0 && qty > selectedStock) {
+        qty = selectedStock;
+        alert('Số lượng vượt quá tồn kho!');
+    }
+
+    this.value = qty;
+});
 
         // ── Buy now → add to cart + redirect ──
         function buyNow() {
