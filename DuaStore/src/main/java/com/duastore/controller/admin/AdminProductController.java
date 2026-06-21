@@ -187,6 +187,12 @@ public class AdminProductController {
         model.addAttribute("entityLabel", "biến thể");
         model.addAttribute("url", "/admin/san-pham/bien-the");
         model.addAttribute("filterParams", filterParams);
+
+        model.addAttribute("totalProducts", productRepository.countByIsActiveTrue());
+        model.addAttribute("featuredCount", productRepository.countByIsFeaturedTrueAndIsActiveTrue());
+        model.addAttribute("lowStockCount", productVariantRepository.countLowStockProducts(LOW_STOCK_THRESHOLD));
+        model.addAttribute("totalStockAll", productVariantRepository.sumTotalStock());
+
         return "view/admin/product/variant-page";
     }
 

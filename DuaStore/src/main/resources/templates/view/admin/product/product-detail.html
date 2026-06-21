@@ -126,7 +126,7 @@
             <div class="tab-pane fade" id="variants">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted small">Có <strong th:text="${#lists.size(variants)}">0</strong> biến thể</span>
-                    <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-primary btn-sm">
+                    <a th:href="@{/admin/bien-the/them-moi/{id}(id=${product.id})}" class="btn btn-primary btn-sm">
                         <i class="bi bi-plus-lg me-1"></i>Thêm biến thể
                     </a>
                 </div>
@@ -147,8 +147,8 @@
                                 Tồn kho: <strong th:text="${v.soLuongTon}" th:classappend="${v.soLuongTon <= 20 ? 'text-danger' : ''}">0</strong>
                             </div>
                             <div class="d-flex gap-1 mt-2">
-                                <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm btn-icon" title="Sửa"><i class="bi bi-pencil"></i></a>
-                                <form th:action="@{/admin/san-pham/xoa/{id}(id=${product.id})}" method="post" style="display:inline">
+                                <a th:href="@{/admin/bien-the/sua/{id}(id=${v.id})}" class="btn btn-outline-primary btn-sm btn-icon" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                <form th:action="@{/admin/bien-the/xoa/{id}(id=${v.id})}" method="post" style="display:inline">
                                     <button type="submit" class="btn btn-outline-danger btn-sm btn-icon" title="Xóa" data-confirm="Xóa biến thể này?"><i class="bi bi-trash"></i></button>
                                 </form>
                             </div>
