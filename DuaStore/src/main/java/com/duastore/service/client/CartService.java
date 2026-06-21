@@ -103,19 +103,51 @@ public class CartService {
     }
 
     @Transactional
-    public CartResult updateQuantityByVariantId(Integer userId, Integer variantId, Integer quantity) {
-        CartItem item = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
-        if (item == null) return CartResult.fail("Không tìm thấy sản phẩm trong giỏ");
-        ProductVariant variant = variantRepository.findById(variantId).orElse(null);
-        if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) {
-            cartItemRepository.delete(item);
-            return CartResult.fail("Sản phẩm đã hết hàng hoặc ngừng bán");
-        }
-        item.setSoLuong(Math.min(normalizeQuantity(quantity), variant.getSoLuongTon()));
-        cartItemRepository.save(item);
-        return CartResult.ok(count(userId));
+public CartResult updateQuantityByVariantId(Integer userId,
+                                            Integer variantId,
+                                            Integer quantity) {
+
+    CartItem item = cartItemRepository
+            .findByUserIdAndVariantId(userId, variantId)
+            .orElse(null);
+
+    if (item == null) {
+        return CartResult.fail("Không tìm thấy sản phẩm trong giỏ");
     }
 
+    ProductVariant variant =
+            variantRepository.findById(variantId).orElse(null);
+
+    if (variant == null
+            || !variant.isActive()
+            || variant.getSoLuongTon() <= 0) {
+
+        cartItemRepository.delete(item);
+
+        return CartResult.fail(
+                "Sản phẩm đã hết hàng hoặc ngừng bán"
+        );
+    }
+
+    int stock = variant.getSoLuongTon();
+
+    if (quantity > stock) {
+        item.setSoLuong(stock);
+        cartItemRepository.save(item);
+
+        return new CartResult(
+                false,
+                "Chỉ còn " + stock + " sản phẩm trong kho",
+                count(userId)
+        );
+    }
+
+    item.setSoLuong(quantity);
+
+    cartItemRepository.save(item);
+
+    return CartResult.ok(count(userId));
+}
     public BigDecimal total(List<CartItemDTO> items) {
         return items.stream()
                 .map(CartItemDTO::getThanhTien)

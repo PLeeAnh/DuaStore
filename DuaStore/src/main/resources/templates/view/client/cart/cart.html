@@ -329,25 +329,53 @@
 <th:block layout:fragment="extra-script">
 <script>
     function updateQty(variantId, delta) {
-        const row = event.target.closest('tr');
-        const input = row.querySelector('.input-qty');
-        let newQty = parseInt(input.value) + delta;
-        if (newQty < 1) return;
-        
-        event.target.disabled = true; 
-        
-        fetch('/api/cart/update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ variantId, soLuong: newQty })
-        }).then(r => r.json()).then(data => {
-            if (data.success) window.location.reload();
-            else alert('Cập nhật thất bại');
-        }).catch(() => {
-            alert('Lỗi kết nối');
-            event.target.disabled = false;
-        });
-    }
+    const row = event.target.closest('tr');
+    const input = row.querySelector('.input-qty');
+
+    let newQty = parseInt(input.value) + delta;
+
+    if (newQty < 1) return;
+
+    fetch('/api/cart/update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            variantId: variantId,
+            soLuong: newQty
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+
+        if (!data.success) {
+            alert(data.message || 'Cập nhật thất bại');
+            return;
+        }
+
+        localStorage.setItem('cartViewed', 'true');
+
+        input.value = newQty;
+
+        const priceCell = row.querySelector('.total-price-cell');
+        const unitPriceText =
+            row.querySelector('.unit-price').innerText
+                .replace(/[^\d]/g, '');
+
+        const unitPrice = parseInt(unitPriceText) || 0;
+
+        priceCell.innerText =
+            (unitPrice * newQty).toLocaleString('vi-VN') + 'đ';
+
+        if (typeof updateCartBadge === 'function') {
+            updateCartBadge(data.cartCount);
+        }
+    })
+    .catch(() => {
+        alert('Lỗi kết nối');
+    });
+}
 
     function removeCartItem(id) {
         if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
