@@ -9,6 +9,7 @@ import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.FileUploadService;
 import com.duastore.service.admin.AdminProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,17 +37,20 @@ public class AdminProductController {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final FileUploadService fileUploadService;
 
     public AdminProductController(AdminProductService productService,
                                    CategoryRepository categoryRepository,
                                    ProductRepository productRepository,
                                    ProductImageRepository productImageRepository,
-                                   ProductVariantRepository productVariantRepository) {
+                                   ProductVariantRepository productVariantRepository,
+                                   FileUploadService fileUploadService) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.productVariantRepository = productVariantRepository;
+        this.fileUploadService = fileUploadService;
     }
 
     @GetMapping
@@ -318,6 +323,50 @@ public class AdminProductController {
         return "redirect:/admin/san-pham";
     }
 
+    @PostMapping("/chi-tiet/{id}/anh-chinh")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_UPDATE)")
+    public String updateMainImage(@PathVariable Integer id, @RequestParam("file") MultipartFile file, RedirectAttributes ra) {
+        Product p = productService.findById(id);
+        if (p == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy sản phẩm");
+            return "redirect:/admin/san-pham";
+        }
+        String uploaded = fileUploadService.save(file);
+        if (uploaded != null) {
+            p.setHinhAnhChinh(uploaded);
+            productRepository.save(p);
+            ra.addFlashAttribute("successMsg", "Cập nhật ảnh đại diện thành công");
+        }
+        return "redirect:/admin/san-pham/chi-tiet/" + id;
+    }
+
+    @PostMapping("/chi-tiet/{id}/them-anh")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_UPDATE)")
+    public String addGalleryImages(@PathVariable Integer id, @RequestParam("files") List<MultipartFile> files, RedirectAttributes ra) {
+        Product p = productService.findById(id);
+        if (p == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy sản phẩm");
+            return "redirect:/admin/san-pham";
+        }
+        int order = productImageRepository
+            .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id)
+            .size();
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                String url = fileUploadService.save(file);
+                if (url != null) {
+                    ProductImage img = new ProductImage();
+                    img.setProductId(id);
+                    img.setImageUrl(url);
+                    img.setSortOrder(order++);
+                    productImageRepository.save(img);
+                }
+            }
+        }
+        ra.addFlashAttribute("successMsg", "Thêm ảnh thành công");
+        return "redirect:/admin/san-pham/chi-tiet/" + id;
+    }
+
     @PostMapping("/xoa-anh/{imageId}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_DELETE)")
     public String deleteImage(@PathVariable Integer imageId, RedirectAttributes ra) {
@@ -330,7 +379,7 @@ public class AdminProductController {
         img.setActive(false);
         productImageRepository.save(img);
         ra.addFlashAttribute("successMsg", "Đã xóa ảnh");
-        return "redirect:/admin/san-pham/sua/" + productId;
+        return "redirect:/admin/san-pham/chi-tiet/" + productId;
     }
 
 }

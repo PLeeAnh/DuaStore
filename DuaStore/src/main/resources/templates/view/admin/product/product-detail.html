@@ -164,16 +164,28 @@
 
             <!-- ═══ TAB: HÌNH ẢNH ═══ -->
             <div class="tab-pane fade" id="images">
-                <div th:if="${product.hinhAnhChinh}" class="mb-4">
-                    <h6 class="fw-semibold mb-2">Ảnh đại diện</h6>
-                    <img th:src="@{${product.hinhAnhChinh}}" alt="" class="adm-image-large" />
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-semibold mb-0">Thư viện ảnh</h6>
-                    <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-plus-lg me-1"></i>Thêm ảnh
-                    </a>
-                </div>
+                <h6 class="fw-semibold mb-2">Ảnh đại diện</h6>
+                <form th:action="@{/admin/san-pham/chi-tiet/{id}/anh-chinh(id=${product.id})}" method="post" enctype="multipart/form-data" class="mb-4">
+                    <div class="text-center" style="cursor:pointer" onclick="this.querySelector('input[type=file]').click()">
+                        <input type="file" name="file" accept="image/*" hidden onchange="this.form.submit()" />
+                        <img th:if="${product.hinhAnhChinh}" th:src="@{${product.hinhAnhChinh}}" alt="" class="adm-image-large" style="cursor:pointer" title="Click để đổi ảnh" />
+                        <div th:unless="${product.hinhAnhChinh}" class="adm-empty py-3" style="cursor:pointer">
+                            <i class="bi bi-plus-circle adm-empty-icon"></i>
+                            <div class="adm-empty-title">Click để thêm ảnh đại diện</div>
+                        </div>
+                    </div>
+                </form>
+
+                <h6 class="fw-semibold mb-2">Bộ sưu tập ảnh</h6>
+                <form th:action="@{/admin/san-pham/chi-tiet/{id}/them-anh(id=${product.id})}" method="post" enctype="multipart/form-data" class="mb-3">
+                    <div class="gallery-upload-zone" style="cursor:pointer" onclick="this.querySelector('input[type=file]').click()">
+                        <input type="file" name="files" accept="image/*" multiple hidden onchange="this.form.submit()" />
+                        <div class="gallery-upload-content">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <p>Click để thêm ảnh vào bộ sưu tập</p>
+                        </div>
+                    </div>
+                </form>
                 <div th:if="${not #lists.isEmpty(galleryImages)}" class="adm-gallery-grid">
                     <div class="adm-gallery-item" th:each="img : ${galleryImages}">
                         <img th:src="@{${img.imageUrl}}" alt="" />
