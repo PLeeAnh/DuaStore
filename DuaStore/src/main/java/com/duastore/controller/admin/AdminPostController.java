@@ -7,6 +7,7 @@ import com.duastore.repository.UserRepository;
 import com.duastore.service.admin.AdminPostService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -30,8 +31,11 @@ public class AdminPostController {
     }
 
     @GetMapping
-    public String list(@RequestParam(defaultValue = "0") int page, Model model) {
-        Page<Post> postPage = adminPostService.getAllPosts(page, 20);
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_READ)")
+    public String list(@RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "20") int size,
+                       Model model) {
+        Page<Post> postPage = adminPostService.getAllPosts(page, size);
 
         Map<Integer, String> tacGiaMap = new HashMap<>();
         for (Post p : postPage.getContent()) {
@@ -46,10 +50,16 @@ public class AdminPostController {
         model.addAttribute("tacGiaMap", tacGiaMap);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", postPage.getTotalPages());
+        model.addAttribute("totalItems", postPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+        model.addAttribute("entityLabel", "bài viết");
+        model.addAttribute("url", "/admin/bai-viet");
+        model.addAttribute("filterParams", new HashMap<>());
         return "view/admin/post/post-list";
     }
 
     @GetMapping("/them-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_CREATE)")
     public String createForm(Model model) {
         model.addAttribute("title", "bai-viet");
         model.addAttribute("post", new PostDTO());
@@ -59,6 +69,7 @@ public class AdminPostController {
     }
 
     @PostMapping("/them-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_CREATE)")
     public String create(@Valid @ModelAttribute PostDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "bai-viet");
@@ -77,6 +88,7 @@ public class AdminPostController {
     }
 
     @GetMapping("/sua/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_UPDATE)")
     public String editForm(@PathVariable Integer id, Model model) {
         try {
             Post post = adminPostService.getPostById(id);
@@ -101,6 +113,7 @@ public class AdminPostController {
     }
 
     @PostMapping("/sua/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_UPDATE)")
     public String edit(@PathVariable Integer id, @Valid @ModelAttribute PostDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "bai-viet");
@@ -120,6 +133,7 @@ public class AdminPostController {
     }
 
     @PostMapping("/xoa/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_DELETE)")
     public String delete(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             adminPostService.delete(id);

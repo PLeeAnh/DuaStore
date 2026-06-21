@@ -1,7 +1,10 @@
 package com.duastore.config.security;
 
+import com.duastore.model.Permission;
+import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,7 +13,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -23,40 +27,59 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElse(null);
-        if (user == null) {
-            user = userRepository.findByEmail(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        }
+        User user = userRepository.findByUsernameOrEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Không tìm thấy tài khoản: " + username));
 
         if (!user.getIsActive()) {
-            throw new UsernameNotFoundException("User is disabled: " + username);
+            throw new DisabledException("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
         }
+
+        if (user.getRoles().isEmpty()) {
+            throw new DisabledException(
+                    "Tài khoản chưa được gán vai trò. Vui lòng liên hệ quản trị viên.");
+        }
+
+        // TODO: Khi Role có field active, cần lọc bỏ role inactive
+        // for (Role r : user.getRoles()) { if (r.getActive() == false) ... }
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
                 true, true, true, true,
-                getAuthorities(user.getRole())
+                getAuthorities(user)
         );
     }
 
     public UserDetails loadUserByUserId(Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Không tìm thấy tài khoản: " + userId));
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
                 true, true, true, true,
-                getAuthorities(user.getRole())
+                getAuthorities(user)
         );
     }
 
-    private Collection<? extends GrantedAuthority> getAuthorities(String role) {
-        if ("ADMIN".equalsIgnoreCase(role)) {
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
+    private Collection<? extends GrantedAuthority> getAuthorities(User user) {
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        for (Role role : user.getRoles()) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+
+            if ("SUPER_ADMIN".equals(role.getName())) {
+                continue;
+            }
+
+            for (Permission perm : role.getPermissions()) {
+                authorities.add(new SimpleGrantedAuthority(
+                        perm.getModule() + "_" + perm.getAction()
+                ));
+            }
         }
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+
+        return authorities;
     }
 }

@@ -61,6 +61,7 @@
             </tbody>
         </table>
     </div>
+    <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
 </div>
 </body>
 </html>

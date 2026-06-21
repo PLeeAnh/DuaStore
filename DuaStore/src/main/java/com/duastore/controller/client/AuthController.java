@@ -1,10 +1,13 @@
 package com.duastore.controller.client;
 
+import com.duastore.model.Role;
 import com.duastore.model.User;
+import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -15,15 +18,21 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Set;
+
 @Controller
 public class AuthController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(UserRepository userRepository,
+                          PasswordEncoder passwordEncoder,
+                          RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
     }
 
     @GetMapping("/dang-nhap")
@@ -68,7 +77,8 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setHoTen(req.getHoTen());
         user.setSoDienThoai(req.getSoDienThoai());
-        user.setRole("USER");
+        Role userRole = roleRepository.findByName("USER");
+        user.setRoles(Set.of(userRole));
         user.setIsActive(true);
         userRepository.save(user);
 
@@ -86,7 +96,9 @@ public class AuthController {
         private String email;
 
         @NotBlank(message = "Mật khẩu không được để trống")
-        @Size(min = 6, message = "Mật khẩu tối thiểu 6 ký tự")
+        @Size(min = 8, message = "Mật khẩu tối thiểu 8 ký tự")
+        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).+$",
+                 message = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt")
         private String password;
 
         private String confirmPassword;

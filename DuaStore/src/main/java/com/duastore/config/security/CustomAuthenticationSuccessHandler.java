@@ -1,5 +1,6 @@
 package com.duastore.config.security;
 
+import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import jakarta.servlet.ServletException;
@@ -40,7 +41,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
 
         if (user == null) {
             String username = authentication.getName();
-            user = userRepository.findByUsername(username).orElse(null);
+            user = userRepository.findByUsernameOrEmail(username).orElse(null);
         }
 
         if (user != null) {
@@ -50,7 +51,9 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             session.setAttribute("userInitial", user.getHoTen() != null && !user.getHoTen().isEmpty()
                     ? String.valueOf(user.getHoTen().charAt(0)).toUpperCase() : "U");
             session.setAttribute("userEmail", user.getEmail());
-            session.setAttribute("userRole", user.getRole());
+            String roleName = user.getRoles().stream()
+                    .findFirst().map(Role::getName).orElse("USER");
+            session.setAttribute("userRole", roleName);
             session.setAttribute("userUsername", user.getUsername());
             session.setAttribute("userPhone", user.getSoDienThoai());
         }

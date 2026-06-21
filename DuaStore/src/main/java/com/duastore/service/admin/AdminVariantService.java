@@ -4,6 +4,9 @@ import com.duastore.dto.ProductVariantFormDTO;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.FileUploadService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +20,16 @@ public class AdminVariantService {
     public AdminVariantService(ProductVariantRepository variantRepository, FileUploadService fileUploadService) {
         this.variantRepository = variantRepository;
         this.fileUploadService = fileUploadService;
+    }
+
+    public Page<ProductVariant> findAllPaged(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return variantRepository.findByIsActiveTrueOrderByIdAsc(pageable);
+    }
+
+    public Page<ProductVariant> searchAllPaged(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return variantRepository.searchAllPaged(keyword, pageable);
     }
 
     public List<ProductVariant> findByProductId(Integer productId) {

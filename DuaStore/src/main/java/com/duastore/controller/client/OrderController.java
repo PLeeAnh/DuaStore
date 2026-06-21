@@ -77,6 +77,6 @@ public class OrderController {
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
-        return "redirect:/tai-khoan/don-hang/" + id;
+        return "redirect:/tai-khoan/don-hang";
     }
 }

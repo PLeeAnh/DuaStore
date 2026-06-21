@@ -1,11 +1,11 @@
 package com.duastore.service.client;
 
-import com.duastore.dto.CartItemDTO;
 import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.*;
 import com.duastore.repository.*;
 import com.duastore.service.ShippingFeeService;
+import com.duastore.service.admin.OrderStatusLogService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,12 +32,19 @@ public class OrderService {
     private final PromotionRepository promotionRepository;
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
+    private final OrderAssignmentRepository orderAssignmentRepository;
     private final ShippingFeeService shippingFeeService;
+    private final ProductVariantRepository variantRepository;
+    private final OrderStatusLogService orderStatusLogService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
                         CartService cartService, AddressRepository addressRepository,
                         PromotionRepository promotionRepository, UserRepository userRepository,
-                        CartItemRepository cartItemRepository, ShippingFeeService shippingFeeService) {
+                        CartItemRepository cartItemRepository,
+                        OrderAssignmentRepository orderAssignmentRepository,
+                        ShippingFeeService shippingFeeService,
+                        ProductVariantRepository variantRepository,
+                        OrderStatusLogService orderStatusLogService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -45,10 +52,13 @@ public class OrderService {
         this.promotionRepository = promotionRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
+        this.orderAssignmentRepository = orderAssignmentRepository;
         this.shippingFeeService = shippingFeeService;
+        this.variantRepository = variantRepository;
+        this.orderStatusLogService = orderStatusLogService;
     }
 
-    private static final String[] PHUONG_THUC_TT = {"COD", "CHUYEN_KHOAN", "VNPAY"};
+    private static final String[] PHUONG_THUC_TT = {"COD", "CHUYEN_KHOAN"};
     private static final String[] PHUONG_THUC_GH = {"SHIP", "NHAN_TAI_CONG"};
 
     @Transactional
@@ -118,6 +128,20 @@ public class OrderService {
         order.setTongThanhToan(tong);
 
         order = orderRepository.save(order);
+
+        orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
+
+        for (CartItem ci : cartItems) {
+            ProductVariant variant = ci.getVariant();
+            if (variant != null) {
+                if (variant.getSoLuongTon() < ci.getSoLuong()) {
+                    throw new RuntimeException("Sản phẩm \"" + ci.getProduct().getTenSanPham()
+                            + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
+                }
+                variant.setSoLuongTon(variant.getSoLuongTon() - ci.getSoLuong());
+                variantRepository.save(variant);
+            }
+        }
 
         cartItemRepository.deleteAll(cartItems);
 
@@ -192,13 +216,32 @@ public class OrderService {
     }
 
     @Transactional
+    public void updatePaymentStatus(Integer orderId, String trangThaiTT) {
+        Order order = getOrderById(orderId);
+        order.setTrangThaiTT(trangThaiTT);
+        orderRepository.save(order);
+    }
+
+    @Transactional
     public void cancelOrder(Integer userId, Integer orderId) {
         Order order = getOrderByUserAndId(userId, orderId);
         if (!"CHO_XAC_NHAN".equals(order.getTrangThaiDon())) {
             throw new RuntimeException("Chỉ có thể hủy đơn hàng đang chờ xác nhận");
         }
-        order.setTrangThaiDon("DA_HUY");
-        orderRepository.save(order);
+        restoreStock(orderId);
+        orderAssignmentRepository.findByOrderId(orderId).ifPresent(orderAssignmentRepository::delete);
+        orderRepository.delete(order);
+    }
+
+    private void restoreStock(Integer orderId) {
+        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+        for (OrderItem item : items) {
+            if (item.getVariantId() == null) continue;
+            ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
+            if (variant == null) continue;
+            variant.setSoLuongTon(variant.getSoLuongTon() + item.getSoLuong());
+            variantRepository.save(variant);
+        }
     }
 
     public Map<String, Object> validateCouponForApi(String maCode, BigDecimal tienHang) {
@@ -256,6 +299,7 @@ public class OrderService {
         dto.setId(order.getId());
         dto.setMaDon(order.getMaDon());
         dto.setUserId(order.getUser().getId());
+        dto.setUserEmail(order.getUser().getEmail());
         dto.setTenNguoiNhan(order.getSnapTenNguoiNhan());
         dto.setSoDienThoai(order.getSnapSoDienThoai());
         dto.setDiaChi(order.getSnapDiaChi());

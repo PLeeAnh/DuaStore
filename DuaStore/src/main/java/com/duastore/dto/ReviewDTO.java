@@ -18,6 +18,7 @@ public class ReviewDTO {
     private String hoTen;
     private Integer danhGia;
     private String binhLuan;
+    private String hinhAnh;
     private boolean isApproved;
     private LocalDateTime ngayTao;
 }

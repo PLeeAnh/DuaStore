@@ -3,6 +3,28 @@
 ===================================================== */
 'use strict';
 
+/* ── CSRF: auto-inject token into same-origin non-GET fetch ── */
+(function() {
+    const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+    const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+    if (!token || !header) return;
+    const orig = window.fetch;
+    window.fetch = function(url, opts) {
+        opts = opts || {};
+        if (!opts.method || opts.method.toUpperCase() === 'GET') return orig.call(this, url, opts);
+        const isSameOrigin = typeof url === 'string' && (url.startsWith('/') || new URL(url, location.origin).origin === location.origin);
+        if (isSameOrigin) {
+            opts.headers = opts.headers || {};
+            if (opts.headers instanceof Headers) {
+                opts.headers.set(header, token);
+            } else {
+                opts.headers[header] = token;
+            }
+        }
+        return orig.call(this, url, opts);
+    };
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
 
     /* ═══ MOBILE NAV TOGGLE ═══ */
@@ -617,3 +639,9 @@ function addCartPopupItem(card, productId, variantId, qty) {
         }
     }
 }
+
+/* ── Render star rating readonly ── */
+document.querySelectorAll('.star-rating-readonly').forEach(function(el) {
+    const score = parseInt(el.dataset.score) || 0;
+    el.innerHTML = '★'.repeat(score) + '☆'.repeat(5 - score);
+});

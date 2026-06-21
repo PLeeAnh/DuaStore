@@ -22,11 +22,16 @@
 
         <div class="adm-table-wrap">
             <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
+                <div class="d-flex gap-3 text-muted small">
+                    <span>Tổng: <strong th:text="${totalItems}">0</strong></span>
+                    <span>SUPER_ADMIN: <strong th:text="${superAdminCount}">0</strong></span>
+                    <span>ADMIN: <strong th:text="${adminCount}">0</strong></span>
+                    <span>USER: <strong th:text="${userCount}">0</strong></span>
+                </div>
                 <form class="d-flex align-items-center gap-2" method="get">
                     <select name="role" class="form-select form-select-sm" style="width:auto">
                         <option value="">Tất cả</option>
-                        <option value="ADMIN" th:selected="${role == 'ADMIN'}">Admin</option>
-                        <option value="USER" th:selected="${role == 'USER'}">Khách hàng</option>
+                        <option th:each="r : ${allRoles}" th:value="${r.name}" th:selected="${role == r.name}" th:text="${r.name}">ROLE</option>
                     </select>
                     <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
                 </form>
@@ -53,8 +58,12 @@
                         <td th:text="${u.email}">admin@duastore.com</td>
                         <td th:text="${u.soDienThoai} ?: '--'">0900000000</td>
                         <td>
-                            <span th:if="${u.role == 'ADMIN'}" class="badge bg-warning">Admin</span>
-                            <span th:if="${u.role == 'USER'}" class="badge bg-secondary">Khách hàng</span>
+                            <span th:each="role : ${u.roles}">
+                                <span th:if="${role.name == 'SUPER_ADMIN'}" class="badge bg-dark me-1">SUPER_ADMIN</span>
+                                <span th:if="${role.name == 'ADMIN'}" class="badge bg-warning me-1">Admin</span>
+                                <span th:if="${role.name == 'USER'}" class="badge bg-secondary me-1">Khách hàng</span>
+                                <span th:unless="${role.name == 'SUPER_ADMIN' or role.name == 'ADMIN' or role.name == 'USER'}" class="badge bg-info me-1" th:text="${role.name}">ROLE</span>
+                            </span>
                         </td>
                         <td>
                             <span th:if="${u.isActive}" class="badge bg-success">Hoạt động</span>
@@ -62,6 +71,9 @@
                         </td>
                         <td style="font-size:.82rem;color:var(--ef-text-muted)" th:text="${#temporals.format(u.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                         <td>
+                            <a th:href="@{/admin/nguoi-dung/sua/{id}(id=${u.id})}" class="btn btn-outline-primary btn-sm me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
                             <form method="post" th:action="@{/admin/nguoi-dung/toggle-status}" style="display:inline">
                                 <input type="hidden" name="id" th:value="${u.id}"/>
                                 <button type="submit" class="btn btn-sm"
@@ -77,20 +89,7 @@
             </table>
         </div>
 
-        <nav class="mt-3" th:if="${totalPages > 1}">
-            <ul class="pagination pagination-sm justify-content-center">
-                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                    <a class="page-link" th:href="@{/admin/nguoi-dung(page=${currentPage - 1}, role=${role})}">Trước</a>
-                </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                    th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/admin/nguoi-dung(page=${i}, role=${role})}" th:text="${i + 1}">1</a>
-                </li>
-                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{/admin/nguoi-dung(page=${currentPage + 1}, role=${role})}">Sau</a>
-                </li>
-            </ul>
-        </nav>
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
 
     </div>
 

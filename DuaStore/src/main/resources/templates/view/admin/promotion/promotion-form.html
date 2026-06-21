@@ -24,10 +24,12 @@
                 <div class="col-md-6">
                     <label class="form-label">Tên chương trình <span class="text-danger">*</span></label>
                     <input type="text" th:field="*{tenChuongTrinh}" class="form-control" required />
+                    <div th:if="${#fields.hasErrors('tenChuongTrinh')}" th:errors="*{tenChuongTrinh}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Mã giảm giá <span class="text-danger">*</span></label>
                     <input type="text" th:field="*{maCode}" class="form-control" required />
+                    <div th:if="${#fields.hasErrors('maCode')}" th:errors="*{maCode}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Loại</label>
@@ -35,18 +37,22 @@
                         <option value="PHAN_TRAM">%</option>
                         <option value="SO_TIEN">Số tiền</option>
                     </select>
+                    <div th:if="${#fields.hasErrors('loaiGiam')}" th:errors="*{loaiGiam}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Giá trị giảm</label>
                     <input type="number" step="0.01" th:field="*{giaTriGiam}" class="form-control" />
+                    <div th:if="${#fields.hasErrors('giaTriGiam')}" th:errors="*{giaTriGiam}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Đơn tối thiểu</label>
                     <input type="number" step="1000" th:field="*{donHangToiThieu}" class="form-control" />
+                    <div th:if="${#fields.hasErrors('donHangToiThieu')}" th:errors="*{donHangToiThieu}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Giảm tối đa</label>
                     <input type="number" step="1000" th:field="*{giamToiDa}" class="form-control" />
+                    <div th:if="${#fields.hasErrors('giamToiDa')}" th:errors="*{giamToiDa}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Số lượt</label>
@@ -56,14 +62,16 @@
                     <label class="form-label">Ngày bắt đầu</label>
                     <input type="datetime-local" th:name="tuNgay" 
                            th:value="${promotion.tuNgay != null} ? ${#temporals.format(promotion.tuNgay, 'yyyy-MM-dd''T''HH:mm')} : ''" 
-                           class="form-control" required />
-                </div>
+                            class="form-control" required />
+                    <div th:if="${#fields.hasErrors('tuNgay')}" th:errors="*{tuNgay}" class="text-danger small"></div>
+                    </div>
 
-                <div class="col-md-3">
+                    <div class="col-md-3">
                     <label class="form-label">Ngày kết thúc</label>
                     <input type="datetime-local" th:name="denNgay" 
                            th:value="${promotion.denNgay != null} ? ${#temporals.format(promotion.denNgay, 'yyyy-MM-dd''T''HH:mm')} : ''" 
-                           class="form-control" required />
+                            class="form-control" required />
+                    <div th:if="${#fields.hasErrors('denNgay')}" th:errors="*{denNgay}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Trạng thái</label>
@@ -74,7 +82,7 @@
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-                    <a th:href="@{/admin/khuyen-mai}" class="btn btn-secondary">Hủy</a>
+                    <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
                 </div>
             </form>
         </div>

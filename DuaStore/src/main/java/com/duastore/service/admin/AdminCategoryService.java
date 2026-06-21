@@ -3,6 +3,10 @@ package com.duastore.service.admin;
 import com.duastore.dto.CategoryDTO;
 import com.duastore.model.Category;
 import com.duastore.repository.CategoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -22,6 +26,14 @@ public class AdminCategoryService {
                 .sorted(Comparator.comparing(Category::getThuTuHienThi, Comparator.nullsLast(Integer::compareTo))
                         .thenComparing(Category::getId))
                 .toList();
+    }
+
+    public Page<Category> findAllPaged(int page, int size) {
+        List<Category> sorted = findAll();
+        int start = page * size;
+        int end = Math.min(start + size, sorted.size());
+        List<Category> pageContent = start < sorted.size() ? sorted.subList(start, end) : List.of();
+        return new PageImpl<>(pageContent, PageRequest.of(page, size), sorted.size());
     }
 
     public List<Category> findAvailableParents(Integer currentId) {
