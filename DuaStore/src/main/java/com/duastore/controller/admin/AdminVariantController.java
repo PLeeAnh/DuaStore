@@ -46,7 +46,7 @@ public class AdminVariantController {
         }
         var saved = variantService.save(dto);
         ra.addFlashAttribute("successMsg", "Thêm biến thể thành công");
-        return "redirect:/admin/san-pham/bien-the";
+        return "redirect:/admin/san-pham/chi-tiet/" + saved.getProductId();
     }
 
     @GetMapping("/sua/{id}")
@@ -88,7 +88,7 @@ public class AdminVariantController {
         dto.setId(id);
         var saved = variantService.save(dto);
         ra.addFlashAttribute("successMsg", "Cập nhật biến thể thành công");
-        return "redirect:/admin/san-pham/bien-the";
+        return "redirect:/admin/san-pham/chi-tiet/" + dto.getProductId();
     }
 
     @PostMapping("/xoa/{id}")
@@ -102,6 +102,6 @@ public class AdminVariantController {
         int productId = v.getProductId();
         variantService.delete(id);
         ra.addFlashAttribute("successMsg", "Đã xóa biến thể");
-        return "redirect:/admin/san-pham/bien-the";
+        return "redirect:/admin/san-pham/chi-tiet/" + productId;
     }
 }

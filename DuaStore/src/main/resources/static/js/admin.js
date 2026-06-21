@@ -113,13 +113,30 @@ document.addEventListener('DOMContentLoaded', () => {
         el.remove();
     });
 
-    /* ── Confirm xóa ── */
-    document.querySelectorAll('[data-confirm]').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const msg = btn.getAttribute('data-confirm') || 'Xác nhận thực hiện thao tác này?';
-            if (!confirm(msg)) e.preventDefault();
+    /* ── Confirm xóa (Bootstrap Modal) ── */
+    let confirmForm = null;
+    const confirmModalEl = document.getElementById('confirmModal');
+    if (confirmModalEl) {
+        const confirmModal = new bootstrap.Modal(confirmModalEl);
+        document.querySelectorAll('[data-confirm]').forEach(btn => {
+            btn.addEventListener('click', e => {
+                const msg = btn.getAttribute('data-confirm') || 'Xác nhận thực hiện thao tác này?';
+                confirmForm = btn.closest('form');
+                if (!confirmForm) return;
+                e.preventDefault();
+                document.getElementById('confirmModalMessage').textContent = msg;
+                confirmModal.show();
+            });
         });
-    });
+        document.getElementById('confirmModalConfirm').addEventListener('click', () => {
+            if (confirmForm) {
+                confirmForm.submit();
+                confirmForm = null;
+            }
+            confirmModal.hide();
+        });
+        confirmModalEl.addEventListener('hidden.bs.modal', () => { confirmForm = null; });
+    }
 
     /* ── Auto-submit search (debounce) ── */
     document.querySelectorAll('[data-autosubmit]').forEach(input => {
