@@ -13,156 +13,262 @@
 
     <!-- ═══════ HERO HEADER ═══════ -->
     <div class="adm-detail-hero">
-        <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="d-flex align-items-start gap-3">
             <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
                 <i class="bi bi-box-seam"></i>
             </div>
-            <div>
-                <h4><span th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Sửa sản phẩm</span></h4>
-                <div class="adm-detail-meta" th:if="${product.id != null}">
-                    SKU: #<span th:text="${product.id}">1</span>
-                    <span class="mx-2">|</span>
-                    Danh mục: <span th:text="${categoryName}">DM</span>
-                </div>
-                <div class="adm-detail-meta" th:unless="${product.id != null}">
-                    Tạo sản phẩm mới cho cửa hàng.
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4><span th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Sửa sản phẩm</span></h4>
+                        <div class="adm-detail-meta" th:if="${product.id != null}">
+                            Chỉnh sửa thông tin sản phẩm trong cửa hàng.
+                        </div>
+                        <div class="adm-detail-meta" th:unless="${product.id != null}">
+                            Tạo sản phẩm mới cho cửa hàng.
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        </a>
+                        <button type="submit" form="productForm" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check-lg me-1"></i><span th:text="${product.id != null} ? 'Lưu thay đổi' : 'Tạo sản phẩm'">Lưu</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="adm-detail-actions">
-            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i>Quay lại
-            </a>
-        </div>
-    </div>
-
-    <!-- ═══════ TABS ═══════ -->
-    <div class="adm-tab-nav">
-        <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
-            <i class="bi bi-list-ul"></i>Danh sách
-        </a>
-        <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
-            <i class="bi bi-diagram-3"></i>Biến thể
-        </a>
-        <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
-            <i class="bi bi-images"></i>Hình ảnh
-        </a>
     </div>
 
     <!-- ═══════ FORM ═══════ -->
-    <div class="adm-card">
-        <div class="adm-card-body">
-            <form th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
-                  th:object="${product}" method="post" enctype="multipart/form-data" class="row g-3">
-                <input type="hidden" th:field="*{id}" />
+    <form id="productForm"
+          th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
+          th:object="${product}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:field="*{id}" />
 
-                <div class="col-12">
-                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</h6>
-                </div>
-                <div class="col-md-8">
-                    <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
-                    <input type="text" th:field="*{tenSanPham}" class="form-control" required />
-                    <div th:if="${#fields.hasErrors('tenSanPham')}" th:errors="*{tenSanPham}" class="text-danger small"></div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-                    <select th:field="*{danhMucId}" class="form-select" required>
-                        <option value="">— Chọn danh mục —</option>
-                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}">DM</option>
-                    </select>
-                    <div th:if="${#fields.hasErrors('danhMucId')}" th:errors="*{danhMucId}" class="text-danger small"></div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Thương hiệu</label>
-                    <input type="text" th:field="*{thuongHieu}" class="form-control" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Chất liệu</label>
-                    <input type="text" th:field="*{chatLieu}" class="form-control" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Xuất xứ</label>
-                    <input type="text" th:field="*{xuatXu}" class="form-control" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Loại kính</label>
-                    <input type="text" th:field="*{kinhLoai}" class="form-control" />
-                </div>
+        <div class="row g-4">
+            <!-- ═══ LEFT COLUMN ═══ -->
+            <div class="col-lg-8">
 
-                <div class="col-12 mt-3">
-                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-gear me-2"></i>Chi tiết</h6>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Mục đích sử dụng</label>
-                    <input type="text" th:field="*{mucDichSuDung}" class="form-control" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Lead time (ngày)</label>
-                    <input type="number" th:field="*{leadTimeDays}" class="form-control" min="0" />
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="form-check">
-                        <input type="checkbox" th:field="*{featured}" class="form-check-input" id="featured" />
-                        <label class="form-check-label" for="featured">Sản phẩm nổi bật</label>
+                <!-- Card: Thông tin cơ bản -->
+                <div class="adm-card">
+                    <div class="adm-card-header">
+                        <span><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</span>
                     </div>
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Mô tả sản phẩm</label>
-                    <textarea th:field="*{moTa}" class="form-control" rows="4"></textarea>
-                </div>
-
-                <div class="col-12 mt-3">
-                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-image me-2"></i>Hình ảnh</h6>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Ảnh chính</label>
-                    <input type="file" name="hinhAnhFile" class="form-control" accept="image/*" />
-                    <div th:if="${product.hinhAnhChinh}" class="mt-2">
-                        <img th:src="@{${product.hinhAnhChinh}}" alt="preview" style="max-width:100px;border-radius:6px;" />
-                        <input type="hidden" th:field="*{hinhAnhChinh}" />
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Trạng thái</label>
-                    <select th:field="*{trangThaiSanPham}" class="form-select">
-                        <option value="DANG_BAN">Đang bán</option>
-                        <option value="DAT_TRUOC">Đặt trước</option>
-                        <option value="NGUNG_BAN">Ngừng bán</option>
-                    </select>
-                </div>
-
-                <div class="col-12 mt-3">
-                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-collection me-2"></i>Bộ sưu tập ảnh</h6>
-                    <div class="gallery-upload-zone" id="galleryUploadZone">
-                        <input type="file" name="galleryFiles" id="galleryInput" accept="image/*" multiple hidden />
-                        <div class="gallery-upload-content">
-                            <i class="bi bi-cloud-arrow-up"></i>
-                            <p>Kéo thả ảnh vào đây hoặc Click để chọn ảnh</p>
-                            <small>Hỗ trợ JPG, PNG, WEBP</small>
-                        </div>
-                    </div>
-                    <div class="gallery-preview" id="galleryPreview"></div>
-                    <div th:if="${not #lists.isEmpty(galleryImages)}" class="d-flex flex-wrap gap-2 mt-2">
-                        <div th:each="img : ${galleryImages}" style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #eee;flex-shrink:0">
-                            <img th:src="@{${img.imageUrl}}" alt="" style="width:100%;height:100%;object-fit:cover" />
-                            <form th:action="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}" method="post" style="position:absolute;top:3px;right:3px;margin:0;padding:0;">
-                                <button type="submit" style="width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
-                            </form>
+                    <div class="adm-card-body">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{tenSanPham}" class="form-control" required />
+                                <div th:if="${#fields.hasErrors('tenSanPham')}" th:errors="*{tenSanPham}" class="text-danger small"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+                                <select th:field="*{danhMucId}" class="form-select" required>
+                                    <option value="">— Chọn danh mục —</option>
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}">DM</option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('danhMucId')}" th:errors="*{danhMucId}" class="text-danger small"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Thương hiệu</label>
+                                <input type="text" th:field="*{thuongHieu}" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Chất liệu</label>
+                                <input type="text" th:field="*{chatLieu}" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Xuất xứ</label>
+                                <input type="text" th:field="*{xuatXu}" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Loại kính</label>
+                                <input type="text" th:field="*{kinhLoai}" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Mục đích sử dụng</label>
+                                <input type="text" th:field="*{mucDichSuDung}" class="form-control" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Lead time (ngày)</label>
+                                <input type="number" th:field="*{leadTimeDays}" class="form-control" min="0" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input type="checkbox" th:field="*{featured}" class="form-check-input" id="featured" />
+                                    <label class="form-check-label" for="featured">Nổi bật</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Mô tả sản phẩm</label>
+                                <textarea th:field="*{moTa}" class="form-control" rows="5" style="min-height:120px"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Trạng thái</label>
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDangBan" value="DANG_BAN" th:checked="${product.trangThaiSanPham == 'DANG_BAN'}" />
+                                    <label class="btn btn-outline-primary btn-sm" for="statusDangBan">Đang bán</label>
+                                    <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDatTruoc" value="DAT_TRUOC" th:checked="${product.trangThaiSanPham == 'DAT_TRUOC'}" />
+                                    <label class="btn btn-outline-primary btn-sm" for="statusDatTruoc">Đặt trước</label>
+                                    <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusNgungBan" value="NGUNG_BAN" th:checked="${product.trangThaiSanPham == 'NGUNG_BAN'}" />
+                                    <label class="btn btn-outline-primary btn-sm" for="statusNgungBan">Ngừng bán</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-12 border-top pt-3 mt-3">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-                    <a href="javascript:history.back()" class="btn btn-outline-secondary">Hủy</a>
+                <!-- Card: Bộ sưu tập ảnh -->
+                <div class="adm-card mt-4">
+                    <div class="adm-card-header">
+                        <span><i class="bi bi-collection me-2"></i>Bộ sưu tập ảnh</span>
+                    </div>
+                    <div class="adm-card-body">
+                        <div class="gallery-upload-zone" id="galleryUploadZone" style="cursor:pointer">
+                            <input type="file" name="galleryFiles" id="galleryInput" accept="image/*" multiple hidden />
+                            <div class="gallery-upload-content">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                <p>Kéo thả ảnh vào đây hoặc Click để chọn ảnh</p>
+                                <small>Hỗ trợ JPG, PNG, WEBP</small>
+                            </div>
+                        </div>
+                        <div class="gallery-preview" id="galleryPreview"></div>
+                        <div th:if="${not #lists.isEmpty(galleryImages)}" class="d-flex flex-wrap gap-2 mt-3">
+                            <div th:each="img : ${galleryImages}" style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #eee;flex-shrink:0">
+                                <img th:src="@{${img.imageUrl}}" alt="" style="width:100%;height:100%;object-fit:cover" />
+                                <button type="button" th:data-image-id="${img.id}" onclick="deleteGalleryImage(this.getAttribute('data-image-id'), this)" class="btn btn-sm p-0 d-flex align-items-center justify-content-center" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:11px;cursor:pointer">✕</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </form>
+
+            </div>
+
+            <!-- ═══ RIGHT COLUMN ═══ -->
+            <div class="col-lg-4">
+
+                <!-- Card: Ảnh chính -->
+                <div class="adm-card">
+                    <div class="adm-card-header">
+                        <span><i class="bi bi-image me-2"></i>Ảnh chính</span>
+                    </div>
+                    <div class="adm-card-body">
+                        <div class="adm-main-image-wrap">
+                            <img th:if="${product.hinhAnhChinh}" th:src="@{${product.hinhAnhChinh}}" alt="" class="adm-main-image" />
+                            <div th:unless="${product.hinhAnhChinh}" class="adm-empty py-3">
+                                <i class="bi bi-image adm-empty-icon"></i>
+                                <div class="adm-empty-title">Chưa có ảnh đại diện</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <label class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class="bi bi-arrow-repeat me-1"></i><span th:text="${product.hinhAnhChinh != null} ? 'Đổi ảnh' : 'Thêm ảnh'">Đổi ảnh</span>
+                                <input type="file" name="hinhAnhFile" accept="image/*" hidden onchange="this.form.submit()" />
+                            </label>
+                            <button type="button" class="btn btn-outline-danger btn-sm flex-fill" th:if="${product.hinhAnhChinh}" th:data-product-id="${product.id}"
+                                    onclick="confirmDeleteMainImage(this)">
+                                <i class="bi bi-trash me-1"></i>Xóa ảnh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Thông tin tổng quan (only for edit mode) -->
+                <div class="adm-card mt-4" th:if="${product.id != null}">
+                    <div class="adm-card-header">
+                        <span><i class="bi bi-info-square me-2"></i>Thông tin tổng quan</span>
+                    </div>
+                    <div class="adm-card-body">
+                        <div class="adm-info-row">
+                            <span class="adm-info-label">SKU</span>
+                            <span class="adm-info-value">#<span th:text="${product.id}">1</span></span>
+                        </div>
+                        <div class="adm-info-row">
+                            <span class="adm-info-label">Danh mục</span>
+                            <span class="adm-info-value" th:text="${categoryName}">—</span>
+                        </div>
+                        <div class="adm-info-row">
+                            <span class="adm-info-label">Ngày tạo</span>
+                            <span class="adm-info-value">—</span>
+                        </div>
+                        <div class="adm-info-row">
+                            <span class="adm-info-label">Cập nhật</span>
+                            <span class="adm-info-value">—</span>
+                        </div>
+                        <div class="adm-info-row">
+                            <span class="adm-info-label">Hình ảnh</span>
+                            <span class="adm-info-value" th:text="${#lists.size(galleryImages)}">0</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 
 <th:block layout:fragment="extra-script">
 <script>
+    function getCsrfHeaders() {
+        const headers = {};
+        const csrf = document.querySelector('meta[name=_csrf]');
+        const header = document.querySelector('meta[name=_csrf_header]');
+        if (csrf && header) headers[header.content] = csrf.content;
+        return headers;
+    }
+
+    function deleteGalleryImage(imageId, btn) {
+        const modalEl = document.getElementById('confirmModal');
+        if (!modalEl) return;
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh này?';
+        const confirmBtn = document.getElementById('confirmModalConfirm');
+        const handler = function() {
+            fetch('/admin/san-pham/xoa-anh/' + imageId, { method: 'POST', headers: getCsrfHeaders() })
+                .then(r => { if (r.ok) btn.parentElement.remove(); });
+            modal.hide();
+            confirmBtn.removeEventListener('click', handler);
+        };
+        confirmBtn.addEventListener('click', handler);
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            confirmBtn.removeEventListener('click', handler);
+        }, { once: true });
+        modal.show();
+    }
+
+    function confirmDeleteMainImage(btn) {
+        const modalEl = document.getElementById('confirmModal');
+        if (!modalEl) return;
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh đại diện này?';
+        const confirmBtn = document.getElementById('confirmModalConfirm');
+        const handler = function() {
+            const productId = btn.getAttribute('data-product-id');
+            fetch('/admin/san-pham/chi-tiet/' + productId + '/xoa-anh-chinh', { method: 'POST', headers: getCsrfHeaders() })
+                .then(r => {
+                    if (r.ok) {
+                        const card = btn.closest('.adm-card');
+                        const img = card.querySelector('.adm-main-image');
+                        const empty = card.querySelector('.adm-empty');
+                        if (img) img.remove();
+                        if (empty) empty.style.display = '';
+                        btn.style.display = 'none';
+                        const changeBtn = card.querySelector('label .bi-arrow-repeat');
+                        if (changeBtn) changeBtn.parentElement.querySelector('span').textContent = 'Thêm ảnh';
+                    }
+                });
+            modal.hide();
+            confirmBtn.removeEventListener('click', handler);
+        };
+        confirmBtn.addEventListener('click', handler);
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            confirmBtn.removeEventListener('click', handler);
+        }, { once: true });
+        modal.show();
+    }
+
     (function() {
         const zone = document.getElementById('galleryUploadZone');
         const input = document.getElementById('galleryInput');

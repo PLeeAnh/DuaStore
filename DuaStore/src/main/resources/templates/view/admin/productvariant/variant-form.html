@@ -33,13 +33,17 @@
             <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Quay lại
             </a>
+            <button type="submit" form="variantForm" class="btn btn-primary btn-sm">
+                <i class="bi bi-check-lg me-1"></i><span th:text="${variant.id != null} ? 'Lưu thay đổi' : 'Tạo biến thể'">Lưu</span>
+            </button>
         </div>
     </div>
 
     <!-- ═══════ FORM ═══════ -->
     <div class="adm-card">
         <div class="adm-card-body">
-            <form th:action="${variant.id != null} ? @{/admin/bien-the/sua/{id}(id=${variant.id})} : @{/admin/bien-the/them-moi}"
+            <form id="variantForm"
+                  th:action="${variant.id != null} ? @{/admin/bien-the/sua/{id}(id=${variant.id})} : @{/admin/bien-the/them-moi}"
                   th:object="${variant}" method="post" enctype="multipart/form-data" class="row g-3">
                 <input type="hidden" th:field="*{id}" />
                 <input type="hidden" th:field="*{productId}" />

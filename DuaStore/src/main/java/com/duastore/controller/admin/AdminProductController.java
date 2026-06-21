@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 
@@ -380,6 +381,17 @@ public class AdminProductController {
         productImageRepository.save(img);
         ra.addFlashAttribute("successMsg", "Đã xóa ảnh");
         return "redirect:/admin/san-pham/chi-tiet/" + productId;
+    }
+
+    @PostMapping("/chi-tiet/{id}/xoa-anh-chinh")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_UPDATE)")
+    @ResponseBody
+    public ResponseEntity<?> clearMainImage(@PathVariable Integer id) {
+        Product p = productService.findById(id);
+        if (p == null) return ResponseEntity.notFound().build();
+        p.setHinhAnhChinh(null);
+        productRepository.save(p);
+        return ResponseEntity.ok().build();
     }
 
 }
