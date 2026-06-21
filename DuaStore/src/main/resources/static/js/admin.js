@@ -121,4 +121,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    /* ── Auto-submit search (debounce) ── */
+    document.querySelectorAll('[data-autosubmit]').forEach(input => {
+        const delay = parseInt(input.getAttribute('data-autosubmit'), 10) || 300;
+        let timer;
+        input.addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                const form = input.closest('form');
+                if (form) form.submit();
+            }, delay);
+        });
+    });
+
 });

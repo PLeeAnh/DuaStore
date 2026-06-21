@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+<head><title>Chi tiết sản phẩm</title></head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
+    <li class="breadcrumb-item active">Chi tiết</li>
+</th:block>
+<div layout:fragment="content">
+
+    <!-- ═══════ HERO HEADER ═══════ -->
+    <div class="adm-detail-hero">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div>
+                <h4 th:text="${product.tenSanPham}">Tên sản phẩm</h4>
+                <div class="adm-detail-meta">
+                    SKU: #<span th:text="${product.id}">1</span>
+                    <span class="mx-2">|</span>
+                    Danh mục: <span th:text="${categoryName}">DM</span>
+                </div>
+            </div>
+        </div>
+        <div class="adm-detail-actions">
+            <a th:href="@{/admin/san-pham}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </a>
+            <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-primary btn-sm">
+                <i class="bi bi-pencil me-1"></i>Sửa sản phẩm
+            </a>
+            <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-images me-1"></i>Quản lý ảnh
+            </a>
+        </div>
+    </div>
+
+    <!-- ═══════ TABS ═══════ -->
+    <div class="adm-detail-tabs">
+        <ul class="nav nav-tabs" id="productDetailTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">
+                    <i class="bi bi-info-circle me-1"></i>Tổng quan
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="variants-tab" data-bs-toggle="tab" data-bs-target="#variants" type="button">
+                    <i class="bi bi-diagram-3 me-1"></i>Biến thể <span class="badge bg-primary ms-1" th:text="${#lists.size(variants)}">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images" type="button">
+                    <i class="bi bi-images me-1"></i>Hình ảnh <span class="badge bg-primary ms-1" th:text="${#lists.size(galleryImages)}">0</span>
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- ═══ TAB: TỔNG QUAN ═══ -->
+            <div class="tab-pane fade show active" id="info">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <h6 class="fw-semibold mb-3">Thông tin sản phẩm</h6>
+                        <table class="table table-borderless adm-info-table mb-0">
+                            <tr><td>Tên sản phẩm</td><td class="fw-semibold" th:text="${product.tenSanPham}">—</td></tr>
+                            <tr><td>SKU</td><td class="fw-semibold">#<span th:text="${product.id}">0</span></td></tr>
+                            <tr><td>Danh mục</td><td th:text="${categoryName}">—</td></tr>
+                            <tr><td>Thương hiệu</td><td th:text="${product.thuongHieu != null ? product.thuongHieu : '—'}">—</td></tr>
+                            <tr><td>Chất liệu</td><td th:text="${product.chatLieu != null ? product.chatLieu : '—'}">—</td></tr>
+                            <tr><td>Xuất xứ</td><td th:text="${product.xuatXu != null ? product.xuatXu : '—'}">—</td></tr>
+                            <tr><td>Loại kính</td><td th:text="${product.kinhLoai != null ? product.kinhLoai : '—'}">—</td></tr>
+                            <tr><td>Mục đích sử dụng</td><td th:text="${product.mucDichSuDung != null ? product.mucDichSuDung : '—'}">—</td></tr>
+                            <tr><td>Lead time</td><td th:text="${product.leadTimeDays != null ? product.leadTimeDays + ' ngày' : '—'}">—</td></tr>
+                            <tr><td>Trạng thái</td>
+                                <td>
+                                    <span th:if="${product.trangThaiSanPham == 'DANG_BAN'}" class="status-pill status-da-hoan-thanh">Đang bán</span>
+                                    <span th:if="${product.trangThaiSanPham == 'DAT_TRUOC'}" class="status-pill status-cho-xac-nhan">Đặt trước</span>
+                                    <span th:if="${product.trangThaiSanPham == 'NGUNG_BAN'}" class="status-pill status-da-huy">Ngừng bán</span>
+                                </td>
+                            </tr>
+                            <tr><td>Nổi bật</td>
+                                <td>
+                                    <span th:if="${product.isFeatured}" class="text-success"><i class="bi bi-star-fill me-1"></i>Nổi bật</span>
+                                    <span th:unless="${product.isFeatured}" class="text-muted">—</span>
+                                </td>
+                            </tr>
+                            <tr><td>Ngày tạo</td><td th:text="${product.ngayTao != null ? #temporals.format(product.ngayTao, 'dd/MM/yyyy HH:mm') : '—'}">—</td></tr>
+                            <tr><td>Cập nhật</td><td th:text="${product.ngayCapNhat != null ? #temporals.format(product.ngayCapNhat, 'dd/MM/yyyy HH:mm') : '—'}">—</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-lg-5">
+                        <h6 class="fw-semibold mb-3">Ảnh đại diện & Giá</h6>
+                        <div class="text-center mb-3">
+                            <img th:if="${product.hinhAnhChinh}" th:src="@{${product.hinhAnhChinh}}" alt="" class="adm-image-large" />
+                            <div th:unless="${product.hinhAnhChinh}" class="adm-empty py-3">
+                                <i class="bi bi-image adm-empty-icon"></i>
+                                <div class="adm-empty-title">Chưa có ảnh</div>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tổng tồn kho</span>
+                            <span class="fw-semibold" th:text="${totalStock}">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Giá thấp nhất</span>
+                            <span class="fw-semibold text-primary" th:text="${#numbers.formatDecimal(minPrice, 0, 0)} + '₫'">0₫</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Giá cao nhất</span>
+                            <span class="fw-semibold" th:text="${#numbers.formatDecimal(maxPrice, 0, 0)} + '₫'">0₫</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3" th:if="${not #strings.isEmpty(product.moTa)}">
+                    <h6 class="fw-semibold mb-2">Mô tả</h6>
+                    <p th:text="${product.moTa}" style="white-space:pre-line;font-size:.875rem;color:var(--text)">...</p>
+                </div>
+            </div>
+
+            <!-- ═══ TAB: BIẾN THỂ ═══ -->
+            <div class="tab-pane fade" id="variants">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted small">Có <strong th:text="${#lists.size(variants)}">0</strong> biến thể</span>
+                    <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>Thêm biến thể
+                    </a>
+                </div>
+                <div class="row g-3" th:if="${not #lists.isEmpty(variants)}">
+                    <div class="col-md-4 col-lg-3" th:each="v : ${variants}">
+                        <div class="adm-variant-card h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="adm-variant-name" th:text="${v.tenBienThe}">Tên</div>
+                                <span class="badge bg-success" style="font-size:10px" th:if="${v.isDefault}">Mặc định</span>
+                            </div>
+                            <div class="adm-variant-meta">Dung tích: <span th:text="${v.dungTich != null ? v.dungTich + 'ml' : '—'}">—</span></div>
+                            <div class="adm-variant-meta">SKU: #<span th:text="${v.id}">0</span></div>
+                            <div class="adm-variant-price mt-2" th:text="${#numbers.formatDecimal(v.giaGoc, 0, 0)} + '₫'">0₫</div>
+                            <div class="adm-variant-meta" th:if="${v.giaKhuyenMai != null}">
+                                <s class="text-muted" th:text="${#numbers.formatDecimal(v.giaKhuyenMai, 0, 0)} + '₫'">0₫</s>
+                            </div>
+                            <div class="adm-variant-stock mt-1">
+                                Tồn kho: <strong th:text="${v.soLuongTon}" th:classappend="${v.soLuongTon <= 20 ? 'text-danger' : ''}">0</strong>
+                            </div>
+                            <div class="d-flex gap-1 mt-2">
+                                <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm btn-icon" title="Sửa"><i class="bi bi-pencil"></i></a>
+                                <form th:action="@{/admin/san-pham/xoa/{id}(id=${product.id})}" method="post" style="display:inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm btn-icon" title="Xóa" data-confirm="Xóa biến thể này?"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:unless="${not #lists.isEmpty(variants)}" class="adm-empty py-4">
+                    <i class="bi bi-diagram-3 adm-empty-icon"></i>
+                    <div class="adm-empty-title">Chưa có biến thể</div>
+                    <div class="adm-empty-desc">Thêm biến thể để quản lý dung tích, giá và tồn kho.</div>
+                </div>
+            </div>
+
+            <!-- ═══ TAB: HÌNH ẢNH ═══ -->
+            <div class="tab-pane fade" id="images">
+                <div th:if="${product.hinhAnhChinh}" class="mb-4">
+                    <h6 class="fw-semibold mb-2">Ảnh đại diện</h6>
+                    <img th:src="@{${product.hinhAnhChinh}}" alt="" class="adm-image-large" />
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-semibold mb-0">Thư viện ảnh</h6>
+                    <a th:href="@{/admin/san-pham/sua/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>Thêm ảnh
+                    </a>
+                </div>
+                <div th:if="${not #lists.isEmpty(galleryImages)}" class="adm-gallery-grid">
+                    <div class="adm-gallery-item" th:each="img : ${galleryImages}">
+                        <img th:src="@{${img.imageUrl}}" alt="" />
+                        <span th:if="${img.imageUrl == product.hinhAnhChinh}" class="adm-gallery-badge badge bg-primary">Chính</span>
+                        <div class="adm-gallery-action">
+                            <form th:action="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}" method="post">
+                                <button type="submit" class="btn btn-sm btn-danger btn-icon" style="width:28px;height:28px;font-size:12px" data-confirm="Xoá ảnh này?"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div th:unless="${not #lists.isEmpty(galleryImages)}" class="adm-empty py-4">
+                    <i class="bi bi-image adm-empty-icon"></i>
+                    <div class="adm-empty-title">Chưa có hình ảnh</div>
+                    <div class="adm-empty-desc">Thêm ảnh đầu tiên cho sản phẩm.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

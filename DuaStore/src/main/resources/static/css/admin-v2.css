@@ -1003,7 +1003,240 @@ body.adm-body {
   margin-bottom: 1.5rem;
 }
 
-/* ── 26. Responsive ── */
+/* ── 26. KPI Cards Warning State ── */
+.adm-stat-warning {
+  border-color: #FDE68A;
+  background: #FFFBEB;
+}
+
+.adm-stat-warning .adm-stat-value {
+  color: #D97706;
+}
+
+.adm-stat-warning .adm-stat-label {
+  color: #92400E;
+}
+
+/* ── 27. Kebab Dropdown ── */
+.adm-kebab-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  transition: all .15s;
+}
+
+.adm-kebab-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.adm-kebab-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15,23,42,0.12);
+  padding: 6px;
+  min-width: 180px;
+}
+
+.adm-kebab-menu .dropdown-item {
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: .82rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  transition: background .1s;
+}
+
+.adm-kebab-menu .dropdown-item:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.adm-kebab-menu .dropdown-item.text-danger:hover {
+  background: rgba(220,38,38,0.08);
+  color: var(--danger);
+}
+
+.adm-kebab-menu .dropdown-divider {
+  margin: 4px 8px;
+  border-color: var(--border);
+}
+
+/* ── 28. Variant Card ── */
+.adm-variant-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  transition: box-shadow .2s, transform .2s;
+}
+
+.adm-variant-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.adm-variant-name {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.adm-variant-meta {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.adm-variant-price {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.adm-variant-stock {
+  font-size: .8rem;
+}
+
+/* ── 29. Gallery Grid ── */
+.adm-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.adm-gallery-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.adm-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.adm-gallery-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.adm-gallery-action {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+}
+
+/* ── 30. Product Detail ── */
+.adm-detail-hero {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.adm-detail-hero h4 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.adm-detail-hero .adm-detail-meta {
+  font-size: .82rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.adm-detail-hero .adm-detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+/* ── 31. Nav Tabs (Product Detail) ── */
+.adm-detail-tabs {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.adm-detail-tabs .nav-tabs {
+  padding: 0 1.25rem;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border);
+}
+
+.adm-detail-tabs .nav-tabs .nav-link {
+  border: none;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 500;
+  padding: .75rem 1rem;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+}
+
+.adm-detail-tabs .nav-tabs .nav-link:hover {
+  color: var(--text);
+  background: transparent;
+}
+
+.adm-detail-tabs .nav-tabs .nav-link.active {
+  color: var(--primary);
+  background: transparent;
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+.adm-detail-tabs .tab-content {
+  padding: 1.25rem;
+}
+
+/* ── 32. Product Detail Info Table ── */
+.adm-info-table td {
+  padding: .5rem .75rem;
+  font-size: .85rem;
+  vertical-align: top;
+}
+
+.adm-info-table td:first-child {
+  color: var(--muted);
+  width: 140px;
+  white-space: nowrap;
+}
+
+/* ── 33. Image Page Gallery ── */
+.adm-image-large {
+  max-width: 320px;
+  border-radius: 14px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* ── 34. Responsive ── */
 @media (min-width: 992px) {
   .adm-toggle { display: none; }
 }

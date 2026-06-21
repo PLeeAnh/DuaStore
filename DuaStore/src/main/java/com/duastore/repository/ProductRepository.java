@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+    long countByIsActiveTrue();
+    long countByIsFeaturedTrueAndIsActiveTrue();
+
     List<Product> findByDanhMucIdAndIsActiveTrue(Integer danhMucId);
     List<Product> findByDanhMucIdInAndIsActiveTrue(List<Integer> danhMucIds);
     List<Product> findByIsFeaturedTrueAndIsActiveTrue();

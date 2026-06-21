@@ -11,6 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Integer> {
+    @Query("SELECT COUNT(DISTINCT v.productId) FROM ProductVariant v WHERE v.isActive = true AND v.soLuongTon <= :threshold")
+    long countLowStockProducts(@Param("threshold") int threshold);
+
+    @Query("SELECT COALESCE(SUM(v.soLuongTon), 0) FROM ProductVariant v WHERE v.isActive = true")
+    long sumTotalStock();
+
     List<ProductVariant> findByProductIdInAndIsActiveTrue(Collection<Integer> productIds);
     List<ProductVariant> findByProductIdAndIsActiveTrue(Integer productId);
     List<ProductVariant> findByProductId(Integer productId);

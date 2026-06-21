@@ -7,6 +7,7 @@ import com.duastore.model.ProductImage;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductImageRepository;
+import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.admin.AdminProductService;
 import jakarta.validation.Valid;
@@ -21,22 +22,28 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/admin/san-pham")
 public class AdminProductController {
 
+    private static final int LOW_STOCK_THRESHOLD = 20;
+
     private final AdminProductService productService;
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductVariantRepository productVariantRepository;
 
     public AdminProductController(AdminProductService productService,
                                    CategoryRepository categoryRepository,
+                                   ProductRepository productRepository,
                                    ProductImageRepository productImageRepository,
                                    ProductVariantRepository productVariantRepository) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.productVariantRepository = productVariantRepository;
     }
@@ -97,7 +104,49 @@ public class AdminProductController {
         model.addAttribute("url", "/admin/san-pham");
         model.addAttribute("filterParams", filterParams);
 
+        model.addAttribute("totalProducts", productRepository.countByIsActiveTrue());
+        model.addAttribute("featuredCount", productRepository.countByIsFeaturedTrueAndIsActiveTrue());
+        model.addAttribute("lowStockCount", productVariantRepository.countLowStockProducts(LOW_STOCK_THRESHOLD));
+        model.addAttribute("totalStockAll", productVariantRepository.sumTotalStock());
+
         return "view/admin/product/product-list";
+    }
+
+    @GetMapping("/chi-tiet/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_READ)")
+    public String detail(@PathVariable Integer id, Model model, RedirectAttributes ra) {
+        Product p = productService.findById(id);
+        if (p == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy sản phẩm");
+            return "redirect:/admin/san-pham";
+        }
+
+        model.addAttribute("title", "san-pham");
+        model.addAttribute("productTab", "thong-tin");
+        model.addAttribute("product", p);
+
+        Category cat = categoryRepository.findById(p.getDanhMucId()).orElse(null);
+        model.addAttribute("categoryName", cat != null ? cat.getTenDanhMuc() : "—");
+
+        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActiveTrue(p.getId());
+        model.addAttribute("variants", variants);
+
+        List<ProductImage> gallery = productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(p.getId());
+        model.addAttribute("galleryImages", gallery);
+
+        int totalStock = variants.stream().mapToInt(ProductVariant::getSoLuongTon).sum();
+        model.addAttribute("totalStock", totalStock);
+
+        BigDecimal minPrice = variants.stream()
+            .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+            .min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+        BigDecimal maxPrice = variants.stream()
+            .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+            .max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+        model.addAttribute("minPrice", minPrice);
+        model.addAttribute("maxPrice", maxPrice);
+
+        return "view/admin/product/product-detail";
     }
 
     @GetMapping("/bien-the")
