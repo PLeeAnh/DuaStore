@@ -20,46 +20,33 @@
 
         <!-- ═════ KPI CARDS ═════ -->
         <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6">
+            <div class="col-md-4 col-6">
                 <div class="adm-stat">
                     <div class="d-flex align-items-center gap-3">
                         <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-box-seam"></i>
+                            <i class="bi bi-diagram-3"></i>
                         </div>
                         <div>
-                            <div class="adm-stat-value" th:text="${totalProducts}">0</div>
-                            <div class="adm-stat-label">Tổng sản phẩm</div>
+                            <div class="adm-stat-value" th:text="${totalVariants}">0</div>
+                            <div class="adm-stat-label">Tổng biến thể</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
-                            <i class="bi bi-star-fill"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${featuredCount}">0</div>
-                            <div class="adm-stat-label">Sản phẩm nổi bật</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-4 col-6">
                 <div class="adm-stat adm-stat-warning">
                     <div class="d-flex align-items-center gap-3">
                         <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
                             <i class="bi bi-exclamation-triangle"></i>
                         </div>
                         <div>
-                            <div class="adm-stat-value" th:text="${lowStockCount}">0</div>
+                            <div class="adm-stat-value" th:text="${lowStockVariants}">0</div>
                             <div class="adm-stat-label">Cần nhập hàng</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 col-6">
+            <div class="col-md-4 col-6">
                 <div class="adm-stat">
                     <div class="d-flex align-items-center gap-3">
                         <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">

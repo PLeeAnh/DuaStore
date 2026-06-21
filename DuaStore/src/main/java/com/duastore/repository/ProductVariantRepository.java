@@ -15,6 +15,10 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
            "(SELECT v2.productId FROM ProductVariant v2 WHERE v2.isActive = true GROUP BY v2.productId HAVING SUM(v2.soLuongTon) <= :threshold)")
     long countLowStockProducts(@Param("threshold") int threshold);
 
+    long countByIsActiveTrue();
+
+    long countByIsActiveTrueAndSoLuongTonLessThanEqual(int threshold);
+
     @Query("SELECT COALESCE(SUM(v.soLuongTon), 0) FROM ProductVariant v WHERE v.isActive = true")
     long sumTotalStock();
 
