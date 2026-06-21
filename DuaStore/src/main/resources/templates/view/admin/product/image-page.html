@@ -18,6 +18,49 @@
             </div>
         </div>
 
+        <!-- ═════ KPI CARDS ═════ -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-images"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalImages}">0</div>
+                            <div class="adm-stat-label">Tổng hình ảnh</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${productsWithImages}">0</div>
+                            <div class="adm-stat-label">Sản phẩm có ảnh</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${productsWithoutImages}">0</div>
+                            <div class="adm-stat-label">Sản phẩm chưa có ảnh</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="adm-tab-nav">
             <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
                 <i class="bi bi-list-ul"></i>Danh sách

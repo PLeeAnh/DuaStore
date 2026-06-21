@@ -219,6 +219,14 @@ public class AdminProductController {
         model.addAttribute("entityLabel", "sản phẩm");
         model.addAttribute("url", "/admin/san-pham/hinh-anh");
         model.addAttribute("filterParams", new HashMap<>());
+
+        long totalImages = productImageRepository.countByIsActiveTrue();
+        long productsWithImages = productImageRepository.countProductsWithImages();
+        long totalProducts = productRepository.countByIsActiveTrue();
+        model.addAttribute("totalImages", totalImages);
+        model.addAttribute("productsWithImages", productsWithImages);
+        model.addAttribute("productsWithoutImages", totalProducts - productsWithImages);
+
         return "view/admin/product/image-page";
     }
 
