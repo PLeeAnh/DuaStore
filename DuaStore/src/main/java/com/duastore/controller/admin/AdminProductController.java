@@ -275,6 +275,8 @@ public class AdminProductController {
         model.addAttribute("product", dto);
         model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
         model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
+        Category cat = categoryRepository.findById(p.getDanhMucId()).orElse(null);
+        model.addAttribute("categoryName", cat != null ? cat.getTenDanhMuc() : "—");
         return "view/admin/product/product-form";
     }
 
@@ -286,6 +288,8 @@ public class AdminProductController {
             model.addAttribute("productTab", "thong-tin");
             model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
             model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
+            Category cat = categoryRepository.findById(dto.getDanhMucId()).orElse(null);
+            model.addAttribute("categoryName", cat != null ? cat.getTenDanhMuc() : "—");
             return "view/admin/product/product-form";
         }
         dto.setId(id);

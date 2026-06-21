@@ -1,6 +1,7 @@
 package com.duastore.controller.admin;
 
 import com.duastore.dto.ProductVariantFormDTO;
+import com.duastore.repository.ProductRepository;
 import com.duastore.service.admin.AdminVariantService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,9 +16,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminVariantController {
 
     private final AdminVariantService variantService;
+    private final ProductRepository productRepository;
 
-    public AdminVariantController(AdminVariantService variantService) {
+    public AdminVariantController(AdminVariantService variantService, ProductRepository productRepository) {
         this.variantService = variantService;
+        this.productRepository = productRepository;
     }
 
     @GetMapping("/them-moi/{productId}")
@@ -27,6 +30,8 @@ public class AdminVariantController {
         dto.setProductId(productId);
         model.addAttribute("variant", dto);
         model.addAttribute("title", "san-pham");
+        var p = productRepository.findById(productId).orElse(null);
+        model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
         return "view/admin/productvariant/variant-form";
     }
 
@@ -35,6 +40,8 @@ public class AdminVariantController {
     public String create(@Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "san-pham");
+            var p = productRepository.findById(dto.getProductId()).orElse(null);
+            model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
             return "view/admin/productvariant/variant-form";
         }
         var saved = variantService.save(dto);
@@ -64,6 +71,8 @@ public class AdminVariantController {
 
         model.addAttribute("variant", dto);
         model.addAttribute("title", "san-pham");
+        var p = productRepository.findById(v.getProductId()).orElse(null);
+        model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
         return "view/admin/productvariant/variant-form";
     }
 
@@ -72,6 +81,8 @@ public class AdminVariantController {
     public String edit(@PathVariable Integer id, @Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "san-pham");
+            var p = productRepository.findById(dto.getProductId()).orElse(null);
+            model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
             return "view/admin/productvariant/variant-form";
         }
         dto.setId(id);

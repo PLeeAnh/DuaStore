@@ -3,37 +3,62 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-    <head><title>Quản lý sản phẩm — Form</title></head>
-    <body>
-    <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
-        <li class="breadcrumb-item active" th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Form</li>
-    </th:block>
-    <div layout:fragment="content">
+<head><title th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Form</title></head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
+    <li class="breadcrumb-item active" th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Form</li>
+</th:block>
+<div layout:fragment="content">
 
-        <div class="adm-page-header">
-            <div class="adm-page-header-top">
-                <h4><i class="bi bi-box me-2"></i><span th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Thêm sản phẩm</span></h4>
+    <!-- ═══════ HERO HEADER ═══════ -->
+    <div class="adm-detail-hero">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <i class="bi bi-box-seam"></i>
             </div>
-            <p th:text="${product.id != null} ? 'Chỉnh sửa thông tin sản phẩm.' : 'Tạo sản phẩm mới cho cửa hàng.'">Thông tin sản phẩm.</p>
+            <div>
+                <h4><span th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">Sửa sản phẩm</span></h4>
+                <div class="adm-detail-meta" th:if="${product.id != null}">
+                    SKU: #<span th:text="${product.id}">1</span>
+                    <span class="mx-2">|</span>
+                    Danh mục: <span th:text="${categoryName}">DM</span>
+                </div>
+                <div class="adm-detail-meta" th:unless="${product.id != null}">
+                    Tạo sản phẩm mới cho cửa hàng.
+                </div>
+            </div>
         </div>
+        <div class="adm-detail-actions">
+            <a th:href="@{/admin/san-pham}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </a>
+        </div>
+    </div>
 
-        <div class="adm-tab-nav">
-            <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
-                <i class="bi bi-list-ul"></i>Danh sách
-            </a>
-            <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
-                <i class="bi bi-diagram-3"></i>Biến thể
-            </a>
-            <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
-                <i class="bi bi-images"></i>Hình ảnh
-            </a>
-        </div>
-        <div class="adm-card"><div class="adm-card-body">
+    <!-- ═══════ TABS ═══════ -->
+    <div class="adm-tab-nav">
+        <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
+            <i class="bi bi-list-ul"></i>Danh sách
+        </a>
+        <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
+            <i class="bi bi-diagram-3"></i>Biến thể
+        </a>
+        <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
+            <i class="bi bi-images"></i>Hình ảnh
+        </a>
+    </div>
+
+    <!-- ═══════ FORM ═══════ -->
+    <div class="adm-card">
+        <div class="adm-card-body">
             <form th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
                   th:object="${product}" method="post" enctype="multipart/form-data" class="row g-3">
                 <input type="hidden" th:field="*{id}" />
 
+                <div class="col-12">
+                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</h6>
+                </div>
                 <div class="col-md-8">
                     <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
                     <input type="text" th:field="*{tenSanPham}" class="form-control" required />
@@ -47,8 +72,11 @@
                     </select>
                     <div th:if="${#fields.hasErrors('danhMucId')}" th:errors="*{danhMucId}" class="text-danger small"></div>
                 </div>
-
-                <div class="col-md-6">
+                <div class="col-md-3">
+                    <label class="form-label">Thương hiệu</label>
+                    <input type="text" th:field="*{thuongHieu}" class="form-control" />
+                </div>
+                <div class="col-md-3">
                     <label class="form-label">Chất liệu</label>
                     <input type="text" th:field="*{chatLieu}" class="form-control" />
                 </div>
@@ -57,52 +85,42 @@
                     <input type="text" th:field="*{xuatXu}" class="form-control" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Thương hiệu</label>
-                    <input type="text" th:field="*{thuongHieu}" class="form-control" />
+                    <label class="form-label">Loại kính</label>
+                    <input type="text" th:field="*{kinhLoai}" class="form-control" />
                 </div>
 
+                <div class="col-12 mt-3">
+                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-gear me-2"></i>Chi tiết</h6>
+                </div>
                 <div class="col-md-6">
                     <label class="form-label">Mục đích sử dụng</label>
                     <input type="text" th:field="*{mucDichSuDung}" class="form-control" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Loại kính</label>
-                    <input type="text" th:field="*{kinhLoai}" class="form-control" />
-                </div>
-                <div class="col-md-3">
                     <label class="form-label">Lead time (ngày)</label>
                     <input type="number" th:field="*{leadTimeDays}" class="form-control" min="0" />
                 </div>
-
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input type="checkbox" th:field="*{featured}" class="form-check-input" id="featured" />
+                        <label class="form-check-label" for="featured">Sản phẩm nổi bật</label>
+                    </div>
+                </div>
                 <div class="col-12">
                     <label class="form-label">Mô tả sản phẩm</label>
-                    <textarea th:field="*{moTa}" class="form-control" rows="6"></textarea>
+                    <textarea th:field="*{moTa}" class="form-control" rows="4"></textarea>
                 </div>
 
+                <div class="col-12 mt-3">
+                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-image me-2"></i>Hình ảnh</h6>
+                </div>
                 <div class="col-md-6">
                     <label class="form-label">Ảnh chính</label>
                     <input type="file" name="hinhAnhFile" class="form-control" accept="image/*" />
                     <div th:if="${product.hinhAnhChinh}" class="mt-2">
-                        <img th:src="@{${product.hinhAnhChinh}}" alt="preview" style="max-width:120px;border-radius:6px;" />
+                        <img th:src="@{${product.hinhAnhChinh}}" alt="preview" style="max-width:100px;border-radius:6px;" />
                         <input type="hidden" th:field="*{hinhAnhChinh}" />
                     </div>
-                </div>
-
-                <div class="col-12">
-                    <label class="form-label">Bộ sưu tập ảnh (Gallery)</label>
-
-                    <!-- Upload zone -->
-                    <div class="gallery-upload-zone" id="galleryUploadZone">
-                        <input type="file" name="galleryFiles" id="galleryInput" accept="image/*" multiple hidden />
-                        <div class="gallery-upload-content">
-                            <i class="bi bi-cloud-arrow-up"></i>
-                            <p>Kéo thả ảnh vào đây hoặc Click để chọn ảnh</p>
-                            <small>Hỗ trợ JPG, PNG, WEBP</small>
-                        </div>
-                    </div>
-
-                    <!-- Preview các ảnh mới chọn (chưa lưu) -->
-                    <div class="gallery-preview" id="galleryPreview"></div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Trạng thái</label>
@@ -112,99 +130,97 @@
                         <option value="NGUNG_BAN">Ngừng bán</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="form-check">
-                        <input type="checkbox" th:field="*{featured}" class="form-check-input" id="featured" />
-                        <label class="form-check-label" for="featured">Sản phẩm nổi bật</label>
+
+                <div class="col-12 mt-3">
+                    <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-collection me-2"></i>Bộ sưu tập ảnh</h6>
+                    <div class="gallery-upload-zone" id="galleryUploadZone">
+                        <input type="file" name="galleryFiles" id="galleryInput" accept="image/*" multiple hidden />
+                        <div class="gallery-upload-content">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <p>Kéo thả ảnh vào đây hoặc Click để chọn ảnh</p>
+                            <small>Hỗ trợ JPG, PNG, WEBP</small>
+                        </div>
                     </div>
-                </div>
-
-                <div class="col-12 border-top pt-3">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-                    <a th:href="@{/admin/san-pham}" class="btn btn-secondary">Hủy</a>
-                </div>
-            </form>
-
-            <!-- Ảnh đã lưu (outside main form to avoid nested form) -->
-            <div th:if="${not #lists.isEmpty(galleryImages)}" class="row g-3 mt-0">
-                <div class="col-12">
-                    <div class="gallery-saved">
-                        <label class="form-label">Ảnh đã lưu</label>
-                        <div class="d-flex flex-wrap gap-2">
-                            <div th:each="img : ${galleryImages}" class="gallery-saved-item">
-                                <img th:src="@{${img.imageUrl}}" alt="gallery" />
-                                <form th:action="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}" method="post" onsubmit="return confirm('Xoá ảnh này?')" style="position:absolute;top:5px;right:5px;margin:0;padding:0;">
-                                    <button type="submit" class="gallery-remove-btn" style="position:static;display:flex;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:13px;cursor:pointer;align-items:center;justify-content:center;padding:0;">✕</button>
-                                </form>
-                            </div>
+                    <div class="gallery-preview" id="galleryPreview"></div>
+                    <div th:if="${not #lists.isEmpty(galleryImages)}" class="d-flex flex-wrap gap-2 mt-2">
+                        <div th:each="img : ${galleryImages}" style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #eee;flex-shrink:0">
+                            <img th:src="@{${img.imageUrl}}" alt="" style="width:100%;height:100%;object-fit:cover" />
+                            <form th:action="@{/admin/san-pham/xoa-anh/{id}(id=${img.id})}" method="post" style="position:absolute;top:3px;right:3px;margin:0;padding:0;">
+                                <button type="submit" style="width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
+                            </form>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div></div>
+
+                <div class="col-12 border-top pt-3 mt-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    <a th:href="@{/admin/san-pham}" class="btn btn-outline-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    <th:block layout:fragment="extra-script">
-    <script>
-        (function() {
-            const zone = document.getElementById('galleryUploadZone');
-            const input = document.getElementById('galleryInput');
-            const preview = document.getElementById('galleryPreview');
-            const form = input.closest('form');
-            let filesArray = [];
+<th:block layout:fragment="extra-script">
+<script>
+    (function() {
+        const zone = document.getElementById('galleryUploadZone');
+        const input = document.getElementById('galleryInput');
+        const preview = document.getElementById('galleryPreview');
+        const form = input.closest('form');
+        let filesArray = [];
 
-            zone.addEventListener('click', () => input.click());
+        zone.addEventListener('click', () => input.click());
 
-            input.addEventListener('change', () => {
-                if (input.files) addFiles(Array.from(input.files));
-                input.value = '';
-            });
+        input.addEventListener('change', () => {
+            if (input.files) addFiles(Array.from(input.files));
+            input.value = '';
+        });
 
-            zone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                zone.classList.add('gallery-upload-zone--dragover');
-            });
-            zone.addEventListener('dragleave', () => {
-                zone.classList.remove('gallery-upload-zone--dragover');
-            });
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.classList.remove('gallery-upload-zone--dragover');
-                if (e.dataTransfer.files) addFiles(Array.from(e.dataTransfer.files));
-            });
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('gallery-upload-zone--dragover');
+        });
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('gallery-upload-zone--dragover');
+        });
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('gallery-upload-zone--dragover');
+            if (e.dataTransfer.files) addFiles(Array.from(e.dataTransfer.files));
+        });
 
-            function addFiles(newFiles) {
-                for (const f of newFiles) {
-                    if (!f.type.startsWith('image/')) continue;
-                    filesArray.push(f);
-                }
-                renderPreview();
+        function addFiles(newFiles) {
+            for (const f of newFiles) {
+                if (!f.type.startsWith('image/')) continue;
+                filesArray.push(f);
             }
+            renderPreview();
+        }
 
-            window.removeGalleryFile = function(index) {
-                filesArray.splice(index, 1);
-                renderPreview();
-            };
+        window.removeGalleryFile = function(index) {
+            filesArray.splice(index, 1);
+            renderPreview();
+        };
 
-            function renderPreview() {
-                preview.innerHTML = '';
-                filesArray.forEach((f, i) => {
-                    const url = URL.createObjectURL(f);
-                    const div = document.createElement('div');
-                    div.className = 'gallery-preview-item';
-                    div.innerHTML =
-                        '<img src="' + url + '" alt="" />' +
-                        '<button type="button" class="gallery-remove-btn" onclick="removeGalleryFile(' + i + ')">✕</button>';
-                    preview.appendChild(div);
-                });
-            }
-
-            // Trước khi submit, thêm gallery files vào FormData
-            form.addEventListener('formdata', (e) => {
-                for (const f of filesArray) e.formData.append('galleryFiles', f);
+        function renderPreview() {
+            preview.innerHTML = '';
+            filesArray.forEach((f, i) => {
+                const url = URL.createObjectURL(f);
+                const div = document.createElement('div');
+                div.className = 'gallery-preview-item';
+                div.innerHTML =
+                    '<img src="' + url + '" alt="" />' +
+                    '<button type="button" class="gallery-remove-btn" onclick="removeGalleryFile(' + i + ')">✕</button>';
+                preview.appendChild(div);
             });
-        })();
-    </script>
-    </th:block>
-    </body>
+        }
+
+        form.addEventListener('formdata', (e) => {
+            for (const f of filesArray) e.formData.append('galleryFiles', f);
+        });
+    })();
+</script>
+</th:block>
+</body>
 </html>
