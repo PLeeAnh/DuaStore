@@ -18,6 +18,18 @@
             </div>
         </div>
 
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
+                <i class="bi bi-list-ul"></i>Danh sách
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
+                <i class="bi bi-diagram-3"></i>Biến thể
+            </a>
+            <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
+                <i class="bi bi-images"></i>Hình ảnh
+            </a>
+        </div>
+
         <!-- ═════ KPI CARDS ═════ -->
         <div class="row g-3 mb-4">
             <div class="col-md-4 col-6">
@@ -61,18 +73,6 @@
             </div>
         </div>
 
-        <div class="adm-tab-nav">
-            <a class="adm-tab" th:classappend="${productTab == 'thong-tin' ? ' active' : ''}" th:href="@{/admin/san-pham}">
-                <i class="bi bi-list-ul"></i>Danh sách
-            </a>
-            <a class="adm-tab" th:classappend="${productTab == 'bien-the' ? ' active' : ''}" th:href="@{/admin/san-pham/bien-the}">
-                <i class="bi bi-diagram-3"></i>Biến thể
-            </a>
-            <a class="adm-tab" th:classappend="${productTab == 'hinh-anh' ? ' active' : ''}" th:href="@{/admin/san-pham/hinh-anh}">
-                <i class="bi bi-images"></i>Hình ảnh
-            </a>
-        </div>
-
         <!-- Search + Filter -->
         <div class="adm-card mb-4">
             <div class="adm-card-body">
@@ -103,7 +103,7 @@
                         </div>
                         <span class="badge bg-success" style="font-size:10px" th:if="${v.isDefault}">Mặc định</span>
                     </div>
-                    <div class="adm-variant-meta">Sản phẩm: <a th:href="@{/admin/san-pham/sua/{id}(id=${v.productId})}" class="text-decoration-none" th:text="${productNames.get(v.productId)}">Tên SP</a></div>
+                    <div class="adm-variant-meta">Sản phẩm: <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${v.productId})}" class="text-decoration-none" th:text="${productNames.get(v.productId)}">Tên SP</a></div>
                     <div class="adm-variant-meta" th:if="${v.dungTich}">Dung tích: <span th:text="${v.dungTich + 'ml'}">—</span></div>
                     <div class="adm-variant-price mt-2" th:text="${#numbers.formatDecimal(v.giaGoc, 0, 0)} + '₫'">0₫</div>
                     <div class="adm-variant-meta" th:if="${v.giaKhuyenMai != null}">
