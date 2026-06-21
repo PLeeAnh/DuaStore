@@ -371,6 +371,32 @@
         if (typeof updateCartBadge === 'function') {
             updateCartBadge(data.cartCount);
         }
+        // Cập nhật tổng tiền của dòng sản phẩm
+const totalCell = row.querySelector('.total-price-cell');
+const itemTotal = unitPrice * newQty;
+
+totalCell.innerText =
+    itemTotal.toLocaleString('vi-VN') + 'đ';
+
+// Tính lại tổng giỏ hàng
+let cartTotal = 0;
+
+document.querySelectorAll('.total-price-cell').forEach(cell => {
+    const value = parseInt(
+        cell.innerText.replace(/[^\d]/g, '')
+    ) || 0;
+
+    cartTotal += value;
+});
+
+// Cập nhật phần TỔNG TẠM TÍNH
+const subtotalElement =
+    document.querySelector('.subtotal-value');
+
+if (subtotalElement) {
+    subtotalElement.innerText =
+        cartTotal.toLocaleString('vi-VN') + 'đ';
+}
     })
     .catch(() => {
         alert('Lỗi kết nối');
