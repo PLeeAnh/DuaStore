@@ -195,26 +195,6 @@ public class AdminProductController {
         return "view/admin/product/variant-page";
     }
 
-    @GetMapping("/thong-so")
-    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_READ)")
-    public String specPage(@RequestParam(defaultValue = "0") int page,
-                           @RequestParam(defaultValue = "20") int size,
-                           Model model) {
-        model.addAttribute("title", "san-pham");
-        model.addAttribute("productTab", "thong-so");
-
-        Page<Product> productPage = productService.findAllPaged(page, size);
-        model.addAttribute("products", productPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", productPage.getTotalPages());
-        model.addAttribute("totalItems", productPage.getTotalElements());
-        model.addAttribute("pageSize", size);
-        model.addAttribute("entityLabel", "sản phẩm");
-        model.addAttribute("url", "/admin/san-pham/thong-so");
-        model.addAttribute("filterParams", new HashMap<>());
-        return "view/admin/product/spec-page";
-    }
-
     @GetMapping("/hinh-anh")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_READ)")
     public String imagePage(@RequestParam(defaultValue = "0") int page,
