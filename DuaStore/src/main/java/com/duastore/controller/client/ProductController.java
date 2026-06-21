@@ -3,6 +3,7 @@ package com.duastore.controller.client;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.ReviewRequestDTO;
 import com.duastore.dto.VariantApiDTO;
+import com.duastore.model.Category;
 import com.duastore.model.FlashSale;
 import com.duastore.model.Product;
 import com.duastore.model.ProductImage;
@@ -226,29 +227,52 @@ public class ProductController {
             log.warn("Loi doc likedIds o trang chi tiet san pham: {}", e.getMessage());
         }
 
-        model.addAttribute("reviews", reviewService.getApprovedReviews(id));
-        Map<String, Object> ratingSummary = reviewService.getRatingSummary(id);
-        model.addAttribute("avgRating", ratingSummary.get("avg"));
-        model.addAttribute("reviewCount", ratingSummary.get("count"));
-        Integer currentUserId = securityUtil.getCurrentUserId();
-        if (currentUserId != null) {
-            try {
-                model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
-            } catch (Exception e) {
-                model.addAttribute("hasReviewed", false);
+        // Price range
+        BigDecimal minPrice = null;
+        BigDecimal maxPrice = null;
+        Integer minVolume = null;
+        Integer maxVolume = null;
+        if (!variants.isEmpty()) {
+            List<BigDecimal> prices = variants.stream()
+                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                .sorted().collect(Collectors.toList());
+            minPrice = prices.get(0);
+            maxPrice = prices.get(prices.size() - 1);
+            List<Integer> volumes = variants.stream()
+                .map(ProductVariant::getDungTich)
+                .filter(Objects::nonNull)
+                .sorted().collect(Collectors.toList());
+            if (!volumes.isEmpty()) {
+                minVolume = volumes.get(0);
+                maxVolume = volumes.get(volumes.size() - 1);
             }
-        } else {
-            model.addAttribute("hasReviewed", false);
         }
+        model.addAttribute("minPrice", minPrice);
+        model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("minVolume", minVolume);
+        model.addAttribute("maxVolume", maxVolume);
 
-        List<Product> related = productService.getRelatedProducts(id, product.getDanhMucId(), 6);
+        // Category name
+        String categoryName = categoryRepository.findById(product.getDanhMucId())
+            .map(Category::getTenDanhMuc).orElse("—");
+        model.addAttribute("categoryName", categoryName);
+
+        List<Product> related = productService.getRelatedProducts(id, product.getDanhMucId(), 8);
         model.addAttribute("relatedProducts", related);
         if (!related.isEmpty()) {
             List<Integer> relatedIds = related.stream().map(Product::getId).collect(Collectors.toList());
             List<ProductVariant> relatedVariants = variantRepository.findByProductIdInAndIsActiveTrue(relatedIds);
             Map<Integer, List<ProductVariant>> relatedVariantsMap = relatedVariants.stream()
                 .collect(Collectors.groupingBy(ProductVariant::getProductId));
-            model.addAttribute("relatedVariantsMap", relatedVariantsMap);
+            // Compute min prices for related products
+            Map<Integer, BigDecimal> relatedMinPrices = new HashMap<>();
+            for (var entry : relatedVariantsMap.entrySet()) {
+                entry.getValue().stream()
+                    .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                    .min(BigDecimal::compareTo)
+                    .ifPresent(price -> relatedMinPrices.put(entry.getKey(), price));
+            }
+            model.addAttribute("relatedMinPrices", relatedMinPrices);
         }
 
         return "view/client/product/product-detail";

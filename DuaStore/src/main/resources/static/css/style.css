@@ -1980,3 +1980,322 @@ a { color: inherit; }
   background: var(--ds-gray-200) !important;
 }
 
+/* ══════════════════════════════════════════════════════════
+   PRODUCT DETAIL — Redesign (customer-facing)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Gallery thumbnail active enhanced ── */
+.gallery-thumb.active {
+  box-shadow: 0 0 0 3px rgba(220,38,38,.15);
+}
+
+/* ── Product summary card (mô tả nhanh) ── */
+.product-summary-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px;
+}
+.product-summary-card p {
+  font-size: .875rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Category badges row ── */
+.badge-mini-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: .78rem;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-mini-card i {
+  font-size: .82rem;
+  color: #94A3B8;
+}
+
+/* ── Variant pills (Shopify style) ── */
+.variant-chip {
+  border-radius: 9999px;
+  padding: .45rem 1.15rem;
+  font-size: .82rem;
+  font-weight: 500;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  transition: all .15s ease;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.variant-chip:hover {
+  border-color: #111827;
+  background: #F8FAFC;
+  transform: translateY(-1px);
+}
+.variant-chip.active {
+  border-color: #111827;
+  background: #F8FAFC;
+  color: #111827;
+  font-weight: 600;
+}
+.variant-chip:disabled,
+.variant-chip.out-of-stock {
+  opacity: .4;
+  pointer-events: none;
+  text-decoration: line-through;
+}
+.variant-chip:disabled:hover,
+.variant-chip.out-of-stock:hover {
+  transform: none;
+  border-color: #E2E8F0;
+  background: #fff;
+}
+.variant-group-label {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+/* ── Stock indicator ── */
+.stock-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .82rem;
+  font-weight: 500;
+}
+.stock-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.stock-dot.in-stock { background: #16A34A; }
+.stock-dot.out-of-stock { background: #DC2626; }
+
+/* ── CTA buttons ── */
+.btn-primary-dark {
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .7rem 1rem;
+  font-size: .9rem;
+  font-weight: 600;
+  transition: background .15s ease;
+  cursor: pointer;
+}
+.btn-primary-dark:hover { background: #1E293B; color: #fff; }
+.btn-primary-dark:disabled { background: #94A3B8; cursor: not-allowed; }
+
+.btn-outline-dark {
+  background: transparent;
+  color: #111827;
+  border: 1.5px solid #111827;
+  border-radius: 10px;
+  padding: .7rem 1rem;
+  font-size: .9rem;
+  font-weight: 600;
+  transition: all .15s ease;
+  cursor: pointer;
+}
+.btn-outline-dark:hover { background: #F8FAFC; }
+.btn-outline-dark:disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
+/* ── Quantity input ── */
+.qty-group {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.qty-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: #fff;
+  color: #475569;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+  padding: 0;
+  line-height: 1;
+}
+.qty-btn:hover { background: #F1F5F9; }
+.qty-input {
+  width: 48px;
+  height: 38px;
+  text-align: center;
+  border: none;
+  border-left: 1.5px solid #E2E8F0;
+  border-right: 1.5px solid #E2E8F0;
+  font-size: .9rem;
+  font-weight: 600;
+  color: #0F172A;
+  outline: none;
+  padding: 0;
+  -moz-appearance: textfield;
+}
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ── Sticky tabs ── */
+.sticky-tabs {
+  position: sticky;
+  top: 72px;
+  z-index: 20;
+  background: #fff;
+  padding-top: 1rem;
+  margin-top: 2.5rem;
+  border-bottom: 2px solid #E2E8F0;
+}
+.sticky-tabs .nav-link {
+  border: none;
+  color: #94A3B8;
+  font-size: .88rem;
+  font-weight: 600;
+  padding: .65rem 1.25rem;
+  margin-bottom: -2px;
+  background: transparent;
+  transition: color .15s;
+}
+.sticky-tabs .nav-link:hover {
+  color: #475569;
+}
+.sticky-tabs .nav-link.active {
+  color: #111827;
+  border-bottom: 2px solid #111827;
+  background: transparent;
+}
+
+/* ── Specs sidebar card ── */
+.spec-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  background: #FAFAFC;
+  padding: 1.25rem;
+  position: sticky;
+  top: 140px;
+}
+.spec-card h6 {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 1rem;
+  letter-spacing: .01em;
+}
+.spec-row {
+  display: flex;
+  padding: .55rem 0;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: .82rem;
+}
+.spec-row:last-child { border-bottom: none; }
+.spec-label {
+  color: #94A3B8;
+  width: 100px;
+  flex-shrink: 0;
+}
+.spec-value {
+  color: #0F172A;
+  font-weight: 500;
+}
+
+/* ── Related product cards ── */
+.related-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.related-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(15,23,42,.08);
+}
+.related-card .img-wrap {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #F8FAFC;
+}
+.related-card .img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s ease;
+}
+.related-card:hover .img-wrap img {
+  transform: scale(1.05);
+}
+.related-card .card-body {
+  padding: 12px 14px 16px;
+}
+.related-card .card-title {
+  font-size: .82rem;
+  font-weight: 600;
+  color: #0F172A;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.related-card .card-price {
+  font-size: .88rem;
+  font-weight: 700;
+  color: #DC2626;
+  margin-bottom: 10px;
+}
+.btn-related {
+  display: block;
+  width: 100%;
+  padding: .45rem 0;
+  border: 1.5px solid #111827;
+  border-radius: 9999px;
+  background: transparent;
+  color: #111827;
+  font-size: .75rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all .15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-related:hover {
+  background: #111827;
+  color: #fff;
+}
+
+/* ── Responsive: tablet (≤991px) ── */
+@media (max-width: 991px) {
+  .sticky-tabs { position: static !important; }
+  .spec-card { position: static !important; }
+}
+/* ── Responsive: mobile (≤576px) ── */
+@media (max-width: 576px) {
+  .badge-mini-card { font-size: .72rem; padding: 4px 10px; }
+  .variant-chip { font-size: .78rem; padding: .38rem 1rem; }
+}
+
