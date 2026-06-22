@@ -25,4 +25,7 @@ public class Category {
 
     private Integer thuTuHienThi = 0;
     private boolean isActive = true;
+
+    @Column(length = 500)
+    private String imageUrl;
 }

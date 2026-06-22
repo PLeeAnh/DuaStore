@@ -72,4 +72,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT DISTINCT p.hinhDang FROM Product p WHERE p.isActive = true AND p.hinhDang IS NOT NULL ORDER BY p.hinhDang ASC")
     List<String> findDistinctHinhDang();
+
+    long countByDanhMucIdAndIsActiveTrue(Integer danhMucId);
+
+    @Query("SELECT p.danhMucId, COUNT(p) FROM Product p WHERE p.isActive = true GROUP BY p.danhMucId")
+    List<Object[]> countProductsByDanhMuc();
 }

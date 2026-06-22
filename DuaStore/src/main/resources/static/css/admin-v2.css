@@ -1353,6 +1353,173 @@ body.adm-body {
   padding: .4rem .85rem;
 }
 
+/* ── 36. Category Tree ── */
+.category-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-tree ul,
+.category-tree .tree-children {
+  list-style: none;
+  padding-left: 1.75rem;
+  margin: 0;
+  margin-left: 0.5rem;
+  position: relative;
+}
+
+.category-tree .tree-children.d-none {
+  display: none;
+}
+
+/* Vertical branch line */
+.category-tree .tree-children::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 2px solid var(--border);
+}
+
+.category-tree li {
+  position: relative;
+}
+
+/* Horizontal connector for each child node */
+.category-tree .tree-children > li::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -1.25rem;
+  width: 1.25rem;
+  height: 0;
+  border-top: 2px solid var(--border);
+  pointer-events: none;
+}
+
+/* ── Root node clickable via toggle area ── */
+.tree-root-node {
+  cursor: pointer;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: background .15s;
+  margin-bottom: 2px;
+}
+
+.tree-node:hover {
+  background: var(--bg);
+}
+
+.tree-root-node {
+  background: var(--card);
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.tree-root-node:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+}
+
+.tree-toggle {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+  color: var(--muted);
+  transition: all .15s;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+}
+
+.tree-toggle:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.tree-toggle.collapsed i {
+  transform: rotate(-90deg);
+}
+
+.tree-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.tree-thumb-sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.tree-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.tree-name {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tree-name-sm {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.tree-count {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.tree-count a:hover {
+  color: var(--primary) !important;
+}
+
+.tree-node .dropdown {
+  margin-left: auto;
+}
+
+
+
+.tree-root-badge {
+  display: inline-block;
+  font-size: .6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
 /* ── 35. Responsive ── */
 @media (min-width: 992px) {
   .adm-toggle { display: none; }

@@ -23,5 +23,7 @@ public class CategoryDTO {
     private Integer thuTuHienThi = 0;
     private boolean isActive = true;
 
+    private String imageUrl;
+
     private List<CategoryDTO> children;
 }

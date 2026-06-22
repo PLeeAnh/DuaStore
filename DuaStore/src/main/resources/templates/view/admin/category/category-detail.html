@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+<head><title>Chi tiết danh mục</title></head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc}">Danh mục</a></li>
+    <li class="breadcrumb-item active">Chi tiết</li>
+</th:block>
+<div layout:fragment="content">
+
+    <div class="adm-detail-hero">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <i class="bi bi-tags"></i>
+            </div>
+            <div>
+                <h4 th:text="${category.tenDanhMuc}">Tên danh mục</h4>
+                <div class="adm-detail-meta">
+                    ID: #<span th:text="${category.id}">0</span>
+                    <span class="mx-2">|</span>
+                    Thứ tự: <span th:text="${category.thuTuHienThi}">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="adm-detail-actions">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </a>
+            <a th:href="@{/admin/danh-muc/sua/{id}(id=${category.id})}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-pencil me-1"></i>Sửa danh mục
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="adm-card">
+                <div class="adm-card-header">
+                    <span><i class="bi bi-info-circle me-2"></i>Thông tin danh mục</span>
+                </div>
+                <div class="adm-card-body">
+                    <table class="table table-borderless adm-info-table mb-0">
+                        <tr>
+                            <td>Tên danh mục</td>
+                            <td class="fw-semibold" th:text="${category.tenDanhMuc}">—</td>
+                        </tr>
+                        <tr>
+                            <td>Danh mục cha</td>
+                            <td>
+                                <span th:if="${category.parentId}" th:text="${category.tenDanhMucCha}">—</span>
+                                <span th:unless="${category.parentId}" class="text-muted">Danh mục gốc</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Số sản phẩm</td>
+                            <td>
+                                <a th:href="@{/admin/san-pham?danhMuc={id}(id=${category.id})}" class="text-decoration-none fw-semibold" th:text="${productCount}">0</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Thứ tự hiển thị</td>
+                            <td th:text="${category.thuTuHienThi}">0</td>
+                        </tr>
+                        <tr>
+                            <td>Trạng thái</td>
+                            <td>
+                                <span th:if="${category.active}" class="status-pill status-da-hoan-thanh">Hiển thị</span>
+                                <span th:unless="${category.active}" class="status-pill status-da-huy">Ẩn</span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div th:if="${not #strings.isEmpty(category.moTa)}" class="adm-card mt-3">
+                <div class="adm-card-header">
+                    <span><i class="bi bi-text-paragraph me-2"></i>Mô tả</span>
+                </div>
+                <div class="adm-card-body">
+                    <p th:text="${category.moTa}" style="white-space:pre-line;font-size:.875rem;color:var(--text);margin:0">...</p>
+                </div>
+            </div>
+
+            <div th:if="${not #lists.isEmpty(children)}" class="adm-card mt-3">
+                <div class="adm-card-header">
+                    <span><i class="bi bi-diagram-3 me-2"></i>Danh mục con (<span th:text="${#lists.size(children)}">0</span>)</span>
+                </div>
+                <div class="adm-card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên danh mục</th>
+                                <th style="width:100px">Số SP</th>
+                                <th style="width:80px">Trạng thái</th>
+                                <th style="width:80px" class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="child : ${children}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img th:if="${child.imageUrl}" th:src="@{${child.imageUrl}}"
+                                             style="width:32px;height:32px;object-fit:cover;border-radius:6px" />
+                                        <img th:unless="${child.imageUrl}" th:src="@{/images/no-image.png}"
+                                             style="width:32px;height:32px;object-fit:cover;border-radius:6px;opacity:0.4" />
+                                        <span class="fw-semibold" th:text="${child.tenDanhMuc}">Name</span>
+                                    </div>
+                                </td>
+                                <td th:text="${productCountMap.get(child.id) != null ? productCountMap.get(child.id) : 0}">0</td>
+                                <td>
+                                    <span th:if="${child.active}" class="badge bg-success">Hiển thị</span>
+                                    <span th:unless="${child.active}" class="badge bg-secondary">Ẩn</span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                                            <li><a class="dropdown-item" th:href="@{/admin/danh-muc/chi-tiet/{id}(id=${child.id})}"><i class="bi bi-eye"></i>Chi tiết</a></li>
+                                            <li><a class="dropdown-item" th:href="@{/admin/danh-muc/sua/{id}(id=${child.id})}"><i class="bi bi-pencil"></i>Sửa</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <form th:action="@{/admin/danh-muc/xoa/{id}(id=${child.id})}" method="post" class="d-block">
+                                                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash"></i>Xóa</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="adm-card">
+                <div class="adm-card-header">
+                    <span><i class="bi bi-image me-2"></i>Ảnh danh mục</span>
+                </div>
+                <div class="adm-card-body text-center">
+                    <img th:if="${category.imageUrl}" th:src="@{${category.imageUrl}}"
+                         alt="" style="width:180px;height:180px;object-fit:cover;border-radius:12px" />
+                    <div th:unless="${category.imageUrl}" class="adm-empty py-4">
+                        <i class="bi bi-image adm-empty-icon"></i>
+                        <div class="adm-empty-title">Chưa có ảnh</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
