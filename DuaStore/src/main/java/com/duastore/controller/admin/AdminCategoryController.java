@@ -59,7 +59,7 @@ public class AdminCategoryController {
             model.addAttribute("searchResults", results);
             model.addAttribute("showSearchResult", true);
         } else {
-            model.addAttribute("treeHtml", categoryService.getTreeHtml(productCountMap));
+            model.addAttribute("flatTree", categoryService.getFlatTree(productCountMap));
             model.addAttribute("showSearchResult", false);
         }
 
