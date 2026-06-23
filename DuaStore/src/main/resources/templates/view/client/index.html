@@ -6,301 +6,292 @@
     </head>
     <body>
         <div layout:fragment="content">
-
-            <!-- HERO V2 (parallel — hidden, toggle by removing d-none) -->
-            <section class="ds-hero-v2 d-none">
-                <div class="container-xl">
-                    <div class="ds-hero-v2-inner">
-                        <div class="ds-hero-v2-content">
-                            <span class="ds-hero-v2-eyebrow">THỦY TINH CAO CẤP</span>
-                            <h1 class="ds-hero-v2-title">Vẻ đẹp từ<br>thủy tinh tinh tuyển</h1>
-                            <p class="ds-hero-v2-desc">Bình hoa, ly uống nước và phụ kiện thủy tinh cho không gian sống hiện đại.</p>
-                            <div class="ds-hero-v2-actions">
-                                <a th:href="@{/san-pham}" class="ds-btn ds-btn-fill">Mua ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                <a th:href="@{/bo-suu-tap}" class="ds-btn ds-btn-outline">Xem bộ sưu tập</a>
-                            </div>
-                        </div>
-                        <div class="ds-hero-v2-visual">
-                            <img class="ds-hero-v2-image" th:src="${heroImage} ?: '/images/no-image.png'" onerror="this.src='/images/no-image.png'" alt="Bình hoa thủy tinh">
-                            <div class="ds-hero-v2-caption">BỘ SƯU TẬP THỦY TINH CAO CẤP</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- HERO CAROUSEL -->
-            <section class="ds-hero sr-up">
-                <div class="swiper hero-swiper">
-                    <div class="swiper-wrapper">
-                        <!-- Slide 1 -->
-                        <div class="swiper-slide hero-slide">
-                            <div class="hero-bg-shapes">
-                                <div class="hero-blob hero-blob-1"></div><div class="hero-blob hero-blob-2"></div>
-                            </div>
-                            <div class="container-xl hero-content">
-                                <div class="row align-items-center g-5">
-                                    <div class="col-12 col-lg-6 hero-text-col">
-                                        <span class="hero-badge">Bộ sưu tập mới</span>
-                                        <h1 class="hero-title">Chai thủy tinh<br/>thủ công cao cấp</h1>
-                                        <p class="hero-desc">Từng đường cắt tinh xảo trên chất liệu thủy tinh borosilicate — chịu nhiệt, bền bỉ, sang trọng.</p>
-                                        <div class="hero-actions">
-                                            <a th:href="@{/san-pham(danhMuc='chai')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                            <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-lg-6 hero-img-col">
-                                        <div class="hero-glass-card">
-                                            <div class="hero-glass-inner"><i class="bi bi-box-seam hero-glass-icon"></i></div>
-                                        </div>
-                                    </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- HERO V2 (parallel — hidden, toggle by removing d-none) -->
+                <section class="ds-hero-v2">
+                        <div class="ds-hero-v2-inner">
+                            <div class="ds-hero-v2-content">
+                                <span class="ds-hero-v2-eyebrow">THỦY TINH CAO CẤP</span>
+                                <h1 class="ds-hero-v2-title">Vẻ đẹp từ<br>thủy tinh tinh tuyển</h1>
+                                <p class="ds-hero-v2-desc">Bình hoa, ly uống nước và phụ kiện thủy tinh cho không gian sống hiện đại.</p>
+                                <div class="ds-hero-v2-actions">
+                                    <a th:href="@{/san-pham}" class="ds-btn ds-btn-fill">Mua ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                    <a th:href="@{/bo-suu-tap}" class="ds-btn ds-btn-outline">Xem bộ sưu tập</a>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Slide 2 -->
-                        <div class="swiper-slide hero-slide">
-                            <div class="hero-bg-shapes">
-                                <div class="hero-blob hero-blob-1"></div><div class="hero-blob hero-blob-2"></div>
+                            <div class="ds-hero-v2-visual">
+                                <img class="ds-hero-v2-image" th:src="@{/images/Banner 1 DuaStore.jpg}" onerror="this.src='/images/no-image.png'" alt="Banner DuaStore">
+                                <div class="ds-hero-v2-caption">BỘ SƯU TẬP THỦY TINH CAO CẤP</div>
                             </div>
-                            <div class="container-xl hero-content">
-                                <div class="row align-items-center g-5">
-                                    <div class="col-12 col-lg-6 hero-text-col">
-                                        <span class="hero-badge hero-badge-purple">Quà tặng</span>
-                                        <h1 class="hero-title">Set quà tặng<br/>cao cấp tinh tế</h1>
-                                        <p class="hero-desc">Gói quà sang trọng kèm thiệp viết tay — dành cho những món quà đặc biệt.</p>
-                                        <div class="hero-actions">
-                                            <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                            <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 col-lg-6 hero-img-col">
-                                        <div class="hero-glass-card">
-                                            <div class="hero-glass-inner"><i class="bi bi-gift hero-glass-icon"></i></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                    <div class="container-xl hero-content hero-pagination-wrap">
-                        <div class="hero-pagination"></div>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- FEATURES STRIP -->
-            <section class="ds-features sr-up">
-                <div class="container-xl">
-                    <div class="row g-3">
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-truck"></i><span>Miễn phí vận chuyển</span><small>Cho đơn trên 500K</small></div></div>
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-arrow-counterclockwise"></i><span>Đổi trả 7 ngày</span><small>Hoàn tiền 100%</small></div></div>
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-shield-check"></i><span>Bảo hành chính hãng</span><small>Sản phẩm cao cấp</small></div></div>
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-headset"></i><span>Hỗ trợ 24/7</span><small>Hotline 1900...</small></div></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- CATEGORIES V2 -->
-            <section class="ds-cat-v2">
-                <div class="container-xl">
-                    <div class="text-center mb-5">
-                        <span class="ds-section-badge">Danh mục</span><h2 class="ds-section-title">Khám phá bộ sưu tập</h2><p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
-                    </div>
-                    <div class="ds-cat-v2-grid">
-                        <a th:href="@{/san-pham}" class="ds-cat-v2-card ds-cat-v2-all">
-                            <div class="ds-cat-v2-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
-                            <span class="ds-cat-v2-label">Tất cả</span>
-                        </a>
-                        <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-v2-card">
-                            <div class="ds-cat-v2-img-wrap">
-                                <img class="ds-cat-v2-img" th:src="${cat.imageUrl} ?: '/images/no-image.png'" onerror="this.src='/images/no-image.png'" th:alt="${cat.tenDanhMuc}"/>
-                            </div>
-                            <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SẢN PHẨM NỔI BẬT -->
-            <section class="ds-product-carousel sr-up">
-                <div class="container-xl">
-                    <div class="d-flex align-items-center justify-content-between mb-4">
-                        <div>
-                            <span class="ds-section-badge">Bán chạy</span>
-                            <h2 class="ds-section-title mb-0">Sản phẩm nổi bật</h2>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm rounded-circle product-prev" type="button"><i class="bi bi-chevron-left"></i></button>
-                            <button class="btn btn-outline-secondary btn-sm rounded-circle product-next" type="button"><i class="bi bi-chevron-right"></i></button>
-                        </div>
-                    </div>
-                    <div class="swiper product-swiper">
+                <!-- HERO CAROUSEL -->
+                <section class="ds-hero sr-up d-none">
+                    <div class="swiper hero-swiper">
                         <div class="swiper-wrapper">
-
-                            <div class="swiper-slide" th:each="p : ${featuredProducts}">
-                                <div class="ds-product-card" th:data-productid="${p.id}"
-                                     th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                     v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
-                                     fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
-                                     th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''">
-
-                                    <button th:classappend="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
-                                            th:onclick="|toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
-                                        <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
-                                    </button>
-
-                                    <a th:href="@{'/san-pham/' + ${p.id}}">
-                                        <div class="ds-product-img-wrap">
-                                            <div class="ds-product-img">
-                                                <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
-                                                <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
+                            <!-- Slide 1 -->
+                            <div class="swiper-slide hero-slide">
+                                <div class="hero-bg-shapes">
+                                    <div class="hero-blob hero-blob-1"></div><div class="hero-blob hero-blob-2"></div>
+                                </div>
+                                <div class="container-xl hero-content">
+                                    <div class="row align-items-center g-5">
+                                        <div class="col-12 col-lg-6 hero-text-col">
+                                            <span class="hero-badge">Bộ sưu tập mới</span>
+                                            <h1 class="hero-title">Chai thủy tinh<br/>thủ công cao cấp</h1>
+                                            <p class="hero-desc">Từng đường cắt tinh xảo trên chất liệu thủy tinh borosilicate — chịu nhiệt, bền bỉ, sang trọng.</p>
+                                            <div class="hero-actions">
+                                                <a th:href="@{/san-pham(danhMuc='chai')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                                <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
                                             </div>
-                                            <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-                                                  th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                                            <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
-                                            <div class="ds-flash-timer" th:if="${fs != null}"
-                                                 th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
-                                                <i class="bi bi-clock"></i>
-                                                <span class="flash-countdown">--:--:--</span>
-                                            </div>
-                                            <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
                                         </div>
-                                    </a>
+                                        <div class="col-12 col-lg-6 hero-img-col">
+                                            <div class="hero-glass-card">
+                                                <div class="hero-glass-inner"><i class="bi bi-box-seam hero-glass-icon"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                                    <div class="ds-card-body">
-                                        <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
-                                           th:text="${p.tenSanPham}">Tên sản phẩm</a>
+                            <!-- Slide 2 -->
+                            <div class="swiper-slide hero-slide">
+                                <div class="hero-bg-shapes">
+                                    <div class="hero-blob hero-blob-1"></div><div class="hero-blob hero-blob-2"></div>
+                                </div>
+                                <div class="container-xl hero-content">
+                                    <div class="row align-items-center g-5">
+                                        <div class="col-12 col-lg-6 hero-text-col">
+                                            <span class="hero-badge hero-badge-purple">Quà tặng</span>
+                                            <h1 class="hero-title">Set quà tặng<br/>cao cấp tinh tế</h1>
+                                            <p class="hero-desc">Gói quà sang trọng kèm thiệp viết tay — dành cho những món quà đặc biệt.</p>
+                                            <div class="hero-actions">
+                                                <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                                <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-6 hero-img-col">
+                                            <div class="hero-glass-card">
+                                                <div class="hero-glass-inner"><i class="bi bi-gift hero-glass-icon"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container-xl hero-content hero-pagination-wrap">
+                            <div class="hero-pagination"></div>
+                        </div>
+                    </div>
+                </section>
 
-                                        <div class="ds-stock-qty-row">
-                                            <span th:if="${v != null}"
-                                                  class="ds-stock-info"
-                                                  th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
-                                                  th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
+                <!-- FEATURES STRIP -->
+                <section class="ds-features sr-up">
+                        <div class="row g-3">
+                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-truck"></i><span>Miễn phí vận chuyển</span><small>Cho đơn trên 500K</small></div></div>
+                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-arrow-counterclockwise"></i><span>Đổi trả 7 ngày</span><small>Hoàn tiền 100%</small></div></div>
+                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-shield-check"></i><span>Bảo hành chính hãng</span><small>Sản phẩm cao cấp</small></div></div>
+                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-headset"></i><span>Hỗ trợ 24/7</span><small>Hotline 1900...</small></div></div>
+                        </div>
+                </section>
 
-                                            <div class="ds-qty-row">
-                                                <div class="ds-qty-selector">
-                                                    <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
-                                                        <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                                    </button>
-                                                    <input type="text" class="ds-qty-val" value="1" readonly>
-                                                    <button class="ds-qty-btn ds-qty-plus" type="button">
-                                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 0V12M0 6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                                    </button>
+                <!-- CATEGORIES V2 -->
+                <section class="ds-cat-v2">
+                        <div class="text-center mb-5">
+                            <span class="ds-section-badge">Danh mục</span><h2 class="ds-section-title">Khám phá bộ sưu tập</h2><p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
+                        </div>
+                        <div class="ds-cat-v2-grid">
+                            <a th:href="@{/san-pham}" class="ds-cat-v2-card ds-cat-v2-all">
+                                <div class="ds-cat-v2-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                                <span class="ds-cat-v2-label">Tất cả</span>
+                            </a>
+                            <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-v2-card">
+                                <div class="ds-cat-v2-img-wrap">
+                                    <img class="ds-cat-v2-img" th:src="${cat.imageUrl} ?: '/images/no-image.png'" onerror="this.src='/images/no-image.png'" th:alt="${cat.tenDanhMuc}"/>
+                                </div>
+                                <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
+                            </a>
+                        </div>
+                </section>
+
+                <!-- SẢN PHẨM NỔI BẬT -->
+                <section class="ds-product-carousel sr-up">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div>
+                                <span class="ds-section-badge">Bán chạy</span>
+                                <h2 class="ds-section-title mb-0">Sản phẩm nổi bật</h2>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary btn-sm rounded-circle product-prev" type="button"><i class="bi bi-chevron-left"></i></button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-circle product-next" type="button"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="swiper product-swiper">
+                            <div class="swiper-wrapper">
+
+                                <div class="swiper-slide" th:each="p : ${featuredProducts}">
+                                    <div class="ds-product-card" th:data-productid="${p.id}"
+                                         th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                         v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                         fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
+                                         th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''">
+
+                                        <button th:classappend="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
+                                                th:onclick="|toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
+                                            <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                        </button>
+
+                                        <a th:href="@{'/san-pham/' + ${p.id}}">
+                                            <div class="ds-product-img-wrap">
+                                                <div class="ds-product-img">
+                                                    <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
+                                                    <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
                                                 </div>
+                                                <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
+                                                      th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
+                                                <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
+                                                <div class="ds-flash-timer" th:if="${fs != null}"
+                                                     th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
+                                                    <i class="bi bi-clock"></i>
+                                                    <span class="flash-countdown">--:--:--</span>
+                                                </div>
+                                                <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
                                             </div>
-                                        </div>
+                                        </a>
 
-                                        <div class="ds-card-actions">
-                                            <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
-                                                <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}">
-                                                    <div class="ds-variant-label-text" th:text="${groupEntry.key}">Nắp Gỗ</div>
-                                                    <div class="ds-variant-row">
-                                                        <button th:each="pv, stat : ${groupEntry.value}"
-                                                                class="ds-variant-chip"
-                                                                th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
-                                                                th:data-variantid="${pv.id}"
-                                                                th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
-                                                                th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
-                                                                th:data-stock="${pv.soLuongTon}"
-                                                                th:disabled="${pv.soLuongTon <= 0}"
-                                                                th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
-                                                                type="button">50ml</button>
+                                        <div class="ds-card-body">
+                                            <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
+                                               th:text="${p.tenSanPham}">Tên sản phẩm</a>
+
+                                            <div class="ds-stock-qty-row">
+                                                <span th:if="${v != null}"
+                                                      class="ds-stock-info"
+                                                      th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                                                      th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
+
+                                                <div class="ds-qty-row">
+                                                    <div class="ds-qty-selector">
+                                                        <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
+                                                            <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                                        </button>
+                                                        <input type="text" class="ds-qty-val" value="1" readonly>
+                                                        <button class="ds-qty-btn ds-qty-plus" type="button">
+                                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 0V12M0 6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <button class="ds-price-btn ds-card-add-cart" type="button"
-                                                th:data-id="${p.id}"
-                                                th:if="${v != null and v.soLuongTon > 0}"
-                                                onclick="addToCartFromCard(this);return false">
-                                            <span class="ds-price-btn-text">
-                                                <strong class="ds-price-btn-amount"
-                                                        th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 0)} + 'đ'">250.000đ</strong>
-                                            </span>
-                                            <svg viewBox="0 0 40 45" fill="none" class="btn-wave-svg">
-                                            <g>
-                                            <path d="M32.75 -0.113639C36.8921 -0.113631 40.25 3.24423 40.25 7.38636V23.8864H24C24 23.8864 19.0142 23.1815 14.4414 12.9108L13.5586 10.8619C8.98539 0.590287 4 -0.113639 4 -0.113639H32.75Z" fill="currentColor"/>
-                                            <path d="M34.9814 1.11275C33.8724 -2.87815 29.8554 -4.86581 26.0097 -3.32692L14.0002 1.47882L19.1424 19.98C19.2025 20.1293 21.5511 25.8106 31.7909 27.5645C42.167 29.3418 44.4406 35.1527 44.4406 35.1527L45.4855 38.9127L34.9814 1.11275Z" fill="currentColor"/>
-                                            </g>
-                                            <path d="M21.7505 5.38635H23.3408C23.579 5.38635 23.7842 5.55445 23.831 5.78805L25.0109 11.672" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
-                                            <path d="M33.6904 13.8517H25.3483C24.7579 13.8517 24.2793 13.3731 24.2793 12.7827C24.2793 12.242 24.683 11.7864 25.2198 11.7214L32.6235 10.825" stroke="white" stroke-width="1.05" stroke-linecap="round"/>
-                                            <path d="M33.8021 7.07632L23.9922 7.12432L25.0379 11.9759L32.5011 11.2026C32.8915 11.1622 33.2221 10.8971 33.3465 10.5249L34.2788 7.73477C34.3873 7.40996 34.1445 7.07465 33.8021 7.07632Z" fill="white" stroke="white" stroke-width="0.875" stroke-linecap="round"/>
-                                            <path d="M32.5444 10.4839L30.4273 10.7039" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"/>
-                                            <circle cx="32.4546" cy="15.4545" r="1.19873" fill="white"/>
-                                            <circle cx="25.877" cy="15.4546" r="1.19873" fill="white"/>
-                                            </svg>
-                                        </button>
-                                        <span class="ds-badge-oos-btn" th:unless="${v != null and v.soLuongTon > 0}">Bán hết</span>
+                                            <div class="ds-card-actions">
+                                                <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
+                                                    <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}">
+                                                        <div class="ds-variant-label-text" th:text="${groupEntry.key}">Nắp Gỗ</div>
+                                                        <div class="ds-variant-row">
+                                                            <button th:each="pv, stat : ${groupEntry.value}"
+                                                                    class="ds-variant-chip"
+                                                                    th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
+                                                                    th:data-variantid="${pv.id}"
+                                                                    th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
+                                                                    th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
+                                                                    th:data-stock="${pv.soLuongTon}"
+                                                                    th:disabled="${pv.soLuongTon <= 0}"
+                                                                    th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
+                                                                    type="button">50ml</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button class="ds-price-btn ds-card-add-cart" type="button"
+                                                    th:data-id="${p.id}"
+                                                    th:if="${v != null and v.soLuongTon > 0}"
+                                                    onclick="addToCartFromCard(this);return false">
+                                                <span class="ds-price-btn-text">
+                                                    <strong class="ds-price-btn-amount"
+                                                            th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 0)} + 'đ'">250.000đ</strong>
+                                                </span>
+                                                <svg viewBox="0 0 40 45" fill="none" class="btn-wave-svg">
+                                                <g>
+                                                <path d="M32.75 -0.113639C36.8921 -0.113631 40.25 3.24423 40.25 7.38636V23.8864H24C24 23.8864 19.0142 23.1815 14.4414 12.9108L13.5586 10.8619C8.98539 0.590287 4 -0.113639 4 -0.113639H32.75Z" fill="currentColor"/>
+                                                <path d="M34.9814 1.11275C33.8724 -2.87815 29.8554 -4.86581 26.0097 -3.32692L14.0002 1.47882L19.1424 19.98C19.2025 20.1293 21.5511 25.8106 31.7909 27.5645C42.167 29.3418 44.4406 35.1527 44.4406 35.1527L45.4855 38.9127L34.9814 1.11275Z" fill="currentColor"/>
+                                                </g>
+                                                <path d="M21.7505 5.38635H23.3408C23.579 5.38635 23.7842 5.55445 23.831 5.78805L25.0109 11.672" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+                                                <path d="M33.6904 13.8517H25.3483C24.7579 13.8517 24.2793 13.3731 24.2793 12.7827C24.2793 12.242 24.683 11.7864 25.2198 11.7214L32.6235 10.825" stroke="white" stroke-width="1.05" stroke-linecap="round"/>
+                                                <path d="M33.8021 7.07632L23.9922 7.12432L25.0379 11.9759L32.5011 11.2026C32.8915 11.1622 33.2221 10.8971 33.3465 10.5249L34.2788 7.73477C34.3873 7.40996 34.1445 7.07465 33.8021 7.07632Z" fill="white" stroke="white" stroke-width="0.875" stroke-linecap="round"/>
+                                                <path d="M32.5444 10.4839L30.4273 10.7039" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"/>
+                                                <circle cx="32.4546" cy="15.4545" r="1.19873" fill="white"/>
+                                                <circle cx="25.877" cy="15.4546" r="1.19873" fill="white"/>
+                                                </svg>
+                                            </button>
+                                            <span class="ds-badge-oos-btn" th:unless="${v != null and v.soLuongTon > 0}">Bán hết</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- TESTIMONIALS -->
-            <section class="ds-testi sr-up">
-                <div class="container-xl">
-                    <div class="text-center mb-5"><span class="ds-section-badge">Khách hàng nói gì</span><h2 class="ds-section-title">Phản hồi từ khách hàng</h2></div>
-                    <div class="swiper testi-swiper">
-                        <div class="swiper-wrapper">
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">M</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                <p class="ds-testi-text">"Sản phẩm rất đẹp, chất lượng hơn mong đợi. Đóng gói cẩn thận, giao hàng nhanh!"</p>
-                                <div class="ds-testi-name">Minh Anh</div><div class="ds-testi-role">Khách hàng thân thiết</div>
+                <!-- TESTIMONIALS -->
+                <section class="ds-testi sr-up">
+                        <div class="text-center mb-5"><span class="ds-section-badge">Khách hàng nói gì</span><h2 class="ds-section-title">Phản hồi từ khách hàng</h2></div>
+                        <div class="swiper testi-swiper">
+                            <div class="swiper-wrapper">
+                                <div class="swiper-slide ds-testi-slide">
+                                    <div class="ds-testi-avatar">M</div>
+                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                                    <p class="ds-testi-text">"Sản phẩm rất đẹp, chất lượng hơn mong đợi. Đóng gói cẩn thận, giao hàng nhanh!"</p>
+                                    <div class="ds-testi-name">Minh Anh</div><div class="ds-testi-role">Khách hàng thân thiết</div>
+                                </div>
+                                <div class="swiper-slide ds-testi-slide">
+                                    <div class="ds-testi-avatar">T</div>
+                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                                    <p class="ds-testi-text">"Bộ ấm trà thủy tinh mua tặng mẹ rất ưng ý. Mẹ khen đẹp và dùng rất tốt."</p>
+                                    <div class="ds-testi-name">Tuấn Kiệt</div><div class="ds-testi-role">Khách hàng thân thiết</div>
+                                </div>
+                                <div class="swiper-slide ds-testi-slide">
+                                    <div class="ds-testi-avatar">H</div>
+                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+                                    <p class="ds-testi-text">"Mua set quà tặng đối tác, cảm ơn DuaStore vì dịch vụ chuyên nghiệp và sản phẩm cao cấp."</p>
+                                    <div class="ds-testi-name">Hoàng Yến</div><div class="ds-testi-role">Doanh nghiệp</div>
+                                </div>
+                                <div class="swiper-slide ds-testi-slide">
+                                    <div class="ds-testi-avatar">Đ</div>
+                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
+                                    <p class="ds-testi-text">"Ly rượu vang pha lê cắt cạnh rất sang. Giá hơi cao nhưng xứng đáng với chất lượng."</p>
+                                    <div class="ds-testi-name">Đức Minh</div><div class="ds-testi-role">Khách hàng VIP</div>
+                                </div>
                             </div>
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">T</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                <p class="ds-testi-text">"Bộ ấm trà thủy tinh mua tặng mẹ rất ưng ý. Mẹ khen đẹp và dùng rất tốt."</p>
-                                <div class="ds-testi-name">Tuấn Kiệt</div><div class="ds-testi-role">Khách hàng thân thiết</div>
-                            </div>
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">H</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                <p class="ds-testi-text">"Mua set quà tặng đối tác, cảm ơn DuaStore vì dịch vụ chuyên nghiệp và sản phẩm cao cấp."</p>
-                                <div class="ds-testi-name">Hoàng Yến</div><div class="ds-testi-role">Doanh nghiệp</div>
-                            </div>
-                            <div class="swiper-slide ds-testi-slide">
-                                <div class="ds-testi-avatar">Đ</div>
-                                <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
-                                <p class="ds-testi-text">"Ly rượu vang pha lê cắt cạnh rất sang. Giá hơi cao nhưng xứng đáng với chất lượng."</p>
-                                <div class="ds-testi-name">Đức Minh</div><div class="ds-testi-role">Khách hàng VIP</div>
-                            </div>
+                            <div class="testi-pagination"></div>
                         </div>
-                        <div class="testi-pagination"></div>
-                    </div>
-                </div>
-            </section>
+                    
+                </section>
 
-            <!-- FAQ ACCORDION -->
-            <section class="ds-faq sr-up">
-                <div class="container-xl">
-                    <div class="text-center mb-5"><span class="ds-section-badge">FAQ</span><h2 class="ds-section-title">Câu hỏi thường gặp</h2></div>
-                    <div class="mx-auto ds-faq-wrap">
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm phải còn nguyên tem, chưa qua sử dụng.</div></div>
+                <!-- FAQ ACCORDION -->
+                <section class="ds-faq sr-up">
+                        <div class="text-center mb-5"><span class="ds-section-badge">FAQ</span><h2 class="ds-section-title">Câu hỏi thường gặp</h2></div>
+                        <div class="mx-auto ds-faq-wrap">
+                            <div class="ds-faq-item">
+                                <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>
+                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm phải còn nguyên tem, chưa qua sử dụng.</div></div>
+                            </div>
+                            <div class="ds-faq-item">
+                                <button class="ds-faq-btn" aria-expanded="false">Thời gian giao hàng bao lâu? <i class="bi bi-chevron-down"></i></button>
+                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Nội thành Hải Phòng: 1-2 ngày. Các tỉnh khác: 3-5 ngày làm việc. Miễn phí vận chuyển cho đơn trên 500K.</div></div>
+                            </div>
+                            <div class="ds-faq-item">
+                                <button class="ds-faq-btn" aria-expanded="false">Sản phẩm có bảo hành không? <i class="bi bi-chevron-down"></i></button>
+                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Tất cả sản phẩm thủy tinh đều được bảo hành 6 tháng về lỗi sản xuất. Bảo hành 12 tháng đối với sản phẩm pha lê.</div></div>
+                            </div>
+                            <div class="ds-faq-item">
+                                <button class="ds-faq-btn" aria-expanded="false">Có thể đặt hàng theo yêu cầu không? <i class="bi bi-chevron-down"></i></button>
+                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Có, chúng tôi nhận thiết kế và sản xuất theo yêu cầu riêng cho khách hàng doanh nghiệp và cá nhân.</div></div>
+                            </div>
                         </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Thời gian giao hàng bao lâu? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Nội thành Hải Phòng: 1-2 ngày. Các tỉnh khác: 3-5 ngày làm việc. Miễn phí vận chuyển cho đơn trên 500K.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Sản phẩm có bảo hành không? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Tất cả sản phẩm thủy tinh đều được bảo hành 6 tháng về lỗi sản xuất. Bảo hành 12 tháng đối với sản phẩm pha lê.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Có thể đặt hàng theo yêu cầu không? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Có, chúng tôi nhận thiết kế và sản xuất theo yêu cầu riêng cho khách hàng doanh nghiệp và cá nhân.</div></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                    
+                </section>
+            </div>
         </div>
     </body>
 </html>
