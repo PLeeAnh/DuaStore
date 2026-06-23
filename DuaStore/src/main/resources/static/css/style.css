@@ -3265,89 +3265,22 @@ a { color: inherit; }
     32. HERO V2
 ===================================================== */
 .ds-hero-v2 {
-  padding: 6rem 0 5rem;
-  background: var(--ds-gray-50);
+  margin: 1.5rem 0 0;
 }
-.ds-hero-v2-inner {
-  display: flex;
-  align-items: center;
-  gap: 4rem;
-}
-.ds-hero-v2-content {
-  flex: 0 0 38%;
-  max-width: 38%;
-}
-.ds-hero-v2-eyebrow {
-  font-size: .75rem;
-  font-weight: 600;
-  color: var(--ds-primary);
-  letter-spacing: 2.5px;
-  margin-bottom: .75rem;
-}
-.ds-hero-v2-title {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  font-weight: 700;
-  color: var(--ds-gray-900);
-  line-height: 1.2;
-  margin-bottom: 1rem;
-}
-.ds-hero-v2-desc {
-  font-size: 1rem;
-  color: var(--ds-gray-500);
-  line-height: 1.6;
-  max-width: 380px;
-  margin-bottom: 2rem;
-}
-.ds-hero-v2-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.ds-hero-v2-visual {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.ds-hero-v2-image {
-  width: 100%;
-  max-width: 680px;
-  margin: 0 auto;
-  height: auto;
+.ds-hero-v2-banner {
   display: block;
-  border-radius: 16px;
-  border: 1px solid var(--ds-border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.08);
+  text-decoration: none;
 }
-.ds-hero-v2-caption {
-  font-size: .75rem;
-  color: var(--ds-gray-400);
-  letter-spacing: .5px;
-  text-transform: uppercase;
-  margin-top: .75rem;
-  text-align: center;
+.ds-hero-v2-banner:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
 }
-@media (max-width: 991px) {
-  .ds-hero-v2-inner {
-    flex-direction: column;
-    text-align: center;
-    gap: 2rem;
-  }
-  .ds-hero-v2-content {
-    flex: none;
-    max-width: 100%;
-  }
-  .ds-hero-v2-desc {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .ds-hero-v2-actions {
-    justify-content: center;
-  }
-  .ds-hero-v2-visual {
-    width: 100%;
-    max-width: 480px;
-  }
+.ds-hero-v2-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* ===== §33 CATEGORIES V2 ===== */

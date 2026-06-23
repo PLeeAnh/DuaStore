@@ -7,23 +7,11 @@
     <body>
         <div layout:fragment="content">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- HERO V2 (parallel — hidden, toggle by removing d-none) -->
+                <!-- HERO V2 — single banner -->
                 <section class="ds-hero-v2">
-                        <div class="ds-hero-v2-inner">
-                            <div class="ds-hero-v2-content">
-                                <span class="ds-hero-v2-eyebrow">THỦY TINH CAO CẤP</span>
-                                <h1 class="ds-hero-v2-title">Vẻ đẹp từ<br>thủy tinh tinh tuyển</h1>
-                                <p class="ds-hero-v2-desc">Bình hoa, ly uống nước và phụ kiện thủy tinh cho không gian sống hiện đại.</p>
-                                <div class="ds-hero-v2-actions">
-                                    <a th:href="@{/san-pham}" class="ds-btn ds-btn-fill">Mua ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                    <a th:href="@{/bo-suu-tap}" class="ds-btn ds-btn-outline">Xem bộ sưu tập</a>
-                                </div>
-                            </div>
-                            <div class="ds-hero-v2-visual">
-                                <img class="ds-hero-v2-image" th:src="@{/images/Banner 1 DuaStore.jpg}" onerror="this.src='/images/no-image.png'" alt="Banner DuaStore">
-                                <div class="ds-hero-v2-caption">BỘ SƯU TẬP THỦY TINH CAO CẤP</div>
-                            </div>
-                    </div>
+                    <a th:href="@{/san-pham}" class="ds-hero-v2-banner">
+                        <img th:src="@{/images/Banner 1 DuaStore.jpg}" onerror="this.src='/images/no-image.png'" alt="Banner DuaStore">
+                    </a>
                 </section>
 
                 <!-- HERO CAROUSEL -->
