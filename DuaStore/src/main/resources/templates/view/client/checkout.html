@@ -73,14 +73,14 @@
                                     <input type="radio" name="phuongThucGiaoHang" id="shipTT" value="SHIP" checked />
                                     <label for="shipTT">
                                         <span>Giao hàng tiêu chuẩn</span>
-                                        <span class="ds-checkout-radio-price" id="shipTTPrice">10,000đ</span>
+                                        <span class="ds-checkout-radio-price" id="shipTTPrice">10.000₫</span>
                                     </label>
                                 </div>
                                 <div class="ds-checkout-radio">
                                     <input type="radio" name="phuongThucGiaoHang" id="shipNhanh" value="NHAN_TAI_CONG" />
                                     <label for="shipNhanh">
                                         <span>Nhận tại cửa hàng</span>
-                                        <span class="ds-checkout-radio-price" id="shipNhanhPrice">10,000đ</span>
+                                        <span class="ds-checkout-radio-price" id="shipNhanhPrice">10.000₫</span>
                                     </label>
                                 </div>
                             </div>
@@ -141,7 +141,7 @@
                                 <div class="ds-summary-variant" th:text="${item.tenBienThe}"></div>
                                 <div class="ds-summary-qty-price">
                                     <span class="ds-summary-qty">x<span th:text="${item.soLuong}"></span></span>
-                                    <span class="ds-summary-price" th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + 'đ'"></span>
+                                    <span class="ds-summary-price" th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + '₫'"></span>
                                 </div>
                             </div>
                         </div>
@@ -150,22 +150,22 @@
 
                         <div class="ds-checkout-row">
                             <span>Tạm tính</span>
-                            <span th:text="${#numbers.formatDecimal(subtotal, 0, 0)} + 'đ'" id="subtotalDisplay"></span>
+                            <span th:text="${#numbers.formatDecimal(subtotal, 0, 0)} + '₫'" id="subtotalDisplay"></span>
                         </div>
                         <div class="ds-checkout-row">
                             <span>Phí vận chuyển</span>
-                            <span th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 10000, 0, 0)} + 'đ'" id="shipFeeDisplay"></span>
+                            <span th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 10000, 0, 0)} + '₫'" id="shipFeeDisplay"></span>
                         </div>
                         <div class="ds-checkout-row">
                             <span>Giảm giá</span>
-                            <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 0) + 'đ' : '0đ'}" id="discountDisplay"></span>
+                            <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 0) + '₫' : '0₫'}" id="discountDisplay"></span>
                         </div>
 
                         <hr class="ds-checkout-divider" />
 
                         <div class="ds-checkout-total">
                             <span>Tổng cộng</span>
-                            <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 10000), 0, 0)} + 'đ'" id="totalDisplay"></span>
+                            <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 10000), 0, 0)} + '₫'" id="totalDisplay"></span>
                         </div>
                     </div>
                 </div>
