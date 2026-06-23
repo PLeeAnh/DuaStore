@@ -3356,12 +3356,8 @@ a { color: inherit; }
 }
 .ds-cat-v2-grid {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
-}
-@media (min-width: 768px) {
-  .ds-cat-v2-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 @media (max-width: 767px) {
   .ds-cat-v2-grid {
@@ -3386,7 +3382,7 @@ a { color: inherit; }
   outline-offset: 2px;
 }
 .ds-cat-v2-img-wrap {
-  aspect-ratio: 4/3;
+  aspect-ratio: 3/2;
   overflow: hidden;
   background: #f1f5f9;
 }
@@ -3401,12 +3397,13 @@ a { color: inherit; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 4/3;
+  aspect-ratio: 3/2;
   color: #fff;
   text-decoration: none;
 }
 .ds-cat-v2-all:hover {
   color: #fff;
+  box-shadow: 0 12px 28px rgba(37,99,235,.2);
 }
 .ds-cat-v2-all .ds-cat-v2-label {
   color: #fff;
