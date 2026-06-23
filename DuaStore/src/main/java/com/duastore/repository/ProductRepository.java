@@ -59,19 +59,20 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
            "AND (:minPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) >= :minPrice)) " +
            "AND (:maxPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice)) " +
            "AND (:dungTich IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND v.dungTich = :dungTich)) " +
-           "AND (:kieuNap IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :kieuNap, '%')))) " +
-           "AND (:hinhDang IS NULL OR p.hinhDang = :hinhDang) ")
+           "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) ")
     Page<Product> filterPaged(@Param("keyword") String keyword,
                               @Param("danhMucId") Integer danhMucId,
                               @Param("minPrice") BigDecimal minPrice,
                               @Param("maxPrice") BigDecimal maxPrice,
                               @Param("dungTich") Integer dungTich,
-                              @Param("kieuNap") String kieuNap,
-                              @Param("hinhDang") String hinhDang,
+                              @Param("chatLieu") String chatLieu,
                               Pageable pageable);
 
     @Query("SELECT DISTINCT p.hinhDang FROM Product p WHERE p.isActive = true AND p.hinhDang IS NOT NULL ORDER BY p.hinhDang ASC")
     List<String> findDistinctHinhDang();
+
+    @Query("SELECT DISTINCT p.chatLieu FROM Product p WHERE p.isActive = true AND p.chatLieu IS NOT NULL ORDER BY p.chatLieu ASC")
+    List<String> findDistinctChatLieu();
 
     long countByDanhMucIdAndIsActiveTrue(Integer danhMucId);
 

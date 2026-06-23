@@ -18,6 +18,14 @@
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
     <script th:src="@{/js/main.js(v=1)}"></script>
+    <script th:src="@{/js/toast.js(v=1)}"></script>
+    <script th:src="@{/js/api.js(v=1)}"></script>
+    <script th:src="@{/js/utils.js(v=1)}"></script>
+    <script th:src="@{/js/modules/auth.js(v=1)}"></script>
+    <script th:src="@{/js/modules/product.js(v=1)}"></script>
+    <script th:src="@{/js/modules/wishlist.js(v=1)}"></script>
+    <script th:src="@{/js/modules/cart.js(v=1)}"></script>
+    <script th:src="@{/js/modules/checkout.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
 </head>
 <body>
@@ -111,14 +119,7 @@
                     </li>
                 </ul>
 
-                <div class="ds-nav-panel-footer" th:unless="${session.loggedIn}">
-                    <a class="ds-nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="bi bi-heart"></i> <span>Yêu thích</span></a>
-                    <a class="ds-nav-link" th:href="@{/gio-hang}"><i class="bi bi-bag"></i> <span>Giỏ hàng</span></a>
-                    <div class="ds-nav-auth mt-2">
-                        <a class="ds-btn-outline d-block text-center" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
-                        <a class="ds-btn-fill d-block text-center mt-1" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Đăng ký</a>
-                    </div>
-                </div>
+                <!-- ds-nav-panel-footer deleted — kept in git history -->
             </div>
 
             <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">

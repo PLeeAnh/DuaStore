@@ -14,28 +14,27 @@
                         <p class="ds-section-desc">Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn</p>
                     </div>
 
-                    <div class="card border-0 shadow-sm" style="background:#141414;border:1px solid #2A2A2A;border-radius:16px;">
-                        <div class="card-body p-4 p-lg-5">
+                    <div class="ds-card">
+                        <div class="ds-card-body">
                             <form th:action="@{/lien-he}" method="post">
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label" style="color:#B0B0B0;">Họ tên <span class="text-danger">*</span></label>
+                                        <label class="form-label" style="color:var(--ds-gray-600);">Họ tên <span class="text-danger">*</span></label>
                                         <input type="text" name="hoTen" class="form-control" placeholder="Nguyễn Văn A" required
-                                               style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.65rem 1rem;"/>
+                                               style="background:var(--ds-gray-50);border:1px solid var(--ds-border);color:var(--ds-gray-900);border-radius:8px;padding:0.65rem 1rem;"/>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label class="form-label" style="color:#B0B0B0;">Email <span class="text-danger">*</span></label>
+                                        <label class="form-label" style="color:var(--ds-gray-600);">Email <span class="text-danger">*</span></label>
                                         <input type="email" name="email" class="form-control" placeholder="email@example.com" required
-                                               style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.65rem 1rem;"/>
+                                               style="background:var(--ds-gray-50);border:1px solid var(--ds-border);color:var(--ds-gray-900);border-radius:8px;padding:0.65rem 1rem;"/>
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label" style="color:#B0B0B0;">Nội dung <span class="text-danger">*</span></label>
+                                        <label class="form-label" style="color:var(--ds-gray-600);">Nội dung <span class="text-danger">*</span></label>
                                         <textarea name="noiDung" class="form-control" rows="5" placeholder="Nhập tin nhắn của bạn..." required
-                                                  style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.65rem 1rem;resize:vertical;"></textarea>
+                                                  style="background:var(--ds-gray-50);border:1px solid var(--ds-border);color:var(--ds-gray-900);border-radius:8px;padding:0.65rem 1rem;resize:vertical;"></textarea>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn w-100 mt-4 py-2 fw-semibold"
-                                        style="background:#FFD84D;color:#0A0A0A;border:none;border-radius:8px;">
+                                <button type="submit" class="ds-btn ds-btn-fill w-100 mt-4">
                                     <i class="bi bi-send me-2"></i>Gửi tin nhắn
                                 </button>
                             </form>
@@ -44,19 +43,19 @@
 
                     <div class="row g-4 mt-4">
                         <div class="col-12 col-md-4 text-center">
-                            <div style="font-size:2rem;color:#FFD84D;"><i class="bi bi-geo-alt"></i></div>
-                            <h6 class="mt-2 fw-semibold" style="color:#F0F0F0;">Địa chỉ</h6>
-                            <p class="mb-0" style="color:#8A8A8A;font-size:0.9rem;">Hải Phòng, Việt Nam</p>
+                            <div style="font-size:2rem;color:var(--ds-primary);"><i class="bi bi-geo-alt"></i></div>
+                            <h6 class="mt-2 fw-semibold">Địa chỉ</h6>
+                            <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">Hải Phòng, Việt Nam</p>
                         </div>
                         <div class="col-12 col-md-4 text-center">
-                            <div style="font-size:2rem;color:#FFD84D;"><i class="bi bi-envelope"></i></div>
-                            <h6 class="mt-2 fw-semibold" style="color:#F0F0F0;">Email</h6>
-                            <p class="mb-0" style="color:#8A8A8A;font-size:0.9rem;">hello@dua.store</p>
+                            <div style="font-size:2rem;color:var(--ds-primary);"><i class="bi bi-envelope"></i></div>
+                            <h6 class="mt-2 fw-semibold">Email</h6>
+                            <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">hello@dua.store</p>
                         </div>
                         <div class="col-12 col-md-4 text-center">
-                            <div style="font-size:2rem;color:#FFD84D;"><i class="bi bi-telephone"></i></div>
-                            <h6 class="mt-2 fw-semibold" style="color:#F0F0F0;">Điện thoại</h6>
-                            <p class="mb-0" style="color:#8A8A8A;font-size:0.9rem;">0901 234 567</p>
+                            <div style="font-size:2rem;color:var(--ds-primary);"><i class="bi bi-telephone"></i></div>
+                            <h6 class="mt-2 fw-semibold">Điện thoại</h6>
+                            <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">0901 234 567</p>
                         </div>
                     </div>
                 </div>

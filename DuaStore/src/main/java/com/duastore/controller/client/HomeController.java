@@ -5,6 +5,7 @@ import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,13 +20,16 @@ import java.util.stream.Collectors;
 public class HomeController {
 
     private final ProductService productService;
+    private final CategoryService categoryService;
     private final FlashSaleRepository flashSaleRepository;
     private final ProductVariantRepository variantRepository;
 
     public HomeController(ProductService productService,
+                          CategoryService categoryService,
                           FlashSaleRepository flashSaleRepository,
                           ProductVariantRepository variantRepository) {
         this.productService = productService;
+        this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
         this.variantRepository = variantRepository;
     }
@@ -36,6 +40,7 @@ public class HomeController {
 
         List<Product> featured = productService.getFeatured();
         model.addAttribute("featuredProducts", featured);
+        model.addAttribute("featuredCategories", categoryService.getFeaturedCategories());
 
         Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();

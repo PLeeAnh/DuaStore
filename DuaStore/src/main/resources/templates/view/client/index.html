@@ -7,6 +7,27 @@
     <body>
         <div layout:fragment="content">
 
+            <!-- HERO V2 (parallel — hidden, toggle by removing d-none) -->
+            <section class="ds-hero-v2 d-none">
+                <div class="container-xl">
+                    <div class="ds-hero-v2-inner">
+                        <div class="ds-hero-v2-content">
+                            <span class="ds-hero-v2-eyebrow">THỦY TINH CAO CẤP</span>
+                            <h1 class="ds-hero-v2-title">Vẻ đẹp từ<br>thủy tinh tinh tuyển</h1>
+                            <p class="ds-hero-v2-desc">Bình hoa, ly uống nước và phụ kiện thủy tinh cho không gian sống hiện đại.</p>
+                            <div class="ds-hero-v2-actions">
+                                <a th:href="@{/san-pham}" class="ds-btn ds-btn-fill">Mua ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                <a th:href="@{/bo-suu-tap}" class="ds-btn ds-btn-outline">Xem bộ sưu tập</a>
+                            </div>
+                        </div>
+                        <div class="ds-hero-v2-visual">
+                            <img class="ds-hero-v2-image" th:src="${heroImage} ?: '/images/no-image.png'" onerror="this.src='/images/no-image.png'" alt="Bình hoa thủy tinh">
+                            <div class="ds-hero-v2-caption">BỘ SƯU TẬP THỦY TINH CAO CẤP</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- HERO CAROUSEL -->
             <section class="ds-hero sr-up">
                 <div class="swiper hero-swiper">
@@ -23,8 +44,8 @@
                                         <h1 class="hero-title">Chai thủy tinh<br/>thủ công cao cấp</h1>
                                         <p class="hero-desc">Từng đường cắt tinh xảo trên chất liệu thủy tinh borosilicate — chịu nhiệt, bền bỉ, sang trọng.</p>
                                         <div class="hero-actions">
-                                            <a th:href="@{/san-pham(danhMuc='chai')}" class="hero-btn hero-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                            <a th:href="@{/san-pham}" class="hero-btn hero-btn-outline">Xem tất cả</a>
+                                            <a th:href="@{/san-pham(danhMuc='chai')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                            <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
                                         </div>
                                     </div>
                                     <div class="col-12 col-lg-6 hero-img-col">
@@ -48,8 +69,8 @@
                                         <h1 class="hero-title">Set quà tặng<br/>cao cấp tinh tế</h1>
                                         <p class="hero-desc">Gói quà sang trọng kèm thiệp viết tay — dành cho những món quà đặc biệt.</p>
                                         <div class="hero-actions">
-                                            <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="hero-btn hero-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                            <a th:href="@{/san-pham}" class="hero-btn hero-btn-outline">Xem tất cả</a>
+                                            <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
+                                            <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
                                         </div>
                                     </div>
                                     <div class="col-12 col-lg-6 hero-img-col">
@@ -79,6 +100,27 @@
                 </div>
             </section>
 
+            <!-- CATEGORIES V2 -->
+            <section class="ds-cat-v2">
+                <div class="container-xl">
+                    <div class="text-center mb-5">
+                        <span class="ds-section-badge">Danh mục</span><h2 class="ds-section-title">Khám phá bộ sưu tập</h2><p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
+                    </div>
+                    <div class="ds-cat-v2-grid">
+                        <a th:href="@{/san-pham}" class="ds-cat-v2-card ds-cat-v2-all">
+                            <div class="ds-cat-v2-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                            <span class="ds-cat-v2-label">Tất cả</span>
+                        </a>
+                        <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-v2-card">
+                            <div class="ds-cat-v2-img-wrap">
+                                <img class="ds-cat-v2-img" th:src="${cat.imageUrl} ?: '/images/no-image.png'" onerror="this.src='/images/no-image.png'" th:alt="${cat.tenDanhMuc}"/>
+                            </div>
+                            <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             <!-- SẢN PHẨM NỔI BẬT -->
             <section class="ds-product-carousel sr-up">
                 <div class="container-xl">
@@ -94,16 +136,16 @@
                     </div>
                     <div class="swiper product-swiper">
                         <div class="swiper-wrapper">
-                            
-                    <div class="swiper-slide" th:each="p : ${featuredProducts}">
-                                 <div class="ds-product-card" th:data-productid="${p.id}"
-                                      th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                               v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
-                                               fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
+
+                            <div class="swiper-slide" th:each="p : ${featuredProducts}">
+                                <div class="ds-product-card" th:data-productid="${p.id}"
+                                     th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                     v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                     fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
                                      th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''">
 
                                     <button th:classappend="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
-                                             th:onclick="|toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
+                                            th:onclick="|toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
                                         <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                                     </button>
 
@@ -130,12 +172,12 @@
                                            th:text="${p.tenSanPham}">Tên sản phẩm</a>
 
                                         <div class="ds-stock-qty-row">
-                                        <span th:if="${v != null}"
-                                              class="ds-stock-info"
-                                              th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
-                                              th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
+                                            <span th:if="${v != null}"
+                                                  class="ds-stock-info"
+                                                  th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                                                  th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
 
-                                        <div class="ds-qty-row">
+                                            <div class="ds-qty-row">
                                                 <div class="ds-qty-selector">
                                                     <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
                                                         <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -153,19 +195,19 @@
                                                 <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}">
                                                     <div class="ds-variant-label-text" th:text="${groupEntry.key}">Nắp Gỗ</div>
                                                     <div class="ds-variant-row">
-                                                    <button th:each="pv, stat : ${groupEntry.value}"
-                                                            class="ds-variant-chip"
-                                                            th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
-                                                            th:data-variantid="${pv.id}"
-                                                            th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
-                                                            th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
-                                                            th:data-stock="${pv.soLuongTon}"
-                                                            th:disabled="${pv.soLuongTon <= 0}"
-                                                            th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
-                                                            type="button">50ml</button>
+                                                        <button th:each="pv, stat : ${groupEntry.value}"
+                                                                class="ds-variant-chip"
+                                                                th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
+                                                                th:data-variantid="${pv.id}"
+                                                                th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
+                                                                th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
+                                                                th:data-stock="${pv.soLuongTon}"
+                                                                th:disabled="${pv.soLuongTon <= 0}"
+                                                                th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
+                                                                type="button">50ml</button>
                                                     </div>
                                                 </div>
-                                        </div>
+                                            </div>
                                         </div>
 
                                         <button class="ds-price-btn ds-card-add-cart" type="button"
@@ -177,16 +219,16 @@
                                                         th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 0)} + 'đ'">250.000đ</strong>
                                             </span>
                                             <svg viewBox="0 0 40 45" fill="none" class="btn-wave-svg">
-                                                <g>
-                                                    <path d="M32.75 -0.113639C36.8921 -0.113631 40.25 3.24423 40.25 7.38636V23.8864H24C24 23.8864 19.0142 23.1815 14.4414 12.9108L13.5586 10.8619C8.98539 0.590287 4 -0.113639 4 -0.113639H32.75Z" fill="currentColor"/>
-                                                    <path d="M34.9814 1.11275C33.8724 -2.87815 29.8554 -4.86581 26.0097 -3.32692L14.0002 1.47882L19.1424 19.98C19.2025 20.1293 21.5511 25.8106 31.7909 27.5645C42.167 29.3418 44.4406 35.1527 44.4406 35.1527L45.4855 38.9127L34.9814 1.11275Z" fill="currentColor"/>
-                                                </g>
-                                                <path d="M21.7505 5.38635H23.3408C23.579 5.38635 23.7842 5.55445 23.831 5.78805L25.0109 11.672" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
-                                                <path d="M33.6904 13.8517H25.3483C24.7579 13.8517 24.2793 13.3731 24.2793 12.7827C24.2793 12.242 24.683 11.7864 25.2198 11.7214L32.6235 10.825" stroke="white" stroke-width="1.05" stroke-linecap="round"/>
-                                                <path d="M33.8021 7.07632L23.9922 7.12432L25.0379 11.9759L32.5011 11.2026C32.8915 11.1622 33.2221 10.8971 33.3465 10.5249L34.2788 7.73477C34.3873 7.40996 34.1445 7.07465 33.8021 7.07632Z" fill="white" stroke="white" stroke-width="0.875" stroke-linecap="round"/>
-                                                <path d="M32.5444 10.4839L30.4273 10.7039" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"/>
-                                                <circle cx="32.4546" cy="15.4545" r="1.19873" fill="white"/>
-                                                <circle cx="25.877" cy="15.4546" r="1.19873" fill="white"/>
+                                            <g>
+                                            <path d="M32.75 -0.113639C36.8921 -0.113631 40.25 3.24423 40.25 7.38636V23.8864H24C24 23.8864 19.0142 23.1815 14.4414 12.9108L13.5586 10.8619C8.98539 0.590287 4 -0.113639 4 -0.113639H32.75Z" fill="currentColor"/>
+                                            <path d="M34.9814 1.11275C33.8724 -2.87815 29.8554 -4.86581 26.0097 -3.32692L14.0002 1.47882L19.1424 19.98C19.2025 20.1293 21.5511 25.8106 31.7909 27.5645C42.167 29.3418 44.4406 35.1527 44.4406 35.1527L45.4855 38.9127L34.9814 1.11275Z" fill="currentColor"/>
+                                            </g>
+                                            <path d="M21.7505 5.38635H23.3408C23.579 5.38635 23.7842 5.55445 23.831 5.78805L25.0109 11.672" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+                                            <path d="M33.6904 13.8517H25.3483C24.7579 13.8517 24.2793 13.3731 24.2793 12.7827C24.2793 12.242 24.683 11.7864 25.2198 11.7214L32.6235 10.825" stroke="white" stroke-width="1.05" stroke-linecap="round"/>
+                                            <path d="M33.8021 7.07632L23.9922 7.12432L25.0379 11.9759L32.5011 11.2026C32.8915 11.1622 33.2221 10.8971 33.3465 10.5249L34.2788 7.73477C34.3873 7.40996 34.1445 7.07465 33.8021 7.07632Z" fill="white" stroke="white" stroke-width="0.875" stroke-linecap="round"/>
+                                            <path d="M32.5444 10.4839L30.4273 10.7039" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"/>
+                                            <circle cx="32.4546" cy="15.4545" r="1.19873" fill="white"/>
+                                            <circle cx="25.877" cy="15.4546" r="1.19873" fill="white"/>
                                             </svg>
                                         </button>
                                         <span class="ds-badge-oos-btn" th:unless="${v != null and v.soLuongTon > 0}">Bán hết</span>
@@ -198,54 +240,7 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- CATEGORIES GRID -->
-            <section class="ds-section">
-                <div class="container-xl">
-                    <div class="text-center mb-5">
-                        <span class="ds-section-badge">Danh mục</span><h2 class="ds-section-title">Khám phá bộ sưu tập</h2><p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
-                    </div>
-                    <div class="row g-4">
-                        <div class="col-6 col-lg-4 sr-card">
-                            <a th:href="@{/san-pham(danhMuc='chai')}" class="ds-cat-card">
-                                <div class="ds-cat-icon ds-cat-icon-chai"><i class="bi bi-box-seam"></i></div>
-                                <h3>Chai thủy tinh</h3><p>Chai rượu, nước hoa, thực phẩm</p>
-                            </a>
-                        </div>
-                        <div class="col-6 col-lg-4 sr-card">
-                            <a th:href="@{/san-pham(danhMuc='hu')}" class="ds-cat-card">
-                                <div class="ds-cat-icon ds-cat-icon-hu"><i class="bi bi-archive"></i></div>
-                                <h3>Hũ thủy tinh</h3><p>Đựng đồ khô, gia vị, bảo quản</p>
-                            </a>
-                        </div>
-                        <div class="col-6 col-lg-4 sr-card">
-                            <a th:href="@{/san-pham(danhMuc='binh')}" class="ds-cat-card">
-                                <div class="ds-cat-icon ds-cat-icon-binh"><i class="bi bi-stars"></i></div>
-                                <h3>Bình trang trí</h3><p>Bình hoa, decor, pha lê cắt cạnh</p>
-                            </a>
-                        </div>
-                        <div class="col-6 col-lg-4 sr-card">
-                            <a th:href="@{/san-pham(danhMuc='ly')}" class="ds-cat-card">
-                                <div class="ds-cat-icon ds-cat-icon-ly"><i class="bi bi-cup-hot"></i></div>
-                                <h3>Ly &amp; Cốc</h3><p>Vang, whisky, champagne cao cấp</p>
-                            </a>
-                        </div>
-                        <div class="col-6 col-lg-4 sr-card">
-                            <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="ds-cat-card">
-                                <div class="ds-cat-icon ds-cat-icon-qua-tang"><i class="bi bi-gift"></i></div>
-                                <h3>Bộ quà tặng</h3><p>Set sinh nhật, cưới hỏi, khai trương</p>
-                            </a>
-                        </div>
-                        <div class="col-6 col-lg-4 sr-card">
-                            <a th:href="@{/san-pham}" class="ds-cat-card">
-                                <div class="ds-cat-icon ds-cat-icon-all"><i class="bi bi-grid"></i></div>
-                                <h3>Tất cả sản phẩm</h3><p>Xem toàn bộ danh mục</p>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
+
             <!-- TESTIMONIALS -->
             <section class="ds-testi sr-up">
                 <div class="container-xl">
@@ -281,7 +276,7 @@
                     </div>
                 </div>
             </section>
-            
+
             <!-- FAQ ACCORDION -->
             <section class="ds-faq sr-up">
                 <div class="container-xl">

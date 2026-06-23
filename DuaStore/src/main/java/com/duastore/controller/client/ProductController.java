@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 public class ProductController {
 
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
+    private static final int PAGE_SIZE = 24;
 
     private final ProductService productService;
     private final ProductVariantRepository variantRepository;
@@ -71,60 +72,57 @@ public class ProductController {
     @GetMapping("/san-pham")
     public String list(@RequestParam(required = false) Integer danhMuc,
                        @RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) BigDecimal minPrice,
-                       @RequestParam(required = false) BigDecimal maxPrice,
                        @RequestParam(required = false) Integer dungTich,
-                       @RequestParam(required = false) String kieuNap,
-                       @RequestParam(required = false) String hinhDang,
+                       @RequestParam(required = false) String chatLieu,
+                       @RequestParam(required = false) String priceRange,
                        @RequestParam(defaultValue = "newest") String sortBy,
                        @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "12") int size,
                        Model model) {
         model.addAttribute("title", "san-pham");
 
-        boolean hasFilters = (minPrice != null || maxPrice != null || dungTich != null || kieuNap != null || hinhDang != null
+        if (keyword != null && keyword.isBlank()) keyword = null;
+        if (chatLieu != null && chatLieu.isBlank()) chatLieu = null;
+        if (priceRange != null && priceRange.isBlank()) priceRange = null;
+
+        boolean hasFilters = (priceRange != null || dungTich != null || chatLieu != null
                 || !"newest".equals(sortBy));
 
         Page<Product> productPage;
         if (hasFilters) {
-            if (keyword != null && keyword.isBlank()) keyword = null;
             if (keyword != null) model.addAttribute("keyword", keyword);
             if (danhMuc != null) {
                 categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
             }
-            productPage = productService.filterPaged(keyword, danhMuc, minPrice, maxPrice, dungTich, kieuNap, hinhDang, sortBy, page, size);
+            productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, PAGE_SIZE);
         } else if (keyword != null && !keyword.isBlank()) {
-            productPage = productService.searchPaged(keyword, page, size);
+            productPage = productService.searchPaged(keyword, page, PAGE_SIZE);
             model.addAttribute("keyword", keyword);
         } else if (danhMuc != null) {
             List<Integer> categoryIds = new ArrayList<>();
             categoryIds.add(danhMuc);
             categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
                     .forEach(child -> categoryIds.add(child.getId()));
-            productPage = productService.findByCategoriesPaged(categoryIds, page, size);
+            productPage = productService.findByCategoriesPaged(categoryIds, page, PAGE_SIZE);
             categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
         } else {
-            productPage = productService.getDangBanPaged(page, size);
+            productPage = productService.getDangBanPaged(page, PAGE_SIZE);
         }
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("categories", categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc());
         model.addAttribute("selectedCategoryId", danhMuc);
         model.addAttribute("danhMuc", danhMuc);
-        model.addAttribute("minPrice", minPrice);
-        model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("dungTich", dungTich);
-        model.addAttribute("kieuNap", kieuNap);
-        model.addAttribute("hinhDang", hinhDang);
+        model.addAttribute("chatLieu", chatLieu);
+        model.addAttribute("priceRange", priceRange);
         model.addAttribute("sortBy", sortBy);
         model.addAttribute("distinctVolumes", productService.getDistinctVolumes());
-        model.addAttribute("distinctCapTypes", productService.getDistinctCapTypes());
-        model.addAttribute("distinctShapes", productService.getDistinctShapes());
+        model.addAttribute("distinctMaterials", productService.getDistinctChatLieu());
 
         // Pagination attributes
         model.addAttribute("currentPage", productPage.getNumber());
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("totalItems", (int) productPage.getTotalElements());
-        model.addAttribute("pageSize", size);
+        model.addAttribute("pageSize", PAGE_SIZE);
 
         // Build variants map + flash sale map
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();

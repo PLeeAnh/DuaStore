@@ -65,16 +65,34 @@ public class ProductService {
     }
 
     public Page<Product> filterPaged(String keyword, Integer danhMucId,
-                                      BigDecimal minPrice, BigDecimal maxPrice,
-                                      Integer dungTich, String kieuNap,
-                                      String hinhDang, String sortBy,
+                                      String chatLieu, String priceRange,
+                                      Integer dungTich, String sortBy,
                                       int page, int size) {
+        BigDecimal[] price = parsePriceRange(priceRange);
+        BigDecimal minPrice = price != null ? price[0] : null;
+        BigDecimal maxPrice = price != null ? price[1] : null;
         Pageable pageable = buildPageable(sortBy, page, size);
-        return productRepository.filterPaged(keyword, danhMucId, minPrice, maxPrice, dungTich, kieuNap, hinhDang, pageable);
+        return productRepository.filterPaged(keyword, danhMucId, minPrice, maxPrice, dungTich, chatLieu, pageable);
     }
 
     public List<String> getDistinctShapes() {
         return productRepository.findDistinctHinhDang();
+    }
+
+    public List<String> getDistinctChatLieu() {
+        return productRepository.findDistinctChatLieu();
+    }
+
+    public BigDecimal[] parsePriceRange(String code) {
+        if (code == null) return null;
+        return switch (code) {
+            case "lt100" -> new BigDecimal[]{null, new BigDecimal("100000")};
+            case "r100_200" -> new BigDecimal[]{new BigDecimal("100000"), new BigDecimal("200000")};
+            case "r200_500" -> new BigDecimal[]{new BigDecimal("200000"), new BigDecimal("500000")};
+            case "r500_1000" -> new BigDecimal[]{new BigDecimal("500000"), new BigDecimal("1000000")};
+            case "gt1000" -> new BigDecimal[]{new BigDecimal("1000000"), null};
+            default -> null;
+        };
     }
 
     private Pageable buildPageable(String sortBy, int page, int size) {
