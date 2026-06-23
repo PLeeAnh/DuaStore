@@ -1465,8 +1465,8 @@ a { color: inherit; }
   height: 48px;
 }
 .ds-price-btn:hover {
-  background: #fbfb24 !important;
-  color: #272727 !important;
+  background: var(--ds-primary) !important;
+  color: #fff !important;
 }
 .ds-price-btn:active {
   transform: scale(.97);
@@ -1494,10 +1494,10 @@ a { color: inherit; }
   transform-origin: top right;
 }
 .ds-price-btn:hover .btn-wave-svg {
-  color: #272727;
+  color: #fff;
 }
-.ds-price-btn:hover .btn-wave-svg [stroke="white"] { stroke: #272727; }
-.ds-price-btn:hover .btn-wave-svg [fill="white"] { fill: #272727; }
+.ds-price-btn:hover .btn-wave-svg [stroke="white"] { stroke: #fff; }
+.ds-price-btn:hover .btn-wave-svg [fill="white"] { fill: #fff; }
 .ds-price-btn.added .btn-wave-svg {
   display: block;
   color: #22c55e;
