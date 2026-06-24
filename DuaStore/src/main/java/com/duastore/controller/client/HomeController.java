@@ -5,10 +5,12 @@ import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -18,13 +20,16 @@ import java.util.stream.Collectors;
 public class HomeController {
 
     private final ProductService productService;
+    private final CategoryService categoryService;
     private final FlashSaleRepository flashSaleRepository;
     private final ProductVariantRepository variantRepository;
 
     public HomeController(ProductService productService,
+                          CategoryService categoryService,
                           FlashSaleRepository flashSaleRepository,
                           ProductVariantRepository variantRepository) {
         this.productService = productService;
+        this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
         this.variantRepository = variantRepository;
     }
@@ -35,6 +40,7 @@ public class HomeController {
 
         List<Product> featured = productService.getFeatured();
         model.addAttribute("featuredProducts", featured);
+        model.addAttribute("featuredCategories", categoryService.getFeaturedCategories());
 
         Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
@@ -56,19 +62,24 @@ public class HomeController {
         for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
             Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();
             for (ProductVariant v : entry.getValue()) {
-                String capType = "Phân loại";
+                String kieuNap = "Phân loại";
                 if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                     String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                    if (parts.length >= 2) capType = parts[1].trim();
+                    if (parts.length >= 2) kieuNap = parts[1].trim();
                 } else if (v.getDungTich() != null) {
-                    capType = "Dung tích";
+                    kieuNap = "Dung tích";
                 }
-                grouped.computeIfAbsent(capType, k -> new ArrayList<>()).add(v);
+                grouped.computeIfAbsent(kieuNap, k -> new ArrayList<>()).add(v);
             }
             groupedVariantsMap.put(entry.getKey(), grouped);
         }
         model.addAttribute("groupedVariantsMap", groupedVariantsMap);
 
         return "view/client/index";
+    }
+
+    @GetMapping("/wishlist")
+    public RedirectView wishlistRedirect() {
+        return new RedirectView("/");
     }
 }

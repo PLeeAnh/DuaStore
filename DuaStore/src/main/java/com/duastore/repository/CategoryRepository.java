@@ -9,4 +9,6 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     List<Category> findByIsActiveTrue();
     List<Category> findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
     List<Category> findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(Integer parentId);
+    long countByParentIsNull();
+    long countByParentIsNotNull();
 }

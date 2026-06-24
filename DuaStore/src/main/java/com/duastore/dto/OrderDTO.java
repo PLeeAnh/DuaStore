@@ -29,4 +29,5 @@ public class OrderDTO {
     private Integer promotionId;
     private String ghiChu;
     private LocalDateTime ngayDat;
+    private String userEmail;
 }

@@ -9,44 +9,37 @@
             <div class="container-xl py-5">
                 <div class="row justify-content-center">
                     <div class="col-12 col-lg-8">
-                        <div class="card border-0 shadow-sm" style="background:#141414;border:1px solid #2A2A2A;border-radius:16px;">
-                            <div class="card-body p-4 p-lg-5">
-                                <h4 class="fw-bold mb-1" style="color:#F0F0F0;">Hồ sơ của tôi</h4>
-                                <p class="text-muted mb-4" style="color:#8A8A8A;font-size:0.9rem;">Quản lý thông tin cá nhân</p>
+                        <div class="ds-card">
+                            <div class="ds-card-body">
+                                <h4 class="fw-bold mb-1">Hồ sơ của tôi</h4>
+                                <p class="text-muted mb-4" style="font-size:0.9rem;">Quản lý thông tin cá nhân</p>
 
                                 <form th:action="@{/tai-khoan/cap-nhat}" method="post">
                                     <div class="row g-3">
                                         <div class="col-12">
-                                            <label class="form-label" style="color:#B0B0B0;">Họ tên</label>
-                                            <input type="text" name="hoTen" th:value="${user.hoTen}" class="form-control" required
-                                                   style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.65rem 1rem;"/>
+                                            <label class="form-label">Họ tên</label>
+                                            <input type="text" name="hoTen" th:value="${user.hoTen}" class="form-control" required />
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label" style="color:#B0B0B0;">Tên đăng nhập</label>
-                                            <input type="text" th:value="${user.username}" class="form-control" disabled
-                                                   style="background:#111;border:1px solid #2A2A2A;color:#666;border-radius:8px;padding:0.65rem 1rem;"/>
+                                            <label class="form-label">Tên đăng nhập</label>
+                                            <input type="text" th:value="${user.username}" class="form-control" disabled />
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label" style="color:#B0B0B0;">Email</label>
-                                            <input type="email" th:value="${user.email}" class="form-control" disabled
-                                                   style="background:#111;border:1px solid #2A2A2A;color:#666;border-radius:8px;padding:0.65rem 1rem;"/>
+                                            <label class="form-label">Email</label>
+                                            <input type="email" th:value="${user.email}" class="form-control" disabled />
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label" style="color:#B0B0B0;">Số điện thoại</label>
-                                            <input type="text" name="soDienThoai" th:value="${user.soDienThoai}" class="form-control" placeholder="Chưa cập nhật"
-                                                   style="background:#1A1A1A;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;padding:0.65rem 1rem;"/>
+                                            <label class="form-label">Số điện thoại</label>
+                                            <input type="text" name="soDienThoai" th:value="${user.soDienThoai}" class="form-control" placeholder="Chưa cập nhật" />
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label" style="color:#B0B0B0;">Vai trò</label>
-                                            <input type="text" th:value="${user.role}" class="form-control" disabled
-                                                   style="background:#111;border:1px solid #2A2A2A;color:#666;border-radius:8px;padding:0.65rem 1rem;"/>
+                                            <label class="form-label">Vai trò</label>
+                                            <input type="text" th:value="${user.role}" class="form-control" disabled />
                                         </div>
                                     </div>
                                     <div class="d-flex gap-3 mt-4">
-                                        <button type="submit" class="btn px-4 py-2 fw-semibold"
-                                                style="background:#FFD84D;color:#0A0A0A;border:none;border-radius:8px;">Lưu thay đổi</button>
-                                        <a th:href="@{/tai-khoan/doi-mat-khau}" class="btn px-4 py-2 fw-semibold"
-                                                style="background:transparent;border:1px solid #2A2A2A;color:#F0F0F0;border-radius:8px;">Đổi mật khẩu</a>
+                                        <button type="submit" class="ds-btn ds-btn-fill">Lưu thay đổi</button>
+                                        <a th:href="@{/tai-khoan/doi-mat-khau}" class="ds-btn ds-btn-outline">Đổi mật khẩu</a>
                                     </div>
                                 </form>
                             </div>

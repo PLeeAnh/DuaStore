@@ -9,36 +9,36 @@
     <body>
     <div layout:fragment="content">
         <div class="container-xl py-5">
-            <a th:href="@{/tai-khoan/don-hang}" class="btn btn-outline-secondary btn-sm mb-3">
+            <a th:href="@{/tai-khoan/don-hang}" class="ds-btn ds-btn-outline ds-btn-sm mb-3">
                 <i class="bi bi-arrow-left me-1"></i>Quay lại
             </a>
 
             <div th:if="${successMsg}" class="alert alert-success" th:text="${successMsg}"></div>
             <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}"></div>
 
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
+            <div class="ds-card mb-4">
+                <div class="ds-card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h5 class="fw-bold mb-1">Mã đơn: <span th:text="${order.maDon}"></span></h5>
                             <small class="text-muted" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></small>
                         </div>
-                        <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_THANH_TOAN' ? 'bg-primary' : order.trangThaiDon == 'DA_NHAN_HANG' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
-                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_THANH_TOAN' ? 'Đã thanh toán' : order.trangThaiDon == 'DA_NHAN_HANG' ? 'Đã nhận hàng' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon}"></span>
+                        <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
+                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon}"></span>
                     </div>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
+            <div class="ds-card mb-4">
+                <div class="ds-card-body">
                     <h6 class="fw-bold">Thông tin giao hàng</h6>
                     <p class="mb-1"><strong th:text="${order.tenNguoiNhan}"></strong> — <span th:text="${order.soDienThoai}"></span></p>
                     <p class="mb-0 text-muted" th:text="${order.diaChi}"></p>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
+            <div class="ds-card mb-4">
+                <div class="ds-card-body">
                     <h6 class="fw-bold mb-3">Sản phẩm</h6>
                     <div th:each="item : ${items}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
                         <img th:src="@{${item.hinhAnhSP}}" alt="" class="rounded" style="width:70px;height:70px;object-fit:cover" />
@@ -46,33 +46,33 @@
                             <div class="fw-semibold" th:text="${item.tenSanPham}"></div>
                             <div class="small text-muted" th:text="${item.tenBienThe}"></div>
                             <div class="d-flex justify-content-between mt-1">
-                                <span th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span th:text="${#numbers.formatDecimal(item.donGia, 0, 0)} + '₫'"></span>
                                 <span class="text-muted">x<span th:text="${item.soLuong}"></span></span>
-                                <span class="fw-semibold" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                                <span class="fw-semibold" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 0)} + '₫'"></span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
+            <div class="ds-card">
+                <div class="ds-card-body">
                     <div class="d-flex justify-content-between small mb-1">
                         <span class="text-muted">Tạm tính</span>
-                        <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 0)} + '₫'"></span>
                     </div>
                     <div class="d-flex justify-content-between small mb-1">
                         <span class="text-muted">Phí vận chuyển</span>
-                        <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 0)} + '₫'"></span>
                     </div>
                     <div class="d-flex justify-content-between small mb-1">
                         <span class="text-muted">Giảm giá</span>
-                        <span class="text-danger" th:text="${#numbers.formatDecimal(order.tienGiam, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span style="color:#DC2626;" th:text="${#numbers.formatDecimal(order.tienGiam, 0, 0)} + '₫'"></span>
                     </div>
-                    <hr />
+                    <hr class="ds-checkout-divider" />
                     <div class="d-flex justify-content-between fw-bold">
                         <span>Tổng cộng</span>
-                        <span class="text-danger fs-5" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                        <span style="color:#DC2626;font-size:1.15rem;" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 0)} + '₫'"></span>
                     </div>
                     <div class="mt-3 small text-muted" th:if="${order.ghiChu}">
                         Ghi chú: <span th:text="${order.ghiChu}"></span>
@@ -80,7 +80,7 @@
                     <div class="mt-3">
                         <form th:if="${order.trangThaiDon == 'CHO_XAC_NHAN'}" th:action="@{/tai-khoan/don-hang/huy/{id}(id=${order.id})}" method="post"
                               onsubmit="return confirm('Hủy đơn hàng này?');">
-                            <button type="submit" class="btn btn-outline-danger"><i class="bi bi-x-circle me-1"></i>Hủy đơn</button>
+                            <button type="submit" class="ds-btn ds-btn-outline ds-btn-sm" style="color:#DC2626;border-color:#DC2626;"><i class="bi bi-x-circle me-1"></i>Hủy đơn</button>
                         </form>
                     </div>
                 </div>

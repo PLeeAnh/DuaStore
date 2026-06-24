@@ -1,46 +1,62 @@
 package com.duastore.controller.admin;
 
 import com.duastore.dto.ProductVariantFormDTO;
+import com.duastore.repository.ProductRepository;
 import com.duastore.service.admin.AdminVariantService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/bien-the")
 public class AdminVariantController {
 
     private final AdminVariantService variantService;
+    private final ProductRepository productRepository;
 
-    public AdminVariantController(AdminVariantService variantService) {
+    public AdminVariantController(AdminVariantService variantService, ProductRepository productRepository) {
         this.variantService = variantService;
+        this.productRepository = productRepository;
     }
 
     @GetMapping("/them-moi/{productId}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_CREATE)")
     public String createForm(@PathVariable Integer productId, Model model) {
         ProductVariantFormDTO dto = new ProductVariantFormDTO();
         dto.setProductId(productId);
         model.addAttribute("variant", dto);
         model.addAttribute("title", "san-pham");
+        var p = productRepository.findById(productId).orElse(null);
+        model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
         return "view/admin/productvariant/variant-form";
     }
 
     @PostMapping("/them-moi")
-    public String create(@Valid ProductVariantFormDTO dto, BindingResult result, Model model) {
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_CREATE)")
+    public String create(@Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "san-pham");
+            var p = productRepository.findById(dto.getProductId()).orElse(null);
+            model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
             return "view/admin/productvariant/variant-form";
         }
         var saved = variantService.save(dto);
-        return "redirect:/admin/san-pham/" + saved.getProductId() + "/bien-the?successMsg=Them+bien+the+thanh+cong";
+        ra.addFlashAttribute("successMsg", "Thêm biến thể thành công");
+        return "redirect:/admin/san-pham/chi-tiet/" + saved.getProductId();
     }
 
     @GetMapping("/sua/{id}")
-    public String editForm(@PathVariable Integer id, Model model) {
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
+    public String editForm(@PathVariable Integer id, Model model, RedirectAttributes ra) {
         var v = variantService.findById(id);
-        if (v == null) return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+bien+the";
+        if (v == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy biến thể");
+            return "redirect:/admin/san-pham";
+        }
 
         ProductVariantFormDTO dto = new ProductVariantFormDTO();
         dto.setId(v.getId());
@@ -55,26 +71,37 @@ public class AdminVariantController {
 
         model.addAttribute("variant", dto);
         model.addAttribute("title", "san-pham");
+        var p = productRepository.findById(v.getProductId()).orElse(null);
+        model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
         return "view/admin/productvariant/variant-form";
     }
 
     @PostMapping("/sua/{id}")
-    public String edit(@PathVariable Integer id, @Valid ProductVariantFormDTO dto, BindingResult result, Model model) {
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
+    public String edit(@PathVariable Integer id, @Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "san-pham");
+            var p = productRepository.findById(dto.getProductId()).orElse(null);
+            model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
             return "view/admin/productvariant/variant-form";
         }
         dto.setId(id);
         var saved = variantService.save(dto);
-        return "redirect:/admin/san-pham/" + saved.getProductId() + "/bien-the?successMsg=Cap+nhat+bien+the+thanh+cong";
+        ra.addFlashAttribute("successMsg", "Cập nhật biến thể thành công");
+        return "redirect:/admin/san-pham/chi-tiet/" + dto.getProductId();
     }
 
     @PostMapping("/xoa/{id}")
-    public String delete(@PathVariable Integer id) {
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_DELETE)")
+    public String delete(@PathVariable Integer id, RedirectAttributes ra) {
         var v = variantService.findById(id);
-        if (v == null) return "redirect:/admin/san-pham?errorMsg=Khong+tim+thay+bien+the";
+        if (v == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy biến thể");
+            return "redirect:/admin/san-pham";
+        }
         int productId = v.getProductId();
         variantService.delete(id);
-        return "redirect:/admin/san-pham/" + productId + "/bien-the?successMsg=Da+xoa+bien+the";
+        ra.addFlashAttribute("successMsg", "Đã xóa biến thể");
+        return "redirect:/admin/san-pham/chi-tiet/" + productId;
     }
 }

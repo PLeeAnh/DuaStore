@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -22,6 +23,11 @@ public class CategoryDTO {
 
     private Integer thuTuHienThi = 0;
     private boolean isActive = true;
+
+    private String imageUrl;
+
+    private LocalDateTime ngayTao;
+    private LocalDateTime ngayCapNhat;
 
     private List<CategoryDTO> children;
 }

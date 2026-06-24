@@ -30,6 +30,10 @@ public class FileUploadService {
     }
 
     public String save(MultipartFile file) {
+        return save(file, null);
+    }
+
+    public String save(MultipartFile file, String directory) {
         if (file == null || file.isEmpty()) return null;
 
         if (file.getSize() > MAX_FILE_SIZE) {
@@ -44,12 +48,22 @@ public class FileUploadService {
             String original = file.getOriginalFilename();
             String cleanName = (original != null) ? original.replaceAll("[^a-zA-Z0-9._-]", "_") : "image";
             String fileName = System.currentTimeMillis() + "_" + cleanName;
-            Path target = uploadPath.resolve(fileName).normalize();
-            if (!target.startsWith(uploadPath)) {
+
+            Path dirPath = (directory != null && !directory.isBlank())
+                ? uploadPath.resolve(directory).normalize()
+                : uploadPath;
+            Files.createDirectories(dirPath);
+
+            Path target = dirPath.resolve(fileName).normalize();
+            if (!target.startsWith(dirPath)) {
                 throw new RuntimeException("Tên file không hợp lệ: " + original);
             }
             Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-            return "/uploads/" + fileName;
+
+            String urlPath = (directory != null && !directory.isBlank())
+                ? "/uploads/" + directory + "/" + fileName
+                : "/uploads/" + fileName;
+            return urlPath;
         } catch (IOException e) {
             throw new RuntimeException("Không thể lưu file: " + file.getOriginalFilename(), e);
         }

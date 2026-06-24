@@ -11,20 +11,6 @@
         <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
     </th:block>
     <div layout:fragment="content">
-        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show py-2">
-            <span th:text="${successMsg}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show py-2">
-            <span th:text="${errorMsg}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <div th:if="${not tatCa and pendingOrders > 0}" class="alert alert-warning d-flex align-items-center gap-2 py-2 mb-3">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>Bạn có <strong th:text="${pendingOrders}"></strong> đơn đang chờ xác nhận.</span>
-            <a th:href="@{/admin/don-hang(tatCa=true)}" class="ms-auto btn btn-sm btn-outline-warning">Xem tất cả</a>
-        </div>
-
         <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
             <div class="d-flex align-items-center gap-2">
                 <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Đơn hàng</h5>
@@ -35,9 +21,9 @@
             </div>
             <form class="d-flex gap-2" th:action="@{/admin/don-hang}" method="get">
                 <input type="hidden" name="tatCa" th:value="${tatCa}" />
-                <input type="text" name="q" class="form-control form-control-sm" style="width:220px" placeholder="Mã đơn, tên khách hàng..." th:value="${q}" />
+                <input type="text" name="q" class="form-control form-control-sm" style="width:180px" placeholder="Mã đơn, tên KH..." th:value="${q}" />
                 <select name="trangThai" class="form-select form-select-sm" style="width:auto">
-                    <option value="">Tất cả trạng thái</option>
+                    <option value="">Trạng thái đơn</option>
                     <option value="CHO_XAC_NHAN" th:selected="${trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
                     <option value="DA_XAC_NHAN" th:selected="${trangThai == 'DA_XAC_NHAN'}">Đã xác nhận</option>
                     <option value="DANG_GIAO" th:selected="${trangThai == 'DANG_GIAO'}">Đang giao</option>
@@ -45,7 +31,13 @@
                     <option value="DA_HOAN_THANH" th:selected="${trangThai == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
                     <option value="DA_HUY" th:selected="${trangThai == 'DA_HUY'}">Đã hủy</option>
                 </select>
-                <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-search"></i></button>
+                <select name="trangThaiTT" class="form-select form-select-sm" style="width:auto">
+                    <option value="">Thanh toán</option>
+                    <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
+                    <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
+                    <option value="CONG_NO" th:selected="${trangThaiTT == 'CONG_NO'}">Công nợ</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-funnel"></i></button>
             </form>
         </div>
 
@@ -57,29 +49,40 @@
                         <th>Mã ĐH</th>
                         <th>Khách hàng</th>
                         <th>Tổng tiền</th>
-                        <th style="min-width:140px">Trạng thái</th>
+                        <th style="min-width:120px">Trạng thái</th>
+                        <th style="min-width:120px">Thanh toán</th>
                         <th>Ngày đặt</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="o, iter : ${orders}">
-                        <td class="text-muted small" th:text="${iter.index + 1 + currentPage * 20}"></td>
+                        <td class="text-muted small" th:text="${iter.index + 1 + currentPage * pageSize}"></td>
                         <td><strong th:text="${o.maDon}"></strong></td>
                         <td>
                             <span th:text="${o.tenNguoiNhan}"></span>
                             <small class="text-muted d-block" th:text="${o.soDienThoai}"></small>
                         </td>
-                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'" class="fw-semibold"></td>
+                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + '₫'" class="fw-semibold"></td>
                         <td>
-                            <select class="form-select form-select-sm border-0 bg-transparent fw-semibold status-select" th:data-id="${o.id}">
-                                <option value="CHO_XAC_NHAN" th:selected="${o.trangThaiDon == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
-                                <option value="DA_XAC_NHAN" th:selected="${o.trangThaiDon == 'DA_XAC_NHAN'}">Đã xác nhận</option>
-                                <option value="DANG_GIAO" th:selected="${o.trangThaiDon == 'DANG_GIAO'}">Đang giao</option>
-                                <option value="DA_GIAO" th:selected="${o.trangThaiDon == 'DA_GIAO'}">Đã giao</option>
-                                <option value="DA_HOAN_THANH" th:selected="${o.trangThaiDon == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
-                                <option value="DA_HUY" th:selected="${o.trangThaiDon == 'DA_HUY'}">Đã hủy</option>
-                            </select>
+                            <span th:switch="${o.trangThaiDon}"
+                                  class="badge fw-semibold px-2 py-1">
+                                <span th:case="'CHO_XAC_NHAN'" class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                <span th:case="'DA_XAC_NHAN'" class="badge bg-primary">Đã xác nhận</span>
+                                <span th:case="'DANG_GIAO'" class="badge bg-info text-dark">Đang giao</span>
+                                <span th:case="'DA_GIAO'" class="badge bg-success">Đã giao</span>
+                                <span th:case="'DA_HOAN_THANH'" class="badge bg-success">Đã hoàn thành</span>
+                                <span th:case="'DA_HUY'" class="badge bg-danger">Đã hủy</span>
+                                <span th:case="*" class="badge bg-secondary" th:text="${o.trangThaiDon}"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:switch="${o.trangThaiTT}"
+                                  class="badge fw-semibold px-2 py-1">
+                                <span th:case="'CHUA_THANH_TOAN'" class="badge bg-warning text-dark">Chưa thanh toán</span>
+                                <span th:case="'DA_THANH_TOAN'" class="badge bg-success">Đã thanh toán</span>
+                                <span th:case="*" class="badge bg-secondary" th:text="${o.trangThaiTT}"></span>
+                            </span>
                         </td>
                         <td class="small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
@@ -87,49 +90,15 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(orders)}">
-                        <td colspan="7" class="text-muted text-center py-4">Chưa có đơn hàng</td>
+                        <td colspan="8" class="text-muted text-center py-4">Chưa có đơn hàng</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div th:if="${totalPages > 1}" class="mt-3">
-            <nav>
-                <ul class="pagination pagination-sm justify-content-center mb-0">
-                    <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage - 1}, tatCa=${tatCa}, q=${q}, trangThai=${trangThai})}">&laquo;</a>
-                    </li>
-                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                        th:classappend="${i == currentPage} ? active">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${i}, tatCa=${tatCa}, q=${q}, trangThai=${trangThai})}" th:text="${i + 1}"></a>
-                    </li>
-                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? disabled">
-                        <a class="page-link" th:href="@{/admin/don-hang(page=${currentPage + 1}, tatCa=${tatCa}, q=${q}, trangThai=${trangThai})}">&raquo;</a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
     <th:block layout:fragment="scripts">
-    <script>
-    function statusColor(v) { return {'CHO_XAC_NHAN':'#664d03','DA_HUY':'#dc3545'}[v] || '#198754'; }
-    document.querySelectorAll('.status-select').forEach(function(sel) {
-        sel.style.color = statusColor(sel.value);
-        sel.addEventListener('change', function() {
-            var id = this.dataset.id, val = this.value, orig = this.value, load = document.createElement('small');
-            load.className = 'text-muted ms-1'; load.textContent = '...';
-            this.parentNode.appendChild(load);
-            fetch('/admin/don-hang/api/' + id + '/cap-nhat-trang-thai?trangThai=' + encodeURIComponent(val), {method:'POST'})
-            .then(function(r){return r.json()})
-            .then(function(d){
-                load.remove();
-                if (d.success) { sel.style.color = statusColor(val); }
-                else { sel.value = orig; alert(d.message || 'Lỗi'); }
-            })
-            .catch(function(){ load.remove(); sel.value = orig; alert('Lỗi kết nối'); });
-        });
-    });
-    </script>
     </th:block>
     </body>
 </html>

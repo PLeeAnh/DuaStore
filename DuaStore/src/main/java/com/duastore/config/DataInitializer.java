@@ -1,8 +1,12 @@
 package com.duastore.config;
 
+import com.duastore.model.Permission;
 import com.duastore.model.Promotion;
+import com.duastore.model.Role;
 import com.duastore.model.User;
+import com.duastore.repository.PermissionRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,31 +15,84 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    private final PromotionRepository promotionRepository;
+    private final PermissionRepository permissionRepository;
+    private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final PromotionRepository promotionRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public DataInitializer(PromotionRepository promotionRepository,
+    public DataInitializer(PermissionRepository permissionRepository,
+                           RoleRepository roleRepository,
                            UserRepository userRepository,
+                           PromotionRepository promotionRepository,
                            PasswordEncoder passwordEncoder) {
-        this.promotionRepository = promotionRepository;
+        this.permissionRepository = permissionRepository;
+        this.roleRepository = roleRepository;
         this.userRepository = userRepository;
+        this.promotionRepository = promotionRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
+        seedRoles();
+        seedPermissions();
         seedUsers();
         seedPromotions();
+    }
+
+    private void seedRoles() {
+        if (roleRepository.count() > 0) return;
+        for (String name : List.of("SUPER_ADMIN", "ADMIN", "USER")) {
+            Role r = new Role();
+            r.setName(name);
+            roleRepository.save(r);
+        }
+    }
+
+    private void seedPermissions() {
+        Map<String, List<String>> perms = Map.ofEntries(
+            Map.entry("DASHBOARD", List.of("READ")),
+            Map.entry("PRODUCT", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("ORDER", List.of("READ", "UPDATE")),
+            Map.entry("USER", List.of("READ", "UPDATE")),
+            Map.entry("CATEGORY", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("PROMOTION", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("REVIEW", List.of("READ", "APPROVE", "HIDE", "DELETE")),
+            Map.entry("POST", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("VARIANT", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("ROLE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("AUDIT_LOG", List.of("READ"))
+        );
+
+        for (var entry : perms.entrySet()) {
+            for (String action : entry.getValue()) {
+                if (permissionRepository.findByModuleAndAction(entry.getKey(), action).isEmpty()) {
+                    Permission p = new Permission();
+                    p.setModule(entry.getKey());
+                    p.setAction(action);
+                    permissionRepository.save(p);
+                }
+            }
+        }
+
+        Role adminRole = roleRepository.findByName("ADMIN");
+        Set<Permission> allPerms = Set.copyOf(permissionRepository.findAll());
+        adminRole.setPermissions(allPerms);
+        roleRepository.save(adminRole);
     }
 
     private void seedUsers() {
         String adminUsername = "admin";
         String adminPassword = "admin@123";
+
+        Role adminRole = roleRepository.findByName("ADMIN");
 
         User admin = userRepository.findByUsername(adminUsername).orElse(null);
         if (admin == null) {
@@ -44,9 +101,9 @@ public class DataInitializer implements CommandLineRunner {
             admin.setEmail("admin@duastore.vn");
             admin.setHoTen("Quản Trị Viên");
             admin.setSoDienThoai("0901234567");
-            admin.setRole("ADMIN");
             admin.setIsActive(true);
         }
+        admin.setRoles(Set.of(adminRole));
         admin.setPassword(passwordEncoder.encode(adminPassword));
         userRepository.save(admin);
     }

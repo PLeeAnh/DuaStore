@@ -11,7 +11,9 @@ import com.duastore.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,7 +45,7 @@ public class ReviewService {
         return reviewsRepository.findByUserIdAndProductId(userId, productId).isPresent();
     }
 
-    public ReviewDTO createReview(Integer userId, ReviewRequestDTO request) {
+    public ReviewDTO createReview(Integer userId, ReviewRequestDTO request, String hinhAnhUrl) {
         if (hasReviewed(userId, request.getProductId())) {
             throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");
         }
@@ -52,7 +54,8 @@ public class ReviewService {
         review.setProductId(request.getProductId());
         review.setUserId(userId);
         review.setDanhGia(request.getDanhGia());
-        review.setBinhLuan(request.getBinhLuan());
+        review.setBinhLuan(sanitizeHtml(request.getBinhLuan()));
+        review.setHinhAnh(hinhAnhUrl);
         review.setIsApproved(false);
 
         review = reviewsRepository.save(review);
@@ -68,6 +71,7 @@ public class ReviewService {
         dto.setBinhLuan(review.getBinhLuan());
         dto.setApproved(review.getIsApproved());
         dto.setNgayTao(review.getNgayTao());
+        dto.setHinhAnh(review.getHinhAnh());
 
         productRepository.findById(review.getProductId())
                 .ifPresent(p -> dto.setTenSanPham(p.getTenSanPham()));
@@ -76,5 +80,33 @@ public class ReviewService {
                 .ifPresent(u -> dto.setHoTen(u.getHoTen()));
 
         return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Integer, Double> getAverageRatings(List<Integer> productIds) {
+        List<Object[]> rows = reviewsRepository.getAverageRatings(productIds);
+        Map<Integer, Double> map = new HashMap<>();
+        for (Object[] row : rows) {
+            map.put((Integer) row[0], ((Number) row[1]).doubleValue());
+        }
+        return map;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Object> getRatingSummary(Integer productId) {
+        List<Object[]> rows = reviewsRepository.getAverageRating(productId);
+        Map<String, Object> result = new HashMap<>();
+        result.put("avg", 0.0);
+        result.put("count", 0L);
+        if (!rows.isEmpty() && rows.get(0)[0] != null) {
+            result.put("avg", ((Number) rows.get(0)[0]).doubleValue());
+            result.put("count", ((Number) rows.get(0)[1]).longValue());
+        }
+        return result;
+    }
+
+    private String sanitizeHtml(String input) {
+        if (input == null) return null;
+        return input.replaceAll("<[^>]*>", "");
     }
 }

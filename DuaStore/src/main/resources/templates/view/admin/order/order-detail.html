@@ -12,52 +12,97 @@
         <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
     </th:block>
     <div layout:fragment="content">
-        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show">
-            <span th:text="${successMsg}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show">
-            <span th:text="${errorMsg}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
         <div class="adm-page-header">
             <h4><i class="bi bi-receipt me-2"></i>Chi tiết đơn hàng #<span th:text="${order.maDon}"></span></h4>
-            <a th:href="@{/admin/don-hang}" class="btn btn-outline-secondary btn-sm">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Quay lại
             </a>
         </div>
 
-        <div class="row g-4">
+        <div th:if="${currentStep > 0}" class="adm-card mt-3">
+            <div class="progress-step-bar d-flex justify-content-between align-items-center position-relative px-2 py-3">
+                <div th:each="s, iter : ${T(com.duastore.util.OrderStatusUtil).getOrderedStatuses()}"
+                     class="d-flex flex-column align-items-center position-relative" style="flex:1; z-index:1">
+                     <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                          th:classappend="${iter.index + 1 < currentStep} ? 'bg-success text-white' : (${iter.index + 1 == currentStep} ? 'bg-primary text-white' : 'bg-secondary text-white')"
+                         th:title="${T(com.duastore.util.OrderStatusUtil).getDisplayName(s)}"
+                         style="width:40px;height:40px;cursor:pointer" th:text="${iter.index + 1}">
+                    </div>
+                    <small class="mt-2 text-nowrap"
+                           th:classappend="${iter.index + 1 <= currentStep} ? 'text-primary fw-semibold' : 'text-muted'"
+                           th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(s)}">
+                    </small>
+                </div>
+                <div class="position-absolute top-50 start-0 end-0 translate-middle-y mx-4"
+                     style="height:4px; z-index:0">
+                    <div class="bg-light h-100 w-100 position-absolute"></div>
+                    <div class="bg-success h-100 position-absolute"
+                         th:style="${'width: ' + ((currentStep - 1) * 100.0 / (T(com.duastore.util.OrderStatusUtil).getTotalSteps() - 1)) + '%; transition: width 0.3s'}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-2">
             <div class="col-md-6">
-                <div class="adm-card">
-                    <h6>Thông tin khách hàng</h6>
-                    <p class="mb-1"><strong>Họ tên:</strong> <span th:text="${order.tenNguoiNhan}"></span></p>
-                    <p class="mb-1"><strong>SĐT:</strong> <span th:text="${order.soDienThoai}"></span></p>
-                    <p class="mb-0"><strong>Địa chỉ:</strong> <span th:text="${order.diaChi}"></span></p>
+                <div class="adm-card h-100">
+                    <h6><i class="bi bi-person-circle me-2"></i>Thông tin khách hàng</h6>
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr><td class="text-muted ps-0" style="width:90px">Họ tên</td><td class="fw-semibold" th:text="${order.tenNguoiNhan}"></td></tr>
+                        <tr><td class="text-muted ps-0">SĐT</td><td th:text="${order.soDienThoai}"></td></tr>
+                        <tr><td class="text-muted ps-0">Email</td><td th:text="${order.userEmail}"></td></tr>
+                        <tr><td class="text-muted ps-0">Địa chỉ</td><td th:text="${order.diaChi}"></td></tr>
+                        <tr><td class="text-muted ps-0">Ngày đặt</td><td th:text="${#temporals.format(order.ngayDat, 'HH:mm dd/MM/yyyy')}"></td></tr>
+                    </table>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="adm-card">
-                    <h6>Thông tin đơn hàng</h6>
-                    <p class="mb-1"><strong>Ngày đặt:</strong> <span th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></span></p>
-                    <p class="mb-1"><strong>PT thanh toán:</strong> <span th:text="${order.phuongThucTT == 'COD' ? 'COD' : order.phuongThucTT == 'CHUYEN_KHOAN' ? 'Chuyển khoản' : order.phuongThucTT}"></span></p>
-                    <p class="mb-1"><strong>PT giao hàng:</strong> <span th:text="${order.phuongThucGiaoHang == 'NHANH' ? 'Giao nhanh' : 'Giao tiêu chuẩn'}"></span></p>
-                    <p class="mb-0"><strong>Trạng thái:</strong>
-                        <span class="badge" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
-                              th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon}"></span>
-                    </p>
-                </div>
-                <div class="adm-card mt-3" th:if="${assignment != null}">
-                    <h6>Admin phụ trách</h6>
-                    <p class="mb-0">
-                        <i class="bi bi-person-circle me-1"></i>
-                        <strong th:text="${assignment.admin.hoTen}"></strong>
-                        <span class="text-muted small" th:text="'(' + ${assignment.admin.email} + ')'"></span>
-                        <br/>
-                        <span class="text-muted small">
-                            Phân lúc: <span th:text="${#temporals.format(assignment.ngayPhan, 'dd/MM/yyyy HH:mm')}"></span>
-                        </span>
-                    </p>
+                <div class="adm-card h-100" style="min-height:220px">
+                    <h6><i class="bi bi-clock-history me-2"></i>Lịch sử đơn hàng</h6>
+                    <div th:if="${#lists.isEmpty(statusLogs)}" class="text-muted small py-3 text-center">
+                        <i class="bi bi-inbox me-1"></i>Chưa có dữ liệu
+                    </div>
+                    <div th:if="${not #lists.isEmpty(statusLogs)}" style="max-height:400px; overflow-y:auto">
+                        <div th:each="log : ${statusLogs}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                            <div class="flex-shrink-0">
+                                <span class="badge rounded-circle p-2 d-inline-flex align-items-center justify-content-center fw-normal"
+                                      style="width:32px;height:32px"
+                                       th:classappend="${T(com.duastore.util.OrderStatusUtil).getBadgeClass(log.loaiSuKien)}">
+                                    <i th:classappend="${T(com.duastore.util.OrderStatusUtil).getIconClass(log.loaiSuKien)}"
+                                       class="text-white small"></i>
+                                </span>
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong class="small" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'Khách hàng'}"></strong>
+                                    <small class="text-muted" th:text="${#temporals.format(log.thoiGian, 'HH:mm dd/MM/yyyy')}"></small>
+                                </div>
+                                <div class="mt-1 small" th:switch="${log.loaiSuKien.name()}">
+                                    <th:block th:case="'CREATE_ORDER'">
+                                        <span class="text-muted">Đơn hàng được tạo</span>
+                                        <span class="badge bg-warning ms-1">Chờ xác nhận</span>
+                                    </th:block>
+                                    <th:block th:case="'ASSIGN_ADMIN'">
+                                        <span class="text-muted" th:text="${log.ghiChu}"></span>
+                                    </th:block>
+                                    <th:block th:case="'STATUS_CHANGE'">
+                                        <span class="text-muted small">Trạng thái:</span>
+                                        <span class="badge bg-secondary ms-1"
+                                              th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(log.trangThaiCu)}"></span>
+                                        <i class="bi bi-arrow-right text-muted mx-1"></i>
+                                        <span class="badge bg-primary"
+                                              th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(log.trangThaiMoi)}"></span>
+                                    </th:block>
+                                    <th:block th:case="'CANCEL_ORDER'">
+                                        <span class="text-danger fw-semibold" th:text="${log.ghiChu}"></span>
+                                    </th:block>
+                                    <th:block th:case="'PAYMENT_CONFIRMED'">
+                                        <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Thanh toán đã được xác nhận</span>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,56 +124,88 @@
                             </div>
                         </td>
                         <td th:text="${item.soLuong}"></td>
-                        <td th:text="${#numbers.formatDecimal(item.donGia, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
-                        <td th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'COMMA', 0, 'POINT')} + 'đ'"></td>
+                        <td th:text="${#numbers.formatDecimal(item.donGia, 0, 0)} + '₫'"></td>
+                        <td th:text="${#numbers.formatDecimal(item.thanhTien, 0, 0)} + '₫'"></td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="row mt-4">
-            <div class="col-md-6">
+        <div class="row g-4 mt-2">
+            <div class="col-md-7">
                 <div class="adm-card">
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="text-muted">Tạm tính</span>
-                        <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Thông tin thanh toán</h6>
+                        <span class="badge fs-6 px-3 py-2"
+                              th:classappend="${T(com.duastore.util.PaymentStatusUtil).getBadgeClass(order.trangThaiTT)}"
+                              th:text="${T(com.duastore.util.PaymentStatusUtil).getDisplayName(order.trangThaiTT)}">
+                        </span>
                     </div>
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="text-muted">Phí vận chuyển</span>
-                        <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi fs-4"
+                           th:classappend="${T(com.duastore.util.PaymentStatusUtil).getPaymentIcon(order.phuongThucTT)}"></i>
+                        <span class="fw-semibold"
+                              th:text="${T(com.duastore.util.PaymentStatusUtil).getPaymentMethodLabel(order.phuongThucTT)}"></span>
+                        <span class="text-muted mx-1">|</span>
+                        <span class="text-muted small"
+                              th:text="${order.phuongThucGiaoHang == 'NHAN_TAI_CONG' ? 'Giao hàng nhanh' : 'Giao hàng tiêu chuẩn'}"></span>
+                        <span class="text-muted mx-1">|</span>
+                        <span class="text-muted small" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></span>
                     </div>
-                    <div class="d-flex justify-content-between small mb-1">
-                        <span class="text-muted">Giảm giá</span>
-                        <span class="text-danger" th:text="${#numbers.formatDecimal(order.tienGiam, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                    </div>
-                    <hr />
-                    <div class="d-flex justify-content-between fw-bold">
-                        <span>Tổng cộng</span>
-                        <span class="text-danger fs-5" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'COMMA', 0, 'POINT')} + 'đ'"></span>
-                    </div>
-                </div>
-                <div class="adm-card mt-3" th:if="${not #lists.isEmpty(logs)}">
-                    <h6>Lịch sử thao tác</h6>
-                    <ul class="list-unstyled mb-0 small">
-                        <li th:each="log : ${logs}" class="mb-2 pb-2 border-bottom">
-                            <div class="d-flex justify-content-between">
-                                <strong th:text="${log.admin.hoTen}"></strong>
-                                <span class="text-muted" th:text="${#temporals.format(log.ngayTao, 'dd/MM/yyyy HH:mm')}"></span>
+                    <hr class="my-3" />
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Tạm tính</span>
+                                <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 0)} + '₫'"></span>
                             </div>
-                            <div class="text-muted" th:text="${log.moTa}"></div>
-                        </li>
-                    </ul>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Phí vận chuyển</span>
+                                <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 0)} + '₫'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Giảm giá</span>
+                                <span class="text-danger" th:text="${#numbers.formatDecimal(order.tienGiam, 0, 0)} + '₫'"></span>
+                            </div>
+                            <hr class="my-2" />
+                            <div class="d-flex justify-content-between fw-bold align-items-center">
+                                <span class="fs-6">Tổng cộng</span>
+                                <span class="text-danger fs-4 fw-bold"
+                                      th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 0)} + '₫'"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="my-3" />
+                    <div class="text-muted small">
+                        <i class="bi bi-clock-history me-1"></i>Lịch sử thanh toán
+                        <span class="text-muted fw-light">(sẽ được bổ sung sau)</span>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="adm-card">
-                    <h6>Cập nhật trạng thái</h6>
-                    <th:block th:if="${order.trangThaiDon == 'DA_HOAN_THANH' and not isAssignedAdmin}">
+            <div class="col-md-5">
+                <div class="adm-card" th:if="${assignment != null}">
+                    <h6><i class="bi bi-person-badge me-2"></i>Admin phụ trách</h6>
+                    <p class="mb-1">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <strong th:text="${assignment.admin.hoTen}"></strong>
+                        <span class="text-muted small" th:text="'(' + ${assignment.admin.email} + ')'"></span>
+                    </p>
+                    <small class="text-muted">
+                        Phân lúc: <span th:text="${#temporals.format(assignment.ngayPhan, 'dd/MM/yyyy HH:mm')}"></span>
+                    </small>
+                </div>
+                <div class="adm-card" th:if="${assignment == null}">
+                    <h6><i class="bi bi-person-badge me-2"></i>Admin phụ trách</h6>
+                    <div class="text-muted small py-2">Chưa được phân công</div>
+                </div>
+                <div class="adm-card mt-3">
+                    <h6><i class="bi bi-pencil-square me-2"></i>Cập nhật trạng thái</h6>
+                    <th:block th:if="${order.trangThaiDon == 'DA_HOAN_THANH' or currentStep == 0}">
                         <div class="text-muted small">
-                            <i class="bi bi-lock-fill me-1"></i>Đơn đã hoàn thành, chỉ admin phụ trách mới có thể chỉnh sửa.
+                            <i class="bi bi-lock-fill me-1"></i>Đơn đã <span th:text="${currentStep == 0 ? 'hủy' : 'hoàn thành'}"></span>, không thể thay đổi.
                         </div>
                     </th:block>
-                    <th:block th:if="${order.trangThaiDon != 'DA_HOAN_THANH' or isAssignedAdmin}">
+                    <th:block th:if="${order.trangThaiDon != 'DA_HOAN_THANH' and currentStep > 0}">
                     <form th:action="@{/admin/don-hang/{id}/cap-nhat-trang-thai(id=${order.id})}" th:object="${statusDTO}" method="post">
                         <div class="mb-2">
                             <label class="form-label small">Trạng thái đơn</label>
@@ -144,14 +221,77 @@
                         <div class="mb-2">
                             <label class="form-label small">Trạng thái thanh toán</label>
                             <select th:field="*{trangThaiTT}" class="form-select form-select-sm">
-                                <option value="">-- Giữ nguyên --</option>
                                 <option value="CHUA_THANH_TOAN">Chưa thanh toán</option>
                                 <option value="DA_THANH_TOAN">Đã thanh toán</option>
+                                <option value="CONG_NO">Công nợ</option>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
                     </form>
                     </th:block>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="adm-card">
+                    <h6><i class="bi bi-chat-dots me-2"></i>Ghi chú nội bộ</h6>
+                    <div th:if="${not #lists.isEmpty(notes)}" style="max-height:400px; overflow-y:auto" class="mb-3">
+                        <div th:each="note : ${notes}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold"
+                                     style="width:36px;height:36px;font-size:14px"
+                                     th:text="${note.admin.hoTen.substring(0,1)}">
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <strong class="small" th:text="${note.admin.hoTen}"></strong>
+                                    <small class="text-muted" th:text="${#temporals.format(note.ngayTao, 'HH:mm dd/MM/yyyy')}"></small>
+                                </div>
+                                <div class="mt-1 small" th:text="${note.noiDung}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${#lists.isEmpty(notes)}" class="text-muted small py-2 mb-3">
+                        <i class="bi bi-inbox me-1"></i>Chưa có ghi chú
+                    </div>
+                    <form th:action="@{/admin/don-hang/{id}/ghi-chu(id=${order.id})}" method="post" class="d-flex gap-2">
+                        <input type="text" name="noiDung" class="form-control form-control-sm" placeholder="Nhập ghi chú..." required maxlength="1000" />
+                        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+                            <i class="bi bi-send me-1"></i>Gửi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm completion modal for unpaid orders -->
+        <div th:if="${showConfirmModal}" class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5)">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h6 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Xác nhận hoàn thành đơn</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning mb-0 py-2">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            Khách hàng chưa thanh toán.
+                        </div>
+                        <p class="mt-3 mb-0 small">Bạn có chắc muốn hoàn thành đơn hàng này không?</p>
+                        <p class="small text-muted mt-1">Hệ thống sẽ ghi nhận đây là đơn <strong>công nợ</strong>.</p>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <form th:action="@{/admin/don-hang/{id}/cap-nhat-trang-thai(id=${order.id})}" method="post">
+                            <input type="hidden" name="trangThaiDon" th:value="${statusDTO.trangThaiDon}" />
+                            <input type="hidden" name="trangThaiTT" value="CHUA_THANH_TOAN" />
+                            <input type="hidden" name="confirmed" value="true" />
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Huỷ</button>
+                            <button type="submit" class="btn btn-primary btn-sm">Hoàn thành đơn</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

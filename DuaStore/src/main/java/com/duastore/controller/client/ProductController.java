@@ -14,17 +14,21 @@ import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.ProductService;
 import com.duastore.service.client.ReviewService;
+import com.duastore.service.client.WishlistService;
+import com.duastore.service.FileUploadService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,14 +36,18 @@ import java.util.stream.Collectors;
 @Controller
 public class ProductController {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
+    private static final int PAGE_SIZE = 24;
+
     private final ProductService productService;
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final ReviewService reviewService;
     private final FlashSaleRepository flashSaleRepository;
-    private final JdbcTemplate jdbcTemplate;
+    private final WishlistService wishlistService;
     private final SecurityUtil securityUtil;
+    private final FileUploadService fileUploadService;
 
     public ProductController(ProductService productService,
                              ProductVariantRepository variantRepository,
@@ -47,45 +55,79 @@ public class ProductController {
                              CategoryRepository categoryRepository,
                              ReviewService reviewService,
                              FlashSaleRepository flashSaleRepository,
-                             JdbcTemplate jdbcTemplate,
-                             SecurityUtil securityUtil) {
+                             WishlistService wishlistService,
+                             SecurityUtil securityUtil,
+                             FileUploadService fileUploadService) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
         this.categoryRepository = categoryRepository;
         this.reviewService = reviewService;
         this.flashSaleRepository = flashSaleRepository;
-        this.jdbcTemplate = jdbcTemplate;
+        this.wishlistService = wishlistService;
         this.securityUtil = securityUtil;
+        this.fileUploadService = fileUploadService;
     }
 
     @GetMapping("/san-pham")
     public String list(@RequestParam(required = false) Integer danhMuc,
                        @RequestParam(required = false) String keyword,
+                       @RequestParam(required = false) Integer dungTich,
+                       @RequestParam(required = false) String chatLieu,
+                       @RequestParam(required = false) String priceRange,
+                       @RequestParam(defaultValue = "newest") String sortBy,
+                       @RequestParam(defaultValue = "0") int page,
                        Model model) {
         model.addAttribute("title", "san-pham");
 
-        List<Product> products;
-        if (keyword != null && !keyword.isBlank()) {
-            products = productService.search(keyword);
+        if (keyword != null && keyword.isBlank()) keyword = null;
+        if (chatLieu != null && chatLieu.isBlank()) chatLieu = null;
+        if (priceRange != null && priceRange.isBlank()) priceRange = null;
+
+        boolean hasFilters = (priceRange != null || dungTich != null || chatLieu != null
+                || !"newest".equals(sortBy));
+
+        Page<Product> productPage;
+        if (hasFilters) {
+            if (keyword != null) model.addAttribute("keyword", keyword);
+            if (danhMuc != null) {
+                categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
+            }
+            productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, PAGE_SIZE);
+        } else if (keyword != null && !keyword.isBlank()) {
+            productPage = productService.searchPaged(keyword, page, PAGE_SIZE);
             model.addAttribute("keyword", keyword);
         } else if (danhMuc != null) {
             List<Integer> categoryIds = new ArrayList<>();
             categoryIds.add(danhMuc);
             categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
                     .forEach(child -> categoryIds.add(child.getId()));
-            products = productService.findByCategories(categoryIds);
+            productPage = productService.findByCategoriesPaged(categoryIds, page, PAGE_SIZE);
             categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
         } else {
-            products = productService.getDangBan();
+            productPage = productService.getDangBanPaged(page, PAGE_SIZE);
         }
-        model.addAttribute("products", products);
+        model.addAttribute("products", productPage.getContent());
         model.addAttribute("categories", categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc());
         model.addAttribute("selectedCategoryId", danhMuc);
+        model.addAttribute("danhMuc", danhMuc);
+        model.addAttribute("dungTich", dungTich);
+        model.addAttribute("chatLieu", chatLieu);
+        model.addAttribute("priceRange", priceRange);
+        model.addAttribute("sortBy", sortBy);
+        model.addAttribute("distinctVolumes", productService.getDistinctVolumes());
+        model.addAttribute("distinctMaterials", productService.getDistinctChatLieu());
+
+        // Pagination attributes
+        model.addAttribute("currentPage", productPage.getNumber());
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("totalItems", (int) productPage.getTotalElements());
+        model.addAttribute("pageSize", PAGE_SIZE);
 
         // Build variants map + flash sale map
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
         Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
+        List<Product> products = productPage.getContent();
         if (!products.isEmpty()) {
             List<Integer> ids = products.stream().map(Product::getId).collect(Collectors.toList());
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
@@ -104,27 +146,31 @@ public class ProductController {
         for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
             Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();
             for (ProductVariant v : entry.getValue()) {
-                String capType = "Phân loại";
+                String groupKey = "Phân loại";
                 if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                     String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                    if (parts.length >= 2) capType = parts[1].trim();
+                    if (parts.length >= 2) groupKey = parts[1].trim();
                 } else if (v.getDungTich() != null) {
-                    capType = "Dung tích";
+                    groupKey = "Dung tích";
                 }
-                grouped.computeIfAbsent(capType, k -> new ArrayList<>()).add(v);
+                grouped.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(v);
             }
             groupedVariantsMap.put(entry.getKey(), grouped);
         }
         model.addAttribute("groupedVariantsMap", groupedVariantsMap);
 
+        if (!products.isEmpty()) {
+            List<Integer> ids = products.stream().map(Product::getId).collect(Collectors.toList());
+            model.addAttribute("avgRatings", reviewService.getAverageRatings(ids));
+        }
+
         try {
             Integer userId = securityUtil.getCurrentUserId();
             if (userId != null) {
-                List<Integer> likedIds = jdbcTemplate.queryForList("SELECT productId FROM Wishlists WHERE userId = ?", Integer.class, userId);
-                model.addAttribute("likedIds", likedIds);
+                model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
             }
         } catch (Exception e) {
-            System.out.println("Loi doc likedIds o trang danh sach san pham: " + e.getMessage());
+            log.warn("Loi doc likedIds o trang danh sach san pham: {}", e.getMessage());
         }
 
         return "view/client/product/product-list";
@@ -161,35 +207,70 @@ public class ProductController {
         // Group variants by cap type (parsed from tenBienThe, e.g. "50ml - Nắp Gỗ")
         Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();
         for (ProductVariant v : variants) {
-            String capType = "Khác";
+            String groupKey = "Khác";
             if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                 String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                if (parts.length >= 2) capType = parts[1].trim();
+                if (parts.length >= 2) groupKey = parts[1].trim();
             }
-            grouped.computeIfAbsent(capType, k -> new ArrayList<>()).add(v);
+            grouped.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(v);
         }
         model.addAttribute("groupedVariants", grouped);
 
         try {
             Integer userId = securityUtil.getCurrentUserId();
             if (userId != null) {
-                List<Integer> likedIds = jdbcTemplate.queryForList("SELECT productId FROM Wishlists WHERE userId = ?", Integer.class, userId);
-                model.addAttribute("likedIds", likedIds);
+                model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
             }
         } catch (Exception e) {
-            System.out.println("Loi doc likedIds o trang chi tiet san pham: " + e.getMessage());
+            log.warn("Loi doc likedIds o trang chi tiet san pham: {}", e.getMessage());
         }
 
-        model.addAttribute("reviews", reviewService.getApprovedReviews(id));
-        Integer currentUserId = securityUtil.getCurrentUserId();
-        if (currentUserId != null) {
-            try {
-                model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
-            } catch (Exception e) {
-                model.addAttribute("hasReviewed", false);
+        // Price range
+        BigDecimal minPrice = null;
+        BigDecimal maxPrice = null;
+        Integer minVolume = null;
+        Integer maxVolume = null;
+        if (!variants.isEmpty()) {
+            List<BigDecimal> prices = variants.stream()
+                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                .sorted().collect(Collectors.toList());
+            minPrice = prices.get(0);
+            maxPrice = prices.get(prices.size() - 1);
+            List<Integer> volumes = variants.stream()
+                .map(ProductVariant::getDungTich)
+                .filter(Objects::nonNull)
+                .sorted().collect(Collectors.toList());
+            if (!volumes.isEmpty()) {
+                minVolume = volumes.get(0);
+                maxVolume = volumes.get(volumes.size() - 1);
             }
-        } else {
-            model.addAttribute("hasReviewed", false);
+        }
+        model.addAttribute("minPrice", minPrice);
+        model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("minVolume", minVolume);
+        model.addAttribute("maxVolume", maxVolume);
+
+        // Category name
+        String categoryName = categoryRepository.findById(product.getDanhMucId())
+            .map(Category::getTenDanhMuc).orElse("—");
+        model.addAttribute("categoryName", categoryName);
+
+        List<Product> related = productService.getRelatedProducts(id, product.getDanhMucId(), 8);
+        model.addAttribute("relatedProducts", related);
+        if (!related.isEmpty()) {
+            List<Integer> relatedIds = related.stream().map(Product::getId).collect(Collectors.toList());
+            List<ProductVariant> relatedVariants = variantRepository.findByProductIdInAndIsActiveTrue(relatedIds);
+            Map<Integer, List<ProductVariant>> relatedVariantsMap = relatedVariants.stream()
+                .collect(Collectors.groupingBy(ProductVariant::getProductId));
+            // Compute min prices for related products
+            Map<Integer, BigDecimal> relatedMinPrices = new HashMap<>();
+            for (var entry : relatedVariantsMap.entrySet()) {
+                entry.getValue().stream()
+                    .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                    .min(BigDecimal::compareTo)
+                    .ifPresent(price -> relatedMinPrices.put(entry.getKey(), price));
+            }
+            model.addAttribute("relatedMinPrices", relatedMinPrices);
         }
 
         return "view/client/product/product-detail";
@@ -199,6 +280,7 @@ public class ProductController {
     public String submitReview(@PathVariable Integer id,
                                @Valid @ModelAttribute ReviewRequestDTO request,
                                BindingResult result,
+                               @RequestParam(value = "hinhAnh", required = false) MultipartFile hinhAnhFile,
                                RedirectAttributes ra) {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
@@ -210,8 +292,17 @@ public class ProductController {
             return "redirect:/san-pham/" + id;
         }
         request.setProductId(id);
+        String hinhAnhUrl = null;
+        if (hinhAnhFile != null && !hinhAnhFile.isEmpty()) {
+            try {
+                hinhAnhUrl = fileUploadService.save(hinhAnhFile);
+            } catch (Exception e) {
+                ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
+                return "redirect:/san-pham/" + id;
+            }
+        }
         try {
-            reviewService.createReview(userId, request);
+            reviewService.createReview(userId, request, hinhAnhUrl);
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia! Danh gia se duoc hien thi sau khi duyet.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());

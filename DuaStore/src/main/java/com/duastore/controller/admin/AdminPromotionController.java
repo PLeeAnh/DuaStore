@@ -4,6 +4,7 @@ import com.duastore.model.Promotion;
 import com.duastore.service.admin.AdminPromotionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -22,16 +23,25 @@ public class AdminPromotionController {
     }
 
     @GetMapping
-    public String list(@RequestParam(defaultValue = "0") int page, Model model) {
-        Page<Promotion> promoPage = adminPromotionService.getAllPromotions(page, 20);
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_READ)")
+    public String list(@RequestParam(defaultValue = "0") int page,
+                       @RequestParam(defaultValue = "20") int size,
+                       Model model) {
+        Page<Promotion> promoPage = adminPromotionService.getAllPromotions(page, size);
         model.addAttribute("promotions", promoPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", promoPage.getTotalPages());
+        model.addAttribute("totalItems", promoPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+        model.addAttribute("entityLabel", "khuyến mãi");
+        model.addAttribute("url", "/admin/khuyen-mai");
+        model.addAttribute("filterParams", new java.util.HashMap<>());
         model.addAttribute("title", "khuyen-mai");
         return "view/admin/promotion/promotion-list";
     }
 
     @GetMapping("/them-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_CREATE)")
     public String createForm(Model model) {
         model.addAttribute("promotion", new Promotion());
         model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
@@ -40,6 +50,7 @@ public class AdminPromotionController {
     }
 
     @PostMapping("/them-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_CREATE)")
     public String create(@Valid @ModelAttribute Promotion promotion, BindingResult result, RedirectAttributes ra) {
         if (result.hasErrors()) {
             ra.addFlashAttribute("errorMsg", "Vui lòng kiểm tra lại thông tin khuyến mãi");
@@ -67,6 +78,7 @@ public class AdminPromotionController {
     }
 
     @GetMapping("/sua/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_UPDATE)")
     public String editForm(@PathVariable Integer id, Model model) {
         try {
             Promotion p = adminPromotionService.getPromotionById(id);
@@ -80,6 +92,7 @@ public class AdminPromotionController {
     }
 
     @PostMapping("/sua/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_UPDATE)")
     public String edit(@PathVariable Integer id, @Valid @ModelAttribute Promotion promotion, BindingResult result, RedirectAttributes ra) {
         if (result.hasErrors()) {
             ra.addFlashAttribute("errorMsg", "Vui lòng kiểm tra lại thông tin khuyến mãi");
@@ -100,6 +113,7 @@ public class AdminPromotionController {
     }
 
     @PostMapping("/xoa/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_DELETE)")
     public String delete(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             adminPromotionService.deletePromotion(id);

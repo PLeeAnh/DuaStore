@@ -6,11 +6,11 @@
 </head>
 <body>
     <div layout:fragment="content" class="container-xl py-5">
-        <div class="row"><div class="col-12 col-lg-6 mx-auto"><div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4 p-md-5">
+        <div class="row"><div class="col-12 col-lg-6 mx-auto"><div class="ds-card"><div class="ds-card-body">
             <div class="d-flex align-items-center mb-4">
                 <a th:href="${returnUrl != null ? returnUrl : '/address'}" class="btn btn-light rounded-circle me-3"><i class="bi bi-arrow-left"></i></a>
                 <h3 class="ds-section-title mb-0" th:text="${address.id == null ? 'Thêm địa chỉ mới' : 'Sửa địa chỉ'}"></h3>
-                <a th:if="${returnUrl != null}" th:href="${returnUrl}" class="btn btn-outline-secondary btn-sm rounded-pill ms-auto">
+                <a th:if="${returnUrl != null}" th:href="${returnUrl}" class="ds-btn ds-btn-outline ds-btn-sm ms-auto">
                     <i class="bi bi-arrow-return-left me-1"></i>Quay lại thanh toán
                 </a>
             </div>
@@ -55,7 +55,7 @@
                 <input type="hidden" th:field="*{phuongXa}" id="phuongXa" />
                 <input type="hidden" th:field="*{diaChiCuThe}" id="diaChiCuThe" />
 
-<div class="mb-3">
+                <div class="mb-3">
                     <label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label>
                     <input type="text" class="form-control rounded-3 py-2" th:field="*{tenNguoiNhan}" required />
                 </div>
@@ -64,18 +64,17 @@
                     <input type="tel" class="form-control rounded-3 py-2" th:field="*{soDienThoai}" required />
                 </div>
 
-<div class="form-check form-switch mb-4">
+                <div class="form-check form-switch mb-4">
                     <input class="form-check-input" type="checkbox" role="switch" th:field="*{isDefault}" id="isDefaultCheck" />
                     <label class="form-check-label user-select-none" for="isDefaultCheck">Đặt làm địa chỉ mặc định</label>
                 </div>
 
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary rounded-pill py-2 fw-semibold">Lưu địa chỉ</button>
+                    <button type="submit" class="ds-btn ds-btn-fill">Lưu địa chỉ</button>
                 </div>
             </form>
-        </div></div></div></div></div>
+        </div></div></div></div>
     </div>
-
 
     <th:block layout:fragment="extra-script">
     <script>

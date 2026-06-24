@@ -2,6 +2,7 @@ package com.duastore.repository;
 
 import com.duastore.model.OrderAssignment;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment, Integer> {
+    @Query("SELECT oa FROM OrderAssignment oa JOIN FETCH oa.admin WHERE oa.order.id = ?1")
     Optional<OrderAssignment> findByOrderId(Integer orderId);
     List<OrderAssignment> findByAdminId(Integer adminId, Sort sort);
     List<OrderAssignment> findByAdminIdAndTrangThai(Integer adminId, String trangThai);

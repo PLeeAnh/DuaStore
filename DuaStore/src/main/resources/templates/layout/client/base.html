@@ -5,6 +5,8 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title layout:title-pattern="$CONTENT_TITLE — DuaStore">DuaStore</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
@@ -16,6 +18,14 @@
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
     <script th:src="@{/js/main.js(v=1)}"></script>
+    <script th:src="@{/js/toast.js(v=1)}"></script>
+    <script th:src="@{/js/api.js(v=1)}"></script>
+    <script th:src="@{/js/utils.js(v=1)}"></script>
+    <script th:src="@{/js/modules/auth.js(v=1)}"></script>
+    <script th:src="@{/js/modules/product.js(v=1)}"></script>
+    <script th:src="@{/js/modules/wishlist.js(v=1)}"></script>
+    <script th:src="@{/js/modules/cart.js(v=1)}"></script>
+    <script th:src="@{/js/modules/checkout.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
 </head>
 <body>
@@ -109,14 +119,7 @@
                     </li>
                 </ul>
 
-                <div class="ds-nav-panel-footer" th:unless="${session.loggedIn}">
-                    <a class="ds-nav-link" th:href="@{/wishlist}"><i class="bi bi-heart"></i> <span>Yêu thích</span></a>
-                    <a class="ds-nav-link" th:href="@{/gio-hang}"><i class="bi bi-bag"></i> <span>Giỏ hàng</span></a>
-                    <div class="ds-nav-auth mt-2">
-                        <a class="ds-btn-outline d-block text-center" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Đăng nhập</a>
-                        <a class="ds-btn-fill d-block text-center mt-1" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Đăng ký</a>
-                    </div>
-                </div>
+                <!-- ds-nav-panel-footer deleted — kept in git history -->
             </div>
 
             <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">
@@ -141,12 +144,12 @@
                             </div>
                             <div th:each="item : ${myWishlist}" class="popup-item" th:id="'wishlist-item-' + ${item.productId}">
                                 <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                    <img th:if="${item.hinhAnhHienThi != null}" th:src="@{${item.hinhAnhHienThi}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
-                                    <i th:unless="${item.hinhAnhHienThi != null}" class="bi bi-box-seam text-secondary"></i>
+                                    <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
+                                    <i th:unless="${item.hinhAnh != null}" class="bi bi-box-seam text-secondary"></i>
                                 </div>
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
-                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</div>                                 
+                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + '₫'">0₫</div>                                 
                                 </div>
                                 
         </div>
@@ -173,8 +176,8 @@
                             <!-- Dùng biến uid thông minh để tương thích với mọi loại Java DTO -->
                             <div th:each="item : ${myCart}" th:with="uid=${item.variantId != null ? item.variantId : item.id}" class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" th:id="'cart-item-' + ${uid}" th:data-productid="${item.productId}">
                                 <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-                                    <img th:if="${item.hinhAnhHienThi != null or item.hinhAnh != null}" th:src="@{${item.hinhAnhHienThi != null ? item.hinhAnhHienThi : item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
-                                    <i th:unless="${item.hinhAnhHienThi != null or item.hinhAnh != null}" class="bi bi-box-seam text-secondary"></i>
+                                    <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
+                                    <i th:unless="${item.hinhAnh != null}" class="bi bi-box-seam text-secondary"></i>
                                 </div>
                                 <div class="popup-item-info flex-grow-1">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold" style="max-width: 180px; font-size: 0.9rem;">Tên SP</a>
@@ -191,7 +194,7 @@
                                               th:id="'popup-price-' + ${uid}" 
                                               th:data-price="${item.giaBan}"
                                               style="font-size: 0.9rem;" 
-                                              th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'COMMA', 0, 'POINT')} + 'đ'">0đ</span>
+                                              th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 0)} + '₫'">0₫</span>
                                     </div>
                                 </div>
                                 <button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ">
@@ -294,7 +297,7 @@
                     <i class="bi bi-exclamation-circle"></i><span>Sai tên đăng nhập hoặc mật khẩu</span>
                 </div>
 
-                <form action="/dang-nhap" method="POST" novalidate>
+                <form th:action="@{/dang-nhap}" method="POST" novalidate>
                     <div class="mb-3">
                         <div class="ds-auth-field">
                             <i class="bi bi-envelope"></i>
@@ -668,10 +671,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.success) {
                     btn.textContent = 'Đã gửi';
-                    if (data.code) {
-                        var inp = emailField.closest('.mb-3').parentElement.querySelector('[name="verificationCode"]');
-                        if (inp) { inp.value = data.code; inp.dispatchEvent(new Event('input')); }
-                    }
                     setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
                 } else {
                     btn.textContent = 'Thử lại';
@@ -758,14 +757,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let hasNewWishlist = currentWishlistState.some(state => !viewedWishlistState.includes(state));
 
     const wBadge = document.getElementById('wishlistBadge');
-    const dwBadge = document.getElementById('detailWishlistBadge'); 
 
     if (hasNewWishlist && currentWishlistState.length > 0) {
         if(wBadge) wBadge.classList.remove('d-none');
-        if(dwBadge) dwBadge.classList.remove('d-none');
     } else {
         if(wBadge) wBadge.classList.add('d-none');
-        if(dwBadge) dwBadge.classList.add('d-none');
     }
 });
 
@@ -784,8 +780,6 @@ function togglePopup(popupId) {
             if (popupId === 'wishlist-popup') {
                 var wBadge = document.getElementById('wishlistBadge');
                 if(wBadge) wBadge.classList.add('d-none');
-                var dwBadge = document.getElementById('detailWishlistBadge');
-                if(dwBadge) dwBadge.classList.add('d-none');
 
                 const items = document.querySelectorAll('#wishlist-items-container .popup-item');
                 let states = [];
@@ -813,46 +807,82 @@ function togglePopup(popupId) {
 function updatePopupQty(itemId, delta) {
     const qtySpan = document.getElementById('popup-qty-' + itemId);
     const priceSpan = document.getElementById('popup-price-' + itemId);
-    
+
     if (!qtySpan) return;
-    
+
     let currentQty = parseInt(qtySpan.innerText) || 1;
     let newQty = currentQty + delta;
-    
+
     if (newQty < 1) {
-        if(confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+        if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
             removeCartItem(itemId);
         }
         return;
     }
 
-    qtySpan.innerText = newQty;
-    if (priceSpan) {
-        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
-        priceSpan.innerText = (unitPrice * newQty).toLocaleString('vi-VN') + 'đ';
-    }
-
-    const items = document.querySelectorAll('#cart-items-container .popup-item');
-    let states = [];
-    items.forEach(item => {
-        const span = item.querySelector('span[id^="popup-qty-"]');
-        const q = span ? span.innerText.trim() : '1';
-        states.push(item.id + '-qty-' + q);
-    });
-    localStorage.setItem('viewedCartState', JSON.stringify(states));
-
     fetch('/api/cart/update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty }) 
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            variantId: parseInt(itemId),
+            itemId: parseInt(itemId),
+            soLuong: newQty
+        })
     })
     .then(r => r.json())
     .then(data => {
-        if (data.success && typeof updateCartBadge === 'function') {
+
+    if (!data.success) {
+    const msg = document.getElementById('cart-message');
+
+    if (msg) {
+        msg.innerText = data.message;
+        msg.style.display = 'block';
+
+        setTimeout(() => {
+            msg.style.display = 'none';
+        }, 3000);
+    }
+
+    return;
+}
+localStorage.setItem('cartViewed', 'true');
+
+    qtySpan.innerText = newQty;
+
+        if (priceSpan) {
+            let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
+
+            priceSpan.innerText =
+                (unitPrice * newQty).toLocaleString('vi-VN') + '₫';
+        }
+
+        // Lưu trạng thái popup
+        const items = document.querySelectorAll('#cart-items-container .popup-item');
+        let states = [];
+
+        items.forEach(item => {
+            const span = item.querySelector('span[id^="popup-qty-"]');
+            const q = span ? span.innerText.trim() : '1';
+            states.push(item.id + '-qty-' + q);
+        });
+
+        localStorage.setItem(
+            'viewedCartState',
+            JSON.stringify(states)
+        );
+
+        if (typeof updateCartBadge === 'function') {
             updateCartBadge(data.cartCount);
         }
+
     })
-    .catch(err => console.log("Lỗi đồng bộ giỏ hàng: ", err));
+    .catch(err => {
+        console.error('Lỗi đồng bộ giỏ hàng:', err);
+        alert('Có lỗi xảy ra, vui lòng thử lại!');
+    });
 }
 function refreshWishlistBadgeCount() {
     // Đếm số lượng thẻ sản phẩm đang nằm trong popup container

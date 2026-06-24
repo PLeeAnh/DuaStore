@@ -1,0 +1,1568 @@
+/* ================================================================
+   admin-v2.css — Premium Glassware Admin Design System
+   Overrides admin.css. Import AFTER admin.css.
+   ================================================================ */
+
+/* ── 1. CSS Variables ── */
+:root {
+  --primary: #2563EB;
+  --primary-light: #DBEAFE;
+  --secondary: #60A5FA;
+
+  --success: #16A34A;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+
+  --bg: #F6F9FC;
+  --card: #FFFFFF;
+  --text: #0F172A;
+  --muted: #64748B;
+  --border: #E2E8F0;
+
+  --sidebar-w: 280px;
+  --header-h: 72px;
+  --card-radius: 20px;
+  --shadow: 0 10px 30px rgba(15,23,42,0.08);
+
+  --font: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-logo: 'Dancing Script', cursive;
+}
+
+/* ── 1b. Dark Mode Reserve ── */
+[data-theme="dark"] {
+  --bg: #0F172A;
+  --card: #1E293B;
+  --text: #F1F5F9;
+  --muted: #94A3B8;
+  --border: #334155;
+}
+
+/* ── 2. Base & Layout Override ── */
+body.adm-body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.adm-main {
+  margin-left: var(--sidebar-w);
+}
+
+/* ── 3. Sidebar ── */
+.adm-sidebar {
+  width: var(--sidebar-w);
+  border-right: 1px solid var(--border);
+}
+
+.adm-nav-link {
+  border-radius: 12px;
+  color: var(--muted);
+  transition: background .15s, color .15s;
+}
+
+.adm-nav-link:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.adm-nav-link.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.adm-nav-link i {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+/* ── 3b. Sidebar Logo ── */
+.adm-sidebar-logo {
+  padding: 1.25rem 1.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm-logo-svg {
+  width: 32px;
+  height: 48px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.adm-logo-text {
+  font-family: var(--font-logo);
+  font-size: 1.65rem;
+  color: var(--text);
+  line-height: 1;
+}
+
+.adm-logo-sub {
+  font-size: .62rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .15em;
+  margin-top: 2px;
+  margin-left: 42px;
+}
+
+/* Sidebar illustration */
+.adm-sidebar-glass {
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+}
+
+.adm-sidebar-glass .adm-illustration {
+  color: var(--primary);
+  opacity: .25;
+  max-width: 100px;
+  height: auto;
+}
+
+.adm-sidebar-home {
+  padding: 0.75rem 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ── 4. Header ── */
+.adm-topbar {
+  height: var(--header-h);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+
+.adm-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.adm-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* Notification Bell */
+.adm-notif-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: background .15s, color .15s;
+  text-decoration: none;
+}
+
+.adm-notif-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.adm-notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: .6rem;
+  padding: 2px 5px;
+  min-width: 18px;
+  border-radius: 999px;
+}
+
+/* Profile */
+.adm-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 3px 12px 3px 3px;
+  cursor: pointer;
+  color: var(--text);
+  transition: border-color .15s;
+}
+
+.adm-profile-trigger:hover {
+  border-color: var(--primary);
+}
+
+.adm-profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.adm-profile-name {
+  font-size: .85rem;
+  font-weight: 500;
+}
+
+.adm-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 200px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity .2s, transform .2s, visibility .2s;
+  z-index: 1200;
+  overflow: hidden;
+}
+
+.adm-profile-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.adm-profile-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: .82rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background .1s;
+}
+
+.adm-profile-link:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.adm-profile-link i {
+  width: 16px;
+  text-align: center;
+}
+
+.adm-profile-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+/* Toggle button */
+.adm-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  width: 40px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--muted);
+  border-radius: 10px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.adm-toggle:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* Breadcrumb */
+.breadcrumb-item {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.breadcrumb-item a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  color: var(--primary);
+}
+
+.breadcrumb-item.active {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ── 5. Content ── */
+.adm-content {
+  flex: 1;
+  padding: 1.5rem;
+  background: var(--bg);
+}
+
+.adm-footer {
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: .75rem 1.5rem;
+  font-size: .78rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── 6. Hero Banner (dashboard/analytics only) ── */
+.adm-hero {
+  background: linear-gradient(135deg, var(--primary-light) 0%, #F0F7FF 100%);
+  border-radius: var(--card-radius);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 140px;
+}
+
+.adm-hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.adm-hero h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.adm-hero p {
+  font-size: .875rem;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.adm-hero-decoration {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: .12;
+  pointer-events: none;
+  color: var(--primary);
+}
+
+/* ── 7. Page Header (CRUD pages) ── */
+.adm-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.adm-page-header h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.adm-page-header p {
+  margin: 2px 0 0;
+  font-size: .82rem;
+  color: var(--muted);
+}
+
+/* ── 8. Stat Cards ── */
+.adm-stat {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: box-shadow .2s, transform .2s;
+}
+
+.adm-stat:hover {
+  box-shadow: 0 15px 40px rgba(15,23,42,0.12);
+  transform: translateY(-2px);
+}
+
+.adm-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.adm-stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.adm-stat-label {
+  font-size: .8rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── 9. Generic Card ── */
+.adm-card {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+}
+
+.adm-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.adm-card-body {
+  flex: 1;
+}
+
+/* ── 10. Table ── */
+.adm-table-wrap {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.adm-table-wrap .table {
+  margin: 0;
+  color: var(--text);
+}
+
+.adm-table-wrap .table th {
+  background: #F8FAFC;
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  padding: .85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.adm-table-wrap .table td {
+  padding: .85rem 1.25rem;
+  vertical-align: middle;
+  font-size: .875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.adm-table-wrap .table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.adm-table-wrap .table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.adm-table-wrap td a:not(.btn) {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* ── 11. Forms ── */
+.form-control, .form-select {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  border-radius: 12px;
+  padding: .55rem 1rem;
+  font-size: .875rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+  outline: none;
+  background: var(--card);
+  color: var(--text);
+}
+
+.form-label {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: .35rem;
+}
+
+.form-text {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.input-group-text {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+/* ── 12. Buttons ── */
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  padding: .5rem 1.25rem;
+  transition: all .15s;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+  color: #fff;
+}
+
+.btn-outline-primary {
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  background: transparent;
+  border-radius: 10px;
+}
+
+.btn-outline-primary:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-outline-secondary {
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+}
+
+.btn-outline-secondary:hover {
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.btn-outline-danger {
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
+  border-radius: 10px;
+}
+
+.btn-outline-danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-outline-info {
+  color: #0891B2;
+  border: 1.5px solid #0891B2;
+  border-radius: 10px;
+}
+
+.btn-outline-info:hover {
+  background: #0891B2;
+  color: #fff;
+}
+
+.btn-sm {
+  padding: .35rem .85rem;
+  font-size: .78rem;
+}
+
+/* Icon circle button (action column: view/edit/delete) */
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* ── 13. Badges ── */
+.badge.bg-success { background: var(--success) !important; }
+.badge.bg-warning { background: var(--warning) !important; }
+.badge.bg-danger { background: var(--danger) !important; }
+.badge.bg-primary { background: var(--primary) !important; }
+.badge.bg-info { background: var(--secondary) !important; }
+
+/* ── 14. Status Pills ── */
+.status-pill {
+  padding: 3px 14px;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 500;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.status-cho-xac-nhan {
+  background: rgba(245,158,11,0.12);
+  color: #B45309;
+}
+
+.status-da-xac-nhan {
+  background: rgba(37,99,235,0.12);
+  color: var(--primary);
+}
+
+.status-dang-giao {
+  background: rgba(6,182,212,0.12);
+  color: #0891B2;
+}
+
+.status-da-giao {
+  background: rgba(79,70,229,0.12);
+  color: #4338CA;
+}
+
+.status-da-hoan-thanh {
+  background: rgba(22,163,74,0.12);
+  color: var(--success);
+}
+
+.status-da-huy {
+  background: rgba(220,38,38,0.12);
+  color: var(--danger);
+}
+
+/* ── 15. Progress Bar (Order Detail) ── */
+.progress-step-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  padding: 1.5rem 1rem;
+}
+
+.step-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.step-circle.completed {
+  background: var(--success);
+  color: #fff;
+}
+
+.step-circle.active {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 0 5px rgba(37,99,235,0.15);
+}
+
+.step-circle.pending {
+  background: #E2E8F0;
+  color: var(--muted);
+}
+
+.step-label {
+  font-size: .75rem;
+  margin-top: .5rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.step-label.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.step-label.muted {
+  color: var(--muted);
+}
+
+/* Connecting line */
+.step-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: 3px;
+  background: #E2E8F0;
+  z-index: 1;
+  margin: 0 2rem;
+}
+
+.step-line-fill {
+  height: 100%;
+  background: var(--success);
+  transition: width .3s ease;
+}
+
+/* ── 16. Timeline ── */
+.adm-timeline {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.adm-timeline-item {
+  display: flex;
+  gap: .85rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.adm-timeline-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.adm-timeline-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm-timeline-content {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.adm-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adm-timeline-user {
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.adm-timeline-time {
+  font-size: .72rem;
+  color: var(--muted);
+}
+
+.adm-timeline-body {
+  margin-top: .25rem;
+  font-size: .82rem;
+}
+
+/* ── 17. Pagination ── */
+.adm-pagination-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: .85rem;
+  font-weight: 500;
+  transition: all .15s;
+  text-decoration: none;
+  background: var(--card);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.adm-pagination-btn:hover {
+  background: var(--bg);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.adm-pagination-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+}
+
+.adm-pagination-btn.disabled,
+.adm-pagination-btn[disabled] {
+  opacity: .5;
+  pointer-events: none;
+}
+
+.adm-pagination-nav-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--muted);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.adm-pagination-nav-btn:hover {
+  background: var(--bg);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ── 18. Toast ── */
+.toast {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.toast-header {
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  border-radius: 14px 14px 0 0;
+}
+
+/* ── 19. Modal ── */
+.modal-content {
+  background: var(--card);
+  border: none;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+}
+
+.btn-close {
+  filter: brightness(0.4);
+}
+
+/* ── 20. Empty State ── */
+.adm-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.adm-empty-icon {
+  font-size: 2.5rem;
+  color: var(--muted);
+  display: block;
+  margin-bottom: .75rem;
+}
+
+.adm-empty-title {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 .25rem;
+}
+
+.adm-empty-desc {
+  font-size: .78rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+
+/* ── 21. Tabs ── */
+.adm-tab-nav {
+  display: inline-flex;
+  gap: 6px;
+  background: var(--card);
+  padding: 8px;
+  border-radius: 9999px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.adm-tab {
+  padding: .6rem 1.35rem;
+  border-radius: 9999px;
+  transition: all .2s;
+  text-decoration: none;
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adm-tab:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.adm-tab.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ── 22. Utility Colors ── */
+.text-primary { color: var(--primary) !important; }
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-muted { color: var(--muted) !important; }
+.bg-primary { background: var(--primary) !important; }
+.bg-success { background: var(--success) !important; }
+.bg-danger { background: var(--danger) !important; }
+.bg-warning { background: var(--warning) !important; }
+.bg-light { background: var(--bg) !important; }
+
+/* ── 23. Alerts ── */
+.alert-success {
+  background: rgba(22,163,74,0.08);
+  border: 1px solid rgba(22,163,74,0.15);
+  color: var(--success);
+  border-radius: 12px;
+}
+
+.alert-danger {
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.15);
+  color: var(--danger);
+  border-radius: 12px;
+}
+
+.alert-warning {
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.15);
+  color: #B45309;
+  border-radius: 12px;
+}
+
+/* ── 24. Thumbnail ── */
+.adm-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* ── 25. Search / Filter Bar ── */
+.adm-filter-bar {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── 26. KPI Cards Warning State ── */
+.adm-stat-warning {
+  border-color: #FDE68A;
+  background: #FFFBEB;
+}
+
+.adm-stat-warning .adm-stat-value {
+  color: #D97706;
+}
+
+.adm-stat-warning .adm-stat-label {
+  color: #92400E;
+}
+
+/* ── 27. Kebab Dropdown ── */
+.adm-kebab-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  transition: all .15s;
+}
+
+.adm-kebab-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.adm-kebab-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15,23,42,0.12);
+  padding: 6px;
+  min-width: 180px;
+}
+
+.adm-kebab-menu .dropdown-item {
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: .82rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  transition: background .1s;
+}
+
+.adm-kebab-menu .dropdown-item:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.adm-kebab-menu .dropdown-item.text-danger:hover {
+  background: rgba(220,38,38,0.08);
+  color: var(--danger);
+}
+
+.adm-kebab-menu .dropdown-divider {
+  margin: 4px 8px;
+  border-color: var(--border);
+}
+
+/* ── 28. Variant Card ── */
+.adm-variant-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  transition: box-shadow .2s, transform .2s;
+}
+
+.adm-variant-card:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.adm-variant-name {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.adm-variant-meta {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.adm-variant-price {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.adm-variant-stock {
+  font-size: .8rem;
+}
+
+/* ── 29. Gallery Grid ── */
+.adm-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.adm-gallery-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+}
+
+.adm-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.adm-gallery-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.adm-gallery-action {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+}
+
+/* ── 30. Product Detail ── */
+.adm-detail-hero {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.adm-detail-hero h4 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.adm-detail-hero .adm-detail-meta {
+  font-size: .82rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.adm-detail-hero .adm-detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+/* ── 31. Nav Tabs (Product Detail) ── */
+.adm-detail-tabs {
+  background: var(--card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.adm-detail-tabs .nav-tabs {
+  padding: 0 1.25rem;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--border);
+}
+
+.adm-detail-tabs .nav-tabs .nav-link {
+  border: none;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 500;
+  padding: .75rem 1rem;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+}
+
+.adm-detail-tabs .nav-tabs .nav-link:hover {
+  color: var(--text);
+  background: transparent;
+}
+
+.adm-detail-tabs .nav-tabs .nav-link.active {
+  color: var(--primary);
+  background: transparent;
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+.adm-detail-tabs .tab-content {
+  padding: 1.25rem;
+}
+
+/* ── 32. Product Detail Info Table ── */
+.adm-info-table td {
+  padding: .5rem .75rem;
+  font-size: .85rem;
+  vertical-align: top;
+}
+
+.adm-info-table td:first-child {
+  color: var(--muted);
+  width: 140px;
+  white-space: nowrap;
+}
+
+/* ── 33. Image Page Gallery ── */
+.adm-image-large {
+  max-width: 320px;
+  border-radius: 14px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* ── 34. Image Management Cards ── */
+.adm-image-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.adm-image-card:hover {
+  box-shadow: 0 15px 40px rgba(15,23,42,0.1);
+  transform: translateY(-2px);
+}
+.adm-image-card--empty {
+  border-color: #FDE68A;
+  background: #FFFBEB;
+}
+.adm-image-card--empty:hover {
+  border-color: #F59E0B;
+  box-shadow: 0 8px 25px rgba(245,158,11,0.15);
+}
+
+.adm-image-preview {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #F8FAFC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.adm-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s ease;
+}
+.adm-image-card:hover .adm-image-preview img {
+  transform: scale(1.05);
+}
+.adm-image-preview-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background: #FFFBEB;
+}
+.adm-image-preview-placeholder i {
+  font-size: 2.5rem;
+  color: #FCD34D;
+}
+.adm-image-preview-placeholder small {
+  color: #B45309;
+  margin-top: 4px;
+  font-size: .75rem;
+  font-weight: 500;
+}
+
+.adm-image-preview-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .72rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  backdrop-filter: blur(4px);
+}
+.adm-image-preview-badge.bg-primary {
+  background: rgba(37,99,235,0.85) !important;
+}
+.adm-image-preview-badge.bg-secondary {
+  background: rgba(100,116,139,0.75) !important;
+}
+
+.adm-image-card-kebab {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 5;
+}
+
+.adm-image-card-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.adm-image-name {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.adm-image-status {
+  margin-top: 6px;
+}
+.adm-image-action {
+  margin-top: auto;
+  padding-top: 10px;
+}
+.adm-image-action .btn {
+  font-size: .78rem;
+  padding: .4rem .85rem;
+}
+
+/* ── 36. Category Tree ── */
+.category-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-tree ul,
+.category-tree .tree-children {
+  list-style: none;
+  padding-left: 1.75rem;
+  margin: 0;
+  margin-left: 0.5rem;
+  position: relative;
+}
+
+.category-tree .tree-children.d-none {
+  display: none;
+}
+
+/* Vertical branch line */
+.category-tree .tree-children::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 2px solid var(--border);
+}
+
+.category-tree li {
+  position: relative;
+}
+
+/* Horizontal connector for each child node */
+.category-tree .tree-children > li::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -1.25rem;
+  width: 1.25rem;
+  height: 0;
+  border-top: 2px solid var(--border);
+  pointer-events: none;
+}
+
+/* ── Root node clickable via toggle area ── */
+.tree-root-node {
+  cursor: pointer;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: background .15s;
+  margin-bottom: 2px;
+}
+
+.tree-node:hover {
+  background: var(--bg);
+}
+
+.tree-root-node {
+  background: var(--card);
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.tree-root-node:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+}
+
+.tree-toggle {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+  color: var(--muted);
+  transition: all .15s;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+}
+
+.tree-toggle:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.tree-toggle.collapsed i {
+  transform: rotate(-90deg);
+}
+
+.tree-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.tree-thumb-sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.tree-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.tree-name {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tree-name-sm {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.tree-count {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.tree-count a:hover {
+  color: var(--primary) !important;
+}
+
+.tree-node .dropdown {
+  margin-left: auto;
+}
+
+
+
+.tree-root-badge {
+  display: inline-block;
+  font-size: .6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+/* ── 35. Responsive ── */
+@media (min-width: 992px) {
+  .adm-toggle { display: none; }
+}
+
+@media (max-width: 991px) {
+  .adm-sidebar {
+    transform: translateX(-100%);
+    transition: transform .3s ease;
+  }
+
+  .adm-sidebar.adm-sidebar-mobile-open {
+    transform: translateX(0);
+  }
+
+  .adm-main {
+    margin-left: 0;
+  }
+
+  .adm-profile-name { display: none; }
+}
+
+@media (max-width: 767px) {
+  .adm-table-wrap {
+    overflow-x: auto;
+  }
+
+  .adm-content {
+    padding: 1rem;
+  }
+
+  .adm-table-wrap .table th,
+  .adm-table-wrap .table td {
+    padding: .65rem .75rem;
+  }
+
+  .adm-table-wrap .btn-sm {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    font-size: .75rem;
+    min-width: 32px;
+  }
+}

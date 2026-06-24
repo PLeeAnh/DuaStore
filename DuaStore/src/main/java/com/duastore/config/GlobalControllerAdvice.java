@@ -7,6 +7,8 @@ import com.duastore.repository.CategoryRepository;
 import com.duastore.service.client.CartService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -15,6 +17,8 @@ import java.util.List;
 
 @ControllerAdvice
 public class GlobalControllerAdvice {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalControllerAdvice.class);
 
     private final CategoryRepository categoryRepository;
     private final CartService cartService;
@@ -36,7 +40,7 @@ public class GlobalControllerAdvice {
         try {
             return categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
         } catch (Exception e) {
-            System.out.println("Loi navCategories: " + e.getMessage());
+            log.warn("Loi navCategories: {}", e.getMessage());
             return List.of();
         }
     }
@@ -53,7 +57,7 @@ public class GlobalControllerAdvice {
             if (userId == null) return 0;
             return cartService.count(userId);
         } catch (Exception e) {
-            System.out.println("Loi cartCount: " + e.getMessage());
+            log.warn("Loi cartCount: {}", e.getMessage());
             return 0;
         }
     }

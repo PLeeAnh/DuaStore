@@ -2,280 +2,326 @@
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout">
-    <head>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title layout:title-pattern="$CONTENT_TITLE — Admin DuaStore">Admin</title>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title layout:title-pattern="$CONTENT_TITLE — Admin DuaStore">Admin</title>
 
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
-        <link rel="preconnect" href="https://fonts.googleapis.com"/>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-        <link rel="stylesheet"
-              href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
-        <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
+    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin-v2.css}"/>
 
     <th:block layout:fragment="extra-head"></th:block>
 </head>
 <body class="adm-body">
 
-    <div class="adm-wrapper">
+<div class="adm-wrapper">
 
-        <!-- ════════════════════════════════════════════════
-             SIDEBAR
-        ════════════════════════════════════════════════ -->
-        <aside class="adm-sidebar">
+    <!-- ════════════════════════════════════════════════
+         SIDEBAR
+    ════════════════════════════════════════════════ -->
+    <aside class="adm-sidebar">
 
-            <!-- Logo -->
-            <div class="adm-sidebar-logo">
-                <a th:href="@{/admin}" class="adm-logo text-decoration-none">
-                    DuaStore
-                </a>
-                <span class="adm-logo-sub">Admin Panel</span>
+        <!-- Logo -->
+        <div class="adm-sidebar-logo">
+            <a th:href="@{/admin}" class="adm-logo text-decoration-none">
+                <svg class="adm-logo-svg" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 6 L16 14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    <path d="M10 14 Q10 30 6 42 L26 42 Q22 30 22 14 Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                    <path d="M12 24 Q16 20 20 24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path d="M13 18 Q16 15 19 18" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/>
+                </svg>
+                <span class="adm-logo-text">DuaStore</span>
+            </a>
+            <span class="adm-logo-sub">ADMIN PANEL</span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="adm-nav">
+
+            <div class="adm-nav-section">Tổng quan</div>
+            <a class="adm-nav-link" th:href="@{/admin}"
+               th:if="${userPermissions.contains('DASHBOARD_READ')}"
+               th:classappend="${title == 'dashboard' ? ' active' : ''}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <div class="adm-nav-section">Catalogue</div>
+            <a class="adm-nav-link" th:href="@{/admin/san-pham}"
+               th:if="${userPermissions.contains('PRODUCT_READ')}"
+               th:classappend="${title == 'san-pham' ? ' active' : ''}">
+                <i class="bi bi-box-seam"></i>
+                <span>Sản phẩm</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/danh-muc}"
+               th:if="${userPermissions.contains('CATEGORY_READ')}"
+               th:classappend="${title == 'danh-muc' ? ' active' : ''}">
+                <i class="bi bi-grid-3x3-gap"></i>
+                <span>Danh mục</span>
+            </a>
+
+            <div class="adm-nav-section">Kinh doanh</div>
+            <a class="adm-nav-link" th:href="@{/admin/don-hang}"
+               th:if="${userPermissions.contains('ORDER_READ')}"
+               th:classappend="${title == 'don-hang' ? ' active' : ''}">
+                <i class="bi bi-bag-check"></i>
+                <span>Đơn hàng</span>
+                <span class="badge bg-danger ms-auto" th:if="${pendingOrders > 0}" th:text="${pendingOrders}"></span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
+               th:if="${userPermissions.contains('PROMOTION_READ')}"
+               th:classappend="${title == 'khuyen-mai' ? ' active' : ''}">
+                <i class="bi bi-tag"></i>
+                <span>Khuyến mãi</span>
+            </a>
+
+            <div class="adm-nav-section">Nội dung</div>
+            <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
+               th:if="${userPermissions.contains('POST_READ')}"
+               th:classappend="${title == 'bai-viet' ? ' active' : ''}">
+                <i class="bi bi-newspaper"></i>
+                <span>Bài viết</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/danh-gia}"
+               th:if="${userPermissions.contains('REVIEW_READ')}"
+               th:classappend="${title == 'danh-gia' ? ' active' : ''}">
+                <i class="bi bi-star"></i>
+                <span>Đánh giá</span>
+            </a>
+
+            <div class="adm-nav-section">Hệ thống</div>
+            <a class="adm-nav-link" th:href="@{/admin/nguoi-dung}"
+               th:if="${userPermissions.contains('USER_READ')}"
+               th:classappend="${title == 'nguoi-dung' ? ' active' : ''}">
+                <i class="bi bi-people"></i>
+                <span>Người dùng</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/vai-tro}"
+               th:if="${userPermissions.contains('ROLE_READ')}"
+               th:classappend="${title == 'vai-tro' ? ' active' : ''}">
+                <i class="bi bi-shield-lock"></i>
+                <span>Phân quyền</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/nhat-ky}"
+               th:if="${userPermissions.contains('AUDIT_LOG_READ')}"
+               th:classappend="${title == 'nhat-ky' ? ' active' : ''}">
+                <i class="bi bi-clock-history"></i>
+                <span>Nhật ký</span>
+            </a>
+
+        </nav>
+
+        <!-- Bottom illustration -->
+        <div class="adm-sidebar-glass">
+            <svg class="adm-illustration" viewBox="0 0 120 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M60 15 L60 45" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+                <path d="M40 45 Q40 80 32 105 Q28 118 28 130 Q28 160 36 175 L84 175 Q92 160 92 130 Q92 118 88 105 Q80 80 80 45 Z" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.5"/>
+                <path d="M45 80 Q60 68 75 80" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.4"/>
+                <path d="M48 70 Q60 60 72 70" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/>
+                <path d="M42 95 Q60 85 78 95" stroke="currentColor" stroke-width="1" fill="none" opacity="0.35"/>
+                <path d="M50 60 Q60 53 70 60" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.25"/>
+                <ellipse cx="56" cy="125" rx="4" ry="6" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/>
+                <ellipse cx="64" cy="125" rx="4" ry="6" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/>
+                <ellipse cx="60" cy="145" rx="6" ry="4" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.25"/>
+                <line x1="30" y1="178" x2="90" y2="178" stroke="currentColor" stroke-width="1.5" opacity="0.3" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <!-- Back to home -->
+        <div class="adm-sidebar-home">
+            <a class="adm-nav-link" th:href="@{/}">
+                <i class="bi bi-arrow-left-circle"></i>
+                <span>Về trang chủ</span>
+            </a>
+        </div>
+
+    </aside>
+
+    <!-- ════════════════════════════════════════════════
+         MAIN AREA
+    ════════════════════════════════════════════════ -->
+    <div class="adm-main">
+
+        <!-- Topbar -->
+        <header class="adm-topbar">
+            <div class="adm-topbar-left">
+                <button class="adm-toggle" id="admNavToggle" type="button" aria-label="Mở menu">
+                    <i class="bi bi-list" id="admToggleIcon"></i>
+                </button>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 small">
+                        <li class="breadcrumb-item">
+                            <a th:href="@{/admin}" class="text-decoration-none">
+                                <i class="bi bi-house me-1"></i>Admin
+                            </a>
+                        </li>
+                        <th:block layout:fragment="breadcrumb">
+                            <li class="breadcrumb-item active" aria-current="page">Trang</li>
+                        </th:block>
+                    </ol>
+                </nav>
             </div>
 
-            <!-- Navigation -->
-            <nav class="adm-nav">
-
-                <div class="adm-nav-section">Tổng quan</div>
-                <a class="adm-nav-link" th:href="@{/admin}"
-                   th:classappend="${title == 'dashboard' ? ' active' : ''}">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
-                </a>    
-
-                <div class="adm-nav-section">Catalogue</div>
-                <a class="adm-nav-link" th:href="@{/admin/san-pham}"
-                   th:classappend="${title == 'san-pham' ? ' active' : ''}">
-                    <i class="bi bi-box-seam"></i>
-                    <span>Sản phẩm</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/danh-muc}"
-                   th:classappend="${title == 'danh-muc' ? ' active' : ''}">
-                    <i class="bi bi-grid-3x3-gap"></i>
-                    <span>Danh mục</span>
+            <div class="adm-topbar-right">
+                <a th:if="${session.loggedIn}"
+                   th:href="@{/admin/don-hang(trangThai='CHO_XAC_NHAN', tatCa=true)}"
+                   class="adm-notif-btn position-relative" id="admNotifBtn"
+                   title="Đơn hàng chờ xác nhận">
+                    <i class="bi bi-bell"></i>
+                    <span class="adm-notif-badge badge bg-danger"
+                          th:if="${pendingOrders > 0}"
+                          th:text="${pendingOrders > 99 ? '99+' : pendingOrders}"></span>
                 </a>
 
-                <div class="adm-nav-section">Kinh doanh</div>
-                <a class="adm-nav-link" th:href="@{/admin/don-hang}"
-                   th:classappend="${title == 'don-hang' ? ' active' : ''}">
-                    <i class="bi bi-bag-check"></i>
-                    <span>Đơn hàng</span>
-                    <span class="badge bg-danger ms-auto" th:if="${pendingOrders > 0}" th:text="${pendingOrders}"></span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
-                   th:classappend="${title == 'khuyen-mai' ? ' active' : ''}">
-                    <i class="bi bi-tag"></i>
-                    <span>Khuyến mãi</span>
-                </a>
-
-                <div class="adm-nav-section">Nội dung</div>
-                <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
-                   th:classappend="${title == 'bai-viet' ? ' active' : ''}">
-                    <i class="bi bi-newspaper"></i>
-                    <span>Bài viết</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/danh-gia}"
-                   th:classappend="${title == 'danh-gia' ? ' active' : ''}">
-                    <i class="bi bi-star"></i>
-                    <span>Đánh giá</span>
-                </a>
-
-                <div class="adm-nav-section">Hệ thống</div>
-                <a class="adm-nav-link" th:href="@{/admin/nguoi-dung}"
-                   th:classappend="${title == 'nguoi-dung' ? ' active' : ''}">
-                    <i class="bi bi-people"></i>
-                    <span>Người dùng</span>
-                </a>
-
-            </nav>
-
-            <!-- Sidebar bottom -->
-            <div class="adm-sidebar-bottom">
-                <a class="adm-nav-link" th:href="@{/}">
-                    <i class="bi bi-arrow-left-circle"></i>
-                    <span>Về trang chủ</span>
-                </a>
-            </div>
-
-        </aside>
-
-        <!-- ════════════════════════════════════════════════
-             MAIN AREA
-        ════════════════════════════════════════════════ -->
-        <div class="adm-main">
-
-            <!-- Topbar -->
-            <header class="adm-topbar">
-                <div class="adm-topbar-left">
-                    <!-- ═══════════════════════════════════
-                         EDIT TOGGLE TẠI ĐÂY — admin </> / ✕
-                         ═══════════════════════════════════ -->
-                    <button class="adm-toggle" id="admNavToggle" type="button" aria-label="Mở menu">
-                        <span class="ds-toggle-text" id="admToggleIcon">&lt;/&gt;</span>
+                <div class="adm-profile-wrap position-relative" th:if="${session.loggedIn}">
+                    <button class="adm-profile-trigger" id="admProfileTrigger" type="button">
+                        <span class="adm-profile-avatar" th:text="${session.userInitial}">A</span>
+                        <span class="adm-profile-name" th:text="${session.userName}">Admin</span>
+                        <i class="bi bi-chevron-down adm-profile-chevron"></i>
                     </button>
-                    <!-- ═══════════════════════════════════
-                         KẾT THÚC EDIT TOGGLE
-                         ═══════════════════════════════════ -->
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0 small">
-                            <li class="breadcrumb-item">
-                                <a th:href="@{/admin}" class="text-decoration-none">
-                                    <i class="bi bi-house me-1"></i>Admin
-                                </a>
-                            </li>
-                            <th:block layout:fragment="breadcrumb">
-                                <li class="breadcrumb-item active" aria-current="page">Trang</li>
-                            </th:block>
-                        </ol>
-                    </nav>
-                </div>
-
-                <!-- ★ PROFILE / LOGIN
-                     session.loggedIn → avatar+dropdown; else → "Đăng nhập"
-                     Backend set session: loggedIn, userName, userInitial -->
-                <div class="adm-topbar-right d-flex align-items-center gap-3">
-                    <div class="adm-profile-wrap" th:if="${session.loggedIn}">
-                        <button class="adm-profile-trigger" id="admProfileTrigger" type="button">
-                            <span class="adm-profile-avatar" th:text="${session.userInitial}">A</span>
-                            <span class="adm-profile-name" th:text="${session.userName}">Admin</span>
-                            <i class="bi bi-chevron-down adm-profile-chevron"></i>
-                        </button>
-                        <div class="adm-profile-dropdown" id="admProfileDropdown">
-                            <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminProfileModal"><i class="bi bi-person"></i> Hồ sơ</a>
-                            <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminChangePasswordModal"><i class="bi bi-key"></i> Đổi mật khẩu</a>
-                            <div class="adm-profile-divider"></div>
-                            <form th:action="@{/dang-xuat}" method="post" class="d-block">
-                                <button type="submit" class="adm-profile-link text-danger border-0 bg-transparent w-100 text-start d-flex align-items-center gap-2">
-                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
-                                </button>
-                            </form>
-                        </div>
+                    <div class="adm-profile-dropdown" id="admProfileDropdown">
+                        <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminProfileModal"><i class="bi bi-person"></i> Hồ sơ</a>
+                        <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminChangePasswordModal"><i class="bi bi-key"></i> Đổi mật khẩu</a>
+                        <div class="adm-profile-divider"></div>
+                        <form th:action="@{/dang-xuat}" method="post" class="d-block">
+                            <button type="submit" class="adm-profile-link text-danger border-0 bg-transparent w-100 text-start d-flex align-items-center gap-2">
+                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                            </button>
+                        </form>
                     </div>
-                    <a class="adm-btn-login d-inline-flex align-items-center gap-1" th:href="@{/dang-nhap}" th:unless="${session.loggedIn}">
-                        <i class="bi bi-person"></i>
-                        <span>Đăng nhập</span>
-                    </a>
                 </div>
-            </header>
-
-            <!-- ★ FLASH MESSAGES — successMsg/errorMsg/warningMsg → tự ẩn sau 4s (admin.js) -->
-            <div class="px-4 pt-3"
-                 th:if="${successMsg != null or errorMsg != null or warningMsg != null}">
-                <div th:if="${successMsg}"
-                     class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    <span th:text="${successMsg}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"
-                            aria-label="Đóng"></button>
-                </div>
-                <div th:if="${errorMsg}"
-                     class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <span th:text="${errorMsg}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"
-                            aria-label="Đóng"></button>
-                </div>
-                <div th:if="${warningMsg}"
-                     class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle-fill me-2"></i>
-                    <span th:text="${warningMsg}"></span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"
-                            aria-label="Đóng"></button>
-                </div>
+                <a class="adm-btn-login d-inline-flex align-items-center gap-1" th:href="@{/dang-nhap}" th:unless="${session.loggedIn}">
+                    <i class="bi bi-person"></i>
+                    <span>Đăng nhập</span>
+                </a>
             </div>
+        </header>
 
-            <!-- Page content -->
-            <main class="adm-content">
-                <th:block layout:fragment="content">
-                    <!-- Trang admin con inject nội dung vào đây -->
-                </th:block>
-            </main>
+        <!-- Toast triggers -->
+        <div th:if="${successMsg}" th:attr="data-toast-msg=${successMsg},data-toast-type='success'" style="display:none"></div>
+        <div th:if="${errorMsg}" th:attr="data-toast-msg=${errorMsg},data-toast-type='error'" style="display:none"></div>
+        <div th:if="${warningMsg}" th:attr="data-toast-msg=${warningMsg},data-toast-type='warning'" style="display:none"></div>
 
-            <footer class="adm-footer">
-                DuaStore Admin © 2026 — FPT Polytechnic Hải Phòng
-            </footer>
+        <!-- Page content -->
+        <main class="adm-content">
+            <th:block layout:fragment="content">
+            </th:block>
+        </main>
 
-        </div><!-- /adm-main -->
+        <footer class="adm-footer">
+            DuaStore Admin &copy; 2026 &mdash; FPT Polytechnic Hải Phòng
+        </footer>
 
-    </div><!-- /adm-wrapper -->
+    </div><!-- /adm-main -->
 
-    <!-- Profile Modal -->
-    <div class="modal fade" id="adminProfileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form th:action="@{/tai-khoan/cap-nhat}" method="post">
-                    <div class="modal-header">
-                        <h5 class="fw-bold mb-0">Hồ sơ của tôi</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div><!-- /adm-wrapper -->
+
+<!-- Profile Modal -->
+<div class="modal fade" id="adminProfileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form th:action="@{/tai-khoan/cap-nhat}" method="post">
+                <div class="modal-header">
+                    <h5 class="fw-bold mb-0">Hồ sơ của tôi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên</label>
+                        <input type="text" name="hoTen" th:value="${session.userName}" class="form-control" required/>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label small">Họ tên</label>
-                            <input type="text" name="hoTen" th:value="${session.userName}" class="form-control" required/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small">Tên đăng nhập</label>
-                            <input type="text" th:value="${session.userUsername}" class="form-control" disabled/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small">Email</label>
-                            <input type="email" th:value="${session.userEmail}" class="form-control" disabled/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small">Số điện thoại</label>
-                            <input type="text" name="soDienThoai" th:value="${session.userPhone}" class="form-control" placeholder="Chưa cập nhật"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small">Vai trò</label>
-                            <input type="text" th:value="${session.userRole}" class="form-control" disabled/>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" th:value="${session.userUsername}" class="form-control" disabled/>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" th:value="${session.userEmail}" class="form-control" disabled/>
                     </div>
-                </form>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" name="soDienThoai" th:value="${session.userPhone}" class="form-control" placeholder="Chưa cập nhật"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vai trò</label>
+                        <input type="text" th:value="${session.userRole}" class="form-control" disabled/>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-end">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="adminChangePasswordModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <form th:action="@{/tai-khoan/doi-mat-khau}" method="post">
+                <div class="modal-header">
+                    <h5 class="fw-bold mb-0">Đổi mật khẩu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu cũ</label>
+                        <input type="password" name="oldPassword" class="form-control" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu mới</label>
+                        <input type="password" name="newPassword" class="form-control" required minlength="6"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Xác nhận mật khẩu</label>
+                        <input type="password" name="confirmPassword" class="form-control" required minlength="6"/>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-end">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index:9999"></div>
+
+<!-- Confirm Modal (reusable) -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h6 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Xác nhận</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0 small" id="confirmModalMessage">Xác nhận thực hiện thao tác này?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Huỷ</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirmModalConfirm">Xoá</button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Change Password Modal -->
-    <div class="modal fade" id="adminChangePasswordModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <form th:action="@{/tai-khoan/doi-mat-khau}" method="post">
-                    <div class="modal-header">
-                        <h5 class="fw-bold mb-0">Đổi mật khẩu</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label small">Mật khẩu cũ</label>
-                            <input type="password" name="oldPassword" class="form-control" required/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small">Mật khẩu mới</label>
-                            <input type="password" name="newPassword" class="form-control" required minlength="6"/>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small">Xác nhận mật khẩu</label>
-                            <input type="password" name="confirmPassword" class="form-control" required minlength="6"/>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:src="@{/js/admin.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:src="@{/js/admin.js}"></script>
 <th:block layout:fragment="extra-script"></th:block>
 
 </body>
