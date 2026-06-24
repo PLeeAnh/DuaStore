@@ -3314,58 +3314,69 @@ a { color: inherit; }
   height: auto;
 }
 
-/* ===== §33 CATEGORIES V2 ===== */
+/* ===== §33 CATEGORIES V2 — PILLS NGANG ===== */
 .ds-cat-v2 {
-  padding: 4rem 0;
+  padding: 2.5rem 0 1.5rem;
 }
 .ds-cat-v2-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 24px;
-}
-.ds-cat-v2-card {
-  text-decoration: none;
   display: flex;
-  flex-direction: column;
+  gap: 12px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.ds-cat-v2-grid::-webkit-scrollbar { display: none; }
+.ds-cat-v2-card {
+  display: flex;
   align-items: center;
   gap: 12px;
+  padding: 12px 18px;
+  border: 1px solid var(--ds-border);
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: border-color .2s, background .2s;
+}
+.ds-cat-v2-card:hover {
+  border-color: var(--ds-primary);
+  background: #f0f5ff;
 }
 .ds-cat-v2-card:focus-visible {
   outline: 2px solid var(--ds-primary);
   outline-offset: 2px;
-  border-radius: 20px;
+  border-radius: 14px;
 }
 .ds-cat-v2-img-wrap {
-  width: 100%;
-  aspect-ratio: 1/1;
-  border-radius: 20px;
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  transition: all .25s ease;
-}
-.ds-cat-v2-card:hover .ds-cat-v2-img-wrap {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0,0,0,.08);
-}
-.ds-cat-v2-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.ds-cat-v2-all {
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+}
+.ds-cat-v2-img { width: 100%; height: 100%; object-fit: cover; }
+.ds-cat-v2-all {
+  border: none;
   color: var(--ds-primary);
-  background: #f8fafc;
+  font-size: 1.5rem;
+}
+.ds-cat-v2-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 .ds-cat-v2-label {
-  font-size: .9rem;
+  font-size: .85rem;
   font-weight: 600;
   color: #1f2937;
-  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ===== §34 PRODUCT LIST V2 ===== */

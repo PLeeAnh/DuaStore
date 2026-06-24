@@ -86,7 +86,7 @@
 
                 <!-- CATEGORIES V2 -->
                 <section class="ds-cat-v2">
-                        <div class="text-center mb-5">
+                        <div class="text-center mb-4">
                             <span class="ds-section-badge">Danh mục</span><h2 class="ds-section-title">Khám phá bộ sưu tập</h2><p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
                         </div>
                         <div class="ds-cat-v2-grid">
@@ -94,13 +94,17 @@
                                 <div class="ds-cat-v2-img-wrap ds-cat-v2-all">
                                     <i class="bi bi-grid-3x3-gap-fill"></i>
                                 </div>
-                                <span class="ds-cat-v2-label">Tất cả</span>
+                                <div class="ds-cat-v2-info">
+                                    <span class="ds-cat-v2-label">Tất cả</span>
+                                </div>
                             </a>
                             <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-v2-card">
                                 <div class="ds-cat-v2-img-wrap">
                                     <img class="ds-cat-v2-img" th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}">
                                 </div>
-                                <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                <div class="ds-cat-v2-info">
+                                    <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                </div>
                             </a>
                         </div>
                 </section>
