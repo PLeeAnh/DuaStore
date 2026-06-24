@@ -49,7 +49,8 @@ public class AdminControllerAdvice {
                 .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()))) {
             return Set.of("DASHBOARD_READ","PRODUCT_READ","CATEGORY_READ",
                           "ORDER_READ","PROMOTION_READ","POST_READ",
-                          "REVIEW_READ","USER_READ","ROLE_READ","AUDIT_LOG_READ");
+                          "REVIEW_READ","USER_READ","ROLE_READ","AUDIT_LOG_READ",
+                          "NOTIFICATION_READ");
         }
 
         return perms;

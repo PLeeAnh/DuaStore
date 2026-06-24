@@ -27,6 +27,17 @@
     <script th:src="@{/js/modules/cart.js(v=1)}"></script>
     <script th:src="@{/js/modules/checkout.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
+    <style>
+        .notif-item { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; transition: background .15s; }
+        .notif-item:hover { background: #f8f9fa; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .85rem; }
+        .notif-text { font-size: .82rem; color: #333; line-height: 1.4; }
+        .notif-link { font-size: .78rem; color: #0d6efd; text-decoration: none; display: inline-flex; align-items: center; }
+        .notif-link:hover { text-decoration: underline; }
+        .notif-time { font-size: .72rem; color: #999; display: block; margin-top: 2px; }
+        .cursor-pointer { cursor: pointer; }
+    </style>
 </head>
 <body>
 
@@ -206,6 +217,61 @@
                         <div class="mt-2 pt-2" th:unless="${#lists.isEmpty(myCart)}">
     <a th:href="@{/gio-hang}" class="btn btn-danger w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
 </div>
+                    </div>
+                </div>
+
+                <!-- NOTIFICATION BUTTON + POPUP -->
+                <div class="position-relative d-inline-block">
+                    <button class="ds-icon-btn" id="btn-notif-toggle" onclick="toggleNotifPopup()" title="Thông báo" aria-label="Thông báo">
+                        <i class="bi bi-bell"></i>
+                        <span id="notifBadge" class="ds-cart-badge"
+                              th:text="${notifCount != null ? notifCount : 0}"
+                              th:classappend="${(notifCount == null || notifCount == 0) ? ' d-none' : ''}">0</span>
+                    </button>
+                    <div id="notif-popup" class="custom-popup" style="width: 380px;">
+                        <h6 class="border-bottom pb-2 mb-0 fw-bold d-flex align-items-center justify-content-between px-1">
+                            <span><i class="bi bi-megaphone me-1"></i>Thông báo</span>
+                            <a th:href="@{/thong-bao}" class="small text-decoration-none">Xem tất cả</a>
+                        </h6>
+                        <div class="mt-2" style="max-height: 420px; overflow-y: auto;">
+                            <div th:if="${#lists.isEmpty(recentNotifs)}" class="text-center py-4 text-muted">
+                                <i class="bi bi-bell-slash" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">Chưa có thông báo</p>
+                            </div>
+                            <div th:each="n : ${recentNotifs}" th:classappend="${n.linkType != null} ? 'cursor-pointer' : ''">
+                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <span th:if="${n.linkType == 'PRODUCT'}" class="notif-icon bg-info-subtle text-info flex-shrink-0">
+                                            <i class="bi bi-box-seam"></i>
+                                        </span>
+                                        <span th:if="${n.linkType == 'PROMOTION'}" class="notif-icon bg-warning-subtle text-warning flex-shrink-0">
+                                            <i class="bi bi-tag"></i>
+                                        </span>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <p class="mb-0 notif-text" th:text="${#strings.abbreviate(n.content, 100)}"></p>
+                                            <div class="mt-1">
+                                                <span class="notif-link">
+                                                    <span th:text="${#strings.abbreviate(n.linkLabel, 35)}"></span>
+                                                    <i class="bi bi-arrow-right ms-1"></i>
+                                                </span>
+                                            </div>
+                                            <small class="notif-time" th:text="${#temporals.format(n.createdAt, 'HH:mm, dd/MM')}"></small>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div th:if="${n.linkType == null}" class="notif-item">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <span class="notif-icon bg-primary-subtle text-primary flex-shrink-0">
+                                            <i class="bi bi-megaphone"></i>
+                                        </span>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <p class="mb-0 notif-text" th:text="${#strings.abbreviate(n.content, 100)}"></p>
+                                            <small class="notif-time" th:text="${#temporals.format(n.createdAt, 'HH:mm, dd/MM')}"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -907,6 +973,18 @@ function refreshWishlistBadgeCount() {
                 </div>
             `;
         }
+    }
+}
+
+/* ── THÔNG BÁO ── */
+function toggleNotifPopup() {
+    togglePopup('notif-popup');
+    var badge = document.getElementById('notifBadge');
+    if (badge && !badge.classList.contains('d-none')) {
+        fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
+            .then(r => r.text())
+            .then(() => { badge.classList.add('d-none'); })
+            .catch(() => { badge.classList.add('d-none'); });
     }
 }
 </script>
