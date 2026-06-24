@@ -95,6 +95,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (firstGroup) firstGroup.classList.add('active');
     });
 
+    /* ═══ FEATURED: strip prefix from variant tab labels ═══ */
+    document.querySelectorAll('.ds-featured-section .ds-variant-tab').forEach(function(tab) {
+        var text = tab.textContent.trim();
+        var spaceIdx = text.indexOf(' ');
+        if (spaceIdx > 0) {
+            tab.textContent = text.substring(spaceIdx + 1).trim();
+        }
+    });
+
     /* ═══ FLASH SALE COUNTDOWN ═══ */
     document.querySelectorAll('.ds-flash-timer').forEach(function(timer) {
         var endStr = timer.getAttribute('data-end');
