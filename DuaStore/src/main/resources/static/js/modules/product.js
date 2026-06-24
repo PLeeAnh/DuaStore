@@ -85,11 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
         card.querySelectorAll('.ds-variant-group').forEach(function(g) {
             g.classList.toggle('active', g.getAttribute('data-group') === group);
         });
-        var visibleGroup = card.querySelector('.ds-variant-group.active');
-        if (visibleGroup) {
-            var target = visibleGroup.querySelector('.ds-variant-chip:not(.oos)') || visibleGroup.querySelector('.ds-variant-chip');
-            updateCardFromChip(card, target);
-        }
     });
 
     /* ═══ INIT: show first tab and group per card ═══ */

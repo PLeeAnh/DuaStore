@@ -1343,8 +1343,9 @@ a { color: inherit; }
 /* ── Variant group tabs ── */
 .ds-variant-tabs {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   overflow-x: auto;
+  flex-wrap: nowrap;
   scrollbar-width: none;
   flex-shrink: 0;
 }
