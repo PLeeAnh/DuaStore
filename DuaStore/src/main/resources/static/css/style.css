@@ -1356,19 +1356,8 @@ a { color: inherit; }
 .ds-variant-row {
   display: flex;
   gap: 6px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  padding-bottom: 2px;
-  justify-content: flex-start;
-}
-.ds-variant-row::-webkit-scrollbar {
-  height: 3px;
-}
-.ds-variant-row::-webkit-scrollbar-thumb {
-  background: var(--ds-gray-300);
-  border-radius: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .ds-variant-chip {
   padding: 4px 12px;
