@@ -1335,9 +1335,47 @@ a { color: inherit; }
   transition: max-height .35s ease, opacity .25s ease;
 }
 .ds-product-card:hover .ds-card-actions {
-  max-height: 300px;
+  max-height: 250px;
   opacity: 1;
   pointer-events: auto;
+}
+
+/* ── Variant group tabs ── */
+.ds-variant-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.ds-variant-tabs::-webkit-scrollbar { display: none; }
+.ds-variant-tab {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  font-size: .7rem;
+  font-weight: 600;
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--ds-gray-600);
+  cursor: pointer;
+  transition: all .15s ease;
+  line-height: 1.4;
+}
+.ds-variant-tab.active {
+  background: var(--ds-primary);
+  border-color: var(--ds-primary);
+  color: #fff;
+}
+.ds-variant-tab:hover:not(.active) {
+  border-color: var(--ds-primary);
+  color: var(--ds-primary);
+}
+.ds-variant-group {
+  display: none;
+}
+.ds-variant-group.active {
+  display: block;
 }
 
 /* ── Variant label (giống chi tiết sản phẩm) ── */
