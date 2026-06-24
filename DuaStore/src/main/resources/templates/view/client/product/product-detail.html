@@ -492,7 +492,7 @@ document.getElementById('qtyInput').addEventListener('input', function () {
             const imgHtml = imgSrc
                 ? '<img src="' + imgSrc + '" class="w-100 h-100 object-fit-cover" alt="SP">'
                 : '<i class="bi bi-box-seam text-secondary"></i>';
-            const priceFmt = rawPrice.toLocaleString('vi-VN') + 'đ';
+            const priceFmt = rawPrice.toLocaleString('vi-VN') + '₫';
 
             const existing = document.getElementById('cart-item-' + variantId);
             if (existing) {
@@ -501,7 +501,7 @@ document.getElementById('qtyInput').addEventListener('input', function () {
                     const newQty = parseInt(qtySpan.textContent) + qty;
                     qtySpan.textContent = newQty;
                     const ps = existing.querySelector('#popup-price-' + variantId);
-                    if (ps) ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + 'đ';
+                    if (ps) ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + '₫';
                 }
                 return;
             }

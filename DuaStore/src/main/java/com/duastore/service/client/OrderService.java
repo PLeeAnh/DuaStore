@@ -6,6 +6,7 @@ import com.duastore.model.*;
 import com.duastore.repository.*;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.admin.OrderStatusLogService;
+import com.duastore.util.PriceUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -175,7 +176,7 @@ public class OrderService {
         if (promo.getSoLanDung() != null && promo.getDaDung() >= promo.getSoLanDung())
             throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng");
         if (tienHang.compareTo(promo.getDonHangToiThieu()) < 0)
-            throw new RuntimeException("Đơn hàng tối thiểu " + promo.getDonHangToiThieu() + "đ để áp dụng mã");
+            throw new RuntimeException("Đơn hàng tối thiểu " + PriceUtils.format(promo.getDonHangToiThieu()) + " để áp dụng mã");
     }
 
     public BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang) {
@@ -291,7 +292,7 @@ public class OrderService {
     }
 
     private String formatVND(BigDecimal amount) {
-        return String.format("%,.0fđ", amount);
+        return PriceUtils.format(amount);
     }
 
     public OrderDTO convertToDTO(Order order) {

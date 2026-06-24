@@ -17,6 +17,7 @@ import com.duastore.service.ShippingFeeService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.OrderService;
+import com.duastore.util.PriceUtils;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -152,14 +153,14 @@ public class CheckoutController {
                     itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
                             .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
                             .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
-                            .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(String.format("%,.0fđ", item.getThanhTien())).append("</div></div>");
+                            .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
                 }
 
                 emailService.sendOrderSuccessEmail(
                         user.getEmail(), user.getHoTen(), order.getMaDon(),
                         order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
                         order.getSnapDiaChi(), tt, gh,
-                        String.format("%,.0fđ", order.getTongThanhToan()),
+                        PriceUtils.format(order.getTongThanhToan()),
                         itemsHtml.toString()
                 );
             } catch (Exception ignored) {}
@@ -252,7 +253,7 @@ public class CheckoutController {
             res.put("tienGiam", tienGiam);
             res.put("message", "Áp dụng mã thành công! Giảm " +
                     (tienGiam.compareTo(BigDecimal.ZERO) > 0
-                            ? String.format("%,.0fđ", tienGiam) : "0đ"));
+                            ? PriceUtils.format(tienGiam) : "0₫"));
         } catch (RuntimeException e) {
             res.put("success", false);
             res.put("message", e.getMessage());
@@ -305,13 +306,13 @@ public class CheckoutController {
                     itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
                             .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
                             .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
-                            .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(String.format("%,.0fđ", item.getThanhTien())).append("</div></div>");
+                            .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
                 }
                 emailService.sendOrderSuccessEmail(
                         user.getEmail(), user.getHoTen(), order.getMaDon(),
                         order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
                         order.getSnapDiaChi(), tt, gh,
-                        String.format("%,.0fđ", order.getTongThanhToan()),
+                        PriceUtils.format(order.getTongThanhToan()),
                         itemsHtml.toString()
                 );
             } catch (Exception ignored) {}

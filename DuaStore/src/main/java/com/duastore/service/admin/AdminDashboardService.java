@@ -6,6 +6,7 @@ import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.util.PriceUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -97,12 +98,12 @@ public class AdminDashboardService {
     }
 
     private String formatVND(BigDecimal amount) {
-        if (amount == null) return "0 ₫";
+        if (amount == null) return "0₫";
         long value = amount.longValue();
         if (value >= 1_000_000) {
-            return String.format("%,d", value / 1_000_000) + "," + String.format("%03d", value % 1_000_000 / 1_000) + " triệu ₫";
+            return String.format("%,d", value / 1_000_000) + "," + String.format("%03d", value % 1_000_000 / 1_000) + " triệu₫";
         }
-        return String.format("%,d ₫", value);
+        return PriceUtils.format(amount);
     }
 
     public List<Map<String, Object>> getDailyRevenueLast7Days() {

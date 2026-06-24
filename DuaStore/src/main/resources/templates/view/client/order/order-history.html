@@ -37,7 +37,7 @@
                               th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : o.trangThaiDon}"></span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold" style="color:var(--ds-gray-900);" th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + 'đ'"></span>
+                        <span class="fw-bold" style="color:var(--ds-gray-900);" th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + '₫'"></span>
                         <div class="d-flex gap-2">
                             <a th:href="@{/tai-khoan/don-hang/{id}(id=${o.id})}" class="ds-btn ds-btn-outline ds-btn-sm">Xem chi tiết</a>
                             <form th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" th:action="@{/tai-khoan/don-hang/huy/{id}(id=${o.id})}" method="post" style="display:inline"
