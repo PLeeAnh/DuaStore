@@ -1340,24 +1340,42 @@ a { color: inherit; }
   pointer-events: auto;
 }
 
-/* ── Variant label (giống chi tiết sản phẩm) ── */
+/* ── Variant group inline (label + chips cùng dòng) ── */
+.ds-variant-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .ds-variant-label-text {
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: .72rem;
   font-weight: 600;
   color: var(--ds-gray-500);
   text-align: left;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 .ds-variant-label-text::before {
-  content: "▸ ";
+  content: "▸";
+  margin-right: 2px;
 }
 
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+  flex: 1;
+}
+.ds-variant-row::-webkit-scrollbar {
+  height: 3px;
+}
+.ds-variant-row::-webkit-scrollbar-thumb {
+  background: var(--ds-gray-300);
+  border-radius: 3px;
 }
 .ds-variant-chip {
   padding: 4px 12px;
