@@ -126,7 +126,7 @@
                             <tr th:each="o : ${recentOrders}" th:unless="${#lists.isEmpty(recentOrders)}">
                                 <td><a th:href="@{/admin/don-hang/{id}(id=${o.id})}" th:text="${o.maDon}">#DH001</a></td>
                                 <td th:text="${o.snapTenNguoiNhan}">Nguyễn Văn A</td>
-                                <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + ' ₫'">1,000,000 ₫</td>
+                                <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + '₫'">1.000.000₫</td>
                                 <td>
                                     <span th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" class="status-cho-xac-nhan">Chờ xác nhận</span>
                                     <span th:if="${o.trangThaiDon == 'DA_XAC_NHAN'}" class="status-da-xac-nhan">Đã xác nhận</span>

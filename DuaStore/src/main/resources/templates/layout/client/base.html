@@ -160,7 +160,7 @@
                                 </div>
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
-                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + 'đ'">0đ</div>                                 
+                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + '₫'">0₫</div>                                 
                                 </div>
                                 
         </div>
@@ -205,7 +205,7 @@
                                               th:id="'popup-price-' + ${uid}" 
                                               th:data-price="${item.giaBan}"
                                               style="font-size: 0.9rem;" 
-                                              th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 0)} + 'đ'">0đ</span>
+                                              th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 0)} + '₫'">0₫</span>
                                     </div>
                                 </div>
                                 <button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ">
@@ -922,7 +922,7 @@ localStorage.setItem('cartViewed', 'true');
             let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
 
             priceSpan.innerText =
-                (unitPrice * newQty).toLocaleString('vi-VN') + 'đ';
+                (unitPrice * newQty).toLocaleString('vi-VN') + '₫';
         }
 
         // Lưu trạng thái popup

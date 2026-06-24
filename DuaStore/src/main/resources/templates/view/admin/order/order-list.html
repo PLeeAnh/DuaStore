@@ -63,7 +63,7 @@
                             <span th:text="${o.tenNguoiNhan}"></span>
                             <small class="text-muted d-block" th:text="${o.soDienThoai}"></small>
                         </td>
-                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + 'đ'" class="fw-semibold"></td>
+                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + '₫'" class="fw-semibold"></td>
                         <td>
                             <span th:switch="${o.trangThaiDon}"
                                   class="badge fw-semibold px-2 py-1">
