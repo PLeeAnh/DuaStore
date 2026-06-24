@@ -1236,33 +1236,21 @@ a { color: inherit; }
 
 /* ── Product name ── */
 .ds-product-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 48px;
   font-size: .88rem;
   font-weight: 600;
   color: var(--ds-gray-900);
   text-decoration: none;
-  overflow: hidden;
-  line-height: 0;
-  height: 0;
-  opacity: 0;
-  padding: 0;
-  margin: 0;
-  pointer-events: none;
+  line-height: 1.3;
 }
 
 /* ── Product name overlay (chèn trên ảnh, ở nguyên vị trí) ── */
 .ds-product-name-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 28px 10px 8px;
-  background: linear-gradient(transparent 30%, rgba(255,255,255,.85));
-  color: #000;
-  font-size: .88rem;
-  font-weight: 600;
-  text-align: center;
-  z-index: 4;
-  pointer-events: none;
+  display: none;
 }
 
 /* ── Stock + qty chồng nhau: stock mờ → qty hiện ── */
@@ -1272,6 +1260,7 @@ a { color: inherit; }
   justify-content: center;
   align-items: center;
   min-height: 1.6em;
+  margin-bottom: 8px;
 }
 .ds-stock-qty-row .ds-stock-info,
 .ds-stock-qty-row .ds-qty-row {
@@ -1333,6 +1322,7 @@ a { color: inherit; }
   overflow: hidden;
   pointer-events: none;
   transition: max-height .35s ease, opacity .25s ease;
+  min-height: 50px;
 }
 .ds-product-card:hover .ds-card-actions {
   max-height: 250px;
@@ -1343,7 +1333,8 @@ a { color: inherit; }
 /* ── Variant group tabs ── */
 .ds-variant-tabs {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  margin-bottom: 10px;
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
@@ -1394,7 +1385,8 @@ a { color: inherit; }
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 8px;
   flex-wrap: wrap;
   justify-content: center;
 }

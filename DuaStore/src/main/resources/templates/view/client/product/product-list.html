@@ -83,7 +83,7 @@
         </div>
 
         <div th:unless="${#lists.isEmpty(products)}" class="row g-3">
-            <div th:each="p : ${products}" class="col-xl-3 col-lg-4 col-md-6 col-6">
+            <div th:each="p : ${products}" class="col-xl-3 col-lg-4 col-sm-6 col-12">
                 <div class="ds-product-card" th:data-productid="${p.id}"
                      th:with="pVariants=${variantsMap != null ? variantsMap.get(p.id) : null},
                               v=${pVariants != null and !pVariants.isEmpty()} ? ${pVariants[0]} : null,
