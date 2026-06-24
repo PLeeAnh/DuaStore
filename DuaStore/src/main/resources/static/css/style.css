@@ -1322,7 +1322,7 @@ a { color: inherit; }
   overflow: hidden;
   pointer-events: none;
   transition: max-height .35s ease, opacity .25s ease;
-  min-height: 72px;
+  min-height: 50px;
 }
 .ds-product-card:hover .ds-card-actions {
   max-height: 250px;
