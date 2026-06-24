@@ -141,8 +141,14 @@
 
                         <div class="ds-card-actions">
                             <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
-                                <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}">
-                                    <div class="ds-variant-label-text" th:text="${groupEntry.key}">Nắp Gỗ</div>
+                                <select class="form-select form-select-sm ds-variant-group-select">
+                                    <option th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
+                                            th:value="${groupEntry.key}"
+                                            th:text="${groupEntry.key}">Nắp Bạc</option>
+                                </select>
+                                <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
+                                     class="ds-variant-group"
+                                     th:data-group="${groupEntry.key}">
                                     <div class="ds-variant-row">
                                     <button th:each="pv, stat : ${groupEntry.value}"
                                             class="ds-variant-chip"

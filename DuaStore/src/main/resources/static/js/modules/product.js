@@ -8,40 +8,45 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ═══ PRODUCT CARD ENHANCEMENTS ═══ */
     function getCard(el) { return el.closest('.ds-product-card'); }
 
+    function updateCardFromChip(card, chip) {
+        if (!chip || chip.classList.contains('oos')) return;
+        card.querySelectorAll('.ds-variant-chip').forEach(function(c) { c.classList.remove('active'); });
+        chip.classList.add('active');
+
+        var newPrice = chip.getAttribute('data-price');
+        var newStock = parseInt(chip.getAttribute('data-stock')) || 0;
+        var stockEl = card.querySelector('.ds-stock-info');
+        if (stockEl) {
+            if (newStock > 0) {
+                stockEl.textContent = newStock <= 3 ? '⚠ Chỉ còn ' + newStock + ' sản phẩm' : 'Còn lại: ' + newStock + ' sản phẩm';
+                stockEl.className = 'ds-stock-info' + (newStock <= 3 ? ' warning' : '');
+            } else {
+                stockEl.textContent = 'Hết hàng';
+                stockEl.className = 'ds-stock-info oos';
+            }
+            stockEl.style.display = '';
+        }
+        card.classList.toggle('oos', newStock <= 0);
+
+        var priceBtn = card.querySelector('.ds-card-add-cart');
+        if (priceBtn) {
+            priceBtn.disabled = (newStock <= 0);
+            var amountEl = priceBtn.querySelector('.ds-price-btn-amount');
+            if (amountEl) amountEl.textContent = parseInt(newPrice).toLocaleString('vi-VN') + '₫';
+        }
+        var qtyVal = card.querySelector('.ds-qty-val');
+        if (qtyVal) qtyVal.value = '1';
+        var minus = card.querySelector('.ds-qty-minus');
+        if (minus) minus.disabled = true;
+    }
+
     document.addEventListener('click', function(e) {
         var chip = e.target.closest('.ds-variant-chip');
         if (chip && !chip.classList.contains('oos')) {
             e.preventDefault();
             var card = getCard(chip);
             if (!card) return;
-            card.querySelectorAll('.ds-variant-chip').forEach(function(c) { c.classList.remove('active'); });
-            chip.classList.add('active');
-
-            var newPrice = chip.getAttribute('data-price');
-            var newStock = parseInt(chip.getAttribute('data-stock')) || 0;
-            var stockEl = card.querySelector('.ds-stock-info');
-            if (stockEl) {
-                if (newStock > 0) {
-                    stockEl.textContent = newStock <= 3 ? '⚠ Chỉ còn ' + newStock + ' sản phẩm' : 'Còn lại: ' + newStock + ' sản phẩm';
-                    stockEl.className = 'ds-stock-info' + (newStock <= 3 ? ' warning' : '');
-                } else {
-                    stockEl.textContent = 'Hết hàng';
-                    stockEl.className = 'ds-stock-info oos';
-                }
-                stockEl.style.display = '';
-            }
-            card.classList.toggle('oos', newStock <= 0);
-
-            var priceBtn = card.querySelector('.ds-card-add-cart');
-            if (priceBtn) {
-                priceBtn.disabled = (newStock <= 0);
-                var amountEl = priceBtn.querySelector('.ds-price-btn-amount');
-                if (amountEl) amountEl.textContent = parseInt(newPrice).toLocaleString('vi-VN') + 'đ';
-            }
-            var qtyVal = card.querySelector('.ds-qty-val');
-            if (qtyVal) qtyVal.value = '1';
-            var minus = card.querySelector('.ds-qty-minus');
-            if (minus) minus.disabled = true;
+            updateCardFromChip(card, chip);
         }
     });
 
@@ -65,6 +70,29 @@ document.addEventListener('DOMContentLoaded', function() {
         qtyEl.value = qty;
         minus.disabled = (qty <= 1);
         plus.disabled = (qty >= maxStock);
+    });
+
+    /* ═══ VARIANT GROUP DROPDOWN ═══ */
+    document.addEventListener('change', function(e) {
+        var select = e.target.closest('.ds-variant-group-select');
+        if (!select) return;
+        var card = getCard(select);
+        if (!card) return;
+        var group = select.value;
+        card.querySelectorAll('.ds-variant-group').forEach(function(g) {
+            g.classList.toggle('active', g.getAttribute('data-group') === group);
+        });
+        var visibleGroup = card.querySelector('.ds-variant-group.active');
+        if (visibleGroup) {
+            var target = visibleGroup.querySelector('.ds-variant-chip:not(.oos)') || visibleGroup.querySelector('.ds-variant-chip');
+            updateCardFromChip(card, target);
+        }
+    });
+
+    /* ═══ INIT: show first variant group per card ═══ */
+    document.querySelectorAll('.ds-product-card').forEach(function(card) {
+        var first = card.querySelector('.ds-variant-group');
+        if (first) first.classList.add('active');
     });
 
     /* ═══ FLASH SALE COUNTDOWN ═══ */
