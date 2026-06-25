@@ -96,6 +96,7 @@
                                 </div>
                                 <div class="ds-cat-v2-info">
                                     <span class="ds-cat-v2-label">Tất cả</span>
+                                    <span class="ds-cat-v2-count">Tất cả mẫu</span>
                                 </div>
                             </a>
                             <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-v2-card">
@@ -104,6 +105,7 @@
                                 </div>
                                 <div class="ds-cat-v2-info">
                                     <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                    <span class="ds-cat-v2-count" th:text="${productCountMap.get(cat.id)} + ' mẫu'">30 mẫu</span>
                                 </div>
                             </a>
                         </div>

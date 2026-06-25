@@ -3378,6 +3378,13 @@ a { color: inherit; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.ds-cat-v2-count {
+  font-size: .68rem;
+  color: var(--ds-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* ===== §34 PRODUCT LIST V2 ===== */
 .ds-pl-v2-bar {
