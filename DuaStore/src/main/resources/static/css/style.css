@@ -1716,8 +1716,60 @@ a { color: inherit; }
   border-color: #ef4444;
 }
 
+/* ── Quantity selector visible trên card (giống wishlist) ── */
+.ds-qty-row-visible {
+  display: flex !important;
+  justify-content: center;
+  max-height: none !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+}
+.ds-qty-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ds-qty-round {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--ds-border);
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ds-gray-600);
+  padding: 0;
+  transition: all .2s ease;
+  flex-shrink: 0;
+}
+.ds-qty-round:hover {
+  background: #fff;
+  border-color: var(--ds-primary);
+  color: var(--ds-primary);
+  transform: scale(1.1);
+}
+.ds-qty-round:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+  transform: none;
+}
+.ds-qty-card .ds-qty-val {
+  width: 28px;
+  text-align: center;
+  font-size: .7rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--ds-gray-900);
+  padding: 0;
+  outline: none;
+}
+
 /* =====================================================
-   19. AUTH MODAL
+    19. AUTH MODAL
 ===================================================== */
 .modal-auth .modal-dialog { max-width:600px; width:600px; }
 .modal-auth .modal-content { min-height:600px; border-radius:1rem; overflow:hidden; display:flex; flex-direction:column; }
