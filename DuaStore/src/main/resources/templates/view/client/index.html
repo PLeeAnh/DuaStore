@@ -166,6 +166,11 @@
                                     <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
                                        th:text="${p.tenSanPham}">Tên sản phẩm</a>
 
+                                    <span th:if="${v != null}"
+                                          class="ds-stock-info"
+                                          th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                                          th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
+
                                     <div class="ds-card-actions">
                                         <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
                                             <div class="ds-variant-tabs">
@@ -175,27 +180,21 @@
                                                         th:text="${groupEntry.key}"
                                                         type="button">Nắp Gỗ</button>
                                             </div>
-                                            <div class="ds-variant-groups-row">
-                                                <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
-                                                     class="ds-variant-group"
-                                                     th:data-group="${groupEntry.key}">
-                                                    <div class="ds-variant-row">
-                                                        <button th:each="pv, stat : ${groupEntry.value}"
-                                                                class="ds-variant-chip"
-                                                                th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
-                                                                th:data-variantid="${pv.id}"
-                                                                th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
-                                                                th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
-                                                                th:data-stock="${pv.soLuongTon}"
-                                                                th:disabled="${pv.soLuongTon <= 0}"
-                                                                th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
-                                                                type="button">50ml</button>
-                                                    </div>
+                                            <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
+                                                 class="ds-variant-group"
+                                                 th:data-group="${groupEntry.key}">
+                                                <div class="ds-variant-row">
+                                                    <button th:each="pv, stat : ${groupEntry.value}"
+                                                            class="ds-variant-chip"
+                                                            th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
+                                                            th:data-variantid="${pv.id}"
+                                                            th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
+                                                            th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
+                                                            th:data-stock="${pv.soLuongTon}"
+                                                            th:disabled="${pv.soLuongTon <= 0}"
+                                                            th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
+                                                            type="button">50ml</button>
                                                 </div>
-                                                <span th:if="${v != null}"
-                                                      class="ds-stock-info ds-stock-info-inline"
-                                                      th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
-                                                      th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
                                             </div>
                                         </div>
                                     </div>
