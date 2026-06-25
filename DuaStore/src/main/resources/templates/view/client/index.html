@@ -135,21 +135,30 @@
                                     <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                                 </button>
 
-                                <a th:href="@{'/san-pham/' + ${p.id}}">
-                                    <div class="ds-product-image-wrap">
-                                        <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
-                                        <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
-                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-                                              th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                                        <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
-                                        <div class="ds-flash-timer" th:if="${fs != null}"
-                                             th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
-                                            <i class="bi bi-clock"></i>
-                                            <span class="flash-countdown">--:--:--</span>
-                                        </div>
-                                        <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
-                                    </div>
-                                </a>
+                                 <a th:href="@{'/san-pham/' + ${p.id}}">
+                                     <div class="ds-product-image-wrap">
+                                         <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
+                                         <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
+                                         <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
+                                               th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
+                                         <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
+                                         <div class="ds-flash-timer" th:if="${fs != null}"
+                                              th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
+                                             <i class="bi bi-clock"></i>
+                                             <span class="flash-countdown">--:--:--</span>
+                                         </div>
+                                         <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
+                                         <div class="ds-qty-overlay">
+                                             <button class="ds-qty-overlay-btn ds-qty-minus" type="button" disabled>
+                                                 <svg width="10" height="2" viewBox="0 0 10 2" fill="none"><path d="M0 1H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                             </button>
+                                             <input type="text" class="ds-qty-val" value="1" readonly>
+                                             <button class="ds-qty-overlay-btn ds-qty-plus" type="button">
+                                                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 0V10M0 5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                             </button>
+                                         </div>
+                                     </div>
+                                 </a>
 
                                 <div class="ds-card-body">
                                     <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
@@ -160,18 +169,6 @@
                                               class="ds-stock-info"
                                               th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
                                               th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
-
-                                        <div class="ds-qty-row">
-                                            <div class="ds-qty-selector">
-                                                <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
-                                                    <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                                </button>
-                                                <input type="text" class="ds-qty-val" value="1" readonly>
-                                                <button class="ds-qty-btn ds-qty-plus" type="button">
-                                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 0V12M0 6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                                </button>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div class="ds-card-actions">

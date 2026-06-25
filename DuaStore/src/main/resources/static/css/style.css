@@ -1716,8 +1716,57 @@ a { color: inherit; }
   border-color: #ef4444;
 }
 
+/* ── Quantity overlay trên ảnh (góc dưới phải) ── */
+.ds-qty-overlay {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255,255,255,.92);
+  border-radius: 6px;
+  padding: 2px;
+  z-index: 5;
+}
+.ds-qty-overlay-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--ds-border);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ds-gray-600);
+  padding: 0;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.ds-qty-overlay-btn:hover {
+  border-color: var(--ds-primary);
+  color: var(--ds-primary);
+}
+.ds-qty-overlay-btn:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+  transform: none;
+}
+.ds-qty-overlay .ds-qty-val {
+  width: 24px;
+  text-align: center;
+  font-size: .65rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: var(--ds-gray-900);
+  padding: 0;
+  outline: none;
+}
+
 /* =====================================================
-   19. AUTH MODAL
+    19. AUTH MODAL
 ===================================================== */
 .modal-auth .modal-dialog { max-width:600px; width:600px; }
 .modal-auth .modal-content { min-height:600px; border-radius:1rem; overflow:hidden; display:flex; flex-direction:column; }

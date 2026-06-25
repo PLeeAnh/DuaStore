@@ -51,8 +51,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.addEventListener('click', function(e) {
-        var btn = e.target.closest('.ds-qty-btn');
+        var btn = e.target.closest('.ds-qty-btn, .ds-qty-overlay-btn');
         if (!btn) return;
+        e.preventDefault();
         var card = getCard(btn);
         if (!card) return;
         var qtyEl = card.querySelector('.ds-qty-val');
