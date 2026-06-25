@@ -162,16 +162,9 @@
                                      </div>
                                  </a>
 
-                                <div class="ds-card-body">
+                                 <div class="ds-card-body">
                                     <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
                                        th:text="${p.tenSanPham}">Tên sản phẩm</a>
-
-                                    <div class="ds-stock-qty-row">
-                                        <span th:if="${v != null}"
-                                              class="ds-stock-info"
-                                              th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
-                                              th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
-                                    </div>
 
                                     <div class="ds-card-actions">
                                         <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
@@ -196,7 +189,19 @@
                                                             th:disabled="${pv.soLuongTon <= 0}"
                                                             th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
                                                             type="button">50ml</button>
+                                                    <span th:if="${v != null}"
+                                                          class="ds-stock-info ds-stock-info-inline"
+                                                          th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                                                          th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
                                                 </div>
+                                            </div>
+                                        </div>
+                                        <div th:if="${groupedVariantsMap == null or groupedVariantsMap.get(p.id) == null}">
+                                            <div class="ds-stock-qty-row">
+                                                <span th:if="${v != null}"
+                                                      class="ds-stock-info"
+                                                      th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                                                      th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
                                             </div>
                                         </div>
                                     </div>

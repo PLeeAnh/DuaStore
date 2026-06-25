@@ -1385,6 +1385,7 @@ a { color: inherit; }
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
+  align-items: center;
   gap: 3px;
   margin-top: 3px;
   flex-wrap: wrap;
@@ -1403,12 +1404,12 @@ a { color: inherit; }
   line-height: 1.4;
 }
 .ds-variant-chip:hover {
-  border-color: #dc3545;
-  color: #dc3545;
+  border-color: #000;
+  color: #000;
 }
 .ds-variant-chip.active {
-  background: #dc3545 !important;
-  border-color: #dc3545 !important;
+  background: #000 !important;
+  border-color: #000 !important;
   color: #fff !important;
 }
 .ds-variant-chip.oos {
@@ -1416,7 +1417,14 @@ a { color: inherit; }
   pointer-events: none;
   text-decoration: line-through;
 }
-
+.ds-stock-info-inline {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  font-size: .6rem;
+  color: var(--ds-gray-500);
+  white-space: nowrap;
+}
 
 /* ── Quantity selector (ẩn mặc định, hiện trên hover, co giãn) ── */
 .ds-qty-row {
