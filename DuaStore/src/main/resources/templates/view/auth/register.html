@@ -21,7 +21,7 @@
                 <div class="ds-auth-title">Đăng ký tài khoản</div>
                 <div class="ds-auth-sub">Tạo tài khoản để mua sắm tại DuaStore</div>
 
-                <form th:action="@{/dang-ky}" method="post">
+                <form th:action="@{/dang-ky}" method="post" id="registerForm">
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label">Họ tên <span class="text-danger">*</span></label>
@@ -37,9 +37,17 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" th:field="*{email}" class="form-control" placeholder="email@example.com"
-                                   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"/>
-                            <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                            <div class="input-group">
+                                <input type="email" name="email" id="regEmail" class="form-control" placeholder="email@example.com" required
+                                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"/>
+                                <button type="button" class="btn btn-outline-secondary" id="sendCodeBtn" onclick="sendCode()">Gửi mã</button>
+                            </div>
+                            <div th:if="${#fields.hasErrors('email')}" class="invalid-feedback d-block" th:errors="*{email}"></div>
+                        </div>
+                        <div class="col-12" id="otpRow" style="display:none;">
+                            <label class="form-label">Mã xác thực <span class="text-danger">*</span></label>
+                            <input type="text" name="verificationCode" id="regCode" class="form-control" placeholder="Nhập mã xác thực" maxlength="6"/>
+                            <div class="form-text" id="codeStatus"></div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Số điện thoại</label>
@@ -59,7 +67,10 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="ds-btn ds-btn-fill w-100 mt-4" style="justify-content:center;">Đăng ký</button>
+                    <div id="registerError" class="alert alert-danger mt-3 d-none"></div>
+                    <div id="registerSuccess" class="alert alert-success mt-3 d-none">Đăng ký thành công! Vui lòng đăng nhập.</div>
+
+                    <button type="submit" class="ds-btn ds-btn-fill w-100 mt-4" style="justify-content:center;" id="registerBtn">Đăng ký</button>
 
                     <div class="text-center mt-3" style="font-size:0.85rem;color:var(--ds-gray-500);">
                         Đã có tài khoản? <a th:href="@{/dang-nhap}" class="ds-auth-page-link">Đăng nhập</a>
@@ -68,5 +79,97 @@
             </div>
         </div>
     </div>
+
+    <script>
+    function sendCode() {
+        var email = document.getElementById('regEmail').value.trim();
+        if (!email || !email.includes('@')) { alert('Email không hợp lệ'); return; }
+        var btn = document.getElementById('sendCodeBtn');
+        btn.disabled = true;
+        btn.textContent = 'Đang gửi...';
+
+        fetch('/api/auth/send-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById('otpRow').style.display = '';
+                document.getElementById('codeStatus').textContent = 'Mã đã gửi đến email của bạn';
+                btn.textContent = 'Gửi lại';
+                btn.disabled = false;
+            } else {
+                btn.textContent = 'Thử lại';
+                btn.disabled = false;
+            }
+        })
+        .catch(function() {
+            btn.textContent = 'Thử lại';
+            btn.disabled = false;
+        });
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var errDiv = document.getElementById('registerError');
+        errDiv.classList.add('d-none');
+
+        var code = document.getElementById('regCode').value.trim();
+        var pass = document.querySelector('[name="password"]').value;
+        var confirmPass = document.querySelector('[name="confirmPassword"]').value;
+
+        if (!code) {
+            errDiv.textContent = 'Vui lòng nhập mã xác thực';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+        if (pass !== confirmPass) {
+            errDiv.textContent = 'Mật khẩu xác nhận không khớp';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        var btn = document.getElementById('registerBtn');
+        btn.disabled = true;
+        btn.textContent = 'Đang xử lý...';
+
+        var form = document.getElementById('registerForm');
+        fetch('/dang-ky', {
+            method: 'POST',
+            body: new URLSearchParams(new FormData(form))
+        })
+        .then(function(r) {
+            if (r.redirected) {
+                window.location.href = r.url;
+                return null;
+            }
+            return r.text();
+        })
+        .then(function(html) {
+            if (html === null) return;
+            if (html.includes('is-invalid') || html.includes('alert-danger')) {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                var msg = tmp.querySelector('.invalid-feedback') || tmp.querySelector('.alert-danger');
+                errDiv.textContent = msg ? msg.textContent.trim() : 'Đăng ký thất bại';
+                errDiv.classList.remove('d-none');
+                btn.disabled = false;
+                btn.textContent = 'Đăng ký';
+            } else {
+                document.getElementById('registerSuccess').classList.remove('d-none');
+                document.getElementById('registerForm').reset();
+                setTimeout(function() { window.location.href = '/dang-nhap'; }, 2000);
+            }
+        })
+        .catch(function() {
+            errDiv.textContent = 'Lỗi kết nối hệ thống';
+            errDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.textContent = 'Đăng ký';
+        });
+    });
+    </script>
 </body>
 </html>

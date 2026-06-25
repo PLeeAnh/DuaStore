@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý thông báo</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Thông báo</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4><i class="bi bi-megaphone me-2"></i>Thông báo</h4>
+            <a th:href="@{/admin/thong-bao/them-moi}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Đăng thông báo
+            </a>
+        </div>
+        <div class="adm-table-wrap">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nội dung</th>
+                        <th>Đính kèm</th>
+                        <th>Ngày tạo</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="n, iter : ${notifications}">
+                        <td th:text="${iter.index + 1 + currentPage * pageSize}"></td>
+                        <td style="max-width: 350px;">
+                            <span class="text-truncate d-inline-block" style="max-width: 350px; white-space: pre-line;" th:text="${n.content}"></span>
+                        </td>
+                        <td>
+                            <span th:if="${n.linkType == 'PRODUCT'}" class="badge bg-info">
+                                <i class="bi bi-box-seam me-1"></i><span th:text="${n.linkLabel}"></span>
+                            </span>
+                            <span th:if="${n.linkType == 'PROMOTION'}" class="badge bg-warning text-dark">
+                                <i class="bi bi-tag me-1"></i><span th:text="${n.linkLabel}"></span>
+                            </span>
+                            <span th:if="${n.linkType == null}" class="text-muted small">—</span>
+                        </td>
+                        <td th:text="${#temporals.format(n.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span th:if="${n.isActive}" class="badge bg-success">Hiển thị</span>
+                            <span th:unless="${n.isActive}" class="badge bg-secondary">Ẩn</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/thong-bao/sua/{id}(id=${n.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/admin/thong-bao/xoa/{id}(id=${n.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Xóa thông báo này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(notifications)}">
+                        <td colspan="6" class="text-muted text-center py-4">Chưa có thông báo nào</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+    </div>
+    </body>
+</html>

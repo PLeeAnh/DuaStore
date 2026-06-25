@@ -59,4 +59,10 @@ public final class PermissionEnum {
 
     // AUDIT_LOG
     public static final String AUDIT_LOG_READ   = "AUDIT_LOG_READ";
+
+    // NOTIFICATION
+    public static final String NOTIFICATION_CREATE = "NOTIFICATION_CREATE";
+    public static final String NOTIFICATION_READ   = "NOTIFICATION_READ";
+    public static final String NOTIFICATION_UPDATE = "NOTIFICATION_UPDATE";
+    public static final String NOTIFICATION_DELETE = "NOTIFICATION_DELETE";
 }
