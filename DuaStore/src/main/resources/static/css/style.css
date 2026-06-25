@@ -1241,7 +1241,7 @@ a { color: inherit; }
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: auto;
-  font-size: .6rem;
+  font-size: .8rem;
   font-weight: 700;
   color: var(--ds-gray-900);
   text-decoration: none;
@@ -1273,7 +1273,7 @@ a { color: inherit; }
 
 /* ── Stock info (swap opacity với qty trên hover card) ── */
 .ds-stock-info {
-  font-size: .5rem;
+  font-size: .65rem;
   color: var(--ds-gray-500);
   font-weight: 500;
   opacity: 1;
@@ -1343,8 +1343,8 @@ a { color: inherit; }
 .ds-variant-tabs::-webkit-scrollbar { display: none; }
 .ds-variant-tab {
   flex-shrink: 0;
-  padding: 1px 4px;
-  font-size: .5rem;
+  padding: 2px 6px;
+  font-size: .6rem;
   font-weight: 600;
   border: 1px solid var(--ds-gray-400);
   border-radius: 100px;
@@ -1391,8 +1391,8 @@ a { color: inherit; }
   justify-content: center;
 }
 .ds-variant-chip {
-  padding: 1px 4px;
-  font-size: .5rem;
+  padding: 2px 6px;
+  font-size: .6rem;
   font-weight: 500;
   border: 1px solid var(--ds-gray-400);
   border-radius: 6px;
@@ -1482,18 +1482,18 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
+  padding: 0 10px;
   border: none;
   border-radius: 6px;
   background: #363636;
   color: #fff;
-  font-size: .5rem;
+  font-size: .65rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   line-height: 1.3;
   margin-top: auto;
-  height: 22px;
+  height: 26px;
 }
 .ds-price-btn:hover {
   background: var(--ds-primary) !important;
