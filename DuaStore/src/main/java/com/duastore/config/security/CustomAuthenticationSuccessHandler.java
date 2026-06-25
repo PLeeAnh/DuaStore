@@ -1,6 +1,5 @@
 package com.duastore.config.security;
 
-import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import jakarta.servlet.ServletException;
@@ -11,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Map;
@@ -25,6 +25,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     }
 
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         HttpSession session = request.getSession();
@@ -35,7 +36,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             Map<String, Object> attrs = oauth2User.getAttributes();
             String email = (String) attrs.get("email");
             if (email != null) {
-                user = userRepository.findByEmail(email).orElse(null);
+                user = userRepository.findByEmailWithRoles(email).orElse(null);
             }
         }
 
@@ -52,7 +53,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
                     ? String.valueOf(user.getHoTen().charAt(0)).toUpperCase() : "U");
             session.setAttribute("userEmail", user.getEmail());
             String roleName = user.getRoles().stream()
-                    .findFirst().map(Role::getName).orElse("USER");
+                    .findFirst().map(r -> r.getName()).orElse("USER");
             session.setAttribute("userRole", roleName);
             session.setAttribute("userUsername", user.getUsername());
             session.setAttribute("userPhone", user.getSoDienThoai());

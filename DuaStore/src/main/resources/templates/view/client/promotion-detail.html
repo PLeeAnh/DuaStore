@@ -15,11 +15,11 @@
                     <h4 class="fw-bold mt-3" th:text="${promotion.tenChuongTrinh}"></h4>
                     <div class="display-6 fw-bold text-danger my-3">
                         <span th:if="${promotion.loaiGiam == 'PHAN_TRAM'}" th:text="${promotion.giaTriGiam} + '%'"></span>
-                        <span th:if="${promotion.loaiGiam == 'SO_TIEN'}" th:text="${#numbers.formatDecimal(promotion.giaTriGiam, 0, 0)} + 'đ'"></span>
+                        <span th:if="${promotion.loaiGiam == 'SO_TIEN'}" th:text="${#numbers.formatDecimal(promotion.giaTriGiam, 0, 0)} + '₫'"></span>
                     </div>
                     <p class="mb-1">Mã: <strong class="fs-5" th:text="${promotion.maCode}"></strong></p>
                     <p class="text-muted" th:if="${promotion.donHangToiThieu != null && promotion.donHangToiThieu.compareTo(java.math.BigDecimal.ZERO) > 0}">
-                        Đơn tối thiểu: <span th:text="${#numbers.formatDecimal(promotion.donHangToiThieu, 0, 0)} + 'đ'"></span>
+                        Đơn tối thiểu: <span th:text="${#numbers.formatDecimal(promotion.donHangToiThieu, 0, 0)} + '₫'"></span>
                     </p>
                     <p class="text-muted small">
                         <span th:if="${promotion.tuNgay != null}" th:text="'Từ: ' + ${#temporals.format(promotion.tuNgay, 'dd/MM/yyyy')}"></span>

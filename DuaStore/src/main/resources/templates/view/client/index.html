@@ -141,7 +141,7 @@
                                          <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
 <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
       th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                                         <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
+                                          <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                          <div class="ds-flash-timer" th:if="${fs != null}"
                                               th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
                                              <i class="bi bi-clock"></i>
@@ -203,7 +203,7 @@
 
                                     <button class="ds-price-btn ds-card-add-cart" type="button"
                                             th:data-id="${p.id}"
-                                            th:if="${v != null and v.soLuongTon > 0}"
+                                            th:classappend="${v != null and v.soLuongTon > 0} ? '' : 'd-none'"
                                             onclick="addToCartFromCard(this);return false">
                                         <span class="ds-price-btn-text">
                                             <strong class="ds-price-btn-amount"
@@ -222,7 +222,7 @@
                                         <circle cx="25.877" cy="15.4546" r="1.19873" fill="white"/>
                                         </svg>
                                     </button>
-                                    <span class="ds-badge-oos-btn" th:unless="${v != null and v.soLuongTon > 0}">Bán hết</span>
+                                    <span class="ds-badge-oos-btn" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                 </div>
                             </div>
                         </div>

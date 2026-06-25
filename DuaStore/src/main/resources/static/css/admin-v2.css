@@ -113,19 +113,6 @@ body.adm-body {
   margin-left: 42px;
 }
 
-/* Sidebar illustration */
-.adm-sidebar-glass {
-  padding: 1.5rem 1.25rem;
-  text-align: center;
-}
-
-.adm-sidebar-glass .adm-illustration {
-  color: var(--primary);
-  opacity: .25;
-  max-width: 100px;
-  height: auto;
-}
-
 .adm-sidebar-home {
   padding: 0.75rem 0.75rem;
   border-top: 1px solid var(--border);

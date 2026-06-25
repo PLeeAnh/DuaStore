@@ -4,6 +4,9 @@ import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.model.Permission;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +20,8 @@ import java.util.*;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -32,6 +37,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+        try {
+            return doLoadUser(userRequest);
+        } catch (Exception e) {
+            log.error("OAuth2 loadUser failed", e);
+            throw e;
+        }
+    }
+
+    private OAuth2User doLoadUser(OAuth2UserRequest userRequest) {
         OAuth2User oauth2User = super.loadUser(userRequest);
         Map<String, Object> attributes = oauth2User.getAttributes();
 
@@ -40,14 +54,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if (email == null) return oauth2User;
 
-        User user = userRepository.findByEmail(email).orElse(null);
+        User user = userRepository.findByEmailWithRoles(email).orElse(null);
         if (user == null) {
             user = new User();
+
+            String rawUsername = email.split("@")[0] + "_" + UUID.randomUUID().toString().substring(0, 4);
+            if (rawUsername.length() > 50) rawUsername = rawUsername.substring(0, 50);
+
+            user.setUsername(rawUsername);
             user.setEmail(email);
-            user.setUsername(email.split("@")[0] + "_" + UUID.randomUUID().toString().substring(0, 4));
-            user.setHoTen(name != null ? name : email);
+            user.setHoTen(name != null && !name.isBlank() ? name : email);
             user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+
             Role userRole = roleRepository.findByName("USER");
+            if (userRole == null) {
+                userRole = new Role();
+                userRole.setName("USER");
+                roleRepository.save(userRole);
+            }
             user.setRoles(Set.of(userRole));
             user.setIsActive(true);
             userRepository.save(user);
@@ -56,10 +80,25 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         Set<GrantedAuthority> authorities = new HashSet<>(oauth2User.getAuthorities());
-        boolean isAdmin = user.getRoles().stream()
-                .anyMatch(r -> "ADMIN".equals(r.getName()) || "SUPER_ADMIN".equals(r.getName()));
-        if (isAdmin) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+
+        boolean isSuperAdmin = false;
+        boolean isAdmin = false;
+        for (Role role : user.getRoles()) {
+            String rn = role.getName();
+            if ("SUPER_ADMIN".equals(rn)) {
+                isSuperAdmin = true;
+                authorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+            } else if ("ADMIN".equals(rn)) {
+                isAdmin = true;
+                authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            }
+
+            Set<Permission> perms = role.getPermissions();
+            if (perms != null) {
+                for (Permission p : perms) {
+                    authorities.add(new SimpleGrantedAuthority(p.getModule() + "_" + p.getAction()));
+                }
+            }
         }
 
         return new DefaultOAuth2User(authorities, attributes, "email");

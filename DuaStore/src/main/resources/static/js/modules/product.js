@@ -28,9 +28,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         card.classList.toggle('oos', newStock <= 0);
 
+        var isInStock = newStock > 0;
+
+        var oosBadge = card.querySelector('.ds-badge-oos');
+        if (oosBadge) oosBadge.classList.toggle('d-none', isInStock);
+
         var priceBtn = card.querySelector('.ds-card-add-cart');
+        var oosBtn = card.querySelector('.ds-badge-oos-btn');
+        if (priceBtn) priceBtn.classList.toggle('d-none', !isInStock);
+        if (oosBtn) oosBtn.classList.toggle('d-none', isInStock);
+
         if (priceBtn) {
-            priceBtn.disabled = (newStock <= 0);
+            priceBtn.disabled = !isInStock;
             var amountEl = priceBtn.querySelector('.ds-price-btn-amount');
             if (amountEl) amountEl.textContent = parseInt(newPrice).toLocaleString('vi-VN') + '₫';
         }
@@ -88,12 +97,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    /* ═══ INIT: show first tab and group per card ═══ */
+    /* ═══ INIT: show first tab/group and activate first available chip ═══ */
     document.querySelectorAll('.ds-product-card').forEach(function(card) {
         var firstTab = card.querySelector('.ds-variant-tab');
         if (firstTab) firstTab.classList.add('active');
         var firstGroup = card.querySelector('.ds-variant-group');
         if (firstGroup) firstGroup.classList.add('active');
+
+        var firstAvail = card.querySelector('.ds-variant-chip:not(.oos)')
+            || card.querySelector('.ds-variant-chip');
+        if (firstAvail) updateCardFromChip(card, firstAvail);
     });
 
     /* ═══ FLASH SALE COUNTDOWN ═══ */

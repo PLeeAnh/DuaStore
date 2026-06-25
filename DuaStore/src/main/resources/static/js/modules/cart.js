@@ -170,7 +170,7 @@ function updatePopupQty(variantId, delta) {
     qtySpan.innerText = next;
     if (priceSpan) {
         var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
-        priceSpan.innerText = (unit * next).toLocaleString('vi-VN') + 'đ';
+        priceSpan.innerText = (unit * next).toLocaleString('vi-VN') + '₫';
     }
 
     fetch('/api/cart/update', {
@@ -185,7 +185,7 @@ function updatePopupQty(variantId, delta) {
             qtySpan.innerText = cur;
             if (priceSpan) {
                 var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
-                priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + 'đ';
+                priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + '₫';
             }
         }
     }).catch(function(err) {
@@ -193,7 +193,7 @@ function updatePopupQty(variantId, delta) {
         qtySpan.innerText = cur;
         if (priceSpan) {
             var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
-            priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + 'đ';
+            priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + '₫';
         }
         console.error('Lỗi cập nhật SL:', err);
     });
@@ -222,7 +222,7 @@ function addCartPopupItem(card, productId, variantId, qty) {
     var activeChip = getActiveVariant(card);
     var variantName = activeChip ? activeChip.textContent : 'Mặc định';
     var rawPrice = activeChip ? parseInt(activeChip.getAttribute('data-price')) : 0;
-    var priceFmt = rawPrice.toLocaleString('vi-VN') + 'đ';
+    var priceFmt = rawPrice.toLocaleString('vi-VN') + '₫';
 
     var existing = document.getElementById('cart-item-' + variantId);
     if (existing) {
@@ -231,7 +231,7 @@ function addCartPopupItem(card, productId, variantId, qty) {
             var newQty = parseInt(qtySpan.textContent) + qty;
             qtySpan.textContent = newQty;
             var ps = existing.querySelector('#popup-price-' + variantId);
-            if (ps) ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + 'đ';
+            if (ps) ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + '₫';
         }
         return;
     }

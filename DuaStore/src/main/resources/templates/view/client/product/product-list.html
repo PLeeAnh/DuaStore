@@ -101,7 +101,7 @@
                             <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
                             <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
                                   th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                            <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
+                            <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                             <div class="ds-flash-timer" th:if="${fs != null}"
                                  th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
                                 <i class="bi bi-clock"></i>
@@ -164,7 +164,7 @@
 
                         <button class="ds-price-btn ds-card-add-cart" type="button"
                                 th:data-id="${p.id}"
-                                th:if="${v != null and v.soLuongTon > 0}"
+                                th:classappend="${v != null and v.soLuongTon > 0} ? '' : 'd-none'"
                                 onclick="addToCartFromCard(this);return false">
                             <span class="ds-price-btn-text">
                                 <strong class="ds-price-btn-amount"
@@ -180,10 +180,10 @@
                                 <path d="M33.8021 7.07632L23.9922 7.12432L25.0379 11.9759L32.5011 11.2026C32.8915 11.1622 33.2221 10.8971 33.3465 10.5249L34.2788 7.73477C34.3873 7.40996 34.1445 7.07465 33.8021 7.07632Z" fill="white" stroke="white" stroke-width="0.875" stroke-linecap="round"/>
                                 <path d="M32.5444 10.4839L30.4273 10.7039" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"/>
                                 <circle cx="32.4546" cy="15.4545" r="1.19873" fill="white"/>
-                                <circle cx="25.877" cy="15.4545" r="1.19873" fill="white"/>
+                                <circle cx="25.877" cy="15.4546" r="1.19873" fill="white"/>
                             </svg>
                         </button>
-                        <span class="ds-badge-oos-btn" th:unless="${v != null and v.soLuongTon > 0}">Bán hết</span>
+                        <span class="ds-badge-oos-btn" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                     </div>
                 </div>
             </div>
