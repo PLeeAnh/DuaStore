@@ -1170,33 +1170,6 @@ a { color: inherit; }
   transform: translateY(-1px);
 }
 
-/* ── Image wrapper (1:1, object-fit cover, zoom on hover) ── */
-.ds-product-img-wrap {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: var(--ds-gray-100);
-}
-.ds-product-img-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform .3s ease;
-}
-.ds-product-card:hover .ds-product-img-wrap img {
-  transform: scale(1.05);
-}
-.ds-product-img {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  color: var(--ds-gray-400);
-}
-
 /* ── Badges ── */
 .ds-badge-sale {
   position: absolute;
@@ -1544,7 +1517,7 @@ a { color: inherit; }
 .ds-product-card.oos {
   opacity: .55;
 }
-.ds-product-card.oos .ds-product-img-wrap img {
+.ds-product-card.oos .ds-product-image-wrap img {
   filter: grayscale(1) contrast(1.1);
 }
 .ds-product-card.oos .ds-price-btn,

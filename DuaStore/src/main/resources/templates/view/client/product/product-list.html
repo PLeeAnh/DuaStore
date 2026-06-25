@@ -96,22 +96,29 @@
                     </button>
 
                     <a th:href="@{/san-pham/{id}(id=${p.id})}">
-                        <div class="ds-product-img-wrap">
-                            <div class="ds-product-img">
-                                <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" th:alt="${p.tenSanPham}"/>
-                                <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
-                            </div>
+                        <div class="ds-product-image-wrap">
+                            <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
+                            <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
                             <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
                                   th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
                             <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
-                            <span th:if="${p.trangThaiSanPham == 'DAT_TRUOC'}"
-                                   class="badge bg-warning text-dark position-absolute ds-badge-dat-truoc">Đặt trước</span>
                             <div class="ds-flash-timer" th:if="${fs != null}"
                                  th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
                                 <i class="bi bi-clock"></i>
                                 <span class="flash-countdown">--:--:--</span>
                             </div>
                             <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên SP</div>
+                            <div class="ds-qty-row ds-qty-row-image">
+                                <div class="ds-qty-selector">
+                                    <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
+                                        <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                    </button>
+                                    <input type="text" class="ds-qty-val" value="1" readonly>
+                                    <button class="ds-qty-btn ds-qty-plus" type="button">
+                                        <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </a>
 
@@ -153,18 +160,6 @@
                               class="ds-stock-info"
                               th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
                               th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
-
-                        <div class="ds-qty-row">
-                            <div class="ds-qty-selector">
-                                <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
-                                    <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                </button>
-                                <input type="text" class="ds-qty-val" value="1" readonly>
-                                <button class="ds-qty-btn ds-qty-plus" type="button">
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 0V12M0 6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                </button>
-                            </div>
-                        </div>
                         </div>
 
                         <button class="ds-price-btn ds-card-add-cart" type="button"
