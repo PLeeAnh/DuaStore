@@ -1438,12 +1438,12 @@ a { color: inherit; }
   align-items: center;
   border-radius: 8px;
   background: #f8f8f8;
-  padding: 4px;
-  gap: 4px;
+  padding: 3px;
+  gap: 3px;
 }
 .ds-qty-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: #272727;
   color: #fff;
@@ -1462,10 +1462,10 @@ a { color: inherit; }
   height: 12px;
 }
 .ds-qty-val {
-  width: 48px;
-  height: 28px;
+  width: 32px;
+  height: 24px;
   text-align: center;
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 600;
   border: none;
   background: transparent;
@@ -1687,13 +1687,13 @@ a { color: inherit; }
 /* ---- NÚT THẢ TIM TRÊN CARD SẢN PHẨM ---- */
 .btn-wishlist-card {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 8px;
+  right: 8px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--ds-border);
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1702,12 +1702,13 @@ a { color: inherit; }
   z-index: 10;
   transition: all 0.2s ease;
   padding: 0;
+  font-size: .65rem;
 }
 
 .btn-wishlist-card:hover {
   background: #fff;
-  color: #ef4444;
-  border-color: #ef4444;
+  color: #000;
+  border-color: #000;
   transform: scale(1.1);
 }
 
