@@ -1317,20 +1317,20 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   gap: 3px;
-  max-height: none;
-  opacity: 1;
-  overflow: visible;
-  pointer-events: auto;
-  transition: none;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: max-height .35s ease, opacity .25s ease;
   min-height: 0;
+}
+.ds-product-card:hover .ds-card-actions {
+  max-height: 120px;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* ── Variant group tabs ── */
-.ds-variant-tabs-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 .ds-variant-tabs {
   display: flex;
   gap: 3px;
@@ -1338,23 +1338,9 @@ a { color: inherit; }
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
-  visibility: hidden;
-  opacity: 0;
-  max-width: 0;
-  transition: opacity .2s;
+  flex-shrink: 0;
 }
 .ds-variant-tabs::-webkit-scrollbar { display: none; }
-.ds-product-card:hover .ds-variant-tabs {
-  visibility: visible;
-  opacity: 1;
-  max-width: none;
-}
-.ds-product-card:hover .ds-variant-tabs-row .ds-stock-info {
-  opacity: 0;
-  visibility: hidden;
-  max-width: 0;
-  flex: 0;
-}
 .ds-variant-tab {
   flex-shrink: 0;
   padding: 2px 6px;
@@ -1378,17 +1364,10 @@ a { color: inherit; }
   color: var(--ds-primary);
 }
 .ds-variant-group {
-  visibility: hidden;
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  transition: opacity .2s;
+  display: none;
 }
-.ds-product-card:hover .ds-variant-group.active {
-  visibility: visible;
-  opacity: 1;
-  max-height: 80px;
-  overflow: visible;
+.ds-variant-group.active {
+  display: block;
 }
 
 /* ── Variant label (giống chi tiết sản phẩm) ── */
@@ -1406,7 +1385,6 @@ a { color: inherit; }
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
-  align-items: center;
   gap: 3px;
   margin-top: 3px;
   flex-wrap: wrap;
@@ -1425,12 +1403,12 @@ a { color: inherit; }
   line-height: 1.4;
 }
 .ds-variant-chip:hover {
-  border-color: #000;
-  color: #000;
+  border-color: #dc3545;
+  color: #dc3545;
 }
 .ds-variant-chip.active {
-  background: #000 !important;
-  border-color: #000 !important;
+  background: #dc3545 !important;
+  border-color: #dc3545 !important;
   color: #fff !important;
 }
 .ds-variant-chip.oos {
@@ -1438,6 +1416,8 @@ a { color: inherit; }
   pointer-events: none;
   text-decoration: line-through;
 }
+
+
 /* ── Quantity selector (ẩn mặc định, hiện trên hover, co giãn) ── */
 .ds-qty-row {
   display: flex;
