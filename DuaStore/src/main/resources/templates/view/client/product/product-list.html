@@ -120,25 +120,6 @@
 
                         <div class="star-rating-readonly small" th:if="${avgRatings != null and avgRatings.containsKey(p.id)}" th:data-score="${#numbers.convert(avgRatings.get(p.id), 'int')}"></div>
 
-                        <div class="ds-stock-qty-row">
-                        <span th:if="${v != null}"
-                              class="ds-stock-info"
-                              th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
-                              th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
-
-                        <div class="ds-qty-row">
-                            <div class="ds-qty-selector">
-                                <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
-                                    <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                </button>
-                                <input type="text" class="ds-qty-val" value="1" readonly>
-                                <button class="ds-qty-btn ds-qty-plus" type="button">
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 0V12M0 6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        </div>
-
                         <div class="ds-card-actions">
                             <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
                                 <div class="ds-variant-tabs">
@@ -165,6 +146,25 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="ds-stock-qty-row">
+                        <span th:if="${v != null}"
+                              class="ds-stock-info"
+                              th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                              th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
+
+                        <div class="ds-qty-row">
+                            <div class="ds-qty-selector">
+                                <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
+                                    <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                </button>
+                                <input type="text" class="ds-qty-val" value="1" readonly>
+                                <button class="ds-qty-btn ds-qty-plus" type="button">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 0V12M0 6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                </button>
+                            </div>
+                        </div>
                         </div>
 
                         <button class="ds-price-btn ds-card-add-cart" type="button"

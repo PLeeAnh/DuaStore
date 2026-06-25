@@ -1261,6 +1261,7 @@ a { color: inherit; }
   align-items: center;
   min-height: 1.2em;
   margin-bottom: 1px;
+  transition: max-height .35s ease, opacity .25s ease, margin .35s ease, padding .35s ease;
 }
 .ds-stock-qty-row .ds-stock-info,
 .ds-stock-qty-row .ds-qty-row {
@@ -1285,8 +1286,13 @@ a { color: inherit; }
 .ds-stock-info.oos {
   color: var(--ds-gray-400);
 }
-.ds-product-card:hover .ds-stock-info {
+.ds-product-card:hover .ds-stock-qty-row {
+  max-height: 0;
   opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
   pointer-events: none;
 }
 
