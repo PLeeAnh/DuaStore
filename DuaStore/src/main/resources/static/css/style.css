@@ -1289,6 +1289,10 @@ a { color: inherit; }
   opacity: 0;
   pointer-events: none;
 }
+.ds-product-card:hover .ds-card-actions .ds-stock-info {
+  opacity: 1;
+  pointer-events: auto;
+}
 
 /* ── Flash timer (pill absolute trên ảnh, góc trái) ── */
 .ds-flash-timer {
@@ -1331,6 +1335,11 @@ a { color: inherit; }
 }
 
 /* ── Variant group tabs ── */
+.ds-variant-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .ds-variant-tabs {
   display: flex;
   gap: 3px;

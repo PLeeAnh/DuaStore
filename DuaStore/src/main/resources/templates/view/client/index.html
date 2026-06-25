@@ -166,19 +166,20 @@
                                     <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
                                        th:text="${p.tenSanPham}">Tên sản phẩm</a>
 
-                                    <span th:if="${v != null}"
-                                          class="ds-stock-info"
-                                          th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
-                                          th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
-
                                     <div class="ds-card-actions">
                                         <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
-                                            <div class="ds-variant-tabs">
-                                                <button th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
-                                                        class="ds-variant-tab"
-                                                        th:data-group="${groupEntry.key}"
-                                                        th:text="${groupEntry.key}"
-                                                        type="button">Nắp Gỗ</button>
+                                            <div class="ds-variant-tabs-row">
+                                                <div class="ds-variant-tabs">
+                                                    <button th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
+                                                            class="ds-variant-tab"
+                                                            th:data-group="${groupEntry.key}"
+                                                            th:text="${groupEntry.key}"
+                                                            type="button">Nắp Gỗ</button>
+                                                </div>
+                                                <span th:if="${v != null}"
+                                                      class="ds-stock-info"
+                                                      th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                                                      th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
                                             </div>
                                             <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
                                                  class="ds-variant-group"
