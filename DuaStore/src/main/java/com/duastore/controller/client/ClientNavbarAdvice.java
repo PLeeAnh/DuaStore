@@ -41,17 +41,17 @@ public class ClientNavbarAdvice {
 
         try {
             Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
-            List<Notification> allNotifs = notificationRepository.findTop5ByIsActiveTrueOrderByCreatedAtDesc();
+            List<Notification> allNotifs = notificationRepository.findCustomerNotifications();
 
             if (readMaxId != null && readMaxId > 0) {
                 List<Notification> unread = allNotifs.stream()
                     .filter(n -> n.getId() > readMaxId)
                     .toList();
                 model.addAttribute("recentNotifs", unread);
-                model.addAttribute("notifCount", notificationRepository.countByIsActiveTrueAndIdGreaterThan(readMaxId));
+                model.addAttribute("notifCount", notificationRepository.countUnreadCustomerNotifications(readMaxId));
             } else {
                 model.addAttribute("recentNotifs", allNotifs);
-                model.addAttribute("notifCount", notificationRepository.countByIsActiveTrue());
+                model.addAttribute("notifCount", notificationRepository.countCustomerNotifications());
             }
         } catch (Exception e) {
             log.warn("Loi lay thong bao: {}", e.getMessage());
