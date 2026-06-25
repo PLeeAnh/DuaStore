@@ -192,9 +192,9 @@
                             </div>
                         </div>
                         <div class="d-flex gap-2 mt-3">
-                            <label class="btn btn-outline-primary btn-sm flex-fill">
+                            <label class="btn btn-outline-primary btn-sm flex-fill" id="mainImageLabel">
                                 <i class="bi bi-arrow-repeat me-1"></i><span th:text="${product.hinhAnhChinh != null} ? 'Đổi ảnh' : 'Thêm ảnh'">Đổi ảnh</span>
-                                <input type="file" name="hinhAnhFile" accept="image/*" hidden onchange="this.form.submit()" />
+                                <input type="file" name="hinhAnhFile" id="mainImageInput" accept="image/*" hidden />
                             </label>
                             <button type="button" class="btn btn-outline-danger btn-sm flex-fill" th:if="${product.hinhAnhChinh}" th:data-product-id="${product.id}"
                                     onclick="confirmDeleteMainImage(this)">
@@ -324,6 +324,43 @@
 
         form.addEventListener('formdata', (e) => {
             for (const f of filesArray) e.formData.append('galleryFiles', f);
+        });
+    })();
+
+    /* ═══ Main image: chọn file trước, submit sau ═══ */
+    (function() {
+        const input = document.getElementById('mainImageInput');
+        const img = document.querySelector('.adm-main-image');
+        const empty = document.querySelector('.adm-empty');
+        const label = document.getElementById('mainImageLabel');
+        const labelSpan = label ? label.querySelector('span') : null;
+        let mainImageFile = null;
+
+        if (!input) return;
+
+        input.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                if (!file.type.startsWith('image/')) return;
+                mainImageFile = file;
+
+                // Show preview
+                const url = URL.createObjectURL(file);
+                if (img) {
+                    img.src = url;
+                    img.style.display = '';
+                }
+                if (empty) empty.style.display = 'none';
+
+                // Update label text
+                if (labelSpan) labelSpan.textContent = 'Đổi ảnh';
+            }
+        });
+
+        // Append main image to formdata on submit
+        const form = input.closest('form');
+        form.addEventListener('formdata', function(e) {
+            if (mainImageFile) e.formData.set('hinhAnhFile', mainImageFile);
         });
     })();
 </script>
