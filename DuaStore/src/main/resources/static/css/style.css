@@ -1157,7 +1157,7 @@ a { color: inherit; }
   position: relative;
   background: var(--ds-card-bg);
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-r);
+  border-radius: 28px;
   padding: 0;
   text-align: center;
   transition: box-shadow .3s ease, transform .3s ease;
@@ -1227,7 +1227,7 @@ a { color: inherit; }
 
 /* ── Card body (content below image) ── */
 .ds-card-body {
-  padding: 12px 14px 16px;
+  padding: 24px 28px 32px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1240,8 +1240,8 @@ a { color: inherit; }
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 48px;
-  font-size: .88rem;
+  min-height: 96px;
+  font-size: 1.76rem;
   font-weight: 600;
   color: var(--ds-gray-900);
   text-decoration: none;
@@ -3481,7 +3481,7 @@ a { color: inherit; }
   position: relative;
   aspect-ratio: 1/1;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 32px;
   background: #fff;
 }
 .ds-product-image-wrap img {
