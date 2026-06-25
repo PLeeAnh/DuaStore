@@ -1227,11 +1227,11 @@ a { color: inherit; }
 
 /* ── Card body (content below image) ── */
 .ds-product-card .ds-card-body {
-  padding: 10px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 4px;
+  gap: 2px;
 }
 
 /* ── Product name ── */
@@ -1240,8 +1240,8 @@ a { color: inherit; }
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 36px;
-  font-size: .55rem;
+  min-height: 28px;
+  font-size: .5rem;
   font-weight: 600;
   color: var(--ds-gray-900);
   text-decoration: none;
@@ -1260,7 +1260,7 @@ a { color: inherit; }
   justify-content: center;
   align-items: center;
   min-height: 1.6em;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 .ds-stock-qty-row .ds-stock-info,
 .ds-stock-qty-row .ds-qty-row {
@@ -1273,7 +1273,7 @@ a { color: inherit; }
 
 /* ── Stock info (swap opacity với qty trên hover card) ── */
 .ds-stock-info {
-  font-size: .72rem;
+  font-size: .6rem;
   color: var(--ds-gray-500);
   font-weight: 500;
   opacity: 1;
@@ -1316,7 +1316,7 @@ a { color: inherit; }
 .ds-card-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   max-height: 0;
   opacity: 0;
   overflow: hidden;
@@ -1325,7 +1325,7 @@ a { color: inherit; }
   min-height: 0;
 }
 .ds-product-card:hover .ds-card-actions {
-  max-height: 180px;
+  max-height: 140px;
   opacity: 1;
   pointer-events: auto;
 }
@@ -1333,8 +1333,8 @@ a { color: inherit; }
 /* ── Variant group tabs ── */
 .ds-variant-tabs {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 4px;
+  margin-bottom: 4px;
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
@@ -1343,8 +1343,8 @@ a { color: inherit; }
 .ds-variant-tabs::-webkit-scrollbar { display: none; }
 .ds-variant-tab {
   flex-shrink: 0;
-  padding: 2px 8px;
-  font-size: .68rem;
+  padding: 1px 6px;
+  font-size: .6rem;
   font-weight: 600;
   border: 1px solid var(--ds-gray-400);
   border-radius: 100px;
@@ -1385,14 +1385,14 @@ a { color: inherit; }
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
   flex-wrap: wrap;
   justify-content: center;
 }
 .ds-variant-chip {
-  padding: 3px 10px;
-  font-size: .68rem;
+  padding: 2px 8px;
+  font-size: .6rem;
   font-weight: 500;
   border: 1px solid var(--ds-gray-400);
   border-radius: 6px;
@@ -1487,13 +1487,13 @@ a { color: inherit; }
   border-radius: 8px;
   background: #363636;
   color: #fff;
-  font-size: .82rem;
+  font-size: .72rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   line-height: 1.4;
   margin-top: auto;
-  height: 38px;
+  height: 32px;
 }
 .ds-price-btn:hover {
   background: var(--ds-primary) !important;
@@ -3316,7 +3316,7 @@ a { color: inherit; }
 
 /* ===== §33 CATEGORIES V2 — PILLS NGANG ===== */
 .ds-cat-v2 {
-  padding: 2.5rem 0 1.5rem;
+  padding: 1.5rem 0 1rem;
 }
 .ds-cat-v2-grid {
   display: flex;
@@ -3441,7 +3441,7 @@ a { color: inherit; }
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 .ds-section-header .ds-section-desc {
   margin-left: 0;
@@ -3464,7 +3464,7 @@ a { color: inherit; }
 .ds-product-grid-v2 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: .5rem;
 }
 @media (max-width: 991px) {
   .ds-product-grid-v2 {
@@ -3474,7 +3474,7 @@ a { color: inherit; }
 @media (max-width: 576px) {
   .ds-product-grid-v2 {
     grid-template-columns: repeat(2, 1fr);
-    gap: .75rem;
+    gap: .4rem;
   }
 }
 .ds-product-image-wrap {
