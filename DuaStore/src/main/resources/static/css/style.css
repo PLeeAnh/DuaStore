@@ -1420,10 +1420,17 @@ a { color: inherit; }
 .ds-stock-info-inline {
   display: inline-flex;
   align-items: center;
-  margin-left: auto;
   font-size: .6rem;
   color: var(--ds-gray-500);
   white-space: nowrap;
+  flex-shrink: 0;
+}
+.ds-variant-groups-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* ── Quantity selector (ẩn mặc định, hiện trên hover, co giãn) ── */
