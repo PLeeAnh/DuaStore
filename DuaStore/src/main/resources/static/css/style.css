@@ -1227,11 +1227,11 @@ a { color: inherit; }
 
 /* ── Card body (content below image) ── */
 .ds-product-card .ds-card-body {
-  padding: 16px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 12px;
+  gap: 6px;
 }
 
 /* ── Product name ── */
@@ -1260,7 +1260,7 @@ a { color: inherit; }
   justify-content: center;
   align-items: center;
   min-height: 1.6em;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 .ds-stock-qty-row .ds-stock-info,
 .ds-stock-qty-row .ds-qty-row {
@@ -1273,7 +1273,7 @@ a { color: inherit; }
 
 /* ── Stock info (swap opacity với qty trên hover card) ── */
 .ds-stock-info {
-  font-size: .625rem;
+  font-size: .6rem;
   color: var(--ds-gray-500);
   font-weight: 500;
   opacity: 1;
@@ -1316,7 +1316,7 @@ a { color: inherit; }
 .ds-card-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   max-height: 0;
   opacity: 0;
   overflow: hidden;
@@ -1325,7 +1325,7 @@ a { color: inherit; }
   min-height: 0;
 }
 .ds-product-card:hover .ds-card-actions {
-  max-height: 200px;
+  max-height: 160px;
   opacity: 1;
   pointer-events: auto;
 }
@@ -1333,8 +1333,8 @@ a { color: inherit; }
 /* ── Variant group tabs ── */
 .ds-variant-tabs {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 4px;
+  margin-bottom: 4px;
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
@@ -1385,8 +1385,8 @@ a { color: inherit; }
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -1493,7 +1493,7 @@ a { color: inherit; }
   transition: all 0.3s ease-in-out;
   line-height: 1.4;
   margin-top: auto;
-  height: 36px;
+  height: 30px;
 }
 .ds-price-btn:hover {
   background: var(--ds-primary) !important;
@@ -3464,7 +3464,7 @@ a { color: inherit; }
 .ds-product-grid-v2 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
 }
 @media (max-width: 991px) {
   .ds-product-grid-v2 {
