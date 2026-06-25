@@ -3372,15 +3372,16 @@ a { color: inherit; }
 }
 .ds-cat-v2-label {
   font-size: .85rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #1f2937;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .ds-cat-v2-count {
-  font-size: .68rem;
-  color: var(--ds-gray-500);
+  font-size: .65rem;
+  color: var(--ds-gray-400);
+  margin-top: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

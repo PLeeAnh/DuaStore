@@ -50,6 +50,8 @@ public class HomeController {
             .stream()
             .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
         model.addAttribute("productCountMap", productCountMap);
+        long totalProducts = productCountMap.values().stream().mapToLong(Long::longValue).sum();
+        model.addAttribute("totalProducts", totalProducts);
 
         Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
