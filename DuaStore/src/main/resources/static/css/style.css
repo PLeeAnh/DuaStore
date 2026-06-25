@@ -1317,17 +1317,12 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   gap: 3px;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
-  transition: max-height .35s ease, opacity .25s ease;
-  min-height: 0;
-}
-.ds-product-card:hover .ds-card-actions {
-  max-height: 120px;
+  max-height: none;
   opacity: 1;
+  overflow: visible;
   pointer-events: auto;
+  transition: none;
+  min-height: 0;
 }
 
 /* ── Variant group tabs ── */
@@ -1418,10 +1413,19 @@ a { color: inherit; }
   text-decoration: line-through;
 }
 .ds-stock-info-inline {
-  display: block;
-  font-size: .65rem;
+  display: inline-flex;
+  align-items: center;
+  font-size: .6rem;
   color: var(--ds-gray-500);
-  margin-bottom: 1px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ds-variant-groups-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 /* ── Quantity selector (ẩn mặc định, hiện trên hover, co giãn) ── */
