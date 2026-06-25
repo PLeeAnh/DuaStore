@@ -1166,8 +1166,8 @@ a { color: inherit; }
   overflow: hidden;
 }
 .ds-product-card:hover {
-  box-shadow: 0 12px 36px rgba(0,0,0,.1);
-  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.1);
+  transform: translateY(-2px);
 }
 
 /* ── Image wrapper (1:1, object-fit cover, zoom on hover) ── */
@@ -1226,12 +1226,12 @@ a { color: inherit; }
 }
 
 /* ── Card body (content below image) ── */
-.ds-card-body {
-  padding: 5px 5px 5px;
+.ds-product-card .ds-card-body {
+  padding: 10px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 6px;
+  gap: 4px;
 }
 
 /* ── Product name ── */
@@ -1260,7 +1260,7 @@ a { color: inherit; }
   justify-content: center;
   align-items: center;
   min-height: 1.6em;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 .ds-stock-qty-row .ds-stock-info,
 .ds-stock-qty-row .ds-qty-row {
@@ -1322,10 +1322,10 @@ a { color: inherit; }
   overflow: hidden;
   pointer-events: none;
   transition: max-height .35s ease, opacity .25s ease;
-  min-height: 50px;
+  min-height: 0;
 }
 .ds-product-card:hover .ds-card-actions {
-  max-height: 250px;
+  max-height: 180px;
   opacity: 1;
   pointer-events: auto;
 }
@@ -1333,8 +1333,8 @@ a { color: inherit; }
 /* ── Variant group tabs ── */
 .ds-variant-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 6px;
   overflow-x: auto;
   flex-wrap: nowrap;
   scrollbar-width: none;
@@ -1343,8 +1343,8 @@ a { color: inherit; }
 .ds-variant-tabs::-webkit-scrollbar { display: none; }
 .ds-variant-tab {
   flex-shrink: 0;
-  padding: 3px 10px;
-  font-size: .7rem;
+  padding: 2px 8px;
+  font-size: .68rem;
   font-weight: 600;
   border: 1px solid var(--ds-gray-400);
   border-radius: 100px;
@@ -1385,14 +1385,14 @@ a { color: inherit; }
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
   flex-wrap: wrap;
   justify-content: center;
 }
 .ds-variant-chip {
-  padding: 4px 12px;
-  font-size: .72rem;
+  padding: 3px 10px;
+  font-size: .68rem;
   font-weight: 500;
   border: 1px solid var(--ds-gray-400);
   border-radius: 6px;
@@ -1482,18 +1482,18 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
+  padding: 0 12px;
   border: none;
   border-radius: 8px;
   background: #363636;
   color: #fff;
-  font-size: 1rem;
+  font-size: .82rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   line-height: 1.4;
   margin-top: auto;
-  height: 48px;
+  height: 38px;
 }
 .ds-price-btn:hover {
   background: var(--ds-primary) !important;
@@ -3464,7 +3464,7 @@ a { color: inherit; }
 .ds-product-grid-v2 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
 }
 @media (max-width: 991px) {
   .ds-product-grid-v2 {
