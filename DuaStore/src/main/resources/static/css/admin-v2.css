@@ -664,6 +664,21 @@ body.adm-body {
   color: var(--danger);
 }
 
+.status-da-thanh-toan {
+  background: rgba(22,163,74,0.12);
+  color: var(--success);
+}
+
+.status-chua-thanh-toan {
+  background: rgba(245,158,11,0.12);
+  color: #B45309;
+}
+
+.status-cong-no {
+  background: rgba(37,99,235,0.12);
+  color: var(--primary);
+}
+
 /* ── 15. Progress Bar (Order Detail) ── */
 .progress-step-bar {
   display: flex;

@@ -65,23 +65,22 @@
                         </td>
                         <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + '₫'" class="fw-semibold"></td>
                         <td>
-                            <span th:switch="${o.trangThaiDon}"
-                                  class="badge fw-semibold px-2 py-1">
-                                <span th:case="'CHO_XAC_NHAN'" class="badge bg-warning text-dark">Chờ xác nhận</span>
-                                <span th:case="'DA_XAC_NHAN'" class="badge bg-primary">Đã xác nhận</span>
-                                <span th:case="'DANG_GIAO'" class="badge bg-info text-dark">Đang giao</span>
-                                <span th:case="'DA_GIAO'" class="badge bg-success">Đã giao</span>
-                                <span th:case="'DA_HOAN_THANH'" class="badge bg-success">Đã hoàn thành</span>
-                                <span th:case="'DA_HUY'" class="badge bg-danger">Đã hủy</span>
-                                <span th:case="*" class="badge bg-secondary" th:text="${o.trangThaiDon}"></span>
+                            <span th:switch="${o.trangThaiDon}" class="status-pill">
+                                <span th:case="'CHO_XAC_NHAN'" class="status-pill status-cho-xac-nhan">Chờ xác nhận</span>
+                                <span th:case="'DA_XAC_NHAN'" class="status-pill status-da-xac-nhan">Đã xác nhận</span>
+                                <span th:case="'DANG_GIAO'" class="status-pill status-dang-giao">Đang giao</span>
+                                <span th:case="'DA_GIAO'" class="status-pill status-da-giao">Đã giao</span>
+                                <span th:case="'DA_HOAN_THANH'" class="status-pill status-da-hoan-thanh">Đã hoàn thành</span>
+                                <span th:case="'DA_HUY'" class="status-pill status-da-huy">Đã hủy</span>
+                                <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiDon}"></span>
                             </span>
                         </td>
                         <td>
-                            <span th:switch="${o.trangThaiTT}"
-                                  class="badge fw-semibold px-2 py-1">
-                                <span th:case="'CHUA_THANH_TOAN'" class="badge bg-warning text-dark">Chưa thanh toán</span>
-                                <span th:case="'DA_THANH_TOAN'" class="badge bg-success">Đã thanh toán</span>
-                                <span th:case="*" class="badge bg-secondary" th:text="${o.trangThaiTT}"></span>
+                            <span th:switch="${o.trangThaiTT}" class="status-pill">
+                                <span th:case="'DA_THANH_TOAN'" class="status-pill status-da-thanh-toan">Đã thanh toán</span>
+                                <span th:case="'CHUA_THANH_TOAN'" class="status-pill status-chua-thanh-toan">Chưa thanh toán</span>
+                                <span th:case="'CONG_NO'" class="status-pill status-cong-no">Công nợ</span>
+                                <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiTT}"></span>
                             </span>
                         </td>
                         <td class="small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>

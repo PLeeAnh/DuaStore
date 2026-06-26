@@ -173,18 +173,6 @@ public class AdminOrderService {
             return deleteOrderWithLog(id, oldStatus, admin, request);
         }
 
-        // Auto-set payment to CONG_NO when completing unpaid order
-        if ("DA_HOAN_THANH".equals(trangThaiDon)) {
-            Order o = orderRepository.findById(id).orElse(null);
-            if (o != null && "CHUA_THANH_TOAN".equals(o.getTrangThaiTT())) {
-                String oldPayment = o.getTrangThaiTT();
-                updatePaymentStatus(id, "CONG_NO");
-                adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
-                        oldPayment, "CONG_NO",
-                        "Ghi nhận công nợ khi hoàn thành đơn", request);
-            }
-        }
-
         String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         updateOrderStatus(id, trangThaiDon);
 
@@ -194,6 +182,17 @@ public class AdminOrderService {
         adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_DON",
                 oldStatus, trangThaiDon,
                 "Cập nhật trạng thái đơn từ " + oldStatus + " → " + trangThaiDon, request);
+
+        if ("DA_HOAN_THANH".equals(trangThaiDon) && order != null
+                && "COD".equals(order.getPhuongThucTT())
+                && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+            String oldPayment = order.getTrangThaiTT();
+            updatePaymentStatus(id, "DA_THANH_TOAN");
+            adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
+                    oldPayment, "DA_THANH_TOAN",
+                    "Tự động cập nhật thanh toán từ " + oldPayment + " → DA_THANH_TOAN (COD hoàn thành)", request);
+        }
+
         return stockMsg;
     }
 

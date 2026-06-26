@@ -165,4 +165,38 @@ public class AddressController {
         res.putIfAbsent("success", false);
         return ResponseEntity.ok(res);
     }
+
+    @GetMapping("/api/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> apiGetAddress(@PathVariable("id") Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) {
+            res.put("success", false);
+            res.put("message", "Vui lòng đăng nhập");
+            return ResponseEntity.ok(res);
+        }
+        addressRepository.findById(id).ifPresentOrElse(a -> {
+            if (!a.getUserId().equals(userId)) {
+                res.put("success", false);
+                res.put("message", "Không có quyền truy cập");
+                return;
+            }
+            res.put("success", true);
+            res.put("id", a.getId());
+            res.put("tenNguoiNhan", a.getTenNguoiNhan());
+            res.put("soDienThoai", a.getSoDienThoai());
+            res.put("tinhThanh", a.getTinhThanh());
+            res.put("quanHuyen", a.getQuanHuyen());
+            res.put("phuongXa", a.getPhuongXa());
+            res.put("diaChiCuThe", a.getDiaChiCuThe());
+            res.put("latitude", a.getLatitude());
+            res.put("longitude", a.getLongitude());
+            res.put("isDefault", a.getIsDefault());
+        }, () -> {
+            res.put("success", false);
+            res.put("message", "Không tìm thấy địa chỉ");
+        });
+        return ResponseEntity.ok(res);
+    }
 }

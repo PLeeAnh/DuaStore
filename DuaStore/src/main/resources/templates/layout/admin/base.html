@@ -99,6 +99,14 @@
                 <span>Đánh giá</span>
             </a>
 
+            <div class="adm-nav-section">Cấu hình</div>
+            <a class="adm-nav-link" th:href="@{/admin/dia-chi}"
+               th:if="${userPermissions.contains('STORE_READ')}"
+               th:classappend="${title == 'dia-chi' ? ' active' : ''}">
+                <i class="bi bi-geo-alt"></i>
+                <span>Địa chỉ cửa hàng</span>
+            </a>
+
             <div class="adm-nav-section">Hệ thống</div>
             <a class="adm-nav-link" th:href="@{/admin/nguoi-dung}"
                th:if="${userPermissions.contains('USER_READ')}"

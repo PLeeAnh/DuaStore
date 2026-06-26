@@ -1,5 +1,7 @@
 package com.duastore.controller.client;
 
+import com.duastore.model.StoreInfo;
+import com.duastore.service.admin.AdminStoreInfoService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -11,9 +13,21 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class ContactController {
 
+    private final AdminStoreInfoService storeInfoService;
+
+    public ContactController(AdminStoreInfoService storeInfoService) {
+        this.storeInfoService = storeInfoService;
+    }
+
     @GetMapping("/lien-he")
     public String contactForm(Model model) {
         model.addAttribute("title", "Liên hệ");
+        StoreInfo store = storeInfoService.findDefault();
+        if (store != null) {
+            model.addAttribute("store", store);
+            model.addAttribute("storeLat", store.getLatitude());
+            model.addAttribute("storeLng", store.getLongitude());
+        }
         return "view/client/contact";
     }
 
