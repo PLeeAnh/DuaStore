@@ -1489,8 +1489,11 @@ body.adm-body {
 }
 
 .tree-node .dropdown {
-  margin-left: auto;
+  width: 50px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .category-tree a:not(.btn) { color: var(--ef-blue); font-weight: 500; text-decoration: none; }
