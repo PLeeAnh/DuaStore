@@ -349,12 +349,11 @@
                                   th:text="${' (tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ)'}" style="font-size:12px"></span>
                         </div>
                     </div>
-                    <div class="small text-muted mt-1" th:text="${p.tenChuongTrinh}"></div>
-                    <div th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}" class="small text-muted">
-                        Đơn tối thiểu: <span th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT')} + 'đ'"></span>
-                    </div>
-                    <div class="small text-muted">
-                        HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></span>
+                    <div class="small text-muted mt-1 d-flex flex-wrap gap-2">
+                        <span th:text="${p.tenChuongTrinh}"></span>
+                        <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
+                              th:text="${'Tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                        <span>HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></span></span>
                     </div>
                 </div>
             </div>
