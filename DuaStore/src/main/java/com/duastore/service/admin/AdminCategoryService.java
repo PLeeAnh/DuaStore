@@ -175,14 +175,20 @@ public class AdminCategoryService {
             dto.setHasChildren(!cat.getChildren().isEmpty());
             dto.setLevel(level);
             dto.setProductCount(productCountMap.getOrDefault(cat.getId(), 0L));
-            dto.setChildrenCount((int) cat.getChildren().stream()
-                    .filter(c -> productCountMap.getOrDefault(c.getId(), 0L) > 0)
-                    .count());
+            dto.setChildCount(countRecursiveChildren(cat));
             result.add(dto);
             if (!cat.getChildren().isEmpty()) {
                 buildFlatTree(cat.getChildren(), level + 1, productCountMap, result);
             }
         }
+    }
+
+    private int countRecursiveChildren(Category cat) {
+        int count = 0;
+        for (Category child : cat.getChildren()) {
+            count += 1 + countRecursiveChildren(child);
+        }
+        return count;
     }
 
     public List<Category> search(String keyword, String status) {

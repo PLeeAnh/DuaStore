@@ -183,29 +183,27 @@
                             <img th:unless="${node.imageUrl}" th:src="@{/images/no-image.png}" th:classappend="${node.level == 0 ? 'tree-thumb' : 'tree-thumb-sm'}" style="opacity:0.4" />
 
                             <div class="tree-info">
-                                <div class="tree-name" th:classappend="${node.level != 0 ? ' tree-name-sm' : ''}" th:text="${node.tenDanhMuc}">Name</div>
+                                <a class="tree-name" th:classappend="${node.level != 0 ? ' tree-name-sm' : ''}" th:href="@{/admin/danh-muc/chi-tiet/{id}(id=${node.id})}" th:text="${node.tenDanhMuc}">Name</a>
                                 <div class="tree-count">
-                                    <a th:if="${node.level == 0}" th:href="@{/admin/danh-muc?keyword=&status=}" class="text-muted text-decoration-none" th:text="${node.childrenCount} + ' danh mục con có sản phẩm'">0 dm</a>
+                                    <a th:if="${node.level == 0}" th:href="@{/admin/danh-muc?keyword=&status=}" class="text-muted text-decoration-none" th:text="${node.childCount} + ' danh mục con'">0 dm</a>
                                     <a th:unless="${node.level == 0}" th:href="@{/admin/san-pham?danhMuc={id}(id=${node.id})}" class="text-muted text-decoration-none" th:text="${node.productCount} + ' sản phẩm'">0 sp</a>
                                 </div>
                             </div>
 
-                            <div class="text-center">
-                                <div class="dropdown">
-                                    <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
-                                        <li><a class="dropdown-item" th:href="@{/admin/danh-muc/chi-tiet/{id}(id=${node.id})}"><i class="bi bi-eye"></i>Chi tiết</a></li>
-                                        <li><a class="dropdown-item" th:href="@{/admin/danh-muc/sua/{id}(id=${node.id})}"><i class="bi bi-pencil"></i>Sửa</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form th:action="@{/admin/danh-muc/xoa/{id}(id=${node.id})}" method="post" class="d-block">
-                                                <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa danh mục này?"><i class="bi bi-trash"></i>Xóa</button>
-                                            </form>
-                                        </li>
-                                    </ul>
-                                </div>
+                            <div class="dropdown">
+                                <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                                    <li><a class="dropdown-item" th:href="@{/admin/danh-muc/chi-tiet/{id}(id=${node.id})}"><i class="bi bi-eye"></i>Chi tiết</a></li>
+                                    <li><a class="dropdown-item" th:href="@{/admin/danh-muc/sua/{id}(id=${node.id})}"><i class="bi bi-pencil"></i>Sửa</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form th:action="@{/admin/danh-muc/xoa/{id}(id=${node.id})}" method="post" class="d-block">
+                                            <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa danh mục này?"><i class="bi bi-trash"></i>Xóa</button>
+                                        </form>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                         <ul class="tree-children d-none" th:if="${node.hasChildren}" th:id="'children-' + ${node.id}">
