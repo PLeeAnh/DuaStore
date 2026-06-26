@@ -84,6 +84,33 @@
                         </div>
                 </section>
 
+                <!-- KHUYẾN MÃI -->
+                <section class="sr-up" th:if="${not #lists.isEmpty(activePromotions)}">
+                    <div class="ds-section-header">
+                        <h2 class="ds-section-title">Mã giảm giá</h2>
+                    </div>
+                    <div class="d-flex flex-nowrap overflow-auto gap-3 pb-2" style="scroll-snap-type:x mandatory">
+                        <div th:each="p : ${activePromotions}" class="border rounded p-3 flex-shrink-0"
+                             style="scroll-snap-align:start;min-width:280px">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <strong class="text-danger" th:text="${p.maCode}"></strong>
+                                <span class="badge bg-danger" th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                                      th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                                <span class="badge bg-danger" th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
+                                      th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                                <span class="text-danger small" th:if="${p.giamToiDa != null}"
+                                      th:text="${'Tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                            </div>
+                            <div class="small text-muted d-flex flex-wrap gap-2">
+                                <span th:text="${p.tenChuongTrinh}"></span>
+                                <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
+                                      th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                                <span>HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- CATEGORIES V2 -->
                 <section class="ds-cat-v2 sr-up">
                         <div class="text-center mb-2">
