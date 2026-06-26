@@ -1041,19 +1041,20 @@ body.adm-body {
 }
 .adm-kebab-menu .dropdown-item {
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 10px 16px;
   font-size: .82rem;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: var(--text);
   transition: background .1s;
   width: 100%;
   box-sizing: border-box;
 }
 .adm-kebab-menu .dropdown-item i {
-  display: inline-block;
-  width: 16px;
+  width: 18px;
   text-align: center;
-  margin-right: 10px;
+  flex-shrink: 0;
 }
 
 .adm-kebab-menu .dropdown-item:hover {
