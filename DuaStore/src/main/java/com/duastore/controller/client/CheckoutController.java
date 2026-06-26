@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @Controller
 @RequestMapping("/checkout")
 public class CheckoutController {
@@ -147,27 +148,34 @@ public class CheckoutController {
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
             );
 
-            try {
-                User user = order.getUser();
-                String tt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "COD";
-                String gh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+            User finalUser = order.getUser();
+            String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "COD";
+            String finalGh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+            String finalMaDon = order.getMaDon();
+            String finalNgayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            String finalDiaChi = order.getSnapDiaChi();
+            String finalTongTien = PriceUtils.format(order.getTongThanhToan());
 
-                StringBuilder itemsHtml = new StringBuilder();
-                for (OrderItem item : order.getOrderItems()) {
-                    itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
-                            .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
-                            .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
-                            .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
-                }
+            StringBuilder itemsHtml = new StringBuilder();
+            for (OrderItem item : order.getOrderItems()) {
+                itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
+                        .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
+                        .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
+                        .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
+            }
+            String finalItemsHtml = itemsHtml.toString();
 
-                emailService.sendOrderSuccessEmail(
-                        user.getEmail(), user.getHoTen(), order.getMaDon(),
-                        order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
-                        order.getSnapDiaChi(), tt, gh,
-                        PriceUtils.format(order.getTongThanhToan()),
-                        itemsHtml.toString()
-                );
-            } catch (Exception ignored) {}
+            Thread emailThread = new Thread(() -> {
+                try {
+                    emailService.sendOrderSuccessEmail(
+                            finalUser.getEmail(), finalUser.getHoTen(), finalMaDon,
+                            finalNgayDat, finalDiaChi, finalTt, finalGh,
+                            finalTongTien, finalItemsHtml
+                    );
+                } catch (Exception ignored) {}
+            });
+            emailThread.setDaemon(true);
+            emailThread.start();
 
             if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
                 return "redirect:/checkout/chuyen-khoan/" + order.getId();
@@ -307,10 +315,14 @@ public class CheckoutController {
                 order.getMaDon()
             );
 
-            try {
-                User user = order.getUser();
-                String tt = "Chuyển khoản";
-                String gh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+                User finalUser = order.getUser();
+                String finalTt2 = "Chuyển khoản";
+                String finalGh2 = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+                String finalMaDon2 = order.getMaDon();
+                String finalNgayDat2 = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                String finalDiaChi2 = order.getSnapDiaChi();
+                String finalTongTien2 = PriceUtils.format(order.getTongThanhToan());
+
                 StringBuilder itemsHtml = new StringBuilder();
                 for (OrderItem item : order.getOrderItems()) {
                     itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
@@ -318,14 +330,19 @@ public class CheckoutController {
                             .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
                             .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
                 }
-                emailService.sendOrderSuccessEmail(
-                        user.getEmail(), user.getHoTen(), order.getMaDon(),
-                        order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
-                        order.getSnapDiaChi(), tt, gh,
-                        PriceUtils.format(order.getTongThanhToan()),
-                        itemsHtml.toString()
-                );
-            } catch (Exception ignored) {}
+                String finalItemsHtml2 = itemsHtml.toString();
+
+                Thread emailThread = new Thread(() -> {
+                    try {
+                        emailService.sendOrderSuccessEmail(
+                                finalUser.getEmail(), finalUser.getHoTen(), finalMaDon2,
+                                finalNgayDat2, finalDiaChi2, finalTt2, finalGh2,
+                                finalTongTien2, finalItemsHtml2
+                        );
+                    } catch (Exception ignored) {}
+                });
+                emailThread.setDaemon(true);
+                emailThread.start();
 
             return "redirect:/checkout/thanh-cong/" + id;
         } catch (RuntimeException e) {

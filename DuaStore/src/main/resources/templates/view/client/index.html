@@ -85,22 +85,28 @@
                 </section>
 
                 <!-- CATEGORIES V2 -->
-                <section class="ds-cat-v2">
-                        <div class="text-center mb-5">
-                            <span class="ds-section-badge">Danh mục</span><h2 class="ds-section-title">Khám phá bộ sưu tập</h2><p class="ds-section-desc">Thủy tinh thủ công tinh tuyển từ làng nghề truyền thống</p>
+                <section class="ds-cat-v2 sr-up">
+                        <div class="text-center mb-2">
+                            <span class="ds-section-badge">Danh mục</span>
                         </div>
                         <div class="ds-cat-v2-grid">
                             <a th:href="@{/san-pham}" class="ds-cat-v2-card">
                                 <div class="ds-cat-v2-img-wrap ds-cat-v2-all">
                                     <i class="bi bi-grid-3x3-gap-fill"></i>
                                 </div>
-                                <span class="ds-cat-v2-label">Tất cả</span>
+                                <div class="ds-cat-v2-info">
+                                    <span class="ds-cat-v2-label">Tất cả</span>
+                                    <span class="ds-cat-v2-count" th:text="${totalProducts} + ' mẫu'">300 mẫu</span>
+                                </div>
                             </a>
                             <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-v2-card">
                                 <div class="ds-cat-v2-img-wrap">
                                     <img class="ds-cat-v2-img" th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}">
                                 </div>
-                                <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                <div class="ds-cat-v2-info">
+                                    <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                    <span class="ds-cat-v2-count" th:text="${productCountMap.get(cat.id) ?: 0} + ' mẫu'">30 mẫu</span>
+                                </div>
                             </a>
                         </div>
                 </section>
@@ -109,9 +115,7 @@
                 <section class="sr-up">
                     <div class="ds-section-header">
                         <div>
-                            <span class="ds-section-badge">Bán chạy</span>
                             <h2 class="ds-section-title">Sản phẩm nổi bật</h2>
-                            <p class="ds-section-desc">Những sản phẩm được khách hàng yêu thích nhất</p>
                         </div>
                         <a th:href="@{/san-pham}" class="ds-link-more">
                             Xem tất cả <i class="bi bi-arrow-right"></i>
@@ -131,49 +135,49 @@
                                     <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                                 </button>
 
-                                <a th:href="@{'/san-pham/' + ${p.id}}">
-                                    <div class="ds-product-image-wrap">
-                                        <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
-                                        <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
-                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-                                              th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                                        <span class="ds-badge-oos" th:if="${v != null and v.soLuongTon <= 0}">Bán hết</span>
-                                        <div class="ds-flash-timer" th:if="${fs != null}"
-                                             th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
-                                            <i class="bi bi-clock"></i>
-                                            <span class="flash-countdown">--:--:--</span>
-                                        </div>
-                                        <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
-                                    </div>
-                                </a>
+                                 <a th:href="@{'/san-pham/' + ${p.id}}">
+                                     <div class="ds-product-image-wrap">
+                                         <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
+                                         <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
+<span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
+      th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
+                                          <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
+                                         <div class="ds-flash-timer" th:if="${fs != null}"
+                                              th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
+                                             <i class="bi bi-clock"></i>
+                                             <span class="flash-countdown">--:--:--</span>
+                                         </div>
+                                          <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
+                                          <div class="ds-qty-row ds-qty-row-image">
+                                              <div class="ds-qty-selector">
+                                                  <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
+                                                      <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                                  </button>
+                                                  <input type="text" class="ds-qty-val" value="1" readonly>
+                                                  <button class="ds-qty-btn ds-qty-plus" type="button">
+                                                      <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                                  </button>
+                                              </div>
+                                          </div>
+                                     </div>
+                                 </a>
 
-                                <div class="ds-card-body">
+                                 <div class="ds-card-body">
                                     <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
                                        th:text="${p.tenSanPham}">Tên sản phẩm</a>
 
-                                    <div class="ds-stock-qty-row">
-                                        <span th:if="${v != null}"
-                                              class="ds-stock-info"
-                                              th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
-                                              th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
-
-                                        <div class="ds-qty-row">
-                                            <div class="ds-qty-selector">
-                                                <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
-                                                    <svg width="12" height="2" viewBox="0 0 12 2" fill="none"><path d="M0 1H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                                </button>
-                                                <input type="text" class="ds-qty-val" value="1" readonly>
-                                                <button class="ds-qty-btn ds-qty-plus" type="button">
-                                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 0V12M0 6H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <div class="ds-card-actions">
                                         <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
-                                            <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}">
-                                                <div class="ds-variant-label-text" th:text="${groupEntry.key}">Nắp Gỗ</div>
+                                            <div class="ds-variant-tabs">
+                                                <button th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
+                                                        class="ds-variant-tab"
+                                                        th:data-group="${groupEntry.key}"
+                                                        th:text="${groupEntry.key}"
+                                                        type="button">Nắp Gỗ</button>
+                                            </div>
+                                            <div th:each="groupEntry : ${groupedVariantsMap.get(p.id)}"
+                                                 class="ds-variant-group"
+                                                 th:data-group="${groupEntry.key}">
                                                 <div class="ds-variant-row">
                                                     <button th:each="pv, stat : ${groupEntry.value}"
                                                             class="ds-variant-chip"
@@ -190,13 +194,20 @@
                                         </div>
                                     </div>
 
+                                    <div class="ds-stock-qty-row">
+                                        <span th:if="${v != null}"
+                                              class="ds-stock-info"
+                                              th:classappend="${v.soLuongTon le 0} ? 'oos' : (${v.soLuongTon le 3} ? 'warning' : '')"
+                                              th:text="${v.soLuongTon le 0} ? 'Hết hàng' : (${v.soLuongTon le 3} ? '⚠ Chỉ còn ' + ${v.soLuongTon} + ' sản phẩm' : 'Còn lại: ' + ${v.soLuongTon} + ' sản phẩm')">Còn lại: 50 sản phẩm</span>
+                                    </div>
+
                                     <button class="ds-price-btn ds-card-add-cart" type="button"
                                             th:data-id="${p.id}"
-                                            th:if="${v != null and v.soLuongTon > 0}"
+                                            th:classappend="${v != null and v.soLuongTon > 0} ? '' : 'd-none'"
                                             onclick="addToCartFromCard(this);return false">
                                         <span class="ds-price-btn-text">
                                             <strong class="ds-price-btn-amount"
-                                                    th:text="${#numbers.formatDecimal(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 0)} + '₫'">250.000₫</strong>
+                                                    th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">250.000₫</strong>
                                         </span>
                                         <svg viewBox="0 0 40 45" fill="none" class="btn-wave-svg">
                                         <g>
@@ -211,7 +222,7 @@
                                         <circle cx="25.877" cy="15.4546" r="1.19873" fill="white"/>
                                         </svg>
                                     </button>
-                                    <span class="ds-badge-oos-btn" th:unless="${v != null and v.soLuongTon > 0}">Bán hết</span>
+                                    <span class="ds-badge-oos-btn" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                 </div>
                             </div>
                         </div>

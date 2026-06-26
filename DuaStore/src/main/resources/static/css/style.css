@@ -1157,7 +1157,7 @@ a { color: inherit; }
   position: relative;
   background: var(--ds-card-bg);
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-r);
+  border-radius: 5px;
   padding: 0;
   text-align: center;
   transition: box-shadow .3s ease, transform .3s ease;
@@ -1166,42 +1166,15 @@ a { color: inherit; }
   overflow: hidden;
 }
 .ds-product-card:hover {
-  box-shadow: 0 12px 36px rgba(0,0,0,.1);
-  transform: translateY(-4px);
-}
-
-/* ── Image wrapper (1:1, object-fit cover, zoom on hover) ── */
-.ds-product-img-wrap {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: var(--ds-gray-100);
-}
-.ds-product-img-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform .3s ease;
-}
-.ds-product-card:hover .ds-product-img-wrap img {
-  transform: scale(1.05);
-}
-.ds-product-img {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  color: var(--ds-gray-400);
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  transform: translateY(-1px);
 }
 
 /* ── Badges ── */
 .ds-badge-sale {
   position: absolute;
   top: 10px;
-  right: 10px;
+  left: 10px;
   background: #ef4444;
   color: #fff;
   font-size: .7rem;
@@ -1226,43 +1199,31 @@ a { color: inherit; }
 }
 
 /* ── Card body (content below image) ── */
-.ds-card-body {
-  padding: 12px 14px 16px;
+.ds-product-card .ds-card-body {
+  padding: 6px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 6px;
+  gap: 3px;
 }
 
 /* ── Product name ── */
 .ds-product-name {
-  font-size: .88rem;
-  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: auto;
+  font-size: .8rem;
+  font-weight: 700;
   color: var(--ds-gray-900);
   text-decoration: none;
-  overflow: hidden;
-  line-height: 0;
-  height: 0;
-  opacity: 0;
-  padding: 0;
-  margin: 0;
-  pointer-events: none;
+  line-height: 1.3;
 }
 
 /* ── Product name overlay (chèn trên ảnh, ở nguyên vị trí) ── */
 .ds-product-name-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 28px 10px 8px;
-  background: linear-gradient(transparent 30%, rgba(255,255,255,.85));
-  color: #000;
-  font-size: .88rem;
-  font-weight: 600;
-  text-align: center;
-  z-index: 4;
-  pointer-events: none;
+  display: none;
 }
 
 /* ── Stock + qty chồng nhau: stock mờ → qty hiện ── */
@@ -1271,7 +1232,9 @@ a { color: inherit; }
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 1.6em;
+  min-height: 1.2em;
+  margin-bottom: 1px;
+  transition: max-height .35s ease, opacity .25s ease, margin .35s ease, padding .35s ease;
 }
 .ds-stock-qty-row .ds-stock-info,
 .ds-stock-qty-row .ds-qty-row {
@@ -1284,7 +1247,7 @@ a { color: inherit; }
 
 /* ── Stock info (swap opacity với qty trên hover card) ── */
 .ds-stock-info {
-  font-size: .72rem;
+  font-size: .65rem;
   color: var(--ds-gray-500);
   font-weight: 500;
   opacity: 1;
@@ -1296,8 +1259,13 @@ a { color: inherit; }
 .ds-stock-info.oos {
   color: var(--ds-gray-400);
 }
-.ds-product-card:hover .ds-stock-info {
+.ds-product-card:hover .ds-stock-qty-row {
+  max-height: 0;
   opacity: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
   pointer-events: none;
 }
 
@@ -1327,17 +1295,58 @@ a { color: inherit; }
 .ds-card-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
   max-height: 0;
   opacity: 0;
   overflow: hidden;
   pointer-events: none;
   transition: max-height .35s ease, opacity .25s ease;
+  min-height: 0;
 }
 .ds-product-card:hover .ds-card-actions {
-  max-height: 300px;
+  max-height: 120px;
   opacity: 1;
   pointer-events: auto;
+}
+
+/* ── Variant group tabs ── */
+.ds-variant-tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 3px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.ds-variant-tabs::-webkit-scrollbar { display: none; }
+.ds-variant-tab {
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font-size: .6rem;
+  font-weight: 600;
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--ds-gray-600);
+  cursor: pointer;
+  transition: all .15s ease;
+  line-height: 1.4;
+}
+.ds-variant-tab.active {
+  background: var(--ds-primary);
+  border-color: var(--ds-primary);
+  color: #fff;
+}
+.ds-variant-tab:hover:not(.active) {
+  border-color: var(--ds-primary);
+  color: var(--ds-primary);
+}
+.ds-variant-group {
+  display: none;
+}
+.ds-variant-group.active {
+  display: block;
 }
 
 /* ── Variant label (giống chi tiết sản phẩm) ── */
@@ -1355,24 +1364,14 @@ a { color: inherit; }
 /* ── Variant chips (giống chi tiết sản phẩm) ── */
 .ds-variant-row {
   display: flex;
-  gap: 6px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  padding-bottom: 2px;
-  justify-content: flex-start;
-}
-.ds-variant-row::-webkit-scrollbar {
-  height: 3px;
-}
-.ds-variant-row::-webkit-scrollbar-thumb {
-  background: var(--ds-gray-300);
-  border-radius: 3px;
+  gap: 3px;
+  margin-top: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .ds-variant-chip {
-  padding: 4px 12px;
-  font-size: .72rem;
+  padding: 2px 6px;
+  font-size: .6rem;
   font-weight: 500;
   border: 1px solid var(--ds-gray-400);
   border-radius: 6px;
@@ -1418,12 +1417,12 @@ a { color: inherit; }
   align-items: center;
   border-radius: 8px;
   background: #f8f8f8;
-  padding: 4px;
-  gap: 4px;
+  padding: 3px;
+  gap: 3px;
 }
 .ds-qty-btn {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border: none;
   background: #272727;
   color: #fff;
@@ -1442,10 +1441,10 @@ a { color: inherit; }
   height: 12px;
 }
 .ds-qty-val {
-  width: 48px;
-  height: 28px;
+  width: 26px;
+  height: 22px;
   text-align: center;
-  font-size: .85rem;
+  font-size: .8rem;
   font-weight: 600;
   border: none;
   background: transparent;
@@ -1462,18 +1461,18 @@ a { color: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
+  padding: 0 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #363636;
   color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: .85rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-  line-height: 1.4;
+  line-height: 1.3;
   margin-top: auto;
-  height: 48px;
+  height: 28px;
 }
 .ds-price-btn:hover {
   background: var(--ds-primary) !important;
@@ -1518,7 +1517,7 @@ a { color: inherit; }
 .ds-product-card.oos {
   opacity: .55;
 }
-.ds-product-card.oos .ds-product-img-wrap img {
+.ds-product-card.oos .ds-product-image-wrap img {
   filter: grayscale(1) contrast(1.1);
 }
 .ds-product-card.oos .ds-price-btn,
@@ -1667,13 +1666,13 @@ a { color: inherit; }
 /* ---- NÚT THẢ TIM TRÊN CARD SẢN PHẨM ---- */
 .btn-wishlist-card {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 8px;
+  right: 8px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--ds-border);
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1682,12 +1681,13 @@ a { color: inherit; }
   z-index: 10;
   transition: all 0.2s ease;
   padding: 0;
+  font-size: .75rem;
 }
 
 .btn-wishlist-card:hover {
   background: #fff;
-  color: #ef4444;
-  border-color: #ef4444;
+  color: #000;
+  border-color: #000;
   transform: scale(1.1);
 }
 
@@ -1696,8 +1696,21 @@ a { color: inherit; }
   border-color: #ef4444;
 }
 
+/* ── Quantity selector trên ảnh (góc dưới phải) ── */
+.ds-qty-row-image {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  max-height: none !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+  z-index: 5;
+  display: flex !important;
+}
+
 /* =====================================================
-   19. AUTH MODAL
+    19. AUTH MODAL
 ===================================================== */
 .modal-auth .modal-dialog { max-width:600px; width:600px; }
 .modal-auth .modal-content { min-height:600px; border-radius:1rem; overflow:hidden; display:flex; flex-direction:column; }
@@ -1707,9 +1720,9 @@ a { color: inherit; }
   .modal-auth .modal-content { min-height:auto; }
 }
 .ds-auth-header { background:#1a1a1a; padding:1.25rem 1.5rem; text-align:center; position:relative; flex-shrink:0; }
-.ds-auth-header .logo { font-family:'Dancing Script',cursive; font-size:1.5rem; color:#FFD84D; }
-.ds-auth-accent { height:4px; background:linear-gradient(90deg,#FFD84D,#D4A800); flex-shrink:0; }
-.ds-auth-accent-fade { height:4px; background:linear-gradient(90deg,rgba(255,216,77,.3),rgba(212,168,0,.3)); }
+.ds-auth-header .logo { font-family:'Dancing Script',cursive; font-size:1.5rem; color:#00A3FF; }
+.ds-auth-accent { height:4px; background:linear-gradient(90deg,#00A3FF,#0066CC); flex-shrink:0; }
+.ds-auth-accent-fade { height:4px; background:linear-gradient(90deg,rgba(0,163,255,.3),rgba(0,102,204,.3)); }
 .ds-auth-body { padding:2.5rem 2.5rem 2rem; flex:1; display:flex; flex-direction:column; }
 .ds-auth-body form { flex:1; display:flex; flex-direction:column; }
 .ds-auth-body form .ds-auth-btn { margin-top:auto; }
@@ -3188,7 +3201,7 @@ a { color: inherit; }
   font-family: var(--font-logo);
   font-size: 2rem;
   font-weight: 700;
-  color: var(--ds-gray-900);
+  color: #00A3FF;
   text-decoration: none;
   display: block;
   text-align: center;
@@ -3294,58 +3307,77 @@ a { color: inherit; }
   height: auto;
 }
 
-/* ===== §33 CATEGORIES V2 ===== */
+/* ===== §33 CATEGORIES V2 — PILLS NGANG ===== */
 .ds-cat-v2 {
-  padding: 4rem 0;
+  padding: 1rem 0 .75rem;
 }
 .ds-cat-v2-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 24px;
-}
-.ds-cat-v2-card {
-  text-decoration: none;
   display: flex;
-  flex-direction: column;
+  gap: 12px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.ds-cat-v2-grid::-webkit-scrollbar { display: none; }
+.ds-cat-v2-card {
+  display: flex;
   align-items: center;
   gap: 12px;
+  padding: 12px 18px;
+  border: 1px solid var(--ds-border);
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: border-color .2s, background .2s;
+}
+.ds-cat-v2-card:hover {
+  border-color: var(--ds-primary);
+  background: #f0f5ff;
 }
 .ds-cat-v2-card:focus-visible {
   outline: 2px solid var(--ds-primary);
   outline-offset: 2px;
-  border-radius: 20px;
+  border-radius: 14px;
 }
 .ds-cat-v2-img-wrap {
-  width: 100%;
-  aspect-ratio: 1/1;
-  border-radius: 20px;
+  width: 58px;
+  height: 58px;
+  flex-shrink: 0;
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  transition: all .25s ease;
-}
-.ds-cat-v2-card:hover .ds-cat-v2-img-wrap {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0,0,0,.08);
-}
-.ds-cat-v2-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.ds-cat-v2-all {
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+}
+.ds-cat-v2-img { width: 100%; height: 100%; object-fit: cover; }
+.ds-cat-v2-all {
+  border: none;
   color: var(--ds-primary);
-  background: #f8fafc;
+  font-size: 1.5rem;
+}
+.ds-cat-v2-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 .ds-cat-v2-label {
-  font-size: .9rem;
-  font-weight: 600;
+  font-size: .85rem;
+  font-weight: 700;
   color: #1f2937;
-  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ds-cat-v2-count {
+  font-size: .65rem;
+  color: var(--ds-gray-400);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ===== §34 PRODUCT LIST V2 ===== */
@@ -3402,7 +3434,7 @@ a { color: inherit; }
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: .75rem;
 }
 .ds-section-header .ds-section-desc {
   margin-left: 0;
@@ -3424,10 +3456,25 @@ a { color: inherit; }
 }
 .ds-product-grid-v2 {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(7, 1fr);
+  gap: .5rem;
+}
+@media (max-width: 1399px) {
+  .ds-product-grid-v2 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+@media (max-width: 1199px) {
+  .ds-product-grid-v2 {
+    grid-template-columns: repeat(5, 1fr);
+  }
 }
 @media (max-width: 991px) {
+  .ds-product-grid-v2 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 767px) {
   .ds-product-grid-v2 {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -3435,14 +3482,14 @@ a { color: inherit; }
 @media (max-width: 576px) {
   .ds-product-grid-v2 {
     grid-template-columns: repeat(2, 1fr);
-    gap: .75rem;
+    gap: .4rem;
   }
 }
 .ds-product-image-wrap {
   position: relative;
   aspect-ratio: 1/1;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 5px;
   background: #fff;
 }
 .ds-product-image-wrap img {
