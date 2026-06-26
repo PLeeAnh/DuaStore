@@ -175,6 +175,7 @@ public class AdminCategoryService {
             dto.setHasChildren(!cat.getChildren().isEmpty());
             dto.setLevel(level);
             dto.setProductCount(productCountMap.getOrDefault(cat.getId(), 0L));
+            dto.setChildrenCount(cat.getChildren().size());
             result.add(dto);
             if (!cat.getChildren().isEmpty()) {
                 buildFlatTree(cat.getChildren(), level + 1, productCountMap, result);

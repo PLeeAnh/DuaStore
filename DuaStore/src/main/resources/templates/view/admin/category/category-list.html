@@ -184,7 +184,10 @@
 
                             <div class="tree-info">
                                 <div class="tree-name" th:classappend="${node.level != 0 ? ' tree-name-sm' : ''}" th:text="${node.tenDanhMuc}">Name</div>
-                                <div class="tree-count"><a th:href="@{/admin/san-pham?danhMuc={id}(id=${node.id})}" class="text-muted text-decoration-none" th:text="${node.productCount} + ' sản phẩm'">0 sp</a></div>
+                                <div class="tree-count">
+                                    <a th:if="${node.level == 0}" th:href="@{/admin/danh-muc?keyword=&status=}" class="text-muted text-decoration-none" th:text="${node.childrenCount} + ' danh mục con'">0 dm</a>
+                                    <a th:unless="${node.level == 0}" th:href="@{/admin/san-pham?danhMuc={id}(id=${node.id})}" class="text-muted text-decoration-none" th:text="${node.productCount} + ' sản phẩm'">0 sp</a>
+                                </div>
                             </div>
 
                             <td class="text-center">

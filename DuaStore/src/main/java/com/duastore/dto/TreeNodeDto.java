@@ -12,4 +12,5 @@ public class TreeNodeDto {
     private boolean hasChildren;
     private int level;
     private long productCount;
+    private int childrenCount;
 }
