@@ -1395,11 +1395,14 @@ body.adm-body {
 .tree-node {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 10px 12px;
   border-radius: 12px;
   transition: background .15s;
   margin-bottom: 2px;
+}
+
+.tree-toggle, .tree-thumb, .tree-thumb-sm {
+  margin-right: 12px;
 }
 
 .tree-node:hover {
@@ -1470,12 +1473,14 @@ body.adm-body {
   font-size: .9rem;
   font-weight: 600;
   color: var(--text);
+  display: block;
 }
 
 .tree-name-sm {
   font-size: .82rem;
   font-weight: 500;
   color: var(--text);
+  display: block;
 }
 
 .tree-count {
@@ -1489,11 +1494,8 @@ body.adm-body {
 }
 
 .tree-node .dropdown {
-  width: 50px;
+  margin-left: auto;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .category-tree a:not(.btn) { color: var(--ef-blue); font-weight: 500; text-decoration: none; }
