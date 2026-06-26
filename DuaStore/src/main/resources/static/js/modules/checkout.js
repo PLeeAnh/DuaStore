@@ -312,7 +312,7 @@ function updateShipFee() {
             .then(function(result) { if (result.ok && result.data.success) cb(result.data.fee); });
     }
     fetchFee(method, function(fee) {
-        document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('en-US') + 'đ';
+        document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + '₫';
         updateTotal();
     });
     fetchFee('SHIP', function(fee) { document.getElementById('shipTTPrice').textContent = fee.toLocaleString('en-US') + 'đ'; });
@@ -323,7 +323,7 @@ function updateTotal() {
     var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
     var fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
     var total = subtotal + fee - window.appliedDiscount;
-    document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('en-US') + 'đ';
+    document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '₫';
 }
 
 /* ═══ DOM READY ═══ */
@@ -450,14 +450,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('qrAccountNumber').textContent = data.accountNumber;
                     document.getElementById('qrAccountName').textContent = data.accountName;
                     document.getElementById('qrMaDon').textContent = '';
-                    document.getElementById('qrAmount').textContent = amount.toLocaleString('en-US') + 'đ';
+                    document.getElementById('qrAmount').textContent = amount.toLocaleString('vi-VN') + '₫';
                     new bootstrap.Modal(document.getElementById('qrPaymentModal')).show();
                 });
         } else {
+            e.preventDefault();
+
             var btn = document.querySelector('#checkoutForm button[type="submit"]');
             if (btn._submitted) { e.preventDefault(); return; }
             btn._submitted = true; btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+
+            var form = document.getElementById('checkoutForm');
+            var formData = new FormData(form);
+
+            fetch('/checkout/api/create', {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.href = '/checkout/thanh-cong/' + data.orderId;
+                } else {
+                    DuaStore.toast.error(data.message || 'Đặt hàng thất bại');
+                    btn._submitted = false;
+                    btn.disabled = false;
+                    btn.innerHTML = 'Đặt hàng';
+                }
+            })
+            .catch(function() {
+                DuaStore.toast.error('Đặt hàng thất bại, vui lòng thử lại');
+                btn._submitted = false;
+                btn.disabled = false;
+                btn.innerHTML = 'Đặt hàng';
+            });
         }
     });
 
@@ -481,12 +508,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.valid) {
                     msgEl.innerHTML = '<span class="text-success">&#10003; ' + data.message + '</span>';
                     window.appliedDiscount = parseInt(data.discount) || 0;
-                    document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('en-US') + 'đ';
+                    document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + '₫';
                     document.getElementById('discountDisplay').className = 'text-danger';
                 } else {
                     msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
                     window.appliedDiscount = 0;
-                    document.getElementById('discountDisplay').textContent = '0đ';
+                    document.getElementById('discountDisplay').textContent = '0₫';
                     document.getElementById('discountDisplay').className = '';
                 }
                 updateTotal();

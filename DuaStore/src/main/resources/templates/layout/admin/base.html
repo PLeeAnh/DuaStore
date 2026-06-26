@@ -92,6 +92,12 @@
                 <i class="bi bi-newspaper"></i>
                 <span>Bài viết</span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/thong-bao}"
+               th:if="${userPermissions.contains('NOTIFICATION_READ')}"
+               th:classappend="${title == 'thong-bao' ? ' active' : ''}">
+                <i class="bi bi-megaphone"></i>
+                <span>Thông báo</span>
+            </a>
             <a class="adm-nav-link" th:href="@{/admin/danh-gia}"
                th:if="${userPermissions.contains('REVIEW_READ')}"
                th:classappend="${title == 'danh-gia' ? ' active' : ''}">
@@ -128,22 +134,6 @@
             </a>
 
         </nav>
-
-        <!-- Bottom illustration -->
-        <div class="adm-sidebar-glass">
-            <svg class="adm-illustration" viewBox="0 0 120 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M60 15 L60 45" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
-                <path d="M40 45 Q40 80 32 105 Q28 118 28 130 Q28 160 36 175 L84 175 Q92 160 92 130 Q92 118 88 105 Q80 80 80 45 Z" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.5"/>
-                <path d="M45 80 Q60 68 75 80" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.4"/>
-                <path d="M48 70 Q60 60 72 70" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/>
-                <path d="M42 95 Q60 85 78 95" stroke="currentColor" stroke-width="1" fill="none" opacity="0.35"/>
-                <path d="M50 60 Q60 53 70 60" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.25"/>
-                <ellipse cx="56" cy="125" rx="4" ry="6" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/>
-                <ellipse cx="64" cy="125" rx="4" ry="6" stroke="currentColor" stroke-width="1" fill="none" opacity="0.3"/>
-                <ellipse cx="60" cy="145" rx="6" ry="4" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.25"/>
-                <line x1="30" y1="178" x2="90" y2="178" stroke="currentColor" stroke-width="1.5" opacity="0.3" stroke-linecap="round"/>
-            </svg>
-        </div>
 
         <!-- Back to home -->
         <div class="adm-sidebar-home">

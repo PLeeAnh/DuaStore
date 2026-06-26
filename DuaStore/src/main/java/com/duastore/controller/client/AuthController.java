@@ -4,6 +4,7 @@ import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.service.VerificationCodeService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -16,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Set;
@@ -26,13 +28,16 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final VerificationCodeService verifyCodeService;
 
     public AuthController(UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
-                          RoleRepository roleRepository) {
+                          RoleRepository roleRepository,
+                          VerificationCodeService verifyCodeService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
+        this.verifyCodeService = verifyCodeService;
     }
 
     @GetMapping("/dang-nhap")
@@ -51,6 +56,7 @@ public class AuthController {
     @PostMapping("/dang-ky")
     public String register(@Valid @ModelAttribute("registerRequest") RegisterRequest req,
                            BindingResult result,
+                           @RequestParam("verificationCode") String verificationCode,
                            RedirectAttributes ra,
                            Model model) {
         model.addAttribute("title", "Đăng ký");
@@ -65,6 +71,10 @@ public class AuthController {
 
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             result.rejectValue("email", "error", "Email đã được sử dụng");
+        }
+
+        if (!verifyCodeService.verify(req.getEmail(), verificationCode)) {
+            result.rejectValue("email", "error", "Mã xác thực không đúng hoặc đã hết hạn");
         }
 
         if (result.hasErrors()) {

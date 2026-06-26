@@ -1,9 +1,12 @@
 package com.duastore.controller.client;
 
+import com.duastore.model.Category;
 import com.duastore.model.FlashSale;
 import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
+import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
@@ -23,15 +26,21 @@ public class HomeController {
     private final CategoryService categoryService;
     private final FlashSaleRepository flashSaleRepository;
     private final ProductVariantRepository variantRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
     public HomeController(ProductService productService,
                           CategoryService categoryService,
                           FlashSaleRepository flashSaleRepository,
-                          ProductVariantRepository variantRepository) {
+                          ProductVariantRepository variantRepository,
+                          ProductRepository productRepository,
+                          CategoryRepository categoryRepository) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
         this.variantRepository = variantRepository;
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping("/")
@@ -41,6 +50,23 @@ public class HomeController {
         List<Product> featured = productService.getFeatured();
         model.addAttribute("featuredProducts", featured);
         model.addAttribute("featuredCategories", categoryService.getFeaturedCategories());
+
+        Map<Integer, Long> productCountMap = productRepository.countProductsByDanhMuc()
+            .stream()
+            .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
+
+        // Aggregate child category counts into parents
+        List<Category> allCategories = categoryRepository.findByIsActiveTrue();
+        for (Category cat : allCategories) {
+            if (cat.getParent() != null) {
+                Integer parentId = cat.getParent().getId();
+                Long childCount = productCountMap.getOrDefault(cat.getId(), 0L);
+                productCountMap.merge(parentId, childCount, Long::sum);
+            }
+        }
+        model.addAttribute("productCountMap", productCountMap);
+        long totalProducts = productCountMap.values().stream().mapToLong(Long::longValue).sum();
+        model.addAttribute("totalProducts", totalProducts);
 
         Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
