@@ -8,10 +8,12 @@ import com.duastore.model.FlashSale;
 import com.duastore.model.Product;
 import com.duastore.model.ProductImage;
 import com.duastore.model.ProductVariant;
+import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.repository.PromotionRepository;
 import com.duastore.service.client.ProductService;
 import com.duastore.service.client.ReviewService;
 import com.duastore.service.client.WishlistService;
@@ -31,6 +33,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Controller
@@ -45,6 +48,7 @@ public class ProductController {
     private final CategoryRepository categoryRepository;
     private final ReviewService reviewService;
     private final FlashSaleRepository flashSaleRepository;
+    private final PromotionRepository promotionRepository;
     private final WishlistService wishlistService;
     private final SecurityUtil securityUtil;
     private final FileUploadService fileUploadService;
@@ -55,6 +59,7 @@ public class ProductController {
                              CategoryRepository categoryRepository,
                              ReviewService reviewService,
                              FlashSaleRepository flashSaleRepository,
+                             PromotionRepository promotionRepository,
                              WishlistService wishlistService,
                              SecurityUtil securityUtil,
                              FileUploadService fileUploadService) {
@@ -64,6 +69,7 @@ public class ProductController {
         this.categoryRepository = categoryRepository;
         this.reviewService = reviewService;
         this.flashSaleRepository = flashSaleRepository;
+        this.promotionRepository = promotionRepository;
         this.wishlistService = wishlistService;
         this.securityUtil = securityUtil;
         this.fileUploadService = fileUploadService;
@@ -140,6 +146,18 @@ public class ProductController {
         }
         model.addAttribute("variantsMap", variantsMap);
         model.addAttribute("flashSaleMap", flashSaleMap);
+
+        // Active promotions for product cards
+        LocalDateTime now = LocalDateTime.now();
+        List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
+        model.addAttribute("activePromotions", activePromotions);
+        BigDecimal maxPct = new BigDecimal("100");
+        Promotion bestPercentagePromo = activePromotions.stream()
+            .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+            .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+            .max(Comparator.comparing(Promotion::getGiaTriGiam))
+            .orElse(null);
+        model.addAttribute("bestPercentagePromo", bestPercentagePromo);
 
         // Group variants by cap type for card display
         Map<Integer, Map<String, List<ProductVariant>>> groupedVariantsMap = new HashMap<>();
@@ -225,6 +243,41 @@ public class ProductController {
             log.warn("Loi doc likedIds o trang chi tiet san pham: {}", e.getMessage());
         }
 
+        // Active promotions for discount badge
+        LocalDateTime now = LocalDateTime.now();
+        List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
+        BigDecimal maxPct = new BigDecimal("100");
+        Promotion bestPercentagePromo = activePromotions.stream()
+            .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+            .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+            .max(Comparator.comparing(Promotion::getGiaTriGiam))
+            .orElse(null);
+        model.addAttribute("bestPercentagePromo", bestPercentagePromo);
+
+        BigDecimal promoDiscountedPrice = null;
+        if (bestPercentagePromo != null && !variants.isEmpty() && variants.get(0).getGiaGoc() != null) {
+            BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
+            promoDiscountedPrice = variants.get(0).getGiaGoc()
+                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+        }
+        model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
+
+        model.addAttribute("reviews", reviewService.getApprovedReviews(id));
+        Integer currentUserId = securityUtil.getCurrentUserId();
+        if (currentUserId != null) {
+            try {
+                model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
+                model.addAttribute("hasPurchased", reviewService.hasPurchased(currentUserId, id));
+            } catch (Exception e) {
+                model.addAttribute("hasReviewed", false);
+                model.addAttribute("hasPurchased", false);
+            }
+        } else {
+            model.addAttribute("hasReviewed", false);
+            model.addAttribute("hasPurchased", false);
+        }
+
         // Price range
         BigDecimal minPrice = null;
         BigDecimal maxPrice = null;
@@ -262,7 +315,6 @@ public class ProductController {
             List<ProductVariant> relatedVariants = variantRepository.findByProductIdInAndIsActiveTrue(relatedIds);
             Map<Integer, List<ProductVariant>> relatedVariantsMap = relatedVariants.stream()
                 .collect(Collectors.groupingBy(ProductVariant::getProductId));
-            // Compute min prices for related products
             Map<Integer, BigDecimal> relatedMinPrices = new HashMap<>();
             for (var entry : relatedVariantsMap.entrySet()) {
                 entry.getValue().stream()
@@ -303,7 +355,7 @@ public class ProductController {
         }
         try {
             reviewService.createReview(userId, request, hinhAnhUrl);
-            ra.addFlashAttribute("successMsg", "Cam on ban da danh gia! Danh gia se duoc hien thi sau khi duyet.");
+            ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }

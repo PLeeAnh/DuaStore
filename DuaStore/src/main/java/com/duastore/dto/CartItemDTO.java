@@ -20,6 +20,7 @@ public class CartItemDTO {
     private String tenBienThe;
     private String hinhAnh;
     private BigDecimal giaBan;
+    private BigDecimal giaBanSauGiam;
     private Integer soLuong;
     private BigDecimal thanhTien;
     private LocalDateTime ngayThem;
