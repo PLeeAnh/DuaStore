@@ -1033,27 +1033,27 @@ body.adm-body {
   min-width: 180px;
 }
 
-.adm-kebab-menu {
-  box-sizing: border-box;
-}
 .adm-kebab-menu li {
   padding: 0;
-  width: 100%;
 }
 .adm-kebab-menu li form {
-  width: 100%;
+  margin: 0;
 }
 .adm-kebab-menu .dropdown-item {
   border-radius: 8px;
   padding: 8px 12px;
   font-size: .82rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: block;
   color: var(--text);
   transition: background .1s;
   width: 100%;
   box-sizing: border-box;
+}
+.adm-kebab-menu .dropdown-item i {
+  display: inline-block;
+  width: 16px;
+  text-align: center;
+  margin-right: 10px;
 }
 
 .adm-kebab-menu .dropdown-item:hover {
