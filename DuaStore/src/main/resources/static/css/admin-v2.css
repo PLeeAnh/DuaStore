@@ -1025,6 +1025,10 @@ body.adm-body {
   background: var(--primary-light);
 }
 
+.category-tree .adm-kebab-menu {
+  padding: 6px !important;
+  margin: 0 !important;
+}
 .adm-kebab-menu {
   border: none;
   border-radius: 12px;
@@ -1033,15 +1037,25 @@ body.adm-body {
   min-width: 180px;
 }
 
+.adm-kebab-menu li {
+  padding: 0;
+}
 .adm-kebab-menu .dropdown-item {
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 10px 16px;
   font-size: .82rem;
   display: flex;
   align-items: center;
   gap: 10px;
   color: var(--text);
   transition: background .1s;
+  width: 100%;
+  box-sizing: border-box;
+}
+.adm-kebab-menu .dropdown-item i {
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .adm-kebab-menu .dropdown-item:hover {
@@ -1395,11 +1409,14 @@ body.adm-body {
 .tree-node {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 10px 12px;
   border-radius: 12px;
   transition: background .15s;
   margin-bottom: 2px;
+}
+
+.tree-toggle, .tree-thumb, .tree-thumb-sm {
+  margin-right: 12px;
 }
 
 .tree-node:hover {
@@ -1470,12 +1487,14 @@ body.adm-body {
   font-size: .9rem;
   font-weight: 600;
   color: var(--text);
+  display: block;
 }
 
 .tree-name-sm {
   font-size: .82rem;
   font-weight: 500;
   color: var(--text);
+  display: block;
 }
 
 .tree-count {
@@ -1490,7 +1509,11 @@ body.adm-body {
 
 .tree-node .dropdown {
   margin-left: auto;
+  flex-shrink: 0;
 }
+
+.category-tree a:not(.btn) { color: var(--ef-blue); font-weight: 500; text-decoration: none; }
+.category-tree a:not(.btn):hover { color: var(--ef-primary); }
 
 
 
