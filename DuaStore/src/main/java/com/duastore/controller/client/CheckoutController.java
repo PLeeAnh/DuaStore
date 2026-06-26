@@ -12,6 +12,7 @@ import com.duastore.repository.AddressRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.model.OrderEventType;
 import com.duastore.service.EmailService;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.PaymentService;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.admin.OrderStatusLogService;
@@ -46,6 +47,7 @@ public class CheckoutController {
     private final EmailService emailService;
     private final PaymentService paymentService;
     private final OrderStatusLogService orderStatusLogService;
+    private final NotificationHelper notificationHelper;
 
     public CheckoutController(OrderService orderService, CartService cartService,
                               AddressRepository addressRepository,
@@ -54,7 +56,8 @@ public class CheckoutController {
                               ShippingFeeService shippingFeeService,
                               EmailService emailService,
                               PaymentService paymentService,
-                              OrderStatusLogService orderStatusLogService) {
+                              OrderStatusLogService orderStatusLogService,
+                              NotificationHelper notificationHelper) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -64,6 +67,7 @@ public class CheckoutController {
         this.emailService = emailService;
         this.paymentService = paymentService;
         this.orderStatusLogService = orderStatusLogService;
+        this.notificationHelper = notificationHelper;
     }
 
     private Integer getUserId() {
@@ -304,6 +308,14 @@ public class CheckoutController {
             }
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
             orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+            try {
+                notificationHelper.notifyStaff(
+                    "Khách hàng đã thanh toán đơn hàng " + order.getMaDon(),
+                    "ORDER", order.getId(),
+                    "/admin/don-hang",
+                    order.getMaDon()
+                );
+            } catch (Exception ignored) {}
 
                 User finalUser = order.getUser();
                 String finalTt2 = "Chuyển khoản";
