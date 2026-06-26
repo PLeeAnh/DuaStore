@@ -52,6 +52,26 @@ public class AdminProductService {
         return productRepository.findById(id).orElse(null);
     }
 
+    public List<String> getDistinctThuongHieu() {
+        return productRepository.findDistinctThuongHieu();
+    }
+
+    public List<String> getDistinctChatLieu() {
+        return productRepository.findDistinctChatLieu();
+    }
+
+    public List<String> getDistinctXuatXu() {
+        return productRepository.findDistinctXuatXu();
+    }
+
+    public List<String> getDistinctKinhLoai() {
+        return productRepository.findDistinctKinhLoai();
+    }
+
+    public List<String> getDistinctMucDichSuDung() {
+        return productRepository.findDistinctMucDichSuDung();
+    }
+
     public Product save(ProductFormDTO dto) {
         Product p;
         if (dto.getId() != null) {

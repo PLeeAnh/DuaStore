@@ -243,6 +243,7 @@ public class AdminProductController {
         model.addAttribute("productTab", "thong-tin");
         model.addAttribute("product", new ProductFormDTO());
         model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+        addComboLists(model);
         return "view/admin/product/product-form";
     }
 
@@ -253,6 +254,7 @@ public class AdminProductController {
             model.addAttribute("title", "san-pham");
             model.addAttribute("productTab", "thong-tin");
             model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+            addComboLists(model);
             return "view/admin/product/product-form";
         }
         productService.save(dto);
@@ -291,6 +293,7 @@ public class AdminProductController {
         model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
         Category cat = categoryRepository.findById(p.getDanhMucId()).orElse(null);
         model.addAttribute("categoryName", cat != null ? cat.getTenDanhMuc() : "—");
+        addComboLists(model);
         return "view/admin/product/product-form";
     }
 
@@ -304,6 +307,7 @@ public class AdminProductController {
             model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
             Category cat = categoryRepository.findById(dto.getDanhMucId()).orElse(null);
             model.addAttribute("categoryName", cat != null ? cat.getTenDanhMuc() : "—");
+            addComboLists(model);
             return "view/admin/product/product-form";
         }
         dto.setId(id);
@@ -392,6 +396,14 @@ public class AdminProductController {
         p.setHinhAnhChinh(null);
         productRepository.save(p);
         return ResponseEntity.ok().build();
+    }
+
+    private void addComboLists(Model model) {
+        model.addAttribute("brands", productService.getDistinctThuongHieu());
+        model.addAttribute("materials", productService.getDistinctChatLieu());
+        model.addAttribute("origins", productService.getDistinctXuatXu());
+        model.addAttribute("glassTypes", productService.getDistinctKinhLoai());
+        model.addAttribute("purposes", productService.getDistinctMucDichSuDung());
     }
 
 }
