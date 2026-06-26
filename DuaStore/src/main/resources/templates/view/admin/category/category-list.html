@@ -190,7 +190,7 @@
                                 </div>
                             </div>
 
-                            <td class="text-center">
+                            <div class="text-center">
                                 <div class="dropdown">
                                     <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
                                         <i class="bi bi-three-dots-vertical"></i>
@@ -206,7 +206,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </td>
+                            </div>
                         </div>
                         <ul class="tree-children d-none" th:if="${node.hasChildren}" th:id="'children-' + ${node.id}">
                             <th:block th:replace=":: tree-node-list(${tree}, ${level + 1})"></th:block>
