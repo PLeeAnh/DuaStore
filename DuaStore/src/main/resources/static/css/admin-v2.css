@@ -1036,8 +1036,15 @@ body.adm-body {
 .adm-kebab-menu li {
   padding: 0;
 }
+.adm-kebab-menu li:has(.dropdown-item) {
+  display: flex;
+}
+.adm-kebab-menu li:not(:has(.dropdown-item)) {
+  display: block;
+}
 .adm-kebab-menu li form {
   margin: 0;
+  flex: 1;
 }
 .adm-kebab-menu .dropdown-item {
   border-radius: 8px;
@@ -1048,8 +1055,9 @@ body.adm-body {
   gap: 10px;
   color: var(--text);
   transition: background .1s;
-  width: 100%;
+  flex: 1;
   box-sizing: border-box;
+  min-width: 0;
 }
 .adm-kebab-menu .dropdown-item i {
   width: 18px;
