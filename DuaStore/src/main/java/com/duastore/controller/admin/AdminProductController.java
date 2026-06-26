@@ -261,12 +261,14 @@ public class AdminProductController {
         }
         Product saved = productService.save(dto);
         if (saved != null) {
-            notificationHelper.notifyAll(
-                "Sản phẩm mới: " + saved.getTenSanPham(),
-                "PRODUCT", saved.getId(),
-                "/san-pham/" + saved.getId(),
-                saved.getTenSanPham()
-            );
+            try {
+                notificationHelper.notifyAll(
+                    "Sản phẩm mới: " + saved.getTenSanPham(),
+                    "PRODUCT", saved.getId(),
+                    "/san-pham/" + saved.getId(),
+                    saved.getTenSanPham()
+                );
+            } catch (Exception ignored) {}
         }
         ra.addFlashAttribute("successMsg", "Thêm sản phẩm thành công");
         return "redirect:/admin/san-pham";

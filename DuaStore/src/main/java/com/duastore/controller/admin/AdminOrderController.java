@@ -209,14 +209,16 @@ public class AdminOrderController {
 
             String newStatus = dto.getTrangThaiDon();
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, newStatus, oldStatus, admin, request);
-            if ("DA_GIAO".equals(newStatus) || "DA_HOAN_THANH".equals(newStatus)) {
-                String label = "DA_HOAN_THANH".equals(newStatus) ? "đã hoàn thành" : "đã được giao";
-                notificationHelper.notifyAll(
-                    "Đơn hàng " + order.getMaDon() + " " + label,
-                    "ORDER", order.getId(),
-                    "/tai-khoan/don-hang/" + order.getId(),
-                    order.getMaDon()
-                );
+            if (!"DA_HUY".equals(newStatus)) {
+                try {
+                    String statusName = AdminOrderService.getStatusName(newStatus);
+                    notificationHelper.notifyAll(
+                        "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                        "ORDER", order.getId(),
+                        "/tai-khoan/don-hang/" + order.getId(),
+                        order.getMaDon()
+                    );
+                } catch (Exception ignored) {}
             }
             String msg;
             if ("DA_HUY".equals(newStatus)) {
@@ -274,14 +276,16 @@ public class AdminOrderController {
             }
 
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, trangThai, oldStatus, admin, request);
-            if ("DA_GIAO".equals(trangThai) || "DA_HOAN_THANH".equals(trangThai)) {
-                String label = "DA_HOAN_THANH".equals(trangThai) ? "đã hoàn thành" : "đã được giao";
-                notificationHelper.notifyAll(
-                    "Đơn hàng " + order.getMaDon() + " " + label,
-                    "ORDER", order.getId(),
-                    "/tai-khoan/don-hang/" + order.getId(),
-                    order.getMaDon()
-                );
+            if (!"DA_HUY".equals(trangThai)) {
+                try {
+                    String statusName = AdminOrderService.getStatusName(trangThai);
+                    notificationHelper.notifyAll(
+                        "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                        "ORDER", order.getId(),
+                        "/tai-khoan/don-hang/" + order.getId(),
+                        order.getMaDon()
+                    );
+                } catch (Exception ignored) {}
             }
             String msg;
             if ("DA_HUY".equals(trangThai)) {

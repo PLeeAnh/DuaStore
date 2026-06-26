@@ -308,12 +308,14 @@ public class CheckoutController {
             }
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
             orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
-            notificationHelper.notifyStaff(
-                "Khách hàng đã thanh toán đơn hàng " + order.getMaDon(),
-                "ORDER", order.getId(),
-                "/admin/don-hang",
-                order.getMaDon()
-            );
+            try {
+                notificationHelper.notifyStaff(
+                    "Khách hàng đã thanh toán đơn hàng " + order.getMaDon(),
+                    "ORDER", order.getId(),
+                    "/admin/don-hang",
+                    order.getMaDon()
+                );
+            } catch (Exception ignored) {}
 
                 User finalUser = order.getUser();
                 String finalTt2 = "Chuyển khoản";
