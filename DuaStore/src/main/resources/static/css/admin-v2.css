@@ -1042,6 +1042,7 @@ body.adm-body {
   gap: 10px;
   color: var(--text);
   transition: background .1s;
+  width: 100%;
 }
 
 .adm-kebab-menu .dropdown-item:hover {
