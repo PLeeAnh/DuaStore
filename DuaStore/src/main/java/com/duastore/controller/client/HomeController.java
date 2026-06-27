@@ -121,6 +121,33 @@ public class HomeController {
             .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
 
+        // Pre‑compute promo discounted price for the first variant per product (for button text)
+        Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
+        Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
+        if (bestPercentagePromo != null) {
+            BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
+            for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
+                Integer productId = entry.getKey();
+                List<ProductVariant> pvList = entry.getValue();
+                for (ProductVariant pv : pvList) {
+                    if (pv.getGiaGoc() != null) {
+                        BigDecimal raw = pv.getGiaGoc()
+                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                    }
+                }
+                if (!pvList.isEmpty() && pvList.get(0).getGiaGoc() != null) {
+                    BigDecimal raw = pvList.get(0).getGiaGoc()
+                        .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                    promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                }
+            }
+        }
+        model.addAttribute("promoPriceMap", promoPriceMap);
+        model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
+
         return "view/client/index";
     }
 

@@ -54,12 +54,17 @@ public class ReviewService {
         return orderItemRepository.existsByProductIdAndUserId(productId, userId);
     }
 
+    @Transactional(readOnly = true)
+    public boolean hasPaidAndPurchased(Integer userId, Integer productId) {
+        return orderItemRepository.existsByProductIdAndUserIdAndPaid(productId, userId);
+    }
+
     public ReviewDTO createReview(Integer userId, ReviewRequestDTO request, String hinhAnhUrl) {
         if (hasReviewed(userId, request.getProductId())) {
             throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");
         }
-        if (!hasPurchased(userId, request.getProductId())) {
-            throw new RuntimeException("Bạn cần mua sản phẩm để được đánh giá");
+        if (!hasPaidAndPurchased(userId, request.getProductId())) {
+            throw new RuntimeException("Bạn cần mua sản phẩm và thanh toán để được đánh giá");
         }
         if (request.getDanhGia() == null) {
             throw new RuntimeException("Vui lòng chọn số sao đánh giá");

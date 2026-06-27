@@ -387,7 +387,7 @@
     <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
     <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
     <script>
-        let appliedDiscount = 0;
+        window.appliedDiscount = 0;
 
         function openAddressModal() {
             document.getElementById('addressModal').style.display = 'block';

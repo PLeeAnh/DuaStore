@@ -159,6 +159,33 @@ public class ProductController {
             .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
 
+        // Pre‑compute promo discounted price for the first variant per product (for button text)
+        Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
+        Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
+        if (bestPercentagePromo != null) {
+            BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
+            for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
+                Integer productId = entry.getKey();
+                List<ProductVariant> pvList = entry.getValue();
+                for (ProductVariant pv : pvList) {
+                    if (pv.getGiaGoc() != null) {
+                        BigDecimal raw = pv.getGiaGoc()
+                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                    }
+                }
+                if (!pvList.isEmpty() && pvList.get(0).getGiaGoc() != null) {
+                    BigDecimal raw = pvList.get(0).getGiaGoc()
+                        .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                    promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                }
+            }
+        }
+        model.addAttribute("promoPriceMap", promoPriceMap);
+        model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
+
         // Group variants by cap type for card display
         Map<Integer, Map<String, List<ProductVariant>>> groupedVariantsMap = new HashMap<>();
         for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
@@ -263,20 +290,36 @@ public class ProductController {
         }
         model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
 
+        // Pre‑compute promo price for every variant
+        Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
+        if (bestPercentagePromo != null) {
+            BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
+            for (ProductVariant pv : variants) {
+                if (pv.getGiaGoc() != null) {
+                    BigDecimal raw = pv.getGiaGoc()
+                        .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                    variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                }
+            }
+        }
+        model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
+
         model.addAttribute("reviews", reviewService.getApprovedReviews(id));
         Integer currentUserId = securityUtil.getCurrentUserId();
         if (currentUserId != null) {
             try {
                 model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
-                model.addAttribute("hasPurchased", reviewService.hasPurchased(currentUserId, id));
+                model.addAttribute("canReview", reviewService.hasPaidAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
             } catch (Exception e) {
                 model.addAttribute("hasReviewed", false);
-                model.addAttribute("hasPurchased", false);
+                model.addAttribute("canReview", false);
             }
         } else {
             model.addAttribute("hasReviewed", false);
-            model.addAttribute("hasPurchased", false);
+            model.addAttribute("canReview", false);
         }
+        model.addAttribute("reviewRequest", new com.duastore.dto.ReviewRequestDTO());
 
         // Price range
         BigDecimal minPrice = null;
@@ -302,6 +345,14 @@ public class ProductController {
         model.addAttribute("maxPrice", maxPrice);
         model.addAttribute("minVolume", minVolume);
         model.addAttribute("maxVolume", maxVolume);
+
+        // Compute initial promo discounted price for server-rendered display
+        if (bestPercentagePromo != null && !variantPromoPriceMap.isEmpty() && minPrice != null) {
+            BigDecimal promoMin = variantPromoPriceMap.values().stream().min(BigDecimal::compareTo).orElse(null);
+            if (promoMin != null) {
+                model.addAttribute("promoDiscountedPrice", promoMin);
+            }
+        }
 
         // Category name
         String categoryName = categoryRepository.findById(product.getDanhMucId())
