@@ -58,7 +58,10 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Dung tích (ml)</label>
-                    <input type="number" th:field="*{dungTich}" class="form-control" min="0" />
+                    <select th:field="*{dungTich}" class="form-select searchable-select" data-create>
+                        <option value="">— Chọn dung tích —</option>
+                        <option th:each="c : ${capacities}" th:value="${c}" th:text="${c} + ' ml'">Cap</option>
+                    </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Tồn kho</label>

@@ -22,7 +22,7 @@ public class NotificationController {
 
     @GetMapping("/thong-bao")
     public String list(Model model, HttpSession session) {
-        List<Notification> notifications = notificationRepository.findByIsActiveTrueOrderByCreatedAtDesc();
+        List<Notification> notifications = notificationRepository.findCustomerNotifications();
         model.addAttribute("notifications", notifications);
 
         session.setAttribute("notifReadMaxId",

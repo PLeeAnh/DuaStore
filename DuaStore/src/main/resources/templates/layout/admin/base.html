@@ -19,6 +19,7 @@
           href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/admin.css}"/>
     <link rel="stylesheet" th:href="@{/css/admin-v2.css}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.bootstrap5.min.css"/>
 
     <th:block layout:fragment="extra-head"></th:block>
 </head>
@@ -171,15 +172,63 @@
             </div>
 
             <div class="adm-topbar-right">
-                <a th:if="${session.loggedIn}"
-                   th:href="@{/admin/don-hang(trangThai='CHO_XAC_NHAN', tatCa=true)}"
-                   class="adm-notif-btn position-relative" id="admNotifBtn"
-                   title="Đơn hàng chờ xác nhận">
-                    <i class="bi bi-bell"></i>
-                    <span class="adm-notif-badge badge bg-danger"
-                          th:if="${pendingOrders > 0}"
-                          th:text="${pendingOrders > 99 ? '99+' : pendingOrders}"></span>
-                </a>
+                <!-- Staff Notification Bell -->
+                <div class="position-relative d-inline-block" th:if="${session.loggedIn}">
+                    <button class="adm-notif-btn position-relative" id="btnStaffNotifToggle"
+                            onclick="toggleStaffNotifPopup()" title="Thông báo nhân viên">
+                        <i class="bi bi-bell"></i>
+                        <span id="staffNotifBadge" class="adm-notif-badge badge bg-danger"
+                              th:text="${staffNotifCount != null ? staffNotifCount : 0}"
+                              th:classappend="${(staffNotifCount == null || staffNotifCount == 0) ? ' d-none' : ''}">0</span>
+                    </button>
+                    <div id="staffNotifPopup" class="custom-popup" style="width: 380px; display: none; position: absolute; top: 100%; right: 0; z-index: 9999; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.12); margin-top: 8px;">
+                        <h6 class="border-bottom pb-2 mb-0 fw-bold d-flex align-items-center justify-content-between px-3 pt-3">
+                            <span><i class="bi bi-megaphone me-1"></i>Thông báo</span>
+                        </h6>
+                        <div class="mt-2" style="max-height: 420px; overflow-y: auto;">
+                            <div th:if="${#lists.isEmpty(staffNotifs)}" class="text-center py-4 text-muted">
+                                <i class="bi bi-bell-slash" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">Chưa có thông báo</p>
+                            </div>
+                            <div th:each="n : ${staffNotifs}" th:classappend="${n.linkType != null} ? 'cursor-pointer' : ''">
+                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item">
+                                    <div class="d-flex align-items-start gap-2 px-3 py-2">
+                                        <span th:if="${n.linkType == 'ORDER'}" class="notif-icon bg-info-subtle text-info flex-shrink-0">
+                                            <i class="bi bi-bag-check"></i>
+                                        </span>
+                                        <span th:if="${n.linkType == 'PRODUCT'}" class="notif-icon bg-info-subtle text-info flex-shrink-0">
+                                            <i class="bi bi-box-seam"></i>
+                                        </span>
+                                        <span th:if="${n.linkType == 'CONTACT'}" class="notif-icon bg-warning-subtle text-warning flex-shrink-0">
+                                            <i class="bi bi-chat-dots"></i>
+                                        </span>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <p class="mb-0 notif-text" th:text="${#strings.abbreviate(n.content, 100)}"></p>
+                                            <div class="mt-1" th:if="${n.linkLabel != null}">
+                                                <span class="notif-link">
+                                                    <span th:text="${#strings.abbreviate(n.linkLabel, 35)}"></span>
+                                                    <i class="bi bi-arrow-right ms-1"></i>
+                                                </span>
+                                            </div>
+                                            <small class="notif-time" th:text="${#temporals.format(n.createdAt, 'HH:mm, dd/MM')}"></small>
+                                        </div>
+                                    </div>
+                                </a>
+                                <div th:if="${n.linkType == null}" class="notif-item">
+                                    <div class="d-flex align-items-start gap-2 px-3 py-2">
+                                        <span class="notif-icon bg-primary-subtle text-primary flex-shrink-0">
+                                            <i class="bi bi-megaphone"></i>
+                                        </span>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <p class="mb-0 notif-text" th:text="${#strings.abbreviate(n.content, 100)}"></p>
+                                            <small class="notif-time" th:text="${#temporals.format(n.createdAt, 'HH:mm, dd/MM')}"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="adm-profile-wrap position-relative" th:if="${session.loggedIn}">
                     <button class="adm-profile-trigger" id="admProfileTrigger" type="button">
@@ -319,8 +368,49 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2/dist/js/tom-select.complete.min.js"></script>
 <script th:src="@{/js/admin.js}"></script>
 <th:block layout:fragment="extra-script"></th:block>
+
+<style>
+.notif-item:hover { background: #f5f5f5; }
+.notif-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.notif-text { font-size: 0.85rem; color: #333; line-height: 1.3; }
+.notif-link { font-size: 0.78rem; color: #0d6efd; }
+.notif-time { font-size: 0.72rem; color: #999; }
+.custom-popup { display: none; }
+.cursor-pointer { cursor: pointer; }
+</style>
+<script>
+function toggleStaffNotifPopup() {
+    var popup = document.getElementById('staffNotifPopup');
+    if (!popup) return;
+    var isVisible = popup.style.display === 'block';
+    popup.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+        var badge = document.getElementById('staffNotifBadge');
+        if (badge && !badge.classList.contains('d-none')) {
+            fetch('/admin/thong-bao/api/doc-tat-ca', { method: 'POST' })
+                .then(function(r) { return r.text(); })
+                .then(function() { badge.classList.add('d-none'); })
+                .catch(function() { badge.classList.add('d-none'); });
+        }
+    }
+}
+document.addEventListener('click', function(e) {
+    var popup = document.getElementById('staffNotifPopup');
+    var btn = document.getElementById('btnStaffNotifToggle');
+    if (popup && btn) {
+        if (!popup.contains(e.target) && !btn.contains(e.target)) {
+            popup.style.display = 'none';
+        }
+    }
+});
+</script>
 
 </body>
 </html>

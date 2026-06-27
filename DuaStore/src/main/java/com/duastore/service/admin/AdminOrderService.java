@@ -173,10 +173,22 @@ public class AdminOrderService {
             return deleteOrderWithLog(id, oldStatus, admin, request);
         }
 
-        String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
-        updateOrderStatus(id, trangThaiDon);
-
         Order order = orderRepository.findById(id).orElse(null);
+        if (order == null) throw new RuntimeException("Không tìm thấy đơn hàng");
+
+        // Auto-set payment to CONG_NO when completing unpaid order
+        if ("DA_HOAN_THANH".equals(trangThaiDon) && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+            String oldPayment = order.getTrangThaiTT();
+            order.setTrangThaiTT("CONG_NO");
+            adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
+                    oldPayment, "CONG_NO",
+                    "Ghi nhận công nợ khi hoàn thành đơn", request);
+        }
+
+        order.setTrangThaiDon(trangThaiDon);
+        orderRepository.save(order);
+
+        String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, null);
 
         adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_DON",

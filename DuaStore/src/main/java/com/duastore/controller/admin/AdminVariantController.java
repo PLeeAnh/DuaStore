@@ -32,6 +32,7 @@ public class AdminVariantController {
         model.addAttribute("title", "san-pham");
         var p = productRepository.findById(productId).orElse(null);
         model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
+        model.addAttribute("capacities", variantService.getDistinctDungTich());
         return "view/admin/productvariant/variant-form";
     }
 
@@ -42,6 +43,7 @@ public class AdminVariantController {
             model.addAttribute("title", "san-pham");
             var p = productRepository.findById(dto.getProductId()).orElse(null);
             model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
+            model.addAttribute("capacities", variantService.getDistinctDungTich());
             return "view/admin/productvariant/variant-form";
         }
         var saved = variantService.save(dto);
@@ -73,6 +75,7 @@ public class AdminVariantController {
         model.addAttribute("title", "san-pham");
         var p = productRepository.findById(v.getProductId()).orElse(null);
         model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
+        model.addAttribute("capacities", variantService.getDistinctDungTich());
         return "view/admin/productvariant/variant-form";
     }
 
@@ -83,6 +86,7 @@ public class AdminVariantController {
             model.addAttribute("title", "san-pham");
             var p = productRepository.findById(dto.getProductId()).orElse(null);
             model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
+            model.addAttribute("capacities", variantService.getDistinctDungTich());
             return "view/admin/productvariant/variant-form";
         }
         dto.setId(id);

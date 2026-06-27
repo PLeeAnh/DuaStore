@@ -65,7 +65,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-                                <select th:field="*{danhMucId}" class="form-select" required>
+                                <select th:field="*{danhMucId}" class="form-select searchable-select" required>
                                     <option value="">— Chọn danh mục —</option>
                                     <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}">DM</option>
                                 </select>
@@ -73,23 +73,38 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Thương hiệu</label>
-                                <input type="text" th:field="*{thuongHieu}" class="form-control" />
+                                <select th:field="*{thuongHieu}" class="form-select searchable-select" data-create>
+                                    <option value="">— Chọn thương hiệu —</option>
+                                    <option th:each="b : ${brands}" th:value="${b}" th:text="${b}">Brand</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Chất liệu</label>
-                                <input type="text" th:field="*{chatLieu}" class="form-control" />
+                                <select th:field="*{chatLieu}" class="form-select searchable-select" data-create>
+                                    <option value="">— Chọn chất liệu —</option>
+                                    <option th:each="m : ${materials}" th:value="${m}" th:text="${m}">Material</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Xuất xứ</label>
-                                <input type="text" th:field="*{xuatXu}" class="form-control" />
+                                <select th:field="*{xuatXu}" class="form-select searchable-select" data-create>
+                                    <option value="">— Chọn xuất xứ —</option>
+                                    <option th:each="o : ${origins}" th:value="${o}" th:text="${o}">Origin</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Loại kính</label>
-                                <input type="text" th:field="*{kinhLoai}" class="form-control" />
+                                <select th:field="*{kinhLoai}" class="form-select searchable-select" data-create>
+                                    <option value="">— Chọn loại kính —</option>
+                                    <option th:each="g : ${glassTypes}" th:value="${g}" th:text="${g}">GlassType</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Mục đích sử dụng</label>
-                                <input type="text" th:field="*{mucDichSuDung}" class="form-control" />
+                                <select th:field="*{mucDichSuDung}" class="form-select searchable-select" data-create>
+                                    <option value="">— Chọn mục đích —</option>
+                                    <option th:each="p : ${purposes}" th:value="${p}" th:text="${p}">Purpose</option>
+                                </select>
                             </div>
                             <div class="col-md-2">
                                 <label class="form-label">Lead time (ngày)</label>

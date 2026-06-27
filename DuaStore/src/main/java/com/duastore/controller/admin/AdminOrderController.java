@@ -6,6 +6,7 @@ import com.duastore.dto.OrderItemDTO;
 import com.duastore.dto.OrderStatusDTO;
 import com.duastore.model.Order;
 import com.duastore.model.User;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminOrderService;
 import com.duastore.service.admin.OrderNoteService;
@@ -42,19 +43,22 @@ public class AdminOrderController {
     private final SecurityUtil securityUtil;
     private final OrderStatusLogService orderStatusLogService;
     private final OrderNoteService orderNoteService;
+    private final NotificationHelper notificationHelper;
 
     public AdminOrderController(AdminOrderService adminOrderService,
                                 OrderService orderService,
                                 AdminLogService adminLogService,
                                 SecurityUtil securityUtil,
                                 OrderStatusLogService orderStatusLogService,
-                                OrderNoteService orderNoteService) {
+                                OrderNoteService orderNoteService,
+                                NotificationHelper notificationHelper) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
         this.securityUtil = securityUtil;
         this.orderStatusLogService = orderStatusLogService;
         this.orderNoteService = orderNoteService;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping
@@ -204,16 +208,28 @@ public class AdminOrderController {
                 return "redirect:/admin/don-hang/" + id;
             }
 
-            String stockMsg = adminOrderService.updateOrderStatusWithLog(id, dto.getTrangThaiDon(), oldStatus, admin, request);
+            String newStatus = dto.getTrangThaiDon();
+            String stockMsg = adminOrderService.updateOrderStatusWithLog(id, newStatus, oldStatus, admin, request);
+            if (!"DA_HUY".equals(newStatus)) {
+                try {
+                    String statusName = AdminOrderService.getStatusName(newStatus);
+                    notificationHelper.notifyAll(
+                        "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                        "ORDER", order.getId(),
+                        "/tai-khoan/don-hang/" + order.getId(),
+                        order.getMaDon()
+                    );
+                } catch (Exception ignored) {}
+            }
             String msg;
-            if ("DA_HUY".equals(dto.getTrangThaiDon())) {
+            if ("DA_HUY".equals(newStatus)) {
                 msg = "Đã xóa đơn hàng";
             } else {
                 msg = "Cập nhật trạng thái thành công";
             }
             if (stockMsg != null) msg += ". " + stockMsg;
             ra.addFlashAttribute("successMsg", msg);
-            if ("DA_HUY".equals(dto.getTrangThaiDon())) {
+            if ("DA_HUY".equals(newStatus)) {
                 return "redirect:/admin/don-hang";
             }
             if (dto.getTrangThaiTT() != null && !dto.getTrangThaiTT().isBlank() && !dto.getTrangThaiTT().equals(oldPayment)) {
@@ -262,6 +278,17 @@ public class AdminOrderController {
             }
 
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, trangThai, oldStatus, admin, request);
+            if (!"DA_HUY".equals(trangThai)) {
+                try {
+                    String statusName = AdminOrderService.getStatusName(trangThai);
+                    notificationHelper.notifyAll(
+                        "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                        "ORDER", order.getId(),
+                        "/tai-khoan/don-hang/" + order.getId(),
+                        order.getMaDon()
+                    );
+                } catch (Exception ignored) {}
+            }
             String msg;
             if ("DA_HUY".equals(trangThai)) {
                 msg = "Đã xóa đơn hàng";

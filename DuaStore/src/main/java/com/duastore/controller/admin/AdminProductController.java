@@ -10,6 +10,7 @@ import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.FileUploadService;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
@@ -39,19 +40,22 @@ public class AdminProductController {
     private final ProductImageRepository productImageRepository;
     private final ProductVariantRepository productVariantRepository;
     private final FileUploadService fileUploadService;
+    private final NotificationHelper notificationHelper;
 
     public AdminProductController(AdminProductService productService,
                                    CategoryRepository categoryRepository,
                                    ProductRepository productRepository,
                                    ProductImageRepository productImageRepository,
                                    ProductVariantRepository productVariantRepository,
-                                   FileUploadService fileUploadService) {
+                                   FileUploadService fileUploadService,
+                                   NotificationHelper notificationHelper) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.productVariantRepository = productVariantRepository;
         this.fileUploadService = fileUploadService;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping
@@ -243,6 +247,7 @@ public class AdminProductController {
         model.addAttribute("productTab", "thong-tin");
         model.addAttribute("product", new ProductFormDTO());
         model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+        addComboLists(model);
         return "view/admin/product/product-form";
     }
 
@@ -253,9 +258,20 @@ public class AdminProductController {
             model.addAttribute("title", "san-pham");
             model.addAttribute("productTab", "thong-tin");
             model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+            addComboLists(model);
             return "view/admin/product/product-form";
         }
-        productService.save(dto);
+        Product saved = productService.save(dto);
+        if (saved != null) {
+            try {
+                notificationHelper.notifyAll(
+                    "Sản phẩm mới: " + saved.getTenSanPham(),
+                    "PRODUCT", saved.getId(),
+                    "/san-pham/" + saved.getId(),
+                    saved.getTenSanPham()
+                );
+            } catch (Exception ignored) {}
+        }
         ra.addFlashAttribute("successMsg", "Thêm sản phẩm thành công");
         return "redirect:/admin/san-pham";
     }
@@ -291,6 +307,7 @@ public class AdminProductController {
         model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
         Category cat = categoryRepository.findById(p.getDanhMucId()).orElse(null);
         model.addAttribute("categoryName", cat != null ? cat.getTenDanhMuc() : "—");
+        addComboLists(model);
         return "view/admin/product/product-form";
     }
 
@@ -304,6 +321,7 @@ public class AdminProductController {
             model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
             Category cat = categoryRepository.findById(dto.getDanhMucId()).orElse(null);
             model.addAttribute("categoryName", cat != null ? cat.getTenDanhMuc() : "—");
+            addComboLists(model);
             return "view/admin/product/product-form";
         }
         dto.setId(id);
@@ -392,6 +410,14 @@ public class AdminProductController {
         p.setHinhAnhChinh(null);
         productRepository.save(p);
         return ResponseEntity.ok().build();
+    }
+
+    private void addComboLists(Model model) {
+        model.addAttribute("brands", productService.getDistinctThuongHieu());
+        model.addAttribute("materials", productService.getDistinctChatLieu());
+        model.addAttribute("origins", productService.getDistinctXuatXu());
+        model.addAttribute("glassTypes", productService.getDistinctKinhLoai());
+        model.addAttribute("purposes", productService.getDistinctMucDichSuDung());
     }
 
 }

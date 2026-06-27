@@ -32,6 +32,11 @@ public class Notification {
     @Column(length = 255)
     private String linkLabel;
 
+    private Integer userId;
+
+    @Column(length = 20)
+    private String targetRole;
+
     @Column(nullable = false)
     private Boolean isActive;
 
