@@ -248,7 +248,7 @@
                           <div class="small text-muted" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
                         </div>
                         <div class="d-flex gap-1 flex-shrink-0">
-                          <a th:href="@{/address/edit/{id}(id=${a.id}, returnUrl='/checkout')}" class="btn btn-sm btn-outline-primary rounded-pill"><i class="bi bi-pencil"></i></a>
+                          <button class="btn btn-sm btn-outline-primary rounded-pill" th:onclick="'editAddress(' + ${a.id} + ')'"><i class="bi bi-pencil"></i></button>
                           <button class="btn btn-sm btn-outline-secondary rounded-pill" th:unless="${a.isDefault}" th:onclick="'setDefaultAddress(' + ${a.id} + ')'">Mặc định</button>
                           <button class="btn btn-sm btn-outline-danger rounded-pill" th:onclick="'deleteAddress(' + ${a.id} + ')'"><i class="bi bi-trash"></i></button>
                         </div>
@@ -262,9 +262,9 @@
 
                 <div id="addressModalForm" style="display:none;">
                   <div class="mb-3">
-                    <label class="form-label fw-medium small">Địa chỉ trên bản đồ <span class="text-danger">*</span></label>
+                    <label class="form-label fw-medium small">Địa chỉ trên bản đồ</label>
                     <div class="input-group input-group-sm mb-1 position-relative">
-                      <input type="text" id="modalDiaChiCuThe" class="form-control rounded-3" placeholder="Nhập địa chỉ..." required autocomplete="off" />
+                      <input type="text" id="modalDiaChiCuThe" class="form-control rounded-3" placeholder="Nhập địa chỉ..." autocomplete="off" />
                       <button class="btn btn-outline-primary rounded-3" type="button" onclick="modalSearchMap()"><i class="bi bi-search"></i></button>
                       <div id="modalSuggestionBox" class="list-group position-absolute w-100 rounded-3 shadow-sm"
                            style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
@@ -286,17 +286,39 @@
                     <div id="modalMapStatus" class="form-text small text-muted mt-1"></div>
                     <input type="hidden" id="modalLatitude" />
                     <input type="hidden" id="modalLongitude" />
-                    <input type="hidden" id="modalPhuongXa" />
-                    <input type="hidden" id="modalQuanHuyen" />
-                    <input type="hidden" id="modalTinhThanh" />
                   </div>
-                  <div class="mb-3">
-                    <label class="form-label fw-medium small">Họ và tên <span class="text-danger">*</span></label>
-                    <input type="text" id="modalTenNguoiNhan" class="form-control form-control-sm rounded-3" required />
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label fw-medium small">SĐT <span class="text-danger">*</span></label>
-                    <input type="tel" id="modalSoDienThoai" class="form-control form-control-sm rounded-3" required />
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label fw-medium small">Họ và tên <span class="text-danger">*</span></label>
+                      <input type="text" id="modalTenNguoiNhan" class="form-control form-control-sm rounded-3" required />
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-medium small">SĐT <span class="text-danger">*</span></label>
+                      <input type="tel" id="modalSoDienThoai" class="form-control form-control-sm rounded-3" required />
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label fw-medium small">Số nhà, đường <span class="text-danger">*</span></label>
+                      <input type="text" id="modalDiaChiCuTheText" class="form-control form-control-sm rounded-3" required placeholder="Số 1, Đại Cồ Việt" />
+                      <input type="hidden" id="modalDiaChiCuTheHidden" />
+                    </div>
+                    <div class="col-md-6 position-relative">
+                      <label class="form-label fw-medium small">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm rounded-3" id="modalTinhThanhInput" placeholder="Gõ tên tỉnh/thành..." autocomplete="off" required />
+                      <input type="hidden" id="modalTinhThanh" />
+                      <div id="modalTinhThanhSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:180px;overflow-y:auto;"></div>
+                    </div>
+                    <div class="col-md-6 position-relative">
+                      <label class="form-label fw-medium small">Quận/Huyện <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm rounded-3" id="modalQuanHuyenInput" placeholder="Gõ tên quận/huyện..." autocomplete="off" required />
+                      <input type="hidden" id="modalQuanHuyen" />
+                      <div id="modalQuanHuyenSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:180px;overflow-y:auto;"></div>
+                    </div>
+                    <div class="col-md-6 position-relative">
+                      <label class="form-label fw-medium small">Phường/Xã <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control form-control-sm rounded-3" id="modalPhuongXaInput" placeholder="Gõ tên phường/xã..." autocomplete="off" required />
+                      <input type="hidden" id="modalPhuongXa" />
+                      <div id="modalPhuongXaSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:180px;overflow-y:auto;"></div>
+                    </div>
                   </div>
                   <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" role="switch" id="modalIsDefault" />
