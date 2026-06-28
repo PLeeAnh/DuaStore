@@ -156,18 +156,19 @@ function removeCartItem(cartItemId) {
 function updatePopupQty(variantId, delta) {
     if (window.event) { window.event.stopPropagation(); window.event.preventDefault(); }
 
-    var qtySpan = document.getElementById('popup-qty-' + variantId);
+    var qtyInput = document.getElementById('popup-qty-' + variantId);
     var priceSpan = document.getElementById('popup-price-' + variantId);
-    if (!qtySpan) return;
-    var cur = parseInt(qtySpan.innerText) || 1;
+    if (!qtyInput) return;
+    var cur = parseInt(qtyInput.value) || 1;
     var next = cur + delta;
 
     if (next < 1) {
         if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) removeCartItem(variantId);
         return;
     }
+    if (next > 99) next = 99;
 
-    qtySpan.innerText = next;
+    qtyInput.value = next;
     if (priceSpan) {
         var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
         priceSpan.innerText = (unit * next).toLocaleString('vi-VN') + '₫';
@@ -182,7 +183,7 @@ function updatePopupQty(variantId, delta) {
         }
         else {
             alert(data.message || 'Cập nhật thất bại!');
-            qtySpan.innerText = cur;
+            qtyInput.value = cur;
             if (priceSpan) {
                 var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
                 priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + '₫';
@@ -190,11 +191,41 @@ function updatePopupQty(variantId, delta) {
         }
     }).catch(function(err) {
         alert('Lỗi kết nối hệ thống. Vui lòng thử lại!');
-        qtySpan.innerText = cur;
+        qtyInput.value = cur;
         if (priceSpan) {
             var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
             priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + '₫';
         }
+        console.error('Lỗi cập nhật SL:', err);
+    });
+}
+
+/* ═══ SET POPUP QTY (nhập tay) ═══ */
+function setPopupQty(variantId, inputEl) {
+    var max = parseInt(inputEl.getAttribute('max')) || 99;
+    var newQty = parseInt(inputEl.value);
+    if (isNaN(newQty) || newQty < 1) { newQty = 1; }
+    if (newQty > max) { newQty = max; }
+    inputEl.value = newQty;
+
+    var priceSpan = document.getElementById('popup-price-' + variantId);
+    if (priceSpan) {
+        var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
+        priceSpan.innerText = (unit * newQty).toLocaleString('vi-VN') + '₫';
+    }
+
+    fetch('/api/cart/update', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId: variantId, quantity: newQty })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.success) {
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+        } else {
+            alert(data.message || 'Cập nhật thất bại!');
+            inputEl.value = newQty;
+        }
+    }).catch(function(err) {
+        alert('Lỗi kết nối hệ thống. Vui lòng thử lại!');
         console.error('Lỗi cập nhật SL:', err);
     });
 }
@@ -226,10 +257,10 @@ function addCartPopupItem(card, productId, variantId, qty) {
 
     var existing = document.getElementById('cart-item-' + variantId);
     if (existing) {
-        var qtySpan = existing.querySelector('#popup-qty-' + variantId);
-        if (qtySpan) {
-            var newQty = parseInt(qtySpan.textContent) + qty;
-            qtySpan.textContent = newQty;
+        var qtyInput = existing.querySelector('#popup-qty-' + variantId);
+        if (qtyInput) {
+            var newQty = parseInt(qtyInput.value) + qty;
+            qtyInput.value = newQty;
             var ps = existing.querySelector('#popup-price-' + variantId);
             if (ps) ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + '₫';
         }
@@ -242,9 +273,9 @@ function addCartPopupItem(card, productId, variantId, qty) {
             '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + productName + '</a>' +
             '<div class="small text-muted mb-2" style="font-size:0.8rem;">' + variantName + '</div>' +
             '<div class="d-flex align-items-center">' +
-                '<div class="input-group input-group-sm" style="width:85px;">' +
+                '<div class="input-group input-group-sm" style="width:90px;">' +
                     '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',-1)">-</button>' +
-                    '<span class="form-control text-center py-0 px-1" id="popup-qty-' + variantId + '">' + qty + '</span>' +
+                    '<input class="form-control text-center py-0 px-1" type="number" min="1" id="popup-qty-' + variantId + '" value="' + qty + '" onchange="setPopupQty(' + variantId + ', this)" onfocus="this.select()" style="font-size:0.85rem;" />' +
                     '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',1)">+</button>' +
                 '</div>' +
                 '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + variantId + '" data-price="' + rawPrice + '">' + priceFmt + '</span>' +

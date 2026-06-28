@@ -169,6 +169,7 @@ public CartResult updateQuantityByVariantId(Integer userId,
         dto.setHinhAnh(variant.getHinhAnh() != null ? variant.getHinhAnh() : product.getHinhAnhChinh());
         dto.setGiaBan(price);
         dto.setSoLuong(item.getSoLuong());
+        dto.setSoLuongTon(variant.getSoLuongTon());
         dto.setThanhTien(price.multiply(BigDecimal.valueOf(item.getSoLuong())));
         dto.setNgayThem(item.getNgayThem());
         return dto;

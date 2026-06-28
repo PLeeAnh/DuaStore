@@ -21,6 +21,7 @@ public class CartItemDTO {
     private String hinhAnh;
     private BigDecimal giaBan;
     private Integer soLuong;
+    private Integer soLuongTon;
     private BigDecimal thanhTien;
     private LocalDateTime ngayThem;
 }
