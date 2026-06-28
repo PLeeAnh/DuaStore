@@ -199,9 +199,10 @@ public class AdminOrderController {
             String oldStatus = order.getTrangThaiDon();
             String oldPayment = order.getTrangThaiTT();
 
-            // Show confirmation modal when completing unpaid order
+            // Show confirmation modal when completing unpaid non-COD order
             if ("DA_HOAN_THANH".equals(dto.getTrangThaiDon())
                     && "CHUA_THANH_TOAN".equals(oldPayment)
+                    && !"COD".equals(order.getPhuongThucTT())
                     && !"true".equals(request.getParameter("confirmed"))) {
                 ra.addFlashAttribute("showConfirmModal", true);
                 return "redirect:/admin/don-hang/" + id;
@@ -265,9 +266,10 @@ public class AdminOrderController {
 
             String oldStatus = order.getTrangThaiDon();
 
-            // Check if confirmation needed for unpaid completion
+            // Check if confirmation needed for unpaid non-COD completion
             if ("DA_HOAN_THANH".equals(trangThai)
                     && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())
+                    && !"COD".equals(order.getPhuongThucTT())
                     && !"true".equals(request.getParameter("confirmed"))) {
                 result.put("success", false);
                 result.put("needsConfirmation", true);

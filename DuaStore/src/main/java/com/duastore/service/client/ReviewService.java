@@ -5,6 +5,7 @@ import com.duastore.dto.ReviewRequestDTO;
 import com.duastore.model.Product;
 import com.duastore.model.Review;
 import com.duastore.model.User;
+import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserRepository;
@@ -22,13 +23,16 @@ public class ReviewService {
     private final ReviewsRepository reviewsRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final OrderItemRepository orderItemRepository;
 
     public ReviewService(ReviewsRepository reviewsRepository,
                          ProductRepository productRepository,
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         OrderItemRepository orderItemRepository) {
         this.reviewsRepository = reviewsRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @Transactional(readOnly = true)
@@ -45,9 +49,25 @@ public class ReviewService {
         return reviewsRepository.findByUserIdAndProductId(userId, productId).isPresent();
     }
 
+    @Transactional(readOnly = true)
+    public boolean hasPurchased(Integer userId, Integer productId) {
+        return orderItemRepository.existsByProductIdAndUserId(productId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasPaidAndPurchased(Integer userId, Integer productId) {
+        return orderItemRepository.existsByProductIdAndUserIdAndPaid(productId, userId);
+    }
+
     public ReviewDTO createReview(Integer userId, ReviewRequestDTO request, String hinhAnhUrl) {
         if (hasReviewed(userId, request.getProductId())) {
             throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");
+        }
+        if (!hasPaidAndPurchased(userId, request.getProductId())) {
+            throw new RuntimeException("Bạn cần mua sản phẩm và thanh toán để được đánh giá");
+        }
+        if (request.getDanhGia() == null) {
+            throw new RuntimeException("Vui lòng chọn số sao đánh giá");
         }
 
         Review review = new Review();
@@ -56,7 +76,7 @@ public class ReviewService {
         review.setDanhGia(request.getDanhGia());
         review.setBinhLuan(sanitizeHtml(request.getBinhLuan()));
         review.setHinhAnh(hinhAnhUrl);
-        review.setIsApproved(false);
+        review.setIsApproved(true);
 
         review = reviewsRepository.save(review);
         return toDTO(review);

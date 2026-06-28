@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+<head><title th:text="${store.id != null} ? 'Sửa địa chỉ' : 'Thêm địa chỉ'">Form</title></head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin/dia-chi}">Địa chỉ cửa hàng</a></li>
+    <li class="breadcrumb-item active" th:text="${store.id != null} ? 'Sửa địa chỉ' : 'Thêm địa chỉ'">Form</li>
+</th:block>
+<div layout:fragment="content">
+
+    <div class="adm-detail-hero">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4><span th:text="${store.id != null} ? 'Sửa địa chỉ' : 'Thêm địa chỉ'">Thêm địa chỉ</span></h4>
+                        <div class="adm-detail-meta" th:text="${store.id != null} ? 'Chỉnh sửa thông tin cửa hàng.' : 'Thêm địa chỉ cửa hàng mới.'">Sub</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        </a>
+                        <button type="submit" form="storeForm" class="btn btn-primary btn-sm">
+                            <i class="bi bi-check-lg me-1"></i><span th:text="${store.id != null} ? 'Lưu thay đổi' : 'Thêm mới'">Lưu</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="storeForm"
+          th:action="${store.id != null} ? @{/admin/dia-chi/sua/{id}(id=${store.id})} : @{/admin/dia-chi/them-moi}"
+          th:object="${store}" method="post">
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="adm-card">
+                    <div class="adm-card-header">
+                        <span><i class="bi bi-info-circle me-2"></i>Thông tin cửa hàng</span>
+                    </div>
+                    <div class="adm-card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tên cửa hàng <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{tenCuaHang}" class="form-control" required maxlength="200" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="text" th:field="*{soDienThoai}" class="form-control" maxlength="20" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Số nhà</label>
+                                <input type="text" th:field="*{soNha}" class="form-control" maxlength="100" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Đường</label>
+                                <input type="text" th:field="*{duong}" class="form-control" maxlength="200" />
+                            </div>
+                            <div class="col-md-4 position-relative">
+                                <label class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="tinhThanhInput" placeholder="Gõ tên tỉnh/thành..." autocomplete="off" />
+                                <input type="hidden" th:field="*{tinhThanh}" id="tinhThanh" />
+                                <div id="tinhThanhSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                            </div>
+                            <div class="col-md-4 position-relative">
+                                <label class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="quanHuyenInput" placeholder="Gõ tên quận/huyện..." autocomplete="off" />
+                                <input type="hidden" th:field="*{quanHuyen}" id="quanHuyen" />
+                                <div id="quanHuyenSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                            </div>
+                            <div class="col-md-4 position-relative">
+                                <label class="form-label">Phường/Xã <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="phuongXaInput" placeholder="Gõ tên phường/xã..." autocomplete="off" />
+                                <input type="hidden" th:field="*{phuongXa}" id="phuongXa" />
+                                <div id="phuongXaSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" th:field="*{email}" class="form-control" maxlength="100" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Vĩ độ (Latitude)</label>
+                                <input type="text" th:field="*{latitude}" class="form-control" placeholder="21.028511" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Kinh độ (Longitude)</label>
+                                <input type="text" th:field="*{longitude}" class="form-control" placeholder="105.854170" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="adm-card">
+                    <div class="adm-card-header">
+                        <span><i class="bi bi-gear me-2"></i>Trạng thái</span>
+                    </div>
+                    <div class="adm-card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input type="checkbox" class="form-check-input" th:field="*{isActive}" id="isActiveCheck" />
+                            <label class="form-check-label" for="isActiveCheck">Hoạt động</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input type="checkbox" class="form-check-input" th:field="*{isDefault}" id="isDefaultCheck" />
+                            <label class="form-check-label" for="isDefaultCheck">Đặt làm mặc định</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<th:block layout:fragment="extra-script">
+<script>
+var locProvinces = [];
+
+function loadProvinces() {
+    fetch('/api/location/provinces').then(function(r) { return r.json(); }).then(function(data) {
+        locProvinces = data;
+        var cur = document.getElementById('tinhThanh').value;
+        if (cur) {
+            document.getElementById('tinhThanhInput').value = cur;
+            var found = data.find(function(p) { return p.name === cur; });
+            if (found) loadDistricts(found.code);
+        }
+    });
+}
+
+function loadDistricts(provinceCode) {
+    fetch('/api/location/districts?provinceCode=' + provinceCode).then(function(r) { return r.json(); }).then(function(data) {
+        var cur = document.getElementById('quanHuyen').value;
+        if (cur) document.getElementById('quanHuyenInput').value = cur;
+        window.locDistricts = data;
+    });
+}
+
+function loadWards(districtCode) {
+    fetch('/api/location/wards?districtCode=' + districtCode).then(function(r) { return r.json(); }).then(function(data) {
+        var cur = document.getElementById('phuongXa').value;
+        if (cur) document.getElementById('phuongXaInput').value = cur;
+        window.locWards = data;
+    });
+}
+
+function setupAutocomplete(inputId, suggestId, hiddenId, source, onSelect) {
+    var input = document.getElementById(inputId);
+    var box = document.getElementById(suggestId);
+    var hidden = document.getElementById(hiddenId);
+    var timer;
+
+    input.addEventListener('input', function() {
+        clearTimeout(timer);
+        var q = this.value.toLowerCase().trim();
+        if (q.length < 1) { box.style.display = 'none'; hidden.value = ''; return; }
+        timer = setTimeout(function() {
+            var items = source().filter(function(x) { return x.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
+            box.innerHTML = '';
+            if (!items.length) { box.style.display = 'none'; return; }
+            items.forEach(function(item) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'list-group-item list-group-item-action py-1 text-start small';
+                btn.textContent = item.name;
+                btn.addEventListener('click', function() {
+                    input.value = item.name;
+                    hidden.value = item.name;
+                    box.style.display = 'none';
+                    if (onSelect) onSelect(item);
+                });
+                box.appendChild(btn);
+            });
+            box.style.display = 'block';
+        }, 200);
+    });
+
+    input.addEventListener('blur', function() { setTimeout(function() { box.style.display = 'none'; }, 200); });
+    input.addEventListener('focus', function() {
+        if (this.value.trim()) this.dispatchEvent(new Event('input'));
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadProvinces();
+
+    setupAutocomplete('tinhThanhInput', 'tinhThanhSuggest', 'tinhThanh',
+        function() { return locProvinces; },
+        function(item) {
+            document.getElementById('quanHuyenInput').value = '';
+            document.getElementById('quanHuyen').value = '';
+            document.getElementById('phuongXaInput').value = '';
+            document.getElementById('phuongXa').value = '';
+            window.locDistricts = [];
+            window.locWards = [];
+            loadDistricts(item.code);
+        }
+    );
+
+    setupAutocomplete('quanHuyenInput', 'quanHuyenSuggest', 'quanHuyen',
+        function() { return window.locDistricts || []; },
+        function(item) {
+            document.getElementById('phuongXaInput').value = '';
+            document.getElementById('phuongXa').value = '';
+            window.locWards = [];
+            loadWards(item.code);
+        }
+    );
+
+    setupAutocomplete('phuongXaInput', 'phuongXaSuggest', 'phuongXa',
+        function() { return window.locWards || []; },
+        null
+    );
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#tinhThanhInput, #tinhThanhSuggest, #quanHuyenInput, #quanHuyenSuggest, #phuongXaInput, #phuongXaSuggest')) {
+            document.getElementById('tinhThanhSuggest').style.display = 'none';
+            document.getElementById('quanHuyenSuggest').style.display = 'none';
+            document.getElementById('phuongXaSuggest').style.display = 'none';
+        }
+    });
+});
+</script>
+</th:block>
+</body>
+</html>

@@ -101,6 +101,8 @@
                             <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
                             <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
                                   th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
+                            <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai == null and bestPercentagePromo != null}"
+                                  th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
                             <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                             <div class="ds-flash-timer" th:if="${fs != null}"
                                  th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
@@ -125,7 +127,7 @@
                     <div class="ds-card-body">
                         <a th:href="@{/san-pham/{id}(id=${p.id})}" class="ds-product-name" th:text="${p.tenSanPham}">Tên SP</a>
 
-                        <div class="star-rating-readonly small" th:if="${avgRatings != null and avgRatings.containsKey(p.id)}" th:data-score="${#numbers.convert(avgRatings.get(p.id), 'int')}"></div>
+                        <div class="star-rating-readonly small" th:if="${avgRatings != null and avgRatings.containsKey(p.id)}" th:data-score="${#numbers.formatDecimal(avgRatings.get(p.id), 1, 0)}"></div>
 
                         <div class="ds-card-actions">
                             <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
@@ -146,6 +148,7 @@
                                             th:data-variantid="${pv.id}"
                                             th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
                                             th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
+                                            th:data-promo-price="${variantPromoPriceMap.get(pv.id)}"
                                             th:data-stock="${pv.soLuongTon}"
                                             th:disabled="${pv.soLuongTon <= 0}"
                                             th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
@@ -168,7 +171,7 @@
                                 onclick="addToCartFromCard(this);return false">
                             <span class="ds-price-btn-text">
                                 <strong class="ds-price-btn-amount"
-                                        th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</strong>
+                                        th:text="${#numbers.formatInteger(promoPriceMap.get(p.id) != null ? promoPriceMap.get(p.id) : (v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc), 0, 'POINT')} + '₫'">100.000₫</strong>
                             </span>
                             <svg viewBox="0 0 40 45" fill="none" class="btn-wave-svg">
                                 <g>
@@ -219,6 +222,16 @@
 </div>
 
 <th:block layout:fragment="extra-script">
+<script>
+    document.querySelectorAll('.star-rating-readonly[data-score]').forEach(function(el) {
+        var score = parseInt(el.dataset.score) || 0;
+        var html = '';
+        for (var i = 5; i >= 1; i--) {
+            html += i <= score ? '\u2605' : '\u2606';
+        }
+        el.textContent = html;
+    });
+</script>
 </th:block>
 </body>
 </html>

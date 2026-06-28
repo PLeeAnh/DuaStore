@@ -22,7 +22,6 @@
 
         <div th:unless="${#lists.isEmpty(myCart)}">
             <div class="row g-5">
-                <!-- LEFT: Cart items -->
                 <div class="col-12 col-lg-8">
                     <div class="ds-card ds-card-elevated">
                         <div class="ds-cart-header-row d-none d-lg-flex">
@@ -51,7 +50,7 @@
 
                             <div class="ds-cart-unit-price">
                                 <span class="ds-mobile-label text-muted small">Đơn giá: </span>
-                                <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + '₫'">250.000₫</span>
+                                <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'">250.000₫</span>
                             </div>
 
                             <div class="ds-cart-qty">
@@ -66,13 +65,11 @@
                             </div>
 
                             <div class="ds-cart-total-price"
-                                 th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 0)} + '₫'">
+                                 th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + '₫'">
                                 250.000₫
                             </div>
                         </div>
                     </div>
-                </div>
-
                 <!-- RIGHT: Order summary -->
                 <div class="col-12 col-lg-4">
                     <div class="ds-card ds-card-elevated ds-cart-summary">
@@ -81,7 +78,7 @@
 
                             <div class="ds-cart-summary-row">
                                 <span>Tạm tính</span>
-                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 0)} + '₫'">0₫</span>
+                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
                             </div>
                             <div class="ds-cart-summary-row">
                                 <span>Giảm giá</span>
@@ -101,7 +98,7 @@
 
                             <div class="ds-cart-summary-total">
                                 <span>Tổng cộng</span>
-                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 0)} + '₫'">0₫</span>
+                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
                             </div>
 
                             <a th:href="@{/checkout}" class="ds-btn-checkout mt-3">

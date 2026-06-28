@@ -160,7 +160,7 @@
                                 </div>
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
-                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + '₫'">0₫</div>                                 
+                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + 'đ'">0đ</div>
                                 </div>
                                 
         </div>
@@ -209,7 +209,7 @@
                                               th:id="'popup-price-' + ${uid}" 
                                               th:data-price="${item.giaBan}"
                                               style="font-size: 0.9rem;" 
-                                              th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 0)} + '₫'">0₫</span>
+                                              th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + 'đ'">0đ</span>
                                     </div>
                                 </div>
                                 <button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ">
@@ -295,6 +295,7 @@
                             </div>
                         </div>
                         <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
+                        <a class="ds-popup-link" th:href="@{/address}"><i class="bi bi-geo-alt"></i> Sổ địa chỉ</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
                         <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
@@ -578,7 +579,7 @@
             <div class="row g-5">
                 <div class="col-12 col-lg-4">
                     <div class="ds-footer-logo">DuaStore</div>
-                    <div class="mt-4"><p class="ds-footer-info-label">Địa chỉ</p><p class="ds-footer-info-val">Hải Phòng, Việt Nam</p></div>
+                    <div class="mt-4"><p class="ds-footer-info-label">Địa chỉ</p><p class="ds-footer-info-val">Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội</p></div>
                     <div class="mt-3">
                         <p class="ds-footer-info-label">Liên hệ</p>
                         <p class="ds-footer-info-val"><a href="tel:0901234567">0901 234 567</a></p>

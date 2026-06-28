@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ReviewRequestDTO {
 
-    @NotNull(message = "Thiếu thông tin sản phẩm")
     private Integer productId;
 
     @NotNull(message = "Vui lòng chọn số sao")
