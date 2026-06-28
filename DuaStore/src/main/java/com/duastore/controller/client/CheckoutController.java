@@ -12,7 +12,6 @@ import com.duastore.repository.AddressRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.model.OrderEventType;
 import com.duastore.service.EmailService;
-import com.duastore.service.NotificationHelper;
 import com.duastore.service.PaymentService;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.admin.OrderStatusLogService;
@@ -28,7 +27,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,6 @@ public class CheckoutController {
     private final EmailService emailService;
     private final PaymentService paymentService;
     private final OrderStatusLogService orderStatusLogService;
-    private final NotificationHelper notificationHelper;
 
     public CheckoutController(OrderService orderService, CartService cartService,
                               AddressRepository addressRepository,
@@ -56,8 +57,7 @@ public class CheckoutController {
                               ShippingFeeService shippingFeeService,
                               EmailService emailService,
                               PaymentService paymentService,
-                              OrderStatusLogService orderStatusLogService,
-                              NotificationHelper notificationHelper) {
+                              OrderStatusLogService orderStatusLogService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -67,7 +67,6 @@ public class CheckoutController {
         this.emailService = emailService;
         this.paymentService = paymentService;
         this.orderStatusLogService = orderStatusLogService;
-        this.notificationHelper = notificationHelper;
     }
 
     private Integer getUserId() {
@@ -86,16 +85,49 @@ public class CheckoutController {
                 ? new BigDecimal("10000")
                 : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
 
+        // Auto-apply best promotion
+        List<Promotion> activePromotions = getActivePromotions();
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        BigDecimal tienGiam = BigDecimal.ZERO;
+        String autoPromoCode = null;
+        if (bestPromo != null) {
+            tienGiam = orderService.calculateDiscount(bestPromo, subtotal);
+            autoPromoCode = bestPromo.getMaCode();
+            // Calculate per-item discounted prices
+            for (CartItemDTO item : cartItems) {
+                if (item.getGiaBan() != null) {
+                    if ("PHAN_TRAM".equals(bestPromo.getLoaiGiam())) {
+                        BigDecimal discountPct = bestPromo.getGiaTriGiam();
+                        BigDecimal discountedPrice = item.getGiaBan()
+                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        item.setGiaBanSauGiam(discountedPrice);
+                    } else {
+                        // For fixed-amount, apply proportional discount
+                        if (tienGiam.compareTo(BigDecimal.ZERO) > 0 && subtotal.compareTo(BigDecimal.ZERO) > 0) {
+                            BigDecimal ratio = item.getGiaBan().multiply(tienGiam).divide(subtotal, java.math.RoundingMode.HALF_UP);
+                            item.setGiaBanSauGiam(item.getGiaBan().subtract(ratio));
+                        }
+                    }
+                }
+            }
+        }
+
+        CheckoutRequestDTO checkoutRequest = new CheckoutRequestDTO();
+        checkoutRequest.setMaCode(autoPromoCode);
+
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("addresses", addresses);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("phiVanChuyen", phiShip);
-        model.addAttribute("tienGiam", BigDecimal.ZERO);
-        model.addAttribute("tongTam", subtotal.add(phiShip));
+        model.addAttribute("tienGiam", tienGiam);
+        model.addAttribute("bestPromo", bestPromo);
+        model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
         model.addAttribute("storeLat", shippingFeeService.getStoreLat());
         model.addAttribute("storeLng", shippingFeeService.getStoreLng());
-        model.addAttribute("checkoutRequest", new CheckoutRequestDTO());
+        model.addAttribute("checkoutRequest", checkoutRequest);
         model.addAttribute("title", "Thanh toán");
+        model.addAttribute("availablePromos", activePromotions);
         return "view/client/checkout";
     }
 
@@ -130,12 +162,13 @@ public class CheckoutController {
             BigDecimal phiShip = addresses.isEmpty()
                     ? new BigDecimal("10000")
                     : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
+            BigDecimal tienGiam = calcAutoDiscount(subtotal);
             model.addAttribute("cartItems", cartItems);
             model.addAttribute("addresses", addresses);
             model.addAttribute("subtotal", subtotal);
             model.addAttribute("phiVanChuyen", phiShip);
-            model.addAttribute("tienGiam", BigDecimal.ZERO);
-            model.addAttribute("tongTam", subtotal.add(phiShip));
+            model.addAttribute("tienGiam", tienGiam);
+            model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
             model.addAttribute("storeLat", shippingFeeService.getStoreLat());
             model.addAttribute("storeLng", shippingFeeService.getStoreLng());
             model.addAttribute("title", "Thanh toán");
@@ -147,6 +180,17 @@ public class CheckoutController {
                     userId, req.getAddressId(), req.getPhuongThucTT(),
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
             );
+
+            try {
+                notificationHelper.notifyStaff(
+                    "Khách hàng đã đặt đơn hàng mới: " + order.getMaDon(),
+                    "ORDER", order.getId(),
+                    "/admin/don-hang",
+                    order.getMaDon()
+                );
+            } catch (Exception e) {
+                // notifyStaff đã log lỗi, không break flow chính
+            }
 
             User finalUser = order.getUser();
             String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "COD";
@@ -188,18 +232,49 @@ public class CheckoutController {
             BigDecimal phiShip = addresses.isEmpty()
                     ? new BigDecimal("10000")
                     : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
+            BigDecimal tienGiam = calcAutoDiscount(subtotal);
             model.addAttribute("cartItems", cartItems);
             model.addAttribute("addresses", addresses);
             model.addAttribute("subtotal", subtotal);
             model.addAttribute("phiVanChuyen", phiShip);
-            model.addAttribute("tienGiam", BigDecimal.ZERO);
-            model.addAttribute("tongTam", subtotal.add(phiShip));
+            model.addAttribute("tienGiam", tienGiam);
+            model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
             model.addAttribute("storeLat", shippingFeeService.getStoreLat());
             model.addAttribute("storeLng", shippingFeeService.getStoreLng());
             model.addAttribute("error", e.getMessage());
             model.addAttribute("title", "Thanh toán");
             return "view/client/checkout";
         }
+    }
+
+    private List<Promotion> getActivePromotions() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Promotion> promos = promotionRepository.findActiveNow(now);
+        if (promos.isEmpty()) {
+            promos = promotionRepository.findByIsActiveTrue().stream()
+                .filter(p -> p.getTuNgay() == null || !p.getTuNgay().isAfter(now))
+                .filter(p -> p.getDenNgay() == null || !p.getDenNgay().isBefore(now))
+                .toList();
+        }
+        return promos;
+    }
+
+    private BigDecimal calcAutoDiscount(BigDecimal subtotal) {
+        List<Promotion> activePromotions = getActivePromotions();
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        if (bestPromo != null) {
+            return orderService.calculateDiscount(bestPromo, subtotal);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
+        BigDecimal maxPct = new BigDecimal("100");
+        return promos.stream()
+            .filter(p -> p.getDonHangToiThieu() == null || subtotal.compareTo(p.getDonHangToiThieu()) >= 0)
+            .filter(p -> !"PHAN_TRAM".equals(p.getLoaiGiam()) || p.getGiaTriGiam().compareTo(maxPct) <= 0)
+            .max(Comparator.comparing(p -> orderService.calculateDiscount(p, subtotal)))
+            .orElse(null);
     }
 
     @PostMapping("/api/create")
@@ -252,7 +327,7 @@ public class CheckoutController {
                                                            @RequestParam BigDecimal subtotal) {
         Map<String, Object> res = new HashMap<>();
         try {
-            Promotion promo = promotionRepository.findByMaCodeAndIsActiveTrue(maCode.toUpperCase().trim())
+            Promotion promo = promotionRepository.findByMaCodeIgnoreCaseAndIsActiveTrue(maCode.trim())
                     .orElse(null);
             if (promo == null) {
                 res.put("success", false);
@@ -308,14 +383,6 @@ public class CheckoutController {
             }
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
             orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
-            try {
-                notificationHelper.notifyStaff(
-                    "Khách hàng đã thanh toán đơn hàng " + order.getMaDon(),
-                    "ORDER", order.getId(),
-                    "/admin/don-hang",
-                    order.getMaDon()
-                );
-            } catch (Exception ignored) {}
 
                 User finalUser = order.getUser();
                 String finalTt2 = "Chuyển khoản";

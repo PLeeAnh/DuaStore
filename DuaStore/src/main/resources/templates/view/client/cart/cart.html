@@ -22,7 +22,6 @@
 
         <div th:unless="${#lists.isEmpty(myCart)}">
             <div class="row g-5">
-                <!-- LEFT: Cart items -->
                 <div class="col-12 col-lg-8">
                     <div class="ds-card ds-card-elevated">
                         <div class="ds-cart-header-row d-none d-lg-flex">
@@ -32,7 +31,7 @@
                             <div class="ds-cart-header-cell ds-cart-header-total">Tạm tính</div>
                         </div>
 
-                        <div th:each="item : ${myCart}" class="ds-cart-item">
+                        <div th:each="item : ${myCart}" class="ds-cart-item" th:id="'cart-item-' + ${item.variantId}">
                             <div class="ds-cart-item-left">
                                 <img class="ds-cart-image"
                                      th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}"
@@ -51,26 +50,26 @@
 
                             <div class="ds-cart-unit-price">
                                 <span class="ds-mobile-label text-muted small">Đơn giá: </span>
-                                <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 0)} + '₫'">250.000₫</span>
+                                <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'">250.000₫</span>
                             </div>
 
                             <div class="ds-cart-qty">
                                 <button class="ds-cart-qty-btn" type="button"
                                         th:onclick="'updateQty(' + ${item.variantId} + ', -1)'">−</button>
-                                <input class="ds-cart-qty-input" type="text"
-                                       th:value="${item.soLuong}" readonly />
+                                <input class="ds-cart-qty-input" type="number" min="1"
+                                       th:attr="max=${item.soLuongTon}"
+                                       th:value="${item.soLuong}"
+                                       th:onchange="'setQty(' + ${item.variantId} + ', this)'" />
                                 <button class="ds-cart-qty-btn" type="button"
                                         th:onclick="'updateQty(' + ${item.variantId} + ', 1)'">+</button>
                             </div>
 
                             <div class="ds-cart-total-price"
-                                 th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 0)} + '₫'">
+                                 th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + '₫'">
                                 250.000₫
                             </div>
                         </div>
                     </div>
-                </div>
-
                 <!-- RIGHT: Order summary -->
                 <div class="col-12 col-lg-4">
                     <div class="ds-card ds-card-elevated ds-cart-summary">
@@ -79,7 +78,7 @@
 
                             <div class="ds-cart-summary-row">
                                 <span>Tạm tính</span>
-                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 0)} + '₫'">0₫</span>
+                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
                             </div>
                             <div class="ds-cart-summary-row">
                                 <span>Giảm giá</span>
@@ -99,7 +98,7 @@
 
                             <div class="ds-cart-summary-total">
                                 <span>Tổng cộng</span>
-                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 0)} + '₫'">0₫</span>
+                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
                             </div>
 
                             <a th:href="@{/checkout}" class="ds-btn-checkout mt-3">
@@ -188,11 +187,86 @@
         });
     }
 
+    function setQty(variantId, inputEl) {
+        if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast) return;
+
+        var max = parseInt(inputEl.getAttribute('max')) || 99;
+        var newQty = parseInt(inputEl.value);
+        if (isNaN(newQty) || newQty < 1) { newQty = 1; }
+        if (newQty > max) { newQty = max; }
+        inputEl.value = newQty;
+
+        var item = inputEl.closest('.ds-cart-item');
+
+        DuaStore.api.post('/api/cart/update', {
+            variantId: variantId,
+            soLuong: newQty
+        }).then(function(result) {
+            if (!result.ok) { DuaStore.toast.error(result.message); return; }
+            var data = result.data;
+            if (!data.success) {
+                DuaStore.toast.error(data.message || 'Cập nhật thất bại');
+            }
+            inputEl.value = newQty;
+
+            if (item) {
+                var unitPriceEl = item.querySelector('.ds-cart-unit-price');
+                if (unitPriceEl) {
+                    var unitPrice = parseInt(unitPriceEl.innerText.replace(/[^\d]/g, '')) || 0;
+                    var lineTotal = unitPrice * newQty;
+                    var totalEl = item.querySelector('.ds-cart-total-price');
+                    if (totalEl) totalEl.innerText = lineTotal.toLocaleString('vi-VN') + '₫';
+                }
+            }
+
+            var cartTotal = 0;
+            document.querySelectorAll('.ds-cart-total-price').forEach(function(cell) {
+                var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
+                cartTotal += val;
+            });
+            var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
+            var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
+            if (subtotalRow) subtotalRow.innerText = formattedTotal;
+            var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
+            if (summaryTotal) summaryTotal.innerText = formattedTotal;
+
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+            DuaStore.toast.success('Đã cập nhật số lượng');
+        });
+    }
+
     function removeCartItem(id) {
         if (!id) return;
-        if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-            window.location.href = '/gio-hang/xoa/' + id;
-        }
+        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) return;
+
+        DuaStore.api.post('/api/cart/remove-item', { variantId: id }).then(function(result) {
+            if (!result.ok) { DuaStore.toast.error(result.message); return; }
+            var data = result.data;
+            if (!data.success) { DuaStore.toast.error(data.message || 'Xóa thất bại'); return; }
+
+            var el = document.getElementById('cart-item-' + id);
+            if (el) el.remove();
+
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+
+            var remaining = document.querySelectorAll('.ds-cart-item');
+            if (remaining.length === 0) {
+                location.reload();
+            } else {
+                var cartTotal = 0;
+                document.querySelectorAll('.ds-cart-total-price').forEach(function(cell) {
+                    var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
+                    cartTotal += val;
+                });
+                var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
+                var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
+                if (subtotalRow) subtotalRow.innerText = formattedTotal;
+                var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
+                if (summaryTotal) summaryTotal.innerText = formattedTotal;
+            }
+
+            DuaStore.toast.success('Đã xóa sản phẩm');
+        });
     }
 </script>
 </th:block>
