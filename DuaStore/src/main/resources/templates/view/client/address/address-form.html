@@ -50,18 +50,37 @@
                     <div id="mapStatus" class="form-text small text-muted mt-1"></div>
                 </div>
 
-                <input type="hidden" th:field="*{tinhThanh}" id="tinhThanh" />
-                <input type="hidden" th:field="*{quanHuyen}" id="quanHuyen" />
-                <input type="hidden" th:field="*{phuongXa}" id="phuongXa" />
-                <input type="hidden" th:field="*{diaChiCuThe}" id="diaChiCuThe" />
-
-                <div class="mb-3">
-                    <label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control rounded-3 py-2" th:field="*{tenNguoiNhan}" required />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-medium">SĐT <span class="text-danger">*</span></label>
-                    <input type="tel" class="form-control rounded-3 py-2" th:field="*{soDienThoai}" required />
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3 py-2" th:field="*{tenNguoiNhan}" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">SĐT <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control rounded-3 py-2" th:field="*{soDienThoai}" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Số nhà, đường <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3 py-2" th:field="*{diaChiCuThe}" id="diaChiCuThe" required placeholder="VD: Số 1, Đại Cồ Việt" />
+                    </div>
+                    <div class="col-md-6 position-relative">
+                        <label class="form-label fw-medium">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3 py-2" id="tinhThanhInput" placeholder="Gõ tên tỉnh/thành..." autocomplete="off" required />
+                        <input type="hidden" th:field="*{tinhThanh}" id="tinhThanh" />
+                        <div id="tinhThanhSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                    </div>
+                    <div class="col-md-6 position-relative">
+                        <label class="form-label fw-medium">Quận/Huyện <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3 py-2" id="quanHuyenInput" placeholder="Gõ tên quận/huyện..." autocomplete="off" required />
+                        <input type="hidden" th:field="*{quanHuyen}" id="quanHuyen" />
+                        <div id="quanHuyenSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                    </div>
+                    <div class="col-md-6 position-relative">
+                        <label class="form-label fw-medium">Phường/Xã <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3 py-2" id="phuongXaInput" placeholder="Gõ tên phường/xã..." autocomplete="off" required />
+                        <input type="hidden" th:field="*{phuongXa}" id="phuongXa" />
+                        <div id="phuongXaSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                    </div>
                 </div>
 
                 <div class="form-check form-switch mb-4">
@@ -78,6 +97,170 @@
 
     <th:block layout:fragment="extra-script">
     <script>
+    var addrProvinces = [];
+    var addrDistricts = [];
+    var addrWards = [];
+
+    function loadAddrProvinces() {
+        fetch('/api/location/provinces').then(function(r) { return r.json(); }).then(function(data) {
+            addrProvinces = data;
+            var cur = document.getElementById('tinhThanh').value;
+            if (cur) {
+                document.getElementById('tinhThanhInput').value = cur;
+                var found = data.find(function(p) { return p.name === cur; });
+                if (found) loadAddrDistricts(found.code);
+            }
+        });
+    }
+    function loadAddrDistricts(provinceCode) {
+        fetch('/api/location/districts?provinceCode=' + provinceCode).then(function(r) { return r.json(); }).then(function(data) {
+            addrDistricts = data;
+            var cur = document.getElementById('quanHuyen').value;
+            if (cur) {
+                document.getElementById('quanHuyenInput').value = cur;
+                var found = data.find(function(d) { return d.name === cur; });
+                if (found) loadAddrWards(found.code);
+            }
+        });
+    }
+    function loadAddrWards(districtCode) {
+        fetch('/api/location/wards?districtCode=' + districtCode).then(function(r) { return r.json(); }).then(function(data) {
+            addrWards = data;
+            var cur = document.getElementById('phuongXa').value;
+            if (cur) document.getElementById('phuongXaInput').value = cur;
+        });
+    }
+
+    function setupAddrAutocomplete(inputId, suggestId, hiddenId, sourceFn, onSelect) {
+        var input = document.getElementById(inputId);
+        var box = document.getElementById(suggestId);
+        var hidden = document.getElementById(hiddenId);
+        var timer;
+        if (!input || !box || !hidden) return;
+        input.addEventListener('input', function() {
+            clearTimeout(timer);
+            var q = this.value.toLowerCase().trim();
+            if (q.length < 1) { box.style.display = 'none'; hidden.value = ''; return; }
+            timer = setTimeout(function() {
+                var items = sourceFn().filter(function(x) { return x.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
+                box.innerHTML = '';
+                if (!items.length) { box.style.display = 'none'; return; }
+                items.forEach(function(item) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'list-group-item list-group-item-action py-1 text-start small';
+                    btn.textContent = item.name;
+                    btn.addEventListener('click', function() {
+                        input.value = item.name;
+                        hidden.value = item.name;
+                        box.style.display = 'none';
+                        if (onSelect) onSelect(item);
+                    });
+                    box.appendChild(btn);
+                });
+                box.style.display = 'block';
+            }, 200);
+        });
+        input.addEventListener('blur', function() { setTimeout(function() { box.style.display = 'none'; }, 200); });
+        input.addEventListener('focus', function() { if (this.value.trim()) this.dispatchEvent(new Event('input')); });
+    }
+
+    function setAddrFromNominatim(diaChi, phuongXa, quanHuyen, tinhThanh) {
+        document.getElementById('diaChiCuThe').value = diaChi || '';
+        if (tinhThanh) {
+            document.getElementById('tinhThanhInput').value = tinhThanh;
+            document.getElementById('tinhThanh').value = tinhThanh;
+            var found = addrProvinces.find(function(p) { return p.name === tinhThanh; });
+            if (found) {
+                loadAddrDistricts(found.code);
+                setTimeout(function() {
+                    if (quanHuyen) {
+                        document.getElementById('quanHuyenInput').value = quanHuyen;
+                        document.getElementById('quanHuyen').value = quanHuyen;
+                        var dfound = addrDistricts.find(function(d) { return d.name === quanHuyen; });
+                        if (dfound) {
+                            loadAddrWards(dfound.code);
+                            setTimeout(function() {
+                                if (phuongXa) {
+                                    document.getElementById('phuongXaInput').value = phuongXa;
+                                    document.getElementById('phuongXa').value = phuongXa;
+                                }
+                            }, 500);
+                        }
+                    }
+                }, 500);
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAddrProvinces();
+
+        setupAddrAutocomplete('tinhThanhInput', 'tinhThanhSuggest', 'tinhThanh',
+            function() { return addrProvinces; },
+            function(item) {
+                document.getElementById('quanHuyenInput').value = '';
+                document.getElementById('quanHuyen').value = '';
+                document.getElementById('phuongXaInput').value = '';
+                document.getElementById('phuongXa').value = '';
+                addrDistricts = [];
+                addrWards = [];
+                loadAddrDistricts(item.code);
+            }
+        );
+        setupAddrAutocomplete('quanHuyenInput', 'quanHuyenSuggest', 'quanHuyen',
+            function() { return addrDistricts; },
+            function(item) {
+                document.getElementById('phuongXaInput').value = '';
+                document.getElementById('phuongXa').value = '';
+                addrWards = [];
+                loadAddrWards(item.code);
+            }
+        );
+        setupAddrAutocomplete('phuongXaInput', 'phuongXaSuggest', 'phuongXa',
+            function() { return addrWards; }, null
+        );
+
+        document.addEventListener('click', function(e) {
+            var ids = ['tinhThanhInput','tinhThanhSuggest','quanHuyenInput','quanHuyenSuggest','phuongXaInput','phuongXaSuggest'];
+            var hide = true;
+            for (var i = 0; i < ids.length; i++) { if (e.target.closest('#' + ids[i])) { hide = false; break; } }
+            if (hide) {
+                document.getElementById('tinhThanhSuggest').style.display = 'none';
+                document.getElementById('quanHuyenSuggest').style.display = 'none';
+                document.getElementById('phuongXaSuggest').style.display = 'none';
+            }
+        });
+    });
+
+    function setAddrFromNominatim(diaChi, phuongXa, quanHuyen, tinhThanh) {
+        document.getElementById('diaChiCuThe').value = diaChi || '';
+        if (tinhThanh) {
+            document.getElementById('tinhThanhInput').value = tinhThanh;
+            document.getElementById('tinhThanh').value = tinhThanh;
+            var found = addrProvinces.find(function(p) { return p.name === tinhThanh; });
+            if (found) {
+                loadAddrDistricts(found.code);
+                setTimeout(function() {
+                    if (quanHuyen) {
+                        document.getElementById('quanHuyenInput').value = quanHuyen;
+                        document.getElementById('quanHuyen').value = quanHuyen;
+                        var dfound = addrDistricts.find(function(d) { return d.name === quanHuyen; });
+                        if (dfound) {
+                            loadAddrWards(dfound.code);
+                            setTimeout(function() {
+                                if (phuongXa) {
+                                    document.getElementById('phuongXaInput').value = phuongXa;
+                                    document.getElementById('phuongXa').value = phuongXa;
+                                }
+                            }, 500);
+                        }
+                    }
+                }, 500);
+            }
+        }
+    }
+
     function searchMap() {
         var q = document.getElementById('mapSearchInput').value.trim();
         if (!q) return;
@@ -94,10 +277,12 @@
                     document.getElementById('longitude').value = loc.lon;
                     var parts = (loc.display_name || q).split(',').map(function(s) { return s.trim(); });
                     var len = parts.length;
-                    if (len >= 1) document.getElementById('diaChiCuThe').value = parts[0];
-                    if (len >= 2) document.getElementById('phuongXa').value = parts[1];
-                    if (len >= 3) document.getElementById('quanHuyen').value = parts[2];
-                    if (len >= 4) document.getElementById('tinhThanh').value = parts[len - 1];
+                    setAddrFromNominatim(
+                        len >= 1 ? parts[0] : '',
+                        len >= 2 ? parts[len - 3] : '',
+                        len >= 3 ? parts[len - 2] : '',
+                        len >= 4 ? parts[len - 1] : ''
+                    );
                     document.getElementById('mapStatus').textContent = 'Đã tìm: ' + (loc.display_name || q);
                 } else {
                     parseAndFillAddress(q);
@@ -127,11 +312,12 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     var a = data.address || {};
-                    document.getElementById('tinhThanh').value = a.city || a.state || a.town || '';
-                    document.getElementById('quanHuyen').value = a.suburb || a.county || a.district || '';
-                    document.getElementById('phuongXa').value = a.quarter || a.neighbourhood || a.village || '';
-                    document.getElementById('diaChiCuThe').value =
-                        (a.house_number ? a.house_number + ' ' : '') + (a.road || '');
+                    setAddrFromNominatim(
+                        (a.house_number ? a.house_number + ' ' : '') + (a.road || ''),
+                        a.quarter || a.neighbourhood || a.village || '',
+                        a.suburb || a.county || a.district || '',
+                        a.city || a.state || a.town || ''
+                    );
                     document.getElementById('mapStatus').textContent =
                         'Vị trí: ' + (data.display_name || lat + ', ' + lng);
                 })
@@ -146,10 +332,12 @@
     function parseAndFillAddress(q) {
         var parts = q.split(',').map(function(s) { return s.trim(); });
         var len = parts.length;
-        if (len >= 1) document.getElementById('diaChiCuThe').value = parts[0];
-        if (len >= 2) document.getElementById('phuongXa').value = parts[1];
-        if (len >= 3) document.getElementById('quanHuyen').value = parts[2];
-        if (len >= 4) document.getElementById('tinhThanh').value = parts[3];
+        setAddrFromNominatim(
+            len >= 1 ? parts[0] : '',
+            len >= 2 ? parts[len - 3] : '',
+            len >= 3 ? parts[len - 2] : '',
+            len >= 4 ? parts[len - 1] : ''
+        );
     }
 
     function clearMap() {
@@ -188,10 +376,12 @@
                             document.getElementById('longitude').value = loc.lon;
                             var parts = (loc.display_name || '').split(',').map(function(s) { return s.trim(); });
                             var len = parts.length;
-                            document.getElementById('diaChiCuThe').value = len >= 1 ? parts[0] : '';
-                            document.getElementById('phuongXa').value = len >= 2 ? parts[1] : '';
-                            document.getElementById('quanHuyen').value = len >= 3 ? parts[2] : '';
-                            document.getElementById('tinhThanh').value = len >= 4 ? parts[len - 1] : '';
+                            setAddrFromNominatim(
+                                len >= 1 ? parts[0] : '',
+                                len >= 2 ? parts[len - 3] : '',
+                                len >= 3 ? parts[len - 2] : '',
+                                len >= 4 ? parts[len - 1] : ''
+                            );
                             document.getElementById('googleMapFrame').src =
                                 'https://maps.google.com/maps?q=' + loc.lat + ',' + loc.lon + '&output=embed&z=16';
                             document.getElementById('mapStatus').textContent = 'Đã chọn: ' + loc.display_name;

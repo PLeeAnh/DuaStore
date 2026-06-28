@@ -111,7 +111,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Danh mục</label>
-                        <select name="danhMuc" class="form-select" onchange="this.form.submit()">
+                        <select name="danhMuc" class="form-select searchable-select" data-autosubmit>
                             <option value="">Tất cả</option>
                             <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"
                                     th:selected="${danhMuc == cat.id}">DM</option>

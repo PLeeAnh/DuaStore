@@ -151,6 +151,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    /* ── Searchable Select (TomSelect) ── */
+    document.querySelectorAll('.searchable-select').forEach(el => {
+        if (el.tagName !== 'SELECT') return;
+        const opts = {
+            placeholder: el.getAttribute('placeholder') || 'Tìm kiếm...',
+            maxOptions: null,
+        };
+        if (el.hasAttribute('data-create')) {
+            opts.create = true;
+            opts.createOnBlur = true;
+        }
+        if (el.hasAttribute('data-autosubmit')) {
+            opts.onChange = function() { el.closest('form')?.submit(); };
+        }
+        new TomSelect(el, opts);
+    });
+
     /* ── Tree toggle ── */
     const treeRoot = document.querySelector('.category-tree');
     if (treeRoot) {

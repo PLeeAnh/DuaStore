@@ -113,7 +113,7 @@ public class OrderService {
         order.setTienHang(tienHang);
 
         if (maCode != null && !maCode.isBlank()) {
-            Promotion promo = promotionRepository.findByMaCodeAndIsActiveTrue(maCode.toUpperCase().trim())
+            Promotion promo = promotionRepository.findByMaCodeIgnoreCaseAndIsActiveTrue(maCode.trim())
                     .orElseThrow(() -> new RuntimeException("Mã giảm giá \"" + maCode + "\" không tồn tại hoặc đã bị vô hiệu hóa"));
             validatePromotion(promo, tienHang);
             BigDecimal tienGiam = calculateDiscount(promo, tienHang);
@@ -254,7 +254,7 @@ public class OrderService {
             return result;
         }
 
-        Promotion promo = promotionRepository.findByMaCodeAndIsActiveTrue(maCode.toUpperCase().trim())
+        Promotion promo = promotionRepository.findByMaCodeIgnoreCaseAndIsActiveTrue(maCode.trim())
                 .orElse(null);
         if (promo == null) {
             result.put("message", "Mã giảm giá không tồn tại hoặc đã bị vô hiệu hóa");

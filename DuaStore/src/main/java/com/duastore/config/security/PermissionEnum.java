@@ -60,9 +60,9 @@ public final class PermissionEnum {
     // AUDIT_LOG
     public static final String AUDIT_LOG_READ   = "AUDIT_LOG_READ";
 
-    // NOTIFICATION
-    public static final String NOTIFICATION_CREATE = "NOTIFICATION_CREATE";
-    public static final String NOTIFICATION_READ   = "NOTIFICATION_READ";
-    public static final String NOTIFICATION_UPDATE = "NOTIFICATION_UPDATE";
-    public static final String NOTIFICATION_DELETE = "NOTIFICATION_DELETE";
+    // STORE (address management)
+    public static final String STORE_CREATE      = "STORE_CREATE";
+    public static final String STORE_READ        = "STORE_READ";
+    public static final String STORE_UPDATE      = "STORE_UPDATE";
+    public static final String STORE_DELETE      = "STORE_DELETE";
 }

@@ -36,6 +36,10 @@ public class AdminVariantService {
         return variantRepository.findByProductIdAndIsActiveTrue(productId);
     }
 
+    public List<Integer> getDistinctDungTich() {
+        return variantRepository.findDistinctDungTich();
+    }
+
     public List<ProductVariant> searchByProductId(Integer productId, String keyword) {
         return variantRepository.searchByProductId(productId, keyword);
     }
