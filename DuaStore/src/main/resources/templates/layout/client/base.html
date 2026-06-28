@@ -194,10 +194,14 @@
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold" style="max-width: 180px; font-size: 0.9rem;">Tên SP</a>
                                     <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
                                     
-                                    <div class="d-flex align-items-center">
-                                        <div class="input-group input-group-sm" style="width: 85px;">
+                                     <div class="d-flex align-items-center">
+                                        <div class="input-group input-group-sm" style="width: 90px;">
                                             <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">-</button>
-                                            <span class="form-control text-center py-0 px-1" th:id="'popup-qty-' + ${uid}" th:text="${item.soLuong}">1</span>
+                                            <input class="form-control text-center py-0 px-1" type="number" min="1"
+                                                   th:attr="max=${item.soLuongTon}"
+                                                   th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}"
+                                                   th:onchange="'setPopupQty(' + ${uid} + ', this)'"
+                                                   onfocus="this.select()" style="font-size: 0.85rem;" />
                                             <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
                                         </div>
                                         
@@ -988,6 +992,61 @@ function toggleNotifPopup() {
             .catch(() => { badge.classList.add('d-none'); });
     }
 }
+
+function getNotifIcon(linkType) {
+    if (linkType === 'PRODUCT') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-box-seam"></i></span>';
+    if (linkType === 'PROMOTION') return '<span class="notif-icon bg-warning-subtle text-warning flex-shrink-0"><i class="bi bi-tag"></i></span>';
+    if (linkType === 'ORDER') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-bag-check"></i></span>';
+    return '<span class="notif-icon bg-primary-subtle text-primary flex-shrink-0"><i class="bi bi-megaphone"></i></span>';
+}
+
+function pollNotifications() {
+    fetch('/api/thong-bao')
+        .then(r => r.json())
+        .then(data => {
+            var badge = document.getElementById('notifBadge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            }
+            var container = document.querySelector('#notif-popup .mt-2');
+            if (!container) return;
+            if (!data.notifications || data.notifications.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size: 2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+                return;
+            }
+            var html = '';
+            data.notifications.forEach(function(n) {
+                if (n.linkType) {
+                    html += '<a href="' + n.linkUrl + '" class="text-decoration-none text-reset d-block notif-item">';
+                    html += '<div class="d-flex align-items-start gap-2">';
+                    html += getNotifIcon(n.linkType);
+                    html += '<div class="flex-grow-1 min-w-0">';
+                    html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
+                    if (n.linkLabel) {
+                        html += '<div class="mt-1"><span class="notif-link"><span>' + n.linkLabel.substring(0, 35) + '</span><i class="bi bi-arrow-right ms-1"></i></span></div>';
+                    }
+                    html += '<small class="notif-time">' + n.time + '</small>';
+                    html += '</div></div></a>';
+                } else {
+                    html += '<div class="notif-item"><div class="d-flex align-items-start gap-2">';
+                    html += getNotifIcon(null);
+                    html += '<div class="flex-grow-1 min-w-0">';
+                    html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
+                    html += '<small class="notif-time">' + n.time + '</small>';
+                    html += '</div></div></div>';
+                }
+            });
+            container.innerHTML = html;
+        })
+        .catch(function() {});
+}
+
+setInterval(pollNotifications, 15000);
 </script>
 
 <th:block layout:fragment="extra-script"></th:block>

@@ -181,6 +181,17 @@ public class CheckoutController {
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
             );
 
+            try {
+                notificationHelper.notifyStaff(
+                    "Khách hàng đã đặt đơn hàng mới: " + order.getMaDon(),
+                    "ORDER", order.getId(),
+                    "/admin/don-hang",
+                    order.getMaDon()
+                );
+            } catch (Exception e) {
+                // notifyStaff đã log lỗi, không break flow chính
+            }
+
             User finalUser = order.getUser();
             String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "COD";
             String finalGh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
