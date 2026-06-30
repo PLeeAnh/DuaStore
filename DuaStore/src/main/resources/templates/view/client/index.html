@@ -7,15 +7,39 @@
     <body>
         <div layout:fragment="content">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- HERO BANNERS -->
+                <!-- HERO BANNER SLIDER -->
                 <section class="ds-hero-v2" th:if="${banners != null and !banners.isEmpty()}">
-                    <a th:each="banner : ${banners}"
-                       th:href="${banner.linkUrl != null ? banner.linkUrl : '#'}"
-                       class="ds-hero-v2-banner">
-                        <img th:src="${banner.imageUrl}"
-                             onerror="this.src='/images/no-image.png'"
-                             th:alt="${banner.title}">
-                    </a>
+                    <div class="swiper hero-banner-swiper">
+                        <div class="swiper-wrapper">
+                            <div th:each="banner : ${banners}" class="swiper-slide">
+                                <a th:href="${banner.linkUrl != null ? banner.linkUrl : '#'}" class="ds-hero-v2-banner">
+                                    <img th:src="${banner.imageUrl}"
+                                         onerror="this.src='/images/no-image.png'"
+                                         th:alt="${banner.title}">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
+                        <div class="swiper-pagination"></div>
+                    </div>
+                    <style>
+                        .hero-banner-swiper { width:100%; border-radius:16px; overflow:hidden; }
+                        .hero-banner-swiper .swiper-slide a { display:block; }
+                        .hero-banner-swiper .swiper-slide img { width:100%; height:auto; display:block; object-fit:cover; border-radius:16px; }
+                        .hero-banner-swiper .swiper-button-next,
+                        .hero-banner-swiper .swiper-button-prev { color:#fff; }
+                    </style>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function(){
+                            new Swiper('.hero-banner-swiper', {
+                                loop: true,
+                                autoplay: { delay: 4000, disableOnInteraction: false },
+                                pagination: { el: '.hero-banner-swiper .swiper-pagination', clickable: true },
+                                navigation: { nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev' }
+                            });
+                        });
+                    </script>
                 </section>
 
                 <!-- HERO CAROUSEL -->
