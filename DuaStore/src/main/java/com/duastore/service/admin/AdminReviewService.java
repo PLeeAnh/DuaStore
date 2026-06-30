@@ -4,6 +4,7 @@ import com.duastore.model.Review;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.service.FileUploadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,8 +12,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -21,13 +22,16 @@ public class AdminReviewService {
     private final ReviewsRepository reviewsRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final FileUploadService fileUploadService;
 
     public AdminReviewService(ReviewsRepository reviewsRepository,
                               ProductRepository productRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.fileUploadService = fileUploadService;
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +59,11 @@ public class AdminReviewService {
     }
 
     public void deleteReview(Integer id) {
-        reviewsRepository.deleteById(id);
+        Review review = getReviewById(id);
+        if (review.getHinhAnh() != null) {
+            fileUploadService.delete(review.getHinhAnh(), "reviews");
+        }
+        reviewsRepository.delete(review);
     }
 
     @Transactional(readOnly = true)

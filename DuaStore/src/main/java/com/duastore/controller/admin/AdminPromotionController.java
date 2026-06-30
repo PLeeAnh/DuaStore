@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 @Controller
 @RequestMapping("/admin/khuyen-mai")
 public class AdminPromotionController {
@@ -26,8 +30,15 @@ public class AdminPromotionController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "20") int size,
+                       @RequestParam(required = false) String keyword,
+                       @RequestParam(required = false) Boolean isActive,
                        Model model) {
-        Page<Promotion> promoPage = adminPromotionService.getAllPromotions(page, size);
+        Page<Promotion> promoPage;
+        if (keyword != null || isActive != null) {
+            promoPage = adminPromotionService.searchPromotions(keyword, isActive, page, size);
+        } else {
+            promoPage = adminPromotionService.getAllPromotionsWithExpiry(page, size);
+        }
         model.addAttribute("promotions", promoPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", promoPage.getTotalPages());
@@ -35,7 +46,12 @@ public class AdminPromotionController {
         model.addAttribute("pageSize", size);
         model.addAttribute("entityLabel", "khuyến mãi");
         model.addAttribute("url", "/admin/khuyen-mai");
-        model.addAttribute("filterParams", new java.util.HashMap<>());
+        java.util.Map<String, Object> filterParams = new java.util.HashMap<>();
+        if (keyword != null) filterParams.put("keyword", keyword);
+        if (isActive != null) filterParams.put("isActive", isActive);
+        model.addAttribute("filterParams", filterParams);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("isActive", isActive);
         model.addAttribute("title", "khuyen-mai");
         return "view/admin/promotion/promotion-list";
     }
@@ -51,28 +67,60 @@ public class AdminPromotionController {
 
     @PostMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_CREATE)")
-    public String create(@Valid @ModelAttribute Promotion promotion, BindingResult result, RedirectAttributes ra) {
+    public String create(@Valid @ModelAttribute Promotion promotion, BindingResult result,
+                          @RequestParam(required = false) String tuNgay,
+                          @RequestParam(required = false) String denNgay,
+                          Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
-            ra.addFlashAttribute("errorMsg", "Vui lòng kiểm tra lại thông tin khuyến mãi");
-            return "redirect:/admin/khuyen-mai/them-moi";
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
+            return "view/admin/promotion/promotion-form";
+        }
+        try {
+            if (tuNgay != null && !tuNgay.isBlank()) {
+                promotion.setTuNgay(LocalDateTime.parse(tuNgay, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
+            }
+            if (denNgay != null && !denNgay.isBlank()) {
+                promotion.setDenNgay(LocalDateTime.parse(denNgay, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
+            }
+        } catch (DateTimeParseException e) {
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
+            model.addAttribute("errorMsg", "Định dạng ngày không hợp lệ");
+            return "view/admin/promotion/promotion-form";
         }
         if (promotion.getGiaTriGiam() != null && promotion.getGiaTriGiam().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-            ra.addFlashAttribute("errorMsg", "Giá trị giảm phải lớn hơn 0");
-            return "redirect:/admin/khuyen-mai/them-moi";
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
+            model.addAttribute("errorMsg", "Giá trị giảm phải lớn hơn 0");
+            return "view/admin/promotion/promotion-form";
         }
         if (!StringUtils.hasText(promotion.getTenChuongTrinh()) || promotion.getTenChuongTrinh().length() > 200) {
-            ra.addFlashAttribute("errorMsg", "Tên chương trình không hợp lệ");
-            return "redirect:/admin/khuyen-mai/them-moi";
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
+            model.addAttribute("errorMsg", "Tên chương trình không hợp lệ");
+            return "view/admin/promotion/promotion-form";
         }
         if (!StringUtils.hasText(promotion.getMaCode()) || promotion.getMaCode().length() > 50) {
-            ra.addFlashAttribute("errorMsg", "Mã code không hợp lệ");
-            return "redirect:/admin/khuyen-mai/them-moi";
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
+            model.addAttribute("errorMsg", "Mã code không hợp lệ");
+            return "view/admin/promotion/promotion-form";
         }
         try {
             adminPromotionService.savePromotion(promotion);
             ra.addFlashAttribute("successMsg", "Thêm khuyến mãi thành công");
         } catch (Exception e) {
-            ra.addFlashAttribute("errorMsg", e.getMessage());
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
+            model.addAttribute("errorMsg", e.getMessage());
+            return "view/admin/promotion/promotion-form";
         }
         return "redirect:/admin/khuyen-mai";
     }
@@ -93,21 +141,47 @@ public class AdminPromotionController {
 
     @PostMapping("/sua/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_UPDATE)")
-    public String edit(@PathVariable Integer id, @Valid @ModelAttribute Promotion promotion, BindingResult result, RedirectAttributes ra) {
+    public String edit(@PathVariable Integer id, @Valid @ModelAttribute Promotion promotion, BindingResult result,
+                        @RequestParam(required = false) String tuNgay,
+                        @RequestParam(required = false) String denNgay,
+                        Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
-            ra.addFlashAttribute("errorMsg", "Vui lòng kiểm tra lại thông tin khuyến mãi");
-            return "redirect:/admin/khuyen-mai/sua/" + id;
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/sua/" + id);
+            return "view/admin/promotion/promotion-form";
+        }
+        try {
+            if (tuNgay != null && !tuNgay.isBlank()) {
+                promotion.setTuNgay(LocalDateTime.parse(tuNgay, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
+            }
+            if (denNgay != null && !denNgay.isBlank()) {
+                promotion.setDenNgay(LocalDateTime.parse(denNgay, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")));
+            }
+        } catch (DateTimeParseException e) {
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/sua/" + id);
+            model.addAttribute("errorMsg", "Định dạng ngày không hợp lệ");
+            return "view/admin/promotion/promotion-form";
         }
         if (promotion.getGiaTriGiam() != null && promotion.getGiaTriGiam().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-            ra.addFlashAttribute("errorMsg", "Giá trị giảm phải lớn hơn 0");
-            return "redirect:/admin/khuyen-mai/sua/" + id;
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/sua/" + id);
+            model.addAttribute("errorMsg", "Giá trị giảm phải lớn hơn 0");
+            return "view/admin/promotion/promotion-form";
         }
         try {
             promotion.setId(id);
             adminPromotionService.savePromotion(promotion);
             ra.addFlashAttribute("successMsg", "Cập nhật khuyến mãi thành công");
         } catch (Exception e) {
-            ra.addFlashAttribute("errorMsg", e.getMessage());
+            model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("promotion", promotion);
+            model.addAttribute("formAction", "/admin/khuyen-mai/sua/" + id);
+            model.addAttribute("errorMsg", e.getMessage());
+            return "view/admin/promotion/promotion-form";
         }
         return "redirect:/admin/khuyen-mai";
     }

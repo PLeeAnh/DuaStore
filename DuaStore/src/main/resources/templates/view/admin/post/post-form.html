@@ -28,9 +28,18 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Tác giả</label>
-                    <select th:field="*{tacGiaId}" class="form-select">
-                        <option value="">-- Chọn --</option>
-                        <option th:each="u : ${users}" th:value="${u.id}" th:text="${u.hoTen} + ' (' + ${u.username} + ')'"></option>
+                    <input type="hidden" th:field="*{tacGiaId}" />
+                    <input type="text" class="form-control" th:value="${tacGiaName}" readonly />
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Slug (URL thân thiện)</label>
+                    <input type="text" th:field="*{slug}" class="form-control" placeholder="Để trống để tự động tạo từ tiêu đề" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Danh mục</label>
+                    <select th:field="*{danhMucId}" class="form-select">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"></option>
                     </select>
                 </div>
                 <div class="col-12">
@@ -38,10 +47,14 @@
                     <textarea th:field="*{tomTat}" class="form-control" rows="2"></textarea>
                 </div>
                 <div class="col-12">
+                    <label class="form-label">Mô tả SEO (meta description)</label>
+                    <textarea th:field="*{metaDescription}" class="form-control" rows="2" placeholder="Mô tả ngắn cho SEO, hiển thị trong kết quả tìm kiếm"></textarea>
+                </div>
+                <div class="col-12">
                     <label class="form-label">Nội dung</label>
                     <textarea th:field="*{noiDung}" class="form-control" rows="15"></textarea>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label">Ảnh đại diện</label>
                     <input type="file" th:name="hinhAnhFile" class="form-control" />
                     <div th:if="${post.hinhAnh != null}" class="mt-2">
@@ -49,13 +62,30 @@
                         <small class="text-muted d-block" th:text="${post.hinhAnh}"></small>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Trạng thái</label>
                     <select th:field="*{trangThai}" class="form-select">
                         <option value="NHAP">Nháp</option>
                         <option value="XUAT_BAN">Xuất bản</option>
                         <option value="AN">Ẩn</option>
                     </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Ngày xuất bản (để lịch)</label>
+                    <input type="datetime-local" th:field="*{ngayXuatBan}" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Tags</label>
+                    <select th:field="*{tagIds}" class="form-select" multiple>
+                        <option th:each="tag : ${allTags}" th:value="${tag.id}" th:text="${tag.tenTag}"></option>
+                    </select>
+                    <small class="text-muted">Giữ Ctrl/Cmd để chọn nhiều</small>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input type="checkbox" th:field="*{featured}" class="form-check-input" />
+                        <label class="form-check-label">Bài viết nổi bật</label>
+                    </div>
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
