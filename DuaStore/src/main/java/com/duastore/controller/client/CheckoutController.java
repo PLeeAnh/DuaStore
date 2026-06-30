@@ -262,6 +262,7 @@ public class CheckoutController {
         return promos.stream()
             .filter(p -> p.getDonHangToiThieu() == null || subtotal.compareTo(p.getDonHangToiThieu()) >= 0)
             .filter(p -> !"PHAN_TRAM".equals(p.getLoaiGiam()) || p.getGiaTriGiam().compareTo(maxPct) <= 0)
+            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
             .max(Comparator.comparing(p -> orderService.calculateDiscount(p, subtotal)))
             .orElse(null);
     }

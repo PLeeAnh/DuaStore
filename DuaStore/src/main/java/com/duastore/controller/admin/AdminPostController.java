@@ -2,11 +2,17 @@ package com.duastore.controller.admin;
 
 import com.duastore.dto.PostDTO;
 import com.duastore.model.Post;
+import com.duastore.model.PostCategory;
+import com.duastore.model.PostTag;
 import com.duastore.model.User;
+import com.duastore.repository.PostCategoryRepository;
+import com.duastore.repository.PostTagRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.service.admin.AdminPostService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +20,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/bai-viet")
@@ -23,27 +29,51 @@ public class AdminPostController {
 
     private final AdminPostService adminPostService;
     private final UserRepository userRepository;
+    private final SecurityUtil securityUtil;
+    private final PostCategoryRepository postCategoryRepository;
+    private final PostTagRepository postTagRepository;
 
     public AdminPostController(AdminPostService adminPostService,
-                               UserRepository userRepository) {
+                               UserRepository userRepository,
+                               SecurityUtil securityUtil,
+                               PostCategoryRepository postCategoryRepository,
+                               PostTagRepository postTagRepository) {
         this.adminPostService = adminPostService;
         this.userRepository = userRepository;
+        this.securityUtil = securityUtil;
+        this.postCategoryRepository = postCategoryRepository;
+        this.postTagRepository = postTagRepository;
     }
 
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "20") int size,
+                       @RequestParam(required = false) String keyword,
+                       @RequestParam(required = false) String trangThai,
+                       @RequestParam(required = false) Integer danhMuc,
                        Model model) {
-        Page<Post> postPage = adminPostService.getAllPosts(page, size);
+        Page<Post> postPage;
+        if (keyword != null || trangThai != null || danhMuc != null) {
+            postPage = adminPostService.searchPosts(
+                    keyword != null ? keyword : "",
+                    trangThai, danhMuc, page, size);
+        } else {
+            postPage = adminPostService.getAllPosts(page, size);
+        }
 
         Map<Integer, String> tacGiaMap = new HashMap<>();
-        for (Post p : postPage.getContent()) {
-            if (p.getTacGiaId() != null) {
-                userRepository.findById(p.getTacGiaId())
-                        .ifPresent(u -> tacGiaMap.put(p.getTacGiaId(), u.getHoTen()));
-            }
+        Set<Integer> tacGiaIds = postPage.getContent().stream()
+                .map(Post::getTacGiaId).filter(Objects::nonNull).collect(Collectors.toSet());
+        if (!tacGiaIds.isEmpty()) {
+            userRepository.findAllById(tacGiaIds)
+                    .forEach(u -> tacGiaMap.put(u.getId(), u.getHoTen()));
         }
+
+        Map<String, Object> filterParams = new HashMap<>();
+        if (keyword != null) filterParams.put("keyword", keyword);
+        if (trangThai != null) filterParams.put("trangThai", trangThai);
+        if (danhMuc != null) filterParams.put("danhMuc", danhMuc);
 
         model.addAttribute("title", "bai-viet");
         model.addAttribute("posts", postPage.getContent());
@@ -54,17 +84,28 @@ public class AdminPostController {
         model.addAttribute("pageSize", size);
         model.addAttribute("entityLabel", "bài viết");
         model.addAttribute("url", "/admin/bai-viet");
-        model.addAttribute("filterParams", new HashMap<>());
+        model.addAttribute("filterParams", filterParams);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("trangThai", trangThai);
+        model.addAttribute("danhMuc", danhMuc);
+        model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
         return "view/admin/post/post-list";
     }
 
     @GetMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_CREATE)")
     public String createForm(Model model) {
+        User currentUser = securityUtil.getCurrentUser();
+        PostDTO dto = new PostDTO();
+        if (currentUser != null) {
+            dto.setTacGiaId(currentUser.getId());
+            model.addAttribute("tacGiaName", currentUser.getHoTen());
+        }
         model.addAttribute("title", "bai-viet");
-        model.addAttribute("post", new PostDTO());
+        model.addAttribute("post", dto);
         model.addAttribute("formAction", "/admin/bai-viet/them-moi");
-        model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
+        model.addAttribute("allTags", postTagRepository.findAll());
         return "view/admin/post/post-form";
     }
 
@@ -72,10 +113,15 @@ public class AdminPostController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_CREATE)")
     public String create(@Valid @ModelAttribute PostDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
+            User currentUser = securityUtil.getCurrentUser();
+            if (currentUser != null) {
+                model.addAttribute("tacGiaName", currentUser.getHoTen());
+            }
             model.addAttribute("title", "bai-viet");
             model.addAttribute("post", dto);
             model.addAttribute("formAction", "/admin/bai-viet/them-moi");
-            model.addAttribute("users", userRepository.findAll());
+            model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
+            model.addAttribute("allTags", postTagRepository.findAll());
             return "view/admin/post/post-form";
         }
         try {
@@ -95,17 +141,29 @@ public class AdminPostController {
             PostDTO dto = new PostDTO();
             dto.setId(post.getId());
             dto.setTieuDe(post.getTieuDe());
+            dto.setSlug(post.getSlug());
+            dto.setMetaDescription(post.getMetaDescription());
             dto.setTomTat(post.getTomTat());
             dto.setNoiDung(post.getNoiDung());
             dto.setHinhAnh(post.getHinhAnh());
             dto.setTacGiaId(post.getTacGiaId());
             dto.setTrangThai(post.getTrangThai());
             dto.setLuotXem(post.getLuotXem());
+            dto.setFeatured(Boolean.TRUE.equals(post.getFeatured()));
+            dto.setNgayXuatBan(post.getNgayXuatBan());
+            if (post.getDanhMuc() != null) dto.setDanhMucId(post.getDanhMuc().getId());
+            if (post.getTags() != null) dto.setTagIds(post.getTags().stream().map(PostTag::getId).collect(Collectors.toSet()));
+
+            if (post.getTacGiaId() != null) {
+                userRepository.findById(post.getTacGiaId())
+                        .ifPresent(u -> model.addAttribute("tacGiaName", u.getHoTen()));
+            }
 
             model.addAttribute("title", "bai-viet");
             model.addAttribute("post", dto);
             model.addAttribute("formAction", "/admin/bai-viet/sua/" + id);
-            model.addAttribute("users", userRepository.findAll());
+            model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
+            model.addAttribute("allTags", postTagRepository.findAll());
             return "view/admin/post/post-form";
         } catch (Exception e) {
             return "redirect:/admin/bai-viet";
@@ -116,10 +174,15 @@ public class AdminPostController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_UPDATE)")
     public String edit(@PathVariable Integer id, @Valid @ModelAttribute PostDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
+            if (dto.getTacGiaId() != null) {
+                userRepository.findById(dto.getTacGiaId())
+                        .ifPresent(u -> model.addAttribute("tacGiaName", u.getHoTen()));
+            }
             model.addAttribute("title", "bai-viet");
             model.addAttribute("post", dto);
             model.addAttribute("formAction", "/admin/bai-viet/sua/" + id);
-            model.addAttribute("users", userRepository.findAll());
+            model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
+            model.addAttribute("allTags", postTagRepository.findAll());
             return "view/admin/post/post-form";
         }
         try {
@@ -142,5 +205,34 @@ public class AdminPostController {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/bai-viet";
+    }
+
+    @PostMapping("/xoa-vinh-vien/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_DELETE)")
+    public String deletePermanent(@PathVariable Integer id, RedirectAttributes ra) {
+        try {
+            adminPostService.deletePermanent(id);
+            ra.addFlashAttribute("successMsg", "Đã xóa vĩnh viễn bài viết");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/admin/bai-viet";
+    }
+
+    @PostMapping("/batch-cap-nhat")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_UPDATE)")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> batchUpdate(@RequestParam List<Integer> ids,
+                                                             @RequestParam String trangThai) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            adminPostService.batchUpdateStatus(ids, trangThai);
+            res.put("success", true);
+            res.put("message", "Cập nhật " + ids.size() + " bài viết thành công");
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(res);
     }
 }

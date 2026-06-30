@@ -278,7 +278,7 @@
                 <!-- PROFILE BUTTON + POPUP (like wishlist/cart) (logged-in only) -->
                 <div class="position-relative d-inline-block">
                     <button class="ds-icon-btn" id="btn-profile-toggle"
-                            th:onclick="${session.loggedIn} ? 'togglePopup(\'profile-popup\')' : 'showLoginPopup()'"
+                            type="button" th:data-profile="${session.loggedIn}"
                             title="Tài khoản" aria-label="Tài khoản">
                         <i class="bi bi-person-circle"></i>
                     </button>
@@ -649,6 +649,15 @@ function togglePass(id, btn) {
     else { inp.type = 'password'; ico.className = 'bi bi-eye-slash'; }
     
 }
+document.addEventListener('DOMContentLoaded', function() {
+    var profileBtn = document.getElementById('btn-profile-toggle');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function() {
+            if (this.dataset.profile === 'true') { togglePopup('profile-popup'); }
+            else { showLoginPopup(); }
+        });
+    }
+});
 function switchModal(from, to) {
     bootstrap.Modal.getInstance(document.querySelector(from))?.hide();
     new bootstrap.Modal(document.querySelector(to)).show();
