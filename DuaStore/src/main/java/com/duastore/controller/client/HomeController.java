@@ -10,6 +10,7 @@ import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.service.BannerService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
 import org.springframework.stereotype.Controller;
@@ -34,6 +35,7 @@ public class HomeController {
     private final PromotionRepository promotionRepository;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final BannerService bannerService;
 
     public HomeController(ProductService productService,
                           CategoryService categoryService,
@@ -41,7 +43,8 @@ public class HomeController {
                           ProductVariantRepository variantRepository,
                           PromotionRepository promotionRepository,
                           ProductRepository productRepository,
-                          CategoryRepository categoryRepository) {
+                          CategoryRepository categoryRepository,
+                          BannerService bannerService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -49,11 +52,15 @@ public class HomeController {
         this.promotionRepository = promotionRepository;
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.bannerService = bannerService;
     }
 
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "Trang chủ");
+
+        // Active banners for hero section
+        model.addAttribute("banners", bannerService.getActiveForClient());
 
         List<Product> featured = productService.getFeatured();
         model.addAttribute("featuredProducts", featured);
