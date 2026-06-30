@@ -1,8 +1,8 @@
 package com.duastore.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,6 +22,7 @@ public class CartItemDTO {
     private BigDecimal giaBan;
     private BigDecimal giaBanSauGiam;
     private Integer soLuong;
+    private Integer soLuongTon;
     private BigDecimal thanhTien;
     private LocalDateTime ngayThem;
 }

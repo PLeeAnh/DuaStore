@@ -8,7 +8,7 @@
  
   DuaStore -- Do Thuy Tinh Decor, Hai Phong
 ================================================================================
-  DANH SACH BANG (13 bang):
+  DANH SACH BANG (14 bang):
   [1]  Users            -- Tai khoan
   [2]  Categories       -- Danh muc (phan cap) [TK]
   [3]  Products         -- San pham goc [PLA]
@@ -22,6 +22,7 @@
   [11] CartItems        -- Gio hang [NXK]
   [12] Posts            -- Blog / Tin tuc [BTM]
   [13] Wishlists        -- Danh sach yeu thich [NXK]
+  [14] banners          -- Banner trang chu
 ================================================================================
   HUONG DAN SU DUNG:
   1. Mo SQL Server Management Studio (SSMS)
@@ -50,6 +51,7 @@ DROP VIEW IF EXISTS vw_ProductPrice;
 DROP VIEW IF EXISTS vw_DoanhThu;
 GO
 DROP TABLE IF EXISTS Wishlists;
+DROP TABLE IF EXISTS banners;
 DROP TABLE IF EXISTS Posts;
 DROP TABLE IF EXISTS CartItems;
 DROP TABLE IF EXISTS Reviews;
@@ -369,7 +371,7 @@ CREATE TABLE OrderItems (
     id              INT             IDENTITY(1,1)  NOT NULL,
     orderId         INT                            NOT NULL,
     productId       INT                            NULL,      -- NULL neu san pham bi xoa (ON DELETE SET NULL)
-    variantId       INT                            NULL,      -- NULL neu bien the bi xoa
+    variantId       INT                            NULL,      -- Giu tham chieu de bao toan lich su don hang
  
     -- SNAPSHOT (du lieu chot tai thoi diem dat hang)
     tenSanPham      NVARCHAR(200)                  NOT NULL,
@@ -385,7 +387,7 @@ CREATE TABLE OrderItems (
     CONSTRAINT FK_OrderItems_Product FOREIGN KEY (productId)
         REFERENCES Products(id) ON DELETE SET NULL,           -- SP bi xoa → giu OrderItem, set NULL
     CONSTRAINT FK_OrderItems_Variant FOREIGN KEY (variantId)
-        REFERENCES ProductVariants(id) ON DELETE SET NULL,
+        REFERENCES ProductVariants(id) ON DELETE NO ACTION,  -- Tranh multiple cascade path tren SQL Server
     CONSTRAINT CK_OrderItems_Qty     CHECK (soLuong > 0)
 );
 GO
@@ -445,7 +447,34 @@ CREATE TABLE CartItems (
 GO
  
 -- ============================================================
--- [12] BANG: Posts  (Bo sung tu bao cao khao sat: PC Market + Chalo Glass)
+-- [12] BANG: Banners (quan ly banner trang chu)
+-- ============================================================
+CREATE TABLE Banners (
+    id              INT             IDENTITY(1,1) NOT NULL,
+    title           NVARCHAR(200)                  NOT NULL,
+    image_url       NVARCHAR(500)                  NOT NULL,
+    link_url        NVARCHAR(1000)                 NULL,
+    active          BIT                            NOT NULL DEFAULT 1,
+    display_order   INT                            NOT NULL DEFAULT 0,
+    start_date      DATETIME2(0)                   NULL,
+    end_date        DATETIME2(0)                   NULL,
+    description     NVARCHAR(500)                  NULL,
+    created_at      DATETIME2(0)                   NOT NULL DEFAULT GETDATE(),
+    updated_at      DATETIME2(0)                   NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT PK_Banners PRIMARY KEY (id),
+    CONSTRAINT CK_Banners_DisplayOrder CHECK (display_order >= 0),
+    CONSTRAINT CK_Banners_Period CHECK (end_date IS NULL OR start_date IS NULL OR end_date > start_date)
+);
+GO
+
+INSERT INTO Banners (title, image_url, link_url, active, display_order, description)
+VALUES (N'Banner DuaStore', N'/images/Banner 1 DuaStore.jpg', N'/san-pham', 1, 0,
+        N'Banner chính trên trang chủ DuaStore');
+GO
+
+-- ============================================================
+-- [13] BANG: Posts  (Bo sung tu bao cao khao sat: PC Market + Chalo Glass)
 -- ============================================================
 -- Bai viet Blog / Tin tuc / Huong dan chon thuy tinh.
 -- 3 trang thai: NHAP (ban nhap) → XUAT_BAN (cong khai) → AN (an trang)
@@ -472,7 +501,7 @@ CREATE TABLE Posts (
 GO
  
 -- ============================================================
--- [13] BANG: Wishlists  (Bo sung tu bao cao khao sat: Chalo Glass)
+-- [14] BANG: Wishlists  (Bo sung tu bao cao khao sat: Chalo Glass)
 -- ============================================================
 -- Danh sach san pham yeu thich cua khach.
 -- UNIQUE(userId, productId): moi SP chi luu 1 lan / user.
@@ -507,6 +536,7 @@ CREATE INDEX IX_Products_DanhMuc    ON Products        (danhMucId, isActive);
 CREATE INDEX IX_Products_TrangThai  ON Products        (trangThaiSanPham, isActive);
 CREATE INDEX IX_Products_MucDich    ON Products        (mucDichSuDung, isActive);
 CREATE INDEX IX_Products_Featured   ON Products        (isFeatured, isActive);
+CREATE INDEX IX_Banners_ActiveOrder ON Banners         (active, display_order, start_date, end_date);
  
 -- Bien the: Bo loc the tich, lay bien the mac dinh
 -- Index nay van hoat dong tot du da them cot hinhAnh (khong can INDEX rieng cho hinhAnh)
@@ -523,7 +553,14 @@ CREATE INDEX IX_Wishlists_User      ON Wishlists       (userId);
  
 -- Danh gia: Tim danh gia da duyet cua 1 san pham
 CREATE INDEX IX_Reviews_Product     ON Reviews         (productId, isApproved);
- 
+
+-- Hinh anh san pham: Tim gallery cua 1 san pham
+CREATE INDEX IX_ProductImages_Product ON ProductImages (productId, isActive);
+
+-- Chi tiet don hang: Kiem tra nguoi dung da mua san pham va thanh toan chua
+CREATE INDEX IX_OrderItems_ProductUser ON OrderItems   (productId, orderId)
+    INCLUDE (soLuong);
+
 -- Blog: Tim bai viet da xuat ban, sap xep theo ngay moi nhat
 CREATE INDEX IX_Posts_TrangThai     ON Posts           (trangThai, ngayTao DESC);
 GO
@@ -841,7 +878,9 @@ BEGIN
 END
 GO
 
+-- Chỉ seed bộ ảnh mở rộng khi bộ 22 sản phẩm mở rộng đã được tạo.
 IF NOT EXISTS (SELECT 1 FROM ProductImages WHERE id = 1)
+   AND EXISTS (SELECT 1 FROM Products WHERE id = 22)
 BEGIN
     SET IDENTITY_INSERT ProductImages ON;
     INSERT INTO ProductImages (id, productId, imageUrl, sortOrder, isActive, createdAt)
@@ -900,7 +939,7 @@ GO
  
 PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 13';
+PRINT ' Tong so bang  : 14';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Indexes       : 12';
 PRINT ' Mat khau      : admin@123';
@@ -909,17 +948,18 @@ PRINT '====================================================';
 -- ============================================================
 -- KIEM TRA DU LIEU
 -- ============================================================
-SELECT * FROM Users;
-SELECT * FROM Categories;
-SELECT * FROM Products;
-SELECT * FROM ProductImages;
-SELECT * FROM ProductVariants;
-SELECT * FROM Addresses;
-SELECT * FROM Promotions;
-SELECT * FROM Orders;
-SELECT * FROM OrderItems;
-SELECT * FROM Reviews;
-SELECT * FROM CartItems;
-SELECT * FROM Posts;
-SELECT * FROM Wishlists;
-GO
+-- SELECT * FROM Users;
+-- SELECT * FROM Categories;
+-- SELECT * FROM Products;
+-- SELECT * FROM ProductImages;
+-- SELECT * FROM ProductVariants;
+-- SELECT * FROM Addresses;
+-- SELECT * FROM Promotions;
+-- SELECT * FROM Orders;
+-- SELECT * FROM OrderItems;
+-- SELECT * FROM Reviews;
+-- SELECT * FROM CartItems;
+-- SELECT * FROM Posts;
+-- SELECT * FROM Wishlists;
+-- SELECT * FROM banners;
+-- GO

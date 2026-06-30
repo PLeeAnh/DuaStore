@@ -39,7 +39,7 @@ async function registerSubmit(event) {
     btn.textContent = 'Đang xử lý...';
 
     /* ── Verify code via API Layer ── */
-    var result = await DuaStore.api.post('/api/auth/verify-code', { email: email, code: code });
+    var result = await DuaStore.api.post('/api/auth/verify-code', {email: email, code: code});
 
     if (!result.ok) {
         errText.textContent = result.message;
@@ -61,9 +61,11 @@ async function registerSubmit(event) {
     // Intentionally kept as raw fetch. Endpoint returns HTML, not JSON API.
     fetch('/dang-ky', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams(new FormData(form))
-    }).then(function(r) { return r.text(); }).then(function(html) {
+    }).then(function (r) {
+        return r.text();
+    }).then(function (html) {
         if (html.includes('is-invalid') || html.includes('alert-danger')) {
             var tmp = document.createElement('div');
             tmp.innerHTML = html;
@@ -75,13 +77,13 @@ async function registerSubmit(event) {
         } else {
             okDiv.classList.add('show');
             form.reset();
-            setTimeout(function() {
+            setTimeout(function () {
                 var m = bootstrap.Modal.getInstance(DuaStore.utils.qs('#registerModal'));
                 if (m) m.hide();
                 showLoginPopup();
             }, 1500);
         }
-    }).catch(function() {
+    }).catch(function () {
         errText.textContent = 'Lỗi kết nối hệ thống';
         errDiv.classList.add('show');
         btn.disabled = false;
