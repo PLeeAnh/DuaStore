@@ -8,19 +8,13 @@
         <div layout:fragment="content">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- HERO BANNERS -->
-                <section class="ds-hero-v2">
-                    <div th:if="${banners != null and !banners.isEmpty()}" class="ds-hero-v2-banner">
-                        <a th:each="banner : ${banners}"
-                           th:href="${banner.linkUrl != null ? banner.linkUrl : '#'}"
-                           class="ds-hero-v2-banner">
-                            <img th:src="${banner.imageUrl}"
-                                 onerror="this.src='/images/no-image.png'"
-                                 th:alt="${banner.title}">
-                        </a>
-                    </div>
-                    <!-- Fallback banner if no active banners -->
-                    <a th:if="${banners == null or banners.isEmpty()}" th:href="@{/san-pham}" class="ds-hero-v2-banner">
-                        <img th:src="@{/images/Banner 1 DuaStore.jpg}" onerror="this.src='/images/no-image.png'" alt="Banner DuaStore">
+                <section class="ds-hero-v2" th:if="${banners != null and !banners.isEmpty()}">
+                    <a th:each="banner : ${banners}"
+                       th:href="${banner.linkUrl != null ? banner.linkUrl : '#'}"
+                       class="ds-hero-v2-banner">
+                        <img th:src="${banner.imageUrl}"
+                             onerror="this.src='/images/no-image.png'"
+                             th:alt="${banner.title}">
                     </a>
                 </section>
 
