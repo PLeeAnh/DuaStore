@@ -1,6 +1,10 @@
 package com.duastore.controller.admin;
 
+import com.duastore.model.Product;
 import com.duastore.model.Review;
+import com.duastore.model.User;
+import com.duastore.repository.ProductRepository;
+import com.duastore.repository.UserRepository;
 import com.duastore.service.admin.AdminReviewService;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,17 +13,23 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/danh-gia")
 public class AdminReviewController {
 
     private final AdminReviewService adminReviewService;
+    private final ProductRepository productRepository;
+    private final UserRepository userRepository;
 
-    public AdminReviewController(AdminReviewService adminReviewService) {
+    public AdminReviewController(AdminReviewService adminReviewService,
+                                  ProductRepository productRepository,
+                                  UserRepository userRepository) {
         this.adminReviewService = adminReviewService;
+        this.productRepository = productRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -31,10 +41,10 @@ public class AdminReviewController {
 
         Map<Integer, String> productNames = new HashMap<>();
         Map<Integer, String> userNames = new HashMap<>();
-        for (Review r : reviewPage.getContent()) {
-            productNames.put(r.getProductId(), adminReviewService.getTenSanPham(r.getProductId()));
-            userNames.put(r.getUserId(), adminReviewService.getHoTenUser(r.getUserId()));
-        }
+        Set<Integer> productIds = reviewPage.getContent().stream().map(Review::getProductId).collect(Collectors.toSet());
+        Set<Integer> userIds = reviewPage.getContent().stream().map(Review::getUserId).collect(Collectors.toSet());
+        productRepository.findAllById(productIds).forEach(p -> productNames.put(p.getId(), p.getTenSanPham()));
+        userRepository.findAllById(userIds).forEach(u -> userNames.put(u.getId(), u.getHoTen()));
 
         model.addAttribute("reviews", reviewPage.getContent());
         model.addAttribute("productNames", productNames);

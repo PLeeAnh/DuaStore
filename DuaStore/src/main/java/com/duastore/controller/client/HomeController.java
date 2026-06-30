@@ -124,31 +124,58 @@ public class HomeController {
         Promotion bestPercentagePromo = activePromotions.stream()
             .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
             .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+            .max(Comparator.comparing(Promotion::getGiaTriGiam))
+            .orElse(null);
+        Promotion bestFixedPromo = activePromotions.stream()
+            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
             .max(Comparator.comparing(Promotion::getGiaTriGiam))
             .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
+        model.addAttribute("bestFixedPromo", bestFixedPromo);
 
         // Pre‑compute promo discounted price for the first variant per product (for button text)
         Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
         if (bestPercentagePromo != null) {
             BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
+            boolean hasGiamToiDa = bestPercentagePromo.getGiamToiDa() != null;
             for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
                 Integer productId = entry.getKey();
                 List<ProductVariant> pvList = entry.getValue();
                 for (ProductVariant pv : pvList) {
-                    if (pv.getGiaGoc() != null) {
-                        BigDecimal raw = pv.getGiaGoc()
+                    BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
+                    if (basePrice != null) {
+                        BigDecimal raw = basePrice
                             .multiply(BigDecimal.valueOf(100).subtract(discountPct))
                             .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        if (hasGiamToiDa) {
+                            BigDecimal actualDiscount = basePrice.multiply(discountPct)
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                            if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
+                                raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
+                            }
+                        }
                         variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
                     }
                 }
-                if (!pvList.isEmpty() && pvList.get(0).getGiaGoc() != null) {
-                    BigDecimal raw = pvList.get(0).getGiaGoc()
-                        .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                    promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                if (!pvList.isEmpty()) {
+                    ProductVariant first = pvList.get(0);
+                    BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
+                    if (basePrice != null) {
+                        BigDecimal raw = basePrice
+                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        if (hasGiamToiDa) {
+                            BigDecimal actualDiscount = basePrice.multiply(discountPct)
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                            if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
+                                raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
+                            }
+                        }
+                        promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                    }
                 }
             }
         }

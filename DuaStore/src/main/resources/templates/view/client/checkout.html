@@ -110,10 +110,12 @@
 
                         <hr />
                         <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
-                        <div class="input-group mb-1" style="max-width:400px">
+                        <div class="input-group mb-1" style="max-width:480px">
                             <input type="text" name="maCode" class="form-control" id="checkoutPromoInput" placeholder="Nhập mã giảm giá" readonly
                                    th:value="${checkoutRequest.maCode}" />
                             <button class="btn btn-outline-primary" type="button" id="checkoutChoosePromo">Chọn mã</button>
+                            <button class="btn btn-outline-secondary" type="button" id="checkoutCopyPromo" onclick="copyCheckoutPromo()"
+                                    style="display:none"><i class="bi bi-clipboard"></i></button>
                         </div>
                         <div id="checkoutPromoMsg" class="small mb-3">
                             <span class="text-success" th:if="${bestPromo != null and tienGiam > 0}"
@@ -369,13 +371,18 @@
                                   th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
                             <span class="text-danger ms-1" th:if="${p.giamToiDa != null}"
                                   th:text="${' (tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ)'}" style="font-size:12px"></span>
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" style="font-size:.65rem"
+                                    th:data-code="${p.maCode}" type="button" onclick="copyPromoCode(this)">Copy</button>
                         </div>
                     </div>
                     <div class="small text-muted mt-1 d-flex flex-wrap gap-2">
                         <span th:text="${p.tenChuongTrinh}"></span>
                         <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
                               th:text="${'Tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
-                        <span>HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></span></span>
+                        <span th:if="${p.denNgay != null}" class="ds-promo-timer"
+                              th:data-end="${#temporals.format(p.denNgay, 'yyyy-MM-dd')}T${#temporals.format(p.denNgay, 'HH:mm:ss')}">
+                            Còn lại: <span class="promo-countdown"></span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -410,6 +417,16 @@
             const code = el.getAttribute('data-code');
             applyPromoCode(code);
         }
+        function copyCheckoutPromo() {
+            const input = document.getElementById('checkoutPromoInput');
+            const code = input.value;
+            if (!code) return;
+            navigator.clipboard.writeText(code).then(function() {
+                alert('Đã sao chép mã: ' + code);
+            }).catch(function() {
+                alert('Sao chép thất bại');
+            });
+        }
         function applyVoucherInput() {
             const input = document.getElementById('promoVoucherInput');
             const code = input.value.trim();
@@ -433,11 +450,13 @@
                     appliedDiscount = parseInt(data.discount) || 0;
                     document.getElementById('discountDisplay').textContent = '-' + appliedDiscount.toLocaleString('vi-VN') + 'đ';
                     document.getElementById('discountDisplay').className = 'text-danger';
+                    document.getElementById('checkoutCopyPromo').style.display = '';
                 } else {
                     msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
                     appliedDiscount = 0;
                     document.getElementById('discountDisplay').textContent = '0đ';
                     document.getElementById('discountDisplay').className = '';
+                    document.getElementById('checkoutCopyPromo').style.display = 'none';
                 }
                 updateTotal();
             }).catch(() => {
@@ -459,6 +478,9 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             appliedDiscount = parseInt(document.getElementById('rawDiscount').textContent) || 0;
+            if (appliedDiscount > 0) {
+                document.getElementById('checkoutCopyPromo').style.display = '';
+            }
 
         document.querySelectorAll('input[name="phuongThucGiaoHang"]').forEach(function(el) {
             el.addEventListener('change', function() {

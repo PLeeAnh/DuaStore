@@ -292,6 +292,10 @@
                         <label for="binhLuan" class="form-label fw-semibold">Nhận xét</label>
                         <textarea name="binhLuan" id="binhLuan" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label for="hinhAnh" class="form-label fw-semibold">Hình ảnh (tùy chọn)</label>
+                        <input type="file" name="hinhAnh" id="hinhAnh" class="form-control" accept="image/*" />
+                    </div>
                     <button type="submit" class="btn btn-danger fw-semibold">Gửi đánh giá</button>
                 </form>
             </div>
@@ -314,9 +318,25 @@
                             <span class="text-muted ms-auto small" th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}">01/01/2025</span>
                         </div>
                         <p class="mb-1" style="font-size:.9rem;color:#334155;" th:if="${r.binhLuan}" th:text="${r.binhLuan}">Bình luận</p>
-                        <img th:if="${r.hinhAnh}" th:src="@{${r.hinhAnh}}" alt="" style="max-width:200px;border-radius:8px;margin-top:4px;" />
+                        <img th:if="${r.hinhAnh}" th:src="@{${r.hinhAnh}}" alt="Ảnh đánh giá" style="max-width:200px;border-radius:8px;margin-top:4px;" />
                     </div>
                 </div>
+            </div>
+            <div th:if="${reviewTotalPages > 1}" class="d-flex justify-content-center mt-3">
+                <nav>
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item" th:classappend="${reviewCurrentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${reviewCurrentPage - 1})}">Trước</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, reviewTotalPages - 1)}"
+                            th:classappend="${i == reviewCurrentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${reviewCurrentPage >= reviewTotalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${reviewCurrentPage + 1})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
 
