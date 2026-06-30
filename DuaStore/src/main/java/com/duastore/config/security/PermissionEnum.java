@@ -65,4 +65,10 @@ public final class PermissionEnum {
     public static final String STORE_READ        = "STORE_READ";
     public static final String STORE_UPDATE      = "STORE_UPDATE";
     public static final String STORE_DELETE      = "STORE_DELETE";
+
+    // BANNER
+    public static final String BANNER_CREATE     = "BANNER_CREATE";
+    public static final String BANNER_READ       = "BANNER_READ";
+    public static final String BANNER_UPDATE     = "BANNER_UPDATE";
+    public static final String BANNER_DELETE     = "BANNER_DELETE";
 }

@@ -2,19 +2,20 @@ package com.duastore.service.client;
 
 import com.duastore.dto.ReviewDTO;
 import com.duastore.dto.ReviewRequestDTO;
-import com.duastore.model.Product;
 import com.duastore.model.Review;
-import com.duastore.model.User;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.model.Product;
+import com.duastore.model.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,11 +38,43 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public List<ReviewDTO> getApprovedReviews(Integer productId) {
-        return reviewsRepository
-                .findByProductIdAndIsApprovedOrderByNgayTaoDesc(productId, true)
-                .stream()
-                .map(this::toDTO)
+        List<Review> reviews = reviewsRepository
+                .findByProductIdAndIsApprovedOrderByNgayTaoDesc(productId, true);
+        return toDTOs(reviews);
+    }
+
+    private List<ReviewDTO> toDTOs(List<Review> reviews) {
+        Set<Integer> productIds = reviews.stream().map(Review::getProductId).collect(Collectors.toSet());
+        Set<Integer> userIds = reviews.stream().map(Review::getUserId).collect(Collectors.toSet());
+
+        Map<Integer, Product> productMap = productRepository.findAllById(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        Map<Integer, User> userMap = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        return reviews.stream()
+                .map(r -> toDTO(r, productMap, userMap))
                 .collect(Collectors.toList());
+    }
+
+    private ReviewDTO toDTO(Review review, Map<Integer, Product> productMap, Map<Integer, User> userMap) {
+        ReviewDTO dto = new ReviewDTO();
+        dto.setId(review.getId());
+        dto.setProductId(review.getProductId());
+        dto.setUserId(review.getUserId());
+        dto.setDanhGia(review.getDanhGia());
+        dto.setBinhLuan(review.getBinhLuan());
+        dto.setApproved(review.getIsApproved());
+        dto.setNgayTao(review.getNgayTao());
+        dto.setHinhAnh(review.getHinhAnh());
+
+        Product p = productMap.get(review.getProductId());
+        if (p != null) dto.setTenSanPham(p.getTenSanPham());
+
+        User u = userMap.get(review.getUserId());
+        if (u != null) dto.setHoTen(u.getHoTen());
+
+        return dto;
     }
 
     @Transactional(readOnly = true)

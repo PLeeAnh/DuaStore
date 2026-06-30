@@ -68,4 +68,19 @@ public class FileUploadService {
             throw new RuntimeException("Không thể lưu file: " + file.getOriginalFilename(), e);
         }
     }
+
+    public boolean delete(String urlPath, String directory) {
+        if (urlPath == null || directory == null || directory.isBlank()) return false;
+        String expectedPrefix = "/uploads/" + directory + "/";
+        if (!urlPath.startsWith(expectedPrefix)) return false;
+
+        Path allowedDirectory = uploadPath.resolve(directory).normalize();
+        Path target = allowedDirectory.resolve(urlPath.substring(expectedPrefix.length())).normalize();
+        if (!target.startsWith(allowedDirectory)) return false;
+        try {
+            return Files.deleteIfExists(target);
+        } catch (IOException ignored) {
+            return false;
+        }
+    }
 }
