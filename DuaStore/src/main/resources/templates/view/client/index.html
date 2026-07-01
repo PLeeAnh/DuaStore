@@ -7,11 +7,39 @@
     <body>
         <div layout:fragment="content">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- HERO V2 — single banner -->
-                <section class="ds-hero-v2">
-                    <a th:href="@{/san-pham}" class="ds-hero-v2-banner">
-                        <img th:src="@{/images/Banner 1 DuaStore.jpg}" onerror="this.src='/images/no-image.png'" alt="Banner DuaStore">
-                    </a>
+                <!-- HERO BANNER SLIDER -->
+                <section class="ds-hero-v2" th:if="${banners != null and !banners.isEmpty()}">
+                    <div class="swiper hero-banner-swiper">
+                        <div class="swiper-wrapper">
+                            <div th:each="banner : ${banners}" class="swiper-slide">
+                                <a th:href="${banner.linkUrl != null ? banner.linkUrl : '#'}" class="ds-hero-v2-banner">
+                                    <img th:src="${banner.imageUrl}"
+                                         onerror="this.src='/images/no-image.png'"
+                                         th:alt="${banner.title}">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-button-prev"></div>
+                        <div class="swiper-pagination"></div>
+                    </div>
+                    <style>
+                        .hero-banner-swiper { width:100%; border-radius:16px; overflow:hidden; }
+                        .hero-banner-swiper .swiper-slide a { display:block; }
+                        .hero-banner-swiper .swiper-slide img { width:100%; height:auto; display:block; object-fit:cover; border-radius:16px; }
+                        .hero-banner-swiper .swiper-button-next,
+                        .hero-banner-swiper .swiper-button-prev { color:#fff; }
+                    </style>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function(){
+                            new Swiper('.hero-banner-swiper', {
+                                loop: true,
+                                autoplay: { delay: 4000, disableOnInteraction: false },
+                                pagination: { el: '.hero-banner-swiper .swiper-pagination', clickable: true },
+                                navigation: { nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev' }
+                            });
+                        });
+                    </script>
                 </section>
 
                 <!-- HERO CAROUSEL -->
@@ -89,25 +117,45 @@
                     <div class="ds-section-header">
                         <h2 class="ds-section-title">Mã giảm giá</h2>
                     </div>
-                    <div class="d-flex flex-nowrap overflow-auto gap-3 pb-2" style="scroll-snap-type:x mandatory">
+                    <div class="position-relative">
+                        <button class="btn btn-outline-secondary position-absolute start-0 top-50 translate-middle-y z-1"
+                                type="button" onclick="document.getElementById('promoScroll').scrollBy({left:-320,behavior:'smooth'})"
+                                style="border-radius:50%;width:36px;height:36px;padding:0;">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary position-absolute end-0 top-50 translate-middle-y z-1"
+                                type="button" onclick="document.getElementById('promoScroll').scrollBy({left:320,behavior:'smooth'})"
+                                style="border-radius:50%;width:36px;height:36px;padding:0;">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <div class="d-flex flex-nowrap overflow-auto gap-3 pb-2" id="promoScroll" style="scroll-snap-type:x mandatory">
                         <div th:each="p : ${activePromotions}" class="border rounded p-3 flex-shrink-0"
                              style="scroll-snap-align:start;min-width:280px">
                             <div class="d-flex align-items-center gap-2 mb-1">
                                 <strong class="text-danger" th:text="${p.maCode}"></strong>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-1 copy-promo-btn" style="font-size:.7rem"
+                                        th:data-code="${p.maCode}"
+                                        type="button">Copy</button>
                                 <span class="badge bg-danger" th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
                                       th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
                                 <span class="badge bg-danger" th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
-                                      th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                                      th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
                                 <span class="text-danger small" th:if="${p.giamToiDa != null}"
-                                      th:text="${'Tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                                      th:text="${'Tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
                             </div>
                             <div class="small text-muted d-flex flex-wrap gap-2">
                                 <span th:text="${p.tenChuongTrinh}"></span>
                                 <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
-                                      th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                                      th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
                                 <span>HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></span></span>
                             </div>
+                            <div th:if="${p.denNgay != null}" class="mt-2 small text-danger fw-semibold"
+                                 th:data-end="${#temporals.format(p.denNgay, 'yyyy-MM-dd''T''HH:mm:ss')}"
+                                 style="font-family:monospace">
+                                ⏱ Còn lại: <span class="promo-countdown"></span>
+                            </div>
                         </div>
+                    </div>
                     </div>
                 </section>
 
@@ -172,7 +220,7 @@
       th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
                                           <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                          <div class="ds-flash-timer" th:if="${fs != null}"
-                                              th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
+                                              th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
                                              <i class="bi bi-clock"></i>
                                              <span class="flash-countdown">--:--:--</span>
                                          </div>
@@ -317,8 +365,37 @@
                             </div>
                         </div>
                     
-                </section>
+                    </section>
             </div>
         </div>
+        <script>
+            document.querySelectorAll('.promo-countdown').forEach(function(el) {
+                var end = el.closest('[data-end]')?.dataset.end;
+                if (!end) return;
+                var endDate = new Date(end);
+                function update() {
+                    var diff = endDate - new Date();
+                    if (diff <= 0) { el.textContent = 'Đã kết thúc'; return; }
+                    var h = Math.floor(diff / 3600000);
+                    var m = Math.floor((diff % 3600000) / 60000);
+                    var s = Math.floor((diff % 60000) / 1000);
+                    el.textContent = h + 'h ' + m.toString().padStart(2,'0') + 'm ' + s.toString().padStart(2,'0') + 's';
+                }
+                update();
+                setInterval(update, 1000);
+            });
+            document.querySelectorAll('.copy-promo-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var code = this.dataset.code;
+                    if (!code) return;
+                    navigator.clipboard.writeText(code).then(function() {
+                        var orig = this.textContent;
+                        this.textContent = 'Đã copy';
+                        var self = this;
+                        setTimeout(function() { self.textContent = orig; }, 2000);
+                    }.bind(this)).catch(function() {});
+                });
+            });
+        </script>
     </body>
 </html>

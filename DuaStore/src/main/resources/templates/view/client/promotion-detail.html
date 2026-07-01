@@ -17,10 +17,17 @@
                         <span th:if="${promotion.loaiGiam == 'PHAN_TRAM'}" th:text="${promotion.giaTriGiam} + '%'"></span>
                         <span th:if="${promotion.loaiGiam == 'SO_TIEN'}" th:text="${#numbers.formatDecimal(promotion.giaTriGiam, 0, 0)} + '₫'"></span>
                     </div>
-                    <p class="mb-1">Mã: <strong class="fs-5" th:text="${promotion.maCode}"></strong></p>
+                    <p class="mb-1">Mã: <strong class="fs-5" th:text="${promotion.maCode}"></strong>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2 ms-1" style="font-size:.8rem"
+                                th:data-code="${promotion.maCode}" type="button" onclick="copyPromoCode(this)">Copy</button>
+                    </p>
                     <p class="text-muted" th:if="${promotion.donHangToiThieu != null && promotion.donHangToiThieu.compareTo(java.math.BigDecimal.ZERO) > 0}">
                         Đơn tối thiểu: <span th:text="${#numbers.formatDecimal(promotion.donHangToiThieu, 0, 0)} + '₫'"></span>
                     </p>
+                    <div th:if="${promotion.denNgay != null}" class="ds-promo-timer d-inline-block mb-2"
+                         th:data-end="${#temporals.format(promotion.denNgay, 'yyyy-MM-dd')}T${#temporals.format(promotion.denNgay, 'HH:mm:ss')}">
+                        <span class="text-muted small">Còn lại: </span><span class="promo-countdown fw-bold text-danger"></span>
+                    </div>
                     <p class="text-muted small">
                         <span th:if="${promotion.tuNgay != null}" th:text="'Từ: ' + ${#temporals.format(promotion.tuNgay, 'dd/MM/yyyy')}"></span>
                         <span th:if="${promotion.denNgay != null}" th:text="' - Đến: ' + ${#temporals.format(promotion.denNgay, 'dd/MM/yyyy')}"></span>
@@ -30,5 +37,31 @@
             </div>
         </div>
     </div>
+<th:block layout:fragment="extra-script">
+    <script>
+        document.querySelectorAll('.ds-promo-timer').forEach(function(timer) {
+            var endStr = timer.getAttribute('data-end');
+            if (!endStr) return;
+            var endDate = new Date(endStr);
+            function tick() {
+                var diff = endDate - new Date();
+                var span = timer.querySelector('.promo-countdown');
+                if (!span) return;
+                if (diff <= 0) { span.textContent = 'Đã kết thúc'; timer.style.opacity = '.5'; return; }
+                var days = Math.floor(diff / 86400000);
+                if (days > 0) {
+                    span.textContent = 'HSD: ' + endDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    return;
+                }
+                var h = Math.floor(diff / 3600000);
+                var m = Math.floor((diff % 3600000) / 60000);
+                var s = Math.floor((diff % 60000) / 1000);
+                span.textContent = ('0' + h).slice(-2) + 'h ' + ('0' + m).slice(-2) + 'm ' + ('0' + s).slice(-2) + 's';
+            }
+            tick();
+            setInterval(tick, 1000);
+        });
+    </script>
+</th:block>
     </body>
 </html>

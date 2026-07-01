@@ -119,7 +119,11 @@ public class OrderService {
             BigDecimal tienGiam = calculateDiscount(promo, tienHang);
             order.setTienGiam(tienGiam);
             order.setPromotion(promo);
-            promo.setDaDung(promo.getDaDung() + 1);
+            // Use pessimistic lock to prevent oversell
+            Promotion lockedPromo = promotionRepository.findByIdWithLock(promo.getId())
+                    .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
+            lockedPromo.setDaDung(lockedPromo.getDaDung() + 1);
+            promotionRepository.save(lockedPromo);
         }
 
         if (order.getTienGiam() == null) order.setTienGiam(BigDecimal.ZERO);

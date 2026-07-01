@@ -155,31 +155,58 @@ public class ProductController {
         Promotion bestPercentagePromo = activePromotions.stream()
             .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
             .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+            .max(Comparator.comparing(Promotion::getGiaTriGiam))
+            .orElse(null);
+        Promotion bestFixedPromo = activePromotions.stream()
+            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
             .max(Comparator.comparing(Promotion::getGiaTriGiam))
             .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
+        model.addAttribute("bestFixedPromo", bestFixedPromo);
 
         // Pre‑compute promo discounted price for the first variant per product (for button text)
         Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
         if (bestPercentagePromo != null) {
             BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
+            boolean hasGiamToiDa = bestPercentagePromo.getGiamToiDa() != null;
             for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
                 Integer productId = entry.getKey();
                 List<ProductVariant> pvList = entry.getValue();
                 for (ProductVariant pv : pvList) {
-                    if (pv.getGiaGoc() != null) {
-                        BigDecimal raw = pv.getGiaGoc()
+                    BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
+                    if (basePrice != null) {
+                        BigDecimal raw = basePrice
                             .multiply(BigDecimal.valueOf(100).subtract(discountPct))
                             .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        if (hasGiamToiDa) {
+                            BigDecimal actualDiscount = basePrice.multiply(discountPct)
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                            if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
+                                raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
+                            }
+                        }
                         variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
                     }
                 }
-                if (!pvList.isEmpty() && pvList.get(0).getGiaGoc() != null) {
-                    BigDecimal raw = pvList.get(0).getGiaGoc()
-                        .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                    promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                if (!pvList.isEmpty()) {
+                    ProductVariant first = pvList.get(0);
+                    BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
+                    if (basePrice != null) {
+                        BigDecimal raw = basePrice
+                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        if (hasGiamToiDa) {
+                            BigDecimal actualDiscount = basePrice.multiply(discountPct)
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                            if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
+                                raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
+                            }
+                        }
+                        promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                    }
                 }
             }
         }
@@ -222,7 +249,9 @@ public class ProductController {
     }
 
     @GetMapping("/san-pham/{id}")
-    public String detail(@PathVariable Integer id, Model model) {
+    public String detail(@PathVariable Integer id,
+                         @RequestParam(defaultValue = "0") int reviewPage,
+                         Model model) {
         var product = productService.findById(id);
         if (product == null) return "redirect:/san-pham?errorMsg=Khong+tim+thay+san+pham";
 
@@ -277,35 +306,56 @@ public class ProductController {
         Promotion bestPercentagePromo = activePromotions.stream()
             .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
             .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+            .max(Comparator.comparing(Promotion::getGiaTriGiam))
+            .orElse(null);
+        Promotion bestFixedPromo = activePromotions.stream()
+            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
             .max(Comparator.comparing(Promotion::getGiaTriGiam))
             .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
+        model.addAttribute("bestFixedPromo", bestFixedPromo);
 
         BigDecimal promoDiscountedPrice = null;
-        if (bestPercentagePromo != null && !variants.isEmpty() && variants.get(0).getGiaGoc() != null) {
-            BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
-            promoDiscountedPrice = variants.get(0).getGiaGoc()
-                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-        }
-        model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
-
-        // Pre‑compute promo price for every variant
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
-        if (bestPercentagePromo != null) {
+        if (bestPercentagePromo != null && !variants.isEmpty()) {
             BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
+            boolean hasGiamToiDa = bestPercentagePromo.getGiamToiDa() != null;
             for (ProductVariant pv : variants) {
-                if (pv.getGiaGoc() != null) {
-                    BigDecimal raw = pv.getGiaGoc()
+                BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
+                if (basePrice != null) {
+                    BigDecimal raw = basePrice
                         .multiply(BigDecimal.valueOf(100).subtract(discountPct))
                         .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                    if (hasGiamToiDa) {
+                        BigDecimal maxDiscount = bestPercentagePromo.getGiamToiDa();
+                        BigDecimal actualDiscount = basePrice.multiply(discountPct)
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                        if (actualDiscount.compareTo(maxDiscount) > 0) {
+                            raw = basePrice.subtract(maxDiscount);
+                        }
+                    }
                     variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
                 }
             }
+            if (!variants.isEmpty()) {
+                ProductVariant first = variants.get(0);
+                BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
+                if (basePrice != null) {
+                    promoDiscountedPrice = variantPromoPriceMap.get(first.getId());
+                }
+            }
         }
+        model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
 
-        model.addAttribute("reviews", reviewService.getApprovedReviews(id));
+        int reviewSize = 10;
+        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize);
+        model.addAttribute("reviews", reviewPageResult.getContent());
+        model.addAttribute("reviewCurrentPage", reviewPage);
+        model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
+        model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
         Integer currentUserId = securityUtil.getCurrentUserId();
         if (currentUserId != null) {
             try {
@@ -398,7 +448,7 @@ public class ProductController {
         String hinhAnhUrl = null;
         if (hinhAnhFile != null && !hinhAnhFile.isEmpty()) {
             try {
-                hinhAnhUrl = fileUploadService.save(hinhAnhFile);
+                hinhAnhUrl = fileUploadService.save(hinhAnhFile, "reviews");
             } catch (Exception e) {
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;

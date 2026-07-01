@@ -105,7 +105,7 @@
                                   th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
                             <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                             <div class="ds-flash-timer" th:if="${fs != null}"
-                                 th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd\'T\'HH:mm:ss')}">
+                                 th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
                                 <i class="bi bi-clock"></i>
                                 <span class="flash-countdown">--:--:--</span>
                             </div>

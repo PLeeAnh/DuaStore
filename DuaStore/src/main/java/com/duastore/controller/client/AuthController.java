@@ -108,7 +108,7 @@ public class AuthController {
         @NotBlank(message = "Mật khẩu không được để trống")
         @Size(min = 8, message = "Mật khẩu tối thiểu 8 ký tự")
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).+$",
-                 message = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt")
+                message = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt")
         private String password;
 
         private String confirmPassword;
@@ -118,17 +118,52 @@ public class AuthController {
 
         private String soDienThoai;
 
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-        public String getConfirmPassword() { return confirmPassword; }
-        public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
-        public String getHoTen() { return hoTen; }
-        public void setHoTen(String hoTen) { this.hoTen = hoTen; }
-        public String getSoDienThoai() { return soDienThoai; }
-        public void setSoDienThoai(String soDienThoai) { this.soDienThoai = soDienThoai; }
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getConfirmPassword() {
+            return confirmPassword;
+        }
+
+        public void setConfirmPassword(String confirmPassword) {
+            this.confirmPassword = confirmPassword;
+        }
+
+        public String getHoTen() {
+            return hoTen;
+        }
+
+        public void setHoTen(String hoTen) {
+            this.hoTen = hoTen;
+        }
+
+        public String getSoDienThoai() {
+            return soDienThoai;
+        }
+
+        public void setSoDienThoai(String soDienThoai) {
+            this.soDienThoai = soDienThoai;
+        }
     }
 }

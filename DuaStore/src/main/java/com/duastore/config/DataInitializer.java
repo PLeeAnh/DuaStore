@@ -69,7 +69,8 @@ public class DataInitializer implements CommandLineRunner {
             Map.entry("VARIANT", List.of("CREATE", "READ", "UPDATE", "DELETE")),
             Map.entry("ROLE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
             Map.entry("AUDIT_LOG", List.of("READ")),
-            Map.entry("NOTIFICATION", List.of("CREATE", "READ", "UPDATE", "DELETE"))
+            Map.entry("NOTIFICATION", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("BANNER", List.of("CREATE", "READ", "UPDATE", "DELETE"))
         );
 
         for (var entry : perms.entrySet()) {

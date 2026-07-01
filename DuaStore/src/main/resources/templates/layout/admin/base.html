@@ -105,6 +105,12 @@
                 <i class="bi bi-star"></i>
                 <span>Đánh giá</span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/banner}"
+               th:if="${userPermissions.contains('BANNER_READ')}"
+               th:classappend="${title == 'banner' ? ' active' : ''}">
+                <i class="bi bi-images"></i>
+                <span>Banner</span>
+            </a>
 
             <div class="adm-nav-section">Cấu hình</div>
             <a class="adm-nav-link" th:href="@{/admin/dia-chi}"

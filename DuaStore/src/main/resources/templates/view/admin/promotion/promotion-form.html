@@ -28,7 +28,11 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Mã giảm giá <span class="text-danger">*</span></label>
-                    <input type="text" th:field="*{maCode}" class="form-control" required />
+                    <div class="input-group">
+                        <input type="text" th:field="*{maCode}" class="form-control" required />
+                        <button class="btn btn-outline-secondary" type="button" th:data-code="${promotion.maCode}"
+                                onclick="copyPromoCode(this)" th:if="${promotion.id != null}"><i class="bi bi-clipboard"></i></button>
+                    </div>
                     <div th:if="${#fields.hasErrors('maCode')}" th:errors="*{maCode}" class="text-danger small"></div>
                 </div>
                 <div class="col-md-2">
@@ -59,19 +63,16 @@
                     <input type="number" th:field="*{soLanDung}" class="form-control" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Ngày bắt đầu</label>
-                    <input type="datetime-local" th:name="tuNgay" 
-                           th:value="${promotion.tuNgay != null} ? ${#temporals.format(promotion.tuNgay, 'yyyy-MM-dd''T''HH:mm')} : ''" 
-                            class="form-control" required />
-                    <div th:if="${#fields.hasErrors('tuNgay')}" th:errors="*{tuNgay}" class="text-danger small"></div>
-                    </div>
-
-                    <div class="col-md-3">
-                    <label class="form-label">Ngày kết thúc</label>
-                    <input type="datetime-local" th:name="denNgay" 
-                           th:value="${promotion.denNgay != null} ? ${#temporals.format(promotion.denNgay, 'yyyy-MM-dd''T''HH:mm')} : ''" 
-                            class="form-control" required />
-                    <div th:if="${#fields.hasErrors('denNgay')}" th:errors="*{denNgay}" class="text-danger small"></div>
+                    <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                    <input type="datetime-local" name="tuNgay"
+                           th:value="${promotion.tuNgay != null} ? ${#temporals.format(promotion.tuNgay, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                           class="form-control" required />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
+                    <input type="datetime-local" name="denNgay"
+                           th:value="${promotion.denNgay != null} ? ${#temporals.format(promotion.denNgay, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                           class="form-control" required />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Trạng thái</label>
