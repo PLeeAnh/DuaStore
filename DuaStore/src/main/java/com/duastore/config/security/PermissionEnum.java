@@ -77,4 +77,8 @@ public final class PermissionEnum {
     public static final String BANNER_READ       = "BANNER_READ";
     public static final String BANNER_UPDATE     = "BANNER_UPDATE";
     public static final String BANNER_DELETE     = "BANNER_DELETE";
+
+    // CUSTOMER
+    public static final String CUSTOMER_READ     = "CUSTOMER_READ";
+    public static final String CUSTOMER_UPDATE   = "CUSTOMER_UPDATE";
 }
