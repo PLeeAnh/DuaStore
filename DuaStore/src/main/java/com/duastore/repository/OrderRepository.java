@@ -16,6 +16,7 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     Page<Order> findByUserId(Integer userId, Pageable pageable);
     Page<Order> findByUserIdAndTrangThaiDon(Integer userId, String trangThaiDon, Pageable pageable);
+    long countByUserId(Integer userId);
     Page<Order> findAllBy(Pageable pageable);
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.ngayDat BETWEEN :start AND :end")

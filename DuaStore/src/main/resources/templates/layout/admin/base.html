@@ -79,6 +79,12 @@
                 <span>Đơn hàng</span>
                 <span class="badge bg-danger ms-auto" th:if="${pendingOrders > 0}" th:text="${pendingOrders}"></span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/khach-hang}"
+               th:if="${userPermissions.contains('CUSTOMER_READ')}"
+               th:classappend="${title == 'khach-hang' ? ' active' : ''}">
+                <i class="bi bi-person-lines-fill"></i>
+                <span>Khách hàng</span>
+            </a>
             <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
                th:if="${userPermissions.contains('PROMOTION_READ')}"
                th:classappend="${title == 'khuyen-mai' ? ' active' : ''}">
@@ -104,6 +110,12 @@
                th:classappend="${title == 'danh-gia' ? ' active' : ''}">
                 <i class="bi bi-star"></i>
                 <span>Đánh giá</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/homepage}"
+               th:if="${userPermissions.contains('HOMEPAGE_READ')}"
+               th:classappend="${title == 'homepage' ? ' active' : ''}">
+                <i class="bi bi-house-gear"></i>
+                <span>Homepage</span>
             </a>
             <a class="adm-nav-link" th:href="@{/admin/banner}"
                th:if="${userPermissions.contains('BANNER_READ')}"
