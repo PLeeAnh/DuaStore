@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Ví Voucher — DuaStore</title>
+    </head>
+    <body>
+    <div layout:fragment="content">
+        <div class="container-xl py-4">
+            <h4 class="fw-bold mb-4"><i class="bi bi-wallet2 me-2"></i>Ví Voucher</h4>
+
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${tab == '' or tab == 'available' ? 'active' : ''}"
+                       th:href="@{/vi-voucher(tab='available')}">
+                        Khả dụng <span th:if="${availableCount > 0}" class="badge bg-danger ms-1" th:text="${availableCount}">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${tab == 'used' ? 'active' : ''}"
+                       th:href="@{/vi-voucher(tab='used')}">Đã dùng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${tab == 'expired' ? 'active' : ''}"
+                       th:href="@{/vi-voucher(tab='expired')}">Hết hạn</a>
+                </li>
+            </ul>
+
+            <div th:if="${#lists.isEmpty(vouchers)}" class="text-center py-5">
+                <i class="bi bi-ticket-perforated" style="font-size:3rem;color:#ccc;"></i>
+                <p class="text-muted mt-3">Chưa có voucher nào.</p>
+                <a th:href="@{/khuyen-mai}" class="btn btn-primary">Khám phá khuyến mãi</a>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(vouchers)}" class="row g-3">
+                <div th:each="v : ${vouchers}" class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold mb-1" th:text="${v.promotion.tenChuongTrinh}"></h6>
+                                    <code class="fs-6" th:text="${v.voucherCode}"></code>
+                                </div>
+                                <span th:if="${v.status.name() == 'AVAILABLE'}" class="badge bg-success">Khả dụng</span>
+                                <span th:if="${v.status.name() == 'USED'}" class="badge bg-secondary">Đã dùng</span>
+                                <span th:if="${v.status.name() == 'EXPIRED'}" class="badge bg-dark">Hết hạn</span>
+                            </div>
+                            <div class="d-flex gap-2 mb-2">
+                                <span class="badge bg-danger" th:if="${'PHAN_TRAM'.equals(v.promotion.loaiGiam)}"
+                                      th:text="${'-' + #numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                                <span class="badge bg-danger" th:if="${'SO_TIEN'.equals(v.promotion.loaiGiam)}"
+                                      th:text="${'Giảm ' + #numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                            </div>
+                            <div class="small text-muted">
+                                <div th:if="${v.expiredAt != null}">
+                                    HSD: <span th:text="${#temporals.format(v.expiredAt, 'dd/MM/yyyy')}"></span>
+                                </div>
+                                <div th:if="${v.remainingUses != null}">
+                                    Còn lại: <span th:text="${v.remainingUses}"></span> lượt
+                                </div>
+                                <div th:if="${v.totalSaved != null and v.totalSaved.compareTo(java.math.BigDecimal.ZERO) > 0}">
+                                    Đã tiết kiệm: <span class="text-danger fw-medium" th:text="${#numbers.formatDecimal(v.totalSaved, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                                </div>
+                            </div>
+                            <div th:if="${v.status.name() == 'AVAILABLE'}" class="mt-2">
+                                <button class="btn btn-sm btn-outline-danger" type="button"
+                                        onclick="removeVoucher(${v.id})">Xóa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav th:if="${totalPages > 1}" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/vi-voucher(page=${currentPage - 1}, size=${pageSize}, tab=${tab})}">Trước</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/vi-voucher(page=${i}, size=${pageSize}, tab=${tab})}" th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/vi-voucher(page=${currentPage + 1}, size=${pageSize}, tab=${tab})}">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+<th:block layout:fragment="extra-script">
+    <script>
+    function removeVoucher(voucherId) {
+        if (!confirm('Xóa voucher này?')) return;
+        fetch('/api/vi-voucher/xoa/' + voucherId, { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+    }
+    </script>
+</th:block>
+    </body>
+</html>

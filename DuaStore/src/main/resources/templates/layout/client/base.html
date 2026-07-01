@@ -228,6 +228,11 @@
                     </div>
                 </div>
 
+                <!-- VOUCHER WALLET BUTTON -->
+                <a class="ds-icon-btn" th:href="@{/vi-voucher}" title="Ví Voucher" aria-label="Ví Voucher" th:if="${session.loggedIn}">
+                    <i class="bi bi-wallet2"></i>
+                </a>
+
                 <!-- NOTIFICATION BUTTON + POPUP -->
                 <div class="position-relative d-inline-block">
                     <button class="ds-icon-btn" id="btn-notif-toggle" onclick="toggleNotifPopup()" title="Thông báo" aria-label="Thông báo">
@@ -303,6 +308,7 @@
                         </div>
                         <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
                         <a class="ds-popup-link" th:href="@{/address}"><i class="bi bi-geo-alt"></i> Sổ địa chỉ</a>
+                        <a class="ds-popup-link" th:href="@{/vi-voucher}"><i class="bi bi-wallet2"></i> Ví Voucher</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
                         <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
                         <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
