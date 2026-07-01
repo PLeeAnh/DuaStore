@@ -292,6 +292,54 @@
         });
     }
 
+    function setQty(variantId, inputEl) {
+        if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast) return;
+
+        var max = parseInt(inputEl.getAttribute('max')) || 99;
+        var newQty = parseInt(inputEl.value);
+        if (isNaN(newQty) || newQty < 1) { newQty = 1; }
+        if (newQty > max) { newQty = max; }
+        inputEl.value = newQty;
+
+        var item = inputEl.closest('.ds-cart-item');
+
+        DuaStore.api.post('/api/cart/update', {
+            variantId: variantId,
+            soLuong: newQty
+        }).then(function(result) {
+            if (!result.ok) { DuaStore.toast.error(result.message); return; }
+            var data = result.data;
+            if (!data.success) {
+                DuaStore.toast.error(data.message || 'Cập nhật thất bại');
+            }
+            inputEl.value = newQty;
+
+            if (item) {
+                var unitPriceEl = item.querySelector('.ds-cart-unit-price');
+                if (unitPriceEl) {
+                    var unitPrice = parseInt(unitPriceEl.innerText.replace(/[^\d]/g, '')) || 0;
+                    var lineTotal = unitPrice * newQty;
+                    var totalEl = item.querySelector('.ds-cart-total-price');
+                    if (totalEl) totalEl.innerText = lineTotal.toLocaleString('vi-VN') + '₫';
+                }
+            }
+
+            var cartTotal = 0;
+            document.querySelectorAll('.ds-cart-total-price').forEach(function(cell) {
+                var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
+                cartTotal += val;
+            });
+            var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
+            var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
+            if (subtotalRow) subtotalRow.innerText = formattedTotal;
+            var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
+            if (summaryTotal) summaryTotal.innerText = formattedTotal;
+
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+            DuaStore.toast.success('Đã cập nhật số lượng');
+        });
+    }
+
     function removeCartItem(id) {
         if (!id) return;
         var itemEl = document.getElementById('cart-item-' + id);
@@ -379,6 +427,35 @@
                 var remaining = document.querySelectorAll('.ds-cart-item');
                 if (remaining.length === 0) window.location.reload();
             }
+        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) return;
+
+        DuaStore.api.post('/api/cart/remove-item', { variantId: id }).then(function(result) {
+            if (!result.ok) { DuaStore.toast.error(result.message); return; }
+            var data = result.data;
+            if (!data.success) { DuaStore.toast.error(data.message || 'Xóa thất bại'); return; }
+
+            var el = document.getElementById('cart-item-' + id);
+            if (el) el.remove();
+
+            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+
+            var remaining = document.querySelectorAll('.ds-cart-item');
+            if (remaining.length === 0) {
+                location.reload();
+            } else {
+                var cartTotal = 0;
+                document.querySelectorAll('.ds-cart-total-price').forEach(function(cell) {
+                    var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
+                    cartTotal += val;
+                });
+                var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
+                var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
+                if (subtotalRow) subtotalRow.innerText = formattedTotal;
+                var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
+                if (summaryTotal) summaryTotal.innerText = formattedTotal;
+            }
+
+            DuaStore.toast.success('Đã xóa sản phẩm');
         });
     }
 
