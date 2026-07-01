@@ -57,6 +57,12 @@ public final class PermissionEnum {
     public static final String ROLE_UPDATE      = "ROLE_UPDATE";
     public static final String ROLE_DELETE      = "ROLE_DELETE";
 
+    // NOTIFICATION
+    public static final String NOTIFICATION_CREATE = "NOTIFICATION_CREATE";
+    public static final String NOTIFICATION_READ   = "NOTIFICATION_READ";
+    public static final String NOTIFICATION_UPDATE = "NOTIFICATION_UPDATE";
+    public static final String NOTIFICATION_DELETE = "NOTIFICATION_DELETE";
+
     // AUDIT_LOG
     public static final String AUDIT_LOG_READ   = "AUDIT_LOG_READ";
 
@@ -71,4 +77,12 @@ public final class PermissionEnum {
     public static final String BANNER_READ       = "BANNER_READ";
     public static final String BANNER_UPDATE     = "BANNER_UPDATE";
     public static final String BANNER_DELETE     = "BANNER_DELETE";
+
+    // CUSTOMER
+    public static final String CUSTOMER_READ     = "CUSTOMER_READ";
+    public static final String CUSTOMER_UPDATE   = "CUSTOMER_UPDATE";
+
+    // HOMEPAGE
+    public static final String HOMEPAGE_READ     = "HOMEPAGE_READ";
+    public static final String HOMEPAGE_UPDATE   = "HOMEPAGE_UPDATE";
 }

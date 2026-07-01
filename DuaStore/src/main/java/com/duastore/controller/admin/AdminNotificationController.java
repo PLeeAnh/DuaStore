@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/admin/thong-bao")
@@ -157,6 +159,19 @@ public class AdminNotificationController {
         session.setAttribute("staffNotifReadMaxId",
             notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
                 .map(Notification::getId).orElse(0));
+        return "ok";
+    }
+
+    @PostMapping("/api/doc/{id}")
+    @ResponseBody
+    public String markStaffRead(@PathVariable Integer id, HttpSession session) {
+        try {
+            @SuppressWarnings("unchecked")
+            Set<Integer> readIds = (Set<Integer>) session.getAttribute("staffNotifReadIds");
+            if (readIds == null) readIds = new HashSet<>();
+            readIds.add(id);
+            session.setAttribute("staffNotifReadIds", readIds);
+        } catch (Exception ignored) {}
         return "ok";
     }
 }

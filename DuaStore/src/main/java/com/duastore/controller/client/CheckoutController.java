@@ -17,6 +17,7 @@ import com.duastore.service.ShippingFeeService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.OrderService;
+import com.duastore.service.NotificationHelper;
 import com.duastore.util.PriceUtils;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,7 @@ public class CheckoutController {
     private final EmailService emailService;
     private final PaymentService paymentService;
     private final OrderStatusLogService orderStatusLogService;
+    private final NotificationHelper notificationHelper;
 
     public CheckoutController(OrderService orderService, CartService cartService,
                               AddressRepository addressRepository,
@@ -57,7 +59,8 @@ public class CheckoutController {
                               ShippingFeeService shippingFeeService,
                               EmailService emailService,
                               PaymentService paymentService,
-                              OrderStatusLogService orderStatusLogService) {
+                              OrderStatusLogService orderStatusLogService,
+                              NotificationHelper notificationHelper) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -67,6 +70,7 @@ public class CheckoutController {
         this.emailService = emailService;
         this.paymentService = paymentService;
         this.orderStatusLogService = orderStatusLogService;
+        this.notificationHelper = notificationHelper;
     }
 
     private Integer getUserId() {
@@ -181,6 +185,17 @@ public class CheckoutController {
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
             );
 
+            try {
+                notificationHelper.notifyStaff(
+                    "Khách hàng đã đặt đơn hàng mới: " + order.getMaDon(),
+                    "ORDER", order.getId(),
+                    "/admin/don-hang",
+                    order.getMaDon()
+                );
+            } catch (Exception e) {
+                // notifyStaff đã log lỗi, không break flow chính
+            }
+
             User finalUser = order.getUser();
             String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "COD";
             String finalGh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
@@ -283,17 +298,27 @@ public class CheckoutController {
             res.put("message", "Dữ liệu không hợp lệ");
             return ResponseEntity.ok(res);
         }
-        try {
-            Order order = orderService.processCheckout(
-                    userId, req.getAddressId(), req.getPhuongThucTT(),
-                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
-            );
-            if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
-                orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
-            }
-            res.put("success", true);
-            res.put("orderId", order.getId());
-            res.put("maDon", order.getMaDon());
+            try {
+                Order order = orderService.processCheckout(
+                        userId, req.getAddressId(), req.getPhuongThucTT(),
+                        req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+                );
+                if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                    orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
+                }
+
+                try {
+                    notificationHelper.notifyStaff(
+                        "Khách hàng vừa đặt đơn hàng mới: " + order.getMaDon(),
+                        "ORDER", order.getId(),
+                        "/admin/don-hang/" + order.getId(),
+                        order.getMaDon()
+                    );
+                } catch (Exception ignored) {}
+
+                res.put("success", true);
+                res.put("orderId", order.getId());
+                res.put("maDon", order.getMaDon());
         } catch (RuntimeException e) {
             res.put("success", false);
             res.put("message", e.getMessage());
@@ -373,6 +398,15 @@ public class CheckoutController {
             }
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
             orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+
+            try {
+                notificationHelper.notifyStaff(
+                    "Khách hàng đã xác nhận thanh toán cho đơn hàng: " + order.getMaDon(),
+                    "ORDER", order.getId(),
+                    "/admin/don-hang/" + order.getId(),
+                    order.getMaDon()
+                );
+            } catch (Exception ignored) {}
 
                 User finalUser = order.getUser();
                 String finalTt2 = "Chuyển khoản";

@@ -1,27 +1,15 @@
 package com.duastore.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "CartItems")
-public class CartItem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Table(name = "SavedCartItems")
+public class SavedCartItem {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(nullable = false)
@@ -36,11 +24,11 @@ public class CartItem {
     @Column(nullable = false)
     private Integer soLuong = 1;
 
-    @Column(precision = 12, scale = 0)
-    private BigDecimal giaLucThem;
+    @Column(nullable = false)
+    private BigDecimal giaLuu;
 
     @Column(updatable = false)
-    private LocalDateTime ngayThem;
+    private LocalDateTime ngayLuu;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "productId", insertable = false, updatable = false)
@@ -52,8 +40,6 @@ public class CartItem {
 
     @PrePersist
     protected void onCreate() {
-        if (ngayThem == null) {
-            ngayThem = LocalDateTime.now();
-        }
+        if (ngayLuu == null) ngayLuu = LocalDateTime.now();
     }
 }
