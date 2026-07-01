@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý chiến dịch — Form</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/chien-dich}">Chiến dịch</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4><i class="bi bi-megaphone me-2"></i>
+                <span th:if="${campaign.id != null}">Sửa chiến dịch</span>
+                <span th:unless="${campaign.id != null}">Thêm chiến dịch</span>
+            </h4>
+        </div>
+        <div class="adm-form-wrap">
+            <form th:action="@{${formAction}}" th:object="${campaign}" method="post" class="row g-3" enctype="multipart/form-data">
+                <input type="hidden" th:field="*{id}" />
+                <div class="col-md-6">
+                    <label class="form-label">Tên chiến dịch <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{name}" class="form-control" required />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select th:field="*{status}" class="form-select">
+                        <option value="DRAFT">Nháp</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="PAUSED">Tạm dừng</option>
+                        <option value="ENDED">Đã kết thúc</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Banner</label>
+                    <input type="file" name="bannerFile" class="form-control" accept="image/*" />
+                    <input type="hidden" th:field="*{banner}" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                    <input type="datetime-local" name="startDate"
+                           th:value="${campaign.startDate != null} ? ${#temporals.format(campaign.startDate, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                           class="form-control" required />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Ngày kết thúc</label>
+                    <input type="datetime-local" name="endDate"
+                           th:value="${campaign.endDate != null} ? ${#temporals.format(campaign.endDate, 'yyyy-MM-dd''T''HH:mm')} : ''"
+                           class="form-control" />
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    </body>
+</html>

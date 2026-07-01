@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.Category;
 import com.duastore.model.FlashSale;
 import com.duastore.model.Product;
@@ -10,9 +11,13 @@ import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.UserVoucherRepository;
+import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
+import com.duastore.service.admin.AdminCampaignService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +41,9 @@ public class HomeController {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final BannerService bannerService;
+    private final AdminCampaignService campaignService;
+    private final UserVoucherRepository userVoucherRepository;
+    private final SecurityUtil securityUtil;
 
     public HomeController(ProductService productService,
                           CategoryService categoryService,
@@ -44,7 +52,10 @@ public class HomeController {
                           PromotionRepository promotionRepository,
                           ProductRepository productRepository,
                           CategoryRepository categoryRepository,
-                          BannerService bannerService) {
+                          BannerService bannerService,
+                          AdminCampaignService campaignService,
+                          UserVoucherRepository userVoucherRepository,
+                          SecurityUtil securityUtil) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -53,11 +64,29 @@ public class HomeController {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.bannerService = bannerService;
+        this.campaignService = campaignService;
+        this.userVoucherRepository = userVoucherRepository;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "Trang chủ");
+
+        // Active campaigns for homepage
+        model.addAttribute("activeCampaigns", campaignService.getActiveCampaigns());
+
+        // Featured promotions
+        List<Promotion> featuredPromos = promotionRepository.findFeaturedPromotions(LocalDateTime.now(),
+                PageRequest.of(0, 6));
+        model.addAttribute("featuredPromotions", featuredPromos);
+
+        // Available voucher count for logged-in user
+        Integer currentUserId = null;
+        try { currentUserId = securityUtil.getCurrentUserId(); } catch (Exception ignored) {}
+        if (currentUserId != null) {
+            model.addAttribute("voucherCount", userVoucherRepository.countByUserIdAndStatus(currentUserId, VoucherStatus.AVAILABLE));
+        }
 
         // Active banners for hero section
         model.addAttribute("banners", bannerService.getActiveForClient());
