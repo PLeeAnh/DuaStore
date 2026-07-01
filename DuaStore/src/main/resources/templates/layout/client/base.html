@@ -161,6 +161,10 @@
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
                                     <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + 'đ'">0đ</div>
+                                    <button class="btn btn-sm btn-outline-danger mt-1" style="font-size:0.75rem;padding:2px 8px;"
+                                            th:onclick="'addToCartFromWishlist(' + ${item.productId} + ')'">
+                                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                    </button>
                                 </div>
                                 
         </div>
@@ -197,7 +201,7 @@
                                     <div class="d-flex align-items-center">
                                         <div class="input-group input-group-sm" style="width: 85px;">
                                             <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">-</button>
-                                            <span class="form-control text-center py-0 px-1" th:id="'popup-qty-' + ${uid}" th:text="${item.soLuong}">1</span>
+                                            <input class="form-control text-center py-0 px-1" type="number" min="1" th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}" th:attr="onchange='setPopupQty(' + ${uid} + ')'" style="width:40px;" />
                                             <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
                                         </div>
                                         
@@ -239,10 +243,13 @@
                                 <p class="mt-2 mb-0">Chưa có thông báo</p>
                             </div>
                             <div th:each="n : ${recentNotifs}" th:classappend="${n.linkType != null} ? 'cursor-pointer' : ''">
-                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item">
+                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item" th:onclick="'markNotifRead(' + ${n.id} + ')'">
                                     <div class="d-flex align-items-start gap-2">
                                         <span th:if="${n.linkType == 'PRODUCT'}" class="notif-icon bg-info-subtle text-info flex-shrink-0">
                                             <i class="bi bi-box-seam"></i>
+                                        </span>
+                                        <span th:if="${n.linkType == 'ORDER'}" class="notif-icon bg-info-subtle text-info flex-shrink-0">
+                                            <i class="bi bi-bag-check"></i>
                                         </span>
                                         <span th:if="${n.linkType == 'PROMOTION'}" class="notif-icon bg-warning-subtle text-warning flex-shrink-0">
                                             <i class="bi bi-tag"></i>
@@ -997,6 +1004,58 @@ function toggleNotifPopup() {
             .catch(() => { badge.classList.add('d-none'); });
     }
 }
+function markNotifRead(id) {
+    fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
+        .catch(function() {});
+}
+var _lastNotifCount = 0;
+function pollNotifications() {
+    fetch('/api/thong-bao')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var badge = document.getElementById('notifBadge');
+            var count = data.count || 0;
+            if (badge) {
+                if (count > 0) { badge.textContent = count; badge.classList.remove('d-none'); }
+                else { badge.classList.add('d-none'); }
+            }
+            if (count > _lastNotifCount && _lastNotifCount > 0) {
+                var newNotifs = (data.notifications || []).filter(function(n) { return !n.read; });
+                if (newNotifs.length > 0) showToastNotification(newNotifs[0]);
+            }
+            _lastNotifCount = count;
+        })
+        .catch(function() {});
+}
+function showToastNotification(notif) {
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;background:#fff;border:1px solid #e0e0e0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:14px 18px;max-width:340px;animation:slideIn .3s ease;cursor:pointer;';
+    var icon = notif.linkType === 'ORDER' ? 'bi-bag-check' : notif.linkType === 'PRODUCT' ? 'bi-box-seam' : 'bi-megaphone';
+    toast.innerHTML = '<div style="display:flex;align-items-start;gap:10px;"><span style="width:32px;height:32px;border-radius:50%;background:#e7f1ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi ' + icon + '" style="color:#0d6efd;"></i></span><div style="flex:1;min-width:0;"><p style="margin:0;font-size:.85rem;color:#333;line-height:1.3;">' + (notif.content || '') + '</p><small style="color:#999;font-size:.72rem;">Vừa xong</small></div></div>';
+    toast.onclick = function() { if (notif.linkUrl) window.location.href = notif.linkUrl; };
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 5000);
+}
+function groupNotifications(notifs) {
+    var groups = {};
+    notifs.forEach(function(n) {
+        var match = n.content && n.content.match(/đã chuyển trạng thái.*?đơn hàng/);
+        var key = match ? 'STATUS' : (n.content || '');
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(n);
+    });
+    var result = [];
+    Object.keys(groups).forEach(function(key) {
+        if (key === 'STATUS' && groups[key].length > 1) {
+            var first = groups[key][0];
+            result.push({ id: first.id, content: groups[key].length + ' đơn hàng đã chuyển trạng thái', linkType: first.linkType, linkUrl: first.linkUrl, createdAt: first.createdAt, read: first.read });
+        } else {
+            groups[key].forEach(function(n) { result.push(n); });
+        }
+    });
+    return result;
+}
+setInterval(pollNotifications, 15000);
 </script>
 
 <th:block layout:fragment="extra-script"></th:block>

@@ -11,7 +11,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CartService {
@@ -49,6 +52,7 @@ public class CartService {
         }
 
         int finalQty = Math.min(qty, variant.getSoLuongTon());
+        BigDecimal currentPrice = variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : variant.getGiaGoc();
         CartItem item = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
         if (item == null) {
             item = new CartItem();
@@ -56,6 +60,7 @@ public class CartService {
             item.setProductId(variant.getProductId());
             item.setVariantId(variantId);
             item.setSoLuong(finalQty);
+            item.setGiaLucThem(currentPrice);
         } else {
             item.setSoLuong(Math.min(item.getSoLuong() + finalQty, variant.getSoLuongTon()));
         }
@@ -172,6 +177,8 @@ public class CartService {
         dto.setSoLuong(item.getSoLuong());
         dto.setSoLuongTon(variant.getSoLuongTon());
         dto.setThanhTien(price.multiply(BigDecimal.valueOf(item.getSoLuong())));
+        dto.setGiaLucThem(item.getGiaLucThem());
+        dto.setGiaThayDoi(item.getGiaLucThem() != null && price.compareTo(item.getGiaLucThem()) != 0);
         dto.setNgayThem(item.getNgayThem());
         return dto;
     }
@@ -191,5 +198,72 @@ public class CartService {
         static CartResult fail(String message) {
             return new CartResult(false, message, 0);
         }
+    }
+
+    public List<Product> getSuggestions(Integer userId, int limit) {
+        List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId);
+        if (cartItems.isEmpty()) {
+            return productRepository.findByIsFeaturedTrueAndIsActiveTrue().stream()
+                    .filter(p -> p.getTrangThaiSanPham().equals("DANG_BAN"))
+                    .limit(limit)
+                    .collect(Collectors.toList());
+        }
+        Set<Integer> categoryIds = cartItems.stream()
+                .map(ci -> {
+                    Product p = ci.getProduct();
+                    return p != null ? p.getDanhMucId() : null;
+                })
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Set<Integer> productIds = cartItems.stream()
+                .map(CartItem::getProductId)
+                .collect(Collectors.toSet());
+        List<Product> related = productRepository.findByDanhMucIdInAndIsActiveTrue(new ArrayList<>(categoryIds));
+        return related.stream()
+                .filter(p -> !productIds.contains(p.getId()))
+                .filter(p -> p.getTrangThaiSanPham().equals("DANG_BAN"))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getStockWarnings(Integer userId) {
+        List<String> warnings = new ArrayList<>();
+        List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId);
+        for (CartItem ci : cartItems) {
+            ProductVariant v = ci.getVariant();
+            if (v == null) continue;
+            if (!v.isActive() || v.getSoLuongTon() <= 0) {
+                warnings.add(ci.getProduct().getTenSanPham() + " (" + v.getTenBienThe() + ") đã hết hàng");
+            } else if (ci.getSoLuong() > v.getSoLuongTon()) {
+                warnings.add(ci.getProduct().getTenSanPham() + " (" + v.getTenBienThe() + ") chỉ còn " + v.getSoLuongTon() + " trong kho");
+            }
+        }
+        return warnings;
+    }
+
+    public boolean hasOutOfStockItems(Integer userId) {
+        return cartItemRepository.findByUserIdOrderByNgayThemDesc(userId).stream()
+                .anyMatch(ci -> {
+                    ProductVariant v = ci.getVariant();
+                    return v == null || !v.isActive() || v.getSoLuongTon() <= 0;
+                });
+    }
+
+    public boolean hasStockWarnings(Integer userId) {
+        return cartItemRepository.findByUserIdOrderByNgayThemDesc(userId).stream()
+                .anyMatch(ci -> {
+                    ProductVariant v = ci.getVariant();
+                    return v != null && ci.getSoLuong() > v.getSoLuongTon() && v.getSoLuongTon() > 0;
+                });
+    }
+
+    public boolean hasPriceChanges(Integer userId) {
+        return cartItemRepository.findByUserIdOrderByNgayThemDesc(userId).stream()
+                .anyMatch(ci -> {
+                    ProductVariant v = ci.getVariant();
+                    if (v == null || ci.getGiaLucThem() == null) return false;
+                    BigDecimal currentPrice = v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc();
+                    return currentPrice.compareTo(ci.getGiaLucThem()) != 0;
+                });
     }
 }
