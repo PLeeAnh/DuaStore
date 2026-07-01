@@ -81,4 +81,8 @@ public final class PermissionEnum {
     // CUSTOMER
     public static final String CUSTOMER_READ     = "CUSTOMER_READ";
     public static final String CUSTOMER_UPDATE   = "CUSTOMER_UPDATE";
+
+    // HOMEPAGE
+    public static final String HOMEPAGE_READ     = "HOMEPAGE_READ";
+    public static final String HOMEPAGE_UPDATE   = "HOMEPAGE_UPDATE";
 }

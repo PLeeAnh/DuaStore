@@ -16,8 +16,6 @@ public class NotificationHelper {
         this.notificationRepository = notificationRepository;
     }
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationHelper.class);
-
     public void notifyAll(String content, String linkType, Integer linkId, String linkUrl, String linkLabel) {
         try {
             Notification n = new Notification();
