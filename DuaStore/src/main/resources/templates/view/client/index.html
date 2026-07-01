@@ -112,6 +112,23 @@
                         </div>
                 </section>
 
+                <!-- CAMPAIGN BANNERS -->
+                <section class="sr-up" th:if="${not #lists.isEmpty(activeCampaigns)}">
+                    <div class="row g-3">
+                        <div th:each="c : ${activeCampaigns}" class="col-md-6">
+                            <a th:href="@{/khuyen-mai}" class="d-block rounded overflow-hidden shadow-sm">
+                                <img th:if="${c.banner != null}" th:src="@{${c.banner}}" alt=""
+                                     class="w-100" style="height:180px;object-fit:cover;border-radius:12px;" />
+                                <div th:unless="${c.banner != null}"
+                                     class="d-flex align-items-center justify-content-center bg-light"
+                                     style="height:180px;border-radius:12px;color:#999;">
+                                    <span th:text="${c.name}" class="fw-bold"></span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- KHUYẾN MÃI -->
                 <section class="sr-up" th:if="${not #lists.isEmpty(activePromotions)}">
                     <div class="ds-section-header">
@@ -156,6 +173,34 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+                </section>
+
+                <!-- FEATURED PROMOTIONS -->
+                <section class="sr-up" th:if="${not #lists.isEmpty(featuredPromotions)}">
+                    <div class="ds-section-header">
+                        <h2 class="ds-section-title">Khuyến mãi nổi bật</h2>
+                        <a th:href="@{/khuyen-mai}" class="ds-section-link">Xem tất cả</a>
+                    </div>
+                    <div class="row g-3">
+                        <div th:each="p : ${featuredPromotions}" class="col-md-4 col-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center p-3">
+                                    <div class="text-danger fw-bold fs-5 mb-1">
+                                        <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}" th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                                        <span th:if="${'SO_TIEN'.equals(p.loaiGiam)}" th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                    </div>
+                                    <p class="small mb-1" th:text="${p.tenChuongTrinh}"></p>
+                                    <code class="small" th:text="${p.maCode}"></code>
+                                    <div class="mt-2 d-flex gap-1 justify-content-center">
+                                        <button class="btn btn-sm btn-outline-danger py-0 px-1 copy-promo-btn" style="font-size:.7rem"
+                                                th:data-code="${p.maCode}" type="button">Copy</button>
+                                        <button class="btn btn-sm btn-danger py-0 px-1" style="font-size:.7rem"
+                                                type="button" onclick="saveVoucher(${p.id})">Lưu</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -396,6 +441,14 @@
                     }.bind(this)).catch(function() {});
                 });
             });
+            function saveVoucher(promotionId) {
+                fetch('/api/vi-voucher/luu/' + promotionId, { method: 'POST' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        alert(data.message);
+                        if (data.success) location.reload();
+                    });
+            }
         </script>
     </body>
 </html>

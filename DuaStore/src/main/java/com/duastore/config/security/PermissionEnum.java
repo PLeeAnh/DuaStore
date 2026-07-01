@@ -85,4 +85,10 @@ public final class PermissionEnum {
     // HOMEPAGE
     public static final String HOMEPAGE_READ     = "HOMEPAGE_READ";
     public static final String HOMEPAGE_UPDATE   = "HOMEPAGE_UPDATE";
+
+    // CAMPAIGN
+    public static final String CAMPAIGN_CREATE  = "CAMPAIGN_CREATE";
+    public static final String CAMPAIGN_READ    = "CAMPAIGN_READ";
+    public static final String CAMPAIGN_UPDATE  = "CAMPAIGN_UPDATE";
+    public static final String CAMPAIGN_DELETE  = "CAMPAIGN_DELETE";
 }

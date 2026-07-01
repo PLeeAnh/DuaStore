@@ -1,6 +1,8 @@
 package com.duastore.controller.admin;
 
 import com.duastore.model.Promotion;
+import com.duastore.model.PromotionCampaign;
+import com.duastore.repository.PromotionCampaignRepository;
 import com.duastore.service.admin.AdminPromotionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -21,9 +23,12 @@ import java.time.format.DateTimeParseException;
 public class AdminPromotionController {
 
     private final AdminPromotionService adminPromotionService;
+    private final PromotionCampaignRepository campaignRepository;
 
-    public AdminPromotionController(AdminPromotionService adminPromotionService) {
+    public AdminPromotionController(AdminPromotionService adminPromotionService,
+                                    PromotionCampaignRepository campaignRepository) {
         this.adminPromotionService = adminPromotionService;
+        this.campaignRepository = campaignRepository;
     }
 
     @GetMapping
@@ -62,6 +67,7 @@ public class AdminPromotionController {
         model.addAttribute("promotion", new Promotion());
         model.addAttribute("formAction", "/admin/khuyen-mai/them-moi");
         model.addAttribute("title", "khuyen-mai");
+        model.addAttribute("campaigns", campaignRepository.findAllByOrderByStartDateDesc());
         return "view/admin/promotion/promotion-form";
     }
 
@@ -70,7 +76,11 @@ public class AdminPromotionController {
     public String create(@Valid @ModelAttribute Promotion promotion, BindingResult result,
                           @RequestParam(required = false) String tuNgay,
                           @RequestParam(required = false) String denNgay,
+                          @RequestParam(required = false) Integer campaignId,
                           Model model, RedirectAttributes ra) {
+        if (campaignId != null) {
+            campaignRepository.findById(campaignId).ifPresent(promotion::setCampaign);
+        }
         if (result.hasErrors()) {
             model.addAttribute("title", "khuyen-mai");
             model.addAttribute("promotion", promotion);
@@ -133,6 +143,7 @@ public class AdminPromotionController {
             model.addAttribute("promotion", p);
             model.addAttribute("formAction", "/admin/khuyen-mai/sua/" + id);
             model.addAttribute("title", "khuyen-mai");
+            model.addAttribute("campaigns", campaignRepository.findAllByOrderByStartDateDesc());
             return "view/admin/promotion/promotion-form";
         } catch (Exception e) {
             return "redirect:/admin/khuyen-mai";
@@ -144,7 +155,13 @@ public class AdminPromotionController {
     public String edit(@PathVariable Integer id, @Valid @ModelAttribute Promotion promotion, BindingResult result,
                         @RequestParam(required = false) String tuNgay,
                         @RequestParam(required = false) String denNgay,
+                        @RequestParam(required = false) Integer campaignId,
                         Model model, RedirectAttributes ra) {
+        if (campaignId != null) {
+            campaignRepository.findById(campaignId).ifPresent(promotion::setCampaign);
+        } else {
+            promotion.setCampaign(null);
+        }
         if (result.hasErrors()) {
             model.addAttribute("title", "khuyen-mai");
             model.addAttribute("promotion", promotion);

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý chiến dịch</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Chiến dịch</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4><i class="bi bi-megaphone me-2"></i>Chiến dịch</h4>
+            <a th:href="@{/admin/chien-dich/them-moi}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Thêm mới
+            </a>
+        </div>
+        <form th:action="@{/admin/chien-dich}" method="get" class="row g-2 mb-3">
+            <div class="col-md-4">
+                <input type="text" name="keyword" class="form-control form-control-sm" placeholder="Tìm tên chiến dịch..."
+                       th:value="${keyword}" />
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="DRAFT" th:selected="${status != null and status.name() == 'DRAFT'}">Nháp</option>
+                    <option value="ACTIVE" th:selected="${status != null and status.name() == 'ACTIVE'}">Hoạt động</option>
+                    <option value="PAUSED" th:selected="${status != null and status.name() == 'PAUSED'}">Tạm dừng</option>
+                    <option value="ENDED" th:selected="${status != null and status.name() == 'ENDED'}">Đã kết thúc</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-search me-1"></i>Tìm</button>
+            </div>
+            <div class="col-md-2">
+                <a th:href="@{/admin/chien-dich}" class="btn btn-sm btn-outline-secondary w-100">Xóa lọc</a>
+            </div>
+        </form>
+        <div class="adm-table-wrap">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tên chiến dịch</th>
+                        <th>Banner</th>
+                        <th>Ngày BĐ</th>
+                        <th>Ngày KT</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c, iter : ${campaigns}">
+                        <td th:text="${iter.index + 1 + currentPage * pageSize}"></td>
+                        <td th:text="${c.name}"></td>
+                        <td>
+                            <img th:if="${c.banner != null}" th:src="@{${c.banner}}" alt="" style="height:40px;width:auto;border-radius:4px;" />
+                            <span th:unless="${c.banner != null}" class="text-muted">—</span>
+                        </td>
+                        <td th:text="${#temporals.format(c.startDate, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${c.endDate != null} ? ${#temporals.format(c.endDate, 'dd/MM/yyyy HH:mm')} : '—'"></td>
+                        <td>
+                            <span th:if="${c.status.name() == 'ACTIVE'}" class="badge bg-success">Hoạt động</span>
+                            <span th:if="${c.status.name() == 'DRAFT'}" class="badge bg-secondary">Nháp</span>
+                            <span th:if="${c.status.name() == 'PAUSED'}" class="badge bg-warning text-dark">Tạm dừng</span>
+                            <span th:if="${c.status.name() == 'ENDED'}" class="badge bg-dark">Đã kết thúc</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/chien-dich/sua/{id}(id=${c.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/admin/chien-dich/{id}/pause(id=${c.id})}" method="post" style="display:inline">
+                                <button type="submit" class="btn btn-sm btn-outline-warning me-1"
+                                        th:title="${c.status.name() == 'PAUSED' ? 'Tiếp tục' : 'Tạm dừng'}">
+                                    <i th:if="${c.status.name() == 'PAUSED'}" class="bi bi-play-fill"></i>
+                                    <i th:unless="${c.status.name() == 'PAUSED'}" class="bi bi-pause-fill"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/chien-dich/{id}/clone(id=${c.id})}" method="post" style="display:inline">
+                                <button type="submit" class="btn btn-sm btn-outline-info me-1" title="Nhân bản">
+                                    <i class="bi bi-copy"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/chien-dich/xoa/{id}(id=${c.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Kết thúc chiến dịch này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(campaigns)}">
+                        <td colspan="7" class="text-muted text-center py-4">Chưa có dữ liệu</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+    </div>
+    </body>
+</html>

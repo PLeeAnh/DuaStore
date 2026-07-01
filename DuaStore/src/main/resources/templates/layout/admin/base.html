@@ -72,6 +72,12 @@
             </a>
 
             <div class="adm-nav-section">Kinh doanh</div>
+            <a class="adm-nav-link" th:href="@{/admin/chien-dich}"
+               th:if="${userPermissions.contains('CAMPAIGN_READ')}"
+               th:classappend="${title == 'chien-dich' ? ' active' : ''}">
+                <i class="bi bi-megaphone"></i>
+                <span>Chiến dịch</span>
+            </a>
             <a class="adm-nav-link" th:href="@{/admin/don-hang}"
                th:if="${userPermissions.contains('ORDER_READ')}"
                th:classappend="${title == 'don-hang' ? ' active' : ''}">
