@@ -24,5 +24,7 @@ public class CartItemDTO {
     private Integer soLuong;
     private Integer soLuongTon;
     private BigDecimal thanhTien;
+    private BigDecimal giaLucThem;
+    private boolean giaThayDoi;
     private LocalDateTime ngayThem;
 }

@@ -197,7 +197,7 @@
                                 <p class="mt-2 mb-0">Chưa có thông báo</p>
                             </div>
                             <div th:each="n : ${staffNotifs}" th:classappend="${n.linkType != null} ? 'cursor-pointer' : ''">
-                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item">
+                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item" th:onclick="'markStaffNotifRead(' + ${n.id} + ')'">
                                     <div class="d-flex align-items-start gap-2 px-3 py-2">
                                         <span th:if="${n.linkType == 'ORDER'}" class="notif-icon bg-info-subtle text-info flex-shrink-0">
                                             <i class="bi bi-bag-check"></i>
@@ -400,12 +400,24 @@ function toggleStaffNotifPopup() {
     if (!isVisible) {
         var badge = document.getElementById('staffNotifBadge');
         if (badge && !badge.classList.contains('d-none')) {
-            fetch('/admin/thong-bao/api/doc-tat-ca', { method: 'POST' })
+            var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
+            var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+            var headers = { 'Content-Type': 'application/json' };
+            if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
+            fetch('/admin/thong-bao/api/doc-tat-ca', { method: 'POST', headers: headers })
                 .then(function(r) { return r.text(); })
                 .then(function() { badge.classList.add('d-none'); })
                 .catch(function() { badge.classList.add('d-none'); });
         }
     }
+}
+function markStaffNotifRead(id) {
+    var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
+    var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+    var headers = { 'Content-Type': 'application/json' };
+    if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
+    fetch('/admin/thong-bao/api/doc/' + id, { method: 'POST', headers: headers })
+        .catch(function() {});
 }
 document.addEventListener('click', function(e) {
     var popup = document.getElementById('staffNotifPopup');

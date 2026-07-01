@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.List;
+import java.util.Set;
 
 @ControllerAdvice(basePackages = "com.duastore.controller.client")
 public class ClientNavbarAdvice {
@@ -33,6 +34,7 @@ public class ClientNavbarAdvice {
         this.notificationRepository = notificationRepository;
     }
 
+    @SuppressWarnings("unchecked")
     @ModelAttribute
     public void addGlobalAttributes(Model model, HttpSession session) {
         model.addAttribute("myCart", java.util.List.of());
@@ -41,17 +43,25 @@ public class ClientNavbarAdvice {
 
         try {
             Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
+            Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
+            final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
             List<Notification> allNotifs = notificationRepository.findCustomerNotifications();
 
             if (readMaxId != null && readMaxId > 0) {
                 List<Notification> unread = allNotifs.stream()
-                    .filter(n -> n.getId() > readMaxId)
+                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
                     .toList();
                 model.addAttribute("recentNotifs", unread);
-                model.addAttribute("notifCount", notificationRepository.countUnreadCustomerNotifications(readMaxId));
+                long count = allNotifs.stream()
+                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                    .count();
+                model.addAttribute("notifCount", count);
             } else {
-                model.addAttribute("recentNotifs", allNotifs);
-                model.addAttribute("notifCount", notificationRepository.countCustomerNotifications());
+                List<Notification> unread = allNotifs.stream()
+                    .filter(n -> !readIds.contains(n.getId()))
+                    .toList();
+                model.addAttribute("recentNotifs", unread);
+                model.addAttribute("notifCount", (long) unread.size());
             }
         } catch (Exception e) {
             log.warn("Loi lay thong bao: {}", e.getMessage());

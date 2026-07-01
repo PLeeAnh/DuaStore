@@ -74,7 +74,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedHandler())
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/auth/**", "/admin/don-hang/api/**")
+                .ignoringRequestMatchers("/api/auth/**", "/admin/don-hang/api/**", "/admin/thong-bao/api/**", "/api/thong-bao/**", "/api/cart/**")
             );
 
         return http.build();
