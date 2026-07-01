@@ -214,15 +214,6 @@ public class CheckoutController {
             emailThread.setDaemon(true);
             emailThread.start();
 
-            try {
-                notificationHelper.notifyStaff(
-                    "Khách hàng vừa đặt đơn hàng mới: " + order.getMaDon(),
-                    "ORDER", order.getId(),
-                    "/admin/don-hang/" + order.getId(),
-                    order.getMaDon()
-                );
-            } catch (Exception ignored) {}
-
             if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
                 return "redirect:/checkout/chuyen-khoan/" + order.getId();
             }
@@ -296,17 +287,27 @@ public class CheckoutController {
             res.put("message", "Dữ liệu không hợp lệ");
             return ResponseEntity.ok(res);
         }
-        try {
-            Order order = orderService.processCheckout(
-                    userId, req.getAddressId(), req.getPhuongThucTT(),
-                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
-            );
-            if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
-                orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
-            }
-            res.put("success", true);
-            res.put("orderId", order.getId());
-            res.put("maDon", order.getMaDon());
+            try {
+                Order order = orderService.processCheckout(
+                        userId, req.getAddressId(), req.getPhuongThucTT(),
+                        req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+                );
+                if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                    orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
+                }
+
+                try {
+                    notificationHelper.notifyStaff(
+                        "Khách hàng vừa đặt đơn hàng mới: " + order.getMaDon(),
+                        "ORDER", order.getId(),
+                        "/admin/don-hang/" + order.getId(),
+                        order.getMaDon()
+                    );
+                } catch (Exception ignored) {}
+
+                res.put("success", true);
+                res.put("orderId", order.getId());
+                res.put("maDon", order.getMaDon());
         } catch (RuntimeException e) {
             res.put("success", false);
             res.put("message", e.getMessage());
