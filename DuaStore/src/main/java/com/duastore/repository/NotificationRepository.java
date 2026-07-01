@@ -36,4 +36,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF' AND n.id > :readMaxId")
     long countUnreadStaffNotifications(Integer readMaxId);
+
+    List<Notification> findByIsActiveTrueAndIdGreaterThanOrderByCreatedAtDesc(Integer id);
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.List;
+import java.util.Set;
 
 @ControllerAdvice(basePackages = "com.duastore.controller.admin")
 public class AdminNavbarAdvice {
@@ -22,21 +23,30 @@ public class AdminNavbarAdvice {
         this.notificationRepository = notificationRepository;
     }
 
+    @SuppressWarnings("unchecked")
     @ModelAttribute
     public void addStaffNotifications(Model model, HttpSession session) {
         try {
             Integer readMaxId = (Integer) session.getAttribute("staffNotifReadMaxId");
+            Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("staffNotifReadIds");
+            final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
             List<Notification> allStaffNotifs = notificationRepository.findStaffNotifications();
 
             if (readMaxId != null && readMaxId > 0) {
                 List<Notification> unread = allStaffNotifs.stream()
-                    .filter(n -> n.getId() > readMaxId)
+                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
                     .toList();
                 model.addAttribute("staffNotifs", unread);
-                model.addAttribute("staffNotifCount", notificationRepository.countUnreadStaffNotifications(readMaxId));
+                long count = allStaffNotifs.stream()
+                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                    .count();
+                model.addAttribute("staffNotifCount", count);
             } else {
-                model.addAttribute("staffNotifs", allStaffNotifs);
-                model.addAttribute("staffNotifCount", notificationRepository.countStaffNotifications());
+                List<Notification> unread = allStaffNotifs.stream()
+                    .filter(n -> !readIds.contains(n.getId()))
+                    .toList();
+                model.addAttribute("staffNotifs", unread);
+                model.addAttribute("staffNotifCount", (long) unread.size());
             }
         } catch (Exception e) {
             log.warn("Loi lay staff notification: {}", e.getMessage());
