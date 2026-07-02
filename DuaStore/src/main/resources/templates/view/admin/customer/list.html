@@ -30,13 +30,16 @@
                     <th>Đơn hàng</th>
                     <th>Ngày tạo</th>
                     <th>Trạng thái</th>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="customer : ${customers}">
                     <td><span class="badge text-bg-light" th:text="${customer.id}">1</span></td>
                     <td>
-                        <strong class="d-block" th:text="${customer.hoTen}">Tên khách hàng</strong>
+                        <a th:href="@{/admin/khach-hang/{id}(id=${customer.id})}" class="text-decoration-none">
+                            <strong class="d-block" th:text="${customer.hoTen}">Tên khách hàng</strong>
+                        </a>
                         <small class="text-muted" th:text="'@' + ${customer.username}">@username</small>
                     </td>
                     <td>
@@ -51,9 +54,14 @@
                         <span th:if="${customer.isActive}" class="badge bg-success">Hoạt động</span>
                         <span th:if="${!customer.isActive}" class="badge bg-secondary">Khóa</span>
                     </td>
+                    <td>
+                        <a th:href="@{/admin/khach-hang/{id}(id=${customer.id})}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(customers)}">
-                    <td colspan="7" class="text-center text-muted py-5">
+                    <td colspan="8" class="text-center text-muted py-5">
                         <i class="bi bi-person-lines-fill fs-2 d-block mb-2"></i>
                         Chưa có khách hàng nào.
                     </td>

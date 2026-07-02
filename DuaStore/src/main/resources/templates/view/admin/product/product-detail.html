@@ -105,11 +105,11 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Giá thấp nhất</span>
-                            <span class="fw-semibold text-primary" th:text="${#numbers.formatDecimal(minPrice, 0, 0)} + '₫'">0₫</span>
+                            <span class="fw-semibold text-primary" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
                         </div>
                         <div class="d-flex justify-content-between">
                             <span class="text-muted">Giá cao nhất</span>
-                            <span class="fw-semibold" th:text="${#numbers.formatDecimal(maxPrice, 0, 0)} + '₫'">0₫</span>
+                            <span class="fw-semibold" th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
                         </div>
                     </div>
                 </div>
@@ -136,9 +136,9 @@
                             </div>
                             <div class="adm-variant-meta">Dung tích: <span th:text="${v.dungTich != null ? v.dungTich + 'ml' : '—'}">—</span></div>
                             <div class="adm-variant-meta">SKU: #<span th:text="${v.id}">0</span></div>
-                            <div class="adm-variant-price mt-2" th:text="${#numbers.formatDecimal(v.giaGoc, 0, 0)} + '₫'">0₫</div>
+                            <div class="adm-variant-price mt-2" th:text="${#numbers.formatDecimal(v.giaGoc, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</div>
                             <div class="adm-variant-meta" th:if="${v.giaKhuyenMai != null}">
-                                <s class="text-muted" th:text="${#numbers.formatDecimal(v.giaKhuyenMai, 0, 0)} + '₫'">0₫</s>
+                                <s class="text-muted" th:text="${#numbers.formatDecimal(v.giaKhuyenMai, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</s>
                             </div>
                             <div class="adm-variant-stock mt-1">
                                 Tồn kho: <strong th:text="${v.soLuongTon}" th:classappend="${v.soLuongTon <= 20 ? 'text-danger' : ''}">0</strong>

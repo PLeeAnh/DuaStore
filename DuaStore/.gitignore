@@ -60,3 +60,13 @@ desktop.ini
 .env.local
 application-prod.properties
 application-local.properties
+application-secrets.properties
+
+# Documentation for AI
+AI_RULES.md
+API_STANDARDS.md
+BUSINESS_RULES.md
+CODING_STANDARDS.md
+DATABASE_STANDARDS.md
+PROJECT_STRUCTURE.md
+UI_GUIDELINES.md

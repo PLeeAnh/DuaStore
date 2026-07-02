@@ -17,25 +17,50 @@
                 <i class="bi bi-plus-lg me-1"></i>Thêm mới
             </a>
         </div>
-        <form th:action="@{/admin/khuyen-mai}" method="get" class="row g-2 mb-3">
-            <div class="col-md-4">
-                <input type="text" name="keyword" class="form-control form-control-sm" placeholder="Tìm tên CT hoặc mã..."
-                       th:value="${keyword}" />
+
+        <!-- Stat cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-percent"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalPromotions}">0</div>
+                            <div class="adm-stat-label">Tổng CT khuyến mãi</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-3">
-                <select name="isActive" class="form-select form-select-sm">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="true" th:selected="${isActive != null and isActive}">Hoạt động</option>
-                    <option value="false" th:selected="${isActive != null and !isActive}">Tạm dừng</option>
-                </select>
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
+                            <i class="bi bi-play-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${activePromotionsCount}">0</div>
+                            <div class="adm-stat-label">Đang hoạt động</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-search me-1"></i>Tìm</button>
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEE2E2;color:#DC2626">
+                            <i class="bi bi-pause-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${inactivePromotionsCount}">0</div>
+                            <div class="adm-stat-label">Tạm dừng</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-2">
-                <a th:href="@{/admin/khuyen-mai}" class="btn btn-sm btn-outline-secondary w-100">Xóa lọc</a>
-            </div>
-        </form>
+        </div>
+
         <div class="adm-table-wrap">
             <table class="table table-hover align-middle mb-0">
                 <thead>

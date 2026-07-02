@@ -37,6 +37,7 @@ public class OrderService {
     private final ShippingFeeService shippingFeeService;
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
+    private final UserVoucherRepository userVoucherRepository;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
                         CartService cartService, AddressRepository addressRepository,
@@ -45,7 +46,8 @@ public class OrderService {
                         OrderAssignmentRepository orderAssignmentRepository,
                         ShippingFeeService shippingFeeService,
                         ProductVariantRepository variantRepository,
-                        OrderStatusLogService orderStatusLogService) {
+                        OrderStatusLogService orderStatusLogService,
+                        UserVoucherRepository userVoucherRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -57,6 +59,7 @@ public class OrderService {
         this.shippingFeeService = shippingFeeService;
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
+        this.userVoucherRepository = userVoucherRepository;
     }
 
     private static final String[] PHUONG_THUC_TT = {"COD", "CHUYEN_KHOAN"};
@@ -115,15 +118,23 @@ public class OrderService {
         if (maCode != null && !maCode.isBlank()) {
             Promotion promo = promotionRepository.findByMaCodeIgnoreCaseAndIsActiveTrue(maCode.trim())
                     .orElseThrow(() -> new RuntimeException("Mã giảm giá \"" + maCode + "\" không tồn tại hoặc đã bị vô hiệu hóa"));
-            validatePromotion(promo, tienHang);
-            BigDecimal tienGiam = calculateDiscount(promo, tienHang);
-            order.setTienGiam(tienGiam);
-            order.setPromotion(promo);
-            // Use pessimistic lock to prevent oversell
+            // Lock FIRST, then validate — prevents race condition (2 users same budget)
             Promotion lockedPromo = promotionRepository.findByIdWithLock(promo.getId())
                     .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
+            validatePromotion(lockedPromo, tienHang);
+            BigDecimal tienGiam = calculateDiscount(lockedPromo, tienHang);
+            order.setTienGiam(tienGiam);
+            order.setPromotion(lockedPromo);
             lockedPromo.setDaDung(lockedPromo.getDaDung() + 1);
+            lockedPromo.setUsedBudget(lockedPromo.getUsedBudget().add(tienGiam));
             promotionRepository.save(lockedPromo);
+            // Mark UserVoucher as used
+            userVoucherRepository.findByUserIdAndPromotionId(userId, lockedPromo.getId()).ifPresent(uv -> {
+                uv.setStatus(VoucherStatus.USED);
+                uv.setUsedAt(LocalDateTime.now());
+                uv.setTotalSaved(uv.getTotalSaved().add(tienGiam));
+                userVoucherRepository.save(uv);
+            });
         }
 
         if (order.getTienGiam() == null) order.setTienGiam(BigDecimal.ZERO);
@@ -137,15 +148,15 @@ public class OrderService {
         orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
 
         for (CartItem ci : cartItems) {
-            ProductVariant variant = ci.getVariant();
-            if (variant != null) {
-                if (variant.getSoLuongTon() < ci.getSoLuong()) {
-                    throw new RuntimeException("Sản phẩm \"" + ci.getProduct().getTenSanPham()
-                            + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
-                }
-                variant.setSoLuongTon(variant.getSoLuongTon() - ci.getSoLuong());
-                variantRepository.save(variant);
+            if (ci.getVariant() == null) continue;
+            ProductVariant variant = variantRepository.findByIdWithLock(ci.getVariant().getId())
+                    .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại trong kho"));
+            if (variant.getSoLuongTon() < ci.getSoLuong()) {
+                throw new RuntimeException("Sản phẩm \"" + ci.getProduct().getTenSanPham()
+                        + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
             }
+            variant.setSoLuongTon(variant.getSoLuongTon() - ci.getSoLuong());
+            variantRepository.save(variant);
         }
 
         cartItemRepository.deleteAll(cartItems);
@@ -181,6 +192,8 @@ public class OrderService {
             throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng");
         if (tienHang.compareTo(promo.getDonHangToiThieu()) < 0)
             throw new RuntimeException("Đơn hàng tối thiểu " + PriceUtils.format(promo.getDonHangToiThieu()) + " để áp dụng mã");
+        if (promo.getBudget() != null && promo.getUsedBudget().compareTo(promo.getBudget()) >= 0)
+            throw new RuntimeException("Mã giảm giá đã hết ngân sách");
     }
 
     public BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang) {
@@ -235,7 +248,8 @@ public class OrderService {
         }
         restoreStock(orderId);
         orderAssignmentRepository.findByOrderId(orderId).ifPresent(orderAssignmentRepository::delete);
-        orderRepository.delete(order);
+        order.setTrangThaiDon("DA_HUY");
+        orderRepository.save(order);
     }
 
     private void restoreStock(Integer orderId) {

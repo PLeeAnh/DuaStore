@@ -11,6 +11,63 @@
         <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
     </th:block>
     <div layout:fragment="content">
+
+        <!-- Stat cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalOrders}">0</div>
+                            <div class="adm-stat-label">Tổng đơn hàng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat adm-stat-warning">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${pendingOrdersCount}">0</div>
+                            <div class="adm-stat-label">Chờ xác nhận</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${completedOrdersCount}">0</div>
+                            <div class="adm-stat-label">Hoàn thành</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEE2E2;color:#DC2626">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${cancelledOrdersCount}">0</div>
+                            <div class="adm-stat-label">Đã huỷ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
             <div class="d-flex align-items-center gap-2">
                 <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Đơn hàng</h5>
@@ -63,7 +120,7 @@
                             <span th:text="${o.tenNguoiNhan}"></span>
                             <small class="text-muted d-block" th:text="${o.soDienThoai}"></small>
                         </td>
-                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 0)} + '₫'" class="fw-semibold"></td>
+                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'" class="fw-semibold"></td>
                         <td>
                             <span th:switch="${o.trangThaiDon}" class="status-pill">
                                 <span th:case="'CHO_XAC_NHAN'" class="status-pill status-cho-xac-nhan">Chờ xác nhận</span>
@@ -97,7 +154,7 @@
 
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
-    <th:block layout:fragment="scripts">
+    <th:block layout:fragment="extra-script">
     </th:block>
     </body>
 </html>

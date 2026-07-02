@@ -110,9 +110,9 @@
                     </div>
                     <div class="adm-variant-meta">Sản phẩm: <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${v.productId})}" class="text-decoration-none" th:text="${productNames.get(v.productId)}">Tên SP</a></div>
                     <div class="adm-variant-meta" th:if="${v.dungTich}">Dung tích: <span th:text="${v.dungTich + 'ml'}">—</span></div>
-                    <div class="adm-variant-price mt-2" th:text="${#numbers.formatDecimal(v.giaGoc, 0, 0)} + '₫'">0₫</div>
+                    <div class="adm-variant-price mt-2" th:text="${#numbers.formatDecimal(v.giaGoc, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</div>
                     <div class="adm-variant-meta" th:if="${v.giaKhuyenMai != null}">
-                        <s class="text-muted" th:text="${#numbers.formatDecimal(v.giaKhuyenMai, 0, 0)} + '₫'">0₫</s>
+                        <s class="text-muted" th:text="${#numbers.formatDecimal(v.giaKhuyenMai, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</s>
                     </div>
                     <div class="adm-variant-stock mt-1">
                         Tồn kho: <strong th:text="${v.soLuongTon}" th:classappend="${v.soLuongTon <= 20 ? 'text-danger' : ''}">0</strong>

@@ -58,15 +58,7 @@
                     <input type="number" step="1000" th:field="*{giamToiDa}" class="form-control" />
                 </div>
 
-                <h6 class="text-muted border-bottom pb-2 mt-3">Chiến dịch & Phân loại</h6>
-                <div class="col-md-4">
-                    <label class="form-label">Chiến dịch</label>
-                    <select name="campaignId" class="form-select">
-                        <option value="">— Không thuộc chiến dịch —</option>
-                        <option th:each="c : ${campaigns}" th:value="${c.id}" th:text="${c.name}"
-                                th:selected="${promotion.campaign != null and promotion.campaign.id == c.id}"></option>
-                    </select>
-                </div>
+                <h6 class="text-muted border-bottom pb-2 mt-3">Phân loại</h6>
                 <div class="col-md-3">
                     <label class="form-label">Loại voucher</label>
                     <select th:field="*{voucherType}" class="form-select">
