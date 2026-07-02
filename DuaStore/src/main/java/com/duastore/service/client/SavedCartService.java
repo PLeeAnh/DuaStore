@@ -8,7 +8,7 @@ import com.duastore.model.SavedCartItem;
 import com.duastore.repository.CartItemRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.SavedCartItemRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

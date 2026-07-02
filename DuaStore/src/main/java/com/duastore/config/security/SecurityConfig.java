@@ -36,7 +36,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/admin/**").authenticated()
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/api/wishlist/**", "/api/cart/**").authenticated()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()
                 .anyRequest().permitAll()
             )
@@ -74,7 +75,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(accessDeniedHandler())
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/auth/**", "/admin/don-hang/api/**", "/admin/thong-bao/api/**", "/api/thong-bao/**", "/api/cart/**")
+                .ignoringRequestMatchers("/api/auth/**", "/admin/thong-bao/api/**", "/api/thong-bao/**", "/api/cart/**")
             );
 
         return http.build();

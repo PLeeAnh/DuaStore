@@ -18,6 +18,8 @@ public interface ReviewsRepository extends JpaRepository<Review, Integer> {
 
     List<Review> findByProductIdAndIsApprovedOrderByNgayTaoDesc(Integer productId, Boolean isApproved);
 
+    List<Review> findByUserIdOrderByNgayTaoDesc(Integer userId);
+
     Optional<Review> findByUserIdAndProductId(Integer userId, Integer productId);
 
     @Query("SELECT r.productId, AVG(r.danhGia), COUNT(r) FROM Review r WHERE r.isApproved = true AND r.productId IN :productIds GROUP BY r.productId")

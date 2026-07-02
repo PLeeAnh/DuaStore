@@ -34,16 +34,20 @@ public class ShippingFeeService {
     }
 
     public BigDecimal calculateFee(double userLat, double userLng, String shippingMethod) {
+        if ("NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)) {
+            return BigDecimal.ZERO;
+        }
         double distance = haversine(userLat, userLng, storeLat, storeLng);
-        BigDecimal extra = "NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)
-                ? new BigDecimal("30000") : BigDecimal.ZERO;
-        BigDecimal fee = BASE_FEE.add(PER_KM.multiply(BigDecimal.valueOf(distance))).add(extra);
+        BigDecimal fee = BASE_FEE.add(PER_KM.multiply(BigDecimal.valueOf(distance)));
         if (fee.compareTo(MIN_FEE) < 0) fee = MIN_FEE;
         if (fee.compareTo(MAX_FEE) > 0) fee = MAX_FEE;
         return fee.setScale(0, RoundingMode.HALF_UP);
     }
 
     private BigDecimal fallbackFee(String shippingMethod) {
+        if ("NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)) {
+            return BigDecimal.ZERO;
+        }
         return MIN_FEE;
     }
 

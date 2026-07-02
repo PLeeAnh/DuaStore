@@ -38,7 +38,6 @@ public class ForgotPasswordController {
 
     @PostMapping("/quen-mat-khau")
     public String forgotSubmit(@RequestParam String email,
-                               @RequestParam(required = false) String password,
                                RedirectAttributes ra) {
         Optional<User> opt = userRepository.findByEmail(email);
         if (opt.isEmpty()) {
@@ -47,15 +46,6 @@ public class ForgotPasswordController {
         }
 
         User user = opt.get();
-
-        if (password != null && !password.isBlank()) {
-            user.setPassword(passwordEncoder.encode(password));
-            userRepository.save(user);
-            emailService.sendPasswordResetSuccess(email);
-            ra.addFlashAttribute("successMsg", "Mật khẩu đã được đặt lại thành công");
-            return "redirect:/dang-nhap";
-        }
-
         String token = UUID.randomUUID().toString();
         user.setResetToken(token);
         user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));

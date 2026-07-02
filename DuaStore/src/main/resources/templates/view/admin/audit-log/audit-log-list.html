@@ -33,37 +33,37 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="log : ${logs}" th:unless="${#lists.isEmpty(logs)}">
-                        <td style="font-size:.82rem;white-space:nowrap" th:text="${#temporals.format(log.ngayTao, 'dd/MM/yyyy HH:mm')}">20/06/2026 12:30</td>
-                        <td><span class="badge bg-secondary" th:text="${log.admin.hoTen}">Admin</span></td>
-                        <td><code th:text="${log.hanhDong}">ACTION</code></td>
-                        <td><span class="badge bg-info" th:text="${log.loaiEntity}">ENTITY</span></td>
-                        <td style="font-size:.85rem;color:var(--ef-text-muted)" th:text="${log.moTa}">description</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-secondary" type="button"
-                                    th:attr="data-log-id=${log.id}"
-                                    th:if="${log.giaTriCu != null or log.giaTriMoi != null}"
-                                    onclick="toggleDetail(this)">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr th:each="log : ${logs}" th:unless="${#lists.isEmpty(logs)}"
-                        th:attr="id='detail-' + ${log.id}"
-                        style="display:none">
-                        <td colspan="6" class="bg-light p-3">
-                            <div class="row g-2">
-                                <div class="col-md-6" th:if="${log.giaTriCu != null}">
-                                    <small class="text-muted d-block mb-1">Giá trị cũ:</small>
-                                    <code class="p-2 bg-white d-block rounded border" th:text="${log.giaTriCu}">OLD</code>
+                    <th:block th:each="log : ${logs}">
+                        <tr>
+                            <td style="font-size:.82rem;white-space:nowrap" th:text="${#temporals.format(log.ngayTao, 'dd/MM/yyyy HH:mm')}">20/06/2026 12:30</td>
+                            <td><span class="badge bg-secondary" th:text="${log.admin.hoTen}">Admin</span></td>
+                            <td><code th:text="${log.hanhDong}">ACTION</code></td>
+                            <td><span class="badge bg-info" th:text="${log.loaiEntity}">ENTITY</span></td>
+                            <td style="font-size:.85rem;color:var(--ef-text-muted)" th:text="${log.moTa}">description</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                                        th:attr="data-log-id=${log.id}"
+                                        th:if="${log.giaTriCu != null or log.giaTriMoi != null}"
+                                        onclick="toggleDetail(this)">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:attr="id='detail-' + ${log.id}" style="display:none">
+                            <td colspan="6" class="bg-light p-3">
+                                <div class="row g-2">
+                                    <div class="col-md-6" th:if="${log.giaTriCu != null}">
+                                        <small class="text-muted d-block mb-1">Giá trị cũ:</small>
+                                        <code class="p-2 bg-white d-block rounded border" style="white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto" th:text="${log.giaTriCu}">OLD</code>
+                                    </div>
+                                    <div class="col-md-6" th:if="${log.giaTriMoi != null}">
+                                        <small class="text-muted d-block mb-1">Giá trị mới:</small>
+                                        <code class="p-2 bg-white d-block rounded border" style="white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto" th:text="${log.giaTriMoi}">NEW</code>
+                                    </div>
                                 </div>
-                                <div class="col-md-6" th:if="${log.giaTriMoi != null}">
-                                    <small class="text-muted d-block mb-1">Giá trị mới:</small>
-                                    <code class="p-2 bg-white d-block rounded border" th:text="${log.giaTriMoi}">NEW</code>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
+                            </td>
+                        </tr>
+                    </th:block>
                     <tr th:if="${#lists.isEmpty(logs)}">
                         <td colspan="6" class="text-center text-muted py-3">Chưa có nhật ký nào</td>
                     </tr>

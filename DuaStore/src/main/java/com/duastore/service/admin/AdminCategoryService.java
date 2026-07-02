@@ -89,6 +89,7 @@ public class AdminCategoryService {
         return dto;
     }
 
+    @Transactional
     public Category save(CategoryDTO dto) {
         Category category = dto.getId() == null
                 ? new Category()
@@ -118,6 +119,7 @@ public class AdminCategoryService {
         }
     }
 
+    @Transactional
     public boolean softDelete(Integer id) {
         Category category = findById(id);
         if (category == null) {

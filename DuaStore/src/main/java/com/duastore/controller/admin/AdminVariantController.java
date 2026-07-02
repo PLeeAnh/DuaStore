@@ -40,6 +40,7 @@ public class AdminVariantController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_CREATE)")
     public String create(@Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
+            model.addAttribute("variant", dto);
             model.addAttribute("title", "san-pham");
             var p = productRepository.findById(dto.getProductId()).orElse(null);
             model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");
@@ -83,6 +84,7 @@ public class AdminVariantController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
     public String edit(@PathVariable Integer id, @Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
+            model.addAttribute("variant", dto);
             model.addAttribute("title", "san-pham");
             var p = productRepository.findById(dto.getProductId()).orElse(null);
             model.addAttribute("productName", p != null ? p.getTenSanPham() : "—");

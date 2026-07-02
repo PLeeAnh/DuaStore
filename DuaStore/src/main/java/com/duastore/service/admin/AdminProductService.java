@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -72,6 +73,7 @@ public class AdminProductService {
         return productRepository.findDistinctMucDichSuDung();
     }
 
+    @Transactional
     public Product save(ProductFormDTO dto) {
         Product p;
         if (dto.getId() != null) {
@@ -124,6 +126,7 @@ public class AdminProductService {
         return saved;
     }
 
+    @Transactional
     public void delete(Integer id) {
         Product p = productRepository.findById(id).orElse(null);
         if (p != null) {

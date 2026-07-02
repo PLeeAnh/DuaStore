@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class Promotion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, unique = true, length = 50)
@@ -50,10 +51,6 @@ public class Promotion {
 
     @Column(nullable = false)
     private Boolean isActive;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campaignId")
-    private PromotionCampaign campaign;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)

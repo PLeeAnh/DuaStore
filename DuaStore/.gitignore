@@ -60,3 +60,4 @@ desktop.ini
 .env.local
 application-prod.properties
 application-local.properties
+application-secrets.properties

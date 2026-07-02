@@ -3,8 +3,10 @@ package com.duastore.service.client;
 import com.duastore.model.Promotion;
 import com.duastore.model.UserVoucher;
 import com.duastore.model.VoucherStatus;
+import com.duastore.model.VoucherType;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.UserVoucherRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,13 +32,13 @@ public class VoucherWalletService {
     }
 
     public UserVoucher saveVoucher(Integer userId, Integer promotionId) {
-        if (userVoucherRepository.existsByUserIdAndPromotionId(userId, promotionId)) {
-            throw new RuntimeException("Voucher đã có trong ví");
-        }
         Promotion promotion = promotionRepository.findById(promotionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khuyến mãi"));
         if (!Boolean.TRUE.equals(promotion.getIsActive())) {
             throw new RuntimeException("Khuyến mãi không còn hiệu lực");
+        }
+        if (promotion.getMaxClaimsPerUser() != null && promotion.getMaxClaimsPerUser() <= 0) {
+            throw new RuntimeException("Khuyến mãi này không cho phép lưu voucher");
         }
 
         UserVoucher uv = new UserVoucher();
@@ -51,7 +53,11 @@ public class VoucherWalletService {
         promotion.setSavedCount(promotion.getSavedCount() != null ? promotion.getSavedCount() + 1 : 1);
         promotionRepository.save(promotion);
 
-        return userVoucherRepository.save(uv);
+        try {
+            return userVoucherRepository.save(uv);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Voucher đã có trong ví");
+        }
     }
 
     public void removeVoucher(Integer userId, Integer voucherId) {
@@ -72,6 +78,27 @@ public class VoucherWalletService {
     public Page<UserVoucher> getWalletByTab(Integer userId, VoucherStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "savedAt"));
         return userVoucherRepository.findByUserIdAndStatus(userId, status, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserVoucher> getWalletByTabWithFilters(Integer userId, VoucherStatus status,
+                                                        String keyword, String sortBy,
+                                                        int page, int size) {
+        Sort sort = buildSort(sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        if (keyword != null && !keyword.isBlank()) {
+            return userVoucherRepository.searchByUserIdAndStatus(userId, status, keyword.trim(), pageable);
+        }
+        return userVoucherRepository.findByUserIdAndStatus(userId, status, pageable);
+    }
+
+    private Sort buildSort(String sortBy) {
+        if (sortBy == null) sortBy = "default";
+        return switch (sortBy) {
+            case "expiry" -> Sort.by(Sort.Direction.ASC, "expiredAt");
+            case "saved" -> Sort.by(Sort.Direction.DESC, "savedAt");
+            default -> Sort.by(Sort.Direction.DESC, "savedAt");
+        };
     }
 
     @Transactional(readOnly = true)

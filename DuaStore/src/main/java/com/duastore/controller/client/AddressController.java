@@ -74,7 +74,10 @@ public class AddressController {
 
         geocodingService.geocodeIfMissing(address);
         addressRepository.save(address);
-        return (returnUrl != null && !returnUrl.isBlank()) ? "redirect:" + returnUrl : "redirect:/address";
+        if (returnUrl != null && !returnUrl.isBlank() && returnUrl.startsWith("/") && !returnUrl.startsWith("//")) {
+            return "redirect:" + returnUrl;
+        }
+        return "redirect:/address";
     }
 
     @PostMapping("/delete/{id}")

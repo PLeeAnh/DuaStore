@@ -257,6 +257,7 @@ public class AdminProductController {
         if (result.hasErrors()) {
             model.addAttribute("title", "san-pham");
             model.addAttribute("productTab", "thong-tin");
+            model.addAttribute("product", dto);
             model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
             addComboLists(model);
             return "view/admin/product/product-form";
@@ -317,6 +318,7 @@ public class AdminProductController {
         if (result.hasErrors()) {
             model.addAttribute("title", "san-pham");
             model.addAttribute("productTab", "thong-tin");
+            model.addAttribute("product", dto);
             model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
             model.addAttribute("galleryImages", productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
             Category cat = categoryRepository.findById(dto.getDanhMucId()).orElse(null);

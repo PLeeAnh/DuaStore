@@ -119,6 +119,7 @@ public class ReviewService {
         return orderItemRepository.existsByProductIdAndUserIdAndPaid(productId, userId);
     }
 
+    @Transactional
     public ReviewDTO createReview(Integer userId, ReviewRequestDTO request, String hinhAnhUrl) {
         if (hasReviewed(userId, request.getProductId())) {
             throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");

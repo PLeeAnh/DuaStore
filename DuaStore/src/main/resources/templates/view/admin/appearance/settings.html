@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Giao diện</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15/dist/nouislider.min.css"/>
+    <style>
+        .hp-section { cursor: grab; }
+        .hp-section:active { cursor: grabbing; }
+        .hp-section.sortable-chosen { opacity: 0.6; }
+        .hp-section.sortable-ghost { opacity: 0.2; }
+        .menu-sortable tr { cursor: grab; }
+        .menu-sortable tr:active { cursor: grabbing; }
+        .menu-sortable tr.sortable-chosen { background: #f0f7ff; }
+        .menu-sortable tr.sortable-ghost td { opacity: 0.1; }
+        .layout-grid { display: flex; gap: 4px; flex-wrap: wrap; }
+        .layout-grid .layout-option { width: 28px; height: 22px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer; display: flex; padding: 2px; }
+        .layout-grid .layout-option:hover { border-color: #0d6efd; }
+        .layout-grid .layout-option.active { border-color: #0d6efd; background: #e7f1ff; }
+        .layout-grid .layout-option .col-preview { background: #adb5bd; border-radius: 2px; margin: 0.5px; flex: 1; min-width: 2px; }
+        .hp-section-body { display: none; }
+        .hp-section.expanded .hp-section-body { display: block; }
+        .visual-builder-dropzone { min-height: 80px; border: 2px dashed #dee2e6; border-radius: 8px; padding: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+        .visual-builder-dropzone.dragover { border-color: #0d6efd; background: #e7f1ff; }
+        .vb-item { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+        .vb-item:hover { background: #e9ecef; }
+        .vb-item .remove { cursor: pointer; color: #dc3545; }
+    </style>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Giao diện</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4><i class="bi bi-palette me-2"></i>Giao diện</h4>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="appearanceTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-theme" data-bs-toggle="tab" data-bs-target="#theme" type="button" role="tab">
+                    <i class="bi bi-palette me-1"></i>Theme
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-header" data-bs-toggle="tab" data-bs-target="#header" type="button" role="tab">
+                    <i class="bi bi-layout-three-columns me-1"></i>Header
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-menu" data-bs-toggle="tab" data-bs-target="#menu" type="button" role="tab">
+                    <i class="bi bi-list me-1"></i>Menu
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-footer" data-bs-toggle="tab" data-bs-target="#footer" type="button" role="tab">
+                    <i class="bi bi-window me-1"></i>Footer
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-widget" data-bs-toggle="tab" data-bs-target="#widget" type="button" role="tab">
+                    <i class="bi bi-puzzle me-1"></i>Widget
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-css" data-bs-toggle="tab" data-bs-target="#customCss" type="button" role="tab">
+                    <i class="bi bi-code-slash me-1"></i>CSS
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-homepage" data-bs-toggle="tab" data-bs-target="#homepage" type="button" role="tab">
+                    <i class="bi bi-house-gear me-1"></i>Homepage
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="appearanceTabContent">
+            <!-- THEME -->
+            <div class="tab-pane fade show active" id="theme" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post">
+                    <div class="adm-form-wrap">
+                        <h6 class="text-muted border-bottom pb-2">Màu sắc & Font chữ</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Màu chủ đạo</label>
+                                <div class="input-group">
+                                    <input type="color" name="theme_primary_color" class="form-control form-control-color"
+                                           th:value="${settings.get('theme_primary_color') ?: '#c62828'}" />
+                                    <input type="text" name="theme_primary_color_text" class="form-control"
+                                           th:value="${settings.get('theme_primary_color') ?: '#c62828'}"
+                                           style="max-width:120px" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Màu phụ</label>
+                                <div class="input-group">
+                                    <input type="color" name="theme_secondary_color" class="form-control form-control-color"
+                                           th:value="${settings.get('theme_secondary_color') ?: '#2c3e50'}" />
+                                    <input type="text" name="theme_secondary_color_text" class="form-control"
+                                           th:value="${settings.get('theme_secondary_color') ?: '#2c3e50'}"
+                                           style="max-width:120px" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Màu nền header</label>
+                                <div class="input-group">
+                                    <input type="color" name="theme_header_bg" class="form-control form-control-color"
+                                           th:value="${settings.get('theme_header_bg') ?: '#ffffff'}" />
+                                    <input type="text" name="theme_header_bg_text" class="form-control"
+                                           th:value="${settings.get('theme_header_bg') ?: '#ffffff'}"
+                                           style="max-width:120px" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Font chữ</label>
+                                <select name="theme_font" class="form-select">
+                                    <option value="system-ui" th:selected="${settings.get('theme_font') == 'system-ui'}">System UI</option>
+                                    <option value="DM Sans" th:selected="${settings.get('theme_font') == 'DM Sans'}">DM Sans</option>
+                                    <option value="Inter" th:selected="${settings.get('theme_font') == 'Inter'}">Inter</option>
+                                    <option value="Roboto" th:selected="${settings.get('theme_font') == 'Roboto'}">Roboto</option>
+                                    <option value="Be Vietnam Pro" th:selected="${settings.get('theme_font') == 'Be Vietnam Pro'}">Be Vietnam Pro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Border radius (px)</label>
+                                <input type="number" name="theme_border_radius" class="form-control"
+                                       th:value="${settings.get('theme_border_radius') ?: '12'}" min="0" max="50" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Container max-width (px)</label>
+                                <input type="number" name="theme_container_width" class="form-control"
+                                       th:value="${settings.get('theme_container_width') ?: '1280'}" min="1024" step="10" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu theme</button>
+                    </div>
+                </form>
+            </div>
+
+                <!-- HEADER -->
+                <div class="tab-pane fade" id="header" role="tabpanel">
+                    <form th:action="@{/admin/giao-dien}" method="post">
+                        <div class="adm-form-wrap">
+                            <h6 class="text-muted border-bottom pb-2">Hiển thị thành phần trên Header</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="header_logo" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="header_logo" value="1"
+                                               id="headerLogo" th:checked="${settings.get('header_logo') == '1' or settings.get('header_logo') == null}" />
+                                        <label class="form-check-label" for="headerLogo">Logo</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="header_hotline" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="header_hotline" value="1"
+                                               id="headerHotline" th:checked="${settings.get('header_hotline') == '1' or settings.get('header_hotline') == null}" />
+                                        <label class="form-check-label" for="headerHotline">Hotline</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="header_search" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="header_search" value="1"
+                                               id="headerSearch" th:checked="${settings.get('header_search') == '1' or settings.get('header_search') == null}" />
+                                        <label class="form-check-label" for="headerSearch">Tìm kiếm</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="header_cart" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="header_cart" value="1"
+                                               id="headerCart" th:checked="${settings.get('header_cart') == '1' or settings.get('header_cart') == null}" />
+                                        <label class="form-check-label" for="headerCart">Giỏ hàng</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="header_account" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="header_account" value="1"
+                                               id="headerAccount" th:checked="${settings.get('header_account') == '1' or settings.get('header_account') == null}" />
+                                        <label class="form-check-label" for="headerAccount">Tài khoản</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <h6 class="text-muted border-bottom pb-2 mt-4">Logo</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">URL Logo</label>
+                                    <input type="text" name="header_logo_url" class="form-control"
+                                           th:value="${settings.get('header_logo_url')}" placeholder="/images/logo.png" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Chiều cao logo (px)</label>
+                                    <input type="number" name="header_logo_height" class="form-control"
+                                           th:value="${settings.get('header_logo_height') ?: '40'}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Chiều rộng logo (px)</label>
+                                    <input type="number" name="header_logo_width" class="form-control"
+                                           th:value="${settings.get('header_logo_width') ?: '120'}" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu header</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- MENU -->
+                <div class="tab-pane fade" id="menu" role="tabpanel">
+                    <form th:action="@{/admin/giao-dien}" method="post">
+                        <div class="adm-form-wrap">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="text-muted border-bottom pb-0 mb-0">Menu điều hướng</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMenuItem()">
+                                    <i class="bi bi-plus-lg"></i> Thêm mục menu
+                                </button>
+                            </div>
+                            <p class="text-muted small">Kéo thả để sắp xếp thứ tự các mục menu.</p>
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle" id="menuTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width:40px"></th>
+                                            <th>Tên menu</th>
+                                            <th>Đường dẫn</th>
+                                            <th style="width:70px">Bật</th>
+                                            <th style="width:50px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="menu-sortable">
+                                        <tr th:each="i : ${#numbers.sequence(1,5)}" th:with="idx=${i}">
+                                            <td class="text-center"><i class="bi bi-grip-vertical text-muted"></i></td>
+                                            <td>
+                                                <input type="text" th:name="'menu_' + ${idx} + '_label'" class="form-control form-control-sm"
+                                                       th:value="${settings.get('menu_' + idx + '_label') ?: (idx == 1 ? 'Trang chủ' : (idx == 2 ? 'Sản phẩm' : (idx == 3 ? 'Khuyến mãi' : (idx == 4 ? 'Bài viết' : 'Liên hệ'))))}" />
+                                            </td>
+                                            <td>
+                                                <input type="text" th:name="'menu_' + ${idx} + '_url'" class="form-control form-control-sm"
+                                                       th:value="${settings.get('menu_' + idx + '_url') ?: (idx == 1 ? '/' : (idx == 2 ? '/san-pham' : (idx == 3 ? '/khuyen-mai' : (idx == 4 ? '/bai-viet' : '/lien-he'))))}" />
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="hidden" th:name="'menu_' + ${idx} + '_active'" value="0" />
+                                                <input type="checkbox" th:name="'menu_' + ${idx} + '_active'" value="1"
+                                                       th:checked="${settings.get('menu_' + idx + '_active') != '0'}" />
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMenuItem(this)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu menu</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="tab-pane fade" id="footer" role="tabpanel">
+                    <form th:action="@{/admin/giao-dien}" method="post">
+                        <div class="adm-form-wrap">
+                            <h6 class="text-muted border-bottom pb-2">Cột Footer</h6>
+                            <p class="text-muted small">Quản lý các cột hiển thị ở footer. Mỗi cột có tiêu đề và nội dung riêng. Mỗi dòng trong nội dung là một link. Dùng định dạng <code>Tiêu đề | https://example.com</code> để tạo link có đường dẫn tùy chỉnh.</p>
+                            <div id="footerColumns">
+                                <div class="card mb-3 footer-col">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Cột 1</h6>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.footer-col').remove()">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <input type="text" name="footer_col_1_title" class="form-control form-control-sm"
+                                                       placeholder="Tiêu đề" th:value="${settings.get('footer_col_1_title') ?: 'Về chúng tôi'}" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <textarea name="footer_col_1_content" class="form-control form-control-sm" rows="3"
+                                                          placeholder="Nội dung" th:text="${settings.get('footer_col_1_content') ?: 'Giới thiệu về cửa hàng...'}"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card mb-3 footer-col">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Cột 2</h6>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.footer-col').remove()">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <input type="text" name="footer_col_2_title" class="form-control form-control-sm"
+                                                       placeholder="Tiêu đề" th:value="${settings.get('footer_col_2_title') ?: 'Chính sách'}" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <textarea name="footer_col_2_content" class="form-control form-control-sm" rows="3"
+                                                          placeholder="Nội dung" th:text="${settings.get('footer_col_2_content') ?: 'Chính sách đổi trả\nChính sách bảo mật\nChính sách vận chuyển'}"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card mb-3 footer-col">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">Cột 3</h6>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.footer-col').remove()">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <input type="text" name="footer_col_3_title" class="form-control form-control-sm"
+                                                       placeholder="Tiêu đề" th:value="${settings.get('footer_col_3_title') ?: 'Liên hệ'}" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <textarea name="footer_col_3_content" class="form-control form-control-sm" rows="3"
+                                                          placeholder="Nội dung" th:text="${settings.get('footer_col_3_content') ?: 'Địa chỉ: ...\nSĐT: 1900...\nEmail: ...'}"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-3" onclick="addFooterColumn()">
+                                <i class="bi bi-plus-lg"></i> Thêm cột
+                            </button>
+                            <h6 class="text-muted border-bottom pb-2 mt-3">Bản quyền</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Nội dung copyright</label>
+                                    <input type="text" name="footer_copyright" class="form-control"
+                                           th:value="${settings.get('footer_copyright') ?: '© 2026 DuaStore. Tất cả quyền được bảo lưu.'}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Facebook URL</label>
+                                    <input type="text" name="footer_facebook" class="form-control"
+                                           th:value="${settings.get('footer_facebook')}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Instagram URL</label>
+                                    <input type="text" name="footer_instagram" class="form-control"
+                                           th:value="${settings.get('footer_instagram')}" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu footer</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- WIDGET -->
+                <div class="tab-pane fade" id="widget" role="tabpanel">
+                    <form th:action="@{/admin/giao-dien}" method="post">
+                        <div class="adm-form-wrap">
+                            <h6 class="text-muted border-bottom pb-2">Tiện ích</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="widget_messenger" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="widget_messenger" value="1"
+                                               id="widgetMessenger" th:checked="${settings.get('widget_messenger') == '1'}" />
+                                        <label class="form-check-label" for="widgetMessenger">Chat Messenger</label>
+                                    </div>
+                                    <div class="mt-2" id="messengerConfig" style="display:none">
+                                        <input type="text" name="widget_messenger_page_id" class="form-control form-control-sm mt-1"
+                                               placeholder="Facebook Page ID" th:value="${settings.get('widget_messenger_page_id')}" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="widget_zalo" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="widget_zalo" value="1"
+                                               id="widgetZalo" th:checked="${settings.get('widget_zalo') == '1'}" />
+                                        <label class="form-check-label" for="widgetZalo">Zalo OA</label>
+                                    </div>
+                                    <div class="mt-2" id="zaloConfig" style="display:none">
+                                        <input type="text" name="widget_zalo_phone" class="form-control form-control-sm mt-1"
+                                               placeholder="Số điện thoại Zalo" th:value="${settings.get('widget_zalo_phone')}" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="widget_call" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="widget_call" value="1"
+                                               id="widgetCall" th:checked="${settings.get('widget_call') == '1'}" />
+                                        <label class="form-check-label" for="widgetCall">Nút gọi điện</label>
+                                    </div>
+                                    <div class="mt-2" id="callConfig" style="display:none">
+                                        <input type="text" name="widget_call_phone" class="form-control form-control-sm mt-1"
+                                               placeholder="Số điện thoại" th:value="${settings.get('widget_call_phone')}" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="widget_backtotop" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="widget_backtotop" value="1"
+                                               id="widgetBacktotop" th:checked="${settings.get('widget_backtotop') == '1' or settings.get('widget_backtotop') == null}" />
+                                        <label class="form-check-label" for="widgetBacktotop">Back to top</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        <input type="hidden" name="widget_popup" value="0" />
+                                        <input class="form-check-input" type="checkbox" name="widget_popup" value="1"
+                                               id="widgetPopup" th:checked="${settings.get('widget_popup') == '1'}" />
+                                        <label class="form-check-label" for="widgetPopup">Popup đăng ký</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu widget</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- CSS -->
+                <div class="tab-pane fade" id="customCss" role="tabpanel">
+                    <form th:action="@{/admin/giao-dien}" method="post">
+                        <div class="adm-form-wrap">
+                            <h6 class="text-muted border-bottom pb-2">CSS tùy chỉnh</h6>
+                            <p class="text-muted small">Nhập CSS để tùy chỉnh giao diện website. Không cần thẻ &lt;style&gt;.</p>
+                            <textarea name="custom_css" class="form-control font-monospace" rows="15"
+                                      style="font-size:0.85rem" th:text="${settings.get('custom_css')}"></textarea>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu CSS</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- HOMEPAGE DESIGNER -->
+                <div class="tab-pane fade" id="homepage" role="tabpanel">
+                    <form th:action="@{/admin/giao-dien}" method="post">
+                        <div class="adm-form-wrap">
+                            <h6 class="text-muted border-bottom pb-2">Thiết kế trang chủ</h6>
+                            <p class="text-muted small">Kéo thả các section để sắp xếp thứ tự. Nhấp vào section để mở rộng tùy chỉnh layout và nội dung.</p>
+                            <div id="homepageSections" class="mb-3"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addHomepageSection()">
+                                <i class="bi bi-plus-lg"></i> Thêm section
+                            </button>
+                            <div class="alert alert-info small">
+                                <i class="bi bi-info-circle me-1"></i>Kéo thả section để sắp xếp. Trong mỗi section có thể chọn layout cột và kéo thả nội dung vào từng cột.
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu homepage</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+    <script>
+        // Widget toggle init
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('[name="widget_messenger"]').forEach(function(cb) {
+                document.getElementById('messengerConfig').style.display = cb.checked ? 'block' : 'none';
+                cb.addEventListener('change', function() {
+                    document.getElementById('messengerConfig').style.display = this.checked ? 'block' : 'none';
+                });
+            });
+            document.querySelectorAll('[name="widget_zalo"]').forEach(function(cb) {
+                document.getElementById('zaloConfig').style.display = cb.checked ? 'block' : 'none';
+                cb.addEventListener('change', function() {
+                    document.getElementById('zaloConfig').style.display = this.checked ? 'block' : 'none';
+                });
+            });
+            document.querySelectorAll('[name="widget_call"]').forEach(function(cb) {
+                document.getElementById('callConfig').style.display = cb.checked ? 'block' : 'none';
+                cb.addEventListener('change', function() {
+                    document.getElementById('callConfig').style.display = this.checked ? 'block' : 'none';
+                });
+            });
+        });
+        // Sync color inputs
+        document.querySelectorAll('input[type="color"]').forEach(function(colorInput) {
+            colorInput.addEventListener('input', function() {
+                var textInput = this.parentElement.querySelector('input[type="text"]');
+                if (textInput) textInput.value = this.value;
+            });
+        });
+        document.querySelectorAll('input[name$="_text"]').forEach(function(textInput) {
+            textInput.addEventListener('input', function() {
+                var colorInput = this.parentElement.querySelector('input[type="color"]');
+                if (colorInput) colorInput.value = this.value;
+            });
+        });
+
+        // ====================== MENU SORTABLE ======================
+        var menuSortable = new Sortable(document.querySelector('.menu-sortable'), {
+            handle: '.bi-grip-vertical',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: renumberMenuItems
+        });
+        function renumberMenuItems() {
+            var rows = document.querySelectorAll('.menu-sortable tr');
+            rows.forEach(function(row, idx) {
+                var num = idx + 1;
+                row.querySelectorAll('input, textarea').forEach(function(input) {
+                    var name = input.getAttribute('name');
+                    if (name) input.setAttribute('name', name.replace(/menu_\d+_/, 'menu_' + num + '_'));
+                });
+            });
+        }
+        function removeMenuItem(btn) {
+            var row = btn.closest('tr');
+            if (document.querySelectorAll('.menu-sortable tr').length <= 1) return;
+            row.remove();
+            renumberMenuItems();
+        }
+        function addMenuItem() {
+            var tbody = document.querySelector('.menu-sortable');
+            var count = tbody.children.length + 1;
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td class="text-center"><i class="bi bi-grip-vertical text-muted"></i></td>' +
+                '<td><input type="text" name="menu_' + count + '_label" class="form-control form-control-sm" placeholder="Tên menu" /></td>' +
+                '<td><input type="text" name="menu_' + count + '_url" class="form-control form-control-sm" placeholder="/" /></td>' +
+                '<td class="text-center"><input type="hidden" name="menu_' + count + '_active" value="0" /><input type="checkbox" name="menu_' + count + '_active" value="1" checked /></td>' +
+                '<td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMenuItem(this)"><i class="bi bi-trash"></i></button></td>';
+            tbody.appendChild(tr);
+            menuSortable.sort(tbody.children); // re-sync Sortable
+        }
+
+        // ====================== FOOTER COLUMNS ======================
+        var footerColCount = 3;
+        function addFooterColumn() {
+            footerColCount++;
+            var container = document.getElementById('footerColumns');
+            var div = document.createElement('div');
+            div.className = 'card mb-3 footer-col';
+            div.innerHTML = '<div class="card-body">' +
+                '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                '<h6 class="mb-0">Cột ' + footerColCount + '</h6>' +
+                '<button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'.footer-col\').remove()"><i class="bi bi-trash"></i></button>' +
+                '</div>' +
+                '<div class="row g-2">' +
+                '<div class="col-md-4"><input type="text" name="footer_col_' + footerColCount + '_title" class="form-control form-control-sm" placeholder="Tiêu đề" /></div>' +
+                '<div class="col-md-8"><textarea name="footer_col_' + footerColCount + '_content" class="form-control form-control-sm" rows="3" placeholder="Nội dung"></textarea></div>' +
+                '</div></div></div>';
+            container.appendChild(div);
+        }
+
+        // ====================== HOMEPAGE SECTIONS ======================
+        var hpCounter = 7;
+
+        var sectionTypes = [
+            { type: 'slider', label: 'Slider', icon: 'bi-images', color: 'secondary', title: 'Hero Banner Slider' },
+            { type: 'features', label: 'Features', icon: 'bi-grid-3x3', color: 'info', title: 'Tính năng nổi bật' },
+            { type: 'promotions', label: 'Promo', icon: 'bi-tag', color: 'warning', title: 'Mã giảm giá' },
+            { type: 'categories', label: 'Category', icon: 'bi-grid', color: 'success', title: 'Danh mục nổi bật' },
+            { type: 'products', label: 'Product', icon: 'bi-box-seam', color: 'primary', title: 'Sản phẩm nổi bật' },
+            { type: 'testimonials', label: 'Testimonial', icon: 'bi-chat-quote', color: 'dark', title: 'Khách hàng nói gì' },
+            { type: 'faq', label: 'FAQ', icon: 'bi-question-circle', color: 'dark', title: 'Câu hỏi thường gặp' },
+            { type: 'custom', label: 'Custom', icon: 'bi-code', color: 'secondary', title: 'HTML tùy chỉnh' }
+        ];
+
+        function createHomepageSection(type, idx, active) {
+            var st = sectionTypes.find(function(t) { return t.type === type; }) || sectionTypes[7];
+            var div = document.createElement('div');
+            div.className = 'card mb-2 hp-section' + (idx === 1 ? ' expanded' : '');
+            div.innerHTML =
+                '<div class="card-body py-2 d-flex align-items-center gap-2 hp-section-header" onclick="toggleHpSection(this)">' +
+                    '<i class="bi bi-grip-vertical text-muted"></i>' +
+                    '<span class="badge bg-' + st.color + ' me-1"><i class="bi ' + st.icon + ' me-1"></i>' + st.label + '</span>' +
+                    '<span class="fw-semibold small">' + st.title + '</span>' +
+                    '<div class="ms-auto d-flex align-items-center gap-2">' +
+                        '<input type="hidden" name="hp_' + idx + '_type" value="' + type + '" />' +
+                        '<input type="hidden" name="hp_' + idx + '_active" value="0" /><input type="checkbox" name="hp_' + idx + '_active" value="1" ' + (active !== false ? 'checked' : '') + ' onclick="event.stopPropagation()" />' +
+                        '<i class="bi bi-chevron-down hp-chevron"></i>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="hp-section-body">' +
+                    '<div class="card-body pt-0 border-top">' +
+                        '<div class="row g-2 mb-2">' +
+                            '<div class="col-md-4"><label class="form-label small">Tiêu đề section</label><input type="text" name="hp_' + idx + '_title" class="form-control form-control-sm" placeholder="Tiêu đề" /></div>' +
+                            '<div class="col-md-3"><label class="form-label small">Layout cột</label>' +
+                                '<div class="layout-grid" data-target="hp_' + idx + '_layout">' +
+                                    '<div class="layout-option active" data-cols="1" onclick="selectLayout(this)"><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="2" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="3" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="4" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="5" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="6" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="7" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="8" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="9" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                    '<div class="layout-option" data-cols="10" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+                                '</div>' +
+                                '<input type="hidden" name="hp_' + idx + '_layout" value="1" />' +
+                            '</div>' +
+                            '<div class="col-md-3"><label class="form-label small">Giới hạn hiển thị</label><input type="number" name="hp_' + idx + '_limit" class="form-control form-control-sm" value="8" min="1" /></div>' +
+                            (type === 'products' ? '<div class="col-md-2"><label class="form-label small">Danh mục ID</label><input type="text" name="hp_' + idx + '_category_ids" class="form-control form-control-sm" placeholder="1,2,3" /></div>' : '') +
+                            (type === 'custom' ? '<div class="col-12"><label class="form-label small">Nội dung HTML</label><textarea name="hp_' + idx + '_html" class="form-control form-control-sm" rows="3"></textarea></div>' : '') +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            return div;
+        }
+
+        // Initialize homepage sections
+        var hpSettings = /*[[${settings}]]*/ {};
+
+        var defaultSections = ['slider','features','promotions','categories','products','testimonials','faq'];
+        defaultSections.forEach(function(type, i) {
+            var idx = i + 1;
+            var section = createHomepageSection(type, idx, true);
+            document.getElementById('homepageSections').appendChild(section);
+
+            var savedLayout = hpSettings['hp_' + idx + '_layout'];
+            var savedTitle = hpSettings['hp_' + idx + '_title'];
+            var savedLimit = hpSettings['hp_' + idx + '_limit'];
+            var savedActive = hpSettings['hp_' + idx + '_active'];
+            var savedCatIds = hpSettings['hp_' + idx + '_category_ids'];
+
+            if (savedTitle && savedTitle !== 'null') {
+                var titleInput = section.querySelector('input[name="hp_' + idx + '_title"]');
+                if (titleInput) titleInput.value = savedTitle;
+            }
+            if (savedLayout && savedLayout !== 'null' && savedLayout !== '1') {
+                var layoutOption = section.querySelector('.layout-option[data-cols="' + savedLayout + '"]');
+                if (layoutOption) {
+                    section.querySelectorAll('.layout-option').forEach(function(o) { o.classList.remove('active'); });
+                    layoutOption.classList.add('active');
+                    var hidden = section.querySelector('input[name="hp_' + idx + '_layout"]');
+                    if (hidden) hidden.value = savedLayout;
+                }
+            }
+            if (savedLimit && savedLimit !== 'null') {
+                var limitInput = section.querySelector('input[name="hp_' + idx + '_limit"]');
+                if (limitInput) limitInput.value = savedLimit;
+            }
+            if (savedActive === '0') {
+                var checkbox = section.querySelector('input[name="hp_' + idx + '_active"][type="checkbox"]');
+                if (checkbox) checkbox.checked = false;
+            }
+            if (savedCatIds && savedCatIds !== 'null') {
+                var catInput = section.querySelector('input[name="hp_' + idx + '_category_ids"]');
+                if (catInput) catInput.value = savedCatIds;
+            }
+        });
+
+        function toggleHpSection(header) {
+            var card = header.closest('.hp-section');
+            card.classList.toggle('expanded');
+            var chevron = card.querySelector('.hp-chevron');
+            if (chevron) chevron.style.transform = card.classList.contains('expanded') ? 'rotate(180deg)' : '';
+        }
+
+        function selectLayout(el) {
+            var grid = el.closest('.layout-grid');
+            grid.querySelectorAll('.layout-option').forEach(function(o) { o.classList.remove('active'); });
+            el.classList.add('active');
+            var hidden = grid.parentElement.querySelector('input[type="hidden"]');
+            if (hidden) hidden.value = el.dataset.cols;
+        }
+
+        function addHomepageSection() {
+            hpCounter++;
+            var section = createHomepageSection('custom', hpCounter, true);
+            document.getElementById('homepageSections').appendChild(section);
+            hpSortable.sort(section); // re-sync
+        }
+
+        // Sortable for homepage sections
+        var hpSortable = new Sortable(document.getElementById('homepageSections'), {
+            handle: '.bi-grip-vertical',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: renumberHomepageSections
+        });
+        function renumberHomepageSections() {
+            var sections = document.querySelectorAll('#homepageSections .hp-section');
+            sections.forEach(function(section, idx) {
+                var num = idx + 1;
+                section.querySelectorAll('input, textarea').forEach(function(input) {
+                    var name = input.getAttribute('name');
+                    if (name) input.setAttribute('name', name.replace(/hp_\d+_/, 'hp_' + num + '_'));
+                });
+            });
+        }
+    </script>
+    </th:block>
+    </body>
+</html>

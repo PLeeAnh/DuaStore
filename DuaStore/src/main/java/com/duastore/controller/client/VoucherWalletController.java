@@ -28,6 +28,8 @@ public class VoucherWalletController {
     public String wallet(@RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "20") int size,
                          @RequestParam(defaultValue = "") String tab,
+                         @RequestParam(defaultValue = "") String keyword,
+                         @RequestParam(defaultValue = "default") String sort,
                          Model model, Principal principal) {
         if (principal == null) return "redirect:/login";
         Integer userId = securityUtil.getCurrentUserId();
@@ -35,7 +37,8 @@ public class VoucherWalletController {
         VoucherStatus status = parseTab(tab);
         if (status == null) status = VoucherStatus.AVAILABLE;
 
-        Page<UserVoucher> voucherPage = voucherWalletService.getWalletByTab(userId, status, page, size);
+        Page<UserVoucher> voucherPage = voucherWalletService.getWalletByTabWithFilters(
+                userId, status, keyword, sort, page, size);
 
         model.addAttribute("vouchers", voucherPage.getContent());
         model.addAttribute("currentPage", page);
@@ -43,6 +46,8 @@ public class VoucherWalletController {
         model.addAttribute("totalItems", voucherPage.getTotalElements());
         model.addAttribute("pageSize", size);
         model.addAttribute("tab", tab);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("sort", sort);
         model.addAttribute("availableCount", voucherWalletService.countAvailable(userId));
         model.addAttribute("title", "vi-voucher");
         return "view/client/voucher/wallet";
