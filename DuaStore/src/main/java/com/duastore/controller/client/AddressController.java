@@ -42,6 +42,9 @@ public class AddressController {
                               @RequestParam(required = false) String returnUrl) {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) return "redirect:/dang-nhap";
+        if (addressRepository.countByUserId(userId) >= 10) {
+            return "redirect:/address?error=limit";
+        }
         Address address = new Address();
         address.setUserId(userId);
         model.addAttribute("address", address);
@@ -67,6 +70,10 @@ public class AddressController {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) return "redirect:/dang-nhap";
         address.setUserId(userId);
+
+        if (address.getId() == null && addressRepository.countByUserId(userId) >= 10) {
+            return "redirect:/address?error=limit";
+        }
 
         if (Boolean.TRUE.equals(address.getIsDefault())) {
             addressRepository.clearDefaultAddressByUserId(userId);
@@ -116,6 +123,11 @@ public class AddressController {
         }
         try {
             address.setUserId(userId);
+            if (address.getId() == null && addressRepository.countByUserId(userId) >= 10) {
+                res.put("success", false);
+                res.put("message", "Chỉ được thêm tối đa 10 địa chỉ");
+                return ResponseEntity.ok(res);
+            }
             if (Boolean.TRUE.equals(address.getIsDefault())) {
                 addressRepository.clearDefaultAddressByUserId(userId);
             }
