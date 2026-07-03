@@ -240,24 +240,27 @@
               </div>
               <div class="modal-body pt-3">
                 <div id="addressModalList">
-                   <div th:each="a : ${addresses}" class="card border mb-2">
-                    <div class="card-body py-2 px-3">
-                      <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                          <strong th:text="${a.tenNguoiNhan}"></strong>
-                          <span class="text-muted ms-2" th:text="${a.soDienThoai}"></span>
-                          <span th:if="${a.isDefault}" class="badge bg-primary ms-2">Mặc định</span>
-                          <div class="small text-muted" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
-                        </div>
-                        <div class="d-flex gap-1 flex-shrink-0">
-                          <button class="btn btn-sm btn-outline-primary rounded-pill btn-address-edit" th:data-id="${a.id}"><i class="bi bi-pencil"></i></button>
-                          <button class="btn btn-sm btn-outline-secondary rounded-pill btn-address-default" th:unless="${a.isDefault}" th:data-id="${a.id}">Mặc định</button>
-                          <button class="btn btn-sm btn-outline-danger rounded-pill btn-address-delete" th:data-id="${a.id}"><i class="bi bi-trash"></i></button>
-                        </div>
+                   <div th:if="${#lists.isEmpty(addresses)}" class="text-center text-muted py-4">
+                      <i class="bi bi-geo-alt display-6 d-block mb-2 opacity-50"></i>
+                      Bạn chưa có địa chỉ nào
+                   </div>
+                   <div th:each="a : ${addresses}" class="ds-address-card" th:classappend="${a.isDefault} ? 'is-default'">
+                    <div class="ds-address-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div class="ds-address-card-body">
+                      <div class="ds-address-card-top">
+                        <strong th:text="${a.tenNguoiNhan}"></strong>
+                        <span class="text-muted" th:text="${a.soDienThoai}"></span>
+                        <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
                       </div>
+                      <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
+                    </div>
+                    <div class="ds-address-card-actions">
+                      <button class="ds-btn ds-btn-outline ds-btn-sm btn-address-edit" th:data-id="${a.id}" title="Sửa"><i class="bi bi-pencil"></i></button>
+                      <button class="ds-btn ds-btn-outline ds-btn-sm btn-address-default" th:unless="${a.isDefault}" th:data-id="${a.id}">Đặt mặc định</button>
+                      <button class="ds-btn ds-btn-outline ds-btn-sm btn-address-delete" th:data-id="${a.id}" title="Xoá"><i class="bi bi-trash"></i></button>
                     </div>
                   </div>
-                  <button type="button" class="btn btn-primary btn-sm rounded-pill mt-2" onclick="showAddressForm()">
+                  <button type="button" class="ds-btn ds-btn-fill ds-btn-sm mt-2" onclick="showAddressForm()">
                     <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
                   </button>
                 </div>
@@ -265,11 +268,14 @@
                 <div id="addressModalForm" style="display:none;">
                   <div class="mb-3">
                     <label class="form-label fw-medium small">Địa chỉ trên bản đồ</label>
-                    <div class="input-group input-group-sm mb-1 position-relative">
-                      <input type="text" id="modalDiaChiCuThe" class="form-control rounded-3" placeholder="Nhập địa chỉ..." autocomplete="off" />
-                      <button class="btn btn-outline-primary rounded-3" type="button" onclick="modalSearchMap()"><i class="bi bi-search"></i></button>
-                      <div id="modalSuggestionBox" class="list-group position-absolute w-100 rounded-3 shadow-sm"
-                           style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                    <div class="position-relative mb-1">
+                      <div class="ds-combo-search" style="border:1.5px solid var(--ds-border,#dee2e6);border-radius:10px;border-bottom:1.5px solid var(--ds-border,#dee2e6);">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="modalDiaChiCuThe" class="ds-combo-search-input" placeholder="Nhập địa chỉ..." autocomplete="off" />
+                        <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalSearchMap()" style="flex-shrink:0;">Tìm</button>
+                      </div>
+                      <div id="modalSuggestionBox" class="list-group position-absolute w-100 shadow-sm"
+                           style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;border-radius:10px;"></div>
                     </div>
                     <div id="modalMapContainer" style="border-radius:8px;overflow:hidden;">
                       <iframe id="modalGoogleMapFrame"
@@ -278,10 +284,10 @@
                       </iframe>
                     </div>
                     <div class="d-flex gap-2 mt-1">
-                      <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="modalGetMyLocation()">
+                      <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalGetMyLocation()">
                         <i class="bi bi-crosshair me-1"></i>Vị trí hiện tại
                       </button>
-                      <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="modalClearMap()">
+                      <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalClearMap()">
                         <i class="bi bi-x-circle me-1"></i>Xoá
                       </button>
                     </div>
@@ -303,23 +309,59 @@
                       <input type="text" id="modalDiaChiCuTheText" class="form-control form-control-sm rounded-3" required placeholder="Số 1, Đại Cồ Việt" />
                       <input type="hidden" id="modalDiaChiCuTheHidden" />
                     </div>
-                    <div class="col-md-6 position-relative">
+                    <div class="col-md-6">
                       <label class="form-label fw-medium small">Tỉnh/Thành phố <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control form-control-sm rounded-3" id="modalTinhThanhInput" placeholder="Gõ tên tỉnh/thành..." autocomplete="off" required />
-                      <input type="hidden" id="modalTinhThanh" />
-                      <div id="modalTinhThanhSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:180px;overflow-y:auto;"></div>
+                      <div class="ds-combo" id="modalTinhThanhCombo" data-selected-code="">
+                        <button type="button" class="ds-combo-toggle">
+                          <i class="bi bi-geo-alt ds-combo-icon"></i>
+                          <span class="ds-combo-label">Chọn tỉnh/thành</span>
+                          <i class="bi bi-chevron-down ds-combo-chevron"></i>
+                        </button>
+                        <div class="ds-combo-panel">
+                          <div class="ds-combo-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="ds-combo-search-input" placeholder="Tìm tỉnh/thành..." autocomplete="off" />
+                          </div>
+                          <div class="ds-combo-list"></div>
+                        </div>
+                        <input type="hidden" id="modalTinhThanh" required />
+                      </div>
                     </div>
-                    <div class="col-md-6 position-relative">
+                    <div class="col-md-6">
                       <label class="form-label fw-medium small">Quận/Huyện <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control form-control-sm rounded-3" id="modalQuanHuyenInput" placeholder="Gõ tên quận/huyện..." autocomplete="off" required />
-                      <input type="hidden" id="modalQuanHuyen" />
-                      <div id="modalQuanHuyenSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:180px;overflow-y:auto;"></div>
+                      <div class="ds-combo" id="modalQuanHuyenCombo" data-selected-code="">
+                        <button type="button" class="ds-combo-toggle">
+                          <i class="bi bi-signpost-split ds-combo-icon"></i>
+                          <span class="ds-combo-label">Chọn quận/huyện</span>
+                          <i class="bi bi-chevron-down ds-combo-chevron"></i>
+                        </button>
+                        <div class="ds-combo-panel">
+                          <div class="ds-combo-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="ds-combo-search-input" placeholder="Tìm quận/huyện..." autocomplete="off" />
+                          </div>
+                          <div class="ds-combo-list"></div>
+                        </div>
+                        <input type="hidden" id="modalQuanHuyen" required />
+                      </div>
                     </div>
-                    <div class="col-md-6 position-relative">
+                    <div class="col-md-6">
                       <label class="form-label fw-medium small">Phường/Xã <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control form-control-sm rounded-3" id="modalPhuongXaInput" placeholder="Gõ tên phường/xã..." autocomplete="off" required />
-                      <input type="hidden" id="modalPhuongXa" />
-                      <div id="modalPhuongXaSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:180px;overflow-y:auto;"></div>
+                      <div class="ds-combo" id="modalPhuongXaCombo" data-selected-code="">
+                        <button type="button" class="ds-combo-toggle">
+                          <i class="bi bi-house-door ds-combo-icon"></i>
+                          <span class="ds-combo-label">Chọn phường/xã</span>
+                          <i class="bi bi-chevron-down ds-combo-chevron"></i>
+                        </button>
+                        <div class="ds-combo-panel">
+                          <div class="ds-combo-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="ds-combo-search-input" placeholder="Tìm phường/xã..." autocomplete="off" />
+                          </div>
+                          <div class="ds-combo-list"></div>
+                        </div>
+                        <input type="hidden" id="modalPhuongXa" required />
+                      </div>
                     </div>
                   </div>
                   <div class="form-check form-switch mb-3">
@@ -327,13 +369,13 @@
                     <label class="form-check-label small" for="modalIsDefault">Đặt làm địa chỉ mặc định</label>
                   </div>
                   <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-secondary btn-sm rounded-pill" onclick="showAddressList()">Hủy</button>
-                    <button type="button" class="btn btn-primary btn-sm rounded-pill" onclick="saveAddressFromModal()">Lưu địa chỉ</button>
+                    <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="showAddressList()">Hủy</button>
+                    <button type="button" class="ds-btn ds-btn-fill ds-btn-sm" onclick="saveAddressFromModal()">Lưu địa chỉ</button>
                   </div>
                 </div>
               </div>
               <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-dismiss="modal">Đóng</button>
               </div>
             </div>
           </div>
@@ -419,15 +461,10 @@
             }
         }
 
-        function openAddressModal() {
-            var modalEl = document.getElementById('addressModal');
-            bootstrap.Modal.getOrCreateInstance(modalEl).show();
-        }
-        function closeAddressModal() {
-            var modalEl = document.getElementById('addressModal');
-            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-            location.reload();
-        }
+        // openAddressModal()/closeAddressModal() now live only in checkout.js —
+        // a second copy here was silently overriding the one that resets the
+        // modal's list/form view state on open, which is why it sometimes opened
+        // straight into a leftover "add address" form instead of the list.
 
         function openPromoModal() {
             var modalEl = document.getElementById('promoModal');
@@ -469,7 +506,14 @@
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({ maCode: code, subtotal })
-            }).then(function(r) { return r.json(); }).then(function(data) {
+            }).then(function(r) {
+                if (r.status === 403) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    return null;
+                }
+                return r.json();
+            }).then(function(data) {
+                if (!data) return;
                 if (data.valid) {
                     msgEl.innerHTML = '<span class="text-success">&#10003; ' + data.message + '</span>';
                     window.appliedDiscount = parseInt(data.discount) || 0;

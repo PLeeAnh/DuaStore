@@ -589,7 +589,14 @@ document.getElementById('qtyInput').addEventListener('input', function () {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ productId: productId, variantId: selectedVariantId, quantity: qty })
-            }).then(r => r.json()).then(data => {
+            }).then(function(r) {
+                if (r.status === 403) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    return null;
+                }
+                return r.json();
+            }).then(function(data) {
+                if (!data) return;
                 if (data.success) {
                     window.location.href = '/gio-hang';
                 } else {
@@ -622,7 +629,14 @@ document.getElementById('qtyInput').addEventListener('input', function () {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ productId: productId, variantId: variantId, quantity: qty })
-            }).then(r => r.json()).then(data => {
+            }).then(function(r) {
+                if (r.status === 403) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    return null;
+                }
+                return r.json();
+            }).then(function(data) {
+                if (!data) return;
                 if (data.success) {
                     if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
                     addCartPopupItemFromDetail(productId, variantId, qty, productName, validImgSrc, variantName, rawPrice, selectedStock);

@@ -65,7 +65,7 @@ function openDetailModal(promoId) {
             }
 
             document.getElementById('dm-footer-action').innerHTML =
-                '<button class="vc-btn vc-btn-cta" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Thêm vào ví</button>';
+                '<button class="vc-btn vc-btn-cta" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận</button>';
 
             if (typeof bootstrap === 'undefined') {
                 showToast('Không thể hiển thị popup: Bootstrap chưa được tải');
@@ -84,8 +84,15 @@ function saveVoucherFromDetail(promoId) {
     var token = document.querySelector('meta[name="_csrf"]')?.content || '';
     var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
     fetch('/api/vi-voucher/luu/' + promoId, { method: 'POST', headers: { [header]: token } })
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+            if (r.status === 403) {
+                if (typeof showLoginPopup === 'function') showLoginPopup();
+                return null;
+            }
+            return r.json();
+        })
         .then(function(data) {
+            if (!data) return;
             showToast(data.message);
             if (data.message && data.message.indexOf('dang nhap') !== -1) {
                 if (typeof showLoginPopup === 'function') showLoginPopup();
@@ -121,8 +128,15 @@ function saveVoucher(promotionId) {
     var headers = { 'Content-Type': 'application/json' };
     headers[header] = token;
     fetch('/api/vi-voucher/luu/' + promotionId, { method: 'POST', headers: headers })
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+            if (r.status === 403) {
+                if (typeof showLoginPopup === 'function') showLoginPopup();
+                return null;
+            }
+            return r.json();
+        })
         .then(function(data) {
+            if (!data) return;
             showToast(data.message);
             if (data.message && data.message.indexOf('dang nhap') !== -1) {
                 if (typeof showLoginPopup === 'function') showLoginPopup();

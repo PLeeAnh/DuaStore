@@ -36,6 +36,9 @@ window.DuaStore.api = window.DuaStore.api || {};
 
     function handleResponse(res) {
         var message = statusMessages[res.status] || 'Yêu cầu thất bại';
+        if (res.status === 401 || res.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+        }
         if (res.ok) {
             return res.json().then(function(data) {
                 return { ok: true, data: data };
