@@ -33,7 +33,6 @@
     <th:block layout:fragment="extra-head"></th:block>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        var __isLoggedIn = [[${isLoggedIn}]];
         var __customCss = [[${customCss ?: ''}]].replace(/\]\]/g, '');
         if (__customCss) {
             var __style = document.createElement('style');
@@ -198,7 +197,7 @@
                 <div class="position-relative d-inline-block">
                     <button class="ds-icon-btn" id="btn-notif-toggle" onclick="toggleNotifPopup()" title="Thông báo" aria-label="Thông báo">
                         <i class="bi bi-bell"></i>
-                        <span th:if="${session.loggedIn}" id="notifBadge" class="ds-cart-badge"
+                        <span id="notifBadge" class="ds-cart-badge"
                               th:text="${notifCount != null ? notifCount : 0}"
                               th:classappend="${(notifCount == null || notifCount == 0) ? ' d-none' : ''}">0</span>
                     </button>
@@ -974,12 +973,6 @@ function refreshWishlistBadgeCount() {
 
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
-    if (!__isLoggedIn) {
-        var popup = document.getElementById('notif-popup');
-        if (popup) popup.classList.remove('show');
-        showLoginPopup();
-        return;
-    }
     togglePopup('notif-popup');
     var badge = document.getElementById('notifBadge');
     if (badge && !badge.classList.contains('d-none')) {
