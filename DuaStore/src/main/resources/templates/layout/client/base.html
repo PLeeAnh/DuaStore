@@ -895,8 +895,16 @@ function updatePopupQty(itemId, delta) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty })
     })
-    .then(r => r.json())
+    .then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            qtyInput.value = currentQty;
+            return null;
+        }
+        return r.json();
+    })
     .then(data => {
+        if (!data) return;
         if (!data.success) {
             DuaStore.toast.error(data.message);
             qtyInput.value = currentQty;
@@ -947,8 +955,15 @@ function setPopupQty(itemId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
     })
-    .then(r => r.json())
+    .then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    })
     .then(data => {
+        if (!data) return;
         if (!data.success) {
             DuaStore.toast.error(data.message);
             return;
@@ -989,8 +1004,15 @@ function toggleNotifPopup() {
     var badge = document.getElementById('notifBadge');
     if (badge && !badge.classList.contains('d-none')) {
         fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
-            .then(function(r) { return r.text(); })
+            .then(function(r) {
+                if (r.status === 403) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    return null;
+                }
+                return r.text();
+            })
             .then(function(text) {
+                if (text === null) return;
                 if (text && (text.indexOf('dang nhap') !== -1 || text.indexOf('đăng nhập') !== -1)) {
                     if (typeof showLoginPopup === 'function') showLoginPopup();
                     return;
@@ -1002,8 +1024,15 @@ function toggleNotifPopup() {
 }
 function markNotifRead(id) {
     fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
-        .then(function(r) { return r.text(); })
+        .then(function(r) {
+            if (r.status === 403) {
+                if (typeof showLoginPopup === 'function') showLoginPopup();
+                return null;
+            }
+            return r.text();
+        })
         .then(function(text) {
+            if (text === null) return;
             if (text && (text.indexOf('dang nhap') !== -1 || text.indexOf('đăng nhập') !== -1)) {
                 if (typeof showLoginPopup === 'function') showLoginPopup();
             }

@@ -25,6 +25,11 @@ public class PostController {
         this.postCategoryRepository = postCategoryRepository;
     }
 
+    @GetMapping("/bai-viet")
+    public String redirectToBlog() {
+        return "redirect:/blog";
+    }
+
     @GetMapping("/blog")
     public String list(@RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "12") int size,

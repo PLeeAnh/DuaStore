@@ -1,5 +1,6 @@
 package com.duastore.config.security;
 
+import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 
 @Configuration
@@ -73,6 +78,7 @@ public class SecurityConfig {
             )
             .exceptionHandling(ex -> ex
                 .accessDeniedHandler(accessDeniedHandler())
+                .authenticationEntryPoint(authenticationEntryPoint())
             )
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/auth/**", "/admin/thong-bao/api/**", "/api/thong-bao/**", "/api/cart/**")
@@ -84,6 +90,23 @@ public class SecurityConfig {
     @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return new CustomAccessDeniedHandler();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return new AuthenticationEntryPoint() {
+            @Override
+            public void commence(HttpServletRequest request, HttpServletResponse response,
+                                 AuthenticationException authException) throws IOException {
+                if (request.getRequestURI().startsWith("/api/")) {
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập\"}");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/dang-nhap");
+                }
+            }
+        };
     }
 
     @Bean

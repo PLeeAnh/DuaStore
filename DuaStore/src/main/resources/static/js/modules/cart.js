@@ -76,7 +76,14 @@ function addToCart(productId, variantId, quantity) {
     fetch('/api/cart/add-popup', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: productId, variantId: variantId, quantity: quantity })
-    }).then(function(r) { return r.json(); }).then(function(data) {
+    }).then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    }).then(function(data) {
+        if (!data) return;
         if (data.success) {
             if (btnAdd) btnAdd.classList.add('added');
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
@@ -96,7 +103,14 @@ function addToCartFromWishlist(productId, variantId) {
     fetch('/api/cart/add-popup', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: productId, variantId: variantId || null, quantity: 1 })
-    }).then(function(r) { return r.json(); }).then(function(data) {
+    }).then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    }).then(function(data) {
+        if (!data) return;
         if (data.success) {
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
             DuaStore.toast.success('Đã thêm vào giỏ hàng');
@@ -181,7 +195,14 @@ function addToCartFromCard(btn) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: parseInt(productId), variantId: variantId, quantity: qty })
-    }).then(function(r) { return r.json(); }).then(function(data) {
+    }).then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    }).then(function(data) {
+        if (!data) return;
         if (data.success) {
             btn.classList.add('added');
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
@@ -191,9 +212,16 @@ function addToCartFromCard(btn) {
             }
         } else if (data.message && data.message.indexOf('dang nhap') !== -1) {
             if (typeof showLoginPopup === 'function') showLoginPopup();
+        } else {
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.error(data.message || 'Không thể thêm vào giỏ');
+            }
         }
     }).catch(function(err) {
         console.error('Lỗi thêm giỏ hàng:', err);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.error('Không thể thêm vào giỏ hàng');
+        }
     });
 }
 
@@ -214,7 +242,14 @@ function removeCartItem(cartItemId) {
     fetch('/api/cart/remove-item', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variantId: cartItemId })
-    }).then(function(r) { return r.json(); }).then(function(data) {
+    }).then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    }).then(function(data) {
+        if (!data) return;
         if (data.success) {
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
             if (data.remainingItems === 0 && pid) {
@@ -254,7 +289,14 @@ function updatePopupQty(variantId, delta) {
     fetch('/api/cart/update', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variantId: variantId, quantity: next })
-    }).then(function(r) { return r.json(); }).then(function(data) {
+    }).then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    }).then(function(data) {
+        if (!data) return;
         if (data.success) {
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
         }
@@ -300,8 +342,14 @@ function setPopupQty(variantId) {
     fetch('/api/cart/update', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variantId: variantId, quantity: val })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-        if (data.success && typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+    }).then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    }).then(function(data) {
+        if (data && data.success && typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
     }).catch(function() {});
 }
 
