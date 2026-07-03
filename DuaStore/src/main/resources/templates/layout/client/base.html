@@ -28,6 +28,7 @@
     <script th:src="@{/js/modules/product.js(v=1)}"></script>
     <script th:src="@{/js/modules/wishlist.js(v=1)}"></script>
     <script th:src="@{/js/modules/cart.js(v=1)}"></script>
+    <script th:src="@{/js/modules/promotion.js(v=1)}"></script>
     <script th:src="@{/js/modules/checkout.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
     <script th:inline="javascript">
@@ -988,13 +989,25 @@ function toggleNotifPopup() {
     var badge = document.getElementById('notifBadge');
     if (badge && !badge.classList.contains('d-none')) {
         fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
-            .then(r => r.text())
-            .then(() => { badge.classList.add('d-none'); })
-            .catch(() => { badge.classList.add('d-none'); });
+            .then(function(r) { return r.text(); })
+            .then(function(text) {
+                if (text && (text.indexOf('dang nhap') !== -1 || text.indexOf('đăng nhập') !== -1)) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    return;
+                }
+                badge.classList.add('d-none');
+            })
+            .catch(function() { badge.classList.add('d-none'); });
     }
 }
 function markNotifRead(id) {
     fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
+        .then(function(r) { return r.text(); })
+        .then(function(text) {
+            if (text && (text.indexOf('dang nhap') !== -1 || text.indexOf('đăng nhập') !== -1)) {
+                if (typeof showLoginPopup === 'function') showLoginPopup();
+            }
+        })
         .catch(function() {});
 }
 var _lastNotifCount = 0;

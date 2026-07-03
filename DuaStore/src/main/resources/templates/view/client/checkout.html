@@ -73,16 +73,10 @@
                                     <input type="radio" name="phuongThucGiaoHang" id="shipTT" value="SHIP" checked />
                                     <label for="shipTT">
                                         <span>Giao hàng tiêu chuẩn</span>
-                                        <span class="ds-checkout-radio-price" id="shipTTPrice">30.000₫</span>
+                                        <span class="ds-checkout-radio-price" id="shipTTPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
                                     </label>
                                 </div>
-                                <div class="ds-checkout-radio">
-                                    <input type="radio" name="phuongThucGiaoHang" id="shipNhanh" value="NHAN_TAI_CONG" />
-                                    <label for="shipNhanh">
-                                        <span>Nhận tại cửa hàng</span>
-                                        <span class="ds-checkout-radio-price text-success fw-semibold">Miễn phí</span>
-                                    </label>
-                                </div>
+
                             </div>
                         </div>
 
@@ -110,12 +104,18 @@
 
                         <hr />
                         <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
-                        <div class="input-group mb-1" style="max-width:480px">
-                            <input type="text" name="maCode" class="form-control" id="checkoutPromoInput" placeholder="Nhập mã giảm giá" readonly
-                                   th:value="${checkoutRequest.maCode}" />
-                            <button class="btn btn-outline-primary" type="button" id="checkoutChoosePromo">Chọn mã</button>
-                            <button class="btn btn-outline-secondary" type="button" id="checkoutCopyPromo" onclick="copyCheckoutPromo()"
-                                    style="display:none"><i class="bi bi-clipboard"></i></button>
+                        <input type="hidden" name="maCode" id="checkoutPromoInput" th:value="${checkoutRequest.maCode}" />
+                        <div class="ds-promo-picker mb-1" id="checkoutPromoPicker" style="max-width:480px" onclick="openPromoModal()">
+                            <div class="ds-promo-picker-left">
+                                <i class="bi bi-ticket-perforated-fill"></i>
+                                <span id="checkoutPromoLabel" th:text="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? ${checkoutRequest.maCode} : 'Chọn hoặc nhập mã giảm giá'"
+                                      th:classappend="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? 'ds-promo-picker-applied'"></span>
+                            </div>
+                            <div class="ds-promo-picker-right">
+                                <button class="ds-promo-copy-btn" type="button" id="checkoutCopyPromo"
+                                        onclick="event.stopPropagation(); copyCheckoutPromo()" style="display:none"><i class="bi bi-clipboard"></i></button>
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
                         </div>
                         <div id="checkoutPromoMsg" class="small mb-3">
                             <span class="text-success" th:if="${bestPromo != null and tienGiam > 0}"
@@ -250,9 +250,9 @@
                           <div class="small text-muted" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
                         </div>
                         <div class="d-flex gap-1 flex-shrink-0">
-                          <button class="btn btn-sm btn-outline-primary rounded-pill" th:onclick="'editAddress(' + ${a.id} + ')'"><i class="bi bi-pencil"></i></button>
-                          <button class="btn btn-sm btn-outline-secondary rounded-pill" th:unless="${a.isDefault}" th:onclick="'setDefaultAddress(' + ${a.id} + ')'">Mặc định</button>
-                          <button class="btn btn-sm btn-outline-danger rounded-pill" th:onclick="'deleteAddress(' + ${a.id} + ')'"><i class="bi bi-trash"></i></button>
+                          <button class="btn btn-sm btn-outline-primary rounded-pill btn-address-edit" th:data-id="${a.id}"><i class="bi bi-pencil"></i></button>
+                          <button class="btn btn-sm btn-outline-secondary rounded-pill btn-address-default" th:unless="${a.isDefault}" th:data-id="${a.id}">Mặc định</button>
+                          <button class="btn btn-sm btn-outline-danger rounded-pill btn-address-delete" th:data-id="${a.id}"><i class="bi bi-trash"></i></button>
                         </div>
                       </div>
                     </div>
@@ -340,19 +340,18 @@
         </div>
 
         <!-- Modal chọn mã giảm giá -->
-        <div id="promoModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);">
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;max-width:500px;max-height:80%;background:#fff;border-radius:12px;display:flex;flex-direction:column;">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #eee;">
-                <h5 class="fw-bold mb-0">Chọn mã giảm giá</h5>
-                <button type="button" onclick="closePromoModal()" style="border:none;background:none;font-size:1.5rem;line-height:1;">&times;</button>
-            </div>
-            <div style="padding:12px 20px;border-bottom:1px solid #eee;">
-                <div class="input-group">
-                    <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" />
-                    <button class="btn btn-primary" type="button" onclick="applyVoucherInput()">Áp dụng</button>
+        <div class="modal fade" id="promoModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+              <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold modal-title">Chọn mã giảm giá</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body pt-3">
+                <div class="input-group mb-3">
+                  <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" />
+                  <button class="btn btn-primary" type="button" onclick="applyVoucherInput()">Áp dụng</button>
                 </div>
-            </div>
-            <div style="flex:1;min-height:0;overflow-y:auto;padding:12px 20px;">
                 <div th:if="${#lists.isEmpty(availablePromos)}" class="text-muted text-center py-4">Không có mã giảm giá nào khả dụng</div>
                 <div th:each="p : ${availablePromos}" class="position-relative overflow-hidden border rounded p-3 mb-2 promo-item" style="cursor:pointer"
                      th:data-code="${p.maCode}"
@@ -362,38 +361,38 @@
                      th:data-maxgiam="${p.giamToiDa}"
                      th:data-ten="${p.tenChuongTrinh}"
                      onclick="selectPromo(this)">
-                    <div class="position-absolute top-0 start-0 bottom-0 bg-danger" style="width:4px;"></div>
-                    <div class="ms-1">
-                        <div class="d-flex justify-content-between align-items-start mb-1">
-                            <div>
-                                <span class="text-danger fw-bold fs-5 me-2"
-                                      th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                      th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
-                                <span class="text-danger fw-bold fs-5 me-2"
-                                      th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
-                                      th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                <strong class="font-monospace" th:text="${p.maCode}"></strong>
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" style="font-size:.65rem"
-                                        th:data-code="${p.maCode}" type="button" onclick="copyCode(this)">Copy</button>
-                            </div>
-                            <span class="badge bg-danger rounded-pill" style="font-size:.6rem;">Giảm giá</span>
-                        </div>
-                        <div class="small text-muted mb-1" th:text="${p.tenChuongTrinh}"></div>
-                        <div class="d-flex flex-wrap gap-2 small text-muted">
-                            <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
-                                  th:text="${'🛒 Tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                            <span th:if="${p.giamToiDa != null}"
-                                  th:text="${'💰 Tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                            <span th:if="${p.denNgay != null}" class="ds-promo-timer"
-                                  th:data-end="${#temporals.format(p.denNgay, 'yyyy-MM-dd')}T${#temporals.format(p.denNgay, 'HH:mm:ss')}">
-                                📅 <span class="promo-countdown"></span>
-                            </span>
-                        </div>
+                  <div class="position-absolute top-0 start-0 bottom-0 bg-danger" style="width:4px;"></div>
+                  <div class="ms-1">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                      <div>
+                        <span class="text-danger fw-bold fs-5 me-2"
+                              th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                              th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                        <span class="text-danger fw-bold fs-5 me-2"
+                              th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
+                              th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                        <strong class="font-monospace" th:text="${p.maCode}"></strong>
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" style="font-size:.65rem"
+                                th:data-code="${p.maCode}" type="button" onclick="copyCode(this)">Copy</button>
+                      </div>
+                      <span class="badge bg-danger rounded-pill" style="font-size:.6rem;">Giảm giá</span>
                     </div>
+                    <div class="small text-muted mb-1" th:text="${p.tenChuongTrinh}"></div>
+                    <div class="d-flex flex-wrap gap-2 small text-muted">
+                      <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
+                            th:text="${'🛒 Tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                      <span th:if="${p.giamToiDa != null}"
+                            th:text="${'💰 Tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                      <span th:if="${p.denNgay != null}" class="ds-promo-timer"
+                            th:data-end="${#strings.concat(#temporals.format(p.denNgay, 'yyyy-MM-dd'), 'T', #temporals.format(p.denNgay, 'HH:mm:ss'))}">
+                        📅 <span class="promo-countdown"></span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
-        </div>
-        </div>
+          </div>
         </div>
 
 <th:block layout:fragment="extra-script">
@@ -421,30 +420,27 @@
         }
 
         function openAddressModal() {
-            document.getElementById('addressModal').style.display = 'block';
-            document.getElementById('addressIframe').src = '/address';
+            var modalEl = document.getElementById('addressModal');
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }
         function closeAddressModal() {
-            document.getElementById('addressModal').style.display = 'none';
+            var modalEl = document.getElementById('addressModal');
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
             location.reload();
         }
 
         function openPromoModal() {
-            document.getElementById('promoModal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-        function closePromoModal() {
-            document.getElementById('promoModal').style.display = 'none';
-            document.body.style.overflow = '';
+            var modalEl = document.getElementById('promoModal');
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }
         function selectPromo(el) {
-            const code = el.getAttribute('data-code');
+            var code = el.getAttribute('data-code');
             applyPromoCode(code);
         }
         function copyCheckoutPromo() {
-            const input = document.getElementById('checkoutPromoInput');
-            const code = input.value;
-            if (!code) return;
+            var labelEl = document.getElementById('checkoutPromoLabel');
+            var code = labelEl.textContent.trim();
+            if (!code || code === 'Chọn hoặc nhập mã giảm giá') return;
             navigator.clipboard.writeText(code).then(function() {
                 showToast('Đã sao chép mã: ' + code);
             }).catch(function() {
@@ -452,62 +448,55 @@
             });
         }
         function applyVoucherInput() {
-            const input = document.getElementById('promoVoucherInput');
-            const code = input.value.trim();
+            var input = document.getElementById('promoVoucherInput');
+            var code = input.value.trim();
             if (!code) return;
             applyPromoCode(code);
         }
         function applyPromoCode(code) {
-            const input = document.getElementById('checkoutPromoInput');
-            const msgEl = document.getElementById('checkoutPromoMsg');
-            const subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
-            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
-            input.value = code;
+            var labelEl = document.getElementById('checkoutPromoLabel');
+            var msgEl = document.getElementById('checkoutPromoMsg');
+            var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
+            var csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+            labelEl.textContent = code;
+            labelEl.className = 'ds-promo-picker-applied';
             msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
             closePromoModal();
-            const headers = { 'Content-Type': 'application/json' };
+            var headers = { 'Content-Type': 'application/json' };
             if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
             fetch('/api/coupon/validate', {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({ maCode: code, subtotal })
-            }).then(r => r.json()).then(data => {
+            }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.valid) {
                     msgEl.innerHTML = '<span class="text-success">&#10003; ' + data.message + '</span>';
-                    appliedDiscount = parseInt(data.discount) || 0;
-                    document.getElementById('discountDisplay').textContent = '-' + appliedDiscount.toLocaleString('vi-VN') + 'đ';
+                    window.appliedDiscount = parseInt(data.discount) || 0;
+                    document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + 'đ';
                     document.getElementById('discountDisplay').className = 'text-danger';
                     document.getElementById('checkoutCopyPromo').style.display = '';
                 } else {
                     msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
-                    appliedDiscount = 0;
+                    window.appliedDiscount = 0;
                     document.getElementById('discountDisplay').textContent = '0đ';
                     document.getElementById('discountDisplay').className = '';
                     document.getElementById('checkoutCopyPromo').style.display = 'none';
+                    labelEl.textContent = 'Chọn hoặc nhập mã giảm giá';
+                    labelEl.className = '';
                 }
                 updateTotal();
-            }).catch(() => {
+            }).catch(function() {
                 msgEl.innerHTML = '<span class="text-danger">Lỗi kết nối, vui lòng thử lại</span>';
+                labelEl.textContent = 'Chọn hoặc nhập mã giảm giá';
+                labelEl.className = '';
             });
         }
 
-        function updateShipFee() {
-            const isPickup = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value === 'NHAN_TAI_CONG';
-            const shipDisplay = document.getElementById('shipFeeDisplay');
-            if (isPickup) {
-                shipDisplay.textContent = '0đ';
-                shipDisplay.className = 'text-success fw-semibold';
-            } else {
-                shipDisplay.textContent = '30.000đ';
-                shipDisplay.className = '';
-            }
-            updateTotal();
-        }
         function updateTotal() {
-            const subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
-            const fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
-            const total = subtotal + fee - appliedDiscount;
+            var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
+            var fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
+            var total = subtotal + fee - window.appliedDiscount;
             document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + 'đ';
         }
 
@@ -538,28 +527,32 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             initPromoTimers();
-            appliedDiscount = parseInt(document.getElementById('rawDiscount').textContent) || 0;
-            if (appliedDiscount > 0) {
+            window.appliedDiscount = parseInt(document.getElementById('rawDiscount').textContent) || 0;
+            if (window.appliedDiscount > 0) {
                 document.getElementById('checkoutCopyPromo').style.display = '';
             }
 
-        document.querySelectorAll('input[name="phuongThucGiaoHang"]').forEach(function(el) {
-            el.addEventListener('change', function() {
-                updateShipFee();
+            document.querySelectorAll('.btn-address-edit').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    editAddress(parseInt(this.getAttribute('data-id')));
+                });
             });
-        });
-
-        document.getElementById('checkoutChoosePromo')?.addEventListener('click', openPromoModal);
-        document.getElementById('promoModal')?.addEventListener('click', function(e) {
-            if (e.target === this) closePromoModal();
-        });
+            document.querySelectorAll('.btn-address-default').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    setDefaultAddress(parseInt(this.getAttribute('data-id')));
+                });
+            });
+            document.querySelectorAll('.btn-address-delete').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    deleteAddress(parseInt(this.getAttribute('data-id')));
+                });
+            });
         });
     </script>
     <script th:inline="javascript">
         var STORE_LAT = [[${storeLat}]];
         var STORE_LNG = [[${storeLng}]];
     </script>
-    <script th:src="@{/js/modules/checkout.js(v=1)}"></script>
 </th:block>
     </body>
 </html>

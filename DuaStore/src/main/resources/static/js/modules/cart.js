@@ -155,7 +155,11 @@ function addToCartFromWishlist(productId, variantId) {
                 }
             }
         } else {
-            DuaStore.toast.error(data.message || 'Không thể thêm vào giỏ');
+            if (data.message && data.message.indexOf('dang nhap') !== -1) {
+                if (typeof showLoginPopup === 'function') showLoginPopup();
+            } else {
+                DuaStore.toast.error(data.message || 'Không thể thêm vào giỏ');
+            }
         }
     }).catch(function() {
         DuaStore.toast.error('Lỗi kết nối');
@@ -185,6 +189,8 @@ function addToCartFromCard(btn) {
             if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
                 DuaStore.toast.success('Đã thêm vào giỏ hàng');
             }
+        } else if (data.message && data.message.indexOf('dang nhap') !== -1) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
         }
     }).catch(function(err) {
         console.error('Lỗi thêm giỏ hàng:', err);
@@ -217,6 +223,8 @@ function removeCartItem(cartItemId) {
                     if (b) b.classList.remove('added');
                 });
             }
+        } else if (data.message && data.message.indexOf('dang nhap') !== -1) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
         } else alert('Lỗi hệ thống: ' + data.message);
     }).catch(function(error) { console.error('Lỗi xóa giỏ hàng:', error); });
 }
@@ -249,6 +257,14 @@ function updatePopupQty(variantId, delta) {
     }).then(function(r) { return r.json(); }).then(function(data) {
         if (data.success) {
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+        }
+        else if (data.message && data.message.indexOf('dang nhap') !== -1) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            qtyInput.value = cur;
+            if (priceSpan) {
+                var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
+                priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + '₫';
+            }
         }
         else {
             alert(data.message || 'Cập nhật thất bại!');
@@ -355,4 +371,5 @@ function addCartPopupItem(card, productId, variantId, qty) {
             popup.appendChild(div);
         }
     }
+    if (typeof togglePopup === 'function') togglePopup('cart-popup');
 }

@@ -80,6 +80,11 @@ public class Promotion {
 
     @PrePersist
     protected void onCreate() {
+        normalizeDefaults();
+    }
+
+    @PostLoad
+    protected void normalizeDefaults() {
         if (donHangToiThieu == null) donHangToiThieu = BigDecimal.ZERO;
         if (daDung == null) daDung = 0;
         if (isActive == null) isActive = true;
