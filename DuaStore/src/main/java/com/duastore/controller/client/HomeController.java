@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.Category;
 import com.duastore.model.FlashSale;
 import com.duastore.model.Product;
@@ -10,9 +11,13 @@ import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.UserVoucherRepository;
+import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
+import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +41,9 @@ public class HomeController {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final BannerService bannerService;
+    private final UserVoucherRepository userVoucherRepository;
+    private final SecurityUtil securityUtil;
+    private final SiteSettingService siteSettingService;
 
     public HomeController(ProductService productService,
                           CategoryService categoryService,
@@ -44,7 +52,10 @@ public class HomeController {
                           PromotionRepository promotionRepository,
                           ProductRepository productRepository,
                           CategoryRepository categoryRepository,
-                          BannerService bannerService) {
+                          BannerService bannerService,
+                          UserVoucherRepository userVoucherRepository,
+                          SecurityUtil securityUtil,
+                          SiteSettingService siteSettingService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -53,18 +64,56 @@ public class HomeController {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.bannerService = bannerService;
+        this.userVoucherRepository = userVoucherRepository;
+        this.securityUtil = securityUtil;
+        this.siteSettingService = siteSettingService;
     }
 
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "Trang chủ");
 
+        // Read homepage section settings
+        int promoLimit = parseInt(siteSettingService.getValue("hp_3_limit"), 6);
+        int catLimit = parseInt(siteSettingService.getValue("hp_4_limit"), 7);
+        int prodLimit = parseInt(siteSettingService.getValue("hp_5_limit"), 8);
+        int promoLayout = parseInt(siteSettingService.getValue("hp_3_layout"), 3);
+        int catLayout = parseInt(siteSettingService.getValue("hp_4_layout"), 4);
+        int prodLayout = parseInt(siteSettingService.getValue("hp_5_layout"), 4);
+
+        // Grid class for promotions (Bootstrap responsive)
+        int clampedLayout = Math.min(Math.max(promoLayout, 1), 6);
+        String mdClass = switch (clampedLayout) {
+            case 1 -> "col-md-12";
+            case 2 -> "col-md-6";
+            case 3 -> "col-md-4";
+            case 4 -> "col-md-3";
+            default -> "col-md";
+        };
+        model.addAttribute("promotionGridClass", "col-6 " + mdClass);
+
+        // Column count for categories & products (CSS Grid --cols)
+        model.addAttribute("categoryColumns", catLayout);
+        model.addAttribute("productColumns", prodLayout);
+
+        // Featured promotions with limit
+        List<Promotion> featuredPromos = promotionRepository.findFeaturedPromotions(LocalDateTime.now(),
+                PageRequest.of(0, promoLimit));
+        model.addAttribute("featuredPromotions", featuredPromos);
+
+        // Available voucher count for logged-in user
+        Integer currentUserId = null;
+        try { currentUserId = securityUtil.getCurrentUserId(); } catch (Exception ignored) {}
+        if (currentUserId != null) {
+            model.addAttribute("voucherCount", userVoucherRepository.countByUserIdAndStatus(currentUserId, VoucherStatus.AVAILABLE));
+        }
+
         // Active banners for hero section
         model.addAttribute("banners", bannerService.getActiveForClient());
 
         List<Product> featured = productService.getFeatured();
-        model.addAttribute("featuredProducts", featured);
-        model.addAttribute("featuredCategories", categoryService.getFeaturedCategories());
+        model.addAttribute("featuredProducts", featured.stream().limit(prodLimit).toList());
+        model.addAttribute("featuredCategories", categoryService.getFeaturedCategories().stream().limit(catLimit).toList());
 
         Map<Integer, Long> productCountMap = productRepository.countProductsByDanhMuc()
             .stream()
@@ -183,6 +232,11 @@ public class HomeController {
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
 
         return "view/client/index";
+    }
+
+    private int parseInt(String value, int defaultValue) {
+        if (value == null) return defaultValue;
+        try { return Integer.parseInt(value); } catch (NumberFormatException e) { return defaultValue; }
     }
 
     @GetMapping("/wishlist")

@@ -5,6 +5,7 @@ import com.duastore.repository.NotificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NotificationHelper {
@@ -16,6 +17,7 @@ public class NotificationHelper {
         this.notificationRepository = notificationRepository;
     }
 
+    @Transactional
     public void notifyAll(String content, String linkType, Integer linkId, String linkUrl, String linkLabel) {
         try {
             Notification n = new Notification();
@@ -31,6 +33,7 @@ public class NotificationHelper {
         }
     }
 
+    @Transactional
     public void notifyStaff(String content, String linkType, Integer linkId, String linkUrl, String linkLabel) {
         try {
             Notification n = new Notification();

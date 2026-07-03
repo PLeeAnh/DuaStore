@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 public class Promotion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, unique = true, length = 50)
@@ -51,10 +52,41 @@ public class Promotion {
     @Column(nullable = false)
     private Boolean isActive;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private VoucherType voucherType = VoucherType.VOUCHER;
+
+    private Integer priority = 0;
+
+    private Boolean stackable = false;
+
+    @Column(precision = 12, scale = 0)
+    private BigDecimal budget;
+
+    @Column(precision = 12, scale = 0)
+    private BigDecimal usedBudget;
+
+    private Integer maxClaims;
+
+    private Integer maxClaimsPerUser;
+
+    @Column(length = 20)
+    private String targetType;
+
+    @Column(length = 500)
+    private String targetIds;
+
+    private Integer savedCount = 0;
+
     @PrePersist
     protected void onCreate() {
         if (donHangToiThieu == null) donHangToiThieu = BigDecimal.ZERO;
         if (daDung == null) daDung = 0;
         if (isActive == null) isActive = true;
+        if (usedBudget == null) usedBudget = BigDecimal.ZERO;
+        if (voucherType == null) voucherType = VoucherType.VOUCHER;
+        if (priority == null) priority = 0;
+        if (stackable == null) stackable = false;
+        if (savedCount == null) savedCount = 0;
     }
 }

@@ -50,7 +50,10 @@ public class AdminControllerAdvice {
             return Set.of("DASHBOARD_READ","PRODUCT_READ","CATEGORY_READ",
                           "ORDER_READ","PROMOTION_READ","POST_READ",
                           "REVIEW_READ","USER_READ","ROLE_READ","AUDIT_LOG_READ",
-                          "NOTIFICATION_READ");
+                          "NOTIFICATION_READ","ANALYTICS_READ","CUSTOMER_READ",
+                          "HOMEPAGE_READ","STORE_READ","APPEARANCE_READ",
+                          "EMAIL_SETTING_READ","PAYMENT_SETTING_READ","SHIPPING_SETTING_READ",
+                          "BANNER_READ");
         }
 
         return perms;

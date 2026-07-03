@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -48,6 +49,7 @@ public class AdminVariantService {
         return variantRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public ProductVariant save(ProductVariantFormDTO dto) {
         ProductVariant v = (dto.getId() != null) ? variantRepository.findById(dto.getId()).orElse(new ProductVariant()) : new ProductVariant();
 
@@ -71,6 +73,7 @@ public class AdminVariantService {
         return variantRepository.save(v);
     }
 
+    @Transactional
     public void delete(Integer id) {
         ProductVariant v = variantRepository.findById(id).orElse(null);
         if (v != null) {

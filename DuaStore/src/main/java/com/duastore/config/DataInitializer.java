@@ -70,7 +70,15 @@ public class DataInitializer implements CommandLineRunner {
             Map.entry("ROLE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
             Map.entry("AUDIT_LOG", List.of("READ")),
             Map.entry("NOTIFICATION", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("BANNER", List.of("CREATE", "READ", "UPDATE", "DELETE"))
+            Map.entry("BANNER", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("CUSTOMER", List.of("READ", "UPDATE")),
+            Map.entry("HOMEPAGE", List.of("READ", "UPDATE")),
+            Map.entry("APPEARANCE", List.of("READ", "UPDATE")),
+            Map.entry("EMAIL_SETTING", List.of("READ", "UPDATE")),
+            Map.entry("PAYMENT_SETTING", List.of("READ", "UPDATE")),
+            Map.entry("SHIPPING_SETTING", List.of("READ", "UPDATE")),
+            Map.entry("STORE", List.of("READ", "UPDATE")),
+            Map.entry("ANALYTICS", List.of("READ"))
         );
 
         for (var entry : perms.entrySet()) {
@@ -97,14 +105,13 @@ public class DataInitializer implements CommandLineRunner {
         Role adminRole = roleRepository.findByName("ADMIN");
 
         User admin = userRepository.findByUsername(adminUsername).orElse(null);
-        if (admin == null) {
-            admin = new User();
-            admin.setUsername(adminUsername);
-            admin.setEmail("admin@duastore.vn");
-            admin.setHoTen("Quản Trị Viên");
-            admin.setSoDienThoai("0901234567");
-            admin.setIsActive(true);
-        }
+        if (admin != null) return;
+        admin = new User();
+        admin.setUsername(adminUsername);
+        admin.setEmail("admin@duastore.vn");
+        admin.setHoTen("Quản Trị Viên");
+        admin.setSoDienThoai("0901234567");
+        admin.setIsActive(true);
         admin.setRoles(Set.of(adminRole));
         admin.setPassword(passwordEncoder.encode(adminPassword));
         userRepository.save(admin);

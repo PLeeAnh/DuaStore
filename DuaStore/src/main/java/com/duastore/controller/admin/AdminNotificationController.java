@@ -155,6 +155,7 @@ public class AdminNotificationController {
 
     @PostMapping("/api/doc-tat-ca")
     @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_READ)")
     public String markAllStaffRead(HttpSession session) {
         session.setAttribute("staffNotifReadMaxId",
             notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
@@ -164,6 +165,7 @@ public class AdminNotificationController {
 
     @PostMapping("/api/doc/{id}")
     @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_READ)")
     public String markStaffRead(@PathVariable Integer id, HttpSession session) {
         try {
             @SuppressWarnings("unchecked")

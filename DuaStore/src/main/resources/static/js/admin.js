@@ -148,9 +148,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 const form = input.closest('form');
                 if (form) form.submit();
             }, delay);
-        });
     });
 
+});
+
+function copyPromoCode(btn) {
+    var code = btn.getAttribute('data-code');
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(code).then(function() {
+            var orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = orig; }, 1500);
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = code;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+    }
+}
     /* ── Searchable Select (TomSelect) ── */
     document.querySelectorAll('.searchable-select').forEach(el => {
         if (el.tagName !== 'SELECT') return;

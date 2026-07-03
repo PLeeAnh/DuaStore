@@ -6,6 +6,7 @@ import com.duastore.dto.OrderItemDTO;
 import com.duastore.dto.OrderStatusDTO;
 import com.duastore.model.Order;
 import com.duastore.model.User;
+import com.duastore.repository.OrderRepository;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminOrderService;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,6 +46,7 @@ public class AdminOrderController {
     private final OrderStatusLogService orderStatusLogService;
     private final OrderNoteService orderNoteService;
     private final NotificationHelper notificationHelper;
+    private final OrderRepository orderRepository;
 
     public AdminOrderController(AdminOrderService adminOrderService,
                                 OrderService orderService,
@@ -51,7 +54,8 @@ public class AdminOrderController {
                                 SecurityUtil securityUtil,
                                 OrderStatusLogService orderStatusLogService,
                                 OrderNoteService orderNoteService,
-                                NotificationHelper notificationHelper) {
+                                NotificationHelper notificationHelper,
+                                OrderRepository orderRepository) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
@@ -59,6 +63,7 @@ public class AdminOrderController {
         this.orderStatusLogService = orderStatusLogService;
         this.orderNoteService = orderNoteService;
         this.notificationHelper = notificationHelper;
+        this.orderRepository = orderRepository;
     }
 
     @GetMapping
@@ -104,12 +109,18 @@ public class AdminOrderController {
         model.addAttribute("q", q);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("trangThaiTT", trangThaiTT);
-        model.addAttribute("title", "Quản lý đơn hàng");
+        model.addAttribute("title", "don-hang");
+
+        model.addAttribute("totalOrders", orderRepository.count());
+        model.addAttribute("pendingOrdersCount", orderRepository.countByTrangThaiDon("CHO_XAC_NHAN"));
+        model.addAttribute("completedOrdersCount", orderRepository.countByTrangThaiDon("DA_HOAN_THANH"));
+        model.addAttribute("cancelledOrdersCount", orderRepository.countByTrangThaiDon("DA_HUY"));
         return "view/admin/order/order-list";
     }
 
     @GetMapping("/{id}/debug")
     @ResponseBody
+    @Profile("dev")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_READ)")
     public ResponseEntity<Map<String, Object>> debugOrder(@PathVariable Integer id) {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -163,7 +174,7 @@ public class AdminOrderController {
             statusDTO.setTrangThaiDon(order.getTrangThaiDon());
             statusDTO.setTrangThaiTT(order.getTrangThaiTT());
             model.addAttribute("statusDTO", statusDTO);
-            model.addAttribute("title", "Chi tiết đơn hàng");
+            model.addAttribute("title", "don-hang");
             return "view/admin/order/order-detail";
         } catch (Exception e) {
             log.error("Loi khi xem chi tiet don hang #{}: {}", id, e.getMessage(), e);

@@ -77,4 +77,31 @@ public final class PermissionEnum {
     public static final String BANNER_READ       = "BANNER_READ";
     public static final String BANNER_UPDATE     = "BANNER_UPDATE";
     public static final String BANNER_DELETE     = "BANNER_DELETE";
+
+    // CUSTOMER
+    public static final String CUSTOMER_READ     = "CUSTOMER_READ";
+    public static final String CUSTOMER_UPDATE   = "CUSTOMER_UPDATE";
+
+    // HOMEPAGE
+    public static final String HOMEPAGE_READ     = "HOMEPAGE_READ";
+    public static final String HOMEPAGE_UPDATE   = "HOMEPAGE_UPDATE";
+
+    // APPEARANCE (Giao diện)
+    public static final String APPEARANCE_READ   = "APPEARANCE_READ";
+    public static final String APPEARANCE_UPDATE = "APPEARANCE_UPDATE";
+
+    // ANALYTICS (Phân tích)
+    public static final String ANALYTICS_READ    = "ANALYTICS_READ";
+
+    // EMAIL_SETTING
+    public static final String EMAIL_SETTING_READ   = "EMAIL_SETTING_READ";
+    public static final String EMAIL_SETTING_UPDATE = "EMAIL_SETTING_UPDATE";
+
+    // PAYMENT_SETTING
+    public static final String PAYMENT_SETTING_READ   = "PAYMENT_SETTING_READ";
+    public static final String PAYMENT_SETTING_UPDATE = "PAYMENT_SETTING_UPDATE";
+
+    // SHIPPING_SETTING
+    public static final String SHIPPING_SETTING_READ   = "SHIPPING_SETTING_READ";
+    public static final String SHIPPING_SETTING_UPDATE = "SHIPPING_SETTING_UPDATE";
 }

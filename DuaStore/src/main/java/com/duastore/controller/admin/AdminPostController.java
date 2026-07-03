@@ -49,18 +49,8 @@ public class AdminPostController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "20") int size,
-                       @RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) String trangThai,
-                       @RequestParam(required = false) Integer danhMuc,
                        Model model) {
-        Page<Post> postPage;
-        if (keyword != null || trangThai != null || danhMuc != null) {
-            postPage = adminPostService.searchPosts(
-                    keyword != null ? keyword : "",
-                    trangThai, danhMuc, page, size);
-        } else {
-            postPage = adminPostService.getAllPosts(page, size);
-        }
+        Page<Post> postPage = adminPostService.getAllPosts(page, size);
 
         Map<Integer, String> tacGiaMap = new HashMap<>();
         Set<Integer> tacGiaIds = postPage.getContent().stream()
@@ -69,11 +59,6 @@ public class AdminPostController {
             userRepository.findAllById(tacGiaIds)
                     .forEach(u -> tacGiaMap.put(u.getId(), u.getHoTen()));
         }
-
-        Map<String, Object> filterParams = new HashMap<>();
-        if (keyword != null) filterParams.put("keyword", keyword);
-        if (trangThai != null) filterParams.put("trangThai", trangThai);
-        if (danhMuc != null) filterParams.put("danhMuc", danhMuc);
 
         model.addAttribute("title", "bai-viet");
         model.addAttribute("posts", postPage.getContent());
@@ -84,11 +69,7 @@ public class AdminPostController {
         model.addAttribute("pageSize", size);
         model.addAttribute("entityLabel", "bài viết");
         model.addAttribute("url", "/admin/bai-viet");
-        model.addAttribute("filterParams", filterParams);
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("trangThai", trangThai);
-        model.addAttribute("danhMuc", danhMuc);
-        model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
+        model.addAttribute("filterParams", Collections.emptyMap());
         return "view/admin/post/post-list";
     }
 

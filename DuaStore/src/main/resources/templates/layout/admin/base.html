@@ -56,6 +56,12 @@
                 <i class="bi bi-speedometer2"></i>
                 <span>Dashboard</span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/phan-tich}"
+               th:if="${userPermissions.contains('ANALYTICS_READ')}"
+               th:classappend="${title == 'phan-tich' ? ' active' : ''}">
+                <i class="bi bi-graph-up"></i>
+                <span>Phân tích</span>
+            </a>
 
             <div class="adm-nav-section">Catalogue</div>
             <a class="adm-nav-link" th:href="@{/admin/san-pham}"
@@ -78,6 +84,12 @@
                 <i class="bi bi-bag-check"></i>
                 <span>Đơn hàng</span>
                 <span class="badge bg-danger ms-auto" th:if="${pendingOrders > 0}" th:text="${pendingOrders}"></span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/khach-hang}"
+               th:if="${userPermissions.contains('CUSTOMER_READ')}"
+               th:classappend="${title == 'khach-hang' ? ' active' : ''}">
+                <i class="bi bi-person-lines-fill"></i>
+                <span>Khách hàng</span>
             </a>
             <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
                th:if="${userPermissions.contains('PROMOTION_READ')}"
@@ -105,19 +117,42 @@
                 <i class="bi bi-star"></i>
                 <span>Đánh giá</span>
             </a>
-            <a class="adm-nav-link" th:href="@{/admin/banner}"
-               th:if="${userPermissions.contains('BANNER_READ')}"
-               th:classappend="${title == 'banner' ? ' active' : ''}">
-                <i class="bi bi-images"></i>
-                <span>Banner</span>
+            <a class="adm-nav-link" th:href="@{/admin/homepage}"
+               th:if="${userPermissions.contains('HOMEPAGE_READ')}"
+               th:classappend="${title == 'homepage' ? ' active' : ''}">
+                <i class="bi bi-house-gear"></i>
+                <span>Homepage</span>
             </a>
-
             <div class="adm-nav-section">Cấu hình</div>
-            <a class="adm-nav-link" th:href="@{/admin/dia-chi}"
+            <a class="adm-nav-link" th:href="@{/admin/cua-hang}"
                th:if="${userPermissions.contains('STORE_READ')}"
-               th:classappend="${title == 'dia-chi' ? ' active' : ''}">
+               th:classappend="${title == 'cua-hang' ? ' active' : ''}">
                 <i class="bi bi-geo-alt"></i>
-                <span>Địa chỉ cửa hàng</span>
+                <span>Cửa hàng</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/giao-dien}"
+               th:if="${userPermissions.contains('APPEARANCE_READ')}"
+               th:classappend="${title == 'giao-dien' ? ' active' : ''}">
+                <i class="bi bi-palette"></i>
+                <span>Giao diện</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/email-smtp}"
+               th:if="${userPermissions.contains('EMAIL_SETTING_READ')}"
+               th:classappend="${title == 'email-smtp' ? ' active' : ''}">
+                <i class="bi bi-envelope"></i>
+                <span>Email/SMTP</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/thanh-toan}"
+               th:if="${userPermissions.contains('PAYMENT_SETTING_READ')}"
+               th:classappend="${title == 'thanh-toan' ? ' active' : ''}">
+                <i class="bi bi-credit-card"></i>
+                <span>Thanh toán</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/van-chuyen}"
+               th:if="${userPermissions.contains('SHIPPING_SETTING_READ')}"
+               th:classappend="${title == 'van-chuyen' ? ' active' : ''}">
+                <i class="bi bi-truck"></i>
+                <span>Vận chuyển</span>
             </a>
 
             <div class="adm-nav-section">Hệ thống</div>

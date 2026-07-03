@@ -5,6 +5,7 @@ import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.util.PriceUtils;
 import org.springframework.data.domain.Page;
@@ -32,21 +33,32 @@ public class AdminDashboardService {
     private final UserRepository userRepository;
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final OrderItemRepository orderItemRepository;
+    private final PromotionRepository promotionRepository;
 
     public AdminDashboardService(ProductRepository productRepository,
                                   OrderRepository orderRepository,
                                   UserRepository userRepository,
                                   OrderAssignmentRepository orderAssignmentRepository,
-                                  OrderItemRepository orderItemRepository) {
+                                  OrderItemRepository orderItemRepository,
+                                  PromotionRepository promotionRepository) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.orderAssignmentRepository = orderAssignmentRepository;
         this.orderItemRepository = orderItemRepository;
+        this.promotionRepository = promotionRepository;
     }
 
     public long getTotalProducts() {
         return productRepository.findDangBan().size();
+    }
+
+    public long getTotalOrders() {
+        return orderRepository.count();
+    }
+
+    public long getActivePromotions() {
+        return promotionRepository.findActiveNow(LocalDateTime.now()).size();
     }
 
     public long getTodayOrders() {

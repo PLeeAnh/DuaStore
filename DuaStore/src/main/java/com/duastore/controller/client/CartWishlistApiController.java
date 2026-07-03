@@ -4,6 +4,7 @@ import com.duastore.config.security.SecurityUtil;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.WishlistService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class CartWishlistApiController {
         return id;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/wishlist/toggle")
     public ResponseEntity<Map<String, Object>> toggleWishlist(@RequestBody Map<String, Integer> payload) {
         Map<String, Object> response = new HashMap<>();
@@ -47,6 +49,7 @@ public class CartWishlistApiController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/cart/add-popup")
     public ResponseEntity<Map<String, Object>> addToCart(@RequestBody Map<String, Integer> payload) {
         Map<String, Object> response = new HashMap<>();

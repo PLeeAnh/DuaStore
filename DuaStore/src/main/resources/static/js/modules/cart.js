@@ -235,6 +235,7 @@ function updatePopupQty(variantId, delta) {
         if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) removeCartItem(variantId);
         return;
     }
+    if (next > 99) next = 99;
 
     qtyInput.value = next;
     if (priceSpan) {
@@ -333,9 +334,9 @@ function addCartPopupItem(card, productId, variantId, qty) {
             '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + productName + '</a>' +
             '<div class="small text-muted mb-2" style="font-size:0.8rem;">' + variantName + '</div>' +
             '<div class="d-flex align-items-center">' +
-                '<div class="input-group input-group-sm" style="width:85px;">' +
+                '<div class="input-group input-group-sm" style="width:90px;">' +
                     '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',-1)">-</button>' +
-                    '<input class="form-control text-center py-0 px-1" type="number" min="1" id="popup-qty-' + variantId + '" value="' + qty + '" onchange="setPopupQty(' + variantId + ')" />' +
+                    '<input class="form-control text-center py-0 px-1" type="number" min="1" id="popup-qty-' + variantId + '" value="' + qty + '" onchange="setPopupQty(' + variantId + ', this)" onfocus="this.select()" style="font-size:0.85rem;" />' +
                     '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',1)">+</button>' +
                 '</div>' +
                 '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + variantId + '" data-price="' + rawPrice + '">' + priceFmt + '</span>' +

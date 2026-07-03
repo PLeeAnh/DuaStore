@@ -15,7 +15,9 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     Page<Order> findByUserId(Integer userId, Pageable pageable);
+    List<Order> findAllByUserId(Integer userId);
     Page<Order> findByUserIdAndTrangThaiDon(Integer userId, String trangThaiDon, Pageable pageable);
+    long countByUserId(Integer userId);
     Page<Order> findAllBy(Pageable pageable);
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.ngayDat BETWEEN :start AND :end")
@@ -72,4 +74,29 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                                    @Param("trangThai") String trangThai,
                                    @Param("trangThaiTT") String trangThaiTT,
                                    Pageable pageable);
+
+    @Query("SELECT o.user.id, COUNT(o) FROM Order o WHERE o.user.id IN :userIds GROUP BY o.user.id")
+    List<Object[]> countByUserIds(@Param("userIds") List<Integer> userIds);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.trangThaiDon = :trangThai AND o.ngayDat BETWEEN :start AND :end")
+    long countByTrangThaiDonAndNgayDatBetween(@Param("trangThai") String trangThai,
+                                               @Param("start") LocalDateTime start,
+                                               @Param("end") LocalDateTime end);
+
+    @Query("SELECT o.phuongThucTT, COUNT(o) FROM Order o WHERE o.ngayDat BETWEEN :start AND :end GROUP BY o.phuongThucTT")
+    List<Object[]> countGroupByPhuongThucTTAndNgayDatBetween(@Param("start") LocalDateTime start,
+                                                              @Param("end") LocalDateTime end);
+
+    @Query("SELECT AVG(o.tongThanhToan) FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') AND o.ngayDat BETWEEN :start AND :end")
+    BigDecimal avgTongThanhToanByNgayDatBetween(@Param("start") LocalDateTime start,
+                                                 @Param("end") LocalDateTime end);
+
+    @Query("SELECT o FROM Order o WHERE o.ngayDat BETWEEN :start AND :end ORDER BY o.ngayDat DESC")
+    List<Order> findByNgayDatBetween(@Param("start") LocalDateTime start,
+                                       @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.phuongThucTT = :phuongThuc AND o.ngayDat BETWEEN :start AND :end")
+    long countByPhuongThucTTAndNgayDatBetween(@Param("phuongThuc") String phuongThuc,
+                                               @Param("start") LocalDateTime start,
+                                               @Param("end") LocalDateTime end);
 }

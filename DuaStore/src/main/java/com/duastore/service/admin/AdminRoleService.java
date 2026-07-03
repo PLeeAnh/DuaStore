@@ -5,6 +5,7 @@ import com.duastore.model.Role;
 import com.duastore.repository.PermissionRepository;
 import com.duastore.repository.RoleRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ public class AdminRoleService {
         return grouped;
     }
 
+    @Transactional
     public Role save(Integer id, String name, String moTa, List<Integer> permissionIds) {
         Role role = (id != null) ? roleRepository.findById(id).orElse(new Role()) : new Role();
         if ("SUPER_ADMIN".equals(role.getName()) && !"SUPER_ADMIN".equals(name)) {
@@ -63,6 +65,7 @@ public class AdminRoleService {
         return roleRepository.save(role);
     }
 
+    @Transactional
     public boolean delete(Integer id) {
         Role role = roleRepository.findById(id).orElse(null);
         if (role == null) return false;

@@ -29,8 +29,10 @@ public class AdminDashboardController {
         model.addAttribute("title", "dashboard");
         model.addAttribute("totalProducts", dashboardService.getTotalProducts());
         model.addAttribute("todayOrders", dashboardService.getTodayOrders());
+        model.addAttribute("totalOrders", dashboardService.getTotalOrders());
         model.addAttribute("monthlyRevenue", dashboardService.getMonthlyRevenue());
         model.addAttribute("totalCustomers", dashboardService.getTotalCustomers());
+        model.addAttribute("activePromotions", dashboardService.getActivePromotions());
 
         Map<String, Long> statusCounts = dashboardService.getOrderStatusCounts();
         model.addAttribute("pendingOrders", statusCounts.get("CHO_XAC_NHAN"));

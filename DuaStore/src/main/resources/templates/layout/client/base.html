@@ -15,6 +15,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;display=swap"/>
+    <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Inter'}" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"/>
+    <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
+    <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
 
     <script th:src="@{/js/main.js(v=1)}"></script>
@@ -27,6 +30,29 @@
     <script th:src="@{/js/modules/cart.js(v=1)}"></script>
     <script th:src="@{/js/modules/checkout.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var __customCss = [[${customCss ?: ''}]].replace(/\]\]/g, '');
+        if (__customCss) {
+            var __style = document.createElement('style');
+            __style.textContent = __customCss;
+            document.head.appendChild(__style);
+        }
+        /*]]>*/
+    </script>
+    <style>
+        :root {
+            --ds-primary: [[${themeSettings.get('theme_primary_color') ?: '#2563EB'}]];
+            --ds-primary-hover: [[${themeSettings.get('theme_secondary_color') ?: '#1D4ED8'}]];
+            --ds-header-bg: [[${themeSettings.get('theme_header_bg') ?: '#ffffff'}]];
+            --font-body: '[[${themeSettings.get('theme_font') ?: 'DM Sans'}]]', -apple-system, BlinkMacSystemFont, sans-serif;
+            --ds-r-sm: [[${themeSettings.get('theme_border_radius') ?: '8'}]]px;
+            --ds-r: [[${themeSettings.get('theme_border_radius') ?: '14'}]]px;
+            --ds-r-lg: [[${themeSettings.get('theme_border_radius') ?: '20'}]]px;
+            --ds-r-xl: [[${themeSettings.get('theme_border_radius') ?: '24'}]]px;
+        }
+        .ds-ctn-width { max-width: [[${themeSettings.get('theme_container_width') ?: '1280'}]]px !important; }
+    </style>
     <style>
         .notif-item { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; transition: background .15s; }
         .notif-item:hover { background: #f8f9fa; }
@@ -44,61 +70,21 @@
 </head>
 <body>
 
-<nav class="ds-navbar navbar navbar-expand-lg">
-    <div class="container-xl">
+<nav class="ds-navbar navbar navbar-expand-lg" th:style="'background:' + (${themeSettings.get('theme_header_bg') ?: '#ffffff'})">
+    <div class="container-xl ds-ctn-width">
         <div class="d-flex align-items-center w-100 gap-3">
 
             <button class="ds-nav-toggle" id="dsNavToggle" type="button" aria-label="Mở menu">
                 <span class="ds-toggle-text" id="dsToggleIcon">&lt;/&gt;</span>
             </button>
-            <a class="ds-logo me-auto me-lg-0" th:href="@{/}">DuaStore</a>
+            <a class="ds-logo me-auto me-lg-0" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}">DuaStore</a>
 
             <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavDesktop">
-                <li><a class="ds-nav-link-desktop" th:href="@{/}">Giới thiệu</a></li>
-                <li class="dropdown">
-                    <a class="ds-nav-link-desktop ds-has-dropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Sản phẩm <i class="bi bi-chevron-down ds-chevron"></i>
-                    </a>
-                    <div class="ds-mega dropdown-menu p-0">
-                        <div class="ds-mega-body">
-                            <div class="ds-mega-col">
-                                <div class="ds-mega-label">Danh mục</div>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='chai')}">
-                                    <span class="ds-mega-icon"><i class="bi bi-box-seam"></i></span>
-                                    <span class="ds-mega-text"><strong>Chai thủy tinh</strong><small>Rượu, nước hoa, thực phẩm</small></span>
-                                </a>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='hu')}">
-                                    <span class="ds-mega-icon"><i class="bi bi-archive"></i></span>
-                                    <span class="ds-mega-text"><strong>Hũ thủy tinh</strong><small>Đồ khô, gia vị, bảo quản</small></span>
-                                </a>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='binh')}">
-                                    <span class="ds-mega-icon"><i class="bi bi-stars"></i></span>
-                                    <span class="ds-mega-text"><strong>Bình trang trí</strong><small>Bình hoa, decor, pha lê</small></span>
-                                </a>
-                            </div>
-                            <div class="ds-mega-col">
-                                <div class="ds-mega-label">Bộ sưu tập</div>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='ly')}">
-                                    <span class="ds-mega-icon"><i class="bi bi-cup-hot"></i></span>
-                                    <span class="ds-mega-text"><strong>Ly &amp; Cốc</strong><small>Rượu vang, whisky, champagne</small></span>
-                                </a>
-                                <a class="ds-mega-item" th:href="@{/san-pham(danhMuc='qua-tang')}">
-                                    <span class="ds-mega-icon"><i class="bi bi-gift"></i></span>
-                                    <span class="ds-mega-text"><strong>Bộ quà tặng</strong><small>Set sinh nhật, cưới hỏi</small></span>
-                                </a>
-                                <a class="ds-mega-item" th:href="@{/san-pham(isFeatured=true)}">
-                                    <span class="ds-mega-icon"><i class="bi bi-fire"></i></span>
-                                    <span class="ds-mega-text"><strong>Nổi bật</strong><small>Hàng mới &amp; bán chạy</small></span>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="ds-mega-footer">
-                            <a th:href="@{/san-pham}" class="ds-mega-all">Xem toàn bộ <i class="bi bi-arrow-right ms-1"></i></a>
-                        </div>
-                    </div>
-                </li>
-                <li><a class="ds-nav-link-desktop" th:href="@{/blog}">Blog</a></li>
-                <li><a class="ds-nav-link-desktop" th:href="@{/lien-he}">Liên hệ</a></li>
+                <th:block th:each="i : ${#numbers.sequence(1,10)}">
+                    <th:block th:if="${themeSettings.containsKey('menu_' + i + '_label') and themeSettings.get('menu_' + i + '_active') != '0'}">
+                        <li><a class="ds-nav-link-desktop" th:href="${themeSettings.get('menu_' + i + '_url') ?: '/'}" th:text="${themeSettings.get('menu_' + i + '_label')}">Menu</a></li>
+                    </th:block>
+                </th:block>
             </ul>
 
             <div class="ds-nav-overlay" id="dsNavOverlay"></div>
@@ -107,37 +93,20 @@
                     <a class="ds-logo-panel" th:href="@{/}">DuaStore</a>
                 </div>
                 <ul class="ds-nav-list">
-                    <li class="ds-nav-item">
-                        <a class="ds-nav-link" th:href="@{/}">
-                            <i class="bi bi-house"></i> <span>Giới thiệu</span>
-                        </a>
-                    </li>
-                    <li class="ds-nav-item ds-has-sub">
-                        <a class="ds-nav-link ds-sub-toggle" href="#">
-                            <i class="bi bi-box-seam"></i> <span>Sản phẩm</span> <i class="bi bi-chevron-down ds-chevron ms-auto"></i>
-                        </a>
-                        <div class="ds-sub-menu">
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='chai')}"><i class="bi bi-box-seam"></i> Chai thủy tinh</a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='hu')}"><i class="bi bi-archive"></i> Hũ thủy tinh</a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='binh')}"><i class="bi bi-stars"></i> Bình trang trí</a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='ly')}"><i class="bi bi-cup-hot"></i> Ly &amp; Cốc</a>
-                            <a class="ds-sub-link" th:href="@{/san-pham(danhMuc='qua-tang')}"><i class="bi bi-gift"></i> Bộ quà tặng</a>
-                            <a class="ds-sub-link ds-sub-all" th:href="@{/san-pham}"><i class="bi bi-grid"></i> Tất cả sản phẩm</a>
-                        </div>
-                    </li>
-                    <li class="ds-nav-item">
-                        <a class="ds-nav-link" th:href="@{/blog}"><i class="bi bi-newspaper"></i> <span>Blog</span></a>
-                    </li>
-                    <li class="ds-nav-item">
-                        <a class="ds-nav-link" th:href="@{/lien-he}"><i class="bi bi-envelope"></i> <span>Liên hệ</span></a>
-                    </li>
+                    <th:block th:each="i : ${#numbers.sequence(1,10)}">
+                        <th:block th:if="${themeSettings.containsKey('menu_' + i + '_label') and themeSettings.get('menu_' + i + '_active') != '0'}">
+                            <li class="ds-nav-item">
+                                <a class="ds-nav-link" th:href="${themeSettings.get('menu_' + i + '_url') ?: '/'}">
+                                    <i class="bi bi-house"></i> <span th:text="${themeSettings.get('menu_' + i + '_label')}">Menu</span>
+                                </a>
+                            </li>
+                        </th:block>
+                    </th:block>
                 </ul>
-
-                <!-- ds-nav-panel-footer deleted — kept in git history -->
             </div>
 
             <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">
-                <form th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
+                <form th:if="${themeSettings.get('header_search') != '0'}" th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
                     <i class="bi bi-search"></i>
                     <input type="search" name="keyword" class="ds-search-inline-input" placeholder="Tìm sản phẩm..." th:value="${param.keyword}" aria-label="Tìm kiếm"/>
                 </form>
@@ -177,7 +146,7 @@
                 </div>
 
                 <!-- NÚT GIỎ HÀNG VÀ POPUP -->
-<div class="position-relative d-inline-block ds-cart-wrap">
+<div th:if="${themeSettings.get('header_cart') != '0'}" class="position-relative d-inline-block ds-cart-wrap">
     <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
         <i class="bi bi-bag"></i>
         <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}">0</span>
@@ -201,11 +170,15 @@
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold" style="max-width: 180px; font-size: 0.9rem;">Tên SP</a>
                                     <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
                                     
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-0" style="border:1px solid #dee2e6;border-radius:6px;overflow:hidden;">
-                                            <button class="btn btn-sm px-2 py-0 fw-bold" type="button" style="background:#f8f9fa;border:none;color:#333;font-size:1rem;line-height:1;" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">−</button>
-                                            <input class="text-center fw-semibold border-0 bg-transparent" type="number" min="1" th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}" th:attr="data-stock=${item.soLuongTon},onchange='setPopupQty(' + ${uid} + ')'" style="width:40px;font-size:0.85rem;" />
-                                            <button class="btn btn-sm px-2 py-0 fw-bold" type="button" style="background:#f8f9fa;border:none;color:#333;font-size:1rem;line-height:1;" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
+                                     <div class="d-flex align-items-center">
+                                        <div class="input-group input-group-sm" style="width: 90px;">
+                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">-</button>
+                                            <input class="form-control text-center py-0 px-1" type="number" min="1"
+                                                   th:attr="max=${item.soLuongTon}"
+                                                   th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}"
+                                                   th:onchange="'setPopupQty(' + ${uid} + ', this)'"
+                                                   onfocus="this.select()" style="font-size: 0.85rem;" />
+                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
                                         </div>
                                         
                                         <span class="text-danger fw-semibold popup-item-price" 
@@ -226,7 +199,6 @@
 </div>
                     </div>
                 </div>
-
                 <!-- NOTIFICATION BUTTON + POPUP -->
                 <div class="position-relative d-inline-block">
                     <button class="ds-icon-btn" id="btn-notif-toggle" onclick="toggleNotifPopup()" title="Thông báo" aria-label="Thông báo">
@@ -286,28 +258,38 @@
                 </div>
 
                 <!-- PROFILE BUTTON + POPUP (like wishlist/cart) (logged-in only) -->
-                <div class="position-relative d-inline-block">
+                <div th:if="${themeSettings.get('header_account') != '0'}" class="position-relative d-inline-block">
                     <button class="ds-icon-btn" id="btn-profile-toggle"
                             type="button" th:data-profile="${session.loggedIn}"
                             title="Tài khoản" aria-label="Tài khoản">
                         <i class="bi bi-person-circle"></i>
                     </button>
-                    <div id="profile-popup" class="custom-popup" style="width:240px;" th:if="${session.loggedIn}">
-                        <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom" style="border-color:var(--ds-border);">
-                            <span class="ds-profile-avatar lg flex-shrink-0" th:text="${session.userInitial}">A</span>
-                            <div class="text-truncate">
-                                <div class="fw-semibold text-truncate" th:text="${session.userName}" style="color:var(--ds-text);font-size:0.9rem;">User</div>
-                                <small class="text-muted text-truncate d-block" th:text="${session.userEmail}" style="font-size:0.78rem;">user@email.com</small>
+                    <div id="profile-popup" class="custom-popup" style="width:240px;">
+                        <th:block th:if="${session.loggedIn}">
+                            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom" style="border-color:var(--ds-border);">
+                                <span class="ds-profile-avatar lg flex-shrink-0" th:text="${session.userInitial}">A</span>
+                                <div class="text-truncate">
+                                    <div class="fw-semibold text-truncate" th:text="${session.userName}" style="color:var(--ds-text);font-size:0.9rem;">User</div>
+                                    <small class="text-muted text-truncate d-block" th:text="${session.userEmail}" style="font-size:0.78rem;">user@email.com</small>
+                                </div>
                             </div>
-                        </div>
-                        <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
-                        <a class="ds-popup-link" th:href="@{/address}"><i class="bi bi-geo-alt"></i> Sổ địa chỉ</a>
-                        <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
-                        <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
-                        <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
-                        <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
-                            <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
-                        </form>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
+                            <a class="ds-popup-link" th:href="@{/address}"><i class="bi bi-geo-alt"></i> Sổ địa chỉ</a>
+                            <a class="ds-popup-link" th:href="@{/vi-voucher}"><i class="bi bi-wallet2"></i> Ví Voucher</a>
+                            <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
+                            <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                            <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
+                            <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
+                                <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
+                            </form>
+                        </th:block>
+                        <th:block th:unless="${session.loggedIn}">
+                            <div class="text-center py-4">
+                                <i class="bi bi-person-circle" style="font-size:2.5rem;color:var(--ds-border);"></i>
+                                <p class="mt-2 text-muted small">Vui lòng đăng nhập</p>
+                                <button class="btn btn-primary btn-sm" onclick="showLoginPopup()">Đăng nhập</button>
+                            </div>
+                        </th:block>
                     </div>
                 </div>
 
@@ -580,71 +562,60 @@
 </div>
 
 <footer class="ds-footer">
-    <div class="container-xl">
+    <div class="container-xl ds-ctn-width">
         <div class="ds-footer-card">
             <div class="row g-5">
                 <div class="col-12 col-lg-4">
                     <div class="ds-footer-logo">DuaStore</div>
-                    <div class="mt-4"><p class="ds-footer-info-label">Địa chỉ</p><p class="ds-footer-info-val">Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội</p></div>
+                    <div class="mt-4" th:if="${storeSettings.get('store_address')}">
+                        <p class="ds-footer-info-label">Địa chỉ</p>
+                        <p class="ds-footer-info-val" th:text="${storeSettings.get('store_address')}">Số 1 Đại Cồ Việt</p>
+                    </div>
                     <div class="mt-3">
                         <p class="ds-footer-info-label">Liên hệ</p>
-                        <p class="ds-footer-info-val"><a href="tel:0901234567">0901 234 567</a></p>
-                        <p class="ds-footer-info-val"><a href="mailto:hello@dua.store">hello@dua.store</a></p>
+                        <p class="ds-footer-info-val" th:if="${storeSettings.get('store_phone')}">
+                            <a th:href="'tel:' + ${storeSettings.get('store_phone')}" th:text="${storeSettings.get('store_phone')}">0901 234 567</a>
+                        </p>
+                        <p class="ds-footer-info-val" th:if="${storeSettings.get('store_email')}">
+                            <a th:href="'mailto:' + ${storeSettings.get('store_email')}" th:text="${storeSettings.get('store_email')}">hello@dua.store</a>
+                        </p>
                     </div>
                     <div class="ds-footer-socials mt-4">
-                        <a href="#"><i class="bi bi-facebook"></i></a> <a href="#"><i class="bi bi-instagram"></i></a>
-                        <a href="#"><i class="bi bi-tiktok"></i></a> <a href="#"><i class="bi bi-chat-dots-fill"></i></a>
-                        <a href="#"><i class="bi bi-youtube"></i></a>
+                        <a th:if="${themeSettings.get('footer_facebook')}" th:href="${themeSettings.get('footer_facebook')}" target="_blank"><i class="bi bi-facebook"></i></a>
+                        <a th:if="${themeSettings.get('footer_instagram')}" th:href="${themeSettings.get('footer_instagram')}" target="_blank"><i class="bi bi-instagram"></i></a>
                     </div>
                 </div>
                 <div class="col-12 col-lg-8">
                     <div class="row g-4">
-                        <div class="col-6 col-md-3">
-                            <h6 class="ds-footer-col-title">Cửa hàng</h6>
-                            <ul class="ds-footer-links">
-                                <li><a th:href="@{/}">Trang chủ</a></li> <li><a th:href="@{/san-pham}">Sản phẩm</a></li>
-                                <li><a th:href="@{/blog}">Blog</a></li> <li><a th:href="@{/lien-he}">Liên hệ</a></li>
-                            </ul>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <h6 class="ds-footer-col-title">Danh mục</h6>
-                            <ul class="ds-footer-links">
-                                <li><a th:href="@{/san-pham}">Chai thủy tinh</a></li> <li><a th:href="@{/san-pham}">Hũ thủy tinh</a></li>
-                                <li><a th:href="@{/san-pham}">Bình trang trí</a></li> <li><a th:href="@{/san-pham}">Ly &amp; Cốc</a></li>
-                                <li><a th:href="@{/san-pham}">Quà tặng</a></li>
-                            </ul>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <h6 class="ds-footer-col-title">Hỗ trợ</h6>
-                            <ul class="ds-footer-links">
-                                <li><a href="#">Hướng dẫn mua hàng</a></li> <li><a href="#">Chính sách đổi trả</a></li>
-                                <li><a href="#">Chính sách vận chuyển</a></li> <li><a href="#">Bảo hành sản phẩm</a></li>
-                            </ul>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <h6 class="ds-footer-col-title">Về chúng tôi</h6>
-                            <ul class="ds-footer-links">
-                                <li><a href="#">Câu chuyện DuaStore</a></li> <li><a href="#">Chứng nhận chất lượng</a></li>
-                                <li><a href="#">Đối tác &amp; Bán sỉ</a></li> <li><a href="#">Tuyển dụng</a></li>
-                            </ul>
-                        </div>
+                        <th:block th:each="i : ${#numbers.sequence(1,6)}">
+                            <th:block th:if="${themeSettings.containsKey('footer_col_' + i + '_title') and themeSettings.get('footer_col_' + i + '_title') != '' and themeSettings.containsKey('footer_col_' + i + '_content') and themeSettings.get('footer_col_' + i + '_content') != ''}">
+                                <div class="col-6 col-md-3">
+                                    <h6 class="ds-footer-col-title" th:text="${themeSettings.get('footer_col_' + i + '_title')}">Tiêu đề</h6>
+                                    <ul class="ds-footer-links">
+                                        <th:block th:each="line : ${#strings.listSplit(themeSettings.get('footer_col_' + i + '_content'), '\\n')}">
+                                            <li th:unless="${#strings.isEmpty(line)}">
+                                                <a th:href="${#strings.contains(line, ' | ')} ? ${#strings.substringAfter(line, ' | ')} : '#'"
+                                                   th:text="${#strings.contains(line, ' | ')} ? ${#strings.substringBefore(line, ' | ')} : ${line}">Link</a>
+                                            </li>
+                                        </th:block>
+                                    </ul>
+                                </div>
+                            </th:block>
+                        </th:block>
                     </div>
                 </div>
             </div>
         </div>
         <div class="ds-footer-bottom">
-            <span>© 2026 DuaStore. All rights reserved.</span>
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <div class="ds-footer-legal">
-                    <a href="#">Chính sách bảo mật</a> <a href="#">Điều khoản dịch vụ</a> <a href="#">Cookie</a>
-                </div>
-            </div>
+            <span th:text="${themeSettings.get('footer_copyright') ?: '© 2026 DuaStore. All rights reserved.'}">© 2026 DuaStore</span>
         </div>
     </div>
 </footer>
 
-<a href="https://zalo.me/0901234567" target="_blank" rel="noopener noreferrer" class="ds-float-zalo" title="Chat Zalo" aria-label="Liên hệ Zalo"><i class="bi bi-chat-dots-fill"></i></a>
-<button class="ds-float-top" id="backTopBtn" style="display:none" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Lên đầu trang"><i class="bi bi-chevron-up"></i></button>
+<a th:if="${themeSettings.get('widget_zalo') == '1' and themeSettings.get('widget_zalo_phone') != ''}" th:href="'https://zalo.me/' + ${themeSettings.get('widget_zalo_phone')}" target="_blank" rel="noopener noreferrer" class="ds-float-zalo" title="Chat Zalo" aria-label="Liên hệ Zalo"><i class="bi bi-chat-dots-fill"></i></a>
+<a th:if="${themeSettings.get('widget_messenger') == '1' and themeSettings.get('widget_messenger_page_id') != ''}" th:href="'https://m.me/' + ${themeSettings.get('widget_messenger_page_id')}" target="_blank" rel="noopener noreferrer" class="ds-float-zalo" style="bottom:80px" title="Chat Messenger" aria-label="Chat Messenger"><i class="bi bi-messenger"></i></a>
+<a th:if="${themeSettings.get('widget_call') == '1' and themeSettings.get('widget_call_phone') != ''}" th:href="'tel:' + ${themeSettings.get('widget_call_phone')}" class="ds-float-zalo" style="bottom:140px;background:#28a745" title="Gọi điện" aria-label="Gọi điện"><i class="bi bi-telephone-fill"></i></a>
+<button th:if="${themeSettings.get('widget_backtotop') != '0'}" class="ds-float-top" id="backTopBtn" style="display:none" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Lên đầu trang"><i class="bi bi-chevron-up"></i></button>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -1073,7 +1044,80 @@ function groupNotifications(notifs) {
     });
     return result;
 }
+
+function getNotifIcon(linkType) {
+    if (linkType === 'PRODUCT') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-box-seam"></i></span>';
+    if (linkType === 'PROMOTION') return '<span class="notif-icon bg-warning-subtle text-warning flex-shrink-0"><i class="bi bi-tag"></i></span>';
+    if (linkType === 'ORDER') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-bag-check"></i></span>';
+    return '<span class="notif-icon bg-primary-subtle text-primary flex-shrink-0"><i class="bi bi-megaphone"></i></span>';
+}
+
+function pollNotifications() {
+    fetch('/api/thong-bao')
+        .then(r => r.json())
+        .then(data => {
+            var badge = document.getElementById('notifBadge');
+            if (badge) {
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            }
+            var container = document.querySelector('#notif-popup .mt-2');
+            if (!container) return;
+            if (!data.notifications || data.notifications.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size: 2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+                return;
+            }
+            var html = '';
+            data.notifications.forEach(function(n) {
+                if (n.linkType) {
+                    html += '<a href="' + n.linkUrl + '" class="text-decoration-none text-reset d-block notif-item">';
+                    html += '<div class="d-flex align-items-start gap-2">';
+                    html += getNotifIcon(n.linkType);
+                    html += '<div class="flex-grow-1 min-w-0">';
+                    html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
+                    if (n.linkLabel) {
+                        html += '<div class="mt-1"><span class="notif-link"><span>' + n.linkLabel.substring(0, 35) + '</span><i class="bi bi-arrow-right ms-1"></i></span></div>';
+                    }
+                    html += '<small class="notif-time">' + n.time + '</small>';
+                    html += '</div></div></a>';
+                } else {
+                    html += '<div class="notif-item"><div class="d-flex align-items-start gap-2">';
+                    html += getNotifIcon(null);
+                    html += '<div class="flex-grow-1 min-w-0">';
+                    html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
+                    html += '<small class="notif-time">' + n.time + '</small>';
+                    html += '</div></div></div>';
+                }
+            });
+            container.innerHTML = html;
+        })
+        .catch(function() {});
+}
+
 setInterval(pollNotifications, 15000);
+</script>
+
+<div id="dsToast"
+     class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
+     style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
+
+<script>
+function showToast(msg) {
+    var t = document.getElementById('dsToast');
+    if (!t) return;
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.pointerEvents = 'auto';
+    clearTimeout(t._hide);
+    t._hide = setTimeout(function() {
+        t.style.opacity = '0';
+        t.style.pointerEvents = 'none';
+    }, 3000);
+}
 </script>
 
 <th:block layout:fragment="extra-script"></th:block>

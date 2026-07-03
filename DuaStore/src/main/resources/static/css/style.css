@@ -3413,14 +3413,16 @@ a { color: inherit; }
   padding: 1rem 0 .75rem;
 }
 .ds-cat-v2-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
   gap: 12px;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  scrollbar-width: none;
-  padding-bottom: 4px;
 }
-.ds-cat-v2-grid::-webkit-scrollbar { display: none; }
+@media (max-width: 767px) {
+  .ds-cat-v2-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 576px) {
+  .ds-cat-v2-grid { grid-template-columns: repeat(2, 1fr); }
+}
 .ds-cat-v2-card {
   display: flex;
   align-items: center;
@@ -3430,7 +3432,6 @@ a { color: inherit; }
   border-radius: 14px;
   background: #fff;
   text-decoration: none;
-  flex-shrink: 0;
   transition: border-color .2s, background .2s;
 }
 .ds-cat-v2-card:hover {
@@ -3557,7 +3558,7 @@ a { color: inherit; }
 }
 .ds-product-grid-v2 {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(var(--cols, 7), 1fr);
   gap: .5rem;
 }
 @media (max-width: 1399px) {

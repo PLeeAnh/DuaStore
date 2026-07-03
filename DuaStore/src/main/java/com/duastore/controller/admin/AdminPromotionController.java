@@ -1,6 +1,7 @@
 package com.duastore.controller.admin;
 
 import com.duastore.model.Promotion;
+import com.duastore.repository.PromotionRepository;
 import com.duastore.service.admin.AdminPromotionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -21,9 +22,12 @@ import java.time.format.DateTimeParseException;
 public class AdminPromotionController {
 
     private final AdminPromotionService adminPromotionService;
+    private final PromotionRepository promotionRepository;
 
-    public AdminPromotionController(AdminPromotionService adminPromotionService) {
+    public AdminPromotionController(AdminPromotionService adminPromotionService,
+                                    PromotionRepository promotionRepository) {
         this.adminPromotionService = adminPromotionService;
+        this.promotionRepository = promotionRepository;
     }
 
     @GetMapping
@@ -53,6 +57,9 @@ public class AdminPromotionController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("isActive", isActive);
         model.addAttribute("title", "khuyen-mai");
+        model.addAttribute("totalPromotions", promotionRepository.count());
+        model.addAttribute("activePromotionsCount", promotionRepository.countByIsActiveTrue());
+        model.addAttribute("inactivePromotionsCount", promotionRepository.countByIsActiveFalse());
         return "view/admin/promotion/promotion-list";
     }
 

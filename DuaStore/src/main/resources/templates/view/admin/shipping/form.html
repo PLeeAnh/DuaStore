@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Cấu hình vận chuyển</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Vận chuyển</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4><i class="bi bi-truck me-2"></i>Cấu hình vận chuyển</h4>
+        </div>
+        <div class="adm-form-wrap">
+            <form th:action="@{/admin/van-chuyen}" method="post" class="row g-3">
+                <div class="col-12">
+                    <h6 class="text-muted border-bottom pb-2">Tùy chọn vận chuyển</h6>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input type="hidden" name="shipping_express" value="0" />
+                        <input class="form-check-input" type="checkbox" name="shipping_express" value="1"
+                               id="shippingExpress" th:checked="${settings.get('shipping_express') == '1'}" />
+                        <label class="form-check-label" for="shippingExpress">Giao hàng nhanh</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input type="hidden" name="shipping_standard" value="0" />
+                        <input class="form-check-input" type="checkbox" name="shipping_standard" value="1"
+                               id="shippingStandard" th:checked="${settings.get('shipping_standard') == '1'}" />
+                        <label class="form-check-label" for="shippingStandard">Giao hàng tiêu chuẩn</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input type="hidden" name="shipping_free" value="0" />
+                        <input class="form-check-input" type="checkbox" name="shipping_free" value="1"
+                               id="shippingFree" th:checked="${settings.get('shipping_free') == '1'}" />
+                        <label class="form-check-label" for="shippingFree">Miễn phí vận chuyển</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <h6 class="text-muted border-bottom pb-2 mt-3">Phí vận chuyển</h6>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Phí giao hàng nhanh</label>
+                    <input type="number" name="shipping_express_fee" class="form-control"
+                           th:value="${settings.get('shipping_express_fee')}" placeholder="30000" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Phí giao hàng tiêu chuẩn</label>
+                    <input type="number" name="shipping_standard_fee" class="form-control"
+                           th:value="${settings.get('shipping_standard_fee')}" placeholder="15000" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Miễn phí khi đơn tối thiểu</label>
+                    <input type="number" name="shipping_free_min" class="form-control"
+                           th:value="${settings.get('shipping_free_min')}" placeholder="500000" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Thời gian giao hàng nhanh (giờ)</label>
+                    <input type="text" name="shipping_express_time" class="form-control"
+                           th:value="${settings.get('shipping_express_time')}" placeholder="2-4" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Thời gian giao tiêu chuẩn (ngày)</label>
+                    <input type="text" name="shipping_standard_time" class="form-control"
+                           th:value="${settings.get('shipping_standard_time')}" placeholder="3-5" />
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </body>
+</html>
