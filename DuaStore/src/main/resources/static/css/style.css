@@ -3264,14 +3264,9 @@ a { color: inherit; }
 
 /* ── Address Card ── */
 .ds-address-card-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-}
-@media (max-width: 576px) {
-  .ds-address-card-list {
-    grid-template-columns: 1fr;
-  }
 }
 .ds-address-card {
   display: block;
@@ -3287,7 +3282,7 @@ a { color: inherit; }
   border: 1.5px solid var(--ds-border);
   border-radius: var(--ds-r);
   padding: 14px 16px;
-  transition: border-color .15s, box-shadow .15s;
+  transition: border-color .15s, box-shadow .15s, border-width .15s;
   background: var(--ds-card-bg);
 }
 .ds-address-card:hover .ds-address-card-body {
@@ -3295,6 +3290,7 @@ a { color: inherit; }
 }
 .ds-address-card.active .ds-address-card-body,
 .ds-address-card input:checked ~ .ds-address-card-body {
+  border-width: 2px;
   border-color: var(--ds-gray-900);
   box-shadow: 0 0 0 3px rgba(15, 23, 42, .08);
 }
@@ -3310,15 +3306,12 @@ a { color: inherit; }
   color: var(--ds-gray-500);
 }
 .ds-address-card-badge {
-  display: inline-block;
-  background: var(--ds-gray-900);
-  color: #fff;
-  font-size: .65rem;
+  font-size: .7rem;
   font-weight: 600;
-  padding: 1px 8px;
-  border-radius: 100px;
-  text-transform: uppercase;
-  letter-spacing: .03em;
+  color: var(--ds-primary, #16a34a);
+  background: rgba(22,163,74,.12);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 .ds-address-card-detail {
   font-size: .8rem;
@@ -3326,10 +3319,11 @@ a { color: inherit; }
   line-height: 1.45;
 }
 .ds-address-card-actions {
-  margin-top: 12px;
+  margin-top: 10px;
   display: flex;
   justify-content: flex-end;
 }
+.ds-address-card-actions .dropdown-toggle::after { display: none; }
 
 /* ── Coupon ── */
 .ds-coupon-box {

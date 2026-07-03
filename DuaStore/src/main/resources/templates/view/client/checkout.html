@@ -34,106 +34,109 @@
                     <form th:action="@{/checkout}" th:object="${checkoutRequest}" method="post" id="checkoutForm">
 
                         <!-- Address -->
-                        <div class="ds-checkout-section">
-                            <h5 class="ds-checkout-section-title"><i class="bi bi-geo-alt me-2"></i>Địa chỉ giao hàng</h5>
-                            <div th:if="${#lists.isEmpty(addresses)}" class="ds-checkout-section-empty">
-                                Chưa có địa chỉ. <a th:href="@{/address}">Thêm địa chỉ mới</a>
-                            </div>
-                            <div th:if="${not #lists.isEmpty(addresses)}" class="ds-address-card-list">
-                                <label class="ds-address-card"
-                                       th:classappend="${a.isDefault} ? 'active'"
-                                       th:data-lat="${a.latitude}" th:data-lng="${a.longitude}"
-                                       th:each="a : ${addresses}">
-                                    <input type="radio" name="addressId" th:value="${a.id}"
-                                           th:checked="${a.isDefault}" required class="ds-address-card-radio" />
-                                    <div class="ds-address-card-body">
-                                        <div class="ds-address-card-title">
-                                            <strong th:text="${a.tenNguoiNhan}"></strong>
-                                            <span class="ds-address-card-meta" th:text="${a.soDienThoai}"></span>
-                                            <span th:if="${a.isDefault}" class="ds-address-card-badge">Mặc định</span>
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="ds-checkout-section-title mb-0"><i class="bi bi-geo-alt me-2"></i>Địa chỉ giao hàng</h5>
+                                    <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="openAddressModal()">
+                                        <i class="bi bi-pencil me-1"></i>Quản lý địa chỉ
+                                    </button>
+                                </div>
+                                <div th:if="${#lists.isEmpty(addresses)}" class="ds-checkout-section-empty">
+                                    Chưa có địa chỉ. <a th:href="@{/address}">Thêm địa chỉ mới</a>
+                                </div>
+                                <div th:if="${not #lists.isEmpty(addresses)}" class="ds-address-card-list">
+                                    <label class="ds-address-card"
+                                           th:classappend="${a.isDefault} ? 'active'"
+                                           th:data-lat="${a.latitude}" th:data-lng="${a.longitude}"
+                                           th:each="a : ${addresses}">
+                                        <input type="radio" name="addressId" th:value="${a.id}"
+                                               th:checked="${a.isDefault}" required class="ds-address-card-radio" />
+                                        <div class="ds-address-card-body">
+                                            <div class="ds-address-card-title">
+                                                <strong th:text="${a.tenNguoiNhan}"></strong>
+                                                <span class="ds-address-card-meta" th:text="${a.soDienThoai}"></span>
+                                                <span th:if="${a.isDefault}" class="ds-address-card-badge">Mặc định</span>
+                                            </div>
+                                            <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
                                         </div>
-                                        <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="ds-address-card-actions">
-                                <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="openAddressModal()">
-                                    <i class="bi bi-pencil me-1"></i>Quản lý địa chỉ
-                                </button>
-                            </div>
-                        </div>
-
-                        <hr class="ds-checkout-divider" />
-
-                        <!-- Shipping -->
-                        <div class="ds-checkout-section">
-                            <h5 class="ds-checkout-section-title"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
-                            <div class="ds-checkout-radio-group">
-                                <div class="ds-checkout-radio">
-                                    <input type="radio" name="phuongThucGiaoHang" id="shipTT" value="SHIP" checked />
-                                    <label for="shipTT">
-                                        <span>Giao hàng tiêu chuẩn</span>
-                                        <span class="ds-checkout-radio-price" id="shipTTPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
                                     </label>
                                 </div>
-
                             </div>
                         </div>
 
-                        <hr class="ds-checkout-divider" />
+                        <!-- Shipping -->
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="ds-checkout-section-title"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
+                                <div class="ds-checkout-radio-group">
+                                    <div class="ds-checkout-radio">
+                                        <input type="radio" name="phuongThucGiaoHang" id="shipTT" value="SHIP" checked />
+                                        <label for="shipTT">
+                                            <span>Giao hàng tiêu chuẩn</span>
+                                            <span class="ds-checkout-radio-price" id="shipTTPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
+                                        </label>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Payment -->
-                        <div class="ds-checkout-section">
-                            <h5 class="ds-checkout-section-title"><i class="bi bi-credit-card me-2"></i>Phương thức thanh toán</h5>
-                            <div class="ds-checkout-radio-group">
-                                <div class="ds-checkout-radio">
-                                    <input type="radio" name="phuongThucTT" id="ttCOD" value="COD" checked required />
-                                    <label for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
-                                </div>
-                                <div class="ds-checkout-radio">
-                                    <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
-                                    <label for="ttCK">Chuyển khoản ngân hàng</label>
-                                    <div class="ds-checkout-radio-info" id="ckInfo">
-                                        <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="ds-checkout-section-title"><i class="bi bi-credit-card me-2"></i>Phương thức thanh toán</h5>
+                                <div class="ds-checkout-radio-group">
+                                    <div class="ds-checkout-radio">
+                                        <input type="radio" name="phuongThucTT" id="ttCOD" value="COD" checked required />
+                                        <label for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
+                                    </div>
+                                    <div class="ds-checkout-radio">
+                                        <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
+                                        <label for="ttCK">Chuyển khoản ngân hàng</label>
+                                        <div class="ds-checkout-radio-info" id="ckInfo">
+                                            <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="ds-checkout-divider" />
+                        <!-- Promo + Ghi chú -->
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
+                                <input type="hidden" name="maCode" id="checkoutPromoInput" th:value="${checkoutRequest.maCode}" />
+                                <div class="ds-promo-picker mb-1" id="checkoutPromoPicker" onclick="openPromoModal()">
+                                    <div class="ds-promo-picker-left">
+                                        <i class="bi bi-ticket-perforated-fill"></i>
+                                        <span id="checkoutPromoLabel" th:text="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? ${checkoutRequest.maCode} : 'Chọn hoặc nhập mã giảm giá'"
+                                              th:classappend="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? 'ds-promo-picker-applied'"></span>
+                                    </div>
+                                    <div class="ds-promo-picker-right">
+                                        <button class="ds-promo-copy-btn" type="button" id="checkoutCopyPromo"
+                                                onclick="event.stopPropagation(); copyCheckoutPromo()" style="display:none"><i class="bi bi-clipboard"></i></button>
+                                        <i class="bi bi-chevron-right"></i>
+                                    </div>
+                                </div>
+                                <div id="checkoutPromoMsg" class="small mb-3">
+                                    <span class="text-primary" th:if="${bestPromo != null and tienGiam > 0}"
+                                          th:text="${'PHAN_TRAM'.equals(bestPromo.loaiGiam) ? 'Đã áp dụng mã ' + bestPromo.maCode + ' (giảm ' + #numbers.formatDecimal(bestPromo.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%)' : 'Đã áp dụng mã ' + bestPromo.maCode}">
+                                    </span>
+                                </div>
 
-                        <hr />
-                        <h5 class="fw-bold mb-3"><i class="bi bi-ticket me-2"></i>Mã giảm giá</h5>
-                        <input type="hidden" name="maCode" id="checkoutPromoInput" th:value="${checkoutRequest.maCode}" />
-                        <div class="ds-promo-picker mb-1" id="checkoutPromoPicker" style="max-width:480px" onclick="openPromoModal()">
-                            <div class="ds-promo-picker-left">
-                                <i class="bi bi-ticket-perforated-fill"></i>
-                                <span id="checkoutPromoLabel" th:text="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? ${checkoutRequest.maCode} : 'Chọn hoặc nhập mã giảm giá'"
-                                      th:classappend="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? 'ds-promo-picker-applied'"></span>
+                                <div class="mb-0">
+                                    <label class="form-label">Ghi chú đơn hàng</label>
+                                    <textarea name="ghiChu" class="form-control" rows="2" placeholder="Ghi chú (không bắt buộc)"></textarea>
+                                </div>
                             </div>
-                            <div class="ds-promo-picker-right">
-                                <button class="ds-promo-copy-btn" type="button" id="checkoutCopyPromo"
-                                        onclick="event.stopPropagation(); copyCheckoutPromo()" style="display:none"><i class="bi bi-clipboard"></i></button>
-                                <i class="bi bi-chevron-right"></i>
-                            </div>
-                        </div>
-                        <div id="checkoutPromoMsg" class="small mb-3">
-                            <span class="text-success" th:if="${bestPromo != null and tienGiam > 0}"
-                                  th:text="${'PHAN_TRAM'.equals(bestPromo.loaiGiam) ? 'Đã áp dụng mã ' + bestPromo.maCode + ' (giảm ' + #numbers.formatDecimal(bestPromo.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%)' : 'Đã áp dụng mã ' + bestPromo.maCode}">
-                            </span>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Ghi chú đơn hàng</label>
-                            <textarea name="ghiChu" class="form-control" rows="2" placeholder="Ghi chú (không bắt buộc)"></textarea>
-                        </div>
-
-                        <button type="submit" class="ds-btn-checkout">Đặt hàng</button>
                     </form>
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm">
+                    <div class="card border-0 shadow-sm sticky-top" style="top:1rem">
                         <div class="card-body">
                             <h6 class="fw-bold mb-3">Tóm tắt đơn hàng</h6>
                             <div th:each="item : ${cartItems}" class="d-flex gap-2 mb-2">
@@ -171,10 +174,11 @@
                                       th:classappend="${tienGiam != null and tienGiam > 0} ? 'text-danger' : ''"></span>
                             </div>
                             <hr />
-                            <div class="d-flex justify-content-between fw-bold">
+                            <div class="d-flex justify-content-between fw-bold mb-3">
                                 <span>Tổng cộng</span>
                                 <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 30000), 0, 'POINT', 0, 'POINT')} + '₫'" id="totalDisplay"></span>
                             </div>
+                            <button type="submit" form="checkoutForm" class="ds-btn-checkout w-100">Đặt hàng</button>
                         </div>
                     </div>
                 </div>
@@ -244,22 +248,30 @@
                       <i class="bi bi-geo-alt display-6 d-block mb-2 opacity-50"></i>
                       Bạn chưa có địa chỉ nào
                    </div>
-                   <div th:each="a : ${addresses}" class="ds-address-card" th:classappend="${a.isDefault} ? 'is-default'">
-                    <div class="ds-address-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
-                    <div class="ds-address-card-body">
-                      <div class="ds-address-card-top">
-                        <strong th:text="${a.tenNguoiNhan}"></strong>
-                        <span class="text-muted" th:text="${a.soDienThoai}"></span>
-                        <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
-                      </div>
-                      <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
-                    </div>
-                    <div class="ds-address-card-actions">
-                      <button class="ds-btn ds-btn-outline ds-btn-sm btn-address-edit" th:data-id="${a.id}" title="Sửa"><i class="bi bi-pencil"></i></button>
-                      <button class="ds-btn ds-btn-outline ds-btn-sm btn-address-default" th:unless="${a.isDefault}" th:data-id="${a.id}">Đặt mặc định</button>
-                      <button class="ds-btn ds-btn-outline ds-btn-sm btn-address-delete" th:data-id="${a.id}" title="Xoá"><i class="bi bi-trash"></i></button>
-                    </div>
-                  </div>
+<div th:each="a : ${addresses}" class="ds-address-card" th:classappend="${a.isDefault} ? 'is-default'">
+                     <div class="ds-address-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                     <div class="ds-address-card-body">
+                       <div class="ds-address-card-top">
+                         <strong th:text="${a.tenNguoiNhan}"></strong>
+                         <span class="text-muted" th:text="${a.soDienThoai}"></span>
+                         <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
+                       </div>
+                       <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
+                       <div class="dropdown ds-address-card-actions">
+                         <button class="ds-btn ds-btn-outline ds-btn-sm" type="button" data-bs-toggle="dropdown">
+                           <i class="bi bi-three-dots-vertical"></i>
+                         </button>
+                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                           <li th:unless="${a.isDefault}">
+                             <a class="dropdown-item btn-address-default" th:data-id="${a.id}" href="#"><i class="bi bi-check-circle me-2"></i>Mặc định</a>
+                           </li>
+                           <li><a class="dropdown-item btn-address-edit" th:data-id="${a.id}" href="#"><i class="bi bi-pencil me-2"></i>Sửa</a></li>
+                           <li><hr class="dropdown-divider"></li>
+                           <li><a class="dropdown-item text-danger btn-address-delete" th:data-id="${a.id}" href="#"><i class="bi bi-trash me-2"></i>Xoá</a></li>
+                         </ul>
+                       </div>
+                     </div>
+                   </div>
                   <button type="button" class="ds-btn ds-btn-fill ds-btn-sm mt-2" onclick="showAddressForm()">
                     <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
                   </button>
@@ -515,7 +527,7 @@
             }).then(function(data) {
                 if (!data) return;
                 if (data.valid) {
-                    msgEl.innerHTML = '<span class="text-success">&#10003; ' + data.message + '</span>';
+                    msgEl.innerHTML = '<span class="text-primary">&#10003; ' + data.message + '</span>';
                     window.appliedDiscount = parseInt(data.discount) || 0;
                     document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + 'đ';
                     document.getElementById('discountDisplay').className = 'text-danger';
