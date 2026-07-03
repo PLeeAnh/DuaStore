@@ -73,6 +73,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ═══ SWIPERS ═══ */
     if (typeof Swiper !== 'undefined') {
+        if (document.querySelector('.hero-banner-swiper')) {
+            new Swiper('.hero-banner-swiper', {
+                loop: true,
+                autoplay: { delay: 4000, disableOnInteraction: false },
+                pagination: { el: '.hero-banner-swiper .swiper-pagination', clickable: true },
+                navigation: { nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev' }
+            });
+        }
         if (document.querySelector('.hero-swiper')) {
             new Swiper('.hero-swiper', {
                 loop: true, effect: 'fade',

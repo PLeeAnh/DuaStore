@@ -23,23 +23,7 @@
                         <div class="swiper-button-prev"></div>
                         <div class="swiper-pagination"></div>
                     </div>
-                    <style>
-                        .hero-banner-swiper { width:100%; border-radius:16px; overflow:hidden; }
-                        .hero-banner-swiper .swiper-slide a { display:block; }
-                        .hero-banner-swiper .swiper-slide img { width:100%; height:auto; display:block; object-fit:cover; border-radius:16px; }
-                        .hero-banner-swiper .swiper-button-next,
-                        .hero-banner-swiper .swiper-button-prev { color:#fff; }
-                    </style>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function(){
-                            new Swiper('.hero-banner-swiper', {
-                                loop: true,
-                                autoplay: { delay: 4000, disableOnInteraction: false },
-                                pagination: { el: '.hero-banner-swiper .swiper-pagination', clickable: true },
-                                navigation: { nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev' }
-                            });
-                        });
-                    </script>
+
                 </section>
 
                 <!-- HERO CAROUSEL -->
@@ -305,41 +289,6 @@
                         </div>
 
                     </div>
-                </section>
-
-                <!-- TESTIMONIALS -->
-                <section class="ds-testi sr-up" th:if="${themeSettings.get('hp_6_active') == null or themeSettings.get('hp_6_active') != '0'}">
-                        <div class="text-center mb-5"><span class="ds-section-badge">Khách hàng nói gì</span><h2 class="ds-section-title">Phản hồi từ khách hàng</h2></div>
-                        <div class="swiper testi-swiper">
-                            <div class="swiper-wrapper">
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">M</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                    <p class="ds-testi-text">"Sản phẩm rất đẹp, chất lượng hơn mong đợi. Đóng gói cẩn thận, giao hàng nhanh!"</p>
-                                    <div class="ds-testi-name">Minh Anh</div><div class="ds-testi-role">Khách hàng thân thiết</div>
-                                </div>
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">T</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                    <p class="ds-testi-text">"Bộ ấm trà thủy tinh mua tặng mẹ rất ưng ý. Mẹ khen đẹp và dùng rất tốt."</p>
-                                    <div class="ds-testi-name">Tuấn Kiệt</div><div class="ds-testi-role">Khách hàng thân thiết</div>
-                                </div>
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">H</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                    <p class="ds-testi-text">"Mua set quà tặng đối tác, cảm ơn DuaStore vì dịch vụ chuyên nghiệp và sản phẩm cao cấp."</p>
-                                    <div class="ds-testi-name">Hoàng Yến</div><div class="ds-testi-role">Doanh nghiệp</div>
-                                </div>
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">Đ</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
-                                    <p class="ds-testi-text">"Ly rượu vang pha lê cắt cạnh rất sang. Giá hơi cao nhưng xứng đáng với chất lượng."</p>
-                                    <div class="ds-testi-name">Đức Minh</div><div class="ds-testi-role">Khách hàng VIP</div>
-                                </div>
-                            </div>
-                            <div class="testi-pagination"></div>
-                        </div>
-                    
                 </section>
 
                 <!-- FAQ ACCORDION -->

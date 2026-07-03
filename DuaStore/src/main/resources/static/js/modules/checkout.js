@@ -391,6 +391,9 @@ function updateTotal() {
 
 /* ═══ DOM READY ═══ */
 document.addEventListener('DOMContentLoaded', function() {
+    if (document.querySelector('.ds-checkout-steps')) {
+        document.body.classList.add('ds-checkout-page');
+    }
 
     // NOTE: previously this reloaded the whole page on EVERY close of the address
     // modal, even if the user opened it and closed it without doing anything (losing
@@ -519,7 +522,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             e.preventDefault();
 
-            var btn = document.querySelector('#checkoutForm button[type="submit"]');
+            var btn = document.querySelector('#checkoutForm button[type="submit"], button[form="checkoutForm"]');
+            if (!btn) return;
             if (btn._submitted) { e.preventDefault(); return; }
             btn._submitted = true; btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';

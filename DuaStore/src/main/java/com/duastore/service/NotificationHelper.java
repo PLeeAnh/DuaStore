@@ -19,6 +19,11 @@ public class NotificationHelper {
 
     @Transactional
     public void notifyAll(String content, String linkType, Integer linkId, String linkUrl, String linkLabel) {
+        notifyAll(content, linkType, linkId, linkUrl, linkLabel, null);
+    }
+
+    @Transactional
+    public void notifyAll(String content, String linkType, Integer linkId, String linkUrl, String linkLabel, Integer userId) {
         try {
             Notification n = new Notification();
             n.setContent(content);
@@ -26,10 +31,11 @@ public class NotificationHelper {
             n.setLinkId(linkId);
             n.setLinkUrl(linkUrl);
             n.setLinkLabel(linkLabel);
+            n.setUserId(userId);
             n.setIsActive(true);
             notificationRepository.save(n);
         } catch (Exception e) {
-            log.warn("Loi tao notifyAll: {}", e.getMessage());
+            log.warn("Loi tao notify: {}", e.getMessage());
         }
     }
 

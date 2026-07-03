@@ -3380,6 +3380,13 @@ a { color: inherit; }
     top: 100px;
   }
 }
+@media (max-width: 991px) {
+  .ds-checkout-sticky-card {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+  }
+}
 .ds-checkout-summary-title {
   font-size: .95rem;
   font-weight: 700;
@@ -3779,7 +3786,7 @@ a { color: inherit; }
 .vc-dot.green{background:#22c55e}
 .vc-dot.yellow{background:#eab308}
 .vc-dot.gray{background:#9ca3af}
-.vc-discount{font-size:1.75rem;font-weight:800;color:#1e293b;line-height:1.2}
+.vc-discount{font-size:1.75rem;font-weight:700;color:#1e293b;line-height:1.2}
 .vc-desc{font-size:.85rem;color:#6b7280;margin:4px 0 10px}
 .vc-code{display:inline-block;font-size:.75rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:3px 10px;color:#334155;font-weight:500}
 .vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin:12px 0 0}
@@ -3831,4 +3838,47 @@ a { color: inherit; }
   font-size: 2.5rem;
   color: var(--ds-gray-400);
 }
+
+/* ════════════════════════════════
+   HERO BANNER SWIPER (Homepage)
+   ════════════════════════════════ */
+.hero-banner-swiper { width:100%; border-radius:16px; overflow:hidden; }
+.hero-banner-swiper .swiper-slide a { display:block; }
+.hero-banner-swiper .swiper-slide img { width:100%; height:auto; display:block; object-fit:cover; border-radius:16px; }
+.hero-banner-swiper .swiper-button-next,
+.hero-banner-swiper .swiper-button-prev { color:#fff; }
+
+/* ════════════════════════════════
+   CHECKOUT
+   ════════════════════════════════ */
+body.ds-checkout-page .ds-navbar { display: none !important; }
+body.ds-checkout-page #main-content { padding-top: 0 !important; }
+
+/* ════════════════════════════════
+   VOUCHER WALLET
+   ════════════════════════════════ */
+.vc-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:#6b7280}
+.vc-dot{width:7px;height:7px;border-radius:50%}
+.vc-dot.green{background:#22c55e}
+.vc-dot.yellow{background:#eab308}
+.vc-dot.gray{background:#9ca3af}
+
+/* ════════════════════════════════
+   CART PAGE
+   ════════════════════════════════ */
+.ds-stock-warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-size: 0.85rem; color: #856404; display: flex; align-items: center; gap: 8px; }
+.ds-stock-warning i { font-size: 1.1rem; }
+.ds-expired-warning { background: #DBEAFE; border: 1px solid #93C5FD; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; font-size: 0.85rem; color: #1e40af; display: flex; align-items: center; gap: 8px; }
+.ds-saved-section { margin-top: 32px; }
+.ds-saved-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+.ds-saved-item:last-child { border-bottom: none; }
+.ds-saved-img { width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+.ds-saved-img img { width: 100%; height: 100%; object-fit: cover; }
+.ds-suggest-card { border: 1px solid #eee; border-radius: 8px; padding: 12px; text-align: center; transition: box-shadow .2s; }
+.ds-suggest-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.ds-suggest-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; }
+.ds-promo-hint { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 10px 16px; margin-top: 12px; font-size: 0.85rem; color: #2e7d32; display: flex; align-items: center; gap: 8px; }
+.ds-undo-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 99999; background: #333; color: #fff; padding: 12px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 0.9rem; box-shadow: 0 4px 20px rgba(0,0,0,.2); animation: slideUp .3s ease; }
+.ds-undo-toast button { background: none; border: none; color: #ff9800; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 
