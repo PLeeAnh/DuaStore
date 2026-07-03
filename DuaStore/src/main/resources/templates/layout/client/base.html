@@ -116,9 +116,7 @@
                 <div class="position-relative d-inline-block ds-wishlist-wrap">
     <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup')" title="Danh sách yêu thích" aria-label="Yêu thích">
         <i class="bi bi-heart"></i>
-        <span id="wishlistBadge" class="ds-wishlist-badge" 
-              th:text="${myWishlist != null ? #lists.size(myWishlist) : 0}" 
-              th:classappend="${(myWishlist == null || #lists.isEmpty(myWishlist)) ? ' d-none' : ''}">0</span>
+        <span id="wishlistBadge" class="ds-wishlist-badge d-none">0</span>
     </button>
     <div id="wishlist-popup" class="custom-popup">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Sản phẩm yêu thích</h6>
@@ -134,11 +132,6 @@
                                 </div>
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
-                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + 'đ'">0đ</div>
-                                    <button class="btn btn-sm btn-outline-danger mt-1" style="font-size:0.75rem;padding:2px 8px;"
-                                            th:onclick="'addToCartFromWishlist(' + ${item.productId} + ')'">
-                                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                    </button>
                                 </div>
                                 
         </div>
@@ -151,7 +144,7 @@
 <div th:if="${themeSettings.get('header_cart') != '0'}" class="position-relative d-inline-block ds-cart-wrap">
     <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
         <i class="bi bi-bag"></i>
-        <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}">0</span>
+        <span id="cartBadge" class="ds-cart-badge d-none">0</span>
     </button>
     <div id="cart-popup" class="custom-popup" style="width: 340px;">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
@@ -276,7 +269,6 @@
                                 </div>
                             </div>
                             <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
-                            <a class="ds-popup-link" th:href="@{/address}"><i class="bi bi-geo-alt"></i> Sổ địa chỉ</a>
                             <a class="ds-popup-link" th:href="@{/vi-voucher}"><i class="bi bi-wallet2"></i> Ví Voucher</a>
                             <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
                             <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
@@ -345,7 +337,7 @@
 </div>
 
 <!-- Login Modal -->
-<div class="modal fade modal-auth" id="loginModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-auth" id="loginModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="ds-auth-header">
@@ -354,10 +346,6 @@
             <div class="ds-auth-accent"></div>
 
             <div class="ds-auth-body">
-                <div id="loginServerError" class="ds-auth-error" style="margin-bottom:.75rem;">
-                    <i class="bi bi-exclamation-circle"></i><span>Sai tên đăng nhập hoặc mật khẩu</span>
-                </div>
-
                 <form th:action="@{/dang-nhap}" method="POST" novalidate>
                     <div class="mb-3">
                         <div class="ds-auth-field">
@@ -367,6 +355,9 @@
                         </div>
                         <div class="ds-auth-error" id="loginEmailError">
                             <i class="bi bi-exclamation-circle"></i><span>Vui lòng nhập tên đăng nhập hoặc email</span>
+                        </div>
+                        <div id="loginServerError" class="ds-auth-error">
+                            <i class="bi bi-exclamation-circle"></i><span>Sai tên đăng nhập hoặc mật khẩu</span>
                         </div>
                     </div>
 
@@ -406,7 +397,7 @@
 </div>
 
 <!-- Register Modal -->
-<div class="modal fade modal-auth" id="registerModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-auth" id="registerModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="ds-auth-header">
@@ -418,12 +409,6 @@
             <div class="ds-auth-accent"></div>
 
             <div class="ds-auth-body">
-                <div id="registerError" class="ds-auth-error" style="margin-bottom:.5rem;">
-                    <i class="bi bi-exclamation-circle"></i><span></span>
-                </div>
-                <div id="registerSuccess" class="ds-auth-success">
-                    <i class="bi bi-check-circle"></i><span>Đăng ký thành công! Vui lòng đăng nhập.</span>
-                </div>
                 <form id="registerForm" onsubmit="return registerSubmit(event)" novalidate>
                     <div class="mb-3">
                         <div class="ds-auth-field">
@@ -479,6 +464,13 @@
                         </div>
                     </div>
 
+                    <div id="registerError" class="ds-auth-error">
+                        <i class="bi bi-exclamation-circle"></i><span></span>
+                    </div>
+                    <div id="registerSuccess" class="ds-auth-success">
+                        <i class="bi bi-check-circle"></i><span>Đăng ký thành công! Vui lòng đăng nhập.</span>
+                    </div>
+
                     <div class="ds-auth-check mb-3">
                         <input type="checkbox" id="regTerms">
                         <label for="regTerms">Agree to the Terms of Service and Privacy Policy</label>
@@ -494,7 +486,7 @@
 </div>
 
 <!-- Forgot Password Modal -->
-<div class="modal fade modal-auth" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-auth" id="forgotPasswordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="ds-auth-header">
@@ -733,6 +725,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
                 } else {
                     btn.textContent = 'Thử lại';
+                    var errMsg = data.error || 'Gửi mã thất bại';
+                    var emailErr = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
+                    if (emailErr) { emailErr.querySelector('span').textContent = errMsg; emailErr.classList.add('show'); }
                     setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
                 }
             }).catch(function() {
@@ -797,29 +792,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
 
-    const cBadge = document.getElementById('cartBadge');
-    if (cBadge) {
-        if (currentCartState.length > 0) {
-            cBadge.classList.remove('d-none');
-        } else {
-            cBadge.classList.add('d-none');
-        }
-    }
-
-    // --- 2. LÔ-GÍC GHI NHỚ CHO YÊU THÍCH ---
-    const wishlistItems = document.querySelectorAll('#wishlist-items-container .popup-item');
-    let currentWishlistState = [];
-    wishlistItems.forEach(item => currentWishlistState.push(item.id));
-
-    let viewedWishlistState = JSON.parse(localStorage.getItem('viewedWishlistState') || '[]');
-
-    const wBadge = document.getElementById('wishlistBadge');
-
-    if (currentWishlistState.length > 0) {
-        if(wBadge) wBadge.classList.remove('d-none');
-    } else {
-        if(wBadge) wBadge.classList.add('d-none');
-    }
+    // Badge count is managed by cart.js/wishlist.js, not shown on page load
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */

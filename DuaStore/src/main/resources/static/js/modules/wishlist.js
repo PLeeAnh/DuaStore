@@ -64,7 +64,6 @@ function toggleWishlist(btnElement, productId) {
                         '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:15px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
                         '<div class="popup-item-info">' +
                             '<a href="/san-pham/' + productId + '">' + productName + '</a>' +
-                            '<div class="text-danger fw-semibold mt-1">' + productPrice + '</div>' +
                         '</div>' +
                         '<button class="btn-delete-item" onclick="removeWishlist(' + productId + ')" title="Xóa"><i class="bi bi-x-circle"></i></button>' +
                     '</div>');
@@ -151,7 +150,6 @@ function toggleWishlistCore(btnElement, productId) {
                         '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:15px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
                         '<div class="popup-item-info">' +
                             '<a href="/san-pham/' + productId + '">' + productName + '</a>' +
-                            '<div class="text-danger fw-semibold mt-1">' + productPrice + '</div>' +
                         '</div>' +
                         '<button class="btn-delete-item" onclick="removeWishlist(' + productId + ')" title="Xóa"><i class="bi bi-x-circle"></i></button>' +
                     '</div>');
@@ -186,4 +184,18 @@ function removeWishlist(wishlistId) {
         var ic = btn.querySelector('i');
         if (ic) ic.classList.replace('bi-heart-fill', 'bi-heart');
     });
+}
+
+/* ═══ WISHLIST BADGE ═══ */
+function refreshWishlistBadgeCount() {
+    var items = document.querySelectorAll('#wishlist-items-container .popup-item');
+    var badge = document.getElementById('wishlistBadge');
+    if (!badge) return;
+    var count = items.length;
+    badge.textContent = count;
+    if (count > 0) {
+        badge.classList.remove('d-none');
+    } else {
+        badge.classList.add('d-none');
+    }
 }

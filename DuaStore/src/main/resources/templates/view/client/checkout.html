@@ -5,6 +5,7 @@
       layout:decorate="~{layout/client/base}">
     <head>
         <title>Thanh toán — DuaStore</title>
+
     </head>
     <body>
     <div layout:fragment="content">
@@ -43,7 +44,7 @@
                                     </button>
                                 </div>
                                 <div th:if="${#lists.isEmpty(addresses)}" class="ds-checkout-section-empty">
-                                    Chưa có địa chỉ. <a th:href="@{/address}">Thêm địa chỉ mới</a>
+                                    Chưa có địa chỉ. <a href="#" onclick="openAddressModal();return false">Thêm địa chỉ mới</a>
                                 </div>
                                 <div th:if="${not #lists.isEmpty(addresses)}" class="ds-address-card-list">
                                     <label class="ds-address-card"
@@ -136,7 +137,7 @@
                 </div>
 
                 <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm sticky-top" style="top:1rem">
+                    <div class="card border-0 shadow-sm sticky-top ds-checkout-sticky-card" style="top:1rem;z-index:1025">
                         <div class="card-body">
                             <h6 class="fw-bold mb-3">Tóm tắt đơn hàng</h6>
                             <div th:each="item : ${cartItems}" class="d-flex gap-2 mb-2">

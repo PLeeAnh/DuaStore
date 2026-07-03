@@ -35,10 +35,10 @@ public class VerificationCodeController {
         String code = codeService.generate(email);
         try {
             emailService.sendOtpEmail(email, code, "REGISTER");
+            return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            // ignore
+            return ResponseEntity.ok(Map.of("success", false, "error", "Không thể gửi email. Vui lòng thử lại sau."));
         }
-        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @PostMapping("/verify-code")

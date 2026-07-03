@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.Notification;
 import com.duastore.repository.NotificationRepository;
 import jakarta.servlet.http.HttpSession;
@@ -18,14 +19,19 @@ import java.util.Map;
 public class NotificationController {
 
     private final NotificationRepository notificationRepository;
+    private final SecurityUtil securityUtil;
 
-    public NotificationController(NotificationRepository notificationRepository) {
+    public NotificationController(NotificationRepository notificationRepository, SecurityUtil securityUtil) {
         this.notificationRepository = notificationRepository;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping("/thong-bao")
     public String list(Model model, HttpSession session) {
-        List<Notification> notifications = notificationRepository.findCustomerNotifications();
+        Integer userId = securityUtil.getCurrentUserId();
+        List<Notification> notifications = userId != null
+            ? notificationRepository.findCustomerNotifications(userId)
+            : java.util.List.of();
         model.addAttribute("notifications", notifications);
 
         session.setAttribute("notifReadMaxId",
@@ -40,13 +46,19 @@ public class NotificationController {
     public Map<String, Object> getNotifs(HttpSession session) {
         Map<String, Object> res = new HashMap<>();
         try {
+            Integer userId = securityUtil.getCurrentUserId();
+            if (userId == null) {
+                res.put("count", 0);
+                res.put("notifications", java.util.List.of());
+                return res;
+            }
             Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
             @SuppressWarnings("unchecked")
             Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
             final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : new HashSet<>();
 
             Integer maxId = readMaxId != null ? readMaxId : 0;
-            List<Notification> all = notificationRepository.findCustomerNotifications();
+            List<Notification> all = notificationRepository.findCustomerNotifications(userId);
             List<Map<String, Object>> items = new ArrayList<>();
             for (Notification n : all) {
                 boolean read = (n.getId() <= maxId) || readIds.contains(n.getId());
@@ -99,6 +111,12 @@ public class NotificationController {
     @ResponseBody
     public Map<String, Object> getNotificationsJson(HttpSession session) {
         Map<String, Object> result = new LinkedHashMap<>();
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) {
+            result.put("count", 0);
+            result.put("notifications", java.util.List.of());
+            return result;
+        }
         Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm, dd/MM");
 
@@ -106,17 +124,17 @@ public class NotificationController {
 
         if (readMaxId != null && readMaxId > 0) {
             List<Notification> unread = notificationRepository
-                .findByIsActiveTrueAndIdGreaterThanOrderByCreatedAtDesc(readMaxId);
+                .findNewByUserId(userId, readMaxId);
             for (Notification n : unread) {
                 notifList.add(buildNotifMap(n, fmt));
             }
-            result.put("count", notificationRepository.countUnreadCustomerNotifications(readMaxId));
+            result.put("count", notificationRepository.countUnreadCustomerNotifications(userId, readMaxId));
         } else {
-            List<Notification> all = notificationRepository.findCustomerNotifications();
+            List<Notification> all = notificationRepository.findCustomerNotifications(userId);
             for (Notification n : all) {
                 notifList.add(buildNotifMap(n, fmt));
             }
-            result.put("count", notificationRepository.countCustomerNotifications());
+            result.put("count", notificationRepository.countCustomerNotifications(userId));
         }
 
         result.put("notifications", notifList);

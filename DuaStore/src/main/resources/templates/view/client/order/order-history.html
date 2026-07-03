@@ -76,14 +76,6 @@
             </div>
         </div>
     </div>
-    <script>
-    (function() {
-        var els = document.querySelectorAll('.fmt-price');
-        for (var i = 0; i < els.length; i++) {
-            var num = parseInt(els[i].textContent.replace(/[^0-9]/g, '')) || 0;
-            els[i].textContent = num.toLocaleString('vi-VN') + '₫';
-        }
-    })();
-    </script>
+
     </body>
 </html>

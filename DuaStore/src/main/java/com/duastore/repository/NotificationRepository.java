@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,14 +20,14 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     long countByIsActiveTrueAndIdGreaterThan(Integer id);
     Optional<Notification> findTopByIsActiveTrueOrderByIdDesc();
 
-    @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL ORDER BY n.createdAt DESC")
-    List<Notification> findCustomerNotifications();
+    @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) ORDER BY n.createdAt DESC")
+    List<Notification> findCustomerNotifications(@Param("userId") Integer userId);
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL")
-    long countCustomerNotifications();
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId)")
+    long countCustomerNotifications(@Param("userId") Integer userId);
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND n.id > :readMaxId")
-    long countUnreadCustomerNotifications(Integer readMaxId);
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) AND n.id > :readMaxId")
+    long countUnreadCustomerNotifications(@Param("userId") Integer userId, @Param("readMaxId") Integer readMaxId);
 
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF' ORDER BY n.createdAt DESC")
     List<Notification> findStaffNotifications();
@@ -37,5 +38,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF' AND n.id > :readMaxId")
     long countUnreadStaffNotifications(Integer readMaxId);
 
-    List<Notification> findByIsActiveTrueAndIdGreaterThanOrderByCreatedAtDesc(Integer id);
+    @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) AND n.id > :readMaxId ORDER BY n.createdAt DESC")
+    List<Notification> findNewByUserId(@Param("userId") Integer userId, @Param("readMaxId") Integer readMaxId);
 }
