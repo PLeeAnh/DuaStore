@@ -63,7 +63,7 @@ public class OrderService {
     }
 
     private static final String[] PHUONG_THUC_TT = {"COD", "CHUYEN_KHOAN"};
-    private static final String[] PHUONG_THUC_GH = {"SHIP", "NHAN_TAI_CONG"};
+    private static final String[] PHUONG_THUC_GH = {"SHIP"};
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
@@ -126,7 +126,8 @@ public class OrderService {
             order.setTienGiam(tienGiam);
             order.setPromotion(lockedPromo);
             lockedPromo.setDaDung(lockedPromo.getDaDung() + 1);
-            lockedPromo.setUsedBudget(lockedPromo.getUsedBudget().add(tienGiam));
+            BigDecimal usedBudget = lockedPromo.getUsedBudget() != null ? lockedPromo.getUsedBudget() : BigDecimal.ZERO;
+            lockedPromo.setUsedBudget(usedBudget.add(tienGiam));
             promotionRepository.save(lockedPromo);
             // Mark UserVoucher as used
             userVoucherRepository.findByUserIdAndPromotionId(userId, lockedPromo.getId()).ifPresent(uv -> {

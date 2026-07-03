@@ -182,6 +182,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.ds-qty-btn');
         if (!btn) return;
+        e.stopPropagation();
+        e.preventDefault();
         const card = getCard(btn);
         if (!card) return;
         const qtyEl = card.querySelector('.ds-qty-val');

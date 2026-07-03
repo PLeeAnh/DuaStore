@@ -11,7 +11,7 @@
 
     --success: #16A34A;
     --warning: #F59E0B;
-    --danger: #DC2626;
+    --danger: #2563eb;
 
     --bg: #F6F9FC;
     --card: #FFFFFF;
@@ -661,7 +661,7 @@ body.adm-body {
 }
 
 .status-da-huy {
-    background: rgba(220, 38, 38, 0.12);
+    background: rgba(37, 99, 235, 0.12);
     color: var(--danger);
 }
 
@@ -1017,8 +1017,8 @@ body.adm-body {
 }
 
 .alert-danger {
-    background: rgba(220, 38, 38, 0.08);
-    border: 1px solid rgba(220, 38, 38, 0.15);
+    background: rgba(37, 99, 235, 0.08);
+    border: 1px solid rgba(37, 99, 235, 0.15);
     color: var(--danger);
     border-radius: 12px;
 }
@@ -1125,7 +1125,7 @@ body.adm-body {
 }
 
 .adm-kebab-menu .dropdown-item.text-danger:hover {
-    background: rgba(220, 38, 38, 0.08);
+    background: rgba(37, 99, 235, 0.08);
     color: var(--danger);
 }
 
