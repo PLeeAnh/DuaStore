@@ -11,88 +11,140 @@ var modalWards = [];
 var editingAddressId = null;
 
 function loadModalProvinces() {
-    fetch('/api/location/provinces').then(function(r) { return r.json(); }).then(function(data) {
+    return fetch('/api/location/provinces').then(function(r) { return r.json(); }).then(function(data) {
         modalProvinces = data;
+        return data;
     });
 }
 function loadModalDistricts(provinceCode) {
-    fetch('/api/location/districts?provinceCode=' + provinceCode).then(function(r) { return r.json(); }).then(function(data) {
+    return fetch('/api/location/districts?provinceCode=' + provinceCode).then(function(r) { return r.json(); }).then(function(data) {
         modalDistricts = data;
+        return data;
     });
 }
 function loadModalWards(districtCode) {
-    fetch('/api/location/wards?districtCode=' + districtCode).then(function(r) { return r.json(); }).then(function(data) {
+    return fetch('/api/location/wards?districtCode=' + districtCode).then(function(r) { return r.json(); }).then(function(data) {
         modalWards = data;
+        return data;
     });
 }
 
-function setupModalAutocomplete(inputId, suggestId, hiddenId, sourceFn, onSelect) {
-    var input = document.getElementById(inputId);
-    var box = document.getElementById(suggestId);
-    var hidden = document.getElementById(hiddenId);
-    var timer;
-    if (!input || !box || !hidden) return;
-    input.addEventListener('input', function() {
-        clearTimeout(timer);
-        var q = this.value.toLowerCase().trim();
-        if (q.length < 1) { box.style.display = 'none'; hidden.value = ''; return; }
-        timer = setTimeout(function() {
-            var items = sourceFn().filter(function(x) { return x.name.toLowerCase().indexOf(q) !== -1; }).slice(0, 10);
-            box.innerHTML = '';
-            if (!items.length) { box.style.display = 'none'; return; }
-            items.forEach(function(item) {
-                var btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'list-group-item list-group-item-action py-1 text-start small';
-                btn.textContent = item.name;
-                btn.addEventListener('click', function() {
-                    input.value = item.name;
-                    hidden.value = item.name;
-                    box.style.display = 'none';
-                    if (onSelect) onSelect(item);
-                });
-                box.appendChild(btn);
-            });
-            box.style.display = 'block';
-        }, 200);
+/* ═══ LOCATION COMBOBOX (dropdown with search + checkmark, like a native <select>) ═══ */
+var openComboId = null;
+
+function initLocationCombo(comboId, opts) {
+    // opts: { getItems, onSelect, placeholder }
+    var combo = document.getElementById(comboId);
+    if (!combo) return;
+    combo.__opts = opts;
+    var toggle = combo.querySelector('.ds-combo-toggle');
+    var search = combo.querySelector('.ds-combo-search-input');
+
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (combo.classList.contains('open')) { closeCombo(comboId); return; }
+        if (openComboId) closeCombo(openComboId);
+        var items = opts.getItems();
+        if (!items.length) { DuaStore.toast.warning('Vui lòng chọn mục phía trên trước'); return; }
+        openComboId = comboId;
+        combo.classList.add('open');
+        search.value = '';
+        renderComboList(comboId, '');
+        setTimeout(function() { search.focus(); }, 0);
     });
-    input.addEventListener('blur', function() { setTimeout(function() { box.style.display = 'none'; }, 200); });
-    input.addEventListener('focus', function() { if (this.value.trim()) this.dispatchEvent(new Event('input')); });
+
+    search.addEventListener('input', function() { renderComboList(comboId, this.value); });
+    search.addEventListener('click', function(e) { e.stopPropagation(); });
+}
+
+function renderComboList(comboId, query) {
+    var combo = document.getElementById(comboId);
+    var opts = combo.__opts;
+    var list = combo.querySelector('.ds-combo-list');
+    var selectedCode = combo.dataset.selectedCode || '';
+    var q = (query || '').toLowerCase().trim();
+    var items = opts.getItems().filter(function(x) { return x.name.toLowerCase().indexOf(q) !== -1; });
+    list.innerHTML = '';
+    if (!items.length) {
+        list.innerHTML = '<div class="ds-combo-empty">Không tìm thấy kết quả</div>';
+        return;
+    }
+    items.forEach(function(item) {
+        var row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'ds-combo-item' + (String(item.code) === String(selectedCode) ? ' selected' : '');
+        row.innerHTML = '<span>' + item.name + '</span>' +
+            (String(item.code) === String(selectedCode) ? '<i class="bi bi-check-lg"></i>' : '');
+        row.addEventListener('click', function(e) {
+            e.stopPropagation();
+            setComboValue(comboId, item.code, item.name);
+            closeCombo(comboId);
+            if (opts.onSelect) opts.onSelect(item);
+        });
+        list.appendChild(row);
+    });
+}
+
+function setComboValue(comboId, code, name) {
+    var combo = document.getElementById(comboId);
+    combo.dataset.selectedCode = code != null ? code : '';
+    combo.querySelector('.ds-combo-label').textContent = name || combo.__opts.placeholder;
+    combo.querySelector('.ds-combo-label').classList.toggle('has-value', !!name);
+    combo.querySelector('input[type="hidden"]').value = name || '';
+}
+
+function resetCombo(comboId) {
+    setComboValue(comboId, '', '');
+}
+
+function closeCombo(comboId) {
+    var combo = document.getElementById(comboId);
+    if (combo) combo.classList.remove('open');
+    if (openComboId === comboId) openComboId = null;
+}
+
+document.addEventListener('click', function() {
+    if (openComboId) closeCombo(openComboId);
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && openComboId) closeCombo(openComboId);
+});
+
+function fuzzyFindLocation(list, rawName) {
+    if (!rawName) return null;
+    var needle = rawName.toLowerCase().trim();
+    return list.find(function(x) { return x.name.toLowerCase() === needle; })
+        || list.find(function(x) { return x.name.toLowerCase().indexOf(needle) !== -1 || needle.indexOf(x.name.toLowerCase()) !== -1; })
+        || null;
 }
 
 function modalSetFromNominatim(tinhThanh, quanHuyen, phuongXa, diaChi) {
     document.getElementById('modalDiaChiCuTheText').value = diaChi || '';
-    if (tinhThanh) {
-        document.getElementById('modalTinhThanhInput').value = tinhThanh;
-        document.getElementById('modalTinhThanh').value = tinhThanh;
-        var found = modalProvinces.find(function(p) { return p.name === tinhThanh; });
-        if (found) {
-            loadModalDistricts(found.code);
-            setTimeout(function() {
-                if (quanHuyen) {
-                    document.getElementById('modalQuanHuyenInput').value = quanHuyen;
-                    document.getElementById('modalQuanHuyen').value = quanHuyen;
-                    var dfound = modalDistricts.find(function(d) { return d.name === quanHuyen; });
-                    if (dfound) {
-                        loadModalWards(dfound.code);
-                        setTimeout(function() {
-                            if (phuongXa) {
-                                document.getElementById('modalPhuongXaInput').value = phuongXa;
-                                document.getElementById('modalPhuongXa').value = phuongXa;
-                            }
-                        }, 500);
-                    }
-                }
-            }, 500);
-        }
-    }
+    if (!tinhThanh) return;
+    var found = fuzzyFindLocation(modalProvinces, tinhThanh);
+    if (!found) { document.getElementById('modalMapStatus').textContent += ' (không khớp được tỉnh/thành, vui lòng chọn thủ công)'; return; }
+    setComboValue('modalTinhThanhCombo', found.code, found.name);
+    resetCombo('modalQuanHuyenCombo');
+    resetCombo('modalPhuongXaCombo');
+    modalDistricts = []; modalWards = [];
+    loadModalDistricts(found.code).then(function(districts) {
+        if (!quanHuyen) return;
+        var dfound = fuzzyFindLocation(districts, quanHuyen);
+        if (!dfound) return;
+        setComboValue('modalQuanHuyenCombo', dfound.code, dfound.name);
+        return loadModalWards(dfound.code).then(function(wards) {
+            if (!phuongXa) return;
+            var wfound = fuzzyFindLocation(wards, phuongXa);
+            if (wfound) setComboValue('modalPhuongXaCombo', wfound.code, wfound.name);
+        });
+    });
 }
 
 function openAddressModal() {
     document.getElementById('addressModalList').style.display = 'block';
     document.getElementById('addressModalForm').style.display = 'none';
     document.getElementById('addressModalTitle').textContent = 'Quản lý địa chỉ';
-    new bootstrap.Modal(document.getElementById('addressModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('addressModal')).show();
 }
 
 function showAddressForm() {
@@ -104,12 +156,10 @@ function showAddressForm() {
     document.getElementById('modalSoDienThoai').value = '';
     document.getElementById('modalDiaChiCuThe').value = '';
     document.getElementById('modalDiaChiCuTheText').value = '';
-    document.getElementById('modalPhuongXa').value = '';
-    document.getElementById('modalQuanHuyen').value = '';
-    document.getElementById('modalTinhThanh').value = '';
-    document.getElementById('modalTinhThanhInput').value = '';
-    document.getElementById('modalQuanHuyenInput').value = '';
-    document.getElementById('modalPhuongXaInput').value = '';
+    resetCombo('modalTinhThanhCombo');
+    resetCombo('modalQuanHuyenCombo');
+    resetCombo('modalPhuongXaCombo');
+    modalDistricts = []; modalWards = [];
     document.getElementById('modalLatitude').value = '';
     document.getElementById('modalLongitude').value = '';
     document.getElementById('modalIsDefault').checked = false;
@@ -130,8 +180,18 @@ function editAddress(id) {
     document.getElementById('addressModalList').style.display = 'none';
     document.getElementById('addressModalForm').style.display = 'block';
     document.getElementById('addressModalTitle').textContent = 'Sửa địa chỉ';
-    loadModalProvinces();
-    fetch('/address/api/' + id).then(function(r) { return r.json(); }).then(function(data) {
+    resetCombo('modalTinhThanhCombo');
+    resetCombo('modalQuanHuyenCombo');
+    resetCombo('modalPhuongXaCombo');
+    var provincesPromise = loadModalProvinces();
+    fetch('/address/api/' + id).then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    }).then(function(data) {
+        if (!data) return;
         if (!data.success) { DuaStore.toast.error(data.message || 'Không thể tải địa chỉ'); return; }
         document.getElementById('modalTenNguoiNhan').value = data.tenNguoiNhan || '';
         document.getElementById('modalSoDienThoai').value = data.soDienThoai || '';
@@ -140,24 +200,21 @@ function editAddress(id) {
         document.getElementById('modalLatitude').value = data.latitude || '';
         document.getElementById('modalLongitude').value = data.longitude || '';
         document.getElementById('modalIsDefault').checked = !!data.isDefault;
-        document.getElementById('modalTinhThanhInput').value = data.tinhThanh || '';
-        document.getElementById('modalTinhThanh').value = data.tinhThanh || '';
-        var foundProvince = modalProvinces.find(function(p) { return p.name === data.tinhThanh; });
-        if (foundProvince) {
-            loadModalDistricts(foundProvince.code);
-            setTimeout(function() {
-                document.getElementById('modalQuanHuyenInput').value = data.quanHuyen || '';
-                document.getElementById('modalQuanHuyen').value = data.quanHuyen || '';
-                var foundDistrict = modalDistricts.find(function(d) { return d.name === data.quanHuyen; });
-                if (foundDistrict) {
-                    loadModalWards(foundDistrict.code);
-                    setTimeout(function() {
-                        document.getElementById('modalPhuongXaInput').value = data.phuongXa || '';
-                        document.getElementById('modalPhuongXa').value = data.phuongXa || '';
-                    }, 500);
-                }
-            }, 500);
-        }
+
+        provincesPromise.then(function(provinces) {
+            var foundProvince = fuzzyFindLocation(provinces, data.tinhThanh);
+            if (!foundProvince) return;
+            setComboValue('modalTinhThanhCombo', foundProvince.code, foundProvince.name);
+            return loadModalDistricts(foundProvince.code).then(function(districts) {
+                var foundDistrict = fuzzyFindLocation(districts, data.quanHuyen);
+                if (!foundDistrict) return;
+                setComboValue('modalQuanHuyenCombo', foundDistrict.code, foundDistrict.name);
+                return loadModalWards(foundDistrict.code).then(function(wards) {
+                    var foundWard = fuzzyFindLocation(wards, data.phuongXa);
+                    if (foundWard) setComboValue('modalPhuongXaCombo', foundWard.code, foundWard.name);
+                });
+            });
+        });
     });
 }
 
@@ -275,8 +332,15 @@ function saveAddressFromModal() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+        if (r.status === 403) {
+            if (typeof showLoginPopup === 'function') showLoginPopup();
+            return null;
+        }
+        return r.json();
+    })
     .then(function(data) {
+        if (!data) return;
         if (data.success) { location.reload(); }
         else { DuaStore.toast.error(data.message || 'Lưu thất bại'); }
     })
@@ -328,7 +392,11 @@ function updateTotal() {
 /* ═══ DOM READY ═══ */
 document.addEventListener('DOMContentLoaded', function() {
 
-    document.getElementById('addressModal')?.addEventListener('hidden.bs.modal', function() { location.reload(); });
+    // NOTE: previously this reloaded the whole page on EVERY close of the address
+    // modal, even if the user opened it and closed it without doing anything (losing
+    // any in-progress checkout state like typed notes). Save/delete/set-default
+    // already call location.reload() themselves when something actually changed, so
+    // no blanket reload is needed here anymore.
 
     /* ── Map search (Nominatim) ── */
     var modalDebounceTimer;
@@ -382,41 +450,30 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!e.target.closest('#modalDiaChiCuThe') && !e.target.closest('#modalSuggestionBox')) { if (box) box.style.display = 'none'; }
     });
 
-    /* ── Location autocomplete ── */
-    setupModalAutocomplete('modalTinhThanhInput', 'modalTinhThanhSuggest', 'modalTinhThanh',
-        function() { return modalProvinces; },
-        function(item) {
-            document.getElementById('modalQuanHuyenInput').value = '';
-            document.getElementById('modalQuanHuyen').value = '';
-            document.getElementById('modalPhuongXaInput').value = '';
-            document.getElementById('modalPhuongXa').value = '';
+    /* ── Location comboboxes ── */
+    initLocationCombo('modalTinhThanhCombo', {
+        getItems: function() { return modalProvinces; },
+        placeholder: 'Chọn tỉnh/thành',
+        onSelect: function(item) {
+            resetCombo('modalQuanHuyenCombo');
+            resetCombo('modalPhuongXaCombo');
             modalDistricts = [];
             modalWards = [];
             loadModalDistricts(item.code);
         }
-    );
-    setupModalAutocomplete('modalQuanHuyenInput', 'modalQuanHuyenSuggest', 'modalQuanHuyen',
-        function() { return modalDistricts; },
-        function(item) {
-            document.getElementById('modalPhuongXaInput').value = '';
-            document.getElementById('modalPhuongXa').value = '';
+    });
+    initLocationCombo('modalQuanHuyenCombo', {
+        getItems: function() { return modalDistricts; },
+        placeholder: 'Chọn quận/huyện',
+        onSelect: function(item) {
+            resetCombo('modalPhuongXaCombo');
             modalWards = [];
             loadModalWards(item.code);
         }
-    );
-    setupModalAutocomplete('modalPhuongXaInput', 'modalPhuongXaSuggest', 'modalPhuongXa',
-        function() { return modalWards; }, null
-    );
-
-    document.addEventListener('click', function(e) {
-        var ids = ['modalTinhThanhInput','modalTinhThanhSuggest','modalQuanHuyenInput','modalQuanHuyenSuggest','modalPhuongXaInput','modalPhuongXaSuggest'];
-        var hide = true;
-        for (var i = 0; i < ids.length; i++) { if (e.target.closest('#' + ids[i])) { hide = false; break; } }
-        if (hide) {
-            document.getElementById('modalTinhThanhSuggest').style.display = 'none';
-            document.getElementById('modalQuanHuyenSuggest').style.display = 'none';
-            document.getElementById('modalPhuongXaSuggest').style.display = 'none';
-        }
+    });
+    initLocationCombo('modalPhuongXaCombo', {
+        getItems: function() { return modalWards; },
+        placeholder: 'Chọn phường/xã'
     });
 
     /* ── QR payment confirm ── */
@@ -425,8 +482,15 @@ document.addEventListener('DOMContentLoaded', function() {
         var form = document.getElementById('checkoutForm');
         var formData = new FormData(form);
         fetch('/checkout/api/create', { method: 'POST', body: new URLSearchParams(formData) })
-            .then(function(r) { return r.json(); })
+            .then(function(r) {
+                if (r.status === 403) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    return null;
+                }
+                return r.json();
+            })
             .then(function(data) {
+                if (!data) { btn.disabled = false; btn.textContent = 'Đã thanh toán'; return; }
                 if (data.success) { window.location.href = '/checkout/thanh-cong/' + data.orderId; }
                 else { DuaStore.toast.error(data.message || 'Đặt hàng thất bại'); btn.disabled = false; btn.textContent = 'Đã thanh toán'; }
             })
@@ -467,8 +531,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: new URLSearchParams(formData)
             })
-            .then(function(r) { return r.json(); })
+            .then(function(r) {
+                if (r.status === 403) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    return null;
+                }
+                return r.json();
+            })
             .then(function(data) {
+                if (!data) {
+                    btn._submitted = false;
+                    btn.disabled = false;
+                    btn.innerHTML = 'Đặt hàng';
+                    return;
+                }
                 if (data.success) {
                     window.location.href = '/checkout/thanh-cong/' + data.orderId;
                 } else {

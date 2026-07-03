@@ -15,9 +15,14 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException e) throws IOException {
-        if (request.getRequestURI().startsWith("/admin/"))
+        if (request.getRequestURI().startsWith("/api/")) {
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập\"}");
+        } else if (request.getRequestURI().startsWith("/admin/")) {
             response.sendRedirect(request.getContextPath() + "/admin/error/403");
-        else
+        } else {
             response.sendRedirect(request.getContextPath() + "/");
+        }
     }
 }
