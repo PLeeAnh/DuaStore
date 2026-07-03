@@ -33,6 +33,7 @@
     <th:block layout:fragment="extra-head"></th:block>
     <script th:inline="javascript">
         /*<![CDATA[*/
+        var __isLoggedIn = [[${isLoggedIn}]];
         var __customCss = [[${customCss ?: ''}]].replace(/\]\]/g, '');
         if (__customCss) {
             var __style = document.createElement('style');
@@ -1000,6 +1001,12 @@ function refreshWishlistBadgeCount() {
 
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
+    if (!__isLoggedIn) {
+        var popup = document.getElementById('notif-popup');
+        if (popup) popup.classList.remove('show');
+        showLoginPopup();
+        return;
+    }
     togglePopup('notif-popup');
     var badge = document.getElementById('notifBadge');
     if (badge && !badge.classList.contains('d-none')) {
