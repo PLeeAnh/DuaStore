@@ -77,6 +77,7 @@ public class CartWishlistApiController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/cart/remove-item")
     public ResponseEntity<Map<String, Object>> removeCartItem(@RequestBody Map<String, Integer> payload) {
         Map<String, Object> response = new HashMap<>();

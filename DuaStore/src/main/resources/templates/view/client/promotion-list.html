@@ -4,33 +4,6 @@
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
 <head><title>Khuyến mãi — DuaStore</title>
-    <style>
-        .vc-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;position:relative;transition:box-shadow .2s;cursor:pointer}
-        .vc-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
-        .vc-discount{font-size:1.75rem;font-weight:800;color:#1e293b;line-height:1.2}
-        .vc-desc{font-size:.85rem;color:#6b7280;margin:4px 0 10px}
-        .vc-code{display:inline-block;font-size:.75rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:3px 10px;color:#334155;font-weight:500}
-        .vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin:12px 0 0}
-        .vc-grid-item{font-size:.8rem;color:#6b7280;display:flex;align-items:center;gap:4px}
-        .vc-grid-item strong{color:#1e293b}
-        .vc-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
-        .vc-btn{font-size:.8rem;padding:6px 16px;border-radius:8px;font-weight:500;cursor:pointer;border:none}
-        .vc-btn-ghost{background:transparent;border:1px solid #d1d5db;color:#6b7280}
-        .vc-btn-ghost:hover{background:#f9fafb}
-        .vc-btn-cta{background:#2563eb;color:#fff}
-        .vc-btn-cta:hover{background:#1d4ed8}
-        .detail-section{background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:12px}
-        .detail-section-title{font-size:.9rem;font-weight:700;color:#1e293b;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-        .detail-row{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;padding:6px 0;border-bottom:1px solid #f1f5f9}
-        .detail-row:last-child{border-bottom:none}
-        .detail-label{color:#6b7280}
-        .detail-value{color:#1e293b;font-weight:500}
-        .detail-badge{background:#e0f2fe;color:#2563eb;font-size:.7rem;padding:2px 8px;border-radius:4px;font-weight:600}
-        .detail-terms{font-size:.83rem;color:#475569;line-height:1.7}
-        .detail-related{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:12px}
-        .related-chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d1fae5;border-radius:8px;padding:6px 12px;font-size:.78rem;color:#166534;margin:4px 4px 0 0}
-        .modal-xl-custom{max-width:580px}
-    </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -85,8 +58,7 @@
 
                     <!-- Bottom row -->
                     <div class="vc-bottom">
-                        <button class="vc-btn vc-btn-ghost" type="button"
-                                class="btn-detail" type="button"
+                        <button class="vc-btn vc-btn-ghost btn-detail" type="button"
                                 th:data-id="${p.id}">Chi tiết</button>
                         <button class="vc-btn vc-btn-cta btn-save-voucher" type="button"
                                 th:data-id="${p.id}">Thêm vào ví</button>
@@ -111,169 +83,9 @@
     </div>
 </div>
 
-<!-- Full Detail Modal -->
-<div id="detailModal" class="modal fade" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-xl-custom">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;">
-            <div class="modal-body p-0">
-                <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-2">
-                    <h5 class="fw-bold mb-0" style="font-size:1rem;">
-                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563eb;margin-right:8px;"></span>
-                        Chi tiết ưu đãi
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="detail-section mx-4">
-                    <div class="detail-section-title" style="color:#2563eb;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Trị giá ưu đãi</div>
-                    <div class="fw-bold mb-3" style="font-size:1.6rem;color:#1e293b;" id="dm-discount"></div>
-                    <div class="detail-row"><span class="detail-label">Tên voucher:</span><span class="detail-value" id="dm-ten"></span></div>
-                    <div class="detail-row"><span class="detail-label">Mã voucher:</span><span class="detail-value"><span id="dm-ma" class="detail-badge"></span>
-                        <button class="btn btn-sm btn-link p-0 ms-1" style="font-size:.75rem;color:#6b7280;" onclick="copyDetailCode()"><i class="bi bi-clipboard"></i></button>
-                    </span></div>
-                    <div class="detail-row"><span class="detail-label">Loại voucher:</span><span class="detail-value" id="dm-loai">Toàn bộ sản phẩm</span></div>
-                </div>
-
-                <div class="detail-section mx-4">
-                    <div class="detail-section-title"><span>&#x1F6E1;</span> Điều kiện tối thiểu</div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6"><div style="background:#f1f5f9;border-radius:8px;padding:10px 14px;"><div style="font-size:.75rem;color:#6b7280;">&#x1F6D2; Đơn tối thiểu</div><div class="fw-bold" style="color:#1e293b;" id="dm-min">0đ</div></div></div>
-                        <div class="col-6"><div style="background:#f1f5f9;border-radius:8px;padding:10px 14px;"><div style="font-size:.75rem;color:#6b7280;">&#x1F525; Giảm tối đa</div><div class="fw-bold" style="color:#1e293b;" id="dm-max">0đ</div></div></div>
-                    </div>
-                    <div class="detail-row"><span class="detail-label">Cộng dồn khuyến mãi:</span><span class="detail-value" id="dm-stack">Không cộng dồn</span></div>
-                    <div class="detail-row"><span class="detail-label">Đối tượng áp dụng:</span><span class="detail-value" id="dm-target">Tất cả khách hàng</span></div>
-                </div>
-
-                <div class="detail-section mx-4">
-                    <div class="detail-section-title"><span>&#x1F4C5;</span> Thời gian áp dụng</div>
-                    <div class="detail-row"><span class="detail-label">Ngày bắt đầu:</span><span class="detail-value fw-bold" id="dm-tu">--</span></div>
-                    <div class="detail-row"><span class="detail-label">Ngày kết thúc:</span><span class="detail-value fw-bold" id="dm-den">--</span></div>
-                </div>
-
-                <div class="detail-section mx-4">
-                    <div class="detail-section-title"><span>&#x1F4CD;</span> Phạm vi áp dụng</div>
-                    <div class="detail-row"><span class="detail-label">Đối tượng:</span><span class="detail-value" id="dm-targetType">Tất cả</span></div>
-                    <div class="detail-row"><span class="detail-label">Sản phẩm:</span><span class="detail-value" id="dm-product">Áp dụng hóa đơn chi nhánh</span></div>
-                </div>
-
-                <div class="detail-section mx-4">
-                    <div class="detail-section-title"><span>&#x1F4DD;</span> Điều khoản sử dụng</div>
-                    <ul class="detail-terms mb-0" id="dm-terms">
-                        <li>Chỉ áp dụng mua sắm trực tuyến hoặc trực tiếp tại cơ sở DuaStore.</li>
-                        <li>Voucher không thể kết hợp cùng các chương trình VIP đồng thời ngoài trừ thông báo cụ thể.</li>
-                    </ul>
-                </div>
-
-                <div class="detail-related mx-4" id="dm-related-section" style="display:none;">
-                    <div class="detail-section-title" style="color:#166534;"><span>&#x1F31F;</span> Có thể bạn thích</div>
-                    <div id="dm-related-list"></div>
-                </div>
-            </div>
-            <div class="modal-footer border-0 px-4 pb-4 pt-2 d-flex justify-content-between align-items-center">
-                <button type="button" class="vc-btn vc-btn-ghost" data-bs-dismiss="modal">Đóng</button>
-                <div id="dm-footer-action"></div>
-            </div>
-        </div>
-    </div>
-</div>
+<th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
 
 <th:block layout:fragment="extra-script">
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.btn-detail').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                openDetailModal(this.getAttribute('data-id'));
-            });
-        });
-        document.querySelectorAll('.btn-save-voucher').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                saveVoucher(this.getAttribute('data-id'));
-            });
-        });
-    });
-
-    var _detailPromoId = null;
-
-    function openDetailModal(promoId) {
-        _detailPromoId = promoId;
-        fetch('/khuyen-mai/' + promoId)
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                var fmt = function(n) { return parseInt(n).toLocaleString('vi-VN') + 'đ'; };
-                if (d.loaiGiam === 'PHAN_TRAM') {
-                    document.getElementById('dm-discount').textContent = 'GIẢM ' + d.giaTriGiam + '%';
-                } else {
-                    document.getElementById('dm-discount').textContent = 'GIẢM ' + fmt(d.giaTriGiam);
-                }
-                document.getElementById('dm-ten').textContent = d.tenChuongTrinh;
-                document.getElementById('dm-ma').textContent = d.maCode;
-                document.getElementById('dm-loai').textContent = d.targetType || 'Toàn bộ sản phẩm';
-                document.getElementById('dm-min').textContent = d.donHangToiThieu > 0 ? fmt(d.donHangToiThieu) : '--';
-                document.getElementById('dm-max').textContent = d.giamToiDa > 0 ? fmt(d.giamToiDa) : '--';
-                document.getElementById('dm-stack').textContent = d.stackable;
-                document.getElementById('dm-target').textContent = 'Tất cả khách hàng';
-                document.getElementById('dm-tu').textContent = d.tuNgay || '--';
-                document.getElementById('dm-den').textContent = d.denNgay || '--';
-                document.getElementById('dm-targetType').textContent = d.targetType || 'Tất cả';
-                document.getElementById('dm-product').textContent = 'Áp dụng hóa đơn chi nhánh';
-                var terms = document.getElementById('dm-terms');
-                terms.innerHTML = '<li>Chỉ áp dụng mua sắm trực tuyến hoặc trực tiếp tại cơ sở DuaStore.</li>'
-                    + '<li>Voucher không thể kết hợp cùng các chương trình VIP đồng thời ngoài trừ thông báo cụ thể.</li>';
-                if (d.giamToiDa > 0) terms.innerHTML += '<li>Hạn mức tối đa áp dụng là ' + fmt(d.giamToiDa) + '.</li>';
-
-                var relSection = document.getElementById('dm-related-section');
-                var relList = document.getElementById('dm-related-list');
-                if (d.related && d.related.length > 0) {
-                    relSection.style.display = '';
-                    var html = '';
-                    d.related.forEach(function(r) {
-                        var dt = r.loaiGiam === 'PHAN_TRAM' ? 'Giảm ' + r.giaTriGiam + '%' : 'Giảm ' + fmt(r.giaTriGiam);
-                        html += '<span class="related-chip" onclick="openDetailModal(' + r.id + ')" style="cursor:pointer">'
-                            + '<span style="color:#dc2626;font-weight:600;">' + dt + '</span> '
-                            + '<span style="color:#475569;">' + (r.tenChuongTrinh || '') + '</span></span>';
-                    });
-                    relList.innerHTML = html;
-                } else { relSection.style.display = 'none'; }
-
-                document.getElementById('dm-footer-action').innerHTML =
-                    '<button class="vc-btn vc-btn-cta" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Thêm vào ví</button>';
-
-                var modal = new bootstrap.Modal(document.getElementById('detailModal'));
-                modal.show();
-            });
-    }
-
-    function saveVoucherFromDetail(promoId) {
-        var token = document.querySelector('meta[name="_csrf"]')?.content || '';
-        var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
-        fetch('/api/vi-voucher/luu/' + promoId, { method: 'POST', headers: { [header]: token } })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                showToast(data.message);
-                if (data.success) {
-                    var modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
-                    if (modal) modal.hide();
-                }
-            });
-    }
-
-    function copyDetailCode() {
-        var code = document.getElementById('dm-ma').textContent;
-        if (!code) return;
-        if (navigator.clipboard) { navigator.clipboard.writeText(code).then(function() { showToast('Đã copy mã: ' + code); }); }
-        else { var ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('Đã copy mã: ' + code); }
-    }
-
-    function saveVoucher(promotionId) {
-        var token = document.querySelector('meta[name="_csrf"]')?.content || '';
-        var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
-        fetch('/api/vi-voucher/luu/' + promotionId, { method: 'POST', headers: { [header]: token } })
-            .then(function(r) { return r.json(); })
-            .then(function(data) { showToast(data.message); });
-    }
-</script>
 </th:block>
 </body>
 </html>

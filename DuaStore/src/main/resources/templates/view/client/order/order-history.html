@@ -51,7 +51,7 @@
                             <a th:href="@{/tai-khoan/don-hang/{id}(id=${o.id})}" class="ds-btn ds-btn-outline ds-btn-sm">Xem chi tiết</a>
                             <form th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" th:action="@{/tai-khoan/don-hang/huy/{id}(id=${o.id})}" method="post" style="display:inline"
                                   onsubmit="return confirm('Hủy đơn hàng này?');">
-                                <button type="submit" class="ds-btn ds-btn-outline ds-btn-sm" style="color:#DC2626;border-color:#DC2626;">Hủy</button>
+                                <button type="submit" class="ds-btn ds-btn-outline ds-btn-sm" style="color:#2563eb;border-color:#2563eb;">Hủy</button>
                             </form>
                         </div>
                     </div>

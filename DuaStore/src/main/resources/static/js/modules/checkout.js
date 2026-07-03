@@ -316,7 +316,6 @@ function updateShipFee() {
         updateTotal();
     });
     fetchFee('SHIP', function(fee) { document.getElementById('shipTTPrice').textContent = fee.toLocaleString('en-US') + 'đ'; });
-    fetchFee('NHAN_TAI_CONG', function(fee) { document.getElementById('shipNhanhPrice').textContent = fee.toLocaleString('en-US') + 'đ'; });
 }
 
 function updateTotal() {
@@ -494,29 +493,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.querySelectorAll('input[name="addressId"]').forEach(function(el) { el.addEventListener('change', function() { updateShipFee(); }); });
 
-    document.getElementById('checkoutApplyPromo')?.addEventListener('click', function() {
-        var input = document.getElementById('checkoutPromoInput');
-        var msgEl = document.getElementById('checkoutPromoMsg');
-        var code = input.value.trim();
-        if (!code) { msgEl.innerHTML = '<span class="text-danger">Vui lòng nhập mã</span>'; return; }
-        var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
-        msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
-        DuaStore.api.post('/api/coupon/validate', { maCode: code, subtotal })
-            .then(function(result) {
-                if (!result.ok) { msgEl.innerHTML = '<span class="text-danger">Lỗi kết nối, vui lòng thử lại</span>'; return; }
-                var data = result.data;
-                if (data.valid) {
-                    msgEl.innerHTML = '<span class="text-success">&#10003; ' + data.message + '</span>';
-                    window.appliedDiscount = parseInt(data.discount) || 0;
-                    document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + '₫';
-                    document.getElementById('discountDisplay').className = 'text-danger';
-                } else {
-                    msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
-                    window.appliedDiscount = 0;
-                    document.getElementById('discountDisplay').textContent = '0₫';
-                    document.getElementById('discountDisplay').className = '';
-                }
-                updateTotal();
-            });
-    });
 });

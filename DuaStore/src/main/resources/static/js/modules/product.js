@@ -59,29 +59,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.addEventListener('click', function(e) {
-        var btn = e.target.closest('.ds-qty-btn');
-        if (!btn) return;
-        e.preventDefault();
-        var card = getCard(btn);
-        if (!card) return;
-        var qtyEl = card.querySelector('.ds-qty-val');
-        var qty = parseInt(qtyEl.value) || 1;
-        var activeChip = getActiveVariant(card);
-        var maxStock = activeChip ? parseInt(activeChip.getAttribute('data-stock')) || 99 : 99;
-        var minus = card.querySelector('.ds-qty-minus');
-        var plus = card.querySelector('.ds-qty-plus');
-
-        if (btn.classList.contains('ds-qty-plus')) {
-            if (qty < maxStock) qty++;
-            else { plus.style.color = '#ef4444'; setTimeout(function() { plus.style.color = ''; }, 600); return; }
-        } else if (btn.classList.contains('ds-qty-minus') && qty > 1) qty--;
-
-        qtyEl.value = qty;
-        minus.disabled = (qty <= 1);
-        plus.disabled = (qty >= maxStock);
-    });
-
     /* ═══ VARIANT GROUP TABS ═══ */
     document.addEventListener('click', function(e) {
         var tab = e.target.closest('.ds-variant-tab');

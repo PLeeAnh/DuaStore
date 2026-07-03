@@ -18,12 +18,13 @@
                     <div class="product-gallery">
                         <div class="gallery-main position-relative">
 
-                            <button th:classappend="${likedIds != null and #lists.contains(likedIds, product.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
-                                    th:onclick="'toggleWishlist(this, ' + ${product.id} + ')'"
-                                    type="button"
-                                    title="Thêm vào danh sách yêu thích">
-                                <i th:class="${likedIds != null and #lists.contains(likedIds, product.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
-                            </button>
+                             <button th:classappend="${likedIds != null and #lists.contains(likedIds, product.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
+                                     th:data-id="${product.id}"
+                                     type="button"
+                                     title="Thêm vào danh sách yêu thích"
+                                     onclick="toggleWishlistFromDetail(this)">
+                                 <i th:class="${likedIds != null and #lists.contains(likedIds, product.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                             </button>
 
                             <img id="mainImage" th:src="@{${product.hinhAnhChinh}}"
                                  th:alt="${product.tenSanPham}"
@@ -72,7 +73,7 @@
                     </div>
 
                     <div class="mb-2">
-                        <span id="productPrice" class="fw-bold" style="font-size:1.85rem;color:#DC2626;letter-spacing:-.02em">
+                        <span id="productPrice" class="fw-bold" style="font-size:1.85rem;color:#2563eb;letter-spacing:-.02em">
                             <th:block th:if="${bestPercentagePromo != null and minPrice != null and maxPrice != null}">
                                 <th:block th:if="${minPrice == maxPrice}"
                                           th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 0)} + '₫'">12.750₫</th:block>
