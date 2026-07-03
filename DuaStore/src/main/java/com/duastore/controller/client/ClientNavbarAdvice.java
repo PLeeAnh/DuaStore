@@ -73,9 +73,12 @@ public class ClientNavbarAdvice {
             Integer userId = securityUtil.getCurrentUserId();
             if (userId == null) return;
 
-            model.addAttribute("myCart", cartService.getItems(userId));
+            var cartItems = cartService.getItems(userId);
+            model.addAttribute("myCart", cartItems);
+            model.addAttribute("cartCount", cartService.count(userId));
             model.addAttribute("myWishlist", wishlistService.getWishlistByUser(userId));
             model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
+            model.addAttribute("wishlistCount", wishlistService.getWishlistByUser(userId).size());
 
         } catch (Exception e) {
             log.warn("Loi ClientNavbarAdvice: {}", e.getMessage());

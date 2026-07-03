@@ -37,6 +37,9 @@
         .notif-link:hover { text-decoration: underline; }
         .notif-time { font-size: .72rem; color: #999; display: block; margin-top: 2px; }
         .cursor-pointer { cursor: pointer; }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
 <body>
@@ -198,14 +201,14 @@
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold" style="max-width: 180px; font-size: 0.9rem;">Tên SP</a>
                                     <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
                                     
-                                    <div class="d-flex align-items-center">
-                                        <div class="input-group input-group-sm" style="width: 85px;">
-                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">-</button>
-                                            <input class="form-control text-center py-0 px-1" type="number" min="1" th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}" th:attr="onchange='setPopupQty(' + ${uid} + ')'" style="width:40px;" />
-                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-0" style="border:1px solid #dee2e6;border-radius:6px;overflow:hidden;">
+                                            <button class="btn btn-sm px-2 py-0 fw-bold" type="button" style="background:#f8f9fa;border:none;color:#333;font-size:1rem;line-height:1;" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">−</button>
+                                            <input class="text-center fw-semibold border-0 bg-transparent" type="number" min="1" th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}" th:attr="data-stock=${item.soLuongTon},onchange='setPopupQty(' + ${uid} + ')'" style="width:40px;font-size:0.85rem;" />
+                                            <button class="btn btn-sm px-2 py-0 fw-bold" type="button" style="background:#f8f9fa;border:none;color:#333;font-size:1rem;line-height:1;" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
                                         </div>
                                         
-                                        <span class="text-danger fw-semibold ms-auto popup-item-price" 
+                                        <span class="text-danger fw-semibold popup-item-price" 
                                               th:id="'popup-price-' + ${uid}" 
                                               th:data-price="${item.giaBan}"
                                               style="font-size: 0.9rem;" 
@@ -814,17 +817,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const cartItems = document.querySelectorAll('#cart-items-container .popup-item');
     let currentCartState = [];
     cartItems.forEach(item => {
-        const qtySpan = item.querySelector('span[id^="popup-qty-"]');
-        const qty = qtySpan ? qtySpan.innerText.trim() : '1';
+        const qtyEl = item.querySelector('input[id^="popup-qty-"]');
+        const qty = qtyEl ? qtyEl.value : '1';
         currentCartState.push(item.id + '-qty-' + qty);
     });
 
     let viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
-    let hasNewCart = currentCartState.some(state => !viewedCartState.includes(state));
 
     const cBadge = document.getElementById('cartBadge');
     if (cBadge) {
-        if (hasNewCart && currentCartState.length > 0) {
+        if (currentCartState.length > 0) {
             cBadge.classList.remove('d-none');
         } else {
             cBadge.classList.add('d-none');
@@ -837,11 +839,10 @@ document.addEventListener('DOMContentLoaded', function() {
     wishlistItems.forEach(item => currentWishlistState.push(item.id));
 
     let viewedWishlistState = JSON.parse(localStorage.getItem('viewedWishlistState') || '[]');
-    let hasNewWishlist = currentWishlistState.some(state => !viewedWishlistState.includes(state));
 
     const wBadge = document.getElementById('wishlistBadge');
 
-    if (hasNewWishlist && currentWishlistState.length > 0) {
+    if (currentWishlistState.length > 0) {
         if(wBadge) wBadge.classList.remove('d-none');
     } else {
         if(wBadge) wBadge.classList.add('d-none');
@@ -876,8 +877,8 @@ function togglePopup(popupId) {
                 const items = document.querySelectorAll('#cart-items-container .popup-item');
                 let states = [];
                 items.forEach(item => {
-                    const qtySpan = item.querySelector('span[id^="popup-qty-"]');
-                    const qty = qtySpan ? qtySpan.innerText.trim() : '1';
+                    const inp = item.querySelector('input[id^="popup-qty-"]');
+                    const qty = inp ? inp.value : '1';
                     states.push(item.id + '-qty-' + qty);
                 });
                 localStorage.setItem('viewedCartState', JSON.stringify(states));
@@ -888,13 +889,14 @@ function togglePopup(popupId) {
 
 /* ── HÀM TĂNG GIẢM SỐ LƯỢNG ── */
 function updatePopupQty(itemId, delta) {
-    const qtySpan = document.getElementById('popup-qty-' + itemId);
+    const qtyInput = document.getElementById('popup-qty-' + itemId);
     const priceSpan = document.getElementById('popup-price-' + itemId);
 
-    if (!qtySpan) return;
+    if (!qtyInput) return;
 
-    let currentQty = parseInt(qtySpan.innerText) || 1;
+    let currentQty = parseInt(qtyInput.value) || 1;
     let newQty = currentQty + delta;
+    let stock = parseInt(qtyInput.getAttribute('data-stock')) || 999;
 
     if (newQty < 1) {
         if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
@@ -903,69 +905,85 @@ function updatePopupQty(itemId, delta) {
         return;
     }
 
+    if (newQty > stock) {
+        DuaStore.toast.warning('Chỉ còn ' + stock + ' sản phẩm trong kho');
+        qtyInput.value = stock;
+        newQty = stock;
+    }
+
+    qtyInput.value = newQty;
+
+    if (priceSpan) {
+        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
+        priceSpan.innerText = (unitPrice * newQty).toLocaleString('vi-VN') + '₫';
+    }
+
     fetch('/api/cart/update', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            variantId: parseInt(itemId),
-            itemId: parseInt(itemId),
-            soLuong: newQty
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty })
     })
     .then(r => r.json())
     .then(data => {
-
-    if (!data.success) {
-    const msg = document.getElementById('cart-message');
-
-    if (msg) {
-        msg.innerText = data.message;
-        msg.style.display = 'block';
-
-        setTimeout(() => {
-            msg.style.display = 'none';
-        }, 3000);
-    }
-
-    return;
-}
-localStorage.setItem('cartViewed', 'true');
-
-    qtySpan.innerText = newQty;
-
-        if (priceSpan) {
-            let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
-
-            priceSpan.innerText =
-                (unitPrice * newQty).toLocaleString('vi-VN') + '₫';
+        if (!data.success) {
+            DuaStore.toast.error(data.message);
+            qtyInput.value = currentQty;
+            return;
         }
 
-        // Lưu trạng thái popup
         const items = document.querySelectorAll('#cart-items-container .popup-item');
         let states = [];
-
         items.forEach(item => {
-            const span = item.querySelector('span[id^="popup-qty-"]');
-            const q = span ? span.innerText.trim() : '1';
+            const inp = item.querySelector('input[id^="popup-qty-"]');
+            const q = inp ? inp.value : '1';
             states.push(item.id + '-qty-' + q);
         });
+        localStorage.setItem('viewedCartState', JSON.stringify(states));
 
-        localStorage.setItem(
-            'viewedCartState',
-            JSON.stringify(states)
-        );
-
-        if (typeof updateCartBadge === 'function') {
-            updateCartBadge(data.cartCount);
-        }
-
+        if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
     })
     .catch(err => {
         console.error('Lỗi đồng bộ giỏ hàng:', err);
-        alert('Có lỗi xảy ra, vui lòng thử lại!');
+        qtyInput.value = currentQty;
     });
+}
+
+/* ── HÀM NHẬP TRỰC TIẾP SỐ LƯỢNG ── */
+function setPopupQty(itemId) {
+    const qtyInput = document.getElementById('popup-qty-' + itemId);
+    const priceSpan = document.getElementById('popup-price-' + itemId);
+    if (!qtyInput) return;
+
+    let val = parseInt(qtyInput.value) || 1;
+    let stock = parseInt(qtyInput.getAttribute('data-stock')) || 999;
+
+    if (val < 1) val = 1;
+    if (val > stock) {
+        DuaStore.toast.warning('Chỉ còn ' + stock + ' sản phẩm trong kho');
+        val = stock;
+    }
+
+    qtyInput.value = val;
+
+    if (priceSpan) {
+        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
+        priceSpan.innerText = (unitPrice * val).toLocaleString('vi-VN') + '₫';
+    }
+
+    fetch('/api/cart/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            DuaStore.toast.error(data.message);
+            return;
+        }
+        if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+    })
+    .catch(err => console.error('Lỗi cập nhật:', err));
 }
 function refreshWishlistBadgeCount() {
     // Đếm số lượng thẻ sản phẩm đang nằm trong popup container

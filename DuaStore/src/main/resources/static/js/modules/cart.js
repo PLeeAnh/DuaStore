@@ -16,12 +16,7 @@ function updateCartBadge(count) {
     }
 
     badge.textContent = count > 99 ? '99+' : String(count);
-
-    var viewed = localStorage.getItem('cartViewed');
-
-    if (!viewed) {
-        badge.classList.remove('d-none');
-    }
+    badge.classList.remove('d-none');
 }
 
 /* ═══ POPUP TOGGLE ═══ */
@@ -85,9 +80,11 @@ function addToCart(productId, variantId, quantity) {
         if (data.success) {
             if (btnAdd) btnAdd.classList.add('added');
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-
             if (card) {
                 addCartPopupItem(card, productId, variantId, quantity);
+            }
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.success('Đã thêm vào giỏ hàng');
             }
         }
     }).catch(function(error) { console.error('Lỗi giỏ hàng: ', error); });
@@ -184,8 +181,10 @@ function addToCartFromCard(btn) {
         if (data.success) {
             btn.classList.add('added');
             if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-
             addCartPopupItem(card, productId, variantId, qty);
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.success('Đã thêm vào giỏ hàng');
+            }
         }
     }).catch(function(err) {
         console.error('Lỗi thêm giỏ hàng:', err);
