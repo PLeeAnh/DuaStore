@@ -52,20 +52,13 @@ function togglePopup(popupId) {
 document.addEventListener('click', function(e) {
     if (!document.body.contains(e.target)) return;
 
-    ['wishlist', 'cart', 'profile'].forEach(function(type) {
+    ['wishlist', 'cart', 'profile', 'notif'].forEach(function(type) {
         var btn = document.getElementById('btn-' + type + '-toggle');
         var popup = document.getElementById(type + '-popup');
 
         if (btn && popup && !btn.contains(e.target) && !popup.contains(e.target)) {
             popup.style.display = 'none';
         }
-    });
-});
-document.addEventListener('click', function(e) {
-    ['wishlist', 'cart', 'profile'].forEach(function(type) {
-        var btn = document.getElementById('btn-' + type + '-toggle');
-        var popup = document.getElementById(type + '-popup');
-        if (btn && popup && !btn.contains(e.target) && !popup.contains(e.target)) popup.style.display = 'none';
     });
 });
 

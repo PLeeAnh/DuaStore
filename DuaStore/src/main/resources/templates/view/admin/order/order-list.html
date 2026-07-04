@@ -92,7 +92,6 @@
                     <option value="">Thanh toán</option>
                     <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
                     <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
-                    <option value="CONG_NO" th:selected="${trangThaiTT == 'CONG_NO'}">Công nợ</option>
                 </select>
                 <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-funnel"></i></button>
             </form>
@@ -136,7 +135,6 @@
                             <span th:switch="${o.trangThaiTT}" class="status-pill">
                                 <span th:case="'DA_THANH_TOAN'" class="status-pill status-da-thanh-toan">Đã thanh toán</span>
                                 <span th:case="'CHUA_THANH_TOAN'" class="status-pill status-chua-thanh-toan">Chưa thanh toán</span>
-                                <span th:case="'CONG_NO'" class="status-pill status-cong-no">Công nợ</span>
                                 <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiTT}"></span>
                             </span>
                         </td>
