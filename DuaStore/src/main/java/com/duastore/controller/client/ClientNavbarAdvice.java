@@ -45,8 +45,34 @@ public class ClientNavbarAdvice {
         model.addAttribute("myCart", java.util.List.of());
         model.addAttribute("myWishlist", java.util.List.of());
         model.addAttribute("likedIds", java.util.List.of());
-        model.addAttribute("recentNotifs", java.util.List.of());
-        model.addAttribute("notifCount", 0L);
+
+        try {
+            Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
+            Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
+            final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
+            List<Notification> allNotifs = notificationRepository.findCustomerNotifications();
+
+            if (readMaxId != null && readMaxId > 0) {
+                List<Notification> unread = allNotifs.stream()
+                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                    .toList();
+                model.addAttribute("recentNotifs", unread);
+                long count = allNotifs.stream()
+                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                    .count();
+                model.addAttribute("notifCount", count);
+            } else {
+                List<Notification> unread = allNotifs.stream()
+                    .filter(n -> !readIds.contains(n.getId()))
+                    .toList();
+                model.addAttribute("recentNotifs", unread);
+                model.addAttribute("notifCount", (long) unread.size());
+            }
+        } catch (Exception e) {
+            log.warn("Loi lay thong bao: {}", e.getMessage());
+            model.addAttribute("recentNotifs", java.util.List.of());
+            model.addAttribute("notifCount", 0L);
+        }
 
         try {
             Integer userId = securityUtil.getCurrentUserId();

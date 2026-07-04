@@ -1,4 +1,4 @@
-/*
+﻿/*
 ================================================================================
   ____  _   _    _    ____  _____ ___  ____  _____
  |  _ \| | | |  / \  / ___||_   _/ _ \|  _ \| ____|
@@ -361,7 +361,6 @@ CREATE TABLE orders (
     trangThaiDon        NVARCHAR(20)                   NOT NULL DEFAULT 'CHO_XAC_NHAN',
     promotionId         INT                            NULL,
     ghiChu              NVARCHAR(500)                  NULL,
-    maVanDon            NVARCHAR(50)                   NULL,
     ngayDat             DATETIME2                      NULL,
     ngayCapNhat         DATETIME2                      NULL,
 
@@ -372,14 +371,9 @@ CREATE TABLE orders (
     CONSTRAINT FK_orders_Promotion FOREIGN KEY (promotionId) REFERENCES Promotions(id),
     CONSTRAINT CK_orders_TT        CHECK (phuongThucTT       IN ('CHUYEN_KHOAN','COD','VNPAY')),
     CONSTRAINT CK_orders_GH        CHECK (phuongThucGiaoHang IN ('SHIP','NHAN_TAI_CONG')),
-    CONSTRAINT CK_orders_ThanhToan CHECK (trangThaiTT        IN ('CHUA_THANH_TOAN','DA_THANH_TOAN')),
+    CONSTRAINT CK_orders_ThanhToan CHECK (trangThaiTT        IN ('CHUA_THANH_TOAN','DA_THANH_TOAN','HOAN_TIEN')),
     CONSTRAINT CK_orders_TrangThai CHECK (trangThaiDon       IN ('CHO_XAC_NHAN','DA_XAC_NHAN','DANG_GIAO','DA_GIAO','DA_HOAN_THANH','DA_HUY'))
 );
-GO
-IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='orders' AND COLUMN_NAME='maVanDon')
-BEGIN
-    ALTER TABLE orders ADD maVanDon NVARCHAR(50) NULL;
-END
 GO
 
 -- ============================================================
@@ -881,14 +875,14 @@ SELECT (SELECT id FROM roles WHERE name = N'ADMIN'), id FROM permissions;
 GO
 
 -- Tai khoan mac dinh
--- Mat khau "admin@123" - hash BCrypt duoi day DA duoc verify thuc te (bcrypt.checkpw)
+-- Mat khau "admin@123" da duoc BCrypt hash san
 INSERT INTO users (username, email, password, hoTen, soDienThoai, isActive, ngayTao) VALUES
     ('admin', 'admin@duastore.vn',
-     '$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO',
+     '$2a$10$TqW46O5snJdLvk45mq/rSO6AOYTvFe9bf4Z.B4g4Z.dSH5BEnJ5jq',
      N'Quan Tri Vien', '0901234567', 1, GETDATE());
 INSERT INTO users (username, email, password, hoTen, soDienThoai, isActive, ngayTao) VALUES
     ('nguyenvan', 'nguyen@gmail.com',
-     '$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO',
+     '$2a$10$TqW46O5snJdLvk45mq/rSO6AOYTvFe9bf4Z.B4g4Z.dSH5BEnJ5jq',
      N'Nguyen Van An', '0912345678', 1, GETDATE());
 GO
 

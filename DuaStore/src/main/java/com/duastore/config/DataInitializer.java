@@ -104,12 +104,8 @@ public class DataInitializer implements CommandLineRunner {
 
         Role adminRole = roleRepository.findByName("ADMIN");
 
-        User admin = userRepository.findByUsernameOrEmail(adminUsername).orElse(null);
-        if (admin != null) {
-            admin.setPassword(passwordEncoder.encode(adminPassword));
-            userRepository.save(admin);
-            return;
-        }
+        User admin = userRepository.findByUsername(adminUsername).orElse(null);
+        if (admin != null) return;
         admin = new User();
         admin.setUsername(adminUsername);
         admin.setEmail("admin@duastore.vn");

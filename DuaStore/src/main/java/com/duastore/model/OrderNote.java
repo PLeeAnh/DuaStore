@@ -30,9 +30,6 @@ public class OrderNote {
     @Column(nullable = false, length = 1000)
     private String noiDung;
 
-    @Column(length = 50)
-    private String tag;
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime ngayTao;
 

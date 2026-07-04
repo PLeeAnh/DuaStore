@@ -50,14 +50,10 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<ReviewDTO> getApprovedReviews(Integer productId, int page, int size, Integer currentUserId) {
+    public org.springframework.data.domain.Page<ReviewDTO> getApprovedReviews(Integer productId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
-        org.springframework.data.domain.Page<Review> reviewPage;
-        if (currentUserId != null) {
-            reviewPage = reviewsRepository.findVisibleReviews(productId, currentUserId, pageable);
-        } else {
-            reviewPage = reviewsRepository.findApprovedReviews(productId, pageable);
-        }
+        org.springframework.data.domain.Page<Review> reviewPage = reviewsRepository
+                .findByProductIdAndIsApproved(productId, true, pageable);
         List<Review> reviews = reviewPage.getContent();
         Map<Integer, String> productNames = new HashMap<>();
         Map<Integer, String> userNames = new HashMap<>();
@@ -119,7 +115,7 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public boolean hasCompletedOrderAndPurchased(Integer userId, Integer productId) {
+    public boolean hasPaidAndPurchased(Integer userId, Integer productId) {
         return orderItemRepository.existsByProductIdAndUserIdAndPaid(productId, userId);
     }
 
@@ -128,7 +124,7 @@ public class ReviewService {
         if (hasReviewed(userId, request.getProductId())) {
             throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");
         }
-        if (!hasCompletedOrderAndPurchased(userId, request.getProductId())) {
+        if (!hasPaidAndPurchased(userId, request.getProductId())) {
             cleanupFile(hinhAnhUrl);
             throw new RuntimeException("Bạn cần mua sản phẩm và thanh toán để được đánh giá");
         }

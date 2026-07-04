@@ -13,8 +13,7 @@
                 </ol>
             </nav>
 
-            <div class="ds-card p-4" th:with="defaultVariant=${#lists.isEmpty(variants) ? null : variants[0]}">
-            <div class="row g-5">
+            <div class="row g-5" th:with="defaultVariant=${#lists.isEmpty(variants) ? null : variants[0]}">
                 <div class="col-lg-6">
                     <div class="product-gallery">
                         <div class="gallery-main position-relative">
@@ -32,7 +31,7 @@
                                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22 fill=%22%23ddd%22%3E%3Crect width=%22400%22 height=%22400%22/%3E%3Ctext x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2224%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'" />
                         </div>
 
-                        <div class="gallery-bottom" th:if="${#lists.size(galleryImages) > 0}">
+                        <div class="gallery-bottom" th:if="${#lists.size(galleryImages) > 1}">
                             <button class="gallery-arrow gallery-arrow-left" id="galleryPrev" type="button">❮</button>
                             <div class="gallery-thumbs-wrapper">
                                 <div class="gallery-thumbs" id="galleryThumbs">
@@ -164,10 +163,8 @@
                 </div>
             </div>
         </div>
-        </div>
 
         <div class="container-xl">
-            <div class="ds-card p-4 mt-4">
             <div class="sticky-tabs">
                 <ul class="nav" id="detailTabs">
                     <li class="nav-item">
@@ -266,45 +263,9 @@
                 </div>
             </div>
         </div>
-        </div>
-
-        <!-- ═══ PROMOTIONS ═══ -->
-        <div class="container-xl py-4" th:if="${not #lists.isEmpty(productPromotions)}">
-            <div class="ds-card p-4">
-            <h5 class="fw-bold mb-4" style="font-size:1rem;color:#0F172A">Khuyến mãi áp dụng</h5>
-            <div class="row g-3">
-                <div class="col-6 col-md-4" th:each="p : ${productPromotions}">
-                    <div class="vc-card h-100">
-                        <div class="vc-discount">
-                            <span th:if="${p.loaiGiam == 'PHAN_TRAM'}" th:text="'GIẢM ' + ${p.giaTriGiam} + '%'">GIẢM 15%</span>
-                            <span th:if="${p.loaiGiam == 'SO_TIEN'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(p.giaTriGiam, 0, 0)} + 'đ'">GIẢM 30.000đ</span>
-                        </div>
-                        <div class="vc-desc" th:text="${p.tenChuongTrinh}">Mô tả</div>
-                        <span class="vc-code">Mã: <span th:text="${p.maCode}">CODE</span></span>
-                        <div class="vc-grid">
-                            <div class="vc-grid-item" th:if="${p.donHangToiThieu > 0}">
-                                <span>&#x1F6D2;</span> Tối thiểu: <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 0)} + 'đ'">200.000đ</strong>
-                            </div>
-                            <div class="vc-grid-item" th:if="${p.giamToiDa > 0 and p.loaiGiam == 'PHAN_TRAM'}">
-                                <span>&#x1F4B0;</span> Tối đa: <strong th:text="${#numbers.formatDecimal(p.giamToiDa, 0, 0)} + 'đ'">100.000đ</strong>
-                            </div>
-                            <div class="vc-grid-item">
-                                <span>&#x1F4C5;</span> HSD: <span th:text="${p.denNgay != null ? #temporals.format(p.denNgay, 'dd/MM/yyyy') : 'Không giới hạn'}">01/01/2027</span>
-                            </div>
-                        </div>
-                        <div class="vc-bottom">
-                            <button class="vc-btn vc-btn-ghost btn-detail" type="button" th:data-id="${p.id}">Chi tiết</button>
-                            <button class="vc-btn vc-btn-cta btn-save-voucher" type="button" th:data-id="${p.id}">Nhận</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </div>
-        </div>
 
         <!-- ═══ REVIEWS ═══ -->
         <div class="container-xl py-4">
-            <div class="ds-card p-4">
             <h5 class="fw-bold mb-4" style="font-size:1rem;color:#0F172A">Đánh giá sản phẩm</h5>
 
             <!-- Flash messages -->
@@ -333,8 +294,8 @@
                         <textarea name="binhLuan" id="binhLuan" class="form-control" rows="3" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="hinhAnh" class="form-label fw-semibold">Hình ảnh (tùy chọn, có thể chọn nhiều)</label>
-                        <input type="file" name="hinhAnh" id="hinhAnh" class="form-control" accept="image/*" multiple />
+                        <label for="hinhAnh" class="form-label fw-semibold">Hình ảnh (tùy chọn)</label>
+                        <input type="file" name="hinhAnh" id="hinhAnh" class="form-control" accept="image/*" />
                     </div>
                     <button type="submit" class="btn btn-danger fw-semibold">Gửi đánh giá</button>
                 </form>
@@ -358,39 +319,26 @@
                             <span class="text-muted ms-auto small" th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}">01/01/2025</span>
                         </div>
                         <p class="mb-1" style="font-size:.9rem;color:#334155;" th:if="${r.binhLuan}" th:text="${r.binhLuan}">Bình luận</p>
-                        <div th:if="${r.hinhAnh}" class="d-flex flex-wrap gap-2 mt-2">
-                            <div th:each="img : ${#strings.listSplit(r.hinhAnh, ',')}" style="cursor:pointer;">
-                                <img th:src="@{${img}}" alt="Ảnh đánh giá" style="width:80px;height:80px;object-fit:cover;border-radius:8px;"
-                                     onclick="openReviewImage(this)" />
-                            </div>
-                        </div>
+                        <img th:if="${r.hinhAnh}" th:src="@{${r.hinhAnh}}" alt="Ảnh đánh giá" style="max-width:200px;border-radius:8px;margin-top:4px;" />
                     </div>
                 </div>
             </div>
-            <div th:if="${reviewTotalPages > 1}" class="d-flex align-items-center justify-content-between gap-2 mt-3 bg-white p-3 rounded-3 border">
-                <small class="text-muted fw-medium" style="font-size:.85rem">
-                    Trang <strong th:text="${reviewCurrentPage + 1}">1</strong> / <strong th:text="${reviewTotalPages}">5</strong> · <strong th:text="${reviewTotalItems}">25</strong> đánh giá
-                </small>
+            <div th:if="${reviewTotalPages > 1}" class="d-flex justify-content-center mt-3">
                 <nav>
-                    <div class="d-flex align-items-center gap-1">
-                        <a th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${reviewCurrentPage - 1})}"
-                           class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage == 0} ? 'disabled'"
-                           th:tabindex="${reviewCurrentPage == 0} ? -1">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        </a>
-                        <a th:each="i : ${#numbers.sequence(0, reviewTotalPages - 1)}"
-                           th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${i})}"
-                           class="adm-pagination-btn" th:classappend="${i == reviewCurrentPage} ? 'active'"
-                           th:text="${i + 1}">1</a>
-                        <a th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${reviewCurrentPage + 1})}"
-                           class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage >= reviewTotalPages - 1} ? 'disabled'"
-                           th:tabindex="${reviewCurrentPage >= reviewTotalPages - 1} ? -1">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </a>
-                    </div>
+                    <ul class="pagination pagination-sm">
+                        <li class="page-item" th:classappend="${reviewCurrentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${reviewCurrentPage - 1})}">Trước</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, reviewTotalPages - 1)}"
+                            th:classappend="${i == reviewCurrentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${reviewCurrentPage >= reviewTotalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/san-pham/{id}(id=${product.id}, reviewPage=${reviewCurrentPage + 1})}">Sau</a>
+                        </li>
+                    </ul>
                 </nav>
             </div>
-        </div>
         </div>
 
         <div class="container-xl py-4" th:if="${not #lists.isEmpty(relatedProducts)}">
@@ -415,65 +363,6 @@
                             </div>
                         </div>
                     </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="detailModal" class="modal fade" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-xl-custom">
-            <div class="modal-content border-0 shadow-lg" style="border-radius:16px;">
-                <div class="modal-body p-0">
-                    <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-2">
-                        <h5 class="fw-bold mb-0" style="font-size:1rem;">
-                            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563eb;margin-right:8px;"></span>
-                            Chi tiết ưu đãi
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="detail-section mx-4">
-                        <div class="detail-section-title" style="color:#2563eb;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Trị giá ưu đãi</div>
-                        <div class="fw-bold mb-3" style="font-size:1.6rem;color:#1e293b;" id="dm-discount"></div>
-                        <div class="detail-row"><span class="detail-label">Tên voucher:</span><span class="detail-value" id="dm-ten"></span></div>
-                        <div class="detail-row"><span class="detail-label">Mã voucher:</span><span class="detail-value"><span id="dm-ma" class="detail-badge"></span>
-                            <button class="btn btn-sm btn-link p-0 ms-1" style="font-size:.75rem;color:#6b7280;" onclick="copyDetailCode()"><i class="bi bi-clipboard"></i></button>
-                        </span></div>
-                        <div class="detail-row"><span class="detail-label">Loại voucher:</span><span class="detail-value" id="dm-loai">Toàn bộ sản phẩm</span></div>
-                    </div>
-                    <div class="detail-section mx-4">
-                        <div class="detail-section-title"><span>&#x1F6E1;</span> Điều kiện tối thiểu</div>
-                        <div class="row g-2 mb-2">
-                            <div class="col-6"><div style="background:#f1f5f9;border-radius:8px;padding:10px 14px;"><div style="font-size:.75rem;color:#6b7280;">&#x1F6D2; Đơn tối thiểu</div><div class="fw-bold" style="color:#1e293b;" id="dm-min">0đ</div></div></div>
-                            <div class="col-6"><div style="background:#f1f5f9;border-radius:8px;padding:10px 14px;"><div style="font-size:.75rem;color:#6b7280;">&#x1F525; Giảm tối đa</div><div class="fw-bold" style="color:#1e293b;" id="dm-max">0đ</div></div></div>
-                        </div>
-                        <div class="detail-row"><span class="detail-label">Cộng dồn khuyến mãi:</span><span class="detail-value" id="dm-stack">Không cộng dồn</span></div>
-                        <div class="detail-row"><span class="detail-label">Đối tượng áp dụng:</span><span class="detail-value" id="dm-target">Tất cả khách hàng</span></div>
-                    </div>
-                    <div class="detail-section mx-4">
-                        <div class="detail-section-title"><span>&#x1F4C5;</span> Thời gian áp dụng</div>
-                        <div class="detail-row"><span class="detail-label">Ngày bắt đầu:</span><span class="detail-value fw-bold" id="dm-tu">--</span></div>
-                        <div class="detail-row"><span class="detail-label">Ngày kết thúc:</span><span class="detail-value fw-bold" id="dm-den">--</span></div>
-                    </div>
-                    <div class="detail-section mx-4">
-                        <div class="detail-section-title"><span>&#x1F4CD;</span> Phạm vi áp dụng</div>
-                        <div class="detail-row"><span class="detail-label">Đối tượng:</span><span class="detail-value" id="dm-targetType">Tất cả</span></div>
-                        <div class="detail-row"><span class="detail-label">Sản phẩm:</span><span class="detail-value" id="dm-product">Áp dụng hóa đơn chi nhánh</span></div>
-                    </div>
-                    <div class="detail-section mx-4">
-                        <div class="detail-section-title"><span>&#x1F4DD;</span> Điều khoản sử dụng</div>
-                        <ul class="detail-terms mb-0" id="dm-terms">
-                            <li>Chỉ áp dụng mua sắm trực tuyến hoặc trực tiếp tại cơ sở DuaStore.</li>
-                            <li>Voucher không thể kết hợp cùng các chương trình VIP đồng thời ngoài trừ thông báo cụ thể.</li>
-                        </ul>
-                    </div>
-                    <div class="detail-related mx-4" id="dm-related-section" style="display:none;">
-                        <div class="detail-section-title" style="color:#166534;"><span>&#x1F31F;</span> Có thể bạn thích</div>
-                        <div id="dm-related-list"></div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-2 d-flex justify-content-between align-items-center">
-                    <button type="button" class="vc-btn vc-btn-ghost" data-bs-dismiss="modal">Đóng</button>
-                    <div id="dm-footer-action"></div>
                 </div>
             </div>
         </div>
@@ -580,9 +469,9 @@
             selectedStock = parseInt(el.dataset.stock);
             const qtyInput = document.getElementById('qtyInput');
 
-            if (parseInt(qtyInput.value) > selectedStock) {
-                qtyInput.value = selectedStock;
-            }
+if (parseInt(qtyInput.value) > selectedStock) {
+    qtyInput.value = selectedStock;
+}
 
             // Update group label: "Loại nắp đã chọn: Nắp gỗ"
             const group = el.dataset.group;
@@ -617,23 +506,10 @@
             if (imgSrc) {
                 document.getElementById('mainImage').src = imgSrc;
                 const thumbs = document.querySelectorAll('.gallery-thumb');
-                let found = false;
                 for (const t of thumbs) {
                     if (t.dataset.img === imgSrc) {
                         galleryClick(t);
-                        found = true;
                         break;
-                    }
-                }
-                if (!found) {
-                    const wrapper = document.getElementById('galleryThumbs');
-                    if (wrapper) {
-                        const div = document.createElement('div');
-                        div.className = 'gallery-thumb active';
-                        div.dataset.img = imgSrc;
-                        div.onclick = function() { galleryClick(this); };
-                        div.innerHTML = '<img src="' + imgSrc + '" alt="" />';
-                        wrapper.appendChild(div);
                     }
                 }
             }
@@ -835,47 +711,6 @@ document.getElementById('qtyInput').addEventListener('input', function () {
             }
         }
     </script>
-
-    <!-- Image preview modal -->
-    <div class="modal fade" id="reviewImageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="background:transparent;border:none;">
-                <div class="position-relative text-center">
-                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 z-1" data-bs-dismiss="modal" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"></button>
-                    <button type="button" class="position-absolute start-0 top-50 translate-middle-y btn btn-dark btn-sm rounded-circle" id="prevImgBtn" style="margin-left:-10px;z-index:10;width:40px;height:40px;display:flex;align-items:center;justify-content:center;" onclick="changeReviewImage(-1)">&lsaquo;</button>
-                    <img id="reviewImagePreview" src="" alt="Preview" style="max-width:90vw;max-height:85vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5);" />
-                    <button type="button" class="position-absolute end-0 top-50 translate-middle-y btn btn-dark btn-sm rounded-circle" id="nextImgBtn" style="margin-right:-10px;z-index:10;width:40px;height:40px;display:flex;align-items:center;justify-content:center;" onclick="changeReviewImage(1)">&rsaquo;</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-    let reviewImageGroup = [];
-    let reviewImageIndex = 0;
-
-    function openReviewImage(el) {
-        const container = el.parentElement.parentElement;
-        const imgs = container.querySelectorAll('img');
-        reviewImageGroup = [];
-        imgs.forEach(img => reviewImageGroup.push(img.src));
-        reviewImageIndex = Array.from(imgs).indexOf(el);
-        showReviewImage();
-    }
-
-    function showReviewImage() {
-        const modal = new bootstrap.Modal(document.getElementById('reviewImageModal'));
-        document.getElementById('reviewImagePreview').src = reviewImageGroup[reviewImageIndex];
-        document.getElementById('prevImgBtn').style.display = reviewImageGroup.length > 1 ? '' : 'none';
-        document.getElementById('nextImgBtn').style.display = reviewImageGroup.length > 1 ? '' : 'none';
-        modal.show();
-    }
-
-    function changeReviewImage(dir) {
-        reviewImageIndex = (reviewImageIndex + dir + reviewImageGroup.length) % reviewImageGroup.length;
-        document.getElementById('reviewImagePreview').src = reviewImageGroup[reviewImageIndex];
-    }
-    </script>
     </th:block>
-
     </body>
-    </html>
+</html>

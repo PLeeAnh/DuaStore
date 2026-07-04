@@ -68,13 +68,11 @@ public class OrderController {
     }
 
     @PostMapping("/huy/{id}")
-    public String cancelOrder(@PathVariable Integer id,
-                               @RequestParam("lyDo") String lyDo,
-                               RedirectAttributes ra) {
+    public String cancelOrder(@PathVariable Integer id, RedirectAttributes ra) {
         Integer userId = getUserId();
 
         try {
-            orderService.cancelOrder(userId, id, lyDo);
+            orderService.cancelOrder(userId, id);
             ra.addFlashAttribute("successMsg", "Hủy đơn hàng thành công");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());

@@ -49,29 +49,10 @@
                         <span class="fw-bold text-danger" th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                         <div class="d-flex gap-2">
                             <a th:href="@{/tai-khoan/don-hang/{id}(id=${o.id})}" class="ds-btn ds-btn-outline ds-btn-sm">Xem chi tiết</a>
-                            <button th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" type="button" class="ds-btn ds-btn-outline ds-btn-sm" style="color:#2563eb;border-color:#2563eb;"
-                                          data-bs-toggle="modal" data-bs-target="${'#cancelReasonModal_' + o.id}">Hủy</button>
-                            <!-- Cancel Reason Modal -->
-                            <div class="modal fade" th:id="${'cancelReasonModal_' + o.id}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <form th:action="@{/tai-khoan/don-hang/huy/{id}(id=${o.id})}" method="post">
-                                            <div class="modal-header border-0">
-                                                <h6 class="modal-title"><i class="bi bi-x-circle me-2"></i>Hủy đơn hàng <span th:text="${o.maDon}"></span></h6>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <p class="small text-muted">Vui lòng cho biết lý do hủy:</p>
-                                                <textarea name="lyDo" class="form-control" rows="3" placeholder="Nhập lý do hủy..." required maxlength="500"></textarea>
-                                            </div>
-                                            <div class="modal-footer border-0">
-                                                <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-dismiss="modal">Đóng</button>
-                                                <button type="submit" class="ds-btn ds-btn-fill ds-btn-sm">Xác nhận hủy</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                            <form th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" th:action="@{/tai-khoan/don-hang/huy/{id}(id=${o.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Hủy đơn hàng này?');">
+                                <button type="submit" class="ds-btn ds-btn-outline ds-btn-sm" style="color:#2563eb;border-color:#2563eb;">Hủy</button>
+                            </form>
                         </div>
                     </div>
                 </div>
