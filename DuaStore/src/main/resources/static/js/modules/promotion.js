@@ -76,7 +76,7 @@ function openDetailModal(promoId) {
             }
 
             el('dm-footer-action').innerHTML =
-                '<button class="vc-btn vc-btn-cta" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận</button>';
+                '<button class="vc-btn ds-btn-fill" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận</button>';
 
             if (typeof bootstrap === 'undefined') {
                 showToast('Không thể hiển thị popup: Bootstrap chưa được tải');
@@ -116,7 +116,7 @@ function handleVoucherResponse(data, btn) {
 }
 
 function saveVoucherFromDetail(promoId) {
-    var btn = document.querySelector('#dm-footer-action .vc-btn-cta');
+    var btn = document.querySelector('#dm-footer-action .ds-btn-fill');
     btn.disabled = true; btn.textContent = 'Đang xử lý...';
     var token = document.querySelector('meta[name="_csrf"]')?.content || '';
     var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';

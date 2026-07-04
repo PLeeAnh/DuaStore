@@ -2,6 +2,7 @@ package com.duastore.service.admin;
 
 import com.duastore.model.Order;
 import com.duastore.model.ProductVariant;
+import com.duastore.model.VoucherStatus;
 import com.duastore.repository.*;
 import com.duastore.util.PriceUtils;
 import org.springframework.data.domain.PageRequest;
@@ -175,7 +176,8 @@ public class AdminAnalyticsService {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(LocalTime.MAX);
         return orderRepository.countByPhuongThucTTAndNgayDatBetween("BANK_TRANSFER", start, end)
-                + orderRepository.countByPhuongThucTTAndNgayDatBetween("MOMO", start, end);
+                + orderRepository.countByPhuongThucTTAndNgayDatBetween("MOMO", start, end)
+                + orderRepository.countByPhuongThucTTAndNgayDatBetween("VNPAY", start, end);
     }
 
     public String getCompletionRate(LocalDate from, LocalDate to) {
@@ -284,7 +286,7 @@ public class AdminAnalyticsService {
         map.put("USED", 0L);
         map.put("EXPIRED", 0L);
         for (Object[] row : rows) {
-            String status = (String) row[0];
+            String status = row[0] instanceof VoucherStatus ? ((VoucherStatus) row[0]).name() : (String) row[0];
             Long count = (Long) row[1];
             map.put(status, count);
         }

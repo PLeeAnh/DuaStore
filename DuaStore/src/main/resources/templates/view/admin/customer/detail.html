@@ -209,7 +209,7 @@
                              th:src="@{${w.product.hinhAnhChinh}}" alt=""
                              class="rounded" style="width:60px;height:60px;object-fit:cover" />
                         <div class="flex-grow-1 min-w-0">
-                            <div class="fw-semibold small" th:text="${w.product != null ? w.product.tenSanPham : 'Sản phẩm #' + ${w.productId}}"></div>
+                            <div class="fw-semibold small" th:text="${w.product != null ? w.product.tenSanPham : 'Sản phẩm #' + w.productId}"></div>
                             <div class="text-muted small" th:text="'Thêm lúc: ' + ${#temporals.format(w.ngayThem, 'dd/MM/yyyy HH:mm')}"></div>
                         </div>
                     </div>

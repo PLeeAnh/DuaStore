@@ -7,6 +7,7 @@ import com.duastore.model.Wishlist;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.WishlistRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +53,11 @@ public class WishlistService {
         Wishlist wish = new Wishlist();
         wish.setUserId(userId);
         wish.setProductId(productId);
-        wishlistRepository.save(wish);
+        try {
+            wishlistRepository.save(wish);
+        } catch (DataIntegrityViolationException e) {
+            return false;
+        }
         return true;
     }
 

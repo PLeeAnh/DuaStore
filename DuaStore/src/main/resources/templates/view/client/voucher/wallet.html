@@ -118,7 +118,7 @@
 
                         <!-- Bottom row -->
                         <div class="vc-bottom">
-                            <button class="vc-btn vc-btn-ghost btn-detail" type="button"
+                            <button class="vc-btn ds-btn-outline btn-detail" type="button"
                                     th:data-id="${v.promotion.id}">Chi tiết</button>
                             <th:block th:if="${v.status.name() == 'AVAILABLE'}">
                                 <button class="vc-btn vc-btn-disabled" type="button"
@@ -151,9 +151,10 @@
                 </ul>
             </nav>
         </div>
-    </div>
 
-    <th:block th:include="~{fragments/promotion-modal :: promotionModal}"></th:block>
+        <!-- Modal phải nằm TRONG layout:fragment="content" mới được ghép vào trang render cuối cùng. -->
+        <th:block th:include="~{fragments/promotion-modal :: promotionModal}"></th:block>
+    </div>
 
 <th:block layout:fragment="extra-script">
     <script>

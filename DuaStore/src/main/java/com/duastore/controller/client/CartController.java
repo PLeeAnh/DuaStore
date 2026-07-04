@@ -3,6 +3,7 @@ package com.duastore.controller.client;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.CartItemDTO;
 import com.duastore.model.Product;
+import com.duastore.model.ProductVariant;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.CartService;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +38,50 @@ public class CartController {
         this.securityUtil = securityUtil;
     }
 
+    @SuppressWarnings("unchecked")
+    private List<CartItemDTO> buildGuestCartItems(HttpSession session) {
+        Map<Integer, Integer> guestCart = (Map<Integer, Integer>) session.getAttribute("guestCart");
+        if (guestCart == null || guestCart.isEmpty()) return List.of();
+        List<CartItemDTO> items = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> e : guestCart.entrySet()) {
+            ProductVariant v = variantRepository.findById(e.getKey()).orElse(null);
+            if (v == null || !v.isActive()) continue;
+            Product p = v.getProduct();
+            if (p == null) continue;
+            CartItemDTO dto = new CartItemDTO();
+            dto.setVariantId(v.getId());
+            dto.setProductId(p.getId());
+            dto.setTenSanPham(p.getTenSanPham());
+            dto.setTenBienThe(v.getTenBienThe());
+            dto.setHinhAnh(v.getHinhAnh() != null ? v.getHinhAnh() : p.getHinhAnhChinh());
+            BigDecimal price = v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : (v.getGiaGoc() != null ? v.getGiaGoc() : BigDecimal.ZERO);
+            dto.setGiaBan(price);
+            dto.setSoLuong(e.getValue());
+            dto.setThanhTien(price.multiply(BigDecimal.valueOf(e.getValue())));
+            items.add(dto);
+        }
+        return items;
+    }
+
     @GetMapping("/gio-hang")
     public String cart(HttpSession session, Model model) {
         Integer userId = currentUserId();
+
         if (userId == null) {
-            return "redirect:/login";
+            List<CartItemDTO> guestItems = buildGuestCartItems(session);
+            model.addAttribute("title", "gio-hang");
+            model.addAttribute("cartItems", guestItems);
+            model.addAttribute("totalPrice", cartService.total(guestItems));
+            model.addAttribute("cartCount", guestItems.size());
+            model.addAttribute("savedItems", List.of());
+            model.addAttribute("savedCount", 0);
+            model.addAttribute("suggestions", List.of());
+            model.addAttribute("isGuest", true);
+            model.addAttribute("stockWarnings", List.of());
+            model.addAttribute("hasOutOfStock", false);
+            model.addAttribute("hasStockWarnings", false);
+            model.addAttribute("hasPriceChanges", false);
+            return "view/client/cart/cart";
         }
 
         List<CartItemDTO> items = cartService.getItems(userId);
@@ -82,9 +124,20 @@ public class CartController {
         return "redirect:/gio-hang";
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<Integer, Integer> getGuestCart(HttpSession session) {
+        Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("guestCart");
+        if (cart == null) {
+            cart = new java.util.LinkedHashMap<>();
+            session.setAttribute("guestCart", cart);
+        }
+        return cart;
+    }
+
     @PostMapping("/api/cart/add")
     @ResponseBody
     public Map<String, Object> add(@RequestBody Map<String, Integer> body, HttpSession session) {
+        Integer userId = currentUserId();
         Integer variantId = body.get("variantId");
         if (variantId == null && body.get("productId") != null) {
             variantId = variantRepository.findByProductIdAndIsDefaultTrue(body.get("productId"))
@@ -93,7 +146,21 @@ public class CartController {
                     .orElse(null);
         }
         Integer quantity = body.get("soLuong") != null ? body.get("soLuong") : body.get("quantity");
-        CartService.CartResult result = cartService.add(currentUserId(), variantId, quantity);
+
+        if (userId == null) {
+            // Guest cart — store in session
+            if (variantId == null) return failResponse("Vui lòng chọn biến thể sản phẩm");
+            ProductVariant variant = variantRepository.findById(variantId).orElse(null);
+            if (variant == null || !variant.isActive()) return failResponse("Sản phẩm không tồn tại");
+            Map<Integer, Integer> guestCart = getGuestCart(session);
+            int qty = Math.min(Math.max(quantity != null ? quantity : 1, 1), 99);
+            qty = Math.min(qty, variant.getSoLuongTon());
+            guestCart.merge(variantId, qty, Integer::sum);
+            int count = guestCart.values().stream().mapToInt(Integer::intValue).sum();
+            return Map.of("success", true, "message", "OK", "cartCount", count);
+        }
+
+        CartService.CartResult result = cartService.add(userId, variantId, quantity);
         return response(result);
     }
 
@@ -101,7 +168,14 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> count(HttpSession session) {
         Map<String, Object> data = new HashMap<>();
-        data.put("cartCount", cartService.count(currentUserId()));
+        Integer userId = currentUserId();
+        if (userId == null) {
+            Map<Integer, Integer> guestCart = getGuestCart(session);
+            int count = guestCart.values().stream().mapToInt(Integer::intValue).sum();
+            data.put("cartCount", count);
+        } else {
+            data.put("cartCount", cartService.count(userId));
+        }
         return data;
     }
 

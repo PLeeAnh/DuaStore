@@ -40,4 +40,10 @@ public class Address {
 
     @Column(name = "longitude")
     private Double longitude;
+
+    @Column(name = "ghnDistrictId")
+    private Integer ghnDistrictId;
+
+    @Column(name = "ghnWardCode", length = 20)
+    private String ghnWardCode;
 }

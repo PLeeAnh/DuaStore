@@ -49,13 +49,14 @@ public class AdminRoleService {
     }
 
     @Transactional
-    public Role save(Integer id, String name, String moTa, List<Integer> permissionIds) {
+    public Role save(Integer id, String name, String moTa, Boolean isActive, List<Integer> permissionIds) {
         Role role = (id != null) ? roleRepository.findById(id).orElse(new Role()) : new Role();
         if ("SUPER_ADMIN".equals(role.getName()) && !"SUPER_ADMIN".equals(name)) {
             throw new IllegalArgumentException("Không thể đổi tên vai trò SUPER_ADMIN");
         }
         role.setName(name);
         role.setMoTa(moTa);
+        if (isActive != null) role.setIsActive(isActive);
         if (permissionIds != null && !permissionIds.isEmpty()) {
             Set<Permission> perms = new HashSet<>(permissionRepository.findAllById(permissionIds));
             role.setPermissions(perms);

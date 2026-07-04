@@ -20,12 +20,14 @@ public final class PaymentStatusUtil {
     public static String getPaymentIcon(String phuongThuc) {
         if ("COD".equals(phuongThuc)) return "bi-cash-stack";
         if ("CHUYEN_KHOAN".equals(phuongThuc)) return "bi-bank";
+        if ("VNPAY".equals(phuongThuc)) return "bi-credit-card-2-front";
         return "bi-credit-card";
     }
 
     public static String getPaymentMethodLabel(String phuongThuc) {
         if ("COD".equals(phuongThuc)) return "COD";
         if ("CHUYEN_KHOAN".equals(phuongThuc)) return "Chuyển khoản";
+        if ("VNPAY".equals(phuongThuc)) return "VNPay";
         return phuongThuc;
     }
 

@@ -21,7 +21,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -239,8 +238,4 @@ public class HomeController {
         try { return Integer.parseInt(value); } catch (NumberFormatException e) { return defaultValue; }
     }
 
-    @GetMapping("/wishlist")
-    public RedirectView wishlistRedirect() {
-        return new RedirectView("/");
-    }
 }

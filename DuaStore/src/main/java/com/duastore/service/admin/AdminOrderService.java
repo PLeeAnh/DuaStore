@@ -65,7 +65,7 @@ public class AdminOrderService {
         this.orderNoteService = orderNoteService;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Page<Order> getAllOrders(int page, int size, String q, String trangThai, String trangThaiTT) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.searchOrders(q, trangThai, trangThaiTT, pageable);
@@ -104,7 +104,7 @@ public class AdminOrderService {
         return orderRepository.countByTrangThaiDonAndIdIn("CHO_XAC_NHAN", ids);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Order getOrderById(Integer id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
@@ -153,7 +153,7 @@ public class AdminOrderService {
             StringBuilder detail = new StringBuilder();
             for (OrderItem item : items) {
                 if (item.getVariantId() == null) continue;
-                ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
+                ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
                 if (variant == null) continue;
                 int oldStock = variant.getSoLuongTon();
                 int qty = item.getSoLuong();
@@ -166,11 +166,14 @@ public class AdminOrderService {
             return totalSubtracted > 0 ? "Đã trừ " + totalSubtracted + " sản phẩm khỏi tồn kho. " + detail : null;
         }
         if ("DA_HUY".equals(newStatus)) {
+            if ("CHO_XAC_NHAN".equals(oldStatus)) {
+                return "Đơn chưa xác nhận, không cần hoàn tồn kho.";
+            }
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {
                 if (item.getVariantId() == null) continue;
-                ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
+                ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
                 if (variant == null) continue;
                 variant.setSoLuongTon(variant.getSoLuongTon() + item.getSoLuong());
                 variantRepository.save(variant);
@@ -212,16 +215,6 @@ public class AdminOrderService {
         adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_DON",
                 oldStatus, trangThaiDon,
                 "Cập nhật trạng thái đơn từ " + oldStatus + " → " + trangThaiDon, request);
-
-        if ("DA_HOAN_THANH".equals(trangThaiDon) && order != null
-                && "COD".equals(order.getPhuongThucTT())
-                && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())) {
-            String oldPayment = order.getTrangThaiTT();
-            updatePaymentStatus(id, "DA_THANH_TOAN");
-            adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
-                    oldPayment, "DA_THANH_TOAN",
-                    "Tự động cập nhật thanh toán từ " + oldPayment + " → DA_THANH_TOAN (COD hoàn thành)", request);
-        }
 
         return stockMsg;
     }

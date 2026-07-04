@@ -78,6 +78,13 @@
                                             <span class="ds-checkout-radio-price" id="shipTTPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
                                         </label>
                                     </div>
+                                    <div class="ds-checkout-radio">
+                                        <input type="radio" name="phuongThucGiaoHang" id="shipPickup" value="NHAN_TAI_CONG" />
+                                        <label for="shipPickup">
+                                            <span>Nhận tại cửa hàng</span>
+                                            <span class="ds-checkout-radio-price" id="shipPickupPrice">Miễn phí</span>
+                                        </label>
+                                    </div>
 
                                 </div>
                             </div>
@@ -92,13 +99,20 @@
                                         <input type="radio" name="phuongThucTT" id="ttCOD" value="COD" checked required />
                                         <label for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
                                     </div>
-                                    <div class="ds-checkout-radio">
-                                        <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
-                                        <label for="ttCK">Chuyển khoản ngân hàng</label>
-                                        <div class="ds-checkout-radio-info" id="ckInfo">
-                                            <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
-                                        </div>
-                                    </div>
+            <div class="ds-checkout-radio">
+                <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
+                <label for="ttCK">Chuyển khoản ngân hàng</label>
+                <div class="ds-checkout-radio-info" id="ckInfo">
+                    <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
+                </div>
+            </div>
+            <div class="ds-checkout-radio">
+                <input type="radio" name="phuongThucTT" id="ttVNPAY" value="VNPAY" />
+                <label for="ttVNPAY">VNPay</label>
+                <div class="ds-checkout-radio-info">
+                    <i class="bi bi-info-circle"></i> Thanh toán qua cổng VNPay (ATM, Visa, QR)
+                </div>
+            </div>
                                 </div>
                             </div>
                         </div>

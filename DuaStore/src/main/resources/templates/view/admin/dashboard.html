@@ -44,8 +44,13 @@
                         </div>
                     </div>
                     <div class="adm-stat-val" th:text="${todayOrders} ?: '--'">--</div>
-                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">
-                        Chờ: <span th:text="${totalPendingOrders} ?: 0"></span>
+                    <div class="d-flex align-items-center gap-2 mt-1" style="font-size:.75rem">
+                        <span>Chờ: <span th:text="${totalPendingOrders} ?: 0"></span></span>
+                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.todayOrdersChange, '+')} ? 'text-success' : 'text-danger'">
+                            <i th:if="${#strings.startsWith(statComparison.todayOrdersChange, '+')}" class="bi bi-arrow-up-short"></i>
+                            <i th:unless="${#strings.startsWith(statComparison.todayOrdersChange, '+') or statComparison.todayOrdersChange == '0%'}" class="bi bi-arrow-down-short"></i>
+                            <span th:text="${statComparison.todayOrdersChange}"></span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -53,14 +58,19 @@
             <div class="col-12 col-sm-6 col-xl-2">
                 <div class="adm-stat p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="adm-stat-lbl">Tổng đơn hàng</span>
+                        <span class="adm-stat-lbl">Đơn tháng này</span>
                         <div class="adm-stat-icon" style="background:rgba(124,58,237,0.12);color:#7c3aed">
                             <i class="bi bi-receipt"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${totalOrders} ?: '--'">--</div>
-                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">
-                        Đã giao: <span th:text="${deliveredOrders} ?: 0"></span> | Hủy: <span th:text="${cancelledOrders} ?: 0"></span>
+                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.ordersThisMonth : totalOrders} ?: '--'">--</div>
+                    <div class="d-flex align-items-center gap-2 mt-1" style="font-size:.75rem">
+                        <span>Đã giao: <span th:text="${deliveredOrders} ?: 0"></span></span>
+                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.ordersChange, '+')} ? 'text-success' : 'text-danger'">
+                            <i th:if="${#strings.startsWith(statComparison.ordersChange, '+')}" class="bi bi-arrow-up-short"></i>
+                            <i th:unless="${#strings.startsWith(statComparison.ordersChange, '+') or statComparison.ordersChange == '0%'}" class="bi bi-arrow-down-short"></i>
+                            <span th:text="${statComparison.ordersChange}"></span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -73,21 +83,35 @@
                             <i class="bi bi-currency-exchange"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${monthlyRevenue} ?: '--'">--</div>
-                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">Đã giao: <span th:text="${deliveredOrders} ?: 0"></span> | Hoàn thành: <span th:text="${completedOrders} ?: 0"></span></div>
+                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.revenueThisMonth : monthlyRevenue} ?: '--'">--</div>
+                    <div class="d-flex align-items-center gap-2 mt-1" style="font-size:.75rem">
+                        <span th:text="${revenueGrowth}"></span>
+                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.revenueChange, '+')} ? 'text-success' : 'text-danger'">
+                            <i th:if="${#strings.startsWith(statComparison.revenueChange, '+')}" class="bi bi-arrow-up-short"></i>
+                            <i th:unless="${#strings.startsWith(statComparison.revenueChange, '+') or statComparison.revenueChange == '0%'}" class="bi bi-arrow-down-short"></i>
+                            <span th:text="${statComparison.revenueChange}"></span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <div class="col-12 col-sm-6 col-xl-2">
                 <div class="adm-stat p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="adm-stat-lbl">Khách hàng</span>
-                        <div class="adm-stat-icon" style="background:rgba(255,216,77,0.12);color:var(--ef-primary)">
+                        <span class="adm-stat-lbl">Khách hàng mới</span>
+                        <div class="adm-stat-icon" style="background:rgba(56,189,248,0.12);color:#38bdf8">
                             <i class="bi bi-people"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${totalCustomers} ?: '--'">--</div>
-                    <div class="adm-stat-lbl mt-1" style="font-size:.75rem">Tài khoản</div>
+                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.newCustomersThisMonth : totalCustomers} ?: '--'">--</div>
+                    <div class="d-flex align-items-center gap-2 mt-1" style="font-size:.75rem">
+                        <span>Tổng: <span th:text="${totalCustomers}"></span></span>
+                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.customersChange, '+')} ? 'text-success' : 'text-danger'">
+                            <i th:if="${#strings.startsWith(statComparison.customersChange, '+')}" class="bi bi-arrow-up-short"></i>
+                            <i th:unless="${#strings.startsWith(statComparison.customersChange, '+') or statComparison.customersChange == '0%'}" class="bi bi-arrow-down-short"></i>
+                            <span th:text="${statComparison.customersChange}"></span>
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -111,6 +135,10 @@
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2"></i>Doanh thu 7 ngày</h6>
+                        <div class="d-flex align-items-center gap-3" style="font-size:.75rem">
+                            <span><span class="badge" style="background:rgba(255,107,0,0.8)">&nbsp;</span> Tuần này</span>
+                            <span><span class="badge" style="background:rgba(148,112,219,0.8)">&nbsp;</span> Tuần trước</span>
+                        </div>
                     </div>
                     <div style="position:relative;height:200px;">
                         <canvas id="revenueChart"></canvas>
@@ -136,10 +164,44 @@
             </div>
         </div>
 
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i>Phương thức thanh toán</h6>
+                    </div>
+                    <div style="position:relative;height:220px;">
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart-steps me-2"></i>Kênh chuyển đổi đơn hàng</h6>
+                    </div>
+                    <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(salesFunnel)}">
+                        <div th:each="stage : ${salesFunnel}" class="d-flex align-items-center gap-2">
+                            <div style="min-width:100px;font-size:.82rem" th:text="${stage.label}">Stage</div>
+                            <div class="flex-grow-1" style="height:24px;background:var(--ef-border);border-radius:4px;overflow:hidden">
+                                <div th:style="${'width:' + stage.widthPct + '%;height:100%;border-radius:4px;background:' + stage.color}"
+                                     style="transition:width .6s ease"></div>
+                            </div>
+                            <span class="badge bg-secondary" style="min-width:36px" th:text="${stage.count}">0</span>
+                            <span th:if="${!stage.isFirst}" class="small text-muted" style="min-width:40px;font-size:.7rem"
+                                  th:text="${#numbers.formatDecimal(stage.convRate, 0, 'COMMA', 1, 'POINT')} + '%'"></span>
+                            <span th:if="${stage.isFirst}" class="small text-muted" style="min-width:40px;font-size:.7rem">100%</span>
+                        </div>
+                    </div>
+                    <p th:if="${#lists.isEmpty(salesFunnel)}" class="text-muted small mb-0">Chưa có dữ liệu</p>
+                </div>
+            </div>
+        </div>
+
         <div class="row g-3">
             <div class="col-12 col-lg-8">
                 <div class="adm-table-wrap">
-                    <div class="card-header d-flex align-items-center justify-content-between" style="background:var(--ef-bg);border-bottom:1px solid var(--ef-border);padding:12px 16px">
+                    <div class="card-header d-flex align-items-center justify-content-between" style="background:#fff;border-bottom:1px solid var(--ef-border);padding:12px 16px">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Đơn hàng gần đây</h6>
                         <a th:href="@{/admin/don-hang}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                     </div>
@@ -234,27 +296,56 @@
         <span th:each="dr : ${dailyRevenue}"
               th:attr="data-label=${dr.date}, data-value=${dr.revenue}"></span>
     </div>
+    <div id="prevRevenueData" class="d-none">
+        <span th:each="pr : ${previousWeekRevenue}"
+              th:attr="data-label=${pr.date}, data-value=${pr.revenue}"></span>
+    </div>
+    <div id="paymentData" class="d-none">
+        <span th:each="pm : ${paymentMethodDistribution}"
+              th:attr="data-method=${pm.key}, data-count=${pm.value}"></span>
+    </div>
     <script>
-        var labels = [], values = [];
+        // Revenue comparison chart (line)
+        var labels = [], values = [], prevValues = [];
         document.querySelectorAll('#revenueData span').forEach(function(el) {
             labels.push(el.dataset.label);
             values.push(Number(el.dataset.value));
+        });
+        document.querySelectorAll('#prevRevenueData span').forEach(function(el) {
+            prevValues.push(Number(el.dataset.value));
         });
         if (labels.length) {
             var ctx = document.getElementById('revenueChart');
             if (ctx) {
                 new Chart(ctx, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
                         labels: labels,
-                        datasets: [{
-                            label: 'Doanh thu (₫)',
-                            data: values,
-                            backgroundColor: 'rgba(255, 107, 0, 0.2)',
-                            borderColor: 'rgba(255, 107, 0, 1)',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }]
+                        datasets: [
+                            {
+                                label: 'Tuần này',
+                                data: values,
+                                backgroundColor: 'rgba(255, 107, 0, 0.08)',
+                                borderColor: 'rgba(255, 107, 0, 0.9)',
+                                borderWidth: 2,
+                                pointBackgroundColor: 'rgba(255, 107, 0, 1)',
+                                pointRadius: 3,
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Tuần trước',
+                                data: prevValues,
+                                backgroundColor: 'rgba(148, 112, 219, 0.08)',
+                                borderColor: 'rgba(148, 112, 219, 0.9)',
+                                borderWidth: 2,
+                                pointBackgroundColor: 'rgba(148, 112, 219, 1)',
+                                pointRadius: 3,
+                                tension: 0.3,
+                                fill: true,
+                                borderDash: [5, 5]
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
@@ -266,6 +357,32 @@
                     }
                 });
             }
+        }
+
+        // Payment method pie chart
+        var pmLabels = [], pmValues = [], pmColors = [];
+        var pmColorMap = { 'COD': '#10b981', 'CHUYEN_KHOAN': '#3b82f6', 'VNPAY': '#8b5cf6', 'MOMO': '#f59e0b', 'BANK_TRANSFER': '#6366f1' };
+        document.querySelectorAll('#paymentData span').forEach(function(el) {
+            pmLabels.push(el.dataset.method);
+            pmValues.push(Number(el.dataset.count));
+            pmColors.push(pmColorMap[el.dataset.method] || '#6b7280');
+        });
+        var pmCtx = document.getElementById('paymentChart');
+        if (pmCtx && pmLabels.length) {
+            new Chart(pmCtx, {
+                type: 'pie',
+                data: {
+                    labels: pmLabels,
+                    datasets: [{ data: pmValues, backgroundColor: pmColors }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } }
+                    }
+                }
+            });
         }
     </script>
     </th:block>

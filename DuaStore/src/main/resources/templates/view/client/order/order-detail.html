@@ -27,6 +27,9 @@
                             <button th:if="${order.trangThaiDon == 'CHO_XAC_NHAN'}" type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-toggle="modal" data-bs-target="#cancelReasonModal">
                                 <i class="bi bi-x-circle me-1"></i>Hủy đơn
                             </button>
+                            <a th:if="${order.maVanDon != null and !order.maVanDon.isEmpty()}" th:href="@{/don-hang/tracking/{maVanDon}(maVanDon=${order.maVanDon})}" class="ds-btn ds-btn-outline ds-btn-sm">
+                                <i class="bi bi-truck me-1"></i>Theo dõi vận chuyển
+                            </a>
                             <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
                                   th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon}"></span>
                         </div>

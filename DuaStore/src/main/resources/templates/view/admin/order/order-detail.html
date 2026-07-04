@@ -290,7 +290,10 @@
                             <span class="text-muted">Mã vận đơn</span>
                             <div class="d-flex align-items-center gap-1">
                                 <span th:id="'maVanDonText-' + ${order.id}" class="fw-semibold"
-                                      th:if="${order.maVanDon != null and order.maVanDon != ''}" th:text="${order.maVanDon}"></span>
+                                      th:if="${order.maVanDon != null and order.maVanDon != ''}">
+                                    <span th:text="${order.maVanDon}"></span>
+                                    <span class="badge bg-warning text-dark ms-1" style="font-size:10px">GHN</span>
+                                </span>
                                 <span th:id="'maVanDonText-' + ${order.id}" class="text-muted fst-italic"
                                       th:unless="${order.maVanDon != null and order.maVanDon != ''}">Chưa có</span>
                                 <input th:id="'maVanDonInput-' + ${order.id}" type="text" class="form-control form-control-sm d-none"

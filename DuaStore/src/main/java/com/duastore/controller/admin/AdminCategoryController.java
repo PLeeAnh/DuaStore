@@ -147,9 +147,11 @@ public class AdminCategoryController {
         dto.setId(id);
 
         Category existing = categoryService.findById(id);
-        if (existing != null) {
-            dto.setImageUrl(existing.getImageUrl());
+        if (existing == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy danh mục");
+            return "redirect:/admin/danh-muc";
         }
+        dto.setImageUrl(existing.getImageUrl());
 
         if (imageFile != null && !imageFile.isEmpty()) {
             String url = fileUploadService.save(imageFile, "categories");

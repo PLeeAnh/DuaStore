@@ -6,10 +6,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -17,6 +20,12 @@ public class FileUploadService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
+    private static final List<byte[]> MAGIC_BYTES = Arrays.asList(
+        new byte[]{(byte)0xFF, (byte)0xD8, (byte)0xFF},           // JPEG
+        new byte[]{(byte)0x89, (byte)0x50, (byte)0x4E, (byte)0x47}, // PNG
+        new byte[]{(byte)0x52, (byte)0x49, (byte)0x46, (byte)0x46}, // WEBP (RIFF...WEBP)
+        new byte[]{(byte)0x47, (byte)0x49, (byte)0x46, (byte)0x38}  // GIF
+    );
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
@@ -43,6 +52,9 @@ public class FileUploadService {
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
             throw new RuntimeException("Định dạng file không được hỗ trợ: " + contentType);
         }
+        if (!isValidImageContent(file)) {
+            throw new RuntimeException("File không phải là ảnh hợp lệ: " + file.getOriginalFilename());
+        }
 
         try {
             String original = file.getOriginalFilename();
@@ -67,6 +79,29 @@ public class FileUploadService {
         } catch (IOException e) {
             throw new RuntimeException("Không thể lưu file: " + file.getOriginalFilename(), e);
         }
+    }
+
+    private boolean isValidImageContent(MultipartFile file) {
+        try (InputStream is = file.getInputStream()) {
+            byte[] header = new byte[8];
+            int read = is.read(header, 0, 8);
+            if (read < 3) return false;
+
+            for (byte[] magic : MAGIC_BYTES) {
+                if (startsWith(header, magic)) return true;
+            }
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private boolean startsWith(byte[] data, byte[] prefix) {
+        if (data.length < prefix.length) return false;
+        for (int i = 0; i < prefix.length; i++) {
+            if (data[i] != prefix[i]) return false;
+        }
+        return true;
     }
 
     public boolean delete(String urlPath, String directory) {

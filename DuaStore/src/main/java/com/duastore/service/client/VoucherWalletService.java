@@ -32,26 +32,31 @@ public class VoucherWalletService {
     }
 
     public UserVoucher saveVoucher(Integer userId, Integer promotionId) {
-        Promotion promotion = promotionRepository.findById(promotionId)
+        Promotion lockedPromo = promotionRepository.findByIdWithLock(promotionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khuyến mãi"));
-        if (!Boolean.TRUE.equals(promotion.getIsActive())) {
+        if (!Boolean.TRUE.equals(lockedPromo.getIsActive())) {
             throw new RuntimeException("Khuyến mãi không còn hiệu lực");
         }
-        if (promotion.getMaxClaimsPerUser() != null && promotion.getMaxClaimsPerUser() <= 0) {
+        if (lockedPromo.getMaxClaimsPerUser() != null && lockedPromo.getMaxClaimsPerUser() <= 0) {
             throw new RuntimeException("Khuyến mãi này không cho phép lưu voucher");
+        }
+        if (lockedPromo.getMaxClaims() != null
+                && lockedPromo.getSavedCount() != null
+                && lockedPromo.getSavedCount() >= lockedPromo.getMaxClaims()) {
+            throw new RuntimeException("Khuyến mãi đã hết lượt lưu");
         }
 
         UserVoucher uv = new UserVoucher();
         uv.setUserId(userId);
-        uv.setPromotion(promotion);
-        uv.setVoucherCode(promotion.getMaCode() + "-" + userId);
-        uv.setRemainingUses(promotion.getMaxClaimsPerUser());
-        uv.setExpiredAt(promotion.getDenNgay());
+        uv.setPromotion(lockedPromo);
+        uv.setVoucherCode(lockedPromo.getMaCode() + "-" + userId);
+        uv.setRemainingUses(lockedPromo.getMaxClaimsPerUser());
+        uv.setExpiredAt(lockedPromo.getDenNgay());
         uv.setStatus(VoucherStatus.AVAILABLE);
         uv.setTotalSaved(java.math.BigDecimal.ZERO);
 
-        promotion.setSavedCount(promotion.getSavedCount() != null ? promotion.getSavedCount() + 1 : 1);
-        promotionRepository.save(promotion);
+        lockedPromo.setSavedCount(lockedPromo.getSavedCount() != null ? lockedPromo.getSavedCount() + 1 : 1);
+        promotionRepository.save(lockedPromo);
 
         try {
             return userVoucherRepository.save(uv);

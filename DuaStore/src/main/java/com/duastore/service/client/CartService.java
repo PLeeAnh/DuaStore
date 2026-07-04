@@ -52,7 +52,8 @@ public class CartService {
         }
 
         int finalQty = Math.min(qty, variant.getSoLuongTon());
-        BigDecimal currentPrice = variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : variant.getGiaGoc();
+        BigDecimal goc = variant.getGiaGoc();
+        BigDecimal currentPrice = variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : (goc != null ? goc : BigDecimal.ZERO);
         CartItem item = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
         if (item == null) {
             item = new CartItem();
@@ -163,7 +164,8 @@ public class CartService {
     private CartItemDTO toDto(CartItem item) {
         Product product = item.getProduct();
         ProductVariant variant = item.getVariant();
-        BigDecimal price = variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : variant.getGiaGoc();
+        BigDecimal goc = variant.getGiaGoc();
+        BigDecimal price = variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : (goc != null ? goc : BigDecimal.ZERO);
 
         CartItemDTO dto = new CartItemDTO();
         dto.setId(item.getId());
@@ -255,6 +257,31 @@ public class CartService {
                     ProductVariant v = ci.getVariant();
                     return v != null && ci.getSoLuong() > v.getSoLuongTon() && v.getSoLuongTon() > 0;
                 });
+    }
+
+    @Transactional
+    public void mergeGuestCart(Integer userId, java.util.Map<Integer, Integer> guestCart) {
+        if (guestCart == null || guestCart.isEmpty()) return;
+        for (java.util.Map.Entry<Integer, Integer> entry : guestCart.entrySet()) {
+            Integer variantId = entry.getKey();
+            Integer quantity = entry.getValue();
+            if (variantId == null || quantity == null || quantity <= 0) continue;
+            ProductVariant variant = variantRepository.findById(variantId).orElse(null);
+            if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) continue;
+            CartItem existing = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
+            if (existing != null) {
+                existing.setSoLuong(Math.min(existing.getSoLuong() + quantity, variant.getSoLuongTon()));
+            } else {
+                existing = new CartItem();
+                existing.setUserId(userId);
+                existing.setProductId(variant.getProductId());
+                existing.setVariantId(variantId);
+                existing.setSoLuong(Math.min(quantity, variant.getSoLuongTon()));
+                existing.setGiaLucThem(variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() :
+                        (variant.getGiaGoc() != null ? variant.getGiaGoc() : java.math.BigDecimal.ZERO));
+            }
+            cartItemRepository.save(existing);
+        }
     }
 
     public boolean hasPriceChanges(Integer userId) {
