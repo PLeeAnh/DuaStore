@@ -120,20 +120,22 @@
                 if (google.maps.places && google.maps.places.PlaceAutocompleteElement) {
                     var autocomplete = new google.maps.places.PlaceAutocompleteElement({
                         inputElement: input,
-                        componentRestrictions: { country: 'vn' },
-                        fields: ['geometry', 'formatted_address', 'name']
+                        componentRestrictions: { country: 'vn' }
                     });
                     autocomplete.addEventListener('gmp-placeselect', function(e) {
                         var place = e.place;
                         if (!place || !place.location) return;
-                        map.setCenter(place.location);
+                        var loc = place.location;
+                        map.setCenter(loc);
                         if (marker.position !== undefined) {
-                            marker.position = place.location;
+                            marker.position = loc;
                         } else {
-                            marker.setPosition(place.location);
+                            marker.setPosition(loc);
                         }
-                        document.getElementById('storeLatitude').value = place.location.lat.toFixed(6);
-                        document.getElementById('storeLongitude').value = place.location.lng.toFixed(6);
+                        var lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+                        var lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+                        document.getElementById('storeLatitude').value = lat.toFixed(6);
+                        document.getElementById('storeLongitude').value = lng.toFixed(6);
                         document.getElementById('storeAddress').value = place.formattedAddress || input.value;
                     });
                 } else {
@@ -183,8 +185,8 @@
             });
         }
     </script>
-    <script loading="async"
-        th:src="@{https://maps.googleapis.com/maps/api/js(key=${googleMapsApiKey}, libraries='places,marker', callback='initMap', region='VN', language='vi')}">
+    <script
+        th:src="@{https://maps.googleapis.com/maps/api/js(key=${googleMapsApiKey}, libraries='places,marker', callback='initMap', region='VN', language='vi', loading='async')}">
     </script>
     </th:block>
     </body>

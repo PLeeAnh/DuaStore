@@ -72,10 +72,44 @@
                            th:value="${settings.get('shipping_standard_time')}" placeholder="3-5" />
                 </div>
                 <div class="col-12">
+                    <h6 class="text-muted border-bottom pb-2 mt-4">
+                        <i class="bi bi-box-seam me-1"></i>GHN (Giao Hàng Nhanh)
+                    </h6>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">GHN Token <span class="text-danger">*</span>
+                        <small class="text-muted">(<a href="https://ghn.vn" target="_blank">Đăng ký</a>)</small></label>
+                    <input type="text" name="ghn_token" class="form-control font-monospace"
+                           th:value="${settings.get('ghn_token')}" placeholder="Token từ GHN" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Shop ID</label>
+                    <input type="number" name="ghn_shop_id" class="form-control"
+                           th:value="${settings.get('ghn_shop_id')}" placeholder="Số shop" />
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-4">
+                        <input type="hidden" name="ghn_test_mode" value="false" />
+                        <input class="form-check-input" type="checkbox" name="ghn_test_mode" value="true"
+                               id="ghnTestMode" th:checked="${settings.get('ghn_test_mode') != 'false'}" />
+                        <label class="form-check-label" for="ghnTestMode">Chế độ thử nghiệm (DEV)</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Mã quận/huyện mặc định</label>
+                    <input type="number" name="ghn_default_district_id" class="form-control"
+                           th:value="${settings.get('ghn_default_district_id')}" placeholder="1444" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Mã phường/xã mặc định</label>
+                    <input type="text" name="ghn_default_ward_code" class="form-control"
+                           th:value="${settings.get('ghn_default_ward_code')}" placeholder="21012" />
+                </div>
+                <div class="col-12">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
                 </div>
             </form>
         </div>
     </div>
     </body>
-</html>
+    </html>

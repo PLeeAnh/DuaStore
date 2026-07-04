@@ -12,6 +12,33 @@
     </th:block>
     <div layout:fragment="content">
 
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-3 flex-wrap">
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Đơn hàng</h5>
+                <div class="btn-group btn-group-sm">
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=false)}" class="btn" th:classappend="${not tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Của tôi</a>
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=true)}" class="btn" th:classappend="${tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Tất cả</a>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <input type="text" id="searchQ" class="form-control form-control-sm" style="width:180px" placeholder="Mã đơn, tên KH..." th:value="${q}" />
+                <select id="filterTrangThai" class="form-select form-select-sm" style="width:auto">
+                    <option value="">Trạng thái đơn</option>
+                    <option value="CHO_XAC_NHAN" th:selected="${trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
+                    <option value="DA_XAC_NHAN" th:selected="${trangThai == 'DA_XAC_NHAN'}">Đã xác nhận</option>
+                    <option value="DANG_GIAO" th:selected="${trangThai == 'DANG_GIAO'}">Đang giao</option>
+                    <option value="DA_GIAO" th:selected="${trangThai == 'DA_GIAO'}">Đã giao</option>
+                    <option value="DA_HOAN_THANH" th:selected="${trangThai == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
+                    <option value="DA_HUY" th:selected="${trangThai == 'DA_HUY'}">Đã hủy</option>
+                </select>
+                <select id="filterTrangThaiTT" class="form-select form-select-sm" style="width:auto">
+                    <option value="">Thanh toán</option>
+                    <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
+                    <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
+                </select>
+            </div>
+        </div>
+
         <!-- Stat cards -->
         <div class="row g-3 mb-4">
             <div class="col-md-3 col-6">
@@ -68,36 +95,6 @@
             </div>
         </div>
 
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Đơn hàng</h5>
-                <div class="btn-group btn-group-sm">
-                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=false)}" class="btn" th:classappend="${not tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Của tôi</a>
-                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=true)}" class="btn" th:classappend="${tatCa} ? 'btn-dark' : 'btn-outline-secondary'">Tất cả</a>
-                </div>
-            </div>
-            <form class="d-flex gap-2" th:action="@{/admin/don-hang}" method="get">
-                <input type="hidden" name="tatCa" th:value="${tatCa}" />
-                <input type="text" name="q" class="form-control form-control-sm" style="width:180px" placeholder="Mã đơn, tên KH..." th:value="${q}" />
-                <select name="trangThai" class="form-select form-select-sm" style="width:auto">
-                    <option value="">Trạng thái đơn</option>
-                    <option value="CHO_XAC_NHAN" th:selected="${trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
-                    <option value="DA_XAC_NHAN" th:selected="${trangThai == 'DA_XAC_NHAN'}">Đã xác nhận</option>
-                    <option value="DANG_GIAO" th:selected="${trangThai == 'DANG_GIAO'}">Đang giao</option>
-                    <option value="DA_GIAO" th:selected="${trangThai == 'DA_GIAO'}">Đã giao</option>
-                    <option value="DA_HOAN_THANH" th:selected="${trangThai == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
-                    <option value="DA_HUY" th:selected="${trangThai == 'DA_HUY'}">Đã hủy</option>
-                </select>
-                <select name="trangThaiTT" class="form-select form-select-sm" style="width:auto">
-                    <option value="">Thanh toán</option>
-                    <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
-                    <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
-                    <option value="CONG_NO" th:selected="${trangThaiTT == 'CONG_NO'}">Công nợ</option>
-                </select>
-                <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-funnel"></i></button>
-            </form>
-        </div>
-
         <div class="adm-table-wrap">
             <table class="table table-sm table-hover align-middle mb-0">
                 <thead>
@@ -136,7 +133,6 @@
                             <span th:switch="${o.trangThaiTT}" class="status-pill">
                                 <span th:case="'DA_THANH_TOAN'" class="status-pill status-da-thanh-toan">Đã thanh toán</span>
                                 <span th:case="'CHUA_THANH_TOAN'" class="status-pill status-chua-thanh-toan">Chưa thanh toán</span>
-                                <span th:case="'CONG_NO'" class="status-pill status-cong-no">Công nợ</span>
                                 <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiTT}"></span>
                             </span>
                         </td>
@@ -155,6 +151,29 @@
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
     <th:block layout:fragment="extra-script">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tatCa = [[${tatCa}]];
+    function doFilter() {
+        var q = document.getElementById('searchQ').value;
+        var trangThai = document.getElementById('filterTrangThai').value;
+        var trangThaiTT = document.getElementById('filterTrangThaiTT').value;
+        var params = new URLSearchParams();
+        if (q) params.set('q', q);
+        if (trangThai) params.set('trangThai', trangThai);
+        if (trangThaiTT) params.set('trangThaiTT', trangThaiTT);
+        params.set('tatCa', tatCa);
+        window.location.href = '/admin/don-hang?' + params.toString();
+    }
+    document.getElementById('filterTrangThai').addEventListener('change', doFilter);
+    document.getElementById('filterTrangThaiTT').addEventListener('change', doFilter);
+    var searchTimer;
+    document.getElementById('searchQ').addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(doFilter, 400);
+    });
+});
+</script>
     </th:block>
     </body>
 </html>

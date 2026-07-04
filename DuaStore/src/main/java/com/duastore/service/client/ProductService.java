@@ -5,6 +5,7 @@ import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ public class ProductService {
         this.variantRepository = variantRepository;
     }
 
+    @Cacheable(value = "featuredProducts", unless = "#result.isEmpty()")
     public List<Product> getFeatured() {
         return productRepository.findByIsFeaturedTrueAndIsActiveTrue();
     }

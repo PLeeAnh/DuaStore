@@ -78,7 +78,9 @@ public class DataInitializer implements CommandLineRunner {
             Map.entry("PAYMENT_SETTING", List.of("READ", "UPDATE")),
             Map.entry("SHIPPING_SETTING", List.of("READ", "UPDATE")),
             Map.entry("STORE", List.of("READ", "UPDATE")),
-            Map.entry("ANALYTICS", List.of("READ"))
+            Map.entry("ANALYTICS", List.of("READ")),
+            Map.entry("FLASH_SALE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+            Map.entry("REFUND", List.of("READ", "UPDATE", "APPROVE"))
         );
 
         for (var entry : perms.entrySet()) {
@@ -104,8 +106,12 @@ public class DataInitializer implements CommandLineRunner {
 
         Role adminRole = roleRepository.findByName("ADMIN");
 
-        User admin = userRepository.findByUsername(adminUsername).orElse(null);
-        if (admin != null) return;
+        User admin = userRepository.findByUsernameOrEmail(adminUsername).orElse(null);
+        if (admin != null) {
+            admin.setPassword(passwordEncoder.encode(adminPassword));
+            userRepository.save(admin);
+            return;
+        }
         admin = new User();
         admin.setUsername(adminUsername);
         admin.setEmail("admin@duastore.vn");

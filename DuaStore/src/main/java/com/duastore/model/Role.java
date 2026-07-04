@@ -32,6 +32,9 @@ public class Role {
     )
     private Set<Permission> permissions;
 
+    @Column(nullable = false, columnDefinition = "bit default 1")
+    private Boolean isActive = true;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime ngayTao;
 

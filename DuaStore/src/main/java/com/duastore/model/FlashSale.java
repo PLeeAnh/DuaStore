@@ -25,10 +25,17 @@ public class FlashSale {
     private LocalDateTime ngayKetThuc;
 
     @Column(nullable = false)
+    private Integer soLuongDaBan = 0;
+
+    @Column(nullable = false)
+    private Integer soLuongToiDa;
+
+    @Column(nullable = false)
     private Boolean isActive = true;
 
     @PrePersist
     protected void onCreate() {
         if (isActive == null) isActive = true;
+        if (soLuongDaBan == null) soLuongDaBan = 0;
     }
 }

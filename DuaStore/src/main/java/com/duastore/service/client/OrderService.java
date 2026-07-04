@@ -4,7 +4,9 @@ import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.*;
 import com.duastore.repository.*;
+import com.duastore.service.GHNShippingService;
 import com.duastore.service.ShippingFeeService;
+import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.util.PriceUtils;
 import org.springframework.data.domain.Page;
@@ -15,11 +17,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +42,8 @@ public class OrderService {
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
     private final UserVoucherRepository userVoucherRepository;
+    private final GHNShippingService ghnShippingService;
+    private final VNPAYService vnpayService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
                         CartService cartService, AddressRepository addressRepository,
@@ -47,7 +53,9 @@ public class OrderService {
                         ShippingFeeService shippingFeeService,
                         ProductVariantRepository variantRepository,
                         OrderStatusLogService orderStatusLogService,
-                        UserVoucherRepository userVoucherRepository) {
+                        UserVoucherRepository userVoucherRepository,
+                        GHNShippingService ghnShippingService,
+                        VNPAYService vnpayService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -60,10 +68,11 @@ public class OrderService {
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
         this.userVoucherRepository = userVoucherRepository;
+        this.ghnShippingService = ghnShippingService;
+        this.vnpayService = vnpayService;
     }
 
-    private static final String[] PHUONG_THUC_TT = {"COD", "CHUYEN_KHOAN"};
-    private static final String[] PHUONG_THUC_GH = {"SHIP"};
+
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
@@ -162,14 +171,17 @@ public class OrderService {
 
         cartItemRepository.deleteAll(cartItems);
 
+        String ghnCode = ghnShippingService.createOrder(order, address);
+        if (ghnCode != null) {
+            order.setMaVanDon(ghnCode);
+            orderRepository.save(order);
+        }
+
         return order;
     }
 
     private String generateMaDon() {
-        String prefix = "DH";
-        String ts = String.valueOf(System.currentTimeMillis());
-        String rand = String.format("%03d", new Random().nextInt(1000));
-        return prefix + ts.substring(ts.length() - 8) + rand;
+        return "DH" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
     }
 
     private String buildFullAddress(Address a) {
@@ -200,7 +212,7 @@ public class OrderService {
     public BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang) {
         BigDecimal discount;
         if ("PHAN_TRAM".equals(promo.getLoaiGiam())) {
-            discount = tienHang.multiply(promo.getGiaTriGiam()).divide(new BigDecimal("100"));
+            discount = tienHang.multiply(promo.getGiaTriGiam()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
             if (promo.getGiamToiDa() != null && discount.compareTo(promo.getGiamToiDa()) > 0) {
                 discount = promo.getGiamToiDa();
             }
@@ -242,7 +254,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancelOrder(Integer userId, Integer orderId) {
+    public void cancelOrder(Integer userId, Integer orderId, String lyDo) {
         Order order = getOrderByUserAndId(userId, orderId);
         if (!"CHO_XAC_NHAN".equals(order.getTrangThaiDon())) {
             throw new RuntimeException("Chỉ có thể hủy đơn hàng đang chờ xác nhận");
@@ -251,13 +263,17 @@ public class OrderService {
         orderAssignmentRepository.findByOrderId(orderId).ifPresent(orderAssignmentRepository::delete);
         order.setTrangThaiDon("DA_HUY");
         orderRepository.save(order);
+
+        orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, null,
+                "CHO_XAC_NHAN", "DA_HUY",
+                lyDo != null && !lyDo.isBlank() ? lyDo : "Khách hàng hủy đơn (không có lý do)");
     }
 
     private void restoreStock(Integer orderId) {
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         for (OrderItem item : items) {
             if (item.getVariantId() == null) continue;
-            ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
+            ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
             if (variant == null) continue;
             variant.setSoLuongTon(variant.getSoLuongTon() + item.getSoLuong());
             variantRepository.save(variant);
@@ -332,6 +348,7 @@ public class OrderService {
         dto.setTrangThaiTT(order.getTrangThaiTT());
         dto.setTrangThaiDon(order.getTrangThaiDon());
         dto.setGhiChu(order.getGhiChu());
+        dto.setMaVanDon(order.getMaVanDon());
         dto.setNgayDat(order.getNgayDat());
         if (order.getPromotion() != null) {
             dto.setPromotionId(order.getPromotion().getId());
@@ -358,5 +375,16 @@ public class OrderService {
         return orderItemRepository.findByOrderId(order.getId()).stream()
                 .map(this::convertItemToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public String createVNPAYPaymentUrl(Integer orderId, HttpServletRequest req) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        return vnpayService.createPaymentUrl(
+                "DUASTORE" + order.getId(),
+                order.getTongThanhToan().longValue(),
+                "Thanh toan don hang " + order.getMaDon(),
+                req
+        );
     }
 }

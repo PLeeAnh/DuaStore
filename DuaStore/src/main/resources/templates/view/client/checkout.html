@@ -78,6 +78,13 @@
                                             <span class="ds-checkout-radio-price" id="shipTTPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
                                         </label>
                                     </div>
+                                    <div class="ds-checkout-radio">
+                                        <input type="radio" name="phuongThucGiaoHang" id="shipPickup" value="NHAN_TAI_CONG" />
+                                        <label for="shipPickup">
+                                            <span>Nhận tại cửa hàng</span>
+                                            <span class="ds-checkout-radio-price" id="shipPickupPrice">Miễn phí</span>
+                                        </label>
+                                    </div>
 
                                 </div>
                             </div>
@@ -92,13 +99,20 @@
                                         <input type="radio" name="phuongThucTT" id="ttCOD" value="COD" checked required />
                                         <label for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
                                     </div>
-                                    <div class="ds-checkout-radio">
-                                        <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
-                                        <label for="ttCK">Chuyển khoản ngân hàng</label>
-                                        <div class="ds-checkout-radio-info" id="ckInfo">
-                                            <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
-                                        </div>
-                                    </div>
+            <div class="ds-checkout-radio">
+                <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
+                <label for="ttCK">Chuyển khoản ngân hàng</label>
+                <div class="ds-checkout-radio-info" id="ckInfo">
+                    <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
+                </div>
+            </div>
+            <div class="ds-checkout-radio">
+                <input type="radio" name="phuongThucTT" id="ttVNPAY" value="VNPAY" />
+                <label for="ttVNPAY">VNPay</label>
+                <div class="ds-checkout-radio-info">
+                    <i class="bi bi-info-circle"></i> Thanh toán qua cổng VNPay (ATM, Visa, QR)
+                </div>
+            </div>
                                 </div>
                             </div>
                         </div>
@@ -241,7 +255,6 @@
             <div class="modal-content border-0 shadow">
               <div class="modal-header border-0 pb-0">
                 <h5 class="fw-bold modal-title" id="addressModalTitle">Quản lý địa chỉ</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body pt-3">
                 <div id="addressModalList">
@@ -387,9 +400,6 @@
                   </div>
                 </div>
               </div>
-              <div class="modal-footer border-0 pt-0">
-                <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-dismiss="modal">Đóng</button>
-              </div>
             </div>
           </div>
         </div>
@@ -482,6 +492,10 @@
         function openPromoModal() {
             var modalEl = document.getElementById('promoModal');
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+        function closePromoModal() {
+            var modalEl = document.getElementById('promoModal');
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
         }
         function selectPromo(el) {
             var code = el.getAttribute('data-code');

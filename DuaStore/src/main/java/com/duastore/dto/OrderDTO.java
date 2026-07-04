@@ -28,6 +28,7 @@ public class OrderDTO {
     private String trangThaiDon;
     private Integer promotionId;
     private String ghiChu;
+    private String maVanDon;
     private LocalDateTime ngayDat;
     private String userEmail;
 }

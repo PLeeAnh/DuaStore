@@ -585,10 +585,10 @@
                                 <div class="col-6 col-md-3">
                                     <h6 class="ds-footer-col-title" th:text="${themeSettings.get('footer_col_' + i + '_title')}">Tiêu đề</h6>
                                     <ul class="ds-footer-links">
-                                        <th:block th:each="line : ${#strings.listSplit(themeSettings.get('footer_col_' + i + '_content'), '\\n')}">
-                                            <li th:unless="${#strings.isEmpty(line)}">
-                                                <a th:href="${#strings.contains(line, ' | ')} ? ${#strings.substringAfter(line, ' | ')} : '#'"
-                                                   th:text="${#strings.contains(line, ' | ')} ? ${#strings.substringBefore(line, ' | ')} : ${line}">Link</a>
+                                        <th:block th:each="line : ${#strings.listSplit(themeSettings.get('footer_col_' + i + '_content'), '\\r?\\n')}">
+                                            <li th:unless="${#strings.isEmpty(#strings.trim(line))}">
+                                                <a th:href="${#strings.contains(line, ' | ')} ? ${#strings.substringAfter(line, ' | ').trim()} : '#'"
+                                                   th:text="${#strings.contains(line, ' | ')} ? ${#strings.substringBefore(line, ' | ').trim()} : ${#strings.trim(line)}">Link</a>
                                             </li>
                                         </th:block>
                                     </ul>

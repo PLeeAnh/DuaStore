@@ -25,6 +25,7 @@
                 <th>Tên vai trò</th>
                 <th>Mô tả</th>
                 <th class="text-center">Số quyền</th>
+                <th class="text-center">Trạng thái</th>
                 <th>Ngày tạo</th>
                 <th class="text-center">Thao tác</th>
             </tr>
@@ -37,6 +38,10 @@
                 </td>
                 <td th:text="${r.moTa ?: '--'}">Mô tả</td>
                 <td class="text-center" th:text="${r.permissions != null ? #sets.size(r.permissions) : 0}">0</td>
+                <td class="text-center">
+                    <span th:if="${r.isActive}" class="badge bg-success">Hoạt động</span>
+                    <span th:unless="${r.isActive}" class="badge bg-secondary">Tạm khóa</span>
+                </td>
                 <td th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                 <td class="text-center">
                     <a th:href="@{/admin/vai-tro/sua/{id}(id=${r.id})}"
@@ -56,7 +61,7 @@
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(roles)}">
-                <td colspan="6" class="text-muted text-center py-4">Chưa có vai trò nào</td>
+                <td colspan="7" class="text-muted text-center py-4">Chưa có vai trò nào</td>
             </tr>
             </tbody>
         </table>

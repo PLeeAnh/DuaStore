@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý Flash Sale</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Flash Sale</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4><i class="bi bi-lightning-charge me-2"></i>Quản lý Flash Sale</h4>
+            <a th:href="@{/admin/flash-sale/create}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Thêm Flash Sale
+            </a>
+        </div>
+
+        <div class="adm-table-wrap">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product ID</th>
+                        <th>Giá trị giảm (%)</th>
+                        <th>SL tối đa</th>
+                        <th>Đã bán</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="fs : ${flashSales}">
+                        <td th:text="${fs.id}"></td>
+                        <td th:text="${fs.productId}"></td>
+                        <td th:text="${fs.giaTriGiam} + '%'"></td>
+                        <td th:text="${fs.soLuongToiDa != null ? fs.soLuongToiDa : '—'}"></td>
+                        <td th:text="${fs.soLuongDaBan != null ? fs.soLuongDaBan : 0}"></td>
+                        <td th:text="${#temporals.format(fs.ngayBatDau, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${#temporals.format(fs.ngayKetThuc, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span th:if="${fs.isActive}" class="badge bg-success">Hoạt động</span>
+                            <span th:unless="${fs.isActive}" class="badge bg-secondary">Tạm dừng</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/flash-sale/edit/{id}(id=${fs.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/admin/flash-sale/delete/{id}(id=${fs.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Xóa Flash Sale này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/flash-sale/toggle/{id}(id=${fs.id})}" method="post" style="display:inline">
+                                <button type="submit" class="btn btn-sm btn-outline-warning ms-1"
+                                        th:title="${fs.isActive} ? 'Tạm dừng' : 'Kích hoạt'">
+                                    <i class="bi" th:class="${fs.isActive} ? 'bi-pause-fill' : 'bi-play-fill'"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(flashSales)}">
+                        <td colspan="9" class="text-muted text-center py-4">Chưa có dữ liệu</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </body>
+</html>

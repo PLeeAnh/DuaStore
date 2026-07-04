@@ -4,31 +4,30 @@ public final class PaymentStatusUtil {
 
     private static final String DA_THANH_TOAN = "DA_THANH_TOAN";
     private static final String CHUA_THANH_TOAN = "CHUA_THANH_TOAN";
-    private static final String CONG_NO = "CONG_NO";
 
     public static String getDisplayName(String code) {
         if (DA_THANH_TOAN.equals(code)) return "Đã thanh toán";
         if (CHUA_THANH_TOAN.equals(code)) return "Chưa thanh toán";
-        if (CONG_NO.equals(code)) return "Công nợ";
         return code;
     }
 
     public static String getBadgeClass(String code) {
         if (DA_THANH_TOAN.equals(code)) return "bg-success";
         if (CHUA_THANH_TOAN.equals(code)) return "bg-warning text-dark";
-        if (CONG_NO.equals(code)) return "bg-info text-dark";
         return "bg-secondary";
     }
 
     public static String getPaymentIcon(String phuongThuc) {
         if ("COD".equals(phuongThuc)) return "bi-cash-stack";
         if ("CHUYEN_KHOAN".equals(phuongThuc)) return "bi-bank";
+        if ("VNPAY".equals(phuongThuc)) return "bi-credit-card-2-front";
         return "bi-credit-card";
     }
 
     public static String getPaymentMethodLabel(String phuongThuc) {
         if ("COD".equals(phuongThuc)) return "COD";
         if ("CHUYEN_KHOAN".equals(phuongThuc)) return "Chuyển khoản";
+        if ("VNPAY".equals(phuongThuc)) return "VNPay";
         return phuongThuc;
     }
 

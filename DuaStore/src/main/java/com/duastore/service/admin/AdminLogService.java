@@ -121,4 +121,36 @@ public class AdminLogService {
     public Page<AdminActionLog> getAllLogs(int page, int size) {
         return logRepository.findAllWithAdmin(PageRequest.of(page, size));
     }
+
+    @Transactional(readOnly = true)
+    public List<User> getActiveAdmins() {
+        return userRepository.findAllActiveAdmins();
+    }
+
+    @Transactional
+    public void reassignAdmin(Order order, User currentAdmin, User newAdmin, HttpServletRequest request) {
+        if (order == null || newAdmin == null) return;
+        OrderAssignment existing = assignmentRepository.findByOrderId(order.getId()).orElse(null);
+        if (existing != null) {
+            String oldName = existing.getAdmin().getHoTen();
+            existing.setAdmin(newAdmin);
+            assignmentRepository.save(existing);
+            orderStatusLogService.ghiLog(order, OrderEventType.ASSIGN_ADMIN, currentAdmin, null, null,
+                    "Phân công lại từ " + oldName + " → " + newAdmin.getHoTen());
+            ghiLogDonHang(currentAdmin, order.getId(), "PHAN_CONG_LAI",
+                    oldName, newAdmin.getHoTen(),
+                    "Phân công lại từ " + oldName + " → " + newAdmin.getHoTen(), request);
+        } else {
+            OrderAssignment assignment = new OrderAssignment();
+            assignment.setOrder(order);
+            assignment.setAdmin(newAdmin);
+            assignment.setTrangThai("DANG_XU_LY");
+            assignmentRepository.save(assignment);
+            orderStatusLogService.ghiLog(order, OrderEventType.ASSIGN_ADMIN, currentAdmin, null, null,
+                    "Phân cho " + newAdmin.getHoTen());
+            ghiLogDonHang(currentAdmin, order.getId(), "PHAN_CONG",
+                    null, newAdmin.getHoTen(),
+                    "Phân cho " + newAdmin.getHoTen(), request);
+        }
+    }
 }

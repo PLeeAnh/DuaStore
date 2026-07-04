@@ -38,6 +38,14 @@
             </div>
 
             <div class="col-12">
+                <div class="form-check form-switch">
+                    <input type="checkbox" class="form-check-input" name="isActive" value="true"
+                           id="isActive" th:checked="${role.isActive != null ? role.isActive : true}" />
+                    <label class="form-check-label" for="isActive">Kích hoạt</label>
+                </div>
+            </div>
+
+            <div class="col-12">
                 <label class="form-label fw-semibold mb-3">Quyền hạn</label>
 
                 <div th:each="entry : ${groupedPermissions}" class="card mb-3">

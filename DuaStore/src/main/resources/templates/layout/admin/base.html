@@ -97,6 +97,18 @@
                 <i class="bi bi-tag"></i>
                 <span>Khuyến mãi</span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/flash-sale}"
+               th:if="${userPermissions.contains('FLASH_SALE_READ')}"
+               th:classappend="${title == 'flash-sale' ? ' active' : ''}">
+                <i class="bi bi-lightning"></i>
+                <span>Flash Sale</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/hoan-tien}"
+               th:if="${userPermissions.contains('REFUND_READ')}"
+               th:classappend="${title == 'hoan-tien' ? ' active' : ''}">
+                <i class="bi bi-arrow-return-left"></i>
+                <span>Hoàn tiền</span>
+            </a>
 
             <div class="adm-nav-section">Nội dung</div>
             <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
