@@ -50,7 +50,7 @@ public class ClientNavbarAdvice {
             Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
             Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
             final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
-            List<Notification> allNotifs = notificationRepository.findCustomerNotifications();
+            List<Notification> allNotifs = notificationRepository.findByIsActiveTrueOrderByCreatedAtDesc();
 
             if (readMaxId != null && readMaxId > 0) {
                 List<Notification> unread = allNotifs.stream()
