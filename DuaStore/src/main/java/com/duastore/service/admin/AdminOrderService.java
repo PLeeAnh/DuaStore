@@ -147,6 +147,24 @@ public class AdminOrderService {
     }
 
     private String adjustStock(Integer orderId, String newStatus, String oldStatus) {
+        if ("DA_XAC_NHAN".equals(newStatus)) {
+            List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+            int totalSubtracted = 0;
+            StringBuilder detail = new StringBuilder();
+            for (OrderItem item : items) {
+                if (item.getVariantId() == null) continue;
+                ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
+                if (variant == null) continue;
+                int oldStock = variant.getSoLuongTon();
+                int qty = item.getSoLuong();
+                variant.setSoLuongTon(oldStock - qty);
+                variantRepository.save(variant);
+                totalSubtracted += qty;
+                if (detail.length() > 0) detail.append("; ");
+                detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(variant.getSoLuongTon());
+            }
+            return totalSubtracted > 0 ? "Đã trừ " + totalSubtracted + " sản phẩm khỏi tồn kho. " + detail : null;
+        }
         if ("DA_HUY".equals(newStatus)) {
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
@@ -176,20 +194,20 @@ public class AdminOrderService {
         Order order = orderRepository.findById(id).orElse(null);
         if (order == null) throw new RuntimeException("Không tìm thấy đơn hàng");
 
-        // Auto-set payment to CONG_NO when completing unpaid order
+        // Auto-set payment to DA_THANH_TOAN when completing unpaid order
         if ("DA_HOAN_THANH".equals(trangThaiDon) && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())) {
             String oldPayment = order.getTrangThaiTT();
-            order.setTrangThaiTT("CONG_NO");
+            order.setTrangThaiTT("DA_THANH_TOAN");
             adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
-                    oldPayment, "CONG_NO",
-                    "Ghi nhận công nợ khi hoàn thành đơn", request);
+                    oldPayment, "DA_THANH_TOAN",
+                    "Xác nhận thanh toán khi hoàn thành đơn (admin xác nhận thay khách)", request);
         }
 
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
 
         String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
-        orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, null);
+        orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, stockMsg);
 
         adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_DON",
                 oldStatus, trangThaiDon,
@@ -214,7 +232,7 @@ public class AdminOrderService {
 
         Order order = orderRepository.findById(id).orElse(null);
         orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, null,
-                "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")");
+                "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""));
 
         adminLogService.ghiLogDonHang(admin, id, "XOA_DON_HANG",
                 oldStatus, null,

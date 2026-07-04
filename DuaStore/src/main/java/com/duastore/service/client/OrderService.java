@@ -242,7 +242,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void cancelOrder(Integer userId, Integer orderId) {
+    public void cancelOrder(Integer userId, Integer orderId, String lyDo) {
         Order order = getOrderByUserAndId(userId, orderId);
         if (!"CHO_XAC_NHAN".equals(order.getTrangThaiDon())) {
             throw new RuntimeException("Chỉ có thể hủy đơn hàng đang chờ xác nhận");
@@ -251,6 +251,10 @@ public class OrderService {
         orderAssignmentRepository.findByOrderId(orderId).ifPresent(orderAssignmentRepository::delete);
         order.setTrangThaiDon("DA_HUY");
         orderRepository.save(order);
+
+        orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, null,
+                "CHO_XAC_NHAN", "DA_HUY",
+                lyDo != null && !lyDo.isBlank() ? lyDo : "Khách hàng hủy đơn (không có lý do)");
     }
 
     private void restoreStock(Integer orderId) {
@@ -332,6 +336,7 @@ public class OrderService {
         dto.setTrangThaiTT(order.getTrangThaiTT());
         dto.setTrangThaiDon(order.getTrangThaiDon());
         dto.setGhiChu(order.getGhiChu());
+        dto.setMaVanDon(order.getMaVanDon());
         dto.setNgayDat(order.getNgayDat());
         if (order.getPromotion() != null) {
             dto.setPromotionId(order.getPromotion().getId());

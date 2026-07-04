@@ -38,23 +38,47 @@ public final class OrderStatusUtil {
     public static String getBadgeClass(OrderEventType eventType) {
         if (eventType == null) return "bg-secondary";
         return switch (eventType) {
-            case CREATE_ORDER -> "bg-primary";
+            case CREATE_ORDER -> "bg-secondary";
             case ASSIGN_ADMIN -> "bg-info";
-            case STATUS_CHANGE -> "bg-success";
+            case STATUS_CHANGE -> "bg-primary";
             case CANCEL_ORDER -> "bg-danger";
+            case PAYMENT_CONFIRMED -> "bg-success";
             default -> "bg-secondary";
         };
     }
 
     public static String getIconClass(OrderEventType eventType) {
-        if (eventType == null) return "bi-clock";
+        if (eventType == null) return "bi-record-circle";
         return switch (eventType) {
-            case CREATE_ORDER -> "bi-cart-plus";
+            case CREATE_ORDER -> "bi-plus-circle";
             case ASSIGN_ADMIN -> "bi-person-check";
             case STATUS_CHANGE -> "bi-arrow-left-right";
             case CANCEL_ORDER -> "bi-x-circle";
             case PAYMENT_CONFIRMED -> "bi-credit-card";
-            default -> "bi-clock";
+            default -> "bi-record-circle";
+        };
+    }
+
+    public static String getIconColorClass(OrderEventType eventType) {
+        if (eventType == null) return "text-muted";
+        return switch (eventType) {
+            case CREATE_ORDER -> "text-muted";
+            case ASSIGN_ADMIN -> "text-info";
+            case STATUS_CHANGE -> "text-primary";
+            case CANCEL_ORDER -> "text-danger";
+            case PAYMENT_CONFIRMED -> "text-success";
+            default -> "text-muted";
+        };
+    }
+
+    public static String getTagBadgeClass(String tag) {
+        if (tag == null || tag.isEmpty()) return "bg-light text-dark";
+        return switch (tag) {
+            case "Kho" -> "bg-warning text-dark";
+            case "CSKH" -> "bg-info text-dark";
+            case "Hệ thống" -> "bg-secondary";
+            case "Kế toán" -> "bg-success";
+            default -> "bg-light text-dark";
         };
     }
 

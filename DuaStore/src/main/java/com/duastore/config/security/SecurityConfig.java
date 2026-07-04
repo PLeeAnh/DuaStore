@@ -59,6 +59,7 @@ public class SecurityConfig {
                     .userService(oAuth2UserService)
                 )
                 .successHandler(successHandler)
+                .failureUrl("/?loginError=true")
             )
             .logout(logout -> logout
                 .logoutUrl("/dang-xuat")

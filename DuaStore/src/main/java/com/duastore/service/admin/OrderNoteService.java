@@ -19,11 +19,12 @@ public class OrderNoteService {
     }
 
     @Transactional
-    public OrderNote addNote(Order order, User admin, String noiDung) {
+    public OrderNote addNote(Order order, User admin, String noiDung, String tag) {
         OrderNote note = new OrderNote();
         note.setOrder(order);
         note.setAdmin(admin);
         note.setNoiDung(noiDung);
+        note.setTag(tag);
         return repository.save(note);
     }
 

@@ -316,6 +316,7 @@ public class ProductController {
             .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
+        model.addAttribute("productPromotions", activePromotions);
 
         BigDecimal promoDiscountedPrice = null;
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
@@ -351,16 +352,17 @@ public class ProductController {
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
 
         int reviewSize = 10;
-        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize);
+        Integer currentUserId = null;
+        try { currentUserId = securityUtil.getCurrentUserId(); } catch (Exception e) {}
+        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId);
         model.addAttribute("reviews", reviewPageResult.getContent());
         model.addAttribute("reviewCurrentPage", reviewPage);
         model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
         model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
-        Integer currentUserId = securityUtil.getCurrentUserId();
         if (currentUserId != null) {
             try {
                 model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
-                model.addAttribute("canReview", reviewService.hasPaidAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
+                model.addAttribute("canReview", reviewService.hasCompletedOrderAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
             } catch (Exception e) {
                 model.addAttribute("hasReviewed", false);
                 model.addAttribute("canReview", false);
@@ -433,7 +435,7 @@ public class ProductController {
     public String submitReview(@PathVariable Integer id,
                                @Valid @ModelAttribute ReviewRequestDTO request,
                                BindingResult result,
-                               @RequestParam(value = "hinhAnh", required = false) MultipartFile hinhAnhFile,
+                               @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
                                RedirectAttributes ra) {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
@@ -445,17 +447,23 @@ public class ProductController {
             return "redirect:/san-pham/" + id;
         }
         request.setProductId(id);
-        String hinhAnhUrl = null;
-        if (hinhAnhFile != null && !hinhAnhFile.isEmpty()) {
+        String hinhAnhUrls = null;
+        if (hinhAnhFiles != null && !hinhAnhFiles.isEmpty()) {
             try {
-                hinhAnhUrl = fileUploadService.save(hinhAnhFile, "reviews");
+                List<String> urls = new java.util.ArrayList<>();
+                for (MultipartFile f : hinhAnhFiles) {
+                    if (!f.isEmpty()) {
+                        urls.add(fileUploadService.save(f, "reviews"));
+                    }
+                }
+                if (!urls.isEmpty()) hinhAnhUrls = String.join(",", urls);
             } catch (Exception e) {
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;
             }
         }
         try {
-            reviewService.createReview(userId, request, hinhAnhUrl);
+            reviewService.createReview(userId, request, hinhAnhUrls);
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
