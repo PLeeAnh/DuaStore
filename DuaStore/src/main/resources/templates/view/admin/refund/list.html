@@ -11,9 +11,29 @@
         <li class="breadcrumb-item active" aria-current="page">Hoàn tiền</li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-arrow-return-left me-2"></i>Quản lý hoàn tiền</h4>
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-arrow-return-left"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Hoàn tiền</h4>
+                        <div class="adm-detail-meta">Quản lý yêu cầu hoàn tiền từ khách hàng.</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${orderTab == 'don-hang' ? ' active' : ''}" th:href="@{/admin/don-hang}">
+                <i class="bi bi-bag-check"></i>Đơn hàng
+            </a>
+            <a class="adm-tab" th:classappend="${orderTab == 'hoan-tien' ? ' active' : ''}" th:href="@{/admin/hoan-tien}">
+                <i class="bi bi-arrow-return-left"></i>Hoàn tiền
+            </a>
+        </div>
+
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <div class="adm-card text-center">
@@ -46,9 +66,9 @@
                             <span th:text="${r.lydo != null and r.lydo.length() > 50 ? r.lydo.substring(0, 50) + '...' : r.lydo}" class="text-muted small"></span>
                         </td>
                         <td>
-                            <span th:if="${r.trangThai == 'CHO_DUYET'}" class="badge bg-warning text-dark">Chờ duyệt</span>
-                            <span th:if="${r.trangThai == 'DA_DUYET'}" class="badge bg-success">Đã duyệt</span>
-                            <span th:if="${r.trangThai == 'TU_CHOI'}" class="badge bg-danger">Từ chối</span>
+                            <span th:if="${r.trangThai == 'CHO_DUYET'}" class="status-pill status-CHO_DUYET">Chờ duyệt</span>
+                            <span th:if="${r.trangThai == 'DA_DUYET'}" class="status-pill status-DA_DUYET">Đã duyệt</span>
+                            <span th:if="${r.trangThai == 'TU_CHOI'}" class="status-pill status-TU_CHOI">Từ chối</span>
                         </td>
                         <td th:text="${#temporals.format(r.ngayYeuCau, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>

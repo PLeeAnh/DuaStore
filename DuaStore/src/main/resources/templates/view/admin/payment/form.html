@@ -11,13 +11,24 @@
         <li class="breadcrumb-item active" aria-current="page">Thanh toán</li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-credit-card me-2"></i>Cấu hình thanh toán</h4>
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Cấu hình thanh toán</h4>
+                        <div class="adm-detail-meta">Cấu hình các phương thức thanh toán cho cửa hàng.</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="adm-form-wrap">
-            <form th:action="@{/admin/thanh-toan}" method="post" class="row g-3">
+        <div class="adm-card">
+            <div class="adm-card-body">
+            <form th:action="@{/admin/thanh-toan}" method="post" data-dirty-bar class="row g-3">
                 <div class="col-12">
-                    <h6 class="text-muted border-bottom pb-2">Phương thức thanh toán</h6>
+                    <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-credit-card me-1"></i>Phương thức thanh toán</h6>
                 </div>
                 <div class="col-md-4">
                     <div class="form-check form-switch">
@@ -36,7 +47,7 @@
                     </div>
                 </div>
                 <div class="col-12">
-                    <h6 class="text-muted border-bottom pb-2 mt-3">Thông tin tài khoản ngân hàng</h6>
+                    <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-bank me-1"></i>Thông tin tài khoản ngân hàng</h6>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Ngân hàng</label>
@@ -67,6 +78,7 @@
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
     </body>

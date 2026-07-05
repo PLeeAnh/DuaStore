@@ -24,4 +24,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
             "WHERE (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH') " +
             "GROUP BY oi.productId ORDER BY total DESC")
     List<Object[]> findTopSellingProductIds(Pageable pageable);
+    @Query("SELECT COALESCE(SUM(oi.soLuong), 0) FROM OrderItem oi WHERE oi.productId = :productId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
+    long sumSoldQuantityByProductId(@Param("productId") Integer productId);
 }

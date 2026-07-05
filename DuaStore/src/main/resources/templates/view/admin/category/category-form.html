@@ -39,7 +39,7 @@
     <!-- Form -->
     <form id="categoryForm"
           th:action="${category.id != null} ? @{/admin/danh-muc/sua/{id}(id=${category.id})} : @{/admin/danh-muc/them-moi}"
-          th:object="${category}" method="post" enctype="multipart/form-data">
+          th:object="${category}" method="post" data-dirty-bar enctype="multipart/form-data">
         <input type="hidden" th:field="*{id}" />
 
         <div class="row g-4">
@@ -58,7 +58,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Danh mục cha</label>
-                                <select th:field="*{parentId}" class="form-select">
+                                <select th:field="*{parentId}" class="form-select searchable-select">
                                     <option value="">Danh mục gốc</option>
                                     <option th:each="parent : ${parents}"
                                             th:value="${parent.id}"

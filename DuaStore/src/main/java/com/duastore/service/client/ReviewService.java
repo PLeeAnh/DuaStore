@@ -192,6 +192,12 @@ public class ReviewService {
         return result;
     }
 
+    @Transactional(readOnly = true)
+    public List<ReviewDTO> getRecentReviewsByUser(Integer userId, int limit) {
+        return reviewsRepository.findByUserIdOrderByNgayTaoDesc(userId)
+                .stream().limit(limit).map(this::toDTO).toList();
+    }
+
     private void cleanupFile(String url) {
         if (url != null) {
             try {

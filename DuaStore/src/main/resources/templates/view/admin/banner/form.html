@@ -20,7 +20,7 @@
     </div>
 
     <div class="adm-form-wrap">
-        <form th:action="@{${formAction}}" th:object="${banner}" method="post"
+        <form th:action="@{${formAction}}" th:object="${banner}" method="post" data-dirty-bar
               enctype="multipart/form-data" class="row g-3">
             <input type="hidden" th:field="*{id}"/>
             <input type="hidden" th:field="*{imageUrl}"/>

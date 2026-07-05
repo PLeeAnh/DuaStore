@@ -7,11 +7,22 @@
     <li class="breadcrumb-item active">Banner trang chủ</li>
 </th:block>
 <div layout:fragment="content">
-    <div class="adm-page-header">
-        <div><h4><i class="bi bi-images me-2"></i>Banner trang chủ</h4>
-            <p class="text-muted small mb-0">Banner hoạt động hiển thị theo thứ tự từ nhỏ đến lớn.</p></div>
-        <a th:if="${userPermissions.contains('BANNER_CREATE')}" th:href="@{/admin/banner/them-moi}"
-           class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Thêm banner</a>
+    <div class="adm-detail-hero">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <i class="bi bi-images"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4>Banner trang chủ</h4>
+                        <div class="adm-detail-meta">Banner hoạt động hiển thị theo thứ tự từ nhỏ đến lớn.</div>
+                    </div>
+                    <a th:if="${userPermissions.contains('BANNER_CREATE')}" th:href="@{/admin/banner/them-moi}"
+                       class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Thêm banner</a>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="adm-table-wrap">
         <table class="table table-hover align-middle mb-0">
@@ -28,17 +39,18 @@
             <tbody>
             <tr th:each="b : ${banners}">
                 <td class="fw-semibold text-center" th:text="${b.thuTu}">0</td>
-                <td><img th:src="${b.hinhAnh}" th:alt="${b.tieuDe}" onerror="this.src='/images/no-image.png'"
-                         style="width:200px;height:76px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb">
-                </td>
+                <td><div style="max-width:200px;max-height:80px;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb">
+                    <img th:src="${b.hinhAnh}" th:alt="${b.tieuDe}" onerror="this.src='/images/no-image.png'"
+                         style="width:100%;height:100%;object-fit:cover;display:block">
+                </div></td>
                 <td>
                     <div class="fw-semibold" th:text="${b.tieuDe}"></div>
                     <small class="text-muted" th:if="${b.moTa}" th:text="${#strings.abbreviate(b.moTa, 90)}"></small>
                 </td>
                 <td><a th:if="${b.lienKet}" th:href="${b.lienKet}" target="_blank" class="small text-break"
                        th:text="${#strings.abbreviate(b.lienKet, 45)}"></a></td>
-                <td><span th:if="${b.isActive}" class="badge bg-success">Đang hiển thị</span><span
-                        th:unless="${b.isActive}" class="badge bg-secondary">Đang ẩn</span></td>
+                <td><span th:if="${b.isActive}" class="status-pill status-DANG_HIEN_THI">Đang hiển thị</span><span
+                        th:unless="${b.isActive}" class="status-pill status-AN">Đang ẩn</span></td>
                 <td class="text-end text-nowrap">
                     <form th:if="${userPermissions.contains('BANNER_UPDATE')}"
                           th:action="@{/admin/banner/doi-trang-thai/{id}(id=${b.id})}" method="post" class="d-inline">

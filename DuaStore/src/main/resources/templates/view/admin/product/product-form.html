@@ -44,7 +44,7 @@
     <!-- ═══════ FORM ═══════ -->
     <form id="productForm"
           th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
-          th:object="${product}" method="post" enctype="multipart/form-data">
+          th:object="${product}" method="post" data-dirty-bar enctype="multipart/form-data">
         <input type="hidden" th:field="*{id}" />
 
         <div class="row g-4">
@@ -122,13 +122,19 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label">Trạng thái</label>
-                                <div class="btn-group" role="group">
+                                <div class="d-flex flex-wrap gap-2">
                                     <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDangBan" value="DANG_BAN" th:checked="${product.trangThaiSanPham == 'DANG_BAN'}" />
-                                    <label class="btn btn-outline-primary btn-sm" for="statusDangBan">Đang bán</label>
+                                    <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'DANG_BAN'} ? 'active' : ''" for="statusDangBan" style="cursor:pointer">
+                                        <i class="bi bi-check-circle-fill text-success me-1"></i>Đang bán
+                                    </label>
                                     <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDatTruoc" value="DAT_TRUOC" th:checked="${product.trangThaiSanPham == 'DAT_TRUOC'}" />
-                                    <label class="btn btn-outline-primary btn-sm" for="statusDatTruoc">Đặt trước</label>
+                                    <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'DAT_TRUOC'} ? 'active' : ''" for="statusDatTruoc" style="cursor:pointer">
+                                        <i class="bi bi-clock-fill text-warning me-1"></i>Đặt trước
+                                    </label>
                                     <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusNgungBan" value="NGUNG_BAN" th:checked="${product.trangThaiSanPham == 'NGUNG_BAN'}" />
-                                    <label class="btn btn-outline-primary btn-sm" for="statusNgungBan">Ngừng bán</label>
+                                    <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'NGUNG_BAN'} ? 'active' : ''" for="statusNgungBan" style="cursor:pointer">
+                                        <i class="bi bi-x-circle-fill text-danger me-1"></i>Ngừng bán
+                                    </label>
                                 </div>
                             </div>
                         </div>

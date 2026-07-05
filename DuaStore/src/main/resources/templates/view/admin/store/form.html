@@ -11,11 +11,25 @@
         <li class="breadcrumb-item active" aria-current="page">Cửa hàng</li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-geo-alt me-2"></i>Thông tin cửa hàng</h4>
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Thông tin cửa hàng</h4>
+                        <div class="adm-detail-meta">Cấu hình thông tin và vị trí cửa hàng.</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="adm-form-wrap">
-            <form th:action="@{/admin/cua-hang}" method="post" class="row g-3">
+        <div class="adm-card">
+            <div class="adm-card-body">
+            <form th:action="@{/admin/cua-hang}" method="post" data-dirty-bar class="row g-3">
+                <div class="col-12">
+                    <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-info-circle me-1"></i>Thông tin cơ bản</h6>
+                </div>
                 <div class="col-md-6">
                     <label class="form-label">Tên cửa hàng</label>
                     <input type="text" name="store_name" class="form-control"
@@ -53,6 +67,9 @@
                            th:value="${settings.get('store_longitude')}" readonly />
                 </div>
                 <div class="col-12">
+                    <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-geo-alt me-1"></i>Vị trí trên bản đồ</h6>
+                </div>
+                <div class="col-12">
                     <label class="form-label">Bản đồ</label>
                     <div id="map" style="width:100%;height:350px;border-radius:8px;border:1px solid var(--ef-border);background:#e9ecef"></div>
                 </div>
@@ -60,6 +77,7 @@
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
 

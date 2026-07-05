@@ -75,7 +75,8 @@
                                 <div class="ds-cart-item-info">
                                     <a class="ds-cart-item-name"
                                        th:href="@{/san-pham/{id}(id=${item.productId})}"
-                                       th:text="${item.tenSanPham}">Tên SP</a>
+                                        th:text="${item.tenSanPham}">Tên SP</a>
+                                    <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger ms-1" style="font-size:.65rem">Flash Sale</span>
                                     <div class="ds-cart-item-variant" th:text="${item.tenBienThe}">Biến thể</div>
                                     <div class="d-flex gap-2">
                                         <button class="ds-cart-remove"

@@ -21,4 +21,5 @@ public class OrderItemDTO {
     private BigDecimal donGia;
     private Integer soLuong;
     private BigDecimal thanhTien;
+    private String loaiGia;
 }

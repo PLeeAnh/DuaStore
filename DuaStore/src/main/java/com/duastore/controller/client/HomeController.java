@@ -17,6 +17,7 @@ import com.duastore.repository.UserVoucherRepository;
 import com.duastore.repository.WishlistRepository;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
+import com.duastore.service.PricingService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
@@ -49,6 +50,7 @@ public class HomeController {
     private final OrderItemRepository orderItemRepository;
     private final WishlistRepository wishlistRepository;
     private final ReviewsRepository reviewsRepository;
+    private final PricingService pricingService;
 
     public HomeController(ProductService productService,
                           CategoryService categoryService,
@@ -64,6 +66,7 @@ public class HomeController {
                           OrderItemRepository orderItemRepository,
                           WishlistRepository wishlistRepository,
                           ReviewsRepository reviewsRepository) {
+                          PricingService pricingService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -78,6 +81,7 @@ public class HomeController {
         this.orderItemRepository = orderItemRepository;
         this.wishlistRepository = wishlistRepository;
         this.reviewsRepository = reviewsRepository;
+        this.pricingService = pricingService;
     }
 
     @GetMapping("/")
@@ -215,6 +219,9 @@ public class HomeController {
             for (FlashSale fs : activeFlashSales) {
                 flashSaleMap.put(fs.getProductId(), fs);
             }
+        if (!featured.isEmpty()) {
+            List<Integer> ids = featured.stream().map(Product::getId).collect(Collectors.toList());
+            flashSaleMap = pricingService.loadActiveFlashSaleMap(ids);
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                 .collect(Collectors.groupingBy(ProductVariant::getProductId));

@@ -73,6 +73,9 @@ DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS role_permissions;
 DROP TABLE IF EXISTS permissions;
 DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS user_settings;
+DROP TABLE IF EXISTS linked_accounts;
+DROP TABLE IF EXISTS user_auth_providers;
 DROP TABLE IF EXISTS SiteSettings;
 DROP TABLE IF EXISTS store_info;
 DROP TABLE IF EXISTS users;
@@ -100,6 +103,62 @@ CREATE TABLE users (
     CONSTRAINT PK_users          PRIMARY KEY (id),
     CONSTRAINT UQ_users_email    UNIQUE (email),
     CONSTRAINT UQ_users_username UNIQUE (username)
+);
+GO
+
+-- ============================================================
+-- [1b] ALTER users — them cot cho profile
+-- ============================================================
+ALTER TABLE users ADD avatar          NVARCHAR(255) NULL;
+ALTER TABLE users ADD nickname        NVARCHAR(100) NULL;
+ALTER TABLE users ADD status          NVARCHAR(20)  NOT NULL DEFAULT 'ONLINE';
+ALTER TABLE users ADD email_visible   BIT           NOT NULL DEFAULT 0;
+ALTER TABLE users ADD phone_visible   BIT           NOT NULL DEFAULT 0;
+ALTER TABLE users ADD email_marketing BIT           NOT NULL DEFAULT 1;
+GO
+
+-- ============================================================
+-- [1c] BANG: user_auth_providers  (UserAuthProvider.java)
+-- Luu phuong thuc dang nhap (PASSWORD, GOOGLE) cho 1 user.
+-- Cung email chi co 1 user, nhung co the co nhieu phuong thuc.
+-- ============================================================
+CREATE TABLE user_auth_providers (
+    id              INT IDENTITY(1,1) NOT NULL,
+    user_id         INT               NOT NULL,
+    provider        NVARCHAR(20)      NOT NULL,  -- 'PASSWORD', 'GOOGLE'
+    provider_sub    NVARCHAR(255)     NULL,       -- Google 'sub', NULL for PASSWORD
+    linked_at       DATETIME2         NOT NULL,
+    CONSTRAINT PK_user_auth_providers PRIMARY KEY (id),
+    CONSTRAINT FK_uap_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+GO
+
+-- ============================================================
+-- [1d] BANG: linked_accounts  (LinkedAccount.java)
+-- Danh sach tai khoan da lien ket de chuc nang "Doi tai khoan".
+-- ============================================================
+CREATE TABLE linked_accounts (
+    id              INT IDENTITY(1,1) NOT NULL,
+    user_id         INT               NOT NULL,
+    linked_user_id  INT               NOT NULL,
+    created_at      DATETIME2         NOT NULL,
+    CONSTRAINT PK_linked_accounts PRIMARY KEY (id),
+    CONSTRAINT FK_la_user   FOREIGN KEY (user_id)       REFERENCES users(id),
+    CONSTRAINT FK_la_linked FOREIGN KEY (linked_user_id) REFERENCES users(id),
+    CONSTRAINT UQ_la_pair   UNIQUE (user_id, linked_user_id)
+);
+GO
+
+-- ============================================================
+-- [1e] BANG: user_settings  (UserSetting.java)
+-- Key-value settings cho tung user (thong bao, giao dien, v.v.)
+-- ============================================================
+CREATE TABLE user_settings (
+    user_id       INT              NOT NULL,
+    setting_key   NVARCHAR(50)     NOT NULL,
+    setting_value NVARCHAR(500)    NULL,
+    CONSTRAINT PK_user_settings PRIMARY KEY (user_id, setting_key),
+    CONSTRAINT FK_us_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 GO
 
@@ -896,6 +955,11 @@ GO
 INSERT INTO user_roles (user_id, role_id) VALUES
     ((SELECT id FROM users WHERE username = 'admin'),     (SELECT id FROM roles WHERE name = N'SUPER_ADMIN')),
     ((SELECT id FROM users WHERE username = 'nguyenvan'), (SELECT id FROM roles WHERE name = N'USER'));
+GO
+
+-- Seed: mac dinh moi user co phuong thuc dang nhap PASSWORD
+INSERT INTO user_auth_providers (user_id, provider, linked_at)
+SELECT id, 'PASSWORD', ngayTao FROM users;
 GO
 
 -- ============================================================
