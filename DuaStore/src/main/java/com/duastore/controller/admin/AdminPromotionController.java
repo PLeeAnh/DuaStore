@@ -2,6 +2,8 @@ package com.duastore.controller.admin;
 
 import com.duastore.model.Promotion;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.ProductRepository;
+import com.duastore.repository.CategoryRepository;
 import com.duastore.service.admin.AdminPromotionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -23,11 +25,23 @@ public class AdminPromotionController {
 
     private final AdminPromotionService adminPromotionService;
     private final PromotionRepository promotionRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
     public AdminPromotionController(AdminPromotionService adminPromotionService,
-                                    PromotionRepository promotionRepository) {
+                                    PromotionRepository promotionRepository,
+                                    ProductRepository productRepository,
+                                    CategoryRepository categoryRepository) {
         this.adminPromotionService = adminPromotionService;
         this.promotionRepository = promotionRepository;
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+    }
+
+    @ModelAttribute
+    public void addTargetModels(Model model) {
+        model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+        model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
     }
 
     @GetMapping

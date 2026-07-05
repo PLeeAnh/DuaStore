@@ -75,6 +75,13 @@
 
             <div class="position-relative px-2 py-3">
                 <div class="d-flex justify-content-between align-items-start position-relative" style="z-index:1">
+                    <div class="position-absolute" style="top:27px; left:0; right:0; height:4px; z-index:0">
+                        <div class="bg-light h-100 w-100 position-absolute rounded"></div>
+                        <div class="h-100 position-absolute rounded"
+                             th:classappend="${order.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-success'"
+                             th:style="${'width: ' + ((currentStep - 0.5) * 100.0 / T(com.duastore.util.OrderStatusUtil).getTotalSteps()) + '%; transition: width 0.3s'}">
+                        </div>
+                    </div>
                     <div th:each="s, iter : ${T(com.duastore.util.OrderStatusUtil).getOrderedStatuses()}"
                          class="d-flex flex-column align-items-center" style="flex:1">
                         <div class="oms-timeline-node timeline-step"
@@ -94,13 +101,6 @@
                                th:classappend="${iter.index + 1 <= currentStep and order.trangThaiDon != 'DA_HUY'} ? 'fw-semibold text-dark' : 'text-muted'"
                                th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(s)}">
                         </small>
-                    </div>
-                </div>
-                <div class="position-absolute start-0 end-0 mx-4" style="height:4px; top:21px; z-index:0">
-                    <div class="bg-light h-100 w-100 position-absolute rounded"></div>
-                    <div class="h-100 position-absolute rounded"
-                         th:classappend="${order.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-success'"
-                         th:style="${'width: ' + ((currentStep - 1) * 100.0 / (T(com.duastore.util.OrderStatusUtil).getTotalSteps() - 1)) + '%; transition: width 0.3s'}">
                     </div>
                 </div>
             </div>
@@ -134,6 +134,7 @@
                                             <img th:unless="${item.hinhAnhSP}" src="https://via.placeholder.com/56" alt="" />
                                             <div>
                                                 <div class="fw-semibold small" th:text="${item.tenSanPham}"></div>
+                                                <span th:if="${item.loaiGia == 'FLASH_SALE'}" class="badge bg-danger" style="font-size:.6rem">Flash Sale</span>
                                                 <div class="text-muted small" th:text="${item.tenBienThe}"></div>
                                             </div>
                                         </div>
@@ -163,7 +164,7 @@
                               th:text="${T(com.duastore.util.PaymentStatusUtil).getPaymentMethodLabel(order.phuongThucTT)}"></span>
                         <span class="text-muted mx-1">|</span>
                         <span class="text-muted small"
-                              th:text="${order.phuongThucGiaoHang == 'NHAN_TAI_CONG' ? 'Nhận tại cửa hàng' : 'Giao hàng tiêu chuẩn'}"></span>
+                              th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao hàng nhanh' : 'Giao hàng an toàn'}"></span>
                         <span class="text-muted mx-1">|</span>
                         <span class="text-muted small" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></span>
                     </div>
@@ -284,7 +285,7 @@
                     <div class="small">
                         <div class="d-flex justify-content-between mb-1">
                             <span class="text-muted">Phương thức</span>
-                            <span class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'NHAN_TAI_CONG' ? 'Nhận tại cửa hàng' : 'Giao hàng tiêu chuẩn'}"></span>
+                            <span class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao hàng nhanh' : 'Giao hàng an toàn'}"></span>
                         </div>
                         <div class="d-flex justify-content-between mb-1 align-items-center">
                             <span class="text-muted">Mã vận đơn</span>
@@ -308,7 +309,7 @@
                                         th:onclick="'cancelMaVanDon(' + ${order.id} + ')'"><i class="bi bi-x-lg"></i></button>
                             </div>
                         </div>
-                        <div th:if="${order.phuongThucGiaoHang != 'NHAN_TAI_CONG'}" class="mt-2 p-2 bg-light rounded">
+                        <div class="mt-2 p-2 bg-light rounded">
                             <div class="text-muted small">
                                 <i class="bi bi-clock-history me-1"></i>Trạng thái hành trình:
                                 <span th:if="${order.trangThaiDon == 'DANG_GIAO'}" class="text-primary fw-semibold">Đang được vận chuyển</span>

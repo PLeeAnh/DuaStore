@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var paymentData = [[${paymentMethodCounts}]];
     if (paymentData) {
         var payLabels = Object.keys(paymentData).map(function(k) {
-            var map = { 'COD': 'COD', 'BANK_TRANSFER': 'Chuyển khoản', 'MOMO': 'MoMo', 'VNPAY': 'VNPay', 'NHAN_TAI_CONG': 'Tiền mặt' };
+            var map = { 'COD': 'COD', 'BANK_TRANSFER': 'Chuyển khoản', 'MOMO': 'MoMo', 'VNPAY': 'VNPay' };
             return map[k] || k;
         });
         var payValues = Object.values(paymentData).map(function(v) { return Number(v); });

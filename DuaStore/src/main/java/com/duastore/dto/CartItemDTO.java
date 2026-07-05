@@ -27,4 +27,5 @@ public class CartItemDTO {
     private BigDecimal giaLucThem;
     private boolean giaThayDoi;
     private LocalDateTime ngayThem;
+    private String nguonGia;
 }

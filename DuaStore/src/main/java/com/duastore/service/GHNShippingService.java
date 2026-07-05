@@ -38,7 +38,7 @@ public class GHNShippingService {
     }
 
     public BigDecimal calculateFee(Address address, String shippingMethod) {
-        if (!isEnabled() || "NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)) {
+        if (!isEnabled()) {
             return null;
         }
         try {

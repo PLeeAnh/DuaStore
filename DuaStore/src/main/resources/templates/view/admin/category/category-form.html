@@ -58,7 +58,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Danh mục cha</label>
-                                <select th:field="*{parentId}" class="form-select">
+                                <select th:field="*{parentId}" class="form-select searchable-select">
                                     <option value="">Danh mục gốc</option>
                                     <option th:each="parent : ${parents}"
                                             th:value="${parent.id}"

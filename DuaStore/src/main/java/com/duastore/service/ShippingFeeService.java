@@ -27,10 +27,6 @@ public class ShippingFeeService {
     }
 
     public BigDecimal calculateFee(Address address, String shippingMethod) {
-        if ("NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)) {
-            return BigDecimal.ZERO;
-        }
-
         BigDecimal ghnFee = ghnShippingService.calculateFee(address, shippingMethod);
         if (ghnFee != null) return ghnFee;
 
@@ -41,10 +37,6 @@ public class ShippingFeeService {
     }
 
     public BigDecimal calculateFee(double userLat, double userLng, String shippingMethod) {
-        if ("NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)) {
-            return BigDecimal.ZERO;
-        }
-
         double distance = haversine(userLat, userLng, storeLat, storeLng);
         BigDecimal fee = new BigDecimal("10000").add(new BigDecimal("200").multiply(BigDecimal.valueOf(distance)));
         if (fee.compareTo(MIN_FEE) < 0) fee = MIN_FEE;

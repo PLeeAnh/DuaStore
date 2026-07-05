@@ -76,8 +76,8 @@
                     <tr><td class="text-muted ps-0">Username</td><td th:text="${customer.username}"></td></tr>
                     <tr><td class="text-muted ps-0">Trạng thái</td>
                         <td>
-                            <span th:if="${customer.isActive}" class="badge bg-success">Hoạt động</span>
-                            <span th:if="${!customer.isActive}" class="badge bg-secondary">Khóa</span>
+                            <span th:if="${customer.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                            <span th:if="${!customer.isActive}" class="status-pill status-LOCKED">Khóa</span>
                         </td>
                     </tr>
                     <tr><td class="text-muted ps-0">Ngày tạo</td><td th:text="${#temporals.format(customer.ngayTao, 'HH:mm dd/MM/yyyy')}"></td></tr>

@@ -189,7 +189,7 @@ public class CheckoutController {
 
             User finalUser = order.getUser();
             String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "VNPAY".equals(order.getPhuongThucTT()) ? "VNPay" : "COD";
-            String finalGh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+            String finalGh = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
             String finalMaDon = order.getMaDon();
             String finalNgayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
             String finalDiaChi = order.getSnapDiaChi();
@@ -405,7 +405,7 @@ public class CheckoutController {
 
                 User finalUser = order.getUser();
                 String finalTt2 = "Chuyển khoản";
-                String finalGh2 = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+                String finalGh2 = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
                 String finalMaDon2 = order.getMaDon();
                 String finalNgayDat2 = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 String finalDiaChi2 = order.getSnapDiaChi();
