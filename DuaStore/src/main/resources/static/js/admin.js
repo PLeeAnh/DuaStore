@@ -191,9 +191,83 @@ function copyPromoCode(btn) {
             };
         }
         new TomSelect(el, opts);
+});
+
+/* ── Dirty Save Bar ── */
+function initDirtyBar() {
+    var bar = document.getElementById('dsSaveBar');
+    if (!bar) return;
+    var forms = document.querySelectorAll('form[data-dirty-bar]');
+    if (!forms.length) return;
+    var activeForm = null;
+    var resetBtn = document.getElementById('dsSaveBarReset');
+    var saveBtn = document.getElementById('dsSaveBarSave');
+    var fields = 'input, select, textarea';
+
+    function getFormData(f) {
+        return new FormData(f);
+    }
+
+    function checkDirty(f) {
+        if (!f._cleanData) {
+            f._cleanData = getFormData(f);
+            f._dirty = false;
+            return;
+        }
+        var current = getFormData(f);
+        var dirty = false;
+        var keys = new Set();
+        for (var pair of f._cleanData.entries()) keys.add(pair[0]);
+        for (var pair of current.entries()) keys.add(pair[0]);
+        keys.forEach(function(k) {
+            var v1 = f._cleanData.getAll(k).sort().join(',');
+            var v2 = current.getAll(k).sort().join(',');
+            if (v1 !== v2) dirty = true;
+        });
+        if (dirty !== f._dirty) {
+            f._dirty = dirty;
+            updateBar(dirty, f);
+        }
+    }
+
+    function updateBar(dirty, f) {
+        if (dirty) {
+            activeForm = f;
+            bar.style.display = 'flex';
+            requestAnimationFrame(function() { bar.classList.add('show'); });
+        } else {
+            bar.classList.remove('show');
+            activeForm = null;
+            setTimeout(function() { bar.style.display = 'none'; }, 300);
+        }
+    }
+
+    function resetDirty(f) {
+        f.reset();
+        setTimeout(function() {
+            f._cleanData = getFormData(f);
+            f._dirty = false;
+            updateBar(false, f);
+        }, 50);
+    }
+
+    forms.forEach(function(f) {
+        f._cleanData = getFormData(f);
+        f._dirty = false;
+        f.addEventListener('input', function() { checkDirty(f); });
+        f.addEventListener('change', function() { checkDirty(f); });
     });
 
-    /* ── Tree toggle ── */
+    if (resetBtn) resetBtn.addEventListener('click', function() {
+        if (activeForm) resetDirty(activeForm);
+    });
+
+    if (saveBtn) saveBtn.addEventListener('click', function() {
+        if (activeForm) activeForm.requestSubmit();
+    });
+}
+
+initDirtyBar();
     const treeRoot = document.querySelector('.category-tree');
     if (treeRoot) {
         treeRoot.addEventListener('click', function(e) {

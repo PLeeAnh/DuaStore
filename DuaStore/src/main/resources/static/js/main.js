@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.ds-qty-btn');
-        if (!btn) return;
+        if (!btn || btn.closest('#cart-items-container, .ds-cart-qty')) return;
         e.stopPropagation();
         e.preventDefault();
         const card = getCard(btn);
@@ -209,6 +209,24 @@ document.addEventListener('DOMContentLoaded', function() {
         qtyEl.value = qty;
         minus.disabled = (qty <= 1);
         plus.disabled = (qty >= maxStock);
+    });
+
+    /* ── Validate manual qty input on product cards ── */
+    document.addEventListener('change', function(e) {
+        const el = e.target.closest('.ds-qty-val');
+        if (!el || el.closest('#cart-items-container')) return; // skip popup (handled separately)
+        const card = getCard(el);
+        if (!card) return;
+        const activeChip = getActiveVariant(card);
+        const maxStock = activeChip ? parseInt(activeChip.getAttribute('data-stock')) || 99 : 99;
+        let val = parseInt(el.value) || 1;
+        if (val < 1) val = 1;
+        if (val > maxStock) { val = maxStock; DuaStore.toast.warning('Chỉ còn ' + maxStock + ' sản phẩm'); }
+        el.value = val;
+        const minus = card.querySelector('.ds-qty-minus');
+        const plus = card.querySelector('.ds-qty-plus');
+        if (minus) minus.disabled = (val <= 1);
+        if (plus) plus.disabled = (val >= maxStock);
     });
 
     /* ═══ FLASH SALE COUNTDOWN ═══ */

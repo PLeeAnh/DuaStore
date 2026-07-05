@@ -1,6 +1,7 @@
 package com.duastore.config.security;
 
 import com.duastore.model.User;
+import com.duastore.repository.UserAuthProviderRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.client.CartService;
 import jakarta.servlet.ServletException;
@@ -21,10 +22,13 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
 
     private final UserRepository userRepository;
     private final CartService cartService;
+    private final UserAuthProviderRepository userAuthProviderRepository;
 
-    public CustomAuthenticationSuccessHandler(UserRepository userRepository, CartService cartService) {
+    public CustomAuthenticationSuccessHandler(UserRepository userRepository, CartService cartService,
+                                               UserAuthProviderRepository userAuthProviderRepository) {
         this.userRepository = userRepository;
         this.cartService = cartService;
+        this.userAuthProviderRepository = userAuthProviderRepository;
     }
 
     @Override
@@ -60,6 +64,14 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             session.setAttribute("userRole", roleName);
             session.setAttribute("userUsername", user.getUsername());
             session.setAttribute("userPhone", user.getSoDienThoai());
+            session.setAttribute("userAvatar", user.getAvatar());
+            session.setAttribute("userNickname", user.getNickname());
+            session.setAttribute("userStatus", user.getStatus());
+            session.setAttribute("userEmailVisible", user.getEmailVisible());
+            session.setAttribute("userPhoneVisible", user.getPhoneVisible());
+            session.setAttribute("userEmailMarketing", user.getEmailMarketing());
+            session.setAttribute("userCreatedAt", user.getNgayTao());
+            session.setAttribute("hasGoogleLinked", userAuthProviderRepository.existsByUserIdAndProvider(user.getId(), "GOOGLE"));
         }
 
         @SuppressWarnings("unchecked")

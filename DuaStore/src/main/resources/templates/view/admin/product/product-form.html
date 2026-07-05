@@ -44,7 +44,7 @@
     <!-- ═══════ FORM ═══════ -->
     <form id="productForm"
           th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
-          th:object="${product}" method="post" enctype="multipart/form-data">
+          th:object="${product}" method="post" data-dirty-bar enctype="multipart/form-data">
         <input type="hidden" th:field="*{id}" />
 
         <div class="row g-4">
