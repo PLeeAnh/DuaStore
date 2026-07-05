@@ -129,8 +129,6 @@
                     <div class="ds-card-body">
                         <a th:href="@{/san-pham/{id}(id=${p.id})}" class="ds-product-name" th:text="${p.tenSanPham}">Tên SP</a>
 
-                        <div class="star-rating-readonly small" th:if="${avgRatings != null and avgRatings.containsKey(p.id)}" th:data-score="${#numbers.formatDecimal(avgRatings.get(p.id), 1, 0)}"></div>
-
                         <div class="ds-card-actions">
                             <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
                                 <div class="ds-variant-tabs">
@@ -223,17 +221,6 @@
     </div>
 </div>
 
-<th:block layout:fragment="extra-script">
-<script>
-    document.querySelectorAll('.star-rating-readonly[data-score]').forEach(function(el) {
-        var score = parseInt(el.dataset.score) || 0;
-        var html = '';
-        for (var i = 5; i >= 1; i--) {
-            html += i <= score ? '\u2605' : '\u2606';
-        }
-        el.textContent = html;
-    });
-</script>
-</th:block>
+
 </body>
 </html>
