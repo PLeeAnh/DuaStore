@@ -132,7 +132,7 @@
                         <div class="adm-variant-card h-100">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div class="adm-variant-name" th:text="${v.tenBienThe}">Tên</div>
-                                <span class="badge bg-success" style="font-size:10px" th:if="${v.isDefault}">Mặc định</span>
+                                <span class="status-pill status-MAC_DINH" style="font-size:10px" th:if="${v.isDefault}">Mặc định</span>
                             </div>
                             <div class="adm-variant-meta">Dung tích: <span th:text="${v.dungTich != null ? v.dungTich + 'ml' : '—'}">—</span></div>
                             <div class="adm-variant-meta">SKU: #<span th:text="${v.id}">0</span></div>

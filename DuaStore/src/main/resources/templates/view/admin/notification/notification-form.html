@@ -29,7 +29,7 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label">Đính kèm sản phẩm</label>
-                <select th:field="*{productId}" class="form-select">
+                <select th:field="*{productId}" class="form-select searchable-select">
                     <option value="">-- Không chọn --</option>
                     <option th:each="p : ${products}" th:value="${p.id}"
                             th:text="${p.tenSanPham} + ' (' + ${p.trangThaiSanPham == 'DANG_BAN' ? 'Còn hàng' : p.trangThaiSanPham == 'DAT_TRUOC' ? 'Đặt trước' : 'Ngừng bán'} + ')'"></option>
@@ -38,7 +38,7 @@
             </div>
             <div class="col-md-6">
                 <label class="form-label">Đính kèm mã giảm giá</label>
-                <select th:field="*{promotionId}" class="form-select">
+                <select th:field="*{promotionId}" class="form-select searchable-select">
                     <option value="">-- Không chọn --</option>
                     <option th:each="promo : ${promotions}" th:value="${promo.id}"
                             th:text="${promo.maCode} + ' - ' + ${promo.tenChuongTrinh}"></option>

@@ -172,7 +172,7 @@
                                 </div>
                                 <div class="small">
                                     <div class="text-muted">Phương thức giao hàng</div>
-                                    <div class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'SHIP' ? 'Giao hàng tận nơi' : order.phuongThucGiaoHang == 'NHAN_TAI_CONG' ? 'Nhận tại cửa hàng' : order.phuongThucGiaoHang}"></div>
+                                    <div class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao hàng nhanh' : order.phuongThucGiaoHang == 'SHIP' ? 'Giao hàng an toàn' : order.phuongThucGiaoHang}"></div>
                                 </div>
                             </div>
                         </div>

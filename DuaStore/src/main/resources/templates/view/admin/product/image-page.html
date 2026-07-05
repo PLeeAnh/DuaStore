@@ -83,13 +83,13 @@
     <!-- ═══════ FILTER PILLS ═══════ -->
     <div class="d-flex align-items-center gap-2 mb-4">
         <span class="text-muted small fw-medium me-1">Bộ lọc:</span>
-        <div class="btn-group btn-group-sm" role="group" aria-label="Lọc ảnh">
+        <div class="d-flex flex-wrap gap-2">
             <input type="radio" class="btn-check" name="imageFilter" id="filterAll" value="all" checked>
-            <label class="btn btn-outline-primary" for="filterAll">Tất cả</label>
+            <label class="adm-tab active" for="filterAll" style="cursor:pointer">Tất cả</label>
             <input type="radio" class="btn-check" name="imageFilter" id="filterHas" value="has">
-            <label class="btn btn-outline-primary" for="filterHas">Đã có ảnh</label>
+            <label class="adm-tab" for="filterHas" style="cursor:pointer">Đã có ảnh</label>
             <input type="radio" class="btn-check" name="imageFilter" id="filterMissing" value="missing">
-            <label class="btn btn-outline-primary" for="filterMissing">Thiếu ảnh</label>
+            <label class="adm-tab" for="filterMissing" style="cursor:pointer">Thiếu ảnh</label>
         </div>
     </div>
 
@@ -136,8 +136,8 @@
                 <div class="adm-image-card-body">
                     <div class="adm-image-name" th:text="${p.tenSanPham}">Tên SP</div>
                     <div class="adm-image-status">
-                        <span th:if="${imageCounts.get(p.id) > 0}" class="badge bg-success">Sẵn sàng</span>
-                        <span th:unless="${imageCounts.get(p.id) > 0}" class="badge bg-warning text-dark">Cần cập nhật</span>
+                        <span th:if="${imageCounts.get(p.id) > 0}" class="status-pill status-SAN_SANG">Sẵn sàng</span>
+                        <span th:unless="${imageCounts.get(p.id) > 0}" class="status-pill status-CAN_CAP_NHAT">Cần cập nhật</span>
                     </div>
                     <div class="adm-image-action" onclick="event.stopPropagation()">
                         <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${p.id})}"
@@ -198,6 +198,10 @@
                     else if (value === 'has') card.style.display = count > 0 ? '' : 'none';
                     else if (value === 'missing') card.style.display = count === 0 ? '' : 'none';
                 });
+                document.querySelectorAll('input[name=imageFilter] + .adm-tab').forEach(function(l) {
+                    l.classList.remove('active');
+                });
+                this.nextElementSibling.classList.add('active');
             });
         });
     })();

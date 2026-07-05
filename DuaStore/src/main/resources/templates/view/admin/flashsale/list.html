@@ -43,8 +43,8 @@
                         <td th:text="${#temporals.format(fs.ngayBatDau, 'dd/MM/yyyy HH:mm')}"></td>
                         <td th:text="${#temporals.format(fs.ngayKetThuc, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
-                            <span th:if="${fs.isActive}" class="badge bg-success">Hoạt động</span>
-                            <span th:unless="${fs.isActive}" class="badge bg-secondary">Tạm dừng</span>
+                            <span th:if="${fs.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                            <span th:unless="${fs.isActive}" class="status-pill status-TAM_DUNG">Tạm dừng</span>
                         </td>
                         <td>
                             <a th:href="@{/admin/flash-sale/edit/{id}(id=${fs.id})}" class="btn btn-sm btn-outline-primary me-1">

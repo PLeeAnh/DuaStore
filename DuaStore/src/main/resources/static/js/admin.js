@@ -184,7 +184,11 @@ function copyPromoCode(btn) {
             opts.createOnBlur = true;
         }
         if (el.hasAttribute('data-autosubmit')) {
-            opts.onChange = function() { el.closest('form')?.submit(); };
+            opts.onChange = function() {
+                var form = el.closest('form');
+                if (form) { form.submit(); }
+                else { el.dispatchEvent(new Event('change', { bubbles: true })); }
+            };
         }
         new TomSelect(el, opts);
     });

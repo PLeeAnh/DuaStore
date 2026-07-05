@@ -11,11 +11,53 @@
         <li class="breadcrumb-item active" aria-current="page">Bài viết</li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-file-text me-2"></i>Bài viết</h4>
-            <a th:href="@{/admin/bai-viet/them-moi}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>Thêm mới
-            </a>
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-file-text"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Bài viết</h4>
+                            <div class="adm-detail-meta">Quản lý tất cả bài viết trong cửa hàng.</div>
+                        </div>
+                        <a th:href="@{/admin/bai-viet/them-moi}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
+                            <div class="adm-stat-label">Tổng bài viết</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-filter-bar">
+            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div class="d-flex gap-2">
+                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm tiêu đề..." />
+                    <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="XUAT_BAN">Xuất bản</option>
+                        <option value="NHAP">Nháp</option>
+                        <option value="AN">Ẩn</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <div class="adm-table-wrap">
@@ -51,9 +93,9 @@
                         <td th:text="${p.danhMuc != null ? p.danhMuc.tenDanhMuc : '—'}"></td>
                         <td th:text="${tacGiaMap.get(p.tacGiaId) != null ? tacGiaMap.get(p.tacGiaId) : '—'}"></td>
                         <td>
-                            <span th:if="${p.trangThai == 'XUAT_BAN'}" class="badge bg-success">Xuất bản</span>
-                            <span th:if="${p.trangThai == 'NHAP'}" class="badge bg-warning text-dark">Nháp</span>
-                            <span th:if="${p.trangThai == 'AN'}" class="badge bg-secondary">Ẩn</span>
+                            <span th:if="${p.trangThai == 'XUAT_BAN'}" class="status-pill status-XUAT_BAN">Xuất bản</span>
+                            <span th:if="${p.trangThai == 'NHAP'}" class="status-pill status-NHAP">Nháp</span>
+                            <span th:if="${p.trangThai == 'AN'}" class="status-pill status-AN">Ẩn</span>
                         </td>
                         <td>
                             <span th:if="${p.featured}" class="text-success"><i class="bi bi-star-fill"></i></span>
@@ -81,5 +123,25 @@
         </div>
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
+    <th:block layout:fragment="extra-script">
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function doFilter() {
+            var keyword = document.getElementById('searchKeyword').value;
+            var status = document.getElementById('filterStatus').value;
+            var params = new URLSearchParams();
+            if (keyword) params.set('keyword', keyword);
+            if (status) params.set('trangThai', status);
+            window.location.href = '/admin/bai-viet?' + params.toString();
+        }
+        document.getElementById('filterStatus').addEventListener('change', doFilter);
+        var searchTimer;
+        document.getElementById('searchKeyword').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(doFilter, 400);
+        });
+    });
+    </script>
+    </th:block>
     </body>
-</html>
+    </html>

@@ -72,20 +72,19 @@
                                 <h5 class="ds-checkout-section-title"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
                                 <div class="ds-checkout-radio-group">
                                     <div class="ds-checkout-radio">
-                                        <input type="radio" name="phuongThucGiaoHang" id="shipTT" value="SHIP" checked />
-                                        <label for="shipTT">
-                                            <span>Giao hàng tiêu chuẩn</span>
-                                            <span class="ds-checkout-radio-price" id="shipTTPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
+                                        <input type="radio" name="phuongThucGiaoHang" id="shipExpress" value="EXPRESS" />
+                                        <label for="shipExpress">
+                                            <span>Giao hàng nhanh</span>
+                                            <span class="ds-checkout-radio-price" id="shipExpressPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
                                         </label>
                                     </div>
                                     <div class="ds-checkout-radio">
-                                        <input type="radio" name="phuongThucGiaoHang" id="shipPickup" value="NHAN_TAI_CONG" />
-                                        <label for="shipPickup">
-                                            <span>Nhận tại cửa hàng</span>
-                                            <span class="ds-checkout-radio-price" id="shipPickupPrice">Miễn phí</span>
+                                        <input type="radio" name="phuongThucGiaoHang" id="shipSafe" value="SHIP" checked />
+                                        <label for="shipSafe">
+                                            <span>Giao hàng an toàn</span>
+                                            <span class="ds-checkout-radio-price" id="shipSafePrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 15000, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</span>
                                         </label>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
@@ -158,6 +157,7 @@
                                 <img th:src="@{${item.hinhAnh}}" alt="" class="rounded" style="width:50px;height:50px;object-fit:cover" />
                                 <div class="flex-grow-1 small">
                                     <div class="text-truncate" th:text="${item.tenSanPham}"></div>
+                                    <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger" style="font-size:.6rem">Flash Sale</span>
                                     <div class="text-muted" th:text="${item.tenBienThe}"></div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>

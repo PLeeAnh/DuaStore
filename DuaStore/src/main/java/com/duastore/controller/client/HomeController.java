@@ -14,6 +14,7 @@ import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.UserVoucherRepository;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
+import com.duastore.service.PricingService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
@@ -43,6 +44,7 @@ public class HomeController {
     private final UserVoucherRepository userVoucherRepository;
     private final SecurityUtil securityUtil;
     private final SiteSettingService siteSettingService;
+    private final PricingService pricingService;
 
     public HomeController(ProductService productService,
                           CategoryService categoryService,
@@ -54,7 +56,8 @@ public class HomeController {
                           BannerService bannerService,
                           UserVoucherRepository userVoucherRepository,
                           SecurityUtil securityUtil,
-                          SiteSettingService siteSettingService) {
+                          SiteSettingService siteSettingService,
+                          PricingService pricingService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -66,6 +69,7 @@ public class HomeController {
         this.userVoucherRepository = userVoucherRepository;
         this.securityUtil = securityUtil;
         this.siteSettingService = siteSettingService;
+        this.pricingService = pricingService;
     }
 
     @GetMapping("/")
@@ -135,10 +139,7 @@ public class HomeController {
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
         if (!featured.isEmpty()) {
             List<Integer> ids = featured.stream().map(Product::getId).collect(Collectors.toList());
-            List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
-            for (FlashSale fs : activeFlashSales) {
-                flashSaleMap.put(fs.getProductId(), fs);
-            }
+            flashSaleMap = pricingService.loadActiveFlashSaleMap(ids);
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                 .collect(Collectors.groupingBy(ProductVariant::getProductId));

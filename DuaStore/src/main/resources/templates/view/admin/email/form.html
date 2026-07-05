@@ -11,11 +11,25 @@
         <li class="breadcrumb-item active" aria-current="page">Email/SMTP</li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-envelope me-2"></i>Cấu hình Email/SMTP</h4>
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Cấu hình Email/SMTP</h4>
+                        <div class="adm-detail-meta">Cấu hình máy chủ SMTP để gửi email từ hệ thống.</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="adm-form-wrap">
+        <div class="adm-card">
+            <div class="adm-card-body">
             <form th:action="@{/admin/email-smtp}" method="post" class="row g-3">
+                <div class="col-12">
+                    <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-server me-1"></i>SMTP Server</h6>
+                </div>
                 <div class="col-md-6">
                     <label class="form-label">SMTP Host</label>
                     <input type="text" name="email_host" class="form-control"
@@ -58,6 +72,7 @@
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
     </body>

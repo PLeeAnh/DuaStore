@@ -11,6 +11,7 @@ import com.duastore.model.ProductVariant;
 import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
+import com.duastore.service.PricingService;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
@@ -52,6 +53,7 @@ public class ProductController {
     private final WishlistService wishlistService;
     private final SecurityUtil securityUtil;
     private final FileUploadService fileUploadService;
+    private final PricingService pricingService;
 
     public ProductController(ProductService productService,
                              ProductVariantRepository variantRepository,
@@ -62,7 +64,8 @@ public class ProductController {
                              PromotionRepository promotionRepository,
                              WishlistService wishlistService,
                              SecurityUtil securityUtil,
-                             FileUploadService fileUploadService) {
+                             FileUploadService fileUploadService,
+                             PricingService pricingService) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -73,6 +76,7 @@ public class ProductController {
         this.wishlistService = wishlistService;
         this.securityUtil = securityUtil;
         this.fileUploadService = fileUploadService;
+        this.pricingService = pricingService;
     }
 
     @GetMapping("/san-pham")
@@ -139,10 +143,7 @@ public class ProductController {
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                 .collect(Collectors.groupingBy(ProductVariant::getProductId));
-            List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
-            for (FlashSale fs : activeFlashSales) {
-                flashSaleMap.put(fs.getProductId(), fs);
-            }
+            flashSaleMap.putAll(pricingService.loadActiveFlashSaleMap(ids));
         }
         model.addAttribute("variantsMap", variantsMap);
         model.addAttribute("flashSaleMap", flashSaleMap);

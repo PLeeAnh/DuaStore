@@ -675,6 +675,55 @@ body.adm-body {
     color: #B45309;
 }
 
+/* ── 14b. Entity Status Pills (enum-style) ── */
+.status-ACTIVE,
+.status-XUAT_BAN,
+.status-DA_DUYET,
+.status-HOAT_DONG,
+.status-SAN_SANG,
+.status-MAC_DINH,
+.status-DANG_HIEN_THI {
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--success);
+}
+.status-LOCKED,
+.status-NHAP,
+.status-TAM_DUNG,
+.status-CAN_CAP_NHAT,
+.status-KHONG {
+    background: rgba(245, 158, 11, 0.12);
+    color: #B45309;
+}
+.status-AN {
+    background: rgba(100, 116, 139, 0.12);
+    color: var(--muted);
+}
+.status-CHO_DUYET {
+    background: rgba(245, 158, 11, 0.12);
+    color: #B45309;
+}
+.status-TU_CHOI,
+.status-KHOA {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--danger);
+}
+.status-TAM_KHOA {
+    background: rgba(245, 158, 11, 0.12);
+    color: #B45309;
+}
+.status-SUPER_ADMIN {
+    background: rgba(126, 34, 206, 0.12);
+    color: #7E22CE;
+}
+.status-ADMIN {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--primary);
+}
+.status-USER {
+    background: rgba(100, 116, 139, 0.12);
+    color: var(--muted);
+}
+
 /* ── 15. Progress Bar (Order Detail) ── */
 .progress-step-bar {
     display: flex;
@@ -1697,4 +1746,71 @@ body.adm-body {
         font-size: .75rem;
         min-width: 32px;
     }
+}
+
+/* ── 19. TomSelect (searchable-select) ── */
+.ts-wrapper.form-select,
+.ts-wrapper.multi .ts-control {
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+}
+.ts-wrapper .ts-control {
+    background: var(--card);
+    border: 2px solid var(--border) !important;
+    border-radius: 12px;
+    padding: .35rem 1rem .35rem .75rem;
+    min-height: 40px;
+    font-size: .875rem;
+    color: var(--text);
+    box-shadow: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+.ts-wrapper .ts-control input {
+    font-size: .875rem;
+    color: var(--text);
+}
+.ts-wrapper.focus .ts-control {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.ts-wrapper .ts-dropdown {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    margin-top: 4px;
+    color: var(--text);
+    font-size: .875rem;
+}
+.ts-wrapper .ts-dropdown .option.active {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+.ts-wrapper .ts-dropdown .option:hover {
+    background: var(--bg);
+}
+.ts-wrapper.multi .ts-control .item {
+    background: var(--primary-light);
+    color: var(--primary);
+    border: none;
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: .8rem;
+    margin: 2px;
+}
+.ts-wrapper.multi .ts-control .item .remove {
+    border-color: var(--primary-light);
+    color: var(--primary);
+    border-radius: 0 8px 8px 0;
+    font-size: 1rem;
+    line-height: 1;
+}
+.ts-wrapper.multi .ts-control .item .remove:hover {
+    background: var(--primary);
+    color: #fff;
+}
+.ts-wrapper.disabled .ts-control {
+    opacity: .5;
+    cursor: not-allowed;
 }

@@ -60,9 +60,9 @@
                         <tr>
                             <td class="text-muted ps-0">Trạng thái</td>
                             <td>
-                                <span th:if="${refund.trangThai == 'CHO_DUYET'}" class="badge bg-warning text-dark">Chờ duyệt</span>
-                                <span th:if="${refund.trangThai == 'DA_DUYET'}" class="badge bg-success">Đã duyệt</span>
-                                <span th:if="${refund.trangThai == 'TU_CHOI'}" class="badge bg-danger">Từ chối</span>
+                                <span th:if="${refund.trangThai == 'CHO_DUYET'}" class="status-pill status-CHO_DUYET">Chờ duyệt</span>
+                                <span th:if="${refund.trangThai == 'DA_DUYET'}" class="status-pill status-DA_DUYET">Đã duyệt</span>
+                                <span th:if="${refund.trangThai == 'TU_CHOI'}" class="status-pill status-TU_CHOI">Từ chối</span>
                             </td>
                         </tr>
                         <tr>
@@ -119,8 +119,8 @@
                         <tr>
                             <td class="text-muted ps-0">Kết quả</td>
                             <td>
-                                <span th:if="${refund.trangThai == 'DA_DUYET'}" class="badge bg-success">Đã duyệt</span>
-                                <span th:if="${refund.trangThai == 'TU_CHOI'}" class="badge bg-danger">Từ chối</span>
+                                <span th:if="${refund.trangThai == 'DA_DUYET'}" class="status-pill status-DA_DUYET">Đã duyệt</span>
+                                <span th:if="${refund.trangThai == 'TU_CHOI'}" class="status-pill status-TU_CHOI">Từ chối</span>
                             </td>
                         </tr>
                     </table>
