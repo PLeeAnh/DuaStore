@@ -95,4 +95,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT p.danhMucId, COUNT(p) FROM Product p WHERE p.isActive = true GROUP BY p.danhMucId")
     List<Object[]> countProductsByDanhMuc();
+
+    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham != 'NGUNG_BAN' " +
+            "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice) " +
+            "ORDER BY p.ngayTao DESC")
+    List<Product> findUnderPrice(@Param("maxPrice") BigDecimal maxPrice, Pageable pageable);
 }
