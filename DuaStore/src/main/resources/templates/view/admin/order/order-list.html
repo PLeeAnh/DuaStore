@@ -28,6 +28,15 @@
             </div>
         </div>
 
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${orderTab == 'don-hang' ? ' active' : ''}" th:href="@{/admin/don-hang}">
+                <i class="bi bi-bag-check"></i>Đơn hàng
+            </a>
+            <a class="adm-tab" th:classappend="${orderTab == 'hoan-tien' ? ' active' : ''}" th:href="@{/admin/hoan-tien}">
+                <i class="bi bi-arrow-return-left"></i>Hoàn tiền
+            </a>
+        </div>
+
         <!-- Stat cards -->
         <div class="row g-3 mb-4">
             <div class="col-md-3 col-6">

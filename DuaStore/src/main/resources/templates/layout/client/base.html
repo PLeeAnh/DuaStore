@@ -269,8 +269,8 @@
                             </div>
                             <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
                             <a class="ds-popup-link" th:href="@{/vi-voucher}"><i class="bi bi-wallet2"></i> Ví Voucher</a>
-                            <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
-                            <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                            <a class="ds-popup-link" th:href="@{/tai-khoan/hoat-dong}"><i class="bi bi-activity"></i> Hoạt động</a>
+                            <a class="ds-popup-link" th:href="@{/tai-khoan}"><i class="bi bi-person-circle"></i> Tài khoản</a>
                             <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
                             <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
                                 <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
@@ -328,6 +328,38 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-dark px-4 py-2 fw-semibold">Lưu thay đổi</button>
+                    <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-sm">
+            <form th:action="@{/tai-khoan/doi-mat-khau}" method="post">
+                <div class="modal-header">
+                    <h5 class="fw-bold">Đổi mật khẩu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Mật khẩu cũ</label>
+                        <input type="password" name="oldPassword" class="form-control" required minlength="6"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Mật khẩu mới</label>
+                        <input type="password" name="newPassword" class="form-control" required minlength="6"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary">Xác nhận mật khẩu</label>
+                        <input type="password" name="confirmPassword" class="form-control" required minlength="6"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-dark px-4 py-2 fw-semibold">Lưu mật khẩu</button>
                     <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold" data-bs-dismiss="modal">Hủy</button>
                 </div>
             </form>

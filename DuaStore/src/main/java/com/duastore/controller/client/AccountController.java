@@ -1,8 +1,15 @@
 package com.duastore.controller.client;
 
 import com.duastore.config.security.SecurityUtil;
+import com.duastore.model.Address;
 import com.duastore.model.User;
+import com.duastore.repository.AddressRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.service.LocationService;
+import com.duastore.service.admin.RefundService;
+import com.duastore.service.client.OrderService;
+import com.duastore.service.client.ReviewService;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -14,17 +21,32 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 public class AccountController {
 
     private final SecurityUtil securityUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final OrderService orderService;
+    private final ReviewService reviewService;
+    private final RefundService refundService;
+    private final AddressRepository addressRepository;
+    private final LocationService locationService;
 
-    public AccountController(SecurityUtil securityUtil, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AccountController(SecurityUtil securityUtil, UserRepository userRepository,
+                             PasswordEncoder passwordEncoder, OrderService orderService,
+                             ReviewService reviewService, RefundService refundService,
+                             AddressRepository addressRepository, LocationService locationService) {
         this.securityUtil = securityUtil;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.orderService = orderService;
+        this.reviewService = reviewService;
+        this.refundService = refundService;
+        this.addressRepository = addressRepository;
+        this.locationService = locationService;
     }
 
     @GetMapping("/tai-khoan")
@@ -98,5 +120,43 @@ public class AccountController {
         userRepository.save(user);
         ra.addFlashAttribute("successMsg", "Đổi mật khẩu thành công");
         return "redirect:/tai-khoan";
+    }
+
+    @GetMapping("/tai-khoan/hoat-dong")
+    public String activity(Model model) {
+        User user = securityUtil.getCurrentUser();
+        if (user == null) {
+            return "redirect:/dang-nhap";
+        }
+        Page<com.duastore.model.Order> orders = orderService.getOrdersByUserId(user.getId(), 0, 5);
+        model.addAttribute("recentOrders", orders.getContent());
+        model.addAttribute("recentReviews", reviewService.getRecentReviewsByUser(user.getId(), 5));
+        model.addAttribute("recentRefunds", refundService.getByUser(user.getId()));
+        model.addAttribute("title", "Hoạt động");
+        return "view/client/account/activity";
+    }
+
+    @GetMapping("/tai-khoan/cai-dat")
+    public String settings(Model model) {
+        User user = securityUtil.getCurrentUser();
+        if (user == null) {
+            return "redirect:/dang-nhap";
+        }
+        model.addAttribute("title", "Cài đặt");
+        model.addAttribute("user", user);
+        return "view/client/account/settings";
+    }
+
+    @GetMapping("/tai-khoan/dia-chi")
+    public String addresses(Model model) {
+        User user = securityUtil.getCurrentUser();
+        if (user == null) {
+            return "redirect:/dang-nhap";
+        }
+        model.addAttribute("title", "Địa chỉ");
+        model.addAttribute("user", user);
+        model.addAttribute("addresses", addressRepository.findByUserIdOrderByIsDefaultDesc(user.getId()));
+        model.addAttribute("provinces", locationService.getProvinces());
+        return "view/client/account/addresses";
     }
 }

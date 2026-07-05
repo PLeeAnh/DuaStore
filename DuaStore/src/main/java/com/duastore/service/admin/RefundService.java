@@ -31,6 +31,11 @@ public class RefundService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu hoàn tiền"));
     }
 
+    @Transactional(readOnly = true)
+    public boolean hasRefundRequestByOrderId(Integer orderId) {
+        return refundRequestRepository.existsByOrderId(orderId);
+    }
+
     public RefundRequest create(RefundRequest request) {
         return refundRequestRepository.save(request);
     }

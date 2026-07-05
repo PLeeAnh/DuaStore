@@ -117,6 +117,7 @@ public class AdminOrderController {
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("trangThaiTT", trangThaiTT);
         model.addAttribute("title", "don-hang");
+        model.addAttribute("orderTab", "don-hang");
 
         model.addAttribute("totalOrders", orderRepository.count());
         model.addAttribute("pendingOrdersCount", orderRepository.countByTrangThaiDon("CHO_XAC_NHAN"));

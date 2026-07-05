@@ -25,6 +25,8 @@ public class AdminRefundController {
     public String list(Model model) {
         model.addAttribute("refunds", refundService.getAll());
         model.addAttribute("pendingCount", refundService.getPendingCount());
+        model.addAttribute("title", "hoan-tien");
+        model.addAttribute("orderTab", "hoan-tien");
         return "view/admin/refund/list";
     }
 

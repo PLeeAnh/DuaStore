@@ -35,6 +35,7 @@ public class AdminRoleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_READ)")
     public String list(Model model) {
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("roles", roleService.findAll());
         model.addAttribute("entityLabel", "vai trò");
         model.addAttribute("url", "/admin/vai-tro");
@@ -45,6 +46,7 @@ public class AdminRoleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_CREATE)")
     public String createForm(Model model) {
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("role", new com.duastore.model.Role());
         model.addAttribute("groupedPermissions", roleService.getPermissionsGroupedByModule());
         return "view/admin/role/role-form";
@@ -80,6 +82,7 @@ public class AdminRoleController {
             return "redirect:/admin/vai-tro";
         }
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("role", role);
         model.addAttribute("groupedPermissions", roleService.getPermissionsGroupedByModule());
         return "view/admin/role/role-form";

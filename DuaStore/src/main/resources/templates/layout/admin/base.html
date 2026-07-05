@@ -79,8 +79,8 @@
 
             <div class="adm-nav-section">Kinh doanh</div>
             <a class="adm-nav-link" th:href="@{/admin/don-hang}"
-               th:if="${userPermissions.contains('ORDER_READ')}"
-               th:classappend="${title == 'don-hang' ? ' active' : ''}">
+               th:if="${userPermissions.contains('ORDER_READ') or userPermissions.contains('REFUND_READ')}"
+               th:classappend="${title == 'don-hang' or title == 'hoan-tien' ? ' active' : ''}">
                 <i class="bi bi-bag-check"></i>
                 <span>Đơn hàng</span>
                 <span class="badge bg-danger ms-auto" th:if="${pendingOrders > 0}" th:text="${pendingOrders}"></span>
@@ -92,22 +92,10 @@
                 <span>Khách hàng</span>
             </a>
             <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
-               th:if="${userPermissions.contains('PROMOTION_READ')}"
-               th:classappend="${title == 'khuyen-mai' ? ' active' : ''}">
+               th:if="${userPermissions.contains('PROMOTION_READ') or userPermissions.contains('FLASH_SALE_READ')}"
+               th:classappend="${title == 'khuyen-mai' or title == 'flash-sale' ? ' active' : ''}">
                 <i class="bi bi-tag"></i>
                 <span>Khuyến mãi</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/flash-sale}"
-               th:if="${userPermissions.contains('FLASH_SALE_READ')}"
-               th:classappend="${title == 'flash-sale' ? ' active' : ''}">
-                <i class="bi bi-lightning"></i>
-                <span>Flash Sale</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/hoan-tien}"
-               th:if="${userPermissions.contains('REFUND_READ')}"
-               th:classappend="${title == 'hoan-tien' ? ' active' : ''}">
-                <i class="bi bi-arrow-return-left"></i>
-                <span>Hoàn tiền</span>
             </a>
 
             <div class="adm-nav-section">Nội dung</div>
@@ -169,16 +157,10 @@
 
             <div class="adm-nav-section">Hệ thống</div>
             <a class="adm-nav-link" th:href="@{/admin/nguoi-dung}"
-               th:if="${userPermissions.contains('USER_READ')}"
-               th:classappend="${title == 'nguoi-dung' ? ' active' : ''}">
+               th:if="${userPermissions.contains('USER_READ') or userPermissions.contains('ROLE_READ')}"
+               th:classappend="${title == 'nguoi-dung' or title == 'vai-tro' ? ' active' : ''}">
                 <i class="bi bi-people"></i>
                 <span>Người dùng</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/vai-tro}"
-               th:if="${userPermissions.contains('ROLE_READ')}"
-               th:classappend="${title == 'vai-tro' ? ' active' : ''}">
-                <i class="bi bi-shield-lock"></i>
-                <span>Phân quyền</span>
             </a>
             <a class="adm-nav-link" th:href="@{/admin/nhat-ky}"
                th:if="${userPermissions.contains('AUDIT_LOG_READ')}"

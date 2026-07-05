@@ -30,6 +30,15 @@
             </div>
         </div>
 
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${promotionTab == 'khuyen-mai' ? ' active' : ''}" th:href="@{/admin/khuyen-mai}">
+                <i class="bi bi-tag"></i>Khuyến mãi
+            </a>
+            <a class="adm-tab" th:classappend="${promotionTab == 'flash-sale' ? ' active' : ''}" th:href="@{/admin/flash-sale}">
+                <i class="bi bi-lightning"></i>Flash Sale
+            </a>
+        </div>
+
         <div class="row g-3 mb-4">
             <div class="col-md-4 col-6">
                 <div class="adm-stat">

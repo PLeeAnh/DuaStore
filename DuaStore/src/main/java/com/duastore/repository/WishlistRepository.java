@@ -19,4 +19,6 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
 
     @Query("SELECT w.productId FROM Wishlist w WHERE w.userId = ?1")
     List<Integer> findProductIdsByUserId(Integer userId);
+
+    long countByProductId(Integer productId);
 }

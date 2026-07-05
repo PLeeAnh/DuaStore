@@ -2138,6 +2138,37 @@ a { color: inherit; }
   overflow: hidden;
 }
 
+/* ── Product stats row (⭐ đánh giá · đã bán · yêu thích) ── */
+.product-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: .82rem;
+  color: #64748B;
+}
+.product-stats-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.product-stats-item i {
+  font-size: .78rem;
+}
+.product-stats-item i.bi-star-fill {
+  color: #f59e0b;
+}
+.product-stats-item i.bi-bag-check-fill {
+  color: #2563eb;
+}
+.product-stats-item i.bi-heart-fill {
+  color: #ef4444;
+}
+.product-stats-sep {
+  color: #CBD5E1;
+  font-weight: 700;
+}
+
 /* ── Category badges row ── */
 .badge-mini-card {
   display: inline-flex;

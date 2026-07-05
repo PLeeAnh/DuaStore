@@ -18,4 +18,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
 
     @Query("SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END FROM OrderItem oi WHERE oi.productId = :productId AND oi.order.user.id = :userId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
     boolean existsByProductIdAndUserIdAndPaid(@Param("productId") Integer productId, @Param("userId") Integer userId);
+
+    @Query("SELECT COALESCE(SUM(oi.soLuong), 0) FROM OrderItem oi WHERE oi.productId = :productId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
+    long sumSoldQuantityByProductId(@Param("productId") Integer productId);
 }
