@@ -33,6 +33,8 @@ public class AdminFlashSaleController {
     public String list(Model model) {
         List<FlashSale> list = flashSaleService.getAll();
         model.addAttribute("flashSales", list);
+        model.addAttribute("title", "flash-sale");
+        model.addAttribute("promotionTab", "flash-sale");
         return "view/admin/flashsale/list";
     }
 

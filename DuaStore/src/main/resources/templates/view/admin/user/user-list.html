@@ -30,6 +30,15 @@
             </div>
         </div>
 
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${userTab == 'nguoi-dung' ? ' active' : ''}" th:href="@{/admin/nguoi-dung}">
+                <i class="bi bi-people"></i>Người dùng
+            </a>
+            <a class="adm-tab" th:classappend="${userTab == 'phan-quyen' ? ' active' : ''}" th:href="@{/admin/vai-tro}">
+                <i class="bi bi-shield-lock"></i>Phân quyền
+            </a>
+        </div>
+
         <div class="adm-table-wrap">
             <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
                 <div class="d-flex gap-3 text-muted small">

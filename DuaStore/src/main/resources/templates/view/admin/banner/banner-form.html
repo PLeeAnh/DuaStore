@@ -11,7 +11,7 @@
     <div class="adm-page-header"><h4><i class="bi bi-image me-2"></i><span
             th:text="${banner.id == null ? 'Thêm banner' : 'Chỉnh sửa banner'}"></span></h4></div>
     <div class="adm-form-wrap">
-        <form th:action="@{${formAction}}" th:object="${banner}" method="post" enctype="multipart/form-data"
+        <form th:action="@{${formAction}}" th:object="${banner}" method="post" data-dirty-bar enctype="multipart/form-data"
               class="row g-3">
             <input type="hidden" th:field="*{id}"><input type="hidden" th:field="*{hinhAnh}">
             <div class="col-lg-8"><label class="form-label">Tiêu đề <span class="text-danger">*</span></label><input

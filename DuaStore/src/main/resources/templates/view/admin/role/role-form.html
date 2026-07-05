@@ -25,7 +25,7 @@
     </div>
 
     <div class="adm-form-wrap">
-        <form method="post"
+        <form method="post" data-dirty-bar
               th:action="${role.id != null} ? @{/admin/vai-tro/sua/{id}(id=${role.id})} : @{/admin/vai-tro/them-moi}"
               class="row g-3">
             <input type="hidden" name="id" th:value="${role.id}" />

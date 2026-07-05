@@ -1814,3 +1814,39 @@ body.adm-body {
     opacity: .5;
     cursor: not-allowed;
 }
+
+/* ── Save Bar ── */
+.ds-save-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 99999;
+    background: #fff;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 20px rgba(0,0,0,.1);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transform: translateY(100%);
+    transition: transform .3s ease;
+}
+.ds-save-bar.show {
+    transform: translateY(0);
+}
+.ds-save-bar .ds-save-bar-msg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--primary);
+}
+.ds-save-bar .ds-save-bar-msg i {
+    font-size: 1.2rem;
+}
+.ds-save-bar .ds-save-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}

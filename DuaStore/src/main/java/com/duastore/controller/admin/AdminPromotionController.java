@@ -71,6 +71,7 @@ public class AdminPromotionController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("isActive", isActive);
         model.addAttribute("title", "khuyen-mai");
+        model.addAttribute("promotionTab", "khuyen-mai");
         model.addAttribute("totalPromotions", promotionRepository.count());
         model.addAttribute("activePromotionsCount", promotionRepository.countByIsActiveTrue());
         model.addAttribute("inactivePromotionsCount", promotionRepository.countByIsActiveFalse());

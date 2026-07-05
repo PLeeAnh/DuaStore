@@ -52,6 +52,24 @@
                 <div class="col-lg-6">
                     <h1 class="fw-bold mb-1" style="font-size:1.85rem;color:#0F172A;line-height:1.3" th:text="${product.tenSanPham}">Tên sản phẩm</h1>
 
+                    <div class="product-stats-row mb-2" th:with="rc=${ratingSummary != null ? ratingSummary.get('count') : null}">
+                        <span class="product-stats-item" th:if="${rc != null and rc > 0}">
+                            <i class="bi bi-star-fill"></i>
+                            <strong th:text="${#numbers.formatDecimal(ratingSummary.get('avg'), 1, 1)}">4.8</strong>
+                            <span class="text-muted">(<span th:text="${rc}">12</span> đánh giá)</span>
+                        </span>
+                        <span class="product-stats-sep" th:if="${rc != null and rc > 0}">·</span>
+                        <span class="product-stats-item">
+                            <i class="bi bi-bag-check-fill"></i>
+                            Đã bán <strong th:text="${soldCount}">0</strong>
+                        </span>
+                        <span class="product-stats-sep">·</span>
+                        <span class="product-stats-item">
+                            <i class="bi bi-heart-fill"></i>
+                            <strong th:text="${wishlistCount}">0</strong> yêu thích
+                        </span>
+                    </div>
+
                     <div class="d-flex flex-wrap gap-3 mb-3" style="font-size:.82rem;color:#64748B">
                         <span th:if="${product.thuongHieu}">
                             Thương hiệu: <strong class="text-dark" th:text="${product.thuongHieu}">TH</strong>

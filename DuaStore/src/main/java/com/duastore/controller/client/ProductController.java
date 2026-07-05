@@ -11,6 +11,7 @@ import com.duastore.model.ProductVariant;
 import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.OrderItemRepository;
 import com.duastore.service.PricingService;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
@@ -54,6 +55,7 @@ public class ProductController {
     private final SecurityUtil securityUtil;
     private final FileUploadService fileUploadService;
     private final PricingService pricingService;
+    private final OrderItemRepository orderItemRepository;
 
     public ProductController(ProductService productService,
                              ProductVariantRepository variantRepository,
@@ -65,7 +67,8 @@ public class ProductController {
                              WishlistService wishlistService,
                              SecurityUtil securityUtil,
                              FileUploadService fileUploadService,
-                             PricingService pricingService) {
+                             PricingService pricingService,
+                             OrderItemRepository orderItemRepository) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -77,6 +80,7 @@ public class ProductController {
         this.securityUtil = securityUtil;
         this.fileUploadService = fileUploadService;
         this.pricingService = pricingService;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @GetMapping("/san-pham")
@@ -299,6 +303,11 @@ public class ProductController {
         } catch (Exception e) {
             log.warn("Loi doc likedIds o trang chi tiet san pham: {}", e.getMessage());
         }
+
+        // ── Số liệu xã hội thật: đã bán, lượt yêu thích, đánh giá trung bình ──
+        model.addAttribute("soldCount", orderItemRepository.sumSoldQuantityByProductId(id));
+        model.addAttribute("wishlistCount", wishlistService.countByProduct(id));
+        model.addAttribute("ratingSummary", reviewService.getRatingSummary(id));
 
         // Active promotions for discount badge
         LocalDateTime now = LocalDateTime.now();

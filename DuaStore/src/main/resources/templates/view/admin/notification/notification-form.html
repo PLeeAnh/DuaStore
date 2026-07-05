@@ -19,7 +19,7 @@
         </h4>
     </div>
     <div class="adm-form-wrap">
-        <form th:action="@{${formAction}}" th:object="${notif}" method="post" class="row g-3">
+        <form th:action="@{${formAction}}" th:object="${notif}" method="post" data-dirty-bar class="row g-3">
             <input type="hidden" th:field="*{id}"/>
             <div class="col-12">
                 <label class="form-label">Nội dung thông báo <span class="text-danger">*</span></label>

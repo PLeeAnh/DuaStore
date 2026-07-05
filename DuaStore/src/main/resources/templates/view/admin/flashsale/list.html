@@ -11,10 +11,31 @@
         <li class="breadcrumb-item active" aria-current="page">Flash Sale</li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-lightning-charge me-2"></i>Quản lý Flash Sale</h4>
-            <a th:href="@{/admin/flash-sale/create}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>Thêm Flash Sale
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-lightning"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Flash Sale</h4>
+                            <div class="adm-detail-meta">Quản lý các chương trình Flash Sale.</div>
+                        </div>
+                        <a th:href="@{/admin/flash-sale/create}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm Flash Sale
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${promotionTab == 'khuyen-mai' ? ' active' : ''}" th:href="@{/admin/khuyen-mai}">
+                <i class="bi bi-tag"></i>Khuyến mãi
+            </a>
+            <a class="adm-tab" th:classappend="${promotionTab == 'flash-sale' ? ' active' : ''}" th:href="@{/admin/flash-sale}">
+                <i class="bi bi-lightning"></i>Flash Sale
             </a>
         </div>
 

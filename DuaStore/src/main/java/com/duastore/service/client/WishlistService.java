@@ -43,6 +43,10 @@ public class WishlistService {
         return wishlistRepository.existsByUserIdAndProductId(userId, productId);
     }
 
+    public long countByProduct(Integer productId) {
+        return wishlistRepository.countByProductId(productId);
+    }
+
     @Transactional
     public boolean toggle(Integer userId, Integer productId) {
         if (productId == null) return false;

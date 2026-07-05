@@ -50,6 +50,7 @@ public class AdminUserController {
             userPage = userRepository.findAllBy(PageRequest.of(page, size, sort));
         }
         model.addAttribute("title", "nguoi-dung");
+        model.addAttribute("userTab", "nguoi-dung");
         model.addAttribute("users", userPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", userPage.getTotalPages());
