@@ -1,69 +1,70 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-<head><title>Banner trang chủ</title></head>
-<body>
-<th:block layout:fragment="breadcrumb">
-    <li class="breadcrumb-item"><a th:href="@{/admin/banner}">Banner trang chủ</a></li>
-    <li class="breadcrumb-item active" th:text="${banner.id == null ? 'Thêm mới' : 'Chỉnh sửa'}"></li>
-</th:block>
-<div layout:fragment="content">
-    <div class="adm-page-header"><h4><i class="bi bi-image me-2"></i><span
-            th:text="${banner.id == null ? 'Thêm banner' : 'Chỉnh sửa banner'}"></span></h4></div>
-    <div class="adm-form-wrap">
-        <form th:action="@{${formAction}}" th:object="${banner}" method="post" data-dirty-bar enctype="multipart/form-data"
-              class="row g-3">
-            <input type="hidden" th:field="*{id}"><input type="hidden" th:field="*{hinhAnh}">
-            <div class="col-lg-8"><label class="form-label">Tiêu đề <span class="text-danger">*</span></label><input
-                    th:field="*{tieuDe}" class="form-control" maxlength="200" required
-                    placeholder="Ví dụ: Bộ sưu tập thủy tinh mới">
-                <div th:errors="*{tieuDe}" class="text-danger small mt-1"></div>
-            </div>
-            <div class="col-lg-4"><label class="form-label">Thứ tự hiển thị</label><input type="number" min="0"
-                                                                                          th:field="*{thuTu}"
-                                                                                          class="form-control">
-                <div th:errors="*{thuTu}" class="text-danger small mt-1"></div>
-            </div>
-            <div class="col-12"><label class="form-label">Mô tả</label><textarea th:field="*{moTa}" class="form-control"
-                                                                                 rows="2" maxlength="500"
-                                                                                 placeholder="Mô tả ngắn cho banner"></textarea>
-                <div th:errors="*{moTa}" class="text-danger small mt-1"></div>
-            </div>
-            <div class="col-lg-8"><label class="form-label">Liên kết khi nhấn</label><input th:field="*{lienKet}"
-                                                                                            class="form-control"
-                                                                                            maxlength="500"
-                                                                                            placeholder="/san-pham hoặc https://...">
-                <div class="form-text">Dùng đường dẫn nội bộ bắt đầu bằng “/” hoặc URL đầy đủ.</div>
-                <div th:errors="*{lienKet}" class="text-danger small mt-1"></div>
-            </div>
-            <div class="col-lg-4"><label class="form-label">Trạng thái</label><select th:field="*{isActive}"
-                                                                                      class="form-select">
-                <option value="true">Hiển thị</option>
-                <option value="false">Ẩn</option>
-            </select></div>
-            <div class="col-12">
-                <label class="form-label">Ảnh banner <span th:if="${banner.id == null}"
-                                                           class="text-danger">*</span></label>
-                <input id="bannerImage" type="file" th:field="*{hinhAnhFile}" class="form-control"
-                       accept="image/jpeg,image/png,image/webp,image/gif" th:required="${banner.id == null}">
-                <div class="form-text">JPG, PNG, WEBP hoặc GIF; tối đa 5MB. Khuyến nghị tỷ lệ rộng 3:1.</div>
-                <div class="mt-3"><img id="bannerPreview"
-                                       th:src="${banner.hinhAnh != null ? banner.hinhAnh : '/images/no-image.png'}"
-                                       alt="Xem trước banner"
-                                       style="width:min(100%,900px);aspect-ratio:3/1;object-fit:cover;border-radius:12px;border:1px solid #dee2e6">
+    <head><title>Banner trang chủ</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/banner}">Banner trang chủ</a></li>
+        <li class="breadcrumb-item active" th:text="${banner.id == null ? 'Thêm mới' : 'Chỉnh sửa'}"></li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header"><h4><i class="bi bi-image me-2"></i><span
+                    th:text="${banner.id == null ? 'Thêm banner' : 'Chỉnh sửa banner'}"></span></h4></div>
+        <div class="adm-form-wrap">
+            <form th:action="@{${formAction}}" th:object="${banner}" method="post" data-dirty-bar enctype="multipart/form-data"
+                  class="row g-3">
+                <input type="hidden" th:field="*{id}"><input type="hidden" th:field="*{hinhAnh}">
+                <div class="col-lg-8"><label class="form-label">Tiêu đề <span class="text-danger">*</span></label><input
+                        th:field="*{tieuDe}" class="form-control" maxlength="200" required
+                        placeholder="Ví dụ: Bộ sưu tập thủy tinh mới">
+                    <div th:errors="*{tieuDe}" class="text-danger small mt-1"></div>
                 </div>
-            </div>
-            <div class="col-12 border-top pt-3">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu banner</button>
-                <a th:href="@{/admin/banner}" class="btn btn-secondary">Hủy</a></div>
-        </form>
+                <div class="col-lg-4"><label class="form-label">Thứ tự hiển thị</label><input type="number" min="0"
+                                                                                              th:field="*{thuTu}"
+                                                                                              class="form-control">
+                    <div th:errors="*{thuTu}" class="text-danger small mt-1"></div>
+                </div>
+                <div class="col-12"><label class="form-label">Mô tả</label><textarea th:field="*{moTa}" class="form-control"
+                                                                                     rows="2" maxlength="500"
+                                                                                     placeholder="Mô tả ngắn cho banner"></textarea>
+                    <div th:errors="*{moTa}" class="text-danger small mt-1"></div>
+                </div>
+                <div class="col-lg-8"><label class="form-label">Liên kết khi nhấn</label><input th:field="*{lienKet}"
+                                                                                                class="form-control"
+                                                                                                maxlength="500"
+                                                                                                placeholder="/san-pham hoặc https://...">
+                    <div class="form-text">Dùng đường dẫn nội bộ bắt đầu bằng “/” hoặc URL đầy đủ.</div>
+                    <div th:errors="*{lienKet}" class="text-danger small mt-1"></div>
+                </div>
+                <div class="col-lg-4"><label class="form-label">Trạng thái</label><select th:field="*{isActive}"
+                                                                                          class="form-select">
+                        <option value="true">Hiển thị</option>
+                        <option value="false">Ẩn</option>
+                    </select></div>
+                <div class="col-12">
+                    <label class="form-label">Ảnh banner <span th:if="${banner.id == null}"
+                                                               class="text-danger">*</span></label>
+                    <input id="bannerImage" type="file" th:field="*{hinhAnhFile}" class="form-control"
+                           accept="image/jpeg,image/png,image/webp,image/gif" th:required="${banner.id == null}">
+                    <div class="form-text">JPG, PNG, WEBP hoặc GIF; tối đa 5MB. Khuyến nghị tỷ lệ rộng 3:1.</div>
+                    <div class="mt-3"><img id="bannerPreview"
+                                           th:src="${banner.hinhAnh != null ? banner.hinhAnh : '/images/no-image.png'}"
+                                           alt="Xem trước banner"
+                                           style="width:min(100%,900px);aspect-ratio:3/1;object-fit:cover;border-radius:12px;border:1px solid #dee2e6">
+                    </div>
+                </div>
+                <div class="col-12 border-top pt-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu banner</button>
+                    <a th:href="@{/admin/banner}" class="btn btn-secondary">Hủy</a></div>
+            </form>
+        </div>
     </div>
-</div>
-<th:block layout:fragment="extra-script">
-    <script>document.getElementById('bannerImage')?.addEventListener('change', function () {
-        const f = this.files && this.files[0];
-        if (f) document.getElementById('bannerPreview').src = URL.createObjectURL(f);
-    });</script>
-</th:block>
+    <th:block layout:fragment="extra-script">
+        <script>document.getElementById('bannerImage')?.addEventListener('change', function () {
+                const f = this.files && this.files[0];
+                if (f)
+                    document.getElementById('bannerPreview').src = URL.createObjectURL(f);
+            });</script>
+    </th:block>
 </body>
 </html>

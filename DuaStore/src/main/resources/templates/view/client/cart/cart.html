@@ -3,538 +3,553 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
-<head>
-    <title>SHOPPING CART - DuaStore</title>
-</head>
-<body>
+    <head>
+        <title>SHOPPING CART - DuaStore</title>
+    </head>
+    <body>
 
 
 
-<div layout:fragment="content" class="py-5">
-    <div class="container-xl">
-        <div class="ds-section-card">
+        <div layout:fragment="content" class="py-5">
+            <div class="container-xl">
+                <h5 class="fw-bold mb-4" style="font-size:1.1rem;color:#0F172A">
+                    <i class="bi bi-bag me-2"></i>Giỏ hàng của bạn
+                </h5>
 
-        <!-- Cart expiration warning -->
-        <div th:if="${hasOutOfStock}" class="ds-expired-warning">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>Một số sản phẩm trong giỏ đã hết hàng hoặc ngừng bán. Vui lòng xóa hoặc cập nhật số lượng.</span>
-        </div>
-
-        <!-- Price change warning -->
-        <div th:if="${hasPriceChanges}" class="ds-stock-warning" style="background:#fff3cd;border-color:#ffc107;color:#856404;">
-            <i class="bi bi-arrow-return-left"></i>
-            <span>Một số sản phẩm đã thay đổi giá so với lúc bạn thêm vào giỏ. Giá mới sẽ được áp dụng khi thanh toán.</span>
-        </div>
-
-        <!-- Stock warnings -->
-        <div th:if="${!#lists.isEmpty(stockWarnings)}">
-            <div th:each="warn : ${stockWarnings}" class="ds-stock-warning">
-                <i class="bi bi-exclamation-circle-fill"></i>
-                <span th:text="${warn}"></span>
-            </div>
-        </div>
-
-        <div th:if="${#lists.isEmpty(myCart)}" class="ds-cart-empty">
-            <i class="bi bi-cart3 ds-cart-empty-icon"></i>
-            <h2 class="ds-cart-empty-title">Giỏ hàng trống</h2>
-            <p class="ds-cart-empty-desc">Bạn chưa có sản phẩm nào trong giỏ hàng.</p>
-            <a th:href="@{/san-pham}" class="ds-cart-empty-btn">Tiếp tục mua sắm</a>
-
-            <!-- Cross-sell suggestions when cart is empty -->
-            <div th:if="${!#lists.isEmpty(suggestions)}" class="mt-5" style="max-width:800px;margin-left:auto;margin-right:auto;">
-                <h5 class="fw-bold mb-3"><i class="bi bi-stars me-1"></i>Gợi ý cho bạn</h5>
-                <div class="row g-3">
-                    <div th:each="p : ${suggestions}" class="col-6 col-md-3">
-                        <a th:href="@{/san-pham/{id}(id=${p.id})}" class="text-decoration-none">
-                            <div class="ds-suggest-card">
-                                <img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" />
-                                <div class="mt-2 text-dark fw-semibold" style="font-size:0.85rem;" th:text="${#strings.abbreviate(p.tenSanPham, 30)}"></div>
-                            </div>
-                        </a>
+                    <!-- Cart expiration warning -->
+                    <div th:if="${hasOutOfStock}" class="ds-expired-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Một số sản phẩm trong giỏ đã hết hàng hoặc ngừng bán. Vui lòng xóa hoặc cập nhật số lượng.</span>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <div th:unless="${#lists.isEmpty(myCart)}">
-            <div class="row g-5">
-                <div class="col-12 col-lg-8">
-                    <div class="ds-card ds-card-elevated">
-                        <div class="ds-cart-header-row d-none d-lg-flex">
-                            <div class="ds-cart-header-cell ds-cart-header-product">Sản phẩm</div>
-                            <div class="ds-cart-header-cell ds-cart-header-price">Đơn giá</div>
-                            <div class="ds-cart-header-cell ds-cart-header-qty">Số lượng</div>
-                            <div class="ds-cart-header-cell ds-cart-header-total">Tạm tính</div>
+                    <!-- Price change warning -->
+                    <div th:if="${hasPriceChanges}" class="ds-stock-warning" style="background:#fff3cd;border-color:#ffc107;color:#856404;">
+                        <i class="bi bi-arrow-return-left"></i>
+                        <span>Một số sản phẩm đã thay đổi giá so với lúc bạn thêm vào giỏ. Giá mới sẽ được áp dụng khi thanh toán.</span>
+                    </div>
+
+                    <!-- Stock warnings -->
+                    <div th:if="${!#lists.isEmpty(stockWarnings)}">
+                        <div th:each="warn : ${stockWarnings}" class="ds-stock-warning">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            <span th:text="${warn}"></span>
                         </div>
+                    </div>
 
-                        <div th:each="item : ${myCart}" class="ds-cart-item" th:id="'cart-item-' + ${item.variantId}"
-                             th:data-stock="${item.soLuongTon}" th:data-qty="${item.soLuong}">
-                            <div class="ds-cart-item-left">
-                                <img class="ds-cart-image"
-                                     th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}"
-                                     th:alt="${item.tenSanPham}" />
-                                <div class="ds-cart-item-info">
-                                    <a class="ds-cart-item-name"
-                                       th:href="@{/san-pham/{id}(id=${item.productId})}"
-                                        th:text="${item.tenSanPham}">Tên SP</a>
-                                    <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger ms-1" style="font-size:.65rem">Flash Sale</span>
-                                    <div class="ds-cart-item-variant" th:text="${item.tenBienThe}">Biến thể</div>
-                                    <div class="d-flex gap-2">
-                                        <button class="ds-cart-remove"
-                                                th:onclick="'removeCartItem(' + ${item.variantId} + ')'" style="font-size:0.8rem;">
-                                            <i class="bi bi-trash"></i> Xóa
-                                        </button>
-                                        <button class="ds-cart-remove" style="font-size:0.8rem;color:#0d6efd;"
-                                                th:onclick="'saveForLater(' + ${item.variantId} + ')'">
-                                            <i class="bi bi-bookmark"></i> Lưu lại sau
-                                        </button>
+                    <div th:if="${#lists.isEmpty(myCart)}" class="ds-cart-empty">
+                        <i class="bi bi-cart3 ds-cart-empty-icon"></i>
+                        <h2 class="ds-cart-empty-title">Giỏ hàng trống</h2>
+                        <p class="ds-cart-empty-desc">Bạn chưa có sản phẩm nào trong giỏ hàng.</p>
+                        <a th:href="@{/san-pham}" class="ds-cart-empty-btn">Tiếp tục mua sắm</a>
+
+                        <!-- Cross-sell suggestions when cart is empty -->
+                        <div th:if="${!#lists.isEmpty(suggestions)}" class="mt-5" style="max-width:800px;margin-left:auto;margin-right:auto;">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-stars me-1"></i>Gợi ý cho bạn</h5>
+                            <div class="row g-3">
+                                <div th:each="p : ${suggestions}" class="col-6 col-md-3">
+                                    <a th:href="@{/san-pham/{id}(id=${p.id})}" class="text-decoration-none">
+                                        <div class="ds-suggest-card">
+                                            <img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" />
+                                            <div class="mt-2 text-dark fw-semibold" style="font-size:0.85rem;" th:text="${#strings.abbreviate(p.tenSanPham, 30)}"></div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(myCart)}">
+                        <div class="row g-5">
+                            <div class="col-12 col-lg-8">
+                                <div class="ds-card p-4">
+                                    <div class="ds-cart-header-row d-none d-lg-flex">
+                                        <div class="ds-cart-header-cell ds-cart-header-product">Sản phẩm</div>
+                                        <div class="ds-cart-header-cell ds-cart-header-price">Đơn giá</div>
+                                        <div class="ds-cart-header-cell ds-cart-header-qty">Số lượng</div>
+                                        <div class="ds-cart-header-cell ds-cart-header-total">Tạm tính</div>
+                                    </div>
+
+                                    <div th:each="item : ${myCart}" class="ds-cart-item" th:id="'cart-item-' + ${item.variantId}"
+                                         th:data-stock="${item.soLuongTon}" th:data-qty="${item.soLuong}">
+                                        <div class="ds-cart-item-left">
+                                            <img class="ds-cart-image"
+                                                 th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}"
+                                                 th:alt="${item.tenSanPham}" />
+                                            <div class="ds-cart-item-info">
+                                                <a class="ds-cart-item-name"
+                                                   th:href="@{/san-pham/{id}(id=${item.productId})}"
+                                                   th:text="${item.tenSanPham}">Tên SP</a>
+                                                <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger ms-1" style="font-size:.65rem">Flash Sale</span>
+                                                <div class="ds-cart-item-variant" th:text="${item.tenBienThe}">Biến thể</div>
+                                                <div class="d-flex gap-2">
+                                                    <button class="ds-cart-remove"
+                                                            th:onclick="'removeCartItem(' + ${item.variantId} + ')'" style="font-size:0.8rem;">
+                                                        <i class="bi bi-trash"></i> Xóa
+                                                    </button>
+                                                    <button class="ds-cart-remove" style="font-size:0.8rem;color:#0d6efd;"
+                                                            th:onclick="'saveForLater(' + ${item.variantId} + ')'">
+                                                        <i class="bi bi-bookmark"></i> Lưu lại sau
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="ds-cart-unit-price">
+                                            <span class="ds-mobile-label text-muted small">Đơn giá: </span>
+                                            <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'">250.000₫</span>
+                                        </div>
+
+                                        <div class="ds-qty-selector">
+                                            <button class="ds-qty-btn ds-qty-minus" type="button"
+                                                    th:onclick="'updateQty(' + ${item.variantId} + ', -1)'">
+                                                <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                            <input type="text" class="ds-qty-val"
+                                                   th:value="${item.soLuong}" th:attr="data-stock=${item.soLuongTon}"
+                                                   th:onchange="'setQty(' + ${item.variantId} + ', this)'" />
+                                            <button class="ds-qty-btn ds-qty-plus" type="button"
+                                                    th:onclick="'updateQty(' + ${item.variantId} + ', 1)'">
+                                                <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="ds-cart-total-price"
+                                             th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + '₫'">
+                                            250.000₫
+                                        </div>
+                                    </div>
+
+                                <!-- Saved for later (own card) -->
+                                <div th:if="${!#lists.isEmpty(savedItems)}" class="ds-card p-3 mt-3">
+                                    <h6 class="fw-bold mb-2 text-muted small"><i class="bi bi-bookmark me-1"></i>Đã lưu để mua sau (<span th:text="${savedCount}"></span>)</h6>
+                                    <div th:each="item : ${savedItems}" class="d-flex align-items-center gap-3 py-2 border-bottom" th:id="'saved-item-' + ${item.id}">
+                                        <div style="width:50px;flex-shrink:0;">
+                                            <img th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}" th:alt="${item.tenSanPham}" style="width:100%;border-radius:6px;" />
+                                        </div>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-dark fw-semibold text-decoration-none" style="font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;" th:text="${item.tenSanPham}"></a>
+                                            <div class="text-muted" style="font-size:0.75rem;" th:text="${item.tenBienThe}"></div>
+                                            <div class="text-danger fw-semibold" style="font-size:0.85rem;" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'"></div>
+                                        </div>
+                                        <div class="d-flex gap-1 flex-shrink-0">
+                                            <button class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size:0.75rem;"
+                                                    th:onclick="'moveToCart(' + ${item.id} + ')'">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;"
+                                                    th:onclick="'removeSaved(' + ${item.id} + ')'">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+
+                                <!-- Cross-sell suggestions -->
+                                <div th:if="${!#lists.isEmpty(suggestions)}" class="mt-4">
+                                    <h5 class="fw-bold mb-3"><i class="bi bi-stars me-1"></i>Gợi ý thêm cho bạn</h5>
+                                    <div class="row g-3">
+                                        <div th:each="p : ${suggestions}" class="col-6 col-md-3">
+                                            <a th:href="@{/san-pham/{id}(id=${p.id})}" class="text-decoration-none">
+                                                <div class="ds-suggest-card">
+                                                    <img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" />
+                                                    <div class="mt-2 text-dark fw-semibold" style="font-size:0.85rem;" th:text="${#strings.abbreviate(p.tenSanPham, 30)}"></div>
+                                                </div>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="ds-cart-unit-price">
-                                <span class="ds-mobile-label text-muted small">Đơn giá: </span>
-                                <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'">250.000₫</span>
-                            </div>
+                            <!-- RIGHT: Order summary -->
+                            <div class="col-12 col-lg-4">
+                                <div class="ds-card p-4 ds-cart-summary">
+                                        <h3 class="ds-cart-summary-title">Tóm tắt đơn hàng</h3>
 
-                            <div class="ds-cart-qty">
-                                <button class="ds-cart-qty-btn" type="button"
-                                        th:onclick="'updateQty(' + ${item.variantId} + ', -1)'">−</button>
-                                <input class="ds-cart-qty-input" type="number"
-                                       th:value="${item.soLuong}" min="1" th:max="${item.soLuongTon}" th:data-max="${item.soLuongTon}"
-                                       th:attr="onchange='setQty(' + ${item.variantId} + ', this)'" />
-                                <button class="ds-cart-qty-btn" type="button"
-                                        th:onclick="'updateQty(' + ${item.variantId} + ', 1)'">+</button>
-                            </div>
+                                        <div class="ds-cart-summary-row">
+                                            <span>Tạm tính</span>
+                                            <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
+                                        </div>
+                                        <div class="ds-cart-summary-row">
+                                            <span>Giảm giá</span>
+                                            <span class="text-muted">0₫</span>
+                                        </div>
+                                        <div class="ds-cart-summary-row">
+                                            <span>Phí vận chuyển</span>
+                                            <span class="text-muted">Tính khi thanh toán</span>
+                                        </div>
 
-                            <div class="ds-cart-total-price"
-                                 th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + '₫'">
-                                250.000₫
-                            </div>
-                        </div>
-                    </div>
+                                        <!-- Promo messaging -->
+                                        <div class="ds-promo-hint" id="promoHint" style="display:none;">
+                                            <i class="bi bi-gift-fill"></i>
+                                            <span id="promoHintText"></span>
+                                        </div>
 
-                    <!-- Cross-sell suggestions -->
-                    <div th:if="${!#lists.isEmpty(suggestions)}" class="mt-4">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-stars me-1"></i>Gợi ý thêm cho bạn</h5>
-                        <div class="row g-3">
-                            <div th:each="p : ${suggestions}" class="col-6 col-md-3">
-                                <a th:href="@{/san-pham/{id}(id=${p.id})}" class="text-decoration-none">
-                                    <div class="ds-suggest-card">
-                                        <img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" />
-                                        <div class="mt-2 text-dark fw-semibold" style="font-size:0.85rem;" th:text="${#strings.abbreviate(p.tenSanPham, 30)}"></div>
+                                        <div class="ds-cart-summary-delivery">
+                                            <strong>Giao hàng dự kiến</strong>
+                                            <span>2 - 4 ngày làm việc</span>
+                                        </div>
+
+                                        <hr class="ds-cart-summary-divider" />
+
+                                        <div class="ds-cart-summary-total">
+                                            <span>Tổng cộng</span>
+                                            <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
+                                        </div>
+
+                                        <a th:href="@{/checkout}" class="ds-btn-checkout mt-3">
+                                            Thanh toán <i class="bi bi-arrow-right ms-2"></i>
+                                        </a>
+
+                                        <a th:href="@{/san-pham}" class="d-block text-center mt-3 small text-muted" style="text-decoration:none;">
+                                            <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua sắm
+                                        </a>
                                     </div>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Saved for later -->
-                    <div th:if="${!#lists.isEmpty(savedItems)}" class="ds-saved-section">
-                        <h5 class="fw-bold mb-3"><i class="bi bi-bookmark me-1"></i>Đã lưu để mua sau (<span th:text="${savedCount}"></span>)</h5>
-                        <div class="ds-card ds-card-elevated">
-                            <div th:each="item : ${savedItems}" class="ds-saved-item px-3" th:id="'saved-item-' + ${item.id}">
-                                <div class="ds-saved-img">
-                                    <img th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}" th:alt="${item.tenSanPham}" />
-                                </div>
-                                <div class="flex-grow-1">
-                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-dark fw-semibold text-decoration-none" style="font-size:0.9rem;" th:text="${#strings.abbreviate(item.tenSanPham, 40)}"></a>
-                                    <div class="text-muted" style="font-size:0.8rem;" th:text="${item.tenBienThe}"></div>
-                                    <div class="text-danger fw-semibold" style="font-size:0.9rem;" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'"></div>
-                                </div>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-danger btn-sm" style="font-size:0.8rem;"
-                                            th:onclick="'moveToCart(' + ${item.id} + ')'">
-                                        <i class="bi bi-cart-plus"></i> Chuyển vào giỏ
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm" style="font-size:0.8rem;"
-                                            th:onclick="'removeSaved(' + ${item.id} + ')'">
-                                        <i class="bi bi-x"></i>
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RIGHT: Order summary -->
-                <div class="col-12 col-lg-4">
-                    <div class="ds-card ds-card-elevated ds-cart-summary">
-                        <div class="ds-card-body">
-                            <h3 class="ds-cart-summary-title">Tóm tắt đơn hàng</h3>
-
-                            <div class="ds-cart-summary-row">
-                                <span>Tạm tính</span>
-                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
-                            </div>
-                            <div class="ds-cart-summary-row">
-                                <span>Giảm giá</span>
-                                <span class="text-muted">0₫</span>
-                            </div>
-                            <div class="ds-cart-summary-row">
-                                <span>Phí vận chuyển</span>
-                                <span class="text-muted">Tính khi thanh toán</span>
-                            </div>
-
-                            <!-- Promo messaging -->
-                            <div class="ds-promo-hint" id="promoHint" style="display:none;">
-                                <i class="bi bi-gift-fill"></i>
-                                <span id="promoHintText"></span>
-                            </div>
-
-                            <div class="ds-cart-summary-delivery">
-                                <strong>Giao hàng dự kiến</strong>
-                                <span>2 - 4 ngày làm việc</span>
-                            </div>
-
-                            <hr class="ds-cart-summary-divider" />
-
-                            <div class="ds-cart-summary-total">
-                                <span>Tổng cộng</span>
-                                <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
-                            </div>
-
-                            <a th:href="@{/checkout}" class="ds-btn-checkout mt-3">
-                                Thanh toán <i class="bi bi-arrow-right ms-2"></i>
-                            </a>
-
-                            <a th:href="@{/san-pham}" class="d-block text-center mt-3 small text-muted" style="text-decoration:none;">
-                                <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua sắm
-                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        </div>
-    </div>
 
-</div>
+    <th:block layout:fragment="extra-script">
+        <script>
+            var _removedItems = {};
 
-<th:block layout:fragment="extra-script">
-<script>
-    var _removedItems = {};
+            function updateQty(variantId, delta) {
+                if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast)
+                    return;
 
-    function updateQty(variantId, delta) {
-        if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast) return;
+                var e = event || window.event;
+                if (!e || !e.target)
+                    return;
 
-        var e = event || window.event;
-        if (!e || !e.target) return;
+                var item = e.target.closest('.ds-cart-item');
+                if (!item)
+                    return;
 
-        var item = e.target.closest('.ds-cart-item');
-        if (!item) return;
+                var input = item.querySelector('.ds-qty-val');
+                if (!input)
+                    return;
 
-        var input = item.querySelector('.ds-cart-qty-input');
-        if (!input) return;
+                var newQty = parseInt(input.value) + delta;
+                if (newQty < 1)
+                    return;
 
-        var newQty = parseInt(input.value) + delta;
-        if (newQty < 1) return;
-
-        var max = parseInt(input.getAttribute('data-max')) || 99;
-        if (newQty > max) { DuaStore.toast.error('Chỉ còn ' + max + ' sản phẩm trong kho'); return; }
-
-        var btns = item.querySelectorAll('.ds-cart-qty-btn');
-        btns.forEach(function(b) { b.disabled = true; });
-
-        DuaStore.api.post('/api/cart/update', {
-            variantId: variantId,
-            soLuong: newQty
-        }).then(function(result) {
-            btns.forEach(function(b) { b.disabled = false; });
-
-            if (!result.ok) { DuaStore.toast.error(result.message); return; }
-
-            var data = result.data;
-            if (!data.success) { DuaStore.toast.error(data.message || 'Cập nhật thất bại'); return; }
-
-            localStorage.setItem('cartViewed', 'true');
-            input.value = newQty;
-            input.setAttribute('data-max', data.stock || max);
-
-            var unitPriceEl = item.querySelector('.ds-cart-unit-price');
-            if (unitPriceEl) {
-                var unitPrice = parseInt(unitPriceEl.innerText.replace(/[^\d]/g, '')) || 0;
-                var lineTotal = unitPrice * newQty;
-                var totalEl = item.querySelector('.ds-cart-total-price');
-                if (totalEl) totalEl.innerText = lineTotal.toLocaleString('vi-VN') + '₫';
-            }
-
-            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-
-            var cartTotal = 0;
-            document.querySelectorAll('.ds-cart-total-price').forEach(function(cell) {
-                var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
-                cartTotal += val;
-            });
-            var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
-            var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
-            if (subtotalRow) subtotalRow.innerText = formattedTotal;
-            var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
-            if (summaryTotal) summaryTotal.innerText = formattedTotal;
-
-            DuaStore.toast.success('Đã cập nhật số lượng');
-            checkPromoHint(cartTotal);
-        });
-    }
-
-    function setQty(variantId, inputEl) {
-        if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast) return;
-
-        var max = parseInt(inputEl.getAttribute('max')) || 99;
-        var newQty = parseInt(inputEl.value);
-        if (isNaN(newQty) || newQty < 1) { newQty = 1; }
-        if (newQty > max) { newQty = max; }
-        inputEl.value = newQty;
-
-        var item = inputEl.closest('.ds-cart-item');
-
-        DuaStore.api.post('/api/cart/update', {
-            variantId: variantId,
-            soLuong: newQty
-        }).then(function(result) {
-            if (!result.ok) { DuaStore.toast.error(result.message); return; }
-            var data = result.data;
-            if (!data.success) {
-                DuaStore.toast.error(data.message || 'Cập nhật thất bại');
-            }
-            inputEl.value = newQty;
-
-            if (item) {
-                var unitPriceEl = item.querySelector('.ds-cart-unit-price');
-                if (unitPriceEl) {
-                    var unitPrice = parseInt(unitPriceEl.innerText.replace(/[^\d]/g, '')) || 0;
-                    var lineTotal = unitPrice * newQty;
-                    var totalEl = item.querySelector('.ds-cart-total-price');
-                    if (totalEl) totalEl.innerText = lineTotal.toLocaleString('vi-VN') + '₫';
+                var max = parseInt(input.getAttribute('data-max')) || 99;
+                if (newQty > max) {
+                    DuaStore.toast.error('Chỉ còn ' + max + ' sản phẩm trong kho');
+                    return;
                 }
-            }
 
-            var cartTotal = 0;
-            document.querySelectorAll('.ds-cart-total-price').forEach(function(cell) {
-                var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
-                cartTotal += val;
-            });
-            var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
-            var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
-            if (subtotalRow) subtotalRow.innerText = formattedTotal;
-            var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
-            if (summaryTotal) summaryTotal.innerText = formattedTotal;
+                var btns = item.querySelectorAll('.ds-qty-btn');
+                btns.forEach(function (b) {
+                    b.disabled = true;
+                });
 
-            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-            DuaStore.toast.success('Đã cập nhật số lượng');
-        });
-    }
+                DuaStore.api.post('/api/cart/update', {
+                    variantId: variantId,
+                    soLuong: newQty
+                }).then(function (result) {
+                    btns.forEach(function (b) {
+                        b.disabled = false;
+                    });
 
-    function removeCartItem(id) {
-        if (!id) return;
-        var itemEl = document.getElementById('cart-item-' + id);
-        if (!itemEl) return;
-
-        var name = itemEl.querySelector('.ds-cart-item-name')?.textContent || 'Sản phẩm';
-        var variant = itemEl.querySelector('.ds-cart-item-variant')?.textContent || '';
-        var price = itemEl.querySelector('.ds-cart-unit-price')?.innerText.replace(/[^\d]/g, '') || '0';
-        var qty = itemEl.querySelector('.ds-cart-qty-input')?.value || '1';
-        var img = itemEl.querySelector('.ds-cart-image')?.src || '';
-
-        _removedItems[id] = { name: name, variant: variant, price: parseInt(price), qty: parseInt(qty), img: img };
-
-        itemEl.style.opacity = '0.4';
-        itemEl.style.pointerEvents = 'none';
-
-        showUndoToast(id, name);
-
-        DuaStore.api.post('/api/cart/remove-item', { variantId: id }).then(function(result) {
-            if (!result.ok) {
-                itemEl.style.opacity = '1';
-                itemEl.style.pointerEvents = 'auto';
-                delete _removedItems[id];
-                DuaStore.toast.error(result.message);
-                return;
-            }
-            var data = result.data;
-            if (data.success) {
-                if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-                setTimeout(function() {
-                    if (_removedItems[id]) {
-                        itemEl.remove();
-                        delete _removedItems[id];
-                        var remaining = document.querySelectorAll('.ds-cart-item');
-                        if (remaining.length === 0) window.location.reload();
+                    if (!result.ok) {
+                        DuaStore.toast.error(result.message);
+                        return;
                     }
-                }, 5000);
-            } else {
-                itemEl.style.opacity = '1';
-                itemEl.style.pointerEvents = 'auto';
-                delete _removedItems[id];
-                DuaStore.toast.error(data.message || 'Xóa thất bại');
+
+                    var data = result.data;
+                    if (!data.success) {
+                        DuaStore.toast.error(data.message || 'Cập nhật thất bại');
+                        return;
+                    }
+
+                    localStorage.setItem('cartViewed', 'true');
+                    input.value = newQty;
+                    input.setAttribute('data-max', data.stock || max);
+
+                    var unitPriceEl = item.querySelector('.ds-cart-unit-price');
+                    if (unitPriceEl) {
+                        var unitPrice = parseInt(unitPriceEl.innerText.replace(/[^\d]/g, '')) || 0;
+                        var lineTotal = unitPrice * newQty;
+                        var totalEl = item.querySelector('.ds-cart-total-price');
+                        if (totalEl)
+                            totalEl.innerText = lineTotal.toLocaleString('vi-VN') + '₫';
+                    }
+
+                    if (typeof updateCartBadge === 'function')
+                        updateCartBadge(data.cartCount);
+
+                    var cartTotal = 0;
+                    document.querySelectorAll('.ds-cart-total-price').forEach(function (cell) {
+                        var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
+                        cartTotal += val;
+                    });
+                    var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
+                    var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
+                    if (subtotalRow)
+                        subtotalRow.innerText = formattedTotal;
+                    var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
+                    if (summaryTotal)
+                        summaryTotal.innerText = formattedTotal;
+
+                    DuaStore.toast.success('Đã cập nhật số lượng');
+                    checkPromoHint(cartTotal);
+                });
             }
-        });
-    }
 
-    function showUndoToast(id, name) {
-        var existing = document.querySelector('.ds-undo-toast');
-        if (existing) existing.remove();
+            function setQty(variantId, inputEl) {
+                if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast)
+                    return;
 
-        var toast = document.createElement('div');
-        toast.className = 'ds-undo-toast';
-        toast.innerHTML = '<span>Đã xóa <strong>' + name + '</strong></span><button onclick="undoRemove(' + id + ')">Hoàn tác</button>';
-        document.body.appendChild(toast);
-        setTimeout(function() { toast.remove(); }, 5000);
-    }
+                var max = parseInt(inputEl.getAttribute('max')) || 99;
+                var newQty = parseInt(inputEl.value);
+                if (isNaN(newQty) || newQty < 1) {
+                    newQty = 1;
+                }
+                if (newQty > max) {
+                    newQty = max;
+                }
+                inputEl.value = newQty;
 
-    function undoRemove(id) {
-        var info = _removedItems[id];
-        if (!info) return;
-        delete _removedItems[id];
+                var item = inputEl.closest('.ds-cart-item');
 
-        var toast = document.querySelector('.ds-undo-toast');
-        if (toast) toast.remove();
+                DuaStore.api.post('/api/cart/update', {
+                    variantId: variantId,
+                    soLuong: newQty
+                }).then(function (result) {
+                    if (!result.ok) {
+                        DuaStore.toast.error(result.message);
+                        return;
+                    }
+                    var data = result.data;
+                    if (!data.success) {
+                        DuaStore.toast.error(data.message || 'Cập nhật thất bại');
+                    }
+                    inputEl.value = newQty;
 
-        var itemEl = document.getElementById('cart-item-' + id);
-        if (itemEl) {
-            itemEl.style.opacity = '1';
-            itemEl.style.pointerEvents = 'auto';
-        }
+                    if (item) {
+                        var unitPriceEl = item.querySelector('.ds-cart-unit-price');
+                        if (unitPriceEl) {
+                            var unitPrice = parseInt(unitPriceEl.innerText.replace(/[^\d]/g, '')) || 0;
+                            var lineTotal = unitPrice * newQty;
+                            var totalEl = item.querySelector('.ds-cart-total-price');
+                            if (totalEl)
+                                totalEl.innerText = lineTotal.toLocaleString('vi-VN') + '₫';
+                        }
+                    }
 
-        DuaStore.api.post('/api/cart/add', { variantId: id, soLuong: info.qty }).then(function(result) {
-            if (result.ok && result.data.success) {
-                if (typeof updateCartBadge === 'function') updateCartBadge(result.data.cartCount);
-                DuaStore.toast.success('Đã khôi phục ' + info.name);
+                    var cartTotal = 0;
+                    document.querySelectorAll('.ds-cart-total-price').forEach(function (cell) {
+                        var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
+                        cartTotal += val;
+                    });
+                    var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
+                    var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
+                    if (subtotalRow)
+                        subtotalRow.innerText = formattedTotal;
+                    var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
+                    if (summaryTotal)
+                        summaryTotal.innerText = formattedTotal;
+
+                    if (typeof updateCartBadge === 'function')
+                        updateCartBadge(data.cartCount);
+                    DuaStore.toast.success('Đã cập nhật số lượng');
+                });
+            }
+
+            function removeCartItem(id) {
+                if (!id)
+                    return;
+                var itemEl = document.getElementById('cart-item-' + id);
+                if (!itemEl)
+                    return;
+
+                var name = itemEl.querySelector('.ds-cart-item-name')?.textContent || 'Sản phẩm';
+                var variant = itemEl.querySelector('.ds-cart-item-variant')?.textContent || '';
+                var price = itemEl.querySelector('.ds-cart-unit-price')?.innerText.replace(/[^\d]/g, '') || '0';
+                var qty = itemEl.querySelector('.ds-qty-val')?.value || '1';
+                var img = itemEl.querySelector('.ds-cart-image')?.src || '';
+
+                _removedItems[id] = {name: name, variant: variant, price: parseInt(price), qty: parseInt(qty), img: img};
+
+                itemEl.style.opacity = '0.4';
+                itemEl.style.pointerEvents = 'none';
+
+                showUndoToast(id, name);
+
+                DuaStore.api.post('/api/cart/remove-item', {variantId: id}).then(function (result) {
+                    if (!result.ok) {
+                        itemEl.style.opacity = '1';
+                        itemEl.style.pointerEvents = 'auto';
+                        delete _removedItems[id];
+                        DuaStore.toast.error(result.message);
+                        return;
+                    }
+                    var data = result.data;
+                    if (data.success) {
+                        if (typeof updateCartBadge === 'function')
+                            updateCartBadge(data.cartCount);
+                        setTimeout(function () {
+                            if (_removedItems[id]) {
+                                itemEl.remove();
+                                delete _removedItems[id];
+                                var remaining = document.querySelectorAll('.ds-cart-item');
+                                if (remaining.length === 0)
+                                    window.location.reload();
+                            }
+                        }, 5000);
+                    } else {
+                        itemEl.style.opacity = '1';
+                        itemEl.style.pointerEvents = 'auto';
+                        delete _removedItems[id];
+                        DuaStore.toast.error(data.message || 'Xóa thất bại');
+                    }
+                });
+            }
+
+            function showUndoToast(id, name) {
+                var existing = document.querySelector('.ds-undo-toast');
+                if (existing)
+                    existing.remove();
+
+                var toast = document.createElement('div');
+                toast.className = 'ds-undo-toast';
+                toast.innerHTML = '<span>Đã xóa <strong>' + name + '</strong></span><button onclick="undoRemove(' + id + ')">Hoàn tác</button>';
+                document.body.appendChild(toast);
+                setTimeout(function () {
+                    toast.remove();
+                }, 5000);
+            }
+
+            function undoRemove(id) {
+                var info = _removedItems[id];
+                if (!info)
+                    return;
+                delete _removedItems[id];
+
+                var toast = document.querySelector('.ds-undo-toast');
+                if (toast)
+                    toast.remove();
+
+                var itemEl = document.getElementById('cart-item-' + id);
                 if (itemEl) {
                     itemEl.style.opacity = '1';
                     itemEl.style.pointerEvents = 'auto';
-                } else {
-                    window.location.reload();
                 }
-            } else {
-                DuaStore.toast.error('Không thể khôi phục sản phẩm');
-                if (itemEl) itemEl.remove();
-                var remaining = document.querySelectorAll('.ds-cart-item');
-                if (remaining.length === 0) window.location.reload();
-            }
-        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) return;
 
-        DuaStore.api.post('/api/cart/remove-item', { variantId: id }).then(function(result) {
-            if (!result.ok) { DuaStore.toast.error(result.message); return; }
-            var data = result.data;
-            if (!data.success) { DuaStore.toast.error(data.message || 'Xóa thất bại'); return; }
-
-            var el = document.getElementById('cart-item-' + id);
-            if (el) el.remove();
-
-            if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-
-            var remaining = document.querySelectorAll('.ds-cart-item');
-            if (remaining.length === 0) {
-                location.reload();
-            } else {
-                var cartTotal = 0;
-                document.querySelectorAll('.ds-cart-total-price').forEach(function(cell) {
-                    var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
-                    cartTotal += val;
+                DuaStore.api.post('/api/cart/add', { variantId: id, soLuong: info.qty }).then(function(result) {
+                    if (result.ok && result.data.success) {
+                        if (typeof updateCartBadge === 'function') updateCartBadge(result.data.cartCount);
+                        DuaStore.toast.success('Đã khôi phục ' + info.name);
+                        if (!itemEl) window.location.reload();
+                    } else {
+                        DuaStore.toast.error('Không thể khôi phục sản phẩm');
+                        if (itemEl) itemEl.remove();
+                        var remaining = document.querySelectorAll('.ds-cart-item');
+                        if (remaining.length === 0) window.location.reload();
+                    }
                 });
-                var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
-                var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
-                if (subtotalRow) subtotalRow.innerText = formattedTotal;
-                var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
-                if (summaryTotal) summaryTotal.innerText = formattedTotal;
             }
 
-            DuaStore.toast.success('Đã xóa sản phẩm');
-        });
-    }
-
-    function saveForLater(variantId) {
-        if (!variantId) return;
-        DuaStore.api.post('/api/cart/save-for-later', { variantId: variantId }).then(function(result) {
-            if (!result.ok) { DuaStore.toast.error(result.message); return; }
-            var data = result.data;
-            if (data.success) {
-                if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-                DuaStore.toast.success('Đã lưu để mua sau');
-                window.location.reload();
-            } else {
-                DuaStore.toast.error('Không thể lưu sản phẩm');
+                function saveForLater(variantId) {
+                if (!variantId)
+                    return;
+                DuaStore.api.post('/api/cart/save-for-later', {variantId: variantId}).then(function (result) {
+                    if (!result.ok) {
+                        DuaStore.toast.error(result.message);
+                        return;
+                    }
+                    var data = result.data;
+                    if (data.success) {
+                        if (typeof updateCartBadge === 'function')
+                            updateCartBadge(data.cartCount);
+                        DuaStore.toast.success('Đã lưu để mua sau');
+                        window.location.reload();
+                    } else {
+                        DuaStore.toast.error('Không thể lưu sản phẩm');
+                    }
+                });
             }
-        });
-    }
 
-    function moveToCart(savedId) {
-        if (!savedId) return;
-        DuaStore.api.post('/api/cart/move-to-cart', { savedId: savedId }).then(function(result) {
-            if (!result.ok) { DuaStore.toast.error(result.message); return; }
-            var data = result.data;
-            if (data.success) {
-                if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-                DuaStore.toast.success('Đã chuyển vào giỏ hàng');
-                window.location.reload();
-            } else {
-                DuaStore.toast.error('Sản phẩm đã hết hàng hoặc ngừng bán');
+            function moveToCart(savedId) {
+                if (!savedId)
+                    return;
+                DuaStore.api.post('/api/cart/move-to-cart', {savedId: savedId}).then(function (result) {
+                    if (!result.ok) {
+                        DuaStore.toast.error(result.message);
+                        return;
+                    }
+                    var data = result.data;
+                    if (data.success) {
+                        if (typeof updateCartBadge === 'function')
+                            updateCartBadge(data.cartCount);
+                        DuaStore.toast.success('Đã chuyển vào giỏ hàng');
+                        window.location.reload();
+                    } else {
+                        DuaStore.toast.error('Sản phẩm đã hết hàng hoặc ngừng bán');
+                    }
+                });
             }
-        });
-    }
 
-    function removeSaved(savedId) {
-        if (!savedId) return;
-        DuaStore.api.post('/api/cart/remove-saved', { savedId: savedId }).then(function(result) {
-            if (result.ok && result.data.success) {
-                var el = document.getElementById('saved-item-' + savedId);
-                if (el) el.remove();
-                DuaStore.toast.success('Đã xóa khỏi danh sách lưu');
+            function removeSaved(savedId) {
+                if (!savedId)
+                    return;
+                DuaStore.api.post('/api/cart/remove-saved', {savedId: savedId}).then(function (result) {
+                    if (result.ok && result.data.success) {
+                        var el = document.getElementById('saved-item-' + savedId);
+                        if (el)
+                            el.remove();
+                        DuaStore.toast.success('Đã xóa khỏi danh sách lưu');
+                    }
+                });
             }
-        });
-    }
 
-    function setQty(variantId, input) {
-        var val = parseInt(input.value) || 1;
-        var max = parseInt(input.getAttribute('data-max')) || 99;
-        if (val < 1) val = 1;
-        if (val > max) val = max;
-        input.value = val;
-        updateQty(variantId, 0);
-    }
+            function checkPromoHint(currentTotal) {
+                fetch('/checkout/api/qr-info?amount=' + currentTotal).catch(function () {});
+                var hint = document.getElementById('promoHint');
+                var text = document.getElementById('promoHintText');
+                if (!hint || !text)
+                    return;
 
-    function checkPromoHint(currentTotal) {
-        fetch('/checkout/api/qr-info?amount=' + currentTotal).catch(function(){});
-        var hint = document.getElementById('promoHint');
-        var text = document.getElementById('promoHintText');
-        if (!hint || !text) return;
+                var minForFreeShip = 500000;
+                var minForPromo = 300000;
 
-        var minForFreeShip = 500000;
-        var minForPromo = 300000;
+                if (currentTotal >= minForFreeShip) {
+                    hint.style.display = 'none';
+                    return;
+                }
 
-        if (currentTotal >= minForFreeShip) {
-            hint.style.display = 'none';
-            return;
-        }
+                var gap = minForFreeShip - currentTotal;
+                if (gap > 0 && gap <= 200000) {
+                    text.textContent = 'Mua thêm ' + gap.toLocaleString('vi-VN') + '₫ để được freeship!';
+                    hint.style.display = 'flex';
+                    hint.style.background = '#e8f5e9';
+                    hint.style.borderColor = '#a5d6a7';
+                    hint.style.color = '#2e7d32';
+                } else if (currentTotal < minForPromo) {
+                    var promoGap = minForPromo - currentTotal;
+                    text.textContent = 'Mua thêm ' + promoGap.toLocaleString('vi-VN') + '₫ để nhận ưu đãi!';
+                    hint.style.display = 'flex';
+                    hint.style.background = '#fff3cd';
+                    hint.style.borderColor = '#ffc107';
+                    hint.style.color = '#856404';
+                } else {
+                    hint.style.display = 'none';
+                }
+            }
 
-        var gap = minForFreeShip - currentTotal;
-        if (gap > 0 && gap <= 200000) {
-            text.textContent = 'Mua thêm ' + gap.toLocaleString('vi-VN') + '₫ để được freeship!';
-            hint.style.display = 'flex';
-            hint.style.background = '#e8f5e9';
-            hint.style.borderColor = '#a5d6a7';
-            hint.style.color = '#2e7d32';
-        } else if (currentTotal < minForPromo) {
-            var promoGap = minForPromo - currentTotal;
-            text.textContent = 'Mua thêm ' + promoGap.toLocaleString('vi-VN') + '₫ để nhận ưu đãi!';
-            hint.style.display = 'flex';
-            hint.style.background = '#fff3cd';
-            hint.style.borderColor = '#ffc107';
-            hint.style.color = '#856404';
-        } else {
-            hint.style.display = 'none';
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var totalEl = document.querySelector('.ds-cart-summary-total span:last-child');
-        if (totalEl) {
-            var total = parseInt(totalEl.innerText.replace(/[^\d]/g, '')) || 0;
-            checkPromoHint(total);
-        }
-    });
-</script>
-</th:block>
+            document.addEventListener('DOMContentLoaded', function () {
+                var totalEl = document.querySelector('.ds-cart-summary-total span:last-child');
+                if (totalEl) {
+                    var total = parseInt(totalEl.innerText.replace(/[^\d]/g, '')) || 0;
+                    checkPromoHint(total);
+                }
+            });
+        </script>
+    </th:block>
 </body>
 </html>

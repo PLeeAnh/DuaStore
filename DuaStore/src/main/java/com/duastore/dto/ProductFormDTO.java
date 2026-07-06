@@ -8,7 +8,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -63,6 +65,9 @@ public class ProductFormDTO {
      * true = hiển thị trên trang chủ
      */
     private boolean isFeatured = false;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate ngayPhatHanh;
 
     /**
      * Gallery images uploaded by admin

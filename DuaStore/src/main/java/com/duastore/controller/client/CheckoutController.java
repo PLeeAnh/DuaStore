@@ -3,6 +3,7 @@ package com.duastore.controller.client;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.CartItemDTO;
 import com.duastore.dto.CheckoutRequestDTO;
+import com.duastore.dto.OrderDTO;
 import com.duastore.model.Address;
 import com.duastore.model.Order;
 import com.duastore.model.OrderItem;
@@ -27,10 +28,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -501,7 +500,9 @@ public class CheckoutController {
         Integer userId = getUserId();
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);
-            model.addAttribute("order", orderService.convertToDTO(order));
+            OrderDTO dto = orderService.convertToDTO(order);
+            model.addAttribute("order", dto);
+            model.addAttribute("items", orderService.getOrderItemsByOrder(order));
             model.addAttribute("title", "Đặt hàng thành công");
             return "view/client/order-success";
         } catch (RuntimeException e) {

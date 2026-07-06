@@ -269,6 +269,7 @@ CREATE TABLE Products (
     leadTimeDays        INT                            NULL,
     isFeatured          BIT                            NOT NULL DEFAULT 0,
     isActive            BIT                            NOT NULL DEFAULT 1,
+    ngayPhatHanh        DATE                           NULL,
     ngayTao             DATETIME2                      NULL,
     ngayCapNhat         DATETIME2                      NULL,
 

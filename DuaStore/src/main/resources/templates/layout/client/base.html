@@ -134,7 +134,7 @@
 <div th:if="${themeSettings.get('header_cart') != '0'}" class="position-relative d-inline-block ds-cart-wrap">
     <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
         <i class="bi bi-bag"></i>
-        <span id="cartBadge" class="ds-cart-badge d-none">0</span>
+        <span id="cartBadge" class="ds-cart-badge" th:classappend="${cartCount == null or cartCount == 0} ? 'd-none'" th:text="${cartCount != null and cartCount > 99} ? '99+' : (${cartCount != null} ? ${cartCount} : '0')">0</span>
     </button>
     <div id="cart-popup" class="custom-popup" style="width: 340px;">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
