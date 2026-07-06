@@ -26,8 +26,8 @@
                 </div>
             </section>
 
-                <!-- Content constrained to 1200px -->
-                <div class="ds-home-content">
+            <!-- Content constrained to 1200px -->
+            <div class="ds-home-content">
 
                 <!-- DANH MỤC (slider 4 cột + arrows + dots) -->
                 <section class="ds-section-card ds-cat-v2 sr-up ds-slider-section" th:if="${themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0'}"
@@ -189,7 +189,7 @@
                             <div class="ds-slider-track">
                                 <a th:each="p : ${newestProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                            v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                                   v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
                                         <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
                                     </div>
@@ -219,7 +219,7 @@
                             <div class="ds-slider-track">
                                 <a th:each="p : ${underPriceProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                            v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                                   v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
                                         <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
                                     </div>
@@ -263,8 +263,8 @@
                                      th:data-wishlist="${wishlistCountMap.get(p.id) ?: 0}"
                                      th:data-href="@{'/san-pham/' + ${p.id}}"
                                      th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                              v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
-                                              fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
+                                     v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                     fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
                                      th:data-price="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : ''}"
                                      th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
                                      th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
@@ -310,85 +310,107 @@
                         </a>
                     </div>
                 </section>
-                </div><!-- /.ds-home-content -->
+            </div><!-- /.ds-home-content -->
         </div>
     <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
-    <script>
-    (function() {
-        // ── Browse Products: tabs + preview panel ──
-        var browseTabs = document.querySelectorAll('.ds-browse-tab');
-        var browseList = document.getElementById('browseList');
-        var browsePreview = document.getElementById('browsePreview');
-        if (browseTabs.length && browseList && browsePreview) {
-            var browseRows = Array.from(browseList.querySelectorAll('.ds-browse-row'));
+        <script>
+            (function () {
+                // ── Browse Products: tabs + preview panel ──
+                var browseTabs = document.querySelectorAll('.ds-browse-tab');
+                var browseList = document.getElementById('browseList');
+                var browsePreview = document.getElementById('browsePreview');
+                if (browseTabs.length && browseList && browsePreview) {
+                    var browseRows = Array.from(browseList.querySelectorAll('.ds-browse-row'));
 
-            // Tab switching: sort rows
-            browseTabs.forEach(function(tab) {
-                tab.addEventListener('click', function() {
-                    browseTabs.forEach(function(t) { t.classList.remove('active'); });
-                    tab.classList.add('active');
-                    var key = tab.dataset.tab;
-                    browseRows.sort(function(a, b) {
-                        if (key === 'fav') return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
-                        if (key === 'sold') return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
-                        if (key === 'new') return (b.dataset.daysOld || '').localeCompare(a.dataset.daysOld || '');
-                        return 0;
+                    // Tab switching: sort rows
+                    browseTabs.forEach(function (tab) {
+                        tab.addEventListener('click', function () {
+                            browseTabs.forEach(function (t) {
+                                t.classList.remove('active');
+                            });
+                            tab.classList.add('active');
+                            var key = tab.dataset.tab;
+                            browseRows.sort(function (a, b) {
+                                if (key === 'fav')
+                                    return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
+                                if (key === 'sold')
+                                    return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
+                                if (key === 'new')
+                                    return (b.dataset.daysOld || '').localeCompare(a.dataset.daysOld || '');
+                                return 0;
+                            });
+                            browseRows.forEach(function (r) {
+                                browseList.appendChild(r);
+                            });
+                            if (browseRows.length)
+                                activateBrowseRow(browseRows[0]);
+                        });
                     });
-                    browseRows.forEach(function(r) { browseList.appendChild(r); });
-                    if (browseRows.length) activateBrowseRow(browseRows[0]);
-                });
-            });
 
-            // Row hover/click → update preview
-            browseRows.forEach(function(row) {
-                row.addEventListener('mouseenter', function() { activateBrowseRow(row); });
-                row.addEventListener('click', function() { activateBrowseRow(row); });
-            });
+                    // Row hover/click → update preview
+                    browseRows.forEach(function (row) {
+                        row.addEventListener('mouseenter', function () {
+                            activateBrowseRow(row);
+                        });
+                        row.addEventListener('click', function () {
+                            activateBrowseRow(row);
+                        });
+                    });
 
-            function activateBrowseRow(row) {
-                browseRows.forEach(function(r) { r.classList.remove('active'); });
-                row.classList.add('active');
-                browsePreview.href = row.dataset.href;
-                document.getElementById('browsePreviewName').textContent = row.dataset.name;
+                    function activateBrowseRow(row) {
+                        browseRows.forEach(function (r) {
+                            r.classList.remove('active');
+                        });
+                        row.classList.add('active');
+                        browsePreview.href = row.dataset.href;
+                        document.getElementById('browsePreviewName').textContent = row.dataset.name;
 
-                // Rating
-                var ratingVal = row.dataset.rating || '';
-                var ratingLabel = '';
-                if (ratingVal) {
-                    var r = parseFloat(ratingVal);
-                    if (r >= 4.5) ratingLabel = 'Tốt';
-                    else if (r >= 3.5) ratingLabel = 'Khá';
-                    else if (r >= 2.5) ratingLabel = 'Bình thường';
-                    else if (r >= 1.5) ratingLabel = 'Kém';
-                    else ratingLabel = 'Rất kém';
+                        // Rating
+                        var ratingVal = row.dataset.rating || '';
+                        var ratingLabel = '';
+                        if (ratingVal) {
+                            var r = parseFloat(ratingVal);
+                            if (r >= 4.5)
+                                ratingLabel = 'Tốt';
+                            else if (r >= 3.5)
+                                ratingLabel = 'Khá';
+                            else if (r >= 2.5)
+                                ratingLabel = 'Bình thường';
+                            else if (r >= 1.5)
+                                ratingLabel = 'Kém';
+                            else
+                                ratingLabel = 'Rất kém';
+                        }
+                        document.getElementById('browsePreviewRatingValue').textContent = ratingVal || '0';
+                        document.getElementById('browsePreviewRatingLabel').textContent = ratingLabel;
+
+                        // Category
+                        document.getElementById('browsePreviewCat').innerHTML = 'Danh mục: ' + (row.dataset.cat || '');
+
+                        // Images (gallery from data-gallery attribute)
+                        var container = document.getElementById('browsePreviewImages');
+                        var galleryStr = row.dataset.gallery || '';
+                        var gallery = galleryStr ? galleryStr.split(',').filter(function (s) {
+                            return s.trim();
+                        }) : [];
+                        if (gallery.length === 0)
+                            gallery = [row.dataset.img || '/images/no-image.png'];
+                        container.innerHTML = '';
+                        gallery.slice(0, 4).forEach(function (url) {
+                            var img = document.createElement('img');
+                            img.className = 'ds-browse-preview-img';
+                            img.src = url;
+                            img.alt = '';
+                            container.appendChild(img);
+                        });
+                    }
                 }
-                document.getElementById('browsePreviewRatingValue').textContent = ratingVal || '0';
-                document.getElementById('browsePreviewRatingLabel').textContent = ratingLabel;
+            })();
 
-                // Category
-                document.getElementById('browsePreviewCat').innerHTML = 'Danh mục: ' + (row.dataset.cat || '');
-
-                // Images (gallery from data-gallery attribute)
-                var container = document.getElementById('browsePreviewImages');
-                var galleryStr = row.dataset.gallery || '';
-                var gallery = galleryStr ? galleryStr.split(',').filter(function(s) { return s.trim(); }) : [];
-                if (gallery.length === 0) gallery = [row.dataset.img || '/images/no-image.png'];
-                container.innerHTML = '';
-                gallery.slice(0, 4).forEach(function(url) {
-                    var img = document.createElement('img');
-                    img.className = 'ds-browse-preview-img';
-                    img.src = url;
-                    img.alt = '';
-                    container.appendChild(img);
-                });
-            }
-        }
-    })();
-
-    // ── Dot‑nav slider ──
-    REPLACED
-    </script>
+            // ── Dot‑nav slider ──
+            REPLACED
+        </script>
     </th:block>
 </body>
 </html>

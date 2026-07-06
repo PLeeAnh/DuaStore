@@ -3,103 +3,103 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-<head><title>Phân quyền - Form</title></head>
-<body>
-<th:block layout:fragment="breadcrumb">
-    <li class="breadcrumb-item"><a th:href="@{/admin/vai-tro}">Phân quyền</a></li>
-    <li class="breadcrumb-item active" th:text="${role.id != null} ? 'Sửa vai trò' : 'Thêm vai trò'">Form</li>
-</th:block>
-<div layout:fragment="content">
-    <div class="adm-detail-hero">
-        <div class="d-flex align-items-start gap-3">
-            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
-                <i class="bi bi-shield-lock"></i>
-            </div>
-            <div class="flex-grow-1">
-                <div>
-                    <h4><span th:text="${role.id != null} ? 'Sửa vai trò' : 'Thêm vai trò'">Form</span></h4>
-                    <div class="adm-detail-meta" th:text="${role.id != null} ? 'Chỉnh sửa thông tin vai trò.' : 'Tạo vai trò mới cho hệ thống.'">Meta</div>
+    <head><title>Phân quyền - Form</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/vai-tro}">Phân quyền</a></li>
+        <li class="breadcrumb-item active" th:text="${role.id != null} ? 'Sửa vai trò' : 'Thêm vai trò'">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4><span th:text="${role.id != null} ? 'Sửa vai trò' : 'Thêm vai trò'">Form</span></h4>
+                        <div class="adm-detail-meta" th:text="${role.id != null} ? 'Chỉnh sửa thông tin vai trò.' : 'Tạo vai trò mới cho hệ thống.'">Meta</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="adm-form-wrap">
-        <form method="post" data-dirty-bar
-              th:action="${role.id != null} ? @{/admin/vai-tro/sua/{id}(id=${role.id})} : @{/admin/vai-tro/them-moi}"
-              class="row g-3">
-            <input type="hidden" name="id" th:value="${role.id}" />
+        <div class="adm-form-wrap">
+            <form method="post" data-dirty-bar
+                  th:action="${role.id != null} ? @{/admin/vai-tro/sua/{id}(id=${role.id})} : @{/admin/vai-tro/them-moi}"
+                  class="row g-3">
+                <input type="hidden" name="id" th:value="${role.id}" />
 
-            <div class="col-md-6">
-                <label class="form-label">Tên vai trò <span class="text-danger">*</span></label>
-                <input type="text" name="name" class="form-control"
-                       th:value="${role.name}" required maxlength="50"
-                       placeholder="VD: MANAGER, EDITOR" />
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Mô tả</label>
-                <input type="text" name="moTa" class="form-control"
-                       th:value="${role.moTa}" maxlength="200"
-                       placeholder="Mô tả ngắn về vai trò" />
-            </div>
-
-            <div class="col-12">
-                <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" name="isActive" value="true"
-                           id="isActive" th:checked="${role.isActive != null ? role.isActive : true}" />
-                    <label class="form-check-label" for="isActive">Kích hoạt</label>
+                <div class="col-md-6">
+                    <label class="form-label">Tên vai trò <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control"
+                           th:value="${role.name}" required maxlength="50"
+                           placeholder="VD: MANAGER, EDITOR" />
                 </div>
-            </div>
 
-            <div class="col-12">
-                <label class="form-label fw-semibold mb-3">Quyền hạn</label>
+                <div class="col-md-6">
+                    <label class="form-label">Mô tả</label>
+                    <input type="text" name="moTa" class="form-control"
+                           th:value="${role.moTa}" maxlength="200"
+                           placeholder="Mô tả ngắn về vai trò" />
+                </div>
 
-                <div th:each="entry : ${groupedPermissions}" class="card mb-3">
-                    <div class="card-header py-2 d-flex align-items-center">
-                        <input type="checkbox" class="form-check-input module-checkbox me-2"
-                               data-module="${entry.key}"
-                               th:id="'ck-module-' + ${entry.key}" />
-                        <label class="mb-0 fw-semibold" th:for="'ck-module-' + ${entry.key}"
-                               th:text="${entry.key}">MODULE</label>
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" name="isActive" value="true"
+                               id="isActive" th:checked="${role.isActive != null ? role.isActive : true}" />
+                        <label class="form-check-label" for="isActive">Kích hoạt</label>
                     </div>
-                    <div class="card-body py-2">
-                        <div class="row">
-                            <div class="col-md-3 mb-1" th:each="perm : ${entry.value}">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input perm-checkbox"
-                                           name="permissionIds" th:value="${perm.id}"
-                                           th:attr="data-module=${entry.key}"
-                                           th:id="'perm-' + ${perm.id}"
-                                           th:checked="${role.permissions != null and role.permissions.contains(perm)}" />
-                                    <label class="form-check-label small" th:for="'perm-' + ${perm.id}"
-                                           th:text="${perm.action}">ACTION</label>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold mb-3">Quyền hạn</label>
+
+                    <div th:each="entry : ${groupedPermissions}" class="card mb-3">
+                        <div class="card-header py-2 d-flex align-items-center">
+                            <input type="checkbox" class="form-check-input module-checkbox me-2"
+                                   data-module="${entry.key}"
+                                   th:id="'ck-module-' + ${entry.key}" />
+                            <label class="mb-0 fw-semibold" th:for="'ck-module-' + ${entry.key}"
+                                   th:text="${entry.key}">MODULE</label>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="row">
+                                <div class="col-md-3 mb-1" th:each="perm : ${entry.value}">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input perm-checkbox"
+                                               name="permissionIds" th:value="${perm.id}"
+                                               th:attr="data-module=${entry.key}"
+                                               th:id="'perm-' + ${perm.id}"
+                                               th:checked="${role.permissions != null and role.permissions.contains(perm)}" />
+                                        <label class="form-check-label small" th:for="'perm-' + ${perm.id}"
+                                               th:text="${perm.action}">ACTION</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-12 border-top pt-3">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i>Lưu
-                </button>
-                <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
-            </div>
-        </form>
+                <div class="col-12 border-top pt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Lưu
+                    </button>
+                    <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<script>
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('module-checkbox')) {
-        var module = e.target.getAttribute('data-module');
-        document.querySelectorAll('.perm-checkbox[data-module="' + module + '"]').forEach(function(cb) {
-            cb.checked = e.target.checked;
+    <script>
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('module-checkbox')) {
+                var module = e.target.getAttribute('data-module');
+                document.querySelectorAll('.perm-checkbox[data-module="' + module + '"]').forEach(function (cb) {
+                    cb.checked = e.target.checked;
+                });
+            }
         });
-    }
-});
-</script>
+    </script>
 </body>
 </html>

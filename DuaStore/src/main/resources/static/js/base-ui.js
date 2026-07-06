@@ -156,19 +156,17 @@ btn.disabled = false;
         });
         });
 });
-        </script>
-        <script>
+
+// ── Ghi nhớ trạng thái giỏ hàng ──
 document.addEventListener('DOMContentLoaded', function() {
-// --- 1. LÔ-GÍC GHI NHỚ CHO GIỎ HÀNG ---
-        const cartItems = document.querySelectorAll('#cart-items-container .popup-item');
-        let currentCartState = [];
-        cartItems.forEach(item => {
-        const qtyEl = item.querySelector('input[id^="popup-qty-"]');
-                const qty = qtyEl ? qtyEl.value : '1';
+        var cartItems = document.querySelectorAll('#cart-items-container .popup-item');
+        var currentCartState = [];
+        cartItems.forEach(function(item) {
+        var qtyEl = item.querySelector('input[id^="popup-qty-"]');
+                var qty = qtyEl ? qtyEl.value : '1';
                 currentCartState.push(item.id + '-qty-' + qty);
                 });
-        let viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
-// Badge count is managed by cart.js/wishlist.js, not shown on page load
+        var viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
@@ -191,6 +189,7 @@ var wBadge = document.getElementById('wishlistBadge');
         } else if (popupId === 'cart-popup') {
 var cBadge = document.getElementById('cartBadge');
         if (cBadge) cBadge.classList.add('d-none');
+        localStorage.setItem('cartViewed', 'true');
         const items = document.querySelectorAll('#cart-items-container .popup-item');
         let states = [];
         items.forEach(item => {
@@ -835,22 +834,7 @@ function deactivateAccount() {
         else { DuaStore.toast.error(data.message || 'Không thể vô hiệu hóa'); }
         });
 }
-</script>
-
-        <div id="dsToast"
-     class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
-     style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
-
-        <!-- Save Bar -->
-<div id="dsSaveBar" class="ds-save-bar" style="display:none;">
-    <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>
-    <div class="ds-save-bar-actions">
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="dsSaveBarReset">Đặt lại</button>
-        <button type="button" class="btn btn-primary btn-sm" id="dsSaveBarSave"><i class="bi bi-floppy me-1"></i>Lưu</button>
-    </div>
-</div>
-
-<script>
+// ── Toast notification ──
 function showToast(msg) {
         var t = document.getElementById('dsToast');
         if (!t) return;
@@ -863,3 +847,10 @@ function showToast(msg) {
                 t.style.pointerEvents = 'none';
         }, 3000);
 }
+/* ── Ẩn badge giỏ hàng nếu đã xem trước đó ── */
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('cartViewed') === 'true') {
+        var b = document.getElementById('cartBadge');
+        if (b) b.classList.add('d-none');
+    }
+});

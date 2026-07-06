@@ -35,6 +35,18 @@ public class AdminProductController {
     private static final int LOW_STOCK_THRESHOLD = 20;
 
     private final AdminProductService productService;
+
+    private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
+        List<Category> path = new ArrayList<>();
+        Integer id = categoryId;
+        while (id != null) {
+            Category cat = categoryRepository.findById(id).orElse(null);
+            if (cat == null) break;
+            path.add(0, cat);
+            id = cat.getParent() != null ? cat.getParent().getId() : null;
+        }
+        return path;
+    }
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
@@ -90,6 +102,9 @@ public class AdminProductController {
 
         model.addAttribute("keyword", keyword);
         model.addAttribute("danhMuc", danhMuc);
+        if (danhMuc != null) {
+            model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+        }
         model.addAttribute("trangThai", trangThai);
         List<Category> cats = categoryRepository.findByIsActiveTrue();
         model.addAttribute("categories", cats);
@@ -313,6 +328,7 @@ public class AdminProductController {
         dto.setTrangThaiSanPham(p.getTrangThaiSanPham());
         dto.setLeadTimeDays(p.getLeadTimeDays());
         dto.setFeatured(p.isFeatured());
+        dto.setNgayPhatHanh(p.getNgayPhatHanh());
 
         model.addAttribute("title", "san-pham");
         model.addAttribute("productTab", "thong-tin");

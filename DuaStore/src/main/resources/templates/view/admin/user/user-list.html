@@ -85,8 +85,8 @@
                             </span>
                         </td>
                         <td>
-                                <span th:if="${u.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
-                                <span th:unless="${u.isActive}" class="status-pill status-KHOA">Khóa</span>
+                            <span th:if="${u.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                            <span th:unless="${u.isActive}" class="status-pill status-KHOA">Khóa</span>
                         </td>
                         <td style="font-size:.82rem;color:var(--ef-text-muted)" th:text="${#temporals.format(u.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                         <td>

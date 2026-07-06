@@ -3,54 +3,54 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-<head>
-    <title>Quản lý thông báo — Form</title>
-</head>
-<body>
-<th:block layout:fragment="breadcrumb">
-    <li class="breadcrumb-item"><a th:href="@{/admin/thong-bao}">Thông báo</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Form</li>
-</th:block>
-<div layout:fragment="content">
-    <div class="adm-page-header">
-        <h4><i class="bi bi-megaphone me-2"></i>
-            <span th:if="${notif.id != null}">Sửa thông báo</span>
-            <span th:unless="${notif.id != null}">Đăng thông báo mới</span>
-        </h4>
+    <head>
+        <title>Quản lý thông báo — Form</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/thong-bao}">Thông báo</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4><i class="bi bi-megaphone me-2"></i>
+                <span th:if="${notif.id != null}">Sửa thông báo</span>
+                <span th:unless="${notif.id != null}">Đăng thông báo mới</span>
+            </h4>
+        </div>
+        <div class="adm-form-wrap">
+            <form th:action="@{${formAction}}" th:object="${notif}" method="post" data-dirty-bar class="row g-3">
+                <input type="hidden" th:field="*{id}"/>
+                <div class="col-12">
+                    <label class="form-label">Nội dung thông báo <span class="text-danger">*</span></label>
+                    <textarea th:field="*{content}" class="form-control" rows="5" required
+                              placeholder="Nhập nội dung thông báo..."></textarea>
+                    <div th:if="${#fields.hasErrors('content')}" th:errors="*{content}" class="text-danger small"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Đính kèm sản phẩm</label>
+                    <select th:field="*{productId}" class="form-select searchable-select">
+                        <option value="">-- Không chọn --</option>
+                        <option th:each="p : ${products}" th:value="${p.id}"
+                                th:text="${p.tenSanPham} + ' (' + ${p.trangThaiSanPham == 'DANG_BAN' ? 'Còn hàng' : p.trangThaiSanPham == 'DAT_TRUOC' ? 'Đặt trước' : 'Ngừng bán'} + ')'"></option>
+                    </select>
+                    <small class="text-muted">Chọn sản phẩm để đính kèm đường dẫn</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Đính kèm mã giảm giá</label>
+                    <select th:field="*{promotionId}" class="form-select searchable-select">
+                        <option value="">-- Không chọn --</option>
+                        <option th:each="promo : ${promotions}" th:value="${promo.id}"
+                                th:text="${promo.maCode} + ' - ' + ${promo.tenChuongTrinh}"></option>
+                    </select>
+                    <small class="text-muted">Chọn mã giảm giá để đính kèm đường dẫn</small>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="adm-form-wrap">
-        <form th:action="@{${formAction}}" th:object="${notif}" method="post" data-dirty-bar class="row g-3">
-            <input type="hidden" th:field="*{id}"/>
-            <div class="col-12">
-                <label class="form-label">Nội dung thông báo <span class="text-danger">*</span></label>
-                <textarea th:field="*{content}" class="form-control" rows="5" required
-                          placeholder="Nhập nội dung thông báo..."></textarea>
-                <div th:if="${#fields.hasErrors('content')}" th:errors="*{content}" class="text-danger small"></div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Đính kèm sản phẩm</label>
-                <select th:field="*{productId}" class="form-select searchable-select">
-                    <option value="">-- Không chọn --</option>
-                    <option th:each="p : ${products}" th:value="${p.id}"
-                            th:text="${p.tenSanPham} + ' (' + ${p.trangThaiSanPham == 'DANG_BAN' ? 'Còn hàng' : p.trangThaiSanPham == 'DAT_TRUOC' ? 'Đặt trước' : 'Ngừng bán'} + ')'"></option>
-                </select>
-                <small class="text-muted">Chọn sản phẩm để đính kèm đường dẫn</small>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Đính kèm mã giảm giá</label>
-                <select th:field="*{promotionId}" class="form-select searchable-select">
-                    <option value="">-- Không chọn --</option>
-                    <option th:each="promo : ${promotions}" th:value="${promo.id}"
-                            th:text="${promo.maCode} + ' - ' + ${promo.tenChuongTrinh}"></option>
-                </select>
-                <small class="text-muted">Chọn mã giảm giá để đính kèm đường dẫn</small>
-            </div>
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-                <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
-            </div>
-        </form>
-    </div>
-</div>
 </body>
 </html>

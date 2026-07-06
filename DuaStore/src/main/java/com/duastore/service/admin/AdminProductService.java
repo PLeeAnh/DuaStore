@@ -96,6 +96,7 @@ public class AdminProductService {
         p.setTrangThaiSanPham(dto.getTrangThaiSanPham());
         p.setLeadTimeDays(dto.getLeadTimeDays());
         p.setFeatured(dto.isFeatured());
+        p.setNgayPhatHanh(dto.getNgayPhatHanh());
 
         String uploaded = fileUploadService.save(dto.getHinhAnhFile());
         if (uploaded != null) {

@@ -221,7 +221,7 @@ function editAddress(id) {
     editingAddressId = id;
     document.getElementById('addressModalList').style.display = 'none';
     document.getElementById('addressModalForm').style.display = 'block';
-    document.getElementById('addressModalTitle').textContent = 'Sửa địa chỉ';
+    document.getElementById('addressModalTitle').textContent = 'Địa chỉ';
     resetCombo('modalTinhThanhCombo');
     resetCombo('modalQuanHuyenCombo');
     resetCombo('modalPhuongXaCombo');
@@ -653,7 +653,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('qrPaymentImage').src = data.qrUrl;
                         document.getElementById('qrAccountNumber').textContent = data.accountNumber;
                         document.getElementById('qrAccountName').textContent = data.accountName;
-                        document.getElementById('qrMaDon').textContent = '';
                         document.getElementById('qrAmount').textContent = amount.toLocaleString('vi-VN') + '₫';
                         new bootstrap.Modal(document.getElementById('qrPaymentModal')).show();
                     });

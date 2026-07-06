@@ -57,6 +57,18 @@ public class ProductController {
     private final PricingService pricingService;
     private final OrderItemRepository orderItemRepository;
 
+    private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
+        List<Category> path = new ArrayList<>();
+        Integer id = categoryId;
+        while (id != null) {
+            Category cat = categoryRepository.findById(id).orElse(null);
+            if (cat == null) break;
+            path.add(0, cat);
+            id = cat.getParent() != null ? cat.getParent().getId() : null;
+        }
+        return path;
+    }
+
     public ProductController(ProductService productService,
             ProductVariantRepository variantRepository,
             ProductImageRepository productImageRepository,
@@ -113,7 +125,10 @@ public class ProductController {
                 model.addAttribute("keyword", keyword);
             }
             if (danhMuc != null) {
-                categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
+                categoryRepository.findById(danhMuc).ifPresent(c -> {
+                    model.addAttribute("selectedCategory", c);
+                    model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+                });
             }
             productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, PAGE_SIZE);
         } else if (keyword != null && !keyword.isBlank()) {
@@ -125,7 +140,10 @@ public class ProductController {
             categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
                     .forEach(child -> categoryIds.add(child.getId()));
             productPage = productService.findByCategoriesPaged(categoryIds, page, PAGE_SIZE);
-            categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
+            categoryRepository.findById(danhMuc).ifPresent(c -> {
+                model.addAttribute("selectedCategory", c);
+                model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+            });
         } else {
             productPage = productService.getDangBanPaged(page, PAGE_SIZE);
         }
@@ -266,6 +284,7 @@ public class ProductController {
     @GetMapping("/san-pham/{id}")
     public String detail(@PathVariable Integer id,
             @RequestParam(defaultValue = "0") int reviewPage,
+            @RequestParam(required = false) Integer reviewRating,
             Model model) {
         var product = productService.findById(id);
         if (product == null) {
@@ -385,11 +404,13 @@ public class ProductController {
             currentUserId = securityUtil.getCurrentUserId();
         } catch (Exception e) {
         }
-        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId);
+        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId, reviewRating);
         model.addAttribute("reviews", reviewPageResult.getContent());
         model.addAttribute("reviewCurrentPage", reviewPage);
         model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
         model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
+        model.addAttribute("reviewRating", reviewRating);
+        model.addAttribute("ratingDistribution", reviewService.getRatingDistribution(id));
         if (currentUserId != null) {
             try {
                 model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
@@ -437,10 +458,14 @@ public class ProductController {
             }
         }
 
-        // Category name
-        String categoryName = categoryRepository.findById(product.getDanhMucId())
+        // Category name + breadcrumb
+        Integer catId = product.getDanhMucId();
+        String categoryName = categoryRepository.findById(catId)
                 .map(Category::getTenDanhMuc).orElse("—");
         model.addAttribute("categoryName", categoryName);
+        if (catId != null) {
+            model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(catId));
+        }
 
         List<Product> related = productService.getRelatedProducts(id, product.getDanhMucId(), 8);
         model.addAttribute("relatedProducts", related);

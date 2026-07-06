@@ -3,6 +3,7 @@ package com.duastore.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,6 +43,8 @@ public class Product {
     private Integer leadTimeDays;
     private boolean isFeatured = false;
     private boolean isActive = true;
+
+    private LocalDate ngayPhatHanh;
 
     @Column(updatable = false)
     private LocalDateTime ngayTao;
