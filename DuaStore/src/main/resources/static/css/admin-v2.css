@@ -1512,9 +1512,9 @@ body.adm-body {
 }
 
 .category-tree .tree-children {
-  overflow: hidden;
-  transform-origin: top;
-  will-change: height, opacity, transform;
+    overflow: hidden;
+    transform-origin: top;
+    will-change: height, opacity, transform;
 }
 
 /* Vertical branch line */
@@ -1611,12 +1611,14 @@ body.adm-body {
 }
 
 .tree-toggle i {
-  display: inline-block;
-  transition: transform .26s cubic-bezier(.22, 1, .36, 1);
+    display: inline-block;
+    transition: transform .26s cubic-bezier(.22, 1, .36, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tree-toggle i { transition: none; }
+    .tree-toggle i {
+        transition: none;
+    }
 }
 
 .tree-thumb {

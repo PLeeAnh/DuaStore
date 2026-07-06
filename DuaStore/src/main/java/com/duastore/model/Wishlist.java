@@ -33,6 +33,8 @@ public class Wishlist {
 
     @PrePersist
     protected void onCreate() {
-        if (ngayThem == null) ngayThem = LocalDateTime.now();
+        if (ngayThem == null) {
+            ngayThem = LocalDateTime.now();
+        }
     }
 }

@@ -8,7 +8,8 @@
 <body>
 <div layout:fragment="content">
     <div class="ds-container py-4">
-        <nav aria-label="breadcrumb">
+        <div class="ds-section-card">
+            <nav aria-label="breadcrumb">
             <ol class="breadcrumb small">
                 <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
                 <li class="breadcrumb-item active">Khuyến mãi</li>
@@ -84,6 +85,7 @@
         <!-- Modal phải nằm TRONG layout:fragment="content" mới được Thymeleaf ghép vào trang.
              Trước đây đặt ngoài div này nên bị loại bỏ hoàn toàn khi render layout -> popup không bao giờ hiện. -->
         <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
+        </div>
     </div>
 </div>
 

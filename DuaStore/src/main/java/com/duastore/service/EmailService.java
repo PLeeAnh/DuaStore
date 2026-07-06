@@ -27,7 +27,8 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(body, true);
             mailSender.send(msg);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public void sendOtpEmail(String toEmail, String otp, String purpose) {
@@ -38,11 +39,11 @@ public class EmailService {
             helper.setTo(toEmail);
 
             String subject = purpose.equals("REGISTER")
-                ? "[DuaStore] Mã xác thực đăng ký tài khoản"
-                : "[DuaStore] Mã xác thực đặt lại mật khẩu";
+                    ? "[DuaStore] Mã xác thực đăng ký tài khoản"
+                    : "[DuaStore] Mã xác thực đặt lại mật khẩu";
 
             String action = purpose.equals("REGISTER")
-                ? "đăng ký tài khoản" : "đặt lại mật khẩu";
+                    ? "đăng ký tài khoản" : "đặt lại mật khẩu";
 
             String html = """
                 <html><body style="font-family:Arial;background:#f5f5f5;padding:40px 0;">
@@ -102,9 +103,9 @@ public class EmailService {
     }
 
     public void sendOrderSuccessEmail(String toEmail, String hoTen, String maDon,
-                                       String ngayDat, String diaChi, String phuongThucTT,
-                                       String phuongThucGH, String tongTien,
-                                       String danhSachSP) {
+            String ngayDat, String diaChi, String phuongThucTT,
+            String phuongThucGH, String tongTien,
+            String danhSachSP) {
         try {
             MimeMessage msg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
@@ -167,7 +168,8 @@ public class EmailService {
 
             helper.setText(html, true);
             mailSender.send(msg);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public void sendPasswordResetSuccess(String toEmail) {
@@ -185,6 +187,7 @@ public class EmailService {
                 </div>
                 """, true);
             mailSender.send(msg);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

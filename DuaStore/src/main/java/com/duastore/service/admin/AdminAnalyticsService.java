@@ -30,12 +30,12 @@ public class AdminAnalyticsService {
     private final UserVoucherRepository userVoucherRepository;
 
     public AdminAnalyticsService(OrderRepository orderRepository,
-                                  OrderItemRepository orderItemRepository,
-                                  ProductRepository productRepository,
-                                  ProductVariantRepository productVariantRepository,
-                                  UserRepository userRepository,
-                                  PromotionRepository promotionRepository,
-                                  UserVoucherRepository userVoucherRepository) {
+            OrderItemRepository orderItemRepository,
+            ProductRepository productRepository,
+            ProductVariantRepository productVariantRepository,
+            UserRepository userRepository,
+            PromotionRepository promotionRepository,
+            UserVoucherRepository userVoucherRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
@@ -46,7 +46,6 @@ public class AdminAnalyticsService {
     }
 
     // ==================== REVENUE ====================
-
     public List<Map<String, Object>> getDailyRevenue(LocalDate from, LocalDate to) {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(LocalTime.MAX);
@@ -92,7 +91,9 @@ public class AdminAnalyticsService {
         for (Order o : orders) {
             var items = orderItemRepository.findByOrderId(o.getId());
             for (var item : items) {
-                if (item.getProductId() == null) continue;
+                if (item.getProductId() == null) {
+                    continue;
+                }
                 var product = productRepository.findById(item.getProductId());
                 if (product.isPresent()) {
                     Integer catId = product.get().getDanhMucId();
@@ -116,7 +117,6 @@ public class AdminAnalyticsService {
     }
 
     // ==================== ORDERS ====================
-
     public Map<String, Long> getOrderStatusCounts(LocalDate from, LocalDate to) {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(LocalTime.MAX);
@@ -182,14 +182,15 @@ public class AdminAnalyticsService {
 
     public String getCompletionRate(LocalDate from, LocalDate to) {
         long total = getTotalOrders(from, to);
-        if (total == 0) return "0%";
+        if (total == 0) {
+            return "0%";
+        }
         long completed = getCompletedOrders(from, to);
         double rate = (completed * 100.0) / total;
         return String.format("%.1f%%", rate);
     }
 
     // ==================== CUSTOMERS ====================
-
     public long getNewCustomers(LocalDate from, LocalDate to) {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(LocalTime.MAX);
@@ -218,16 +219,19 @@ public class AdminAnalyticsService {
 
     public String getAvgRevenuePerCustomer(LocalDate from, LocalDate to) {
         long customers = getNewCustomers(from, to);
-        if (customers == 0) return "0₫";
+        if (customers == 0) {
+            return "0₫";
+        }
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(LocalTime.MAX);
         BigDecimal total = orderRepository.sumTongThanhToanByTrangThaiDonAndNgayDatBetween(start, end);
-        if (total == null) total = BigDecimal.ZERO;
+        if (total == null) {
+            total = BigDecimal.ZERO;
+        }
         return PriceUtils.format(total.divide(BigDecimal.valueOf(customers), 0, RoundingMode.HALF_UP));
     }
 
     // ==================== PRODUCTS ====================
-
     public List<Map<String, Object>> getTopSellingProducts(LocalDate from, LocalDate to) {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.atTime(LocalTime.MAX);
@@ -238,7 +242,9 @@ public class AdminAnalyticsService {
         for (Order o : orders) {
             var items = orderItemRepository.findByOrderId(o.getId());
             for (var item : items) {
-                if (item.getProductId() == null) continue;
+                if (item.getProductId() == null) {
+                    continue;
+                }
                 productMap.computeIfAbsent(item.getProductId(), k -> {
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("productId", item.getProductId());
@@ -278,7 +284,6 @@ public class AdminAnalyticsService {
     }
 
     // ==================== PROMOTIONS ====================
-
     public Map<String, Long> getVoucherStats() {
         List<Object[]> rows = userVoucherRepository.countGroupByStatus();
         Map<String, Long> map = new LinkedHashMap<>();
@@ -331,7 +336,6 @@ public class AdminAnalyticsService {
     }
 
     // ==================== RECENT ORDERS ====================
-
     public List<Map<String, Object>> getRecentOrders(int limit) {
         List<Order> orders = orderRepository.findTop10ByOrderByNgayDatDesc(PageRequest.of(0, limit));
         List<Map<String, Object>> result = new ArrayList<>();

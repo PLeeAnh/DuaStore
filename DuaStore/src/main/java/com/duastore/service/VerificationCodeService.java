@@ -21,12 +21,16 @@ public class VerificationCodeService {
 
     public boolean verify(String email, String code) {
         CodeEntry entry = codes.get(email);
-        if (entry == null) return false;
+        if (entry == null) {
+            return false;
+        }
         if (System.currentTimeMillis() > entry.expiry()) {
             codes.remove(email);
             return false;
         }
-        if (!entry.code().equals(code)) return false;
+        if (!entry.code().equals(code)) {
+            return false;
+        }
         codes.remove(email);
         return true;
     }
@@ -35,5 +39,7 @@ public class VerificationCodeService {
         codes.remove(email);
     }
 
-    private record CodeEntry(String code, long expiry) {}
+    private record CodeEntry(String code, long expiry) {
+
+    }
 }

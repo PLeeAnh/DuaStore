@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class TreeNodeDto {
+
     private Integer id;
     private String tenDanhMuc;
     private String imageUrl;

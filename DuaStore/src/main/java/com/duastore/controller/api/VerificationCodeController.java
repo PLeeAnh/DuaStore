@@ -18,8 +18,8 @@ public class VerificationCodeController {
     private final UserRepository userRepository;
 
     public VerificationCodeController(VerificationCodeService codeService,
-                                      EmailService emailService,
-                                      UserRepository userRepository) {
+            EmailService emailService,
+            UserRepository userRepository) {
         this.codeService = codeService;
         this.emailService = emailService;
         this.userRepository = userRepository;

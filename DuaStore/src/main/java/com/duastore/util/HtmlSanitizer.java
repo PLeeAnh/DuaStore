@@ -4,6 +4,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 
 public final class HtmlSanitizer {
+
     private static final Safelist SAFELIST = Safelist.relaxed()
             .addTags("h1", "h2", "h3", "h4", "h5", "h6")
             .addTags("figure", "figcaption")
@@ -14,10 +15,13 @@ public final class HtmlSanitizer {
             .addAttributes("source", "src", "type")
             .preserveRelativeLinks(false);
 
-    private HtmlSanitizer() {}
+    private HtmlSanitizer() {
+    }
 
     public static String sanitize(String html) {
-        if (html == null) return null;
+        if (html == null) {
+            return null;
+        }
         return Jsoup.clean(html, SAFELIST);
     }
 }

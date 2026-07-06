@@ -26,9 +26,9 @@ public class AdminHomepageController {
     private final PostsRepository postsRepository;
 
     public AdminHomepageController(BannerRepository bannerRepository,
-                                   ProductRepository productRepository,
-                                   CategoryRepository categoryRepository,
-                                   PostsRepository postsRepository) {
+            ProductRepository productRepository,
+            CategoryRepository categoryRepository,
+            PostsRepository postsRepository) {
         this.bannerRepository = bannerRepository;
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;

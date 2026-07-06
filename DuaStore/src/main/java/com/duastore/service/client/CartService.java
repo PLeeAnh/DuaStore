@@ -28,9 +28,9 @@ public class CartService {
     private final PricingService pricingService;
 
     public CartService(CartItemRepository cartItemRepository,
-                       ProductRepository productRepository,
-                       ProductVariantRepository variantRepository,
-                       PricingService pricingService) {
+            ProductRepository productRepository,
+            ProductVariantRepository variantRepository,
+            PricingService pricingService) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
@@ -97,14 +97,20 @@ public class CartService {
     }
 
     public int count(Integer userId) {
-        if (userId == null) return 0;
+        if (userId == null) {
+            return 0;
+        }
         return cartItemRepository.countByUserId(userId);
     }
 
     public java.util.Optional<ProductVariant> findDefaultVariant(Integer productId) {
-        if (productId == null) return java.util.Optional.empty();
+        if (productId == null) {
+            return java.util.Optional.empty();
+        }
         var opt = variantRepository.findByProductIdAndIsDefaultTrue(productId);
-        if (opt.isPresent()) return opt;
+        if (opt.isPresent()) {
+            return opt;
+        }
         return variantRepository.findByProductIdAndIsActiveTrue(productId).stream().findFirst();
     }
 
@@ -116,8 +122,8 @@ public class CartService {
 
     @Transactional
     public CartResult updateQuantityByVariantId(Integer userId,
-                                                Integer variantId,
-                                                Integer quantity) {
+            Integer variantId,
+            Integer quantity) {
 
         CartItem item = cartItemRepository
                 .findByUserIdAndVariantId(userId, variantId)
@@ -127,8 +133,8 @@ public class CartService {
             return CartResult.fail("Không tìm thấy sản phẩm trong giỏ");
         }
 
-        ProductVariant variant =
-                variantRepository.findById(variantId).orElse(null);
+        ProductVariant variant
+                = variantRepository.findById(variantId).orElse(null);
 
         if (variant == null
                 || !variant.isActive()
@@ -200,6 +206,7 @@ public class CartService {
     }
 
     public record CartResult(boolean success, String message, int cartCount) {
+
         static CartResult ok(int cartCount) {
             return new CartResult(true, "OK", cartCount);
         }
@@ -240,7 +247,9 @@ public class CartService {
         List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId);
         for (CartItem ci : cartItems) {
             ProductVariant v = ci.getVariant();
-            if (v == null) continue;
+            if (v == null) {
+                continue;
+            }
             if (!v.isActive() || v.getSoLuongTon() <= 0) {
                 warnings.add(ci.getProduct().getTenSanPham() + " (" + v.getTenBienThe() + ") đã hết hàng");
             } else if (ci.getSoLuong() > v.getSoLuongTon()) {
@@ -268,13 +277,19 @@ public class CartService {
 
     @Transactional
     public void mergeGuestCart(Integer userId, java.util.Map<Integer, Integer> guestCart) {
-        if (guestCart == null || guestCart.isEmpty()) return;
+        if (guestCart == null || guestCart.isEmpty()) {
+            return;
+        }
         for (java.util.Map.Entry<Integer, Integer> entry : guestCart.entrySet()) {
             Integer variantId = entry.getKey();
             Integer quantity = entry.getValue();
-            if (variantId == null || quantity == null || quantity <= 0) continue;
+            if (variantId == null || quantity == null || quantity <= 0) {
+                continue;
+            }
             ProductVariant variant = variantRepository.findById(variantId).orElse(null);
-            if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) continue;
+            if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) {
+                continue;
+            }
             CartItem existing = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
             if (existing != null) {
                 existing.setSoLuong(Math.min(existing.getSoLuong() + quantity, variant.getSoLuongTon()));
@@ -294,7 +309,9 @@ public class CartService {
         return cartItemRepository.findByUserIdOrderByNgayThemDesc(userId).stream()
                 .anyMatch(ci -> {
                     ProductVariant v = ci.getVariant();
-                    if (v == null || ci.getGiaLucThem() == null) return false;
+                    if (v == null || ci.getGiaLucThem() == null) {
+                        return false;
+                    }
                     BigDecimal currentPrice = pricingService.resolvePrice(v).finalPrice();
                     return currentPrice.compareTo(ci.getGiaLucThem()) != 0;
                 });

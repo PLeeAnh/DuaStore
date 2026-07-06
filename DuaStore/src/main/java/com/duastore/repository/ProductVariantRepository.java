@@ -13,8 +13,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Integer> {
-    @Query("SELECT COUNT(DISTINCT v.productId) FROM ProductVariant v WHERE v.isActive = true AND v.productId IN " +
-           "(SELECT v2.productId FROM ProductVariant v2 WHERE v2.isActive = true GROUP BY v2.productId HAVING SUM(v2.soLuongTon) <= :threshold)")
+
+    @Query("SELECT COUNT(DISTINCT v.productId) FROM ProductVariant v WHERE v.isActive = true AND v.productId IN "
+            + "(SELECT v2.productId FROM ProductVariant v2 WHERE v2.isActive = true GROUP BY v2.productId HAVING SUM(v2.soLuongTon) <= :threshold)")
     long countLowStockProducts(@Param("threshold") int threshold);
 
     long countByIsActiveTrue();
@@ -25,8 +26,11 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     long sumTotalStock();
 
     List<ProductVariant> findByProductIdInAndIsActiveTrue(Collection<Integer> productIds);
+
     List<ProductVariant> findByProductIdAndIsActiveTrue(Integer productId);
+
     List<ProductVariant> findByProductId(Integer productId);
+
     Optional<ProductVariant> findByProductIdAndIsDefaultTrue(Integer productId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
@@ -34,23 +38,24 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     Optional<ProductVariant> findByIdWithLock(@Param("id") Integer id);
 
     List<ProductVariant> findByIsActiveTrueOrderByIdAsc();
+
     Page<ProductVariant> findByIsActiveTrueOrderByIdAsc(Pageable pageable);
 
-    @Query("SELECT v FROM ProductVariant v WHERE v.isActive = true " +
-           "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "ORDER BY v.id ASC")
+    @Query("SELECT v FROM ProductVariant v WHERE v.isActive = true "
+            + "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "ORDER BY v.id ASC")
     List<ProductVariant> searchAll(@Param("keyword") String keyword);
 
-    @Query("SELECT v FROM ProductVariant v WHERE v.isActive = true " +
-           "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "ORDER BY v.id ASC")
+    @Query("SELECT v FROM ProductVariant v WHERE v.isActive = true "
+            + "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "ORDER BY v.id ASC")
     Page<ProductVariant> searchAllPaged(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT v FROM ProductVariant v WHERE v.productId = :productId AND v.isActive = true " +
-           "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-           "ORDER BY v.id ASC")
+    @Query("SELECT v FROM ProductVariant v WHERE v.productId = :productId AND v.isActive = true "
+            + "AND (:keyword IS NULL OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "ORDER BY v.id ASC")
     List<ProductVariant> searchByProductId(@Param("productId") Integer productId,
-                                           @Param("keyword") String keyword);
+            @Param("keyword") String keyword);
 
     @Query("SELECT DISTINCT v.dungTich FROM ProductVariant v WHERE v.isActive = true AND v.dungTich IS NOT NULL ORDER BY v.dungTich ASC")
     List<Integer> findDistinctDungTich();

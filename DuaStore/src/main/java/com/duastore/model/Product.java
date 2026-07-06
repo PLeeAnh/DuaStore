@@ -12,7 +12,9 @@ import java.util.List;
 @Entity
 @Table(name = "Products")
 public class Product {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -47,10 +49,15 @@ public class Product {
     private LocalDateTime ngayCapNhat;
 
     @PrePersist
-    protected void onCreate() { ngayTao = LocalDateTime.now(); ngayCapNhat = LocalDateTime.now(); }
+    protected void onCreate() {
+        ngayTao = LocalDateTime.now();
+        ngayCapNhat = LocalDateTime.now();
+    }
 
     @PreUpdate
-    protected void onUpdate() { ngayCapNhat = LocalDateTime.now(); }
+    protected void onUpdate() {
+        ngayCapNhat = LocalDateTime.now();
+    }
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ProductVariant> variants;

@@ -11,7 +11,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "SavedCartItems")
 public class SavedCartItem {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -43,6 +45,8 @@ public class SavedCartItem {
 
     @PrePersist
     protected void onCreate() {
-        if (ngayLuu == null) ngayLuu = LocalDateTime.now();
+        if (ngayLuu == null) {
+            ngayLuu = LocalDateTime.now();
+        }
     }
 }

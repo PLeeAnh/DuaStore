@@ -24,8 +24,8 @@ public class PromotionController {
 
     @GetMapping("/khuyen-mai")
     public String list(@RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            Model model) {
         Page<Promotion> promoPage = promotionRepository.findActiveNow(LocalDateTime.now(), PageRequest.of(page, size));
         model.addAttribute("promotions", promoPage.getContent());
         model.addAttribute("currentPage", page);

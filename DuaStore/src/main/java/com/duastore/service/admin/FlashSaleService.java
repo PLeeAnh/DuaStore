@@ -17,7 +17,7 @@ public class FlashSaleService {
     private final ProductRepository productRepository;
 
     public FlashSaleService(FlashSaleRepository flashSaleRepository,
-                            ProductRepository productRepository) {
+            ProductRepository productRepository) {
         this.flashSaleRepository = flashSaleRepository;
         this.productRepository = productRepository;
     }
@@ -47,8 +47,12 @@ public class FlashSaleService {
         fs.setNgayBatDau(dto.getNgayBatDau());
         fs.setNgayKetThuc(dto.getNgayKetThuc());
         fs.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
-        if (dto.getSoLuongToiDa() != null) fs.setSoLuongToiDa(dto.getSoLuongToiDa());
-        if (dto.getSoLuongDaBan() != null) fs.setSoLuongDaBan(dto.getSoLuongDaBan());
+        if (dto.getSoLuongToiDa() != null) {
+            fs.setSoLuongToiDa(dto.getSoLuongToiDa());
+        }
+        if (dto.getSoLuongDaBan() != null) {
+            fs.setSoLuongDaBan(dto.getSoLuongDaBan());
+        }
         return flashSaleRepository.save(fs);
     }
 

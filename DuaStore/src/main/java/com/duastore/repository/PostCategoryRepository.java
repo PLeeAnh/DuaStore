@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface PostCategoryRepository extends JpaRepository<PostCategory, Integer> {
+
     List<PostCategory> findAllByOrderByThuTuAsc();
 }

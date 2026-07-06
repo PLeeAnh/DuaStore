@@ -15,7 +15,9 @@ public class PriceUtils {
     }
 
     public static String format(BigDecimal amount) {
-        if (amount == null) return "0₫";
+        if (amount == null) {
+            return "0₫";
+        }
         return VND.format(amount);
     }
 }

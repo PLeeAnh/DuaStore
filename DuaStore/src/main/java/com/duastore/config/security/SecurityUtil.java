@@ -19,7 +19,9 @@ public class SecurityUtil {
     private String resolveEmail(Authentication auth) {
         if (auth.getPrincipal() instanceof OAuth2User oauth2) {
             String email = (String) oauth2.getAttributes().get("email");
-            if (email != null) return email;
+            if (email != null) {
+                return email;
+            }
         }
         return auth.getName();
     }
@@ -31,7 +33,9 @@ public class SecurityUtil {
         }
         String email = resolveEmail(auth);
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user != null) return user.getId();
+        if (user != null) {
+            return user.getId();
+        }
         return userRepository.findByUsername(email)
                 .map(User::getId)
                 .orElse(null);
@@ -44,7 +48,9 @@ public class SecurityUtil {
         }
         String email = resolveEmail(auth);
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user != null) return user;
+        if (user != null) {
+            return user;
+        }
         return userRepository.findByUsername(email).orElse(null);
     }
 
@@ -55,9 +61,11 @@ public class SecurityUtil {
 
     public boolean isAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) return false;
+        if (auth == null) {
+            return false;
+        }
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
-                            || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
     }
 }

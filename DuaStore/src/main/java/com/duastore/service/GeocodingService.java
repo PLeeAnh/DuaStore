@@ -17,10 +17,14 @@ public class GeocodingService {
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     public void geocodeIfMissing(Address address) {
-        if (address.getLatitude() != null && address.getLongitude() != null) return;
+        if (address.getLatitude() != null && address.getLongitude() != null) {
+            return;
+        }
 
         String query = buildQuery(address);
-        if (query.isBlank()) return;
+        if (query.isBlank()) {
+            return;
+        }
 
         try {
             String encoded = URLEncoder.encode(query + ", Việt Nam", StandardCharsets.UTF_8);
@@ -50,10 +54,18 @@ public class GeocodingService {
 
     private String buildQuery(Address a) {
         StringBuilder sb = new StringBuilder();
-        if (a.getDiaChiCuThe() != null) sb.append(a.getDiaChiCuThe()).append(", ");
-        if (a.getPhuongXa() != null) sb.append(a.getPhuongXa()).append(", ");
-        if (a.getQuanHuyen() != null) sb.append(a.getQuanHuyen()).append(", ");
-        if (a.getTinhThanh() != null) sb.append(a.getTinhThanh());
+        if (a.getDiaChiCuThe() != null) {
+            sb.append(a.getDiaChiCuThe()).append(", ");
+        }
+        if (a.getPhuongXa() != null) {
+            sb.append(a.getPhuongXa()).append(", ");
+        }
+        if (a.getQuanHuyen() != null) {
+            sb.append(a.getQuanHuyen()).append(", ");
+        }
+        if (a.getTinhThanh() != null) {
+            sb.append(a.getTinhThanh());
+        }
         return sb.toString().replaceAll(", $", "");
     }
 }

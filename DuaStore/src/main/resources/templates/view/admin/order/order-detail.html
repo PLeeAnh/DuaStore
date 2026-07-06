@@ -130,7 +130,7 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-2 oms-item-row" style="cursor:pointer"
                                              th:data-productid="${item.productId}" onclick="openProductQuickView(this.dataset.productid)">
-                                            <img th:if="${item.hinhAnhSP}" th:src="@{${item.hinhAnhSP}}" alt="" />
+                                            <img th:if="${item.hinhAnhSP}" th:src="@{${item.hinhAnhSP}}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px" />
                                             <img th:unless="${item.hinhAnhSP}" src="https://via.placeholder.com/56" alt="" />
                                             <div>
                                                 <div class="fw-semibold small" th:text="${item.tenSanPham}"></div>

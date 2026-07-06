@@ -30,13 +30,13 @@ public class NotificationController {
     public String list(Model model, HttpSession session) {
         Integer userId = securityUtil.getCurrentUserId();
         List<Notification> notifications = userId != null
-            ? notificationRepository.findCustomerNotifications(userId)
-            : java.util.List.of();
+                ? notificationRepository.findCustomerNotifications(userId)
+                : java.util.List.of();
         model.addAttribute("notifications", notifications);
 
         session.setAttribute("notifReadMaxId",
-            notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
-                .map(Notification::getId).orElse(0));
+                notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
+                        .map(Notification::getId).orElse(0));
 
         return "view/client/notification/notification-list";
     }
@@ -94,7 +94,8 @@ public class NotificationController {
             Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : new HashSet<>();
             readIds.add(id);
             session.setAttribute("notifReadIds", readIds);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return "ok";
     }
 
@@ -102,8 +103,8 @@ public class NotificationController {
     @ResponseBody
     public String markAllRead(HttpSession session) {
         session.setAttribute("notifReadMaxId",
-            notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
-                .map(Notification::getId).orElse(0));
+                notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
+                        .map(Notification::getId).orElse(0));
         return "ok";
     }
 
@@ -124,7 +125,7 @@ public class NotificationController {
 
         if (readMaxId != null && readMaxId > 0) {
             List<Notification> unread = notificationRepository
-                .findNewByUserId(userId, readMaxId);
+                    .findNewByUserId(userId, readMaxId);
             for (Notification n : unread) {
                 notifList.add(buildNotifMap(n, fmt));
             }

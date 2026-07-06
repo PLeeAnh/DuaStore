@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 @NoArgsConstructor
 public class BannerDTO {
+
     private Integer id;
 
     @NotBlank(message = "Tiêu đề không được để trống")

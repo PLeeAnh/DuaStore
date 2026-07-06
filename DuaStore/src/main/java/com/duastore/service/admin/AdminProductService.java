@@ -24,8 +24,8 @@ public class AdminProductService {
     private final ProductImageRepository productImageRepository;
 
     public AdminProductService(ProductRepository productRepository,
-                                FileUploadService fileUploadService,
-                                ProductImageRepository productImageRepository) {
+            FileUploadService fileUploadService,
+            ProductImageRepository productImageRepository) {
         this.productRepository = productRepository;
         this.fileUploadService = fileUploadService;
         this.productImageRepository = productImageRepository;
@@ -78,7 +78,9 @@ public class AdminProductService {
         Product p;
         if (dto.getId() != null) {
             p = productRepository.findById(dto.getId()).orElse(null);
-            if (p == null) return null;
+            if (p == null) {
+                return null;
+            }
         } else {
             p = new Product();
         }
@@ -107,8 +109,8 @@ public class AdminProductService {
         // Save gallery images
         if (dto.getGalleryFiles() != null) {
             int order = productImageRepository
-                .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(saved.getId())
-                .size();
+                    .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(saved.getId())
+                    .size();
             for (MultipartFile file : dto.getGalleryFiles()) {
                 if (!file.isEmpty()) {
                     String url = fileUploadService.save(file);

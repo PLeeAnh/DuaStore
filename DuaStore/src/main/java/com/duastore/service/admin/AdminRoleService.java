@@ -56,7 +56,9 @@ public class AdminRoleService {
         }
         role.setName(name);
         role.setMoTa(moTa);
-        if (isActive != null) role.setIsActive(isActive);
+        if (isActive != null) {
+            role.setIsActive(isActive);
+        }
         if (permissionIds != null && !permissionIds.isEmpty()) {
             Set<Permission> perms = new HashSet<>(permissionRepository.findAllById(permissionIds));
             role.setPermissions(perms);
@@ -69,7 +71,9 @@ public class AdminRoleService {
     @Transactional
     public boolean delete(Integer id) {
         Role role = roleRepository.findById(id).orElse(null);
-        if (role == null) return false;
+        if (role == null) {
+            return false;
+        }
         if ("SUPER_ADMIN".equals(role.getName()) || "ADMIN".equals(role.getName()) || "USER".equals(role.getName())) {
             return false;
         }

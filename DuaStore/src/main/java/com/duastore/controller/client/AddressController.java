@@ -19,7 +19,7 @@ public class AddressController {
     private final GeocodingService geocodingService;
 
     public AddressController(AddressRepository addressRepository, SecurityUtil securityUtil,
-                             GeocodingService geocodingService) {
+            GeocodingService geocodingService) {
         this.addressRepository = addressRepository;
         this.securityUtil = securityUtil;
         this.geocodingService = geocodingService;

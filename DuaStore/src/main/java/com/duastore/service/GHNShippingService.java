@@ -44,10 +44,14 @@ public class GHNShippingService {
         try {
             Integer toDistrictId = resolveDistrictId(address);
             String toWardCode = resolveWardCode(address);
-            if (toDistrictId == null) return null;
+            if (toDistrictId == null) {
+                return null;
+            }
 
             Integer serviceId = findServiceId(toDistrictId);
-            if (serviceId == null) return null;
+            if (serviceId == null) {
+                return null;
+            }
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("service_id", serviceId);
@@ -62,7 +66,9 @@ public class GHNShippingService {
             Map<String, Object> resp = post("/v2/shipping-order/fee", body);
             if (resp != null && resp.get("data") instanceof Map<?, ?> data) {
                 Number total = (Number) data.get("total");
-                if (total != null) return BigDecimal.valueOf(total.longValue());
+                if (total != null) {
+                    return BigDecimal.valueOf(total.longValue());
+                }
             }
         } catch (Exception e) {
             log.warn("GHN fee calculation failed: {}", e.getMessage());
@@ -71,14 +77,20 @@ public class GHNShippingService {
     }
 
     public String createOrder(Order order, Address address) {
-        if (!isEnabled() || address == null) return null;
+        if (!isEnabled() || address == null) {
+            return null;
+        }
         try {
             Integer toDistrictId = resolveDistrictId(address);
             String toWardCode = resolveWardCode(address);
-            if (toDistrictId == null) return null;
+            if (toDistrictId == null) {
+                return null;
+            }
 
             Integer serviceId = findServiceId(toDistrictId);
-            if (serviceId == null) return null;
+            if (serviceId == null) {
+                return null;
+            }
 
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("to_name", address.getTenNguoiNhan());
@@ -122,7 +134,9 @@ public class GHNShippingService {
     }
 
     public Map<String, Object> getOrderDetail(String ghnOrderCode) {
-        if (!isEnabled() || ghnOrderCode == null) return null;
+        if (!isEnabled() || ghnOrderCode == null) {
+            return null;
+        }
         try {
             Map<String, Object> body = Map.of("order_code", ghnOrderCode);
             return post("/v2/shipping-order/detail", body);
@@ -147,13 +161,21 @@ public class GHNShippingService {
     }
 
     private Integer resolveDistrictId(Address address) {
-        if (address.getGhnDistrictId() != null) return address.getGhnDistrictId();
+        if (address.getGhnDistrictId() != null) {
+            return address.getGhnDistrictId();
+        }
         String val = siteSettingService.getValue("ghn_default_district_id", "1444");
-        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return null; }
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private String resolveWardCode(Address address) {
-        if (address.getGhnWardCode() != null) return address.getGhnWardCode();
+        if (address.getGhnWardCode() != null) {
+            return address.getGhnWardCode();
+        }
         return siteSettingService.getValue("ghn_default_ward_code", "21012");
     }
 
@@ -170,7 +192,11 @@ public class GHNShippingService {
 
     private Integer getShopId() {
         String val = siteSettingService.getValue("ghn_shop_id", "");
-        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return null; }
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private boolean isTestMode() {
@@ -180,13 +206,17 @@ public class GHNShippingService {
     @SuppressWarnings("unchecked")
     private Map<String, Object> post(String path, Map<String, Object> body) {
         String token = getToken();
-        if (token.isBlank()) return null;
+        if (token.isBlank()) {
+            return null;
+        }
 
         String url = (isTestMode() ? "https://dev-online-gateway.ghn.vn/shiip/public-api" : API_BASE) + path;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Token", token);
-        if (getShopId() != null) headers.set("ShopId", getShopId().toString());
+        if (getShopId() != null) {
+            headers.set("ShopId", getShopId().toString());
+        }
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
         ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);

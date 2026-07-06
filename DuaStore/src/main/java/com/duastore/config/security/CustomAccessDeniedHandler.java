@@ -13,8 +13,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request,
-                       HttpServletResponse response,
-                       AccessDeniedException e) throws IOException {
+            HttpServletResponse response,
+            AccessDeniedException e) throws IOException {
         if (request.getRequestURI().startsWith("/api/")) {
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

@@ -28,10 +28,10 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     public DataInitializer(PermissionRepository permissionRepository,
-                           RoleRepository roleRepository,
-                           UserRepository userRepository,
-                           PromotionRepository promotionRepository,
-                           PasswordEncoder passwordEncoder) {
+            RoleRepository roleRepository,
+            UserRepository userRepository,
+            PromotionRepository promotionRepository,
+            PasswordEncoder passwordEncoder) {
         this.permissionRepository = permissionRepository;
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
@@ -48,7 +48,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedRoles() {
-        if (roleRepository.count() > 0) return;
+        if (roleRepository.count() > 0) {
+            return;
+        }
         for (String name : List.of("SUPER_ADMIN", "ADMIN", "USER")) {
             Role r = new Role();
             r.setName(name);
@@ -58,29 +60,29 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedPermissions() {
         Map<String, List<String>> perms = Map.ofEntries(
-            Map.entry("DASHBOARD", List.of("READ")),
-            Map.entry("PRODUCT", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("ORDER", List.of("READ", "UPDATE")),
-            Map.entry("USER", List.of("READ", "UPDATE")),
-            Map.entry("CATEGORY", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("PROMOTION", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("REVIEW", List.of("READ", "APPROVE", "HIDE", "DELETE")),
-            Map.entry("POST", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("VARIANT", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("ROLE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("AUDIT_LOG", List.of("READ")),
-            Map.entry("NOTIFICATION", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("BANNER", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("CUSTOMER", List.of("READ", "UPDATE")),
-            Map.entry("HOMEPAGE", List.of("READ", "UPDATE")),
-            Map.entry("APPEARANCE", List.of("READ", "UPDATE")),
-            Map.entry("EMAIL_SETTING", List.of("READ", "UPDATE")),
-            Map.entry("PAYMENT_SETTING", List.of("READ", "UPDATE")),
-            Map.entry("SHIPPING_SETTING", List.of("READ", "UPDATE")),
-            Map.entry("STORE", List.of("READ", "UPDATE")),
-            Map.entry("ANALYTICS", List.of("READ")),
-            Map.entry("FLASH_SALE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
-            Map.entry("REFUND", List.of("READ", "UPDATE", "APPROVE"))
+                Map.entry("DASHBOARD", List.of("READ")),
+                Map.entry("PRODUCT", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("ORDER", List.of("READ", "UPDATE")),
+                Map.entry("USER", List.of("READ", "UPDATE")),
+                Map.entry("CATEGORY", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("PROMOTION", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("REVIEW", List.of("READ", "APPROVE", "HIDE", "DELETE")),
+                Map.entry("POST", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("VARIANT", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("ROLE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("AUDIT_LOG", List.of("READ")),
+                Map.entry("NOTIFICATION", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("BANNER", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("CUSTOMER", List.of("READ", "UPDATE")),
+                Map.entry("HOMEPAGE", List.of("READ", "UPDATE")),
+                Map.entry("APPEARANCE", List.of("READ", "UPDATE")),
+                Map.entry("EMAIL_SETTING", List.of("READ", "UPDATE")),
+                Map.entry("PAYMENT_SETTING", List.of("READ", "UPDATE")),
+                Map.entry("SHIPPING_SETTING", List.of("READ", "UPDATE")),
+                Map.entry("STORE", List.of("READ", "UPDATE")),
+                Map.entry("ANALYTICS", List.of("READ")),
+                Map.entry("FLASH_SALE", List.of("CREATE", "READ", "UPDATE", "DELETE")),
+                Map.entry("REFUND", List.of("READ", "UPDATE", "APPROVE"))
         );
 
         for (var entry : perms.entrySet()) {
@@ -129,8 +131,12 @@ public class DataInitializer implements CommandLineRunner {
             for (Promotion p : existing) {
                 p.setDenNgay(LocalDateTime.now().plusMonths(6));
                 p.setTuNgay(LocalDateTime.now().minusDays(1));
-                if (p.getDaDung() == null) p.setDaDung(0);
-                if (p.getIsActive() == null) p.setIsActive(true);
+                if (p.getDaDung() == null) {
+                    p.setDaDung(0);
+                }
+                if (p.getIsActive() == null) {
+                    p.setIsActive(true);
+                }
                 promotionRepository.save(p);
             }
             return;

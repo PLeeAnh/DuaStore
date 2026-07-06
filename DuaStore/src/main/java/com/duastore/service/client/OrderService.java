@@ -46,18 +46,18 @@ public class OrderService {
     private final FlashSaleRepository flashSaleRepository;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-                        CartService cartService, AddressRepository addressRepository,
-                        PromotionRepository promotionRepository, UserRepository userRepository,
-                        CartItemRepository cartItemRepository,
-                        OrderAssignmentRepository orderAssignmentRepository,
-                        ShippingFeeService shippingFeeService,
-                        ProductVariantRepository variantRepository,
-                        OrderStatusLogService orderStatusLogService,
-                        UserVoucherRepository userVoucherRepository,
-                        GHNShippingService ghnShippingService,
-                        VNPAYService vnpayService,
-                        PricingService pricingService,
-                        FlashSaleRepository flashSaleRepository) {
+            CartService cartService, AddressRepository addressRepository,
+            PromotionRepository promotionRepository, UserRepository userRepository,
+            CartItemRepository cartItemRepository,
+            OrderAssignmentRepository orderAssignmentRepository,
+            ShippingFeeService shippingFeeService,
+            ProductVariantRepository variantRepository,
+            OrderStatusLogService orderStatusLogService,
+            UserVoucherRepository userVoucherRepository,
+            GHNShippingService ghnShippingService,
+            VNPAYService vnpayService,
+            PricingService pricingService,
+            FlashSaleRepository flashSaleRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -76,11 +76,9 @@ public class OrderService {
         this.flashSaleRepository = flashSaleRepository;
     }
 
-
-
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
-                                  String phuongThucGiaoHang, String maCode, String ghiChu) {
+            String phuongThucGiaoHang, String maCode, String ghiChu) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         Address address = addressRepository.findById(addressId)
@@ -162,10 +160,14 @@ public class OrderService {
             });
         }
 
-        if (order.getTienGiam() == null) order.setTienGiam(BigDecimal.ZERO);
+        if (order.getTienGiam() == null) {
+            order.setTienGiam(BigDecimal.ZERO);
+        }
 
         BigDecimal tong = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam());
-        if (tong.compareTo(BigDecimal.ZERO) < 0) tong = BigDecimal.ZERO;
+        if (tong.compareTo(BigDecimal.ZERO) < 0) {
+            tong = BigDecimal.ZERO;
+        }
         order.setTongThanhToan(tong);
 
         order = orderRepository.save(order);
@@ -174,12 +176,16 @@ public class OrderService {
 
         // Lock flash sale + decrement stock
         for (CartItem ci : cartItems) {
-            if (ci.getVariant() == null) continue;
+            if (ci.getVariant() == null) {
+                continue;
+            }
 
             OrderItem oi = order.getOrderItems().stream()
                     .filter(item -> item.getVariantId().equals(ci.getVariantId()))
                     .findFirst().orElse(null);
-            if (oi == null) continue;
+            if (oi == null) {
+                continue;
+            }
 
             // Lock and increment flash sale sold count first
             if ("FLASH_SALE".equals(oi.getLoaiGia())) {
@@ -222,22 +228,30 @@ public class OrderService {
         BigDecimal eligible = BigDecimal.ZERO;
         for (OrderItem item : items) {
             boolean match = switch (type) {
-                case "PRODUCT" -> targetIds.contains(item.getProductId());
+                case "PRODUCT" ->
+                    targetIds.contains(item.getProductId());
                 case "CATEGORY" -> {
                     Product p = productById.get(item.getProductId());
                     yield p != null && targetIds.contains(p.getDanhMucId());
                 }
-                default -> true;
+                default ->
+                    true;
             };
-            if (!match) continue;
-            if ("FLASH_SALE".equals(item.getLoaiGia()) && !Boolean.TRUE.equals(promo.getStackable())) continue;
+            if (!match) {
+                continue;
+            }
+            if ("FLASH_SALE".equals(item.getLoaiGia()) && !Boolean.TRUE.equals(promo.getStackable())) {
+                continue;
+            }
             eligible = eligible.add(item.getThanhTien());
         }
         return eligible;
     }
 
     private Set<Integer> parseIntTargetIds(String raw) {
-        if (raw == null || raw.isBlank()) return Set.of();
+        if (raw == null || raw.isBlank()) {
+            return Set.of();
+        }
         return Arrays.stream(raw.split(","))
                 .map(String::trim).filter(s -> !s.isEmpty())
                 .map(Integer::parseInt)
@@ -260,17 +274,24 @@ public class OrderService {
     }
 
     public void validatePromotion(Promotion promo, BigDecimal tienHang) {
-        if (!promo.getIsActive()) throw new RuntimeException("Mã giảm giá không hoạt động");
-        if (promo.getDenNgay() != null && promo.getDenNgay().isBefore(LocalDateTime.now()))
+        if (!promo.getIsActive()) {
+            throw new RuntimeException("Mã giảm giá không hoạt động");
+        }
+        if (promo.getDenNgay() != null && promo.getDenNgay().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Mã giảm giá đã hết hạn");
-        if (promo.getTuNgay() != null && promo.getTuNgay().isAfter(LocalDateTime.now()))
+        }
+        if (promo.getTuNgay() != null && promo.getTuNgay().isAfter(LocalDateTime.now())) {
             throw new RuntimeException("Mã giảm giá chưa đến hạn sử dụng");
-        if (promo.getSoLanDung() != null && promo.getDaDung() >= promo.getSoLanDung())
+        }
+        if (promo.getSoLanDung() != null && promo.getDaDung() >= promo.getSoLanDung()) {
             throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng");
-        if (tienHang.compareTo(promo.getDonHangToiThieu()) < 0)
+        }
+        if (tienHang.compareTo(promo.getDonHangToiThieu()) < 0) {
             throw new RuntimeException("Đơn hàng tối thiểu " + PriceUtils.format(promo.getDonHangToiThieu()) + " để áp dụng mã");
-        if (promo.getBudget() != null && promo.getUsedBudget().compareTo(promo.getBudget()) >= 0)
+        }
+        if (promo.getBudget() != null && promo.getUsedBudget().compareTo(promo.getBudget()) >= 0) {
             throw new RuntimeException("Mã giảm giá đã hết ngân sách");
+        }
     }
 
     public BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang) {
@@ -282,7 +303,9 @@ public class OrderService {
             }
         } else {
             discount = promo.getGiaTriGiam();
-            if (discount.compareTo(tienHang) > 0) discount = tienHang;
+            if (discount.compareTo(tienHang) > 0) {
+                discount = tienHang;
+            }
         }
         return discount;
     }
@@ -337,7 +360,9 @@ public class OrderService {
     private void restoreFlashSaleQuota(Integer orderId) {
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         for (OrderItem item : items) {
-            if (!"FLASH_SALE".equals(item.getLoaiGia())) continue;
+            if (!"FLASH_SALE".equals(item.getLoaiGia())) {
+                continue;
+            }
             flashSaleRepository.findByProductIdInAndIsActiveTrue(List.of(item.getProductId()))
                     .stream().findFirst()
                     .ifPresent(fs -> {
@@ -353,9 +378,13 @@ public class OrderService {
     private void restoreStock(Integer orderId) {
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         for (OrderItem item : items) {
-            if (item.getVariantId() == null) continue;
+            if (item.getVariantId() == null) {
+                continue;
+            }
             ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
-            if (variant == null) continue;
+            if (variant == null) {
+                continue;
+            }
             variant.setSoLuongTon(variant.getSoLuongTon() + item.getSoLuong());
             variantRepository.save(variant);
         }
