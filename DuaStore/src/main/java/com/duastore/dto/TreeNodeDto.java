@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class TreeNodeDto {
     private Integer id;
+    private Integer parentId;
     private String tenDanhMuc;
     private String imageUrl;
     private boolean active;

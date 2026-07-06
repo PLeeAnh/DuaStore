@@ -65,7 +65,7 @@ public class HomeController {
                           SiteSettingService siteSettingService,
                           OrderItemRepository orderItemRepository,
                           WishlistRepository wishlistRepository,
-                          ReviewsRepository reviewsRepository) {
+                          ReviewsRepository reviewsRepository,
                           PricingService pricingService) {
         this.productService = productService;
         this.categoryService = categoryService;
@@ -215,12 +215,6 @@ public class HomeController {
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
         if (!allSectionProducts.isEmpty()) {
             List<Integer> ids = allSectionProducts.stream().map(Product::getId).distinct().collect(Collectors.toList());
-            List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
-            for (FlashSale fs : activeFlashSales) {
-                flashSaleMap.put(fs.getProductId(), fs);
-            }
-        if (!featured.isEmpty()) {
-            List<Integer> ids = featured.stream().map(Product::getId).collect(Collectors.toList());
             flashSaleMap = pricingService.loadActiveFlashSaleMap(ids);
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
