@@ -1,7 +1,6 @@
 package com.duastore.controller.admin;
 
 import com.duastore.service.SiteSettingService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,12 +16,8 @@ public class AdminStoreController {
     private static final String GROUP = "store";
 
     private final SiteSettingService siteSettingService;
-    private final String googleMapsApiKey;
-
-    public AdminStoreController(SiteSettingService siteSettingService,
-            @Value("${google.maps.api.key}") String googleMapsApiKey) {
+    public AdminStoreController(SiteSettingService siteSettingService) {
         this.siteSettingService = siteSettingService;
-        this.googleMapsApiKey = googleMapsApiKey;
     }
 
     @GetMapping
@@ -30,7 +25,6 @@ public class AdminStoreController {
     public String edit(Model model) {
         model.addAttribute("settings", siteSettingService.getGroup(GROUP));
         model.addAttribute("title", "cua-hang");
-        model.addAttribute("googleMapsApiKey", googleMapsApiKey);
         return "view/admin/store/form";
     }
 

@@ -2,40 +2,105 @@ package com.duastore.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import jakarta.mail.internet.MimeMessage;
 
+import java.util.Properties;
+
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender defaultMailSender;
+    private final SiteSettingService siteSettingService;
 
     @Value("${spring.mail.username}")
-    private String fromEmail;
+    private String defaultFromEmail;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    private JavaMailSenderImpl dynamicSender;
+    private String lastSettingsHash = "";
+
+    public EmailService(JavaMailSender mailSender, SiteSettingService siteSettingService) {
+        this.defaultMailSender = mailSender;
+        this.siteSettingService = siteSettingService;
+    }
+
+    private JavaMailSender resolveMailSender() {
+        String host = siteSettingService.getValue("email_host");
+        if (host == null || host.isBlank()) {
+            return defaultMailSender;
+        }
+
+        String port = siteSettingService.getValue("email_port", "587");
+        String username = siteSettingService.getValue("email_username", "");
+        String password = siteSettingService.getValue("email_password", "");
+        String encryption = siteSettingService.getValue("email_encryption", "tls");
+        String hash = host + "|" + port + "|" + username + "|" + encryption;
+
+        if (dynamicSender != null && hash.equals(lastSettingsHash)) {
+            return dynamicSender;
+        }
+
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost(host);
+        sender.setPort(Integer.parseInt(port));
+        if (!username.isBlank()) sender.setUsername(username);
+        if (!password.isBlank()) sender.setPassword(password);
+
+        Properties props = sender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "5000");
+
+        if ("ssl".equals(encryption)) {
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.ssl.enable", "true");
+            props.put("mail.smtp.socketFactory.port", port);
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        } else if ("tls".equals(encryption)) {
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.starttls.required", "true");
+        } else {
+            props.put("mail.smtp.auth", "false");
+        }
+
+        dynamicSender = sender;
+        lastSettingsHash = hash;
+        return sender;
+    }
+
+    private String resolveFromEmail() {
+        String from = siteSettingService.getValue("email_from");
+        return (from != null && !from.isBlank()) ? from : defaultFromEmail;
+    }
+
+    private String resolveFromName() {
+        String name = siteSettingService.getValue("email_from_name");
+        return (name != null && !name.isBlank()) ? name : "DuaStore";
     }
 
     public void send(String to, String subject, String body) {
         try {
-            MimeMessage msg = mailSender.createMimeMessage();
+            JavaMailSender sender = resolveMailSender();
+            MimeMessage msg = sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromEmail, "DuaStore");
+            helper.setFrom(resolveFromEmail(), resolveFromName());
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, true);
-            mailSender.send(msg);
+            sender.send(msg);
         } catch (Exception ignored) {
         }
     }
 
     public void sendOtpEmail(String toEmail, String otp, String purpose) {
         try {
-            MimeMessage msg = mailSender.createMimeMessage();
+            JavaMailSender sender = resolveMailSender();
+            MimeMessage msg = sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromEmail, "DuaStore");
+            helper.setFrom(resolveFromEmail(), resolveFromName());
             helper.setTo(toEmail);
 
             String subject = purpose.equals("REGISTER")
@@ -95,7 +160,7 @@ public class EmailService {
 
             helper.setSubject(subject);
             helper.setText(html, true);
-            mailSender.send(msg);
+            sender.send(msg);
 
         } catch (Exception e) {
             throw new RuntimeException("Không thể gửi email: " + e.getMessage());
@@ -107,9 +172,10 @@ public class EmailService {
             String phuongThucGH, String tongTien,
             String danhSachSP) {
         try {
-            MimeMessage msg = mailSender.createMimeMessage();
+            JavaMailSender sender = resolveMailSender();
+            MimeMessage msg = sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromEmail, "DuaStore");
+            helper.setFrom(resolveFromEmail(), resolveFromName());
             helper.setTo(toEmail);
             helper.setSubject("[DuaStore] Đặt hàng thành công - " + maDon);
 
@@ -167,16 +233,17 @@ public class EmailService {
                 """.formatted(hoTen, maDon, ngayDat, diaChi, phuongThucTT, phuongThucGH, danhSachSP, tongTien);
 
             helper.setText(html, true);
-            mailSender.send(msg);
+            sender.send(msg);
         } catch (Exception ignored) {
         }
     }
 
     public void sendPasswordResetSuccess(String toEmail) {
         try {
-            MimeMessage msg = mailSender.createMimeMessage();
+            JavaMailSender sender = resolveMailSender();
+            MimeMessage msg = sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
-            helper.setFrom(fromEmail, "DuaStore");
+            helper.setFrom(resolveFromEmail(), resolveFromName());
             helper.setTo(toEmail);
             helper.setSubject("[DuaStore] Đặt lại mật khẩu thành công");
             helper.setText("""
@@ -186,7 +253,7 @@ public class EmailService {
                   <p>Nếu không phải bạn, liên hệ: <strong>0901 234 567</strong></p>
                 </div>
                 """, true);
-            mailSender.send(msg);
+            sender.send(msg);
         } catch (Exception ignored) {
         }
     }

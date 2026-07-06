@@ -188,6 +188,28 @@ function openAddressModal() {
     bootstrap.Modal.getOrCreateInstance(document.getElementById('addressModal')).show();
 }
 
+function initCheckoutLeafletMap() {
+    if (window.checkoutMap) return;
+    var mapEl = document.getElementById('checkoutLeafletMap');
+    if (!mapEl) return;
+    var lat = window.storeLat || 20.8442;
+    var lng = window.storeLng || 106.6883;
+    window.checkoutMap = L.map(mapEl, { center: [lat, lng], zoom: 13, zoomControl: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(window.checkoutMap);
+    window.checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(window.checkoutMap);
+    window.checkoutMarker.on('dragend', function() {
+        var p = window.checkoutMarker.getLatLng();
+        document.getElementById('modalLatitude').value = p.lat.toFixed(6);
+        document.getElementById('modalLongitude').value = p.lng.toFixed(6);
+    });
+    window.checkoutMap.on('click', function(e) {
+        window.checkoutMarker.setLatLng(e.latlng);
+        document.getElementById('modalLatitude').value = e.latlng.lat.toFixed(6);
+        document.getElementById('modalLongitude').value = e.latlng.lng.toFixed(6);
+    });
+    setTimeout(function() { window.checkoutMap.invalidateSize(); }, 200);
+}
+
 function showAddressForm() {
     editingAddressId = null;
     document.getElementById('addressModalList').style.display = 'none';
@@ -197,6 +219,7 @@ function showAddressForm() {
     document.getElementById('modalSoDienThoai').value = '';
     document.getElementById('modalDiaChiCuThe').value = '';
     document.getElementById('modalDiaChiCuTheText').value = '';
+    initCheckoutLeafletMap();
     resetCombo('modalTinhThanhCombo');
     resetCombo('modalQuanHuyenCombo');
     resetCombo('modalPhuongXaCombo');
@@ -206,8 +229,10 @@ function showAddressForm() {
     document.getElementById('modalLongitude').value = '';
     document.getElementById('modalIsDefault').checked = false;
     document.getElementById('modalMapStatus').textContent = '';
-    document.getElementById('modalGoogleMapFrame').src =
-            'https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13';
+    if (window.checkoutMap) {
+        checkoutMap.setView([window.storeLat || 20.8442, window.storeLng || 106.6883], 13);
+        if (window.checkoutMarker) checkoutMarker.setLatLng([window.storeLat || 20.8442, window.storeLng || 106.6883]);
+    }
     loadModalProvinces();
 }
 
@@ -221,7 +246,12 @@ function editAddress(id) {
     editingAddressId = id;
     document.getElementById('addressModalList').style.display = 'none';
     document.getElementById('addressModalForm').style.display = 'block';
+<<<<<<< Updated upstream
     document.getElementById('addressModalTitle').textContent = 'Địa chỉ';
+=======
+    document.getElementById('addressModalTitle').textContent = 'Sửa địa chỉ';
+    initCheckoutLeafletMap();
+>>>>>>> Stashed changes
     resetCombo('modalTinhThanhCombo');
     resetCombo('modalQuanHuyenCombo');
     resetCombo('modalPhuongXaCombo');
@@ -273,8 +303,6 @@ function modalSearchMap() {
     if (!q)
         return;
     var encoded = encodeURIComponent(q + ', Việt Nam');
-    document.getElementById('modalGoogleMapFrame').src =
-            'https://maps.google.com/maps?q=' + encoded + '&output=embed&z=16';
     document.getElementById('modalMapStatus').textContent = 'Đang tra cứu...';
     fetch('https://nominatim.openstreetmap.org/search?q=' + encoded + '&format=json&limit=1')
             .then(function (r) {
@@ -283,8 +311,11 @@ function modalSearchMap() {
             .then(function (data) {
                 if (data && data.length > 0) {
                     var loc = data[0];
-                    document.getElementById('modalLatitude').value = loc.lat;
-                    document.getElementById('modalLongitude').value = loc.lon;
+                    var lat = parseFloat(loc.lat), lng = parseFloat(loc.lon);
+                    document.getElementById('modalLatitude').value = lat;
+                    document.getElementById('modalLongitude').value = lng;
+                    if (window.checkoutMap) checkoutMap.setView([lat, lng], 16);
+                    if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
                     var parts = (loc.display_name || q).split(',').map(function (s) {
                         return s.trim();
                     });
@@ -314,10 +345,10 @@ function modalGetMyLocation() {
     navigator.geolocation.getCurrentPosition(function (pos) {
         var lat = pos.coords.latitude;
         var lng = pos.coords.longitude;
-        document.getElementById('modalGoogleMapFrame').src =
-                'https://maps.google.com/maps?q=' + lat + ',' + lng + '&output=embed&z=16';
         document.getElementById('modalLatitude').value = lat;
         document.getElementById('modalLongitude').value = lng;
+        if (window.checkoutMap) checkoutMap.setView([lat, lng], 16);
+        if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
         fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json&accept-language=vi')
                 .then(function (r) {
                     return r.json();
@@ -343,11 +374,13 @@ function modalGetMyLocation() {
 
 function modalClearMap() {
     document.getElementById('modalDiaChiCuThe').value = '';
-    document.getElementById('modalGoogleMapFrame').src =
-            'https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13';
     document.getElementById('modalLatitude').value = '';
     document.getElementById('modalLongitude').value = '';
     document.getElementById('modalMapStatus').textContent = '';
+    if (window.checkoutMap) {
+        checkoutMap.setView([window.storeLat || 20.8442, window.storeLng || 106.6883], 13);
+        if (window.checkoutMarker) checkoutMarker.setLatLng([window.storeLat || 20.8442, window.storeLng || 106.6883]);
+    }
 }
 
 function parseAndFillModalAddress(q) {
@@ -538,8 +571,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                         len >= 2 ? parts[len - 3] : '',
                                         parts[0] || ''
                                         );
-                                document.getElementById('modalGoogleMapFrame').src =
-                                        'https://maps.google.com/maps?q=' + loc.lat + ',' + loc.lon + '&output=embed&z=16';
+                                if (window.checkoutMap) checkoutMap.setView([loc.lat, loc.lon], 16);
+                                if (window.checkoutMarker) checkoutMarker.setLatLng([loc.lat, loc.lon]);
                                 document.getElementById('modalMapStatus').textContent = 'Đã chọn: ' + loc.display_name;
                                 box.style.display = 'none';
                             });
@@ -725,5 +758,12 @@ document.addEventListener('DOMContentLoaded', function () {
             updateShipFee();
         });
     });
+
+    var addrModal = document.getElementById('addressModal');
+    if (addrModal) {
+        addrModal.addEventListener('shown.bs.modal', function () {
+            if (window.checkoutMap) setTimeout(function() { window.checkoutMap.invalidateSize(); }, 150);
+        });
+    }
 
 });
