@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -23,9 +22,6 @@ public class GlobalControllerAdvice {
     private final CategoryRepository categoryRepository;
     private final CartService cartService;
     private final SecurityUtil securityUtil;
-
-    @Value("${google.maps.api.key}")
-    private String googleMapsApiKey;
 
     public GlobalControllerAdvice(CategoryRepository categoryRepository,
             CartService cartService,
@@ -43,11 +39,6 @@ public class GlobalControllerAdvice {
             log.warn("Loi navCategories: {}", e.getMessage());
             return List.of();
         }
-    }
-
-    @ModelAttribute("googleMapsApiKey")
-    public String googleMapsApiKey() {
-        return googleMapsApiKey;
     }
 
     @ModelAttribute("cartCount")
