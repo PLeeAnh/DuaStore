@@ -11,9 +11,12 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
+    Optional<Order> findByMaVanDon(String maVanDon);
+
     Page<Order> findByUserId(Integer userId, Pageable pageable);
     List<Order> findAllByUserId(Integer userId);
     Page<Order> findByUserIdAndTrangThaiDon(Integer userId, String trangThaiDon, Pageable pageable);

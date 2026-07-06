@@ -104,4 +104,15 @@ public final class PermissionEnum {
     // SHIPPING_SETTING
     public static final String SHIPPING_SETTING_READ   = "SHIPPING_SETTING_READ";
     public static final String SHIPPING_SETTING_UPDATE = "SHIPPING_SETTING_UPDATE";
+
+    // FLASH_SALE
+    public static final String FLASH_SALE_CREATE  = "FLASH_SALE_CREATE";
+    public static final String FLASH_SALE_READ    = "FLASH_SALE_READ";
+    public static final String FLASH_SALE_UPDATE  = "FLASH_SALE_UPDATE";
+    public static final String FLASH_SALE_DELETE  = "FLASH_SALE_DELETE";
+
+    // REFUND
+    public static final String REFUND_READ        = "REFUND_READ";
+    public static final String REFUND_UPDATE      = "REFUND_UPDATE";
+    public static final String REFUND_APPROVE     = "REFUND_APPROVE";
 }

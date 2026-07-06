@@ -11,6 +11,8 @@ import com.duastore.model.ProductVariant;
 import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.OrderItemRepository;
+import com.duastore.service.PricingService;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
@@ -52,6 +54,8 @@ public class ProductController {
     private final WishlistService wishlistService;
     private final SecurityUtil securityUtil;
     private final FileUploadService fileUploadService;
+    private final PricingService pricingService;
+    private final OrderItemRepository orderItemRepository;
 
     public ProductController(ProductService productService,
                              ProductVariantRepository variantRepository,
@@ -62,7 +66,9 @@ public class ProductController {
                              PromotionRepository promotionRepository,
                              WishlistService wishlistService,
                              SecurityUtil securityUtil,
-                             FileUploadService fileUploadService) {
+                             FileUploadService fileUploadService,
+                             PricingService pricingService,
+                             OrderItemRepository orderItemRepository) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -73,6 +79,8 @@ public class ProductController {
         this.wishlistService = wishlistService;
         this.securityUtil = securityUtil;
         this.fileUploadService = fileUploadService;
+        this.pricingService = pricingService;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @GetMapping("/san-pham")
@@ -139,10 +147,7 @@ public class ProductController {
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                 .collect(Collectors.groupingBy(ProductVariant::getProductId));
-            List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
-            for (FlashSale fs : activeFlashSales) {
-                flashSaleMap.put(fs.getProductId(), fs);
-            }
+            flashSaleMap.putAll(pricingService.loadActiveFlashSaleMap(ids));
         }
         model.addAttribute("variantsMap", variantsMap);
         model.addAttribute("flashSaleMap", flashSaleMap);
@@ -299,6 +304,11 @@ public class ProductController {
             log.warn("Loi doc likedIds o trang chi tiet san pham: {}", e.getMessage());
         }
 
+        // ── Số liệu xã hội thật: đã bán, lượt yêu thích, đánh giá trung bình ──
+        model.addAttribute("soldCount", orderItemRepository.sumSoldQuantityByProductId(id));
+        model.addAttribute("wishlistCount", wishlistService.countByProduct(id));
+        model.addAttribute("ratingSummary", reviewService.getRatingSummary(id));
+
         // Active promotions for discount badge
         LocalDateTime now = LocalDateTime.now();
         List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
@@ -316,6 +326,7 @@ public class ProductController {
             .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
+        model.addAttribute("productPromotions", activePromotions);
 
         BigDecimal promoDiscountedPrice = null;
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
@@ -351,16 +362,17 @@ public class ProductController {
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
 
         int reviewSize = 10;
-        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize);
+        Integer currentUserId = null;
+        try { currentUserId = securityUtil.getCurrentUserId(); } catch (Exception e) {}
+        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId);
         model.addAttribute("reviews", reviewPageResult.getContent());
         model.addAttribute("reviewCurrentPage", reviewPage);
         model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
         model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
-        Integer currentUserId = securityUtil.getCurrentUserId();
         if (currentUserId != null) {
             try {
                 model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
-                model.addAttribute("canReview", reviewService.hasPaidAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
+                model.addAttribute("canReview", reviewService.hasCompletedOrderAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
             } catch (Exception e) {
                 model.addAttribute("hasReviewed", false);
                 model.addAttribute("canReview", false);
@@ -433,7 +445,7 @@ public class ProductController {
     public String submitReview(@PathVariable Integer id,
                                @Valid @ModelAttribute ReviewRequestDTO request,
                                BindingResult result,
-                               @RequestParam(value = "hinhAnh", required = false) MultipartFile hinhAnhFile,
+                               @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
                                RedirectAttributes ra) {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
@@ -445,17 +457,23 @@ public class ProductController {
             return "redirect:/san-pham/" + id;
         }
         request.setProductId(id);
-        String hinhAnhUrl = null;
-        if (hinhAnhFile != null && !hinhAnhFile.isEmpty()) {
+        String hinhAnhUrls = null;
+        if (hinhAnhFiles != null && !hinhAnhFiles.isEmpty()) {
             try {
-                hinhAnhUrl = fileUploadService.save(hinhAnhFile, "reviews");
+                List<String> urls = new java.util.ArrayList<>();
+                for (MultipartFile f : hinhAnhFiles) {
+                    if (!f.isEmpty()) {
+                        urls.add(fileUploadService.save(f, "reviews"));
+                    }
+                }
+                if (!urls.isEmpty()) hinhAnhUrls = String.join(",", urls);
             } catch (Exception e) {
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;
             }
         }
         try {
-            reviewService.createReview(userId, request, hinhAnhUrl);
+            reviewService.createReview(userId, request, hinhAnhUrls);
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());

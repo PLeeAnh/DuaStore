@@ -33,7 +33,6 @@
     <th:block layout:fragment="extra-head"></th:block>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        var __isLoggedIn = [[${isLoggedIn}]];
         var __customCss = [[${customCss ?: ''}]].replace(/\]\]/g, '');
         if (__customCss) {
             var __style = document.createElement('style');
@@ -116,9 +115,7 @@
                 <div class="position-relative d-inline-block ds-wishlist-wrap">
     <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup')" title="Danh sách yêu thích" aria-label="Yêu thích">
         <i class="bi bi-heart"></i>
-        <span id="wishlistBadge" class="ds-wishlist-badge" 
-              th:text="${myWishlist != null ? #lists.size(myWishlist) : 0}" 
-              th:classappend="${(myWishlist == null || #lists.isEmpty(myWishlist)) ? ' d-none' : ''}">0</span>
+        <span id="wishlistBadge" class="ds-wishlist-badge d-none">0</span>
     </button>
     <div id="wishlist-popup" class="custom-popup">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Sản phẩm yêu thích</h6>
@@ -134,11 +131,6 @@
                                 </div>
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
-                                    <div class="text-danger fw-semibold mt-1" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + 'đ'">0đ</div>
-                                    <button class="btn btn-sm btn-outline-danger mt-1" style="font-size:0.75rem;padding:2px 8px;"
-                                            th:onclick="'addToCartFromWishlist(' + ${item.productId} + ')'">
-                                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                    </button>
                                 </div>
                                 
         </div>
@@ -151,7 +143,7 @@
 <div th:if="${themeSettings.get('header_cart') != '0'}" class="position-relative d-inline-block ds-cart-wrap">
     <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
         <i class="bi bi-bag"></i>
-        <span id="cartBadge" class="ds-cart-badge" th:text="${cartCount != null ? cartCount : 0}" th:classappend="${(cartCount == null || cartCount == 0) ? ' d-none' : ''}">0</span>
+        <span id="cartBadge" class="ds-cart-badge d-none">0</span>
     </button>
     <div id="cart-popup" class="custom-popup" style="width: 340px;">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
@@ -168,31 +160,31 @@
                                     <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
                                     <i th:unless="${item.hinhAnh != null}" class="bi bi-box-seam text-secondary"></i>
                                 </div>
-                                <div class="popup-item-info flex-grow-1">
-                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold" style="max-width: 180px; font-size: 0.9rem;">Tên SP</a>
-                                    <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
-                                    
-                                     <div class="d-flex align-items-center">
-                                        <div class="input-group input-group-sm" style="width: 90px;">
-                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">-</button>
-                                            <input class="form-control text-center py-0 px-1" type="number" min="1"
-                                                   th:attr="max=${item.soLuongTon}"
-                                                   th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}"
-                                                   th:onchange="'setPopupQty(' + ${uid} + ', this)'"
-                                                   onfocus="this.select()" style="font-size: 0.85rem;" />
-                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
-                                        </div>
-                                        
-                                        <span class="text-danger fw-semibold popup-item-price" 
-                                              th:id="'popup-price-' + ${uid}" 
+                                <div class="popup-item-info flex-grow-1 min-w-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold text-decoration-none" style="max-width: 150px; font-size: 0.9rem;">Tên SP</a>
+                                        <span class="text-danger fw-semibold popup-item-price flex-shrink-0 ms-2"
+                                              th:id="'popup-price-' + ${uid}"
                                               th:data-price="${item.giaBan}"
-                                              style="font-size: 0.9rem;" 
+                                              style="font-size: 0.85rem;"
                                               th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + 'đ'">0đ</span>
                                     </div>
+                                    <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="ds-qty-selector">
+                                            <button class="ds-qty-btn ds-qty-minus" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">
+                                                <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                            <input type="text" class="ds-qty-val" th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}" th:attr="data-stock=${item.soLuongTon}" th:onchange="'validatePopupQty(' + ${uid} + ', this)'">
+                                            <button class="ds-qty-btn ds-qty-plus" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">
+                                                <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                        </div>
+                                        <button class="btn-delete-item text-muted border-0 bg-transparent p-0" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ" style="line-height:1;">
+                                            <i class="bi bi-trash text-danger" style="font-size:.85rem;"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ">
-                                    <i class="bi bi-trash text-danger"></i>
-                                </button>
                             </div>
                         </div>
                         
@@ -205,7 +197,7 @@
                 <div class="position-relative d-inline-block">
                     <button class="ds-icon-btn" id="btn-notif-toggle" onclick="toggleNotifPopup()" title="Thông báo" aria-label="Thông báo">
                         <i class="bi bi-bell"></i>
-                        <span th:if="${session.loggedIn}" id="notifBadge" class="ds-cart-badge"
+                        <span id="notifBadge" class="ds-cart-badge"
                               th:text="${notifCount != null ? notifCount : 0}"
                               th:classappend="${(notifCount == null || notifCount == 0) ? ' d-none' : ''}">0</span>
                     </button>
@@ -266,20 +258,34 @@
                             title="Tài khoản" aria-label="Tài khoản">
                         <i class="bi bi-person-circle"></i>
                     </button>
-                    <div id="profile-popup" class="custom-popup" style="width:240px;">
+                    <div id="profile-popup" class="custom-popup" style="width:260px;">
                         <th:block th:if="${session.loggedIn}">
                             <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom" style="border-color:var(--ds-border);">
-                                <span class="ds-profile-avatar lg flex-shrink-0" th:text="${session.userInitial}">A</span>
+                                <div class="position-relative flex-shrink-0">
+                                    <img th:if="${session.userAvatar}" th:src="@{${session.userAvatar}}" class="ds-profile-avatar lg object-fit-cover" alt="Avatar" style="width:48px;height:48px;border-radius:50%;">
+                                    <span th:unless="${session.userAvatar}" class="ds-profile-avatar lg d-inline-flex align-items-center justify-content-center" th:text="${session.userInitial}">A</span>
+                                    <span class="position-absolute bottom-0 end-0 border border-2 border-white rounded-circle" style="width:12px;height:12px;"
+                                          th:classappend="${session.userStatus == 'ONLINE'} ? 'bg-success' : (${session.userStatus == 'AWAY'} ? 'bg-warning' : (${session.userStatus == 'DND'} ? 'bg-danger' : 'bg-secondary'))"></span>
+                                </div>
                                 <div class="text-truncate">
                                     <div class="fw-semibold text-truncate" th:text="${session.userName}" style="color:var(--ds-text);font-size:0.9rem;">User</div>
-                                    <small class="text-muted text-truncate d-block" th:text="${session.userEmail}" style="font-size:0.78rem;">user@email.com</small>
                                 </div>
                             </div>
-                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
-                            <a class="ds-popup-link" th:href="@{/address}"><i class="bi bi-geo-alt"></i> Sổ địa chỉ</a>
-                            <a class="ds-popup-link" th:href="@{/vi-voucher}"><i class="bi bi-wallet2"></i> Ví Voucher</a>
-                            <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
-                            <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="bi bi-pencil"></i> Sửa hồ sơ</a>
+                            <div class="ds-popup-link d-flex align-items-center justify-content-between cursor-pointer dropdown" data-bs-toggle="dropdown">
+                                <span><span class="status-dot" id="popupStatusDot" th:classappend="${session.userStatus == 'ONLINE'} ? 'status-online' : (${session.userStatus == 'AWAY'} ? 'status-away' : (${session.userStatus == 'DND'} ? 'status-dnd' : 'status-invisible'))"></span><span id="popupStatusLabel" th:text="${session.userStatus == 'ONLINE'} ? 'Trực tuyến' : (${session.userStatus == 'AWAY'} ? 'Tạm vắng' : (${session.userStatus == 'DND'} ? 'Không làm phiền' : 'Ẩn'))">Trực tuyến</span></span>
+                                <div>
+                                    <button class="ds-status-btn" type="button" tabindex="-1"><i class="bi bi-chevron-right" style="font-size:.75rem;"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-end ds-status-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('ONLINE')"><span class="ds-status-icon online"></span>Trực tuyến</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('AWAY')"><span class="ds-status-icon away"></span>Tạm vắng</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('DND')"><span class="ds-status-icon dnd"></span>Không làm phiền</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('INVISIBLE')"><span class="ds-status-icon offline"></span>Ẩn</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#switchAccountModal"><i class="bi bi-arrow-repeat"></i> Đổi tài khoản</a>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal"><i class="bi bi-gear"></i> Cài đặt</a>
                             <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
                             <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
                                 <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
@@ -304,48 +310,303 @@
     <th:block layout:fragment="content"></th:block>
 </main>
 
-<!-- Profile Modal -->
-<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+
+
+<!-- Settings Modal (Discord-style) -->
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-sm" style="min-height:420px;border-radius:12px;overflow:hidden;border:none;">
+            <div class="modal-body p-0 d-flex" style="background:#fff;">
+                <div class="ds-settings-sidebar">
+                    <button class="ds-settings-nav-item active" data-setting-tab="account"><i class="bi bi-person"></i>Tài khoản</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="security"><i class="bi bi-shield-lock"></i>Bảo mật</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="notifications"><i class="bi bi-bell"></i>Thông báo</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="appearance"><i class="bi bi-palette"></i>Giao diện</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="general"><i class="bi bi-sliders"></i>Chung</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="sessions"><i class="bi bi-phone"></i>Phiên đăng nhập</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="delete-account" style="color:#f87171;"><i class="bi bi-trash"></i>Xóa tài khoản</button>
+                </div>
+                <div class="ds-settings-content">
+                    <!-- Tài khoản -->
+                    <div class="settings-tab-content" id="settings-account">
+                        <h6>Thông tin tài khoản</h6>
+                        <div class="ds-setting-section">
+                            <label>Họ tên</label>
+                            <input type="text" class="form-control form-control-sm" id="sHoTen" th:value="${session.userName}">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Nickname</label>
+                            <input type="text" class="form-control form-control-sm" id="sNickname" th:value="${session.userNickname}" placeholder="Tên hiển thị phụ">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Số điện thoại</label>
+                            <input type="text" class="form-control form-control-sm" id="sPhone" th:value="${session.userPhone}" placeholder="Chưa cập nhật">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Email</label>
+                            <div class="ds-setting-value" th:text="${session.userEmail}">user@email.com</div>
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Tên đăng nhập</label>
+                            <div class="ds-setting-value" th:text="${session.userUsername}">username</div>
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Vai trò</label>
+                            <div class="ds-setting-value" th:text="${session.userRole}">USER</div>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sEmailVisible" th:checked="${session.userEmailVisible == true}">
+                            <label class="form-check-label small" for="sEmailVisible">Hiển thị email</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sPhoneVisible" th:checked="${session.userPhoneVisible == true}">
+                            <label class="form-check-label small" for="sPhoneVisible">Hiển thị số điện thoại</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sEmailMarketing" th:checked="${session.userEmailMarketing != false}">
+                            <label class="form-check-label small" for="sEmailMarketing">Nhận email khuyến mãi</label>
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="saveSettingsAccount()"><i class="bi bi-floppy me-1"></i>Lưu thay đổi</button>
+                    </div>
+                    <!-- Bảo mật -->
+                    <div class="settings-tab-content d-none" id="settings-security">
+                        <h6>Đổi mật khẩu</h6>
+                        <div class="ds-setting-section">
+                            <label>Mật khẩu cũ</label>
+                            <input type="password" class="form-control form-control-sm" id="sOldPassword">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Mật khẩu mới</label>
+                            <input type="password" class="form-control form-control-sm" id="sNewPassword">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Xác nhận mật khẩu mới</label>
+                            <input type="password" class="form-control form-control-sm" id="sConfirmPassword">
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="saveSettingsPassword()"><i class="bi bi-floppy me-1"></i>Đổi mật khẩu</button>
+                        <div id="settingsPassError" class="text-danger small mt-2 d-none"></div>
+                    </div>
+                    <!-- Thông báo -->
+                    <div class="settings-tab-content d-none" id="settings-notifications">
+                        <h6>Cài đặt thông báo</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input setting-toggle" type="checkbox" data-key="notif_order" id="notif_order" checked>
+                            <label class="form-check-label" for="notif_order">Thông báo đơn hàng</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input setting-toggle" type="checkbox" data-key="notif_promotion" id="notif_promotion" checked>
+                            <label class="form-check-label" for="notif_promotion">Thông báo khuyến mãi</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input setting-toggle" type="checkbox" data-key="notif_system" id="notif_system" checked>
+                            <label class="form-check-label" for="notif_system">Thông báo hệ thống</label>
+                        </div>
+                    </div>
+                    <!-- Giao diện -->
+                    <div class="settings-tab-content d-none" id="settings-appearance">
+                        <h6>Giao diện</h6>
+                        <div class="ds-setting-section">
+                            <label>Chủ đề</label>
+                            <select class="form-select form-select-sm setting-select" data-key="theme_mode" style="width:auto;">
+                                <option value="light">Sáng</option>
+                                <option value="dark">Tối</option>
+                                <option value="system">Theo hệ thống</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Chung -->
+                    <div class="settings-tab-content d-none" id="settings-general">
+                        <h6>Cài đặt chung</h6>
+                        <div class="ds-setting-section">
+                            <label>Ngôn ngữ</label>
+                            <select class="form-select form-select-sm" style="width:auto;">
+                                <option value="vi">Tiếng Việt</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Phiên đăng nhập -->
+                    <div class="settings-tab-content d-none" id="settings-sessions">
+                        <h6>Phiên đăng nhập</h6>
+                        <div class="ds-setting-section">
+                            <label>Đăng xuất thiết bị</label>
+                            <p class="small text-muted">Đăng xuất khỏi tất cả thiết bị khác.</p>
+                            <button class="btn btn-outline-danger btn-sm" onclick="logoutAllDevices()">
+                                <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất mọi thiết bị
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Xóa tài khoản -->
+                    <div class="settings-tab-content d-none" id="settings-delete-account">
+                        <h6 style="color:#dc3545;">Xóa tài khoản</h6>
+                        <div class="alert alert-danger small">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Hành động này không thể hoàn tác. Tài khoản của bạn sẽ bị vô hiệu hóa.
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="deactivateAccount()">
+                            <i class="bi bi-trash me-1"></i>Vô hiệu hóa tài khoản
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Edit Profile Modal (Discord-style: left profile card + right tabs) -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-sm" style="border-radius:12px;overflow:hidden;border:none;">
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Left: Profile Card -->
+                    <div class="col-4 p-4 text-center" style="background:#f8f9fa;border-right:1px solid #e9ecef;">
+                        <div class="position-relative d-inline-block mb-2 cursor-pointer" data-bs-toggle="modal" data-bs-target="#avatarUploadModal" title="Đổi ảnh đại diện">
+                            <img th:if="${session.userAvatar}" th:src="@{${session.userAvatar}}" class="rounded-circle object-fit-cover" alt="Avatar" style="width:80px;height:80px;">
+                            <span th:unless="${session.userAvatar}" class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted" style="width:80px;height:80px;font-size:2rem;" th:text="${session.userInitial}">A</span>
+                        </div>
+                        <div class="fw-bold" th:text="${session.userName}">User</div>
+                        <div th:if="${session.userNickname}" class="small text-muted" th:text="'@' + ${session.userNickname}">@nick</div>
+                        <div th:unless="${session.userNickname}" class="small text-muted" th:text="'@' + ${session.userUsername}">@user</div>
+                        <div class="mt-3">
+                            <label class="small text-secondary d-block mb-1">Biệt danh</label>
+                            <div class="input-group input-group-sm" style="max-width:180px;margin:0 auto;">
+                                <input type="text" class="form-control text-center" id="epNickname" th:value="${session.userNickname}" placeholder="Thêm biệt danh">
+                                <button class="btn btn-primary" type="button" onclick="saveNickname()" title="Lưu"><i class="bi bi-check"></i></button>
+                            </div>
+                        </div>
+                        <hr class="my-3" style="border-color:#e9ecef;">
+                        <div class="small text-start mb-2">
+                            <span class="text-secondary">Tham gia:</span>
+                            <span class="fw-semibold" th:text="${#temporals.format(session.userCreatedAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                        </div>
+                        <div class="small text-start mb-2 d-flex align-items-center justify-content-between">
+                            <span><span class="text-secondary">Đăng ký:</span> Google</span>
+                            <span th:if="${session.hasGoogleLinked == true}" class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+                            <a th:unless="${session.hasGoogleLinked == true}" href="#" class="btn btn-outline-primary btn-sm py-0 px-2" data-bs-toggle="modal" data-bs-target="#linkAccountModal" style="font-size:.75rem;">Liên kết</a>
+                        </div>
+
+                    </div>
+                    <!-- Right: Tabs -->
+                    <div class="col-8 d-flex flex-column" style="max-height:440px;">
+                        <ul class="nav nav-tabs border-bottom" style="padding:0 16px;flex-shrink:0;">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="epTabActivity" href="javascript:;" onclick="switchEpTab('activity', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Hoạt động</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="epTabWishlist" href="javascript:;" onclick="switchEpTab('wishlist', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Yêu thích</a>
+                            </li>
+                        </ul>
+                        <div class="p-3 flex-grow-1" style="overflow-y:auto;">
+                            <!-- Tab: Hoạt động -->
+                            <div id="epActivityContent">
+                                <div class="text-center py-4 text-muted" id="epActivityLoading"><i class="bi bi-arrow-repeat me-1"></i>Đang tải...</div>
+                                <div id="epActivityOrders" class="d-none"></div>
+                                <div id="epActivityReviews" class="d-none"></div>
+                            </div>
+                            <!-- Tab: Yêu thích -->
+                            <div id="epWishlistContent" class="d-none">
+                                <div th:if="${#lists.isEmpty(myWishlist)}" class="text-center py-4 text-muted">
+                                    <i class="bi bi-heartbreak" style="font-size:1.5rem;"></i>
+                                    <p class="mt-1 mb-0 small">Chưa có đồ yêu thích</p>
+                                </div>
+                                <div th:each="item : ${myWishlist}" class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom" style="border-color:#f0f0f0!important;">
+                                    <div style="width:40px;height:40px;background:#e5e5e5;border-radius:4px;overflow:hidden;flex-shrink:0;">
+                                        <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="">
+                                        <i th:unless="${item.hinhAnh != null}" class="bi bi-box-seam text-secondary d-flex align-items-center justify-content-center w-100 h-100"></i>
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-truncate d-block small fw-semibold text-dark text-decoration-none" th:text="${item.tenSanPham}">Tên SP</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Upload Modal -->
+<div class="modal fade" id="avatarUploadModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow-sm">
+            <div class="modal-header">
+                <h5 class="fw-bold">Cập nhật ảnh đại diện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <img th:if="${session.userAvatar}" th:src="@{${session.userAvatar}}" class="rounded-circle object-fit-cover" alt="Avatar" style="width:150px;height:150px;" id="avatarPreview">
+                    <span th:unless="${session.userAvatar}" class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted" style="width:150px;height:150px;font-size:4rem;" th:text="${session.userInitial}" id="avatarPreview">A</span>
+                </div>
+                <div class="d-grid gap-2">
+                    <label class="btn btn-outline-primary btn-sm mb-0">
+                        <i class="bi bi-upload me-1"></i>Chọn ảnh
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="d-none" id="avatarInput">
+                    </label>
+                    <button class="btn btn-outline-danger btn-sm" id="removeAvatarBtn" th:if="${session.userAvatar}">
+                        <i class="bi bi-trash me-1"></i>Xóa ảnh
+                    </button>
+                    <small class="text-muted">JPG, PNG, WEBP. Tối đa 5MB. Tối thiểu 300×300px</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Switch Account Modal -->
+<div class="modal fade" id="switchAccountModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-sm">
-            <form th:action="@{/tai-khoan/cap-nhat}" method="post">
-                <div class="modal-header">
-                    <h5 class="fw-bold">Hồ sơ của tôi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="fw-bold"><i class="bi bi-arrow-repeat me-2"></i>Đổi tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="linkedAccountsList">
+                    <p class="text-muted small text-center py-3">Đang tải...</p>
                 </div>
-                <div class="modal-body">
+                <hr>
+                <a href="#" class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#linkAccountModal">
+                    <i class="bi bi-plus-circle me-1"></i>Thêm tài khoản
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Account Modal -->
+<div class="modal fade" id="linkAccountModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-sm">
+            <div class="modal-header">
+                <h5 class="fw-bold"><i class="bi bi-link me-2"></i>Liên kết tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="linkAccountForm">
                     <div class="mb-3">
-                        <label class="form-label small text-secondary">Họ tên</label>
-                        <input type="text" name="hoTen" th:value="${session.userName}" class="form-control" required/>
+                        <label class="form-label small text-secondary">Tên đăng nhập hoặc Email</label>
+                        <input type="text" class="form-control" id="linkUsername" placeholder="username@email.com" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small text-secondary">Tên đăng nhập</label>
-                        <input type="text" th:value="${session.userUsername}" class="form-control" disabled/>
+                        <label class="form-label small text-secondary">Mật khẩu</label>
+                        <input type="password" class="form-control" id="linkPassword" placeholder="Mật khẩu" required minlength="6">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">Email</label>
-                        <input type="email" th:value="${session.userEmail}" class="form-control" disabled/>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">Số điện thoại</label>
-                        <input type="text" name="soDienThoai" th:value="${session.userPhone}" class="form-control" placeholder="Chưa cập nhật"/>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">Vai trò</label>
-                        <input type="text" th:value="${session.userRole}" class="form-control" disabled/>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-dark px-4 py-2 fw-semibold">Lưu thay đổi</button>
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold" data-bs-dismiss="modal">Hủy</button>
-                </div>
-            </form>
+                    <div id="linkAccountError" class="alert alert-danger small d-none"></div>
+                    <button type="submit" class="btn btn-primary w-100">Liên kết</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Login Modal -->
-<div class="modal fade modal-auth" id="loginModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-auth" id="loginModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="ds-auth-header">
@@ -354,10 +615,6 @@
             <div class="ds-auth-accent"></div>
 
             <div class="ds-auth-body">
-                <div id="loginServerError" class="ds-auth-error" style="margin-bottom:.75rem;">
-                    <i class="bi bi-exclamation-circle"></i><span>Sai tên đăng nhập hoặc mật khẩu</span>
-                </div>
-
                 <form th:action="@{/dang-nhap}" method="POST" novalidate>
                     <div class="mb-3">
                         <div class="ds-auth-field">
@@ -367,6 +624,9 @@
                         </div>
                         <div class="ds-auth-error" id="loginEmailError">
                             <i class="bi bi-exclamation-circle"></i><span>Vui lòng nhập tên đăng nhập hoặc email</span>
+                        </div>
+                        <div id="loginServerError" class="ds-auth-error">
+                            <i class="bi bi-exclamation-circle"></i><span>Sai tên đăng nhập hoặc mật khẩu</span>
                         </div>
                     </div>
 
@@ -406,7 +666,7 @@
 </div>
 
 <!-- Register Modal -->
-<div class="modal fade modal-auth" id="registerModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-auth" id="registerModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="ds-auth-header">
@@ -418,12 +678,6 @@
             <div class="ds-auth-accent"></div>
 
             <div class="ds-auth-body">
-                <div id="registerError" class="ds-auth-error" style="margin-bottom:.5rem;">
-                    <i class="bi bi-exclamation-circle"></i><span></span>
-                </div>
-                <div id="registerSuccess" class="ds-auth-success">
-                    <i class="bi bi-check-circle"></i><span>Đăng ký thành công! Vui lòng đăng nhập.</span>
-                </div>
                 <form id="registerForm" onsubmit="return registerSubmit(event)" novalidate>
                     <div class="mb-3">
                         <div class="ds-auth-field">
@@ -479,6 +733,13 @@
                         </div>
                     </div>
 
+                    <div id="registerError" class="ds-auth-error">
+                        <i class="bi bi-exclamation-circle"></i><span></span>
+                    </div>
+                    <div id="registerSuccess" class="ds-auth-success">
+                        <i class="bi bi-check-circle"></i><span>Đăng ký thành công! Vui lòng đăng nhập.</span>
+                    </div>
+
                     <div class="ds-auth-check mb-3">
                         <input type="checkbox" id="regTerms">
                         <label for="regTerms">Agree to the Terms of Service and Privacy Policy</label>
@@ -494,7 +755,7 @@
 </div>
 
 <!-- Forgot Password Modal -->
-<div class="modal fade modal-auth" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade modal-auth" id="forgotPasswordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="ds-auth-header">
@@ -594,10 +855,10 @@
                                 <div class="col-6 col-md-3">
                                     <h6 class="ds-footer-col-title" th:text="${themeSettings.get('footer_col_' + i + '_title')}">Tiêu đề</h6>
                                     <ul class="ds-footer-links">
-                                        <th:block th:each="line : ${#strings.listSplit(themeSettings.get('footer_col_' + i + '_content'), '\\n')}">
-                                            <li th:unless="${#strings.isEmpty(line)}">
-                                                <a th:href="${#strings.contains(line, ' | ')} ? ${#strings.substringAfter(line, ' | ')} : '#'"
-                                                   th:text="${#strings.contains(line, ' | ')} ? ${#strings.substringBefore(line, ' | ')} : ${line}">Link</a>
+                                        <th:block th:each="line : ${#strings.listSplit(themeSettings.get('footer_col_' + i + '_content'), '\\r?\\n')}">
+                                            <li th:unless="${#strings.isEmpty(#strings.trim(line))}">
+                                                <a th:href="${#strings.contains(line, ' | ')} ? ${#strings.substringAfter(line, ' | ').trim()} : '#'"
+                                                   th:text="${#strings.contains(line, ' | ')} ? ${#strings.substringBefore(line, ' | ').trim()} : ${#strings.trim(line)}">Link</a>
                                             </li>
                                         </th:block>
                                     </ul>
@@ -733,6 +994,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
                 } else {
                     btn.textContent = 'Thử lại';
+                    var errMsg = data.error || 'Gửi mã thất bại';
+                    var emailErr = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
+                    if (emailErr) { emailErr.querySelector('span').textContent = errMsg; emailErr.classList.add('show'); }
                     setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
                 }
             }).catch(function() {
@@ -797,29 +1061,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
 
-    const cBadge = document.getElementById('cartBadge');
-    if (cBadge) {
-        if (currentCartState.length > 0) {
-            cBadge.classList.remove('d-none');
-        } else {
-            cBadge.classList.add('d-none');
-        }
-    }
-
-    // --- 2. LÔ-GÍC GHI NHỚ CHO YÊU THÍCH ---
-    const wishlistItems = document.querySelectorAll('#wishlist-items-container .popup-item');
-    let currentWishlistState = [];
-    wishlistItems.forEach(item => currentWishlistState.push(item.id));
-
-    let viewedWishlistState = JSON.parse(localStorage.getItem('viewedWishlistState') || '[]');
-
-    const wBadge = document.getElementById('wishlistBadge');
-
-    if (currentWishlistState.length > 0) {
-        if(wBadge) wBadge.classList.remove('d-none');
-    } else {
-        if(wBadge) wBadge.classList.add('d-none');
-    }
+    // Badge count is managed by cart.js/wishlist.js, not shown on page load
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
@@ -930,6 +1172,29 @@ function updatePopupQty(itemId, delta) {
 }
 
 /* ── HÀM NHẬP TRỰC TIẾP SỐ LƯỢNG ── */
+/* ── Validate popup qty on manual input ── */
+function validatePopupQty(itemId, el) {
+    var stock = parseInt(el.getAttribute('data-stock')) || 999;
+    var val = parseInt(el.value) || 1;
+    if (val < 1) val = 1;
+    if (val > stock) { val = stock; DuaStore.toast.warning('Chỉ còn ' + stock + ' sản phẩm'); }
+    el.value = val;
+    fetch('/api/cart/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
+    })
+    .then(function(r) {
+        if (r.status === 403) { if (typeof showLoginPopup === 'function') showLoginPopup(); return null; }
+        return r.json();
+    })
+    .then(function(data) {
+        if (!data) return;
+        if (data.success && typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+    })
+    .catch(function() {});
+}
+
 function setPopupQty(itemId) {
     const qtyInput = document.getElementById('popup-qty-' + itemId);
     const priceSpan = document.getElementById('popup-price-' + itemId);
@@ -1001,12 +1266,6 @@ function refreshWishlistBadgeCount() {
 
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
-    if (!__isLoggedIn) {
-        var popup = document.getElementById('notif-popup');
-        if (popup) popup.classList.remove('show');
-        showLoginPopup();
-        return;
-    }
     togglePopup('notif-popup');
     var badge = document.getElementById('notifBadge');
     if (badge && !badge.classList.contains('d-none')) {
@@ -1046,54 +1305,6 @@ function markNotifRead(id) {
         })
         .catch(function() {});
 }
-var _lastNotifCount = 0;
-function pollNotifications() {
-    fetch('/api/thong-bao')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            var badge = document.getElementById('notifBadge');
-            var count = data.count || 0;
-            if (badge) {
-                if (count > 0) { badge.textContent = count; badge.classList.remove('d-none'); }
-                else { badge.classList.add('d-none'); }
-            }
-            if (count > _lastNotifCount && _lastNotifCount > 0) {
-                var newNotifs = (data.notifications || []).filter(function(n) { return !n.read; });
-                if (newNotifs.length > 0) showToastNotification(newNotifs[0]);
-            }
-            _lastNotifCount = count;
-        })
-        .catch(function() {});
-}
-function showToastNotification(notif) {
-    var toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;background:#fff;border:1px solid #e0e0e0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:14px 18px;max-width:340px;animation:slideIn .3s ease;cursor:pointer;';
-    var icon = notif.linkType === 'ORDER' ? 'bi-bag-check' : notif.linkType === 'PRODUCT' ? 'bi-box-seam' : 'bi-megaphone';
-    toast.innerHTML = '<div style="display:flex;align-items-start;gap:10px;"><span style="width:32px;height:32px;border-radius:50%;background:#e7f1ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi ' + icon + '" style="color:#0d6efd;"></i></span><div style="flex:1;min-width:0;"><p style="margin:0;font-size:.85rem;color:#333;line-height:1.3;">' + (notif.content || '') + '</p><small style="color:#999;font-size:.72rem;">Vừa xong</small></div></div>';
-    toast.onclick = function() { if (notif.linkUrl) window.location.href = notif.linkUrl; };
-    document.body.appendChild(toast);
-    setTimeout(function() { toast.remove(); }, 5000);
-}
-function groupNotifications(notifs) {
-    var groups = {};
-    notifs.forEach(function(n) {
-        var match = n.content && n.content.match(/đã chuyển trạng thái.*?đơn hàng/);
-        var key = match ? 'STATUS' : (n.content || '');
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(n);
-    });
-    var result = [];
-    Object.keys(groups).forEach(function(key) {
-        if (key === 'STATUS' && groups[key].length > 1) {
-            var first = groups[key][0];
-            result.push({ id: first.id, content: groups[key].length + ' đơn hàng đã chuyển trạng thái', linkType: first.linkType, linkUrl: first.linkUrl, createdAt: first.createdAt, read: first.read });
-        } else {
-            groups[key].forEach(function(n) { result.push(n); });
-        }
-    });
-    return result;
-}
-
 function getNotifIcon(linkType) {
     if (linkType === 'PRODUCT') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-box-seam"></i></span>';
     if (linkType === 'PROMOTION') return '<span class="notif-icon bg-warning-subtle text-warning flex-shrink-0"><i class="bi bi-tag"></i></span>';
@@ -1148,11 +1359,406 @@ function pollNotifications() {
 }
 
 setInterval(pollNotifications, 15000);
+
+/* ── Dirty Save Bar ── */
+function initDirtyBar() {
+    var bar = document.getElementById('dsSaveBar');
+    if (!bar) return;
+    var forms = document.querySelectorAll('form[data-dirty-bar]');
+    if (!forms.length) return;
+    var activeForm = null;
+    var resetBtn = document.getElementById('dsSaveBarReset');
+    var saveBtn = document.getElementById('dsSaveBarSave');
+
+    function getFormData(f) { return new FormData(f); }
+
+    function checkDirty(f) {
+        if (!f._cleanData) { f._cleanData = getFormData(f); f._dirty = false; return; }
+        var current = getFormData(f);
+        var dirty = false;
+        var keys = new Set();
+        for (var pair of f._cleanData.entries()) keys.add(pair[0]);
+        for (var pair of current.entries()) keys.add(pair[0]);
+        keys.forEach(function(k) {
+            var v1 = f._cleanData.getAll(k).sort().join(',');
+            var v2 = current.getAll(k).sort().join(',');
+            if (v1 !== v2) dirty = true;
+        });
+        if (dirty !== f._dirty) { f._dirty = dirty; updateBar(dirty, f); }
+    }
+
+    function updateBar(dirty, f) {
+        if (dirty) {
+            activeForm = f;
+            bar.style.display = 'flex';
+            requestAnimationFrame(function() { bar.classList.add('show'); });
+        } else {
+            bar.classList.remove('show');
+            activeForm = null;
+            setTimeout(function() { bar.style.display = 'none'; }, 300);
+        }
+    }
+
+    function resetDirty(f) {
+        f.reset();
+        setTimeout(function() {
+            f._cleanData = getFormData(f);
+            f._dirty = false;
+            updateBar(false, f);
+        }, 50);
+    }
+
+    forms.forEach(function(f) {
+        f._cleanData = getFormData(f);
+        f._dirty = false;
+        f.addEventListener('input', function() { checkDirty(f); });
+        f.addEventListener('change', function() { checkDirty(f); });
+    });
+
+    if (resetBtn) resetBtn.addEventListener('click', function() {
+        if (activeForm) resetDirty(activeForm);
+    });
+    if (saveBtn) saveBtn.addEventListener('click', function() {
+        if (activeForm) activeForm.requestSubmit();
+    });
+}
+
+initDirtyBar();
+
+/* ── Edit profile tabs ── */
+function switchEpTab(tab, el) {
+    document.querySelectorAll('#editProfileModal .nav-link').forEach(function(l) { l.style.color = '#666'; l.style.borderBottomColor = 'transparent'; });
+    if (el) { el.style.color = '#2563eb'; el.style.borderBottomColor = '#2563eb'; }
+    document.getElementById('epActivityContent').classList.toggle('d-none', tab !== 'activity');
+    document.getElementById('epWishlistContent').classList.toggle('d-none', tab !== 'wishlist');
+    if (tab === 'activity') loadEpActivity();
+}
+
+function loadEpActivity() {
+    var loading = document.getElementById('epActivityLoading');
+    var ordersDiv = document.getElementById('epActivityOrders');
+    var reviewsDiv = document.getElementById('epActivityReviews');
+    if (!loading || ordersDiv.dataset.loaded) return;
+    fetch('/tai-khoan/api/hoat-dong')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            loading.classList.add('d-none');
+            if (data.orders && data.orders.length) {
+                var html = '<h6 class="fw-bold mb-2" style="font-size:.78rem;color:#999;text-transform:uppercase;">Đơn hàng gần đây</h6>';
+                data.orders.forEach(function(o) {
+                    var statusLabels = {CHO_XAC_NHAN:'Chờ xác nhận',DA_XAC_NHAN:'Đã xác nhận',DANG_GIAO:'Đang giao',DA_GIAO:'Đã giao',DA_HUY:'Đã hủy',DA_HOAN_THANH:'Hoàn thành'};
+                    var label = statusLabels[o.trangThaiDon] || o.trangThaiDon;
+                    html += '<div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color:#f0f0f0!important;"><div><a href="/tai-khoan/don-hang/' + o.id + '" class="small fw-semibold text-dark text-decoration-none">' + o.maDon + '</a><br><small class="text-muted">' + new Date(o.ngayDat).toLocaleDateString('vi-VN') + '</small></div><span class="small badge bg-light text-dark">' + label + '</span></div>';
+                });
+                ordersDiv.innerHTML = html;
+                ordersDiv.classList.remove('d-none');
+            }
+            if (data.reviews && data.reviews.length) {
+                var html = '<h6 class="fw-bold mb-2 mt-3" style="font-size:.78rem;color:#999;text-transform:uppercase;">Đánh giá gần đây</h6>';
+                data.reviews.forEach(function(r) {
+                    var stars = '★'.repeat(r.danhGia) + '☆'.repeat(5 - r.danhGia);
+                    html += '<div class="d-flex align-items-start gap-2 mb-1 pb-1 border-bottom" style="border-color:#f0f0f0!important;"><span class="small text-warning flex-shrink-0">' + stars + '</span><span class="small text-muted flex-grow-1">' + (r.noiDung || '').substring(0, 80) + '</span></div>';
+                });
+                reviewsDiv.innerHTML = html;
+                reviewsDiv.classList.remove('d-none');
+            }
+            if ((!data.orders || !data.orders.length) && (!data.reviews || !data.reviews.length)) {
+                loading.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-inbox" style="font-size:1.5rem;"></i><p class="mt-1 mb-0 small">Chưa có hoạt động</p></div>';
+                loading.classList.remove('d-none');
+            }
+            ordersDiv.dataset.loaded = 'true';
+        })
+        .catch(function() {
+            loading.innerHTML = '<div class="text-center py-4 text-muted small">Không thể tải hoạt động</div>';
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var epModal = document.getElementById('editProfileModal');
+    if (epModal) {
+        epModal.addEventListener('show.bs.modal', function() {
+            document.getElementById('epActivityOrders').dataset.loaded = '';
+            document.getElementById('epActivityOrders').classList.add('d-none');
+            document.getElementById('epActivityReviews').classList.add('d-none');
+            document.getElementById('epActivityLoading').classList.remove('d-none');
+            document.getElementById('epActivityLoading').innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Đang tải...';
+            switchEpTab('activity', document.getElementById('epTabActivity'));
+        });
+    }
+});
+
+/* ── Save nickname from edit profile ── */
+function saveNickname() {
+    var inp = document.getElementById('epNickname');
+    var val = inp ? inp.value.trim() : '';
+    var fd = new FormData();
+    fd.append('hoTen', document.querySelector('#editProfileModal .fw-bold').textContent);
+    fd.append('nickname', val);
+    fetch('/tai-khoan/cap-nhat', { method: 'POST', body: fd, redirect: 'follow' })
+        .then(function(r) {
+            if (r.ok || r.redirected) DuaStore.toast.success('Đã lưu biệt danh');
+            else DuaStore.toast.error('Lỗi lưu');
+        })
+        .catch(function() { DuaStore.toast.error('Lỗi lưu'); });
+}
+
+/* ── Status update after AJAX ── */
+function applyStatusUI(val) {
+    var labels = {ONLINE:'Trực tuyến',AWAY:'Tạm vắng',DND:'Không làm phiền',INVISIBLE:'Ẩn'};
+    var map = {ONLINE:'status-online',AWAY:'status-away',DND:'status-dnd',INVISIBLE:'status-invisible'};
+    var cls = map[val] || 'status-invisible';
+    document.querySelectorAll('.status-dot').forEach(function(d) { d.className = 'status-dot ' + cls; });
+    var label = document.getElementById('popupStatusLabel');
+    if (label) label.textContent = labels[val] || val;
+    var dot = document.querySelector('#profile-popup [class*="border-2"]');
+    if (dot) { dot.className = 'position-absolute bottom-0 end-0 border border-2 border-white rounded-circle'; dot.style.background = (val === 'ONLINE' ? '#23a55a' : val === 'AWAY' ? '#f0b232' : val === 'DND' ? '#f23f42' : '#80848e'); }
+}
+
+/* ── Settings tabs ── */
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-setting-tab]');
+    if (!btn) return;
+    e.preventDefault();
+    document.querySelectorAll('[data-setting-tab]').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.settings-tab-content').forEach(function(c) { c.classList.add('d-none'); });
+    var target = document.getElementById('settings-' + btn.dataset.settingTab);
+    if (target) target.classList.remove('d-none');
+});
+
+/* ── Status update ── */
+function updateStatus(val) {
+    var fd = new FormData();
+    fd.append('status', val);
+    fetch('/tai-khoan/trang-thai', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                applyStatusUI(val);
+                DuaStore.toast.success('Đã đổi trạng thái');
+            }
+        });
+}
+
+/* ── Avatar upload ── */
+function replaceAllAvatars(url) {
+    if (!url) return;
+    document.querySelectorAll('.ds-profile-avatar, #avatarPreview, #editProfileModal .col-4 .rounded-circle, #avatarUploadModal .rounded-circle').forEach(function(el) {
+        if (el.tagName === 'IMG') {
+            el.src = url;
+        } else if (el.tagName === 'SPAN' || el.tagName === 'DIV') {
+            var img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Avatar';
+            img.className = el.className;
+            ['rounded-circle','object-fit-cover','d-inline-flex','align-items-center','justify-content-center'].forEach(function(c) {
+                if (el.classList.contains(c)) img.classList.add(c);
+            });
+            img.style.cssText = el.style.cssText;
+            el.parentNode.replaceChild(img, el);
+        }
+    });
+}
+document.addEventListener('change', function(e) {
+    if (e.target.id !== 'avatarInput') return;
+    var file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { DuaStore.toast.error('File quá lớn, tối đa 5MB'); return; }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { DuaStore.toast.error('Chỉ chấp nhận JPG, PNG, WEBP'); return; }
+    var canvas = document.createElement('canvas');
+    canvas.width = 300; canvas.height = 300;
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    img.onload = function() {
+        if (img.width < 300 || img.height < 300) { DuaStore.toast.error('Ảnh tối thiểu 300×300px'); return; }
+        ctx.drawImage(img, 0, 0, 300, 300);
+        canvas.toBlob(function(blob) {
+            var fd = new FormData();
+            fd.append('file', blob, 'avatar.jpg');
+            fetch('/tai-khoan/avatar', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        replaceAllAvatars(data.avatar);
+                        DuaStore.toast.success('Cập nhật ảnh đại diện thành công');
+                        bootstrap.Modal.getInstance(document.getElementById('avatarUploadModal'))?.hide();
+                    } else {
+                        DuaStore.toast.error(data.message);
+                    }
+                });
+        }, 'image/jpeg', 0.9);
+    };
+    img.src = URL.createObjectURL(file);
+});
+
+document.addEventListener('click', function(e) {
+    if (e.target.id !== 'removeAvatarBtn') return;
+    if (!confirm('Xóa ảnh đại diện?')) return;
+    var fd = new FormData();
+    fd.append('remove', 'true');
+    fetch('/tai-khoan/avatar', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                location.reload();
+            } else {
+                DuaStore.toast.error(data.message);
+            }
+        });
+});
+
+/* ── Linked accounts / Switch account ── */
+function loadLinkedAccounts() {
+    var container = document.getElementById('linkedAccountsList');
+    if (!container) return;
+    fetch('/tai-khoan/api/tai-khoan-lien-ket')
+        .then(function(r) { return r.json(); })
+        .then(function(accounts) {
+            if (!accounts || accounts.length === 0) {
+                container.innerHTML = '<p class="text-muted small text-center py-3">Chưa có tài khoản liên kết</p>';
+                return;
+            }
+            var html = '';
+            accounts.forEach(function(acc) {
+                html += '<div class="d-flex align-items-center justify-content-between py-2 border-bottom">';
+                html += '<div><div class="fw-semibold small">' + (acc.hoTen || acc.email) + '</div>';
+                html += '<small class="text-muted">' + (acc.email || '') + '</small></div>';
+                html += '<button class="btn btn-sm btn-outline-primary" onclick="switchToAccount(' + acc.id + ')"><i class="bi bi-arrow-repeat"></i> Chuyển</button>';
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        })
+        .catch(function() {
+            container.innerHTML = '<p class="text-muted small text-center py-3">Không thể tải danh sách</p>';
+        });
+}
+
+function switchToAccount(id) {
+    fetch('/tai-khoan/chuyen-doi/' + id, { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) { location.reload(); }
+            else { DuaStore.toast.error(data.message || 'Không thể chuyển đổi'); }
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var switchModal = document.getElementById('switchAccountModal');
+    if (switchModal) {
+        switchModal.addEventListener('show.bs.modal', loadLinkedAccounts);
+    }
+});
+
+/* ── Link account form ── */
+document.addEventListener('submit', function(e) {
+    if (e.target.id !== 'linkAccountForm') return;
+    e.preventDefault();
+    var username = document.getElementById('linkUsername').value.trim();
+    var password = document.getElementById('linkPassword').value.trim();
+    var errDiv = document.getElementById('linkAccountError');
+    if (!username || !password) { errDiv.textContent = 'Vui lòng nhập đầy đủ thông tin'; errDiv.classList.remove('d-none'); return; }
+    var fd = new FormData();
+    fd.append('username', username);
+    fd.append('password', password);
+    fetch('/tai-khoan/tai-khoan-lien-ket', { method: 'POST', body: fd })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                DuaStore.toast.success('Liên kết tài khoản thành công');
+                bootstrap.Modal.getInstance(document.getElementById('linkAccountModal'))?.hide();
+                loadLinkedAccounts();
+            } else {
+                errDiv.textContent = data.message || 'Liên kết thất bại';
+                errDiv.classList.remove('d-none');
+            }
+        });
+});
+
+/* ── Logout all devices ── */
+function logoutAllDevices() {
+    if (!confirm('Đăng xuất khỏi tất cả thiết bị?')) return;
+    fetch('/tai-khoan/dang-xuat-tat-ca', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success && data.redirect) { window.location.href = data.redirect; }
+            else { DuaStore.toast.error('Không thể đăng xuất'); }
+        });
+}
+
+/* ── Save settings account ── */
+function saveSettingsAccount() {
+    var fd = new FormData();
+    fd.append('hoTen', document.getElementById('sHoTen').value);
+    fd.append('nickname', document.getElementById('sNickname').value);
+    fd.append('soDienThoai', document.getElementById('sPhone').value);
+    fd.append('emailVisible', document.getElementById('sEmailVisible').checked ? 'true' : 'false');
+    fd.append('phoneVisible', document.getElementById('sPhoneVisible').checked ? 'true' : 'false');
+    fd.append('emailMarketing', document.getElementById('sEmailMarketing').checked ? 'true' : 'false');
+    var csrf = document.querySelector('meta[name="_csrf"]');
+    if (csrf) fd.append('_csrf', csrf.content);
+    fetch('/tai-khoan/cap-nhat', { method: 'POST', body: fd, redirect: 'follow' })
+        .then(function(r) {
+            if (r.ok || r.redirected) DuaStore.toast.success('Đã lưu thông tin');
+            else DuaStore.toast.error('Lỗi lưu');
+        })
+        .catch(function() { DuaStore.toast.error('Lỗi lưu'); });
+}
+
+/* ── Save settings password ── */
+function saveSettingsPassword() {
+    var oldP = document.getElementById('sOldPassword').value;
+    var newP = document.getElementById('sNewPassword').value;
+    var confirmP = document.getElementById('sConfirmPassword').value;
+    var errDiv = document.getElementById('settingsPassError');
+    if (!oldP || !newP || !confirmP) { errDiv.textContent = 'Vui lòng nhập đầy đủ'; errDiv.classList.remove('d-none'); return; }
+    if (newP.length < 6) { errDiv.textContent = 'Mật khẩu mới tối thiểu 6 ký tự'; errDiv.classList.remove('d-none'); return; }
+    if (newP !== confirmP) { errDiv.textContent = 'Mật khẩu mới không khớp'; errDiv.classList.remove('d-none'); return; }
+    var fd = new FormData();
+    fd.append('oldPassword', oldP);
+    fd.append('newPassword', newP);
+    fd.append('confirmPassword', confirmP);
+    var csrf = document.querySelector('meta[name="_csrf"]');
+    if (csrf) fd.append('_csrf', csrf.content);
+    fetch('/tai-khoan/doi-mat-khau', { method: 'POST', body: fd, redirect: 'follow' })
+        .then(function(r) {
+            if (r.ok || r.redirected) {
+                DuaStore.toast.success('Đã đổi mật khẩu');
+                document.getElementById('sOldPassword').value = '';
+                document.getElementById('sNewPassword').value = '';
+                document.getElementById('sConfirmPassword').value = '';
+                errDiv.classList.add('d-none');
+            } else {
+                errDiv.textContent = 'Đổi mật khẩu thất bại';
+                errDiv.classList.remove('d-none');
+            }
+        })
+        .catch(function() { errDiv.textContent = 'Lỗi kết nối'; errDiv.classList.remove('d-none'); });
+}
+
+/* ── Deactivate account ── */
+function deactivateAccount() {
+    if (!confirm('Bạn có chắc chắn muốn vô hiệu hóa tài khoản? Hành động này không thể hoàn tác.')) return;
+    fetch('/tai-khoan/vo-hieu-hoa', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success && data.redirect) { window.location.href = data.redirect; }
+            else { DuaStore.toast.error(data.message || 'Không thể vô hiệu hóa'); }
+        });
+}
 </script>
 
 <div id="dsToast"
      class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
      style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
+
+<!-- Save Bar -->
+<div id="dsSaveBar" class="ds-save-bar" style="display:none;">
+    <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>
+    <div class="ds-save-bar-actions">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="dsSaveBarReset">Đặt lại</button>
+        <button type="button" class="btn btn-primary btn-sm" id="dsSaveBarSave"><i class="bi bi-floppy me-1"></i>Lưu</button>
+    </div>
+</div>
 
 <script>
 function showToast(msg) {

@@ -33,8 +33,8 @@ public class PaymentService {
     public String generateVietQrUrl(String maDon, long amount) {
         String des = encodeValue("Thanh toan don " + maDon);
         String holder = encodeValue(accountName);
-        return String.format("https://qr.sepay.vn/img?acc=%s&bank=TCB&amount=%d&des=%s&template=compact&holder=%s",
-                accountNumber, amount, des, holder);
+        return String.format("https://qr.sepay.vn/img?acc=%s&bank=%s&amount=%d&des=%s&template=compact&holder=%s",
+                accountNumber, bankCode, amount, des, holder);
     }
 
     private String encodeValue(String value) {

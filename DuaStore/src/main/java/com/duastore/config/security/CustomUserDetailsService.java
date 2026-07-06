@@ -35,13 +35,11 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new DisabledException("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
         }
 
-        if (user.getRoles().isEmpty()) {
+        boolean hasActiveRole = user.getRoles().stream().anyMatch(Role::getIsActive);
+        if (!hasActiveRole) {
             throw new DisabledException(
                     "Tài khoản chưa được gán vai trò. Vui lòng liên hệ quản trị viên.");
         }
-
-        // TODO: Khi Role có field active, cần lọc bỏ role inactive
-        // for (Role r : user.getRoles()) { if (r.getActive() == false) ... }
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
@@ -67,6 +65,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
         for (Role role : user.getRoles()) {
+            if (!role.getIsActive()) continue;
+
             authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
 
             if ("SUPER_ADMIN".equals(role.getName())) {

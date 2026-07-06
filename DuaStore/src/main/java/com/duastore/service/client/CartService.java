@@ -2,17 +2,20 @@ package com.duastore.service.client;
 
 import com.duastore.dto.CartItemDTO;
 import com.duastore.model.CartItem;
+import com.duastore.model.FlashSale;
 import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.CartItemRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.PricingService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,13 +25,16 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
+    private final PricingService pricingService;
 
     public CartService(CartItemRepository cartItemRepository,
                        ProductRepository productRepository,
-                       ProductVariantRepository variantRepository) {
+                       ProductVariantRepository variantRepository,
+                       PricingService pricingService) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
+        this.pricingService = pricingService;
     }
 
     public List<CartItemDTO> getItems(Integer userId) {
@@ -52,7 +58,8 @@ public class CartService {
         }
 
         int finalQty = Math.min(qty, variant.getSoLuongTon());
-        BigDecimal currentPrice = variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : variant.getGiaGoc();
+        PricingService.PriceResult priced = pricingService.resolvePrice(variant);
+        BigDecimal currentPrice = priced.finalPrice();
         CartItem item = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
         if (item == null) {
             item = new CartItem();
@@ -163,7 +170,8 @@ public class CartService {
     private CartItemDTO toDto(CartItem item) {
         Product product = item.getProduct();
         ProductVariant variant = item.getVariant();
-        BigDecimal price = variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : variant.getGiaGoc();
+        PricingService.PriceResult priced = pricingService.resolvePrice(variant);
+        BigDecimal price = priced.finalPrice();
 
         CartItemDTO dto = new CartItemDTO();
         dto.setId(item.getId());
@@ -180,6 +188,7 @@ public class CartService {
         dto.setGiaLucThem(item.getGiaLucThem());
         dto.setGiaThayDoi(item.getGiaLucThem() != null && price.compareTo(item.getGiaLucThem()) != 0);
         dto.setNgayThem(item.getNgayThem());
+        dto.setNguonGia(priced.source().name());
         return dto;
     }
 
@@ -257,12 +266,36 @@ public class CartService {
                 });
     }
 
+    @Transactional
+    public void mergeGuestCart(Integer userId, java.util.Map<Integer, Integer> guestCart) {
+        if (guestCart == null || guestCart.isEmpty()) return;
+        for (java.util.Map.Entry<Integer, Integer> entry : guestCart.entrySet()) {
+            Integer variantId = entry.getKey();
+            Integer quantity = entry.getValue();
+            if (variantId == null || quantity == null || quantity <= 0) continue;
+            ProductVariant variant = variantRepository.findById(variantId).orElse(null);
+            if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) continue;
+            CartItem existing = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
+            if (existing != null) {
+                existing.setSoLuong(Math.min(existing.getSoLuong() + quantity, variant.getSoLuongTon()));
+            } else {
+                existing = new CartItem();
+                existing.setUserId(userId);
+                existing.setProductId(variant.getProductId());
+                existing.setVariantId(variantId);
+                existing.setSoLuong(Math.min(quantity, variant.getSoLuongTon()));
+                existing.setGiaLucThem(pricingService.resolvePrice(variant).finalPrice());
+            }
+            cartItemRepository.save(existing);
+        }
+    }
+
     public boolean hasPriceChanges(Integer userId) {
         return cartItemRepository.findByUserIdOrderByNgayThemDesc(userId).stream()
                 .anyMatch(ci -> {
                     ProductVariant v = ci.getVariant();
                     if (v == null || ci.getGiaLucThem() == null) return false;
-                    BigDecimal currentPrice = v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc();
+                    BigDecimal currentPrice = pricingService.resolvePrice(v).finalPrice();
                     return currentPrice.compareTo(ci.getGiaLucThem()) != 0;
                 });
     }

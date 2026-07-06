@@ -22,34 +22,45 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function el(id) { return document.getElementById(id); }
+
 function openDetailModal(promoId) {
     _detailPromoId = promoId;
     fetch('/khuyen-mai/' + promoId)
         .then(function(r) { return r.json(); })
         .then(function(d) {
+            if (!d.success) { showToast(d.message || 'Không thể tải chi tiết khuyến mãi'); return; }
+
+            var els = ['dm-discount','dm-ten','dm-ma','dm-loai','dm-min','dm-max','dm-stack','dm-target',
+                       'dm-tu','dm-den','dm-targetType','dm-product','dm-terms','dm-related-section',
+                       'dm-related-list','dm-footer-action','detailModal'];
+            for (var i = 0; i < els.length; i++) {
+                if (!el(els[i])) { showToast('Lỗi hiển thị: không tìm thấy ' + els[i]); return; }
+            }
+
             var fmt = function(n) { return parseInt(n).toLocaleString('vi-VN') + 'đ'; };
-            document.getElementById('dm-discount').textContent = d.loaiGiam === 'PHAN_TRAM'
+            el('dm-discount').textContent = d.loaiGiam === 'PHAN_TRAM'
                 ? 'GIẢM ' + d.giaTriGiam + '%'
                 : 'GIẢM ' + fmt(d.giaTriGiam);
-            document.getElementById('dm-ten').textContent = d.tenChuongTrinh;
-            document.getElementById('dm-ma').textContent = d.maCode;
-            document.getElementById('dm-loai').textContent = d.targetType || 'Toàn bộ sản phẩm';
-            document.getElementById('dm-min').textContent = d.donHangToiThieu > 0 ? fmt(d.donHangToiThieu) : '--';
-            document.getElementById('dm-max').textContent = d.giamToiDa > 0 ? fmt(d.giamToiDa) : '--';
-            document.getElementById('dm-stack').textContent = d.stackable;
-            document.getElementById('dm-target').textContent = 'Tất cả khách hàng';
-            document.getElementById('dm-tu').textContent = d.tuNgay || '--';
-            document.getElementById('dm-den').textContent = d.denNgay || '--';
-            document.getElementById('dm-targetType').textContent = d.targetType || 'Tất cả';
-            document.getElementById('dm-product').textContent = 'Áp dụng hóa đơn chi nhánh';
+            el('dm-ten').textContent = d.tenChuongTrinh;
+            el('dm-ma').textContent = d.maCode;
+            el('dm-loai').textContent = d.targetType || 'Toàn bộ sản phẩm';
+            el('dm-min').textContent = d.donHangToiThieu > 0 ? fmt(d.donHangToiThieu) : '--';
+            el('dm-max').textContent = d.giamToiDa > 0 ? fmt(d.giamToiDa) : '--';
+            el('dm-stack').textContent = d.stackable;
+            el('dm-target').textContent = 'Tất cả khách hàng';
+            el('dm-tu').textContent = d.tuNgay || '--';
+            el('dm-den').textContent = d.denNgay || '--';
+            el('dm-targetType').textContent = d.targetType || 'Tất cả';
+            el('dm-product').textContent = 'Áp dụng hóa đơn chi nhánh';
 
-            var terms = document.getElementById('dm-terms');
+            var terms = el('dm-terms');
             terms.innerHTML = '<li>Chỉ áp dụng mua sắm trực tuyến hoặc trực tiếp tại cơ sở DuaStore.</li>'
                 + '<li>Voucher không thể kết hợp cùng các chương trình VIP đồng thời ngoài trừ thông báo cụ thể.</li>';
             if (d.giamToiDa > 0) terms.innerHTML += '<li>Hạn mức tối đa áp dụng là ' + fmt(d.giamToiDa) + '.</li>';
 
-            var relSection = document.getElementById('dm-related-section');
-            var relList = document.getElementById('dm-related-list');
+            var relSection = el('dm-related-section');
+            var relList = el('dm-related-list');
             if (d.related && d.related.length > 0) {
                 relSection.style.display = '';
                 var html = '';
@@ -64,14 +75,14 @@ function openDetailModal(promoId) {
                 relSection.style.display = 'none';
             }
 
-            document.getElementById('dm-footer-action').innerHTML =
-                '<button class="vc-btn vc-btn-cta" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận</button>';
+            el('dm-footer-action').innerHTML =
+                '<button class="vc-btn ds-btn-fill" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận</button>';
 
             if (typeof bootstrap === 'undefined') {
                 showToast('Không thể hiển thị popup: Bootstrap chưa được tải');
                 return;
             }
-            var modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            var modal = new bootstrap.Modal(el('detailModal'));
             modal.show();
         })
         .catch(function(err) {
@@ -80,28 +91,45 @@ function openDetailModal(promoId) {
         });
 }
 
+function handleUnauthorized(r) {
+    if (r.status === 401 || r.status === 403) {
+        if (typeof showLoginPopup === 'function') showLoginPopup();
+        return true;
+    }
+    return false;
+}
+
+function handleVoucherResponse(data, btn) {
+    if (!data) return;
+    showToast(data.message);
+    if (data.message && data.message.indexOf('dang nhap') !== -1) {
+        if (typeof showLoginPopup === 'function') showLoginPopup();
+        if (btn) { btn.disabled = false; btn.textContent = 'Nhận'; }
+        return;
+    }
+    if (data.success) {
+        if (btn) { btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed'; }
+        location.reload();
+    } else {
+        if (btn) { btn.disabled = false; btn.textContent = 'Nhận'; }
+    }
+}
+
 function saveVoucherFromDetail(promoId) {
+    var btn = document.querySelector('#dm-footer-action .ds-btn-fill');
+    btn.disabled = true; btn.textContent = 'Đang xử lý...';
     var token = document.querySelector('meta[name="_csrf"]')?.content || '';
     var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
     fetch('/api/vi-voucher/luu/' + promoId, { method: 'POST', headers: { [header]: token } })
         .then(function(r) {
-            if (r.status === 403) {
-                if (typeof showLoginPopup === 'function') showLoginPopup();
-                return null;
-            }
+            if (handleUnauthorized(r)) return null;
             return r.json();
         })
         .then(function(data) {
-            if (!data) return;
-            showToast(data.message);
-            if (data.message && data.message.indexOf('dang nhap') !== -1) {
-                if (typeof showLoginPopup === 'function') showLoginPopup();
-                return;
-            }
-            if (data.success) {
+            handleVoucherResponse(data, btn);
+            if (data && data.success) {
                 var modal = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
                 if (modal) modal.hide();
-                location.reload();
             }
         });
 }
@@ -123,25 +151,22 @@ function copyDetailCode() {
 }
 
 function saveVoucher(promotionId) {
+    var btn = document.querySelector('.btn-save-voucher[data-id="' + promotionId + '"]');
+    if (btn && btn.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = 'Đang xử lý...'; }
     var token = document.querySelector('meta[name="_csrf"]')?.content || '';
     var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
     var headers = { 'Content-Type': 'application/json' };
     headers[header] = token;
     fetch('/api/vi-voucher/luu/' + promotionId, { method: 'POST', headers: headers })
         .then(function(r) {
-            if (r.status === 403) {
-                if (typeof showLoginPopup === 'function') showLoginPopup();
+            if (handleUnauthorized(r)) {
+                if (btn) { btn.disabled = false; btn.textContent = 'Nhận'; }
                 return null;
             }
             return r.json();
         })
         .then(function(data) {
-            if (!data) return;
-            showToast(data.message);
-            if (data.message && data.message.indexOf('dang nhap') !== -1) {
-                if (typeof showLoginPopup === 'function') showLoginPopup();
-                return;
-            }
-            if (data.success) location.reload();
+            handleVoucherResponse(data, btn);
         });
 }

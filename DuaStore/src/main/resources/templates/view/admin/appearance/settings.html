@@ -16,10 +16,10 @@
         .menu-sortable tr.sortable-chosen { background: #f0f7ff; }
         .menu-sortable tr.sortable-ghost td { opacity: 0.1; }
         .layout-grid { display: flex; gap: 4px; flex-wrap: wrap; }
-        .layout-grid .layout-option { width: 28px; height: 22px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer; display: flex; padding: 2px; }
+        .layout-grid .layout-option { width: auto; min-width: 28px; height: 22px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer; display: flex; padding: 2px; }
         .layout-grid .layout-option:hover { border-color: #0d6efd; }
         .layout-grid .layout-option.active { border-color: #0d6efd; background: #e7f1ff; }
-        .layout-grid .layout-option .col-preview { background: #adb5bd; border-radius: 2px; margin: 0.5px; flex: 1; min-width: 2px; }
+        .layout-grid .layout-option .col-preview { background: #adb5bd; border-radius: 2px; margin: 0.5px; flex: 1; min-width: 1px; }
         .hp-section-body { display: none; }
         .hp-section.expanded .hp-section-body { display: block; }
         .visual-builder-dropzone { min-height: 80px; border: 2px dashed #dee2e6; border-radius: 8px; padding: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
@@ -34,8 +34,18 @@
         <li class="breadcrumb-item active" aria-current="page">Giao diện</li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-palette me-2"></i>Giao diện</h4>
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-palette"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Giao diện</h4>
+                        <div class="adm-detail-meta">Tùy chỉnh giao diện và bố cục website.</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Tabs -->
@@ -289,8 +299,8 @@
                                                        placeholder="Tiêu đề" th:value="${settings.get('footer_col_1_title') ?: 'Về chúng tôi'}" />
                                             </div>
                                             <div class="col-md-8">
-                                                <textarea name="footer_col_1_content" class="form-control form-control-sm" rows="3"
-                                                          placeholder="Nội dung" th:text="${settings.get('footer_col_1_content') ?: 'Giới thiệu về cửa hàng...'}"></textarea>
+                        <textarea name="footer_col_1_content" class="form-control form-control-sm" rows="3"
+                                                  placeholder="Nội dung">[[${settings.get('footer_col_1_content') ?: 'Giới thiệu về cửa hàng...'}]]</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -309,8 +319,8 @@
                                                        placeholder="Tiêu đề" th:value="${settings.get('footer_col_2_title') ?: 'Chính sách'}" />
                                             </div>
                                             <div class="col-md-8">
-                                                <textarea name="footer_col_2_content" class="form-control form-control-sm" rows="3"
-                                                          placeholder="Nội dung" th:text="${settings.get('footer_col_2_content') ?: 'Chính sách đổi trả\nChính sách bảo mật\nChính sách vận chuyển'}"></textarea>
+                        <textarea name="footer_col_2_content" class="form-control form-control-sm" rows="3"
+                                                  placeholder="Nội dung">[[${settings.get('footer_col_2_content') ?: 'Chính sách đổi trả\nChính sách bảo mật\nChính sách vận chuyển'}]]</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -329,8 +339,8 @@
                                                        placeholder="Tiêu đề" th:value="${settings.get('footer_col_3_title') ?: 'Liên hệ'}" />
                                             </div>
                                             <div class="col-md-8">
-                                                <textarea name="footer_col_3_content" class="form-control form-control-sm" rows="3"
-                                                          placeholder="Nội dung" th:text="${settings.get('footer_col_3_content') ?: 'Địa chỉ: ...\nSĐT: 1900...\nEmail: ...'}"></textarea>
+                        <textarea name="footer_col_3_content" class="form-control form-control-sm" rows="3"
+                                                  placeholder="Nội dung">[[${settings.get('footer_col_3_content') ?: 'Địa chỉ: ...\nSĐT: 1900...\nEmail: ...'}]]</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -586,6 +596,7 @@
                     '<div class="ms-auto d-flex align-items-center gap-2">' +
                         '<input type="hidden" name="hp_' + idx + '_type" value="' + type + '" />' +
                         '<input type="hidden" name="hp_' + idx + '_active" value="0" /><input type="checkbox" name="hp_' + idx + '_active" value="1" ' + (active !== false ? 'checked' : '') + ' onclick="event.stopPropagation()" />' +
+                        '<i class="bi bi-trash text-danger" style="cursor:pointer;font-size:0.85rem" onclick="event.stopPropagation();removeHomepageSection(this)" title="Xoá section"></i>' +
                         '<i class="bi bi-chevron-down hp-chevron"></i>' +
                     '</div>' +
                 '</div>' +
@@ -679,6 +690,44 @@
             var section = createHomepageSection('custom', hpCounter, true);
             document.getElementById('homepageSections').appendChild(section);
             hpSortable.sort(section); // re-sync
+            // Restore saved values if any
+            var savedTitle = hpSettings['hp_' + hpCounter + '_title'];
+            var savedLayout = hpSettings['hp_' + hpCounter + '_layout'];
+            var savedLimit = hpSettings['hp_' + hpCounter + '_limit'];
+            var savedActive = hpSettings['hp_' + hpCounter + '_active'];
+            var savedCatIds = hpSettings['hp_' + hpCounter + '_category_ids'];
+            if (savedTitle && savedTitle !== 'null') {
+                var ti = section.querySelector('input[name="hp_' + hpCounter + '_title"]');
+                if (ti) ti.value = savedTitle;
+            }
+            if (savedLayout && savedLayout !== 'null' && savedLayout !== '1') {
+                var lo = section.querySelector('.layout-option[data-cols="' + savedLayout + '"]');
+                if (lo) {
+                    section.querySelectorAll('.layout-option').forEach(function(o) { o.classList.remove('active'); });
+                    lo.classList.add('active');
+                    var h = section.querySelector('input[name="hp_' + hpCounter + '_layout"]');
+                    if (h) h.value = savedLayout;
+                }
+            }
+            if (savedLimit && savedLimit !== 'null') {
+                var li = section.querySelector('input[name="hp_' + hpCounter + '_limit"]');
+                if (li) li.value = savedLimit;
+            }
+            if (savedActive === '0') {
+                var cb = section.querySelector('input[name="hp_' + hpCounter + '_active"][type="checkbox"]');
+                if (cb) cb.checked = false;
+            }
+            if (savedCatIds && savedCatIds !== 'null') {
+                var ci = section.querySelector('input[name="hp_' + hpCounter + '_category_ids"]');
+                if (ci) ci.value = savedCatIds;
+            }
+        }
+
+        function removeHomepageSection(el) {
+            var section = el.closest('.hp-section');
+            if (document.querySelectorAll('#homepageSections .hp-section').length <= 1) return;
+            section.remove();
+            renumberHomepageSections();
         }
 
         // Sortable for homepage sections

@@ -35,6 +35,7 @@ public class AdminRoleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_READ)")
     public String list(Model model) {
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("roles", roleService.findAll());
         model.addAttribute("entityLabel", "vai trò");
         model.addAttribute("url", "/admin/vai-tro");
@@ -45,6 +46,7 @@ public class AdminRoleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_CREATE)")
     public String createForm(Model model) {
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("role", new com.duastore.model.Role());
         model.addAttribute("groupedPermissions", roleService.getPermissionsGroupedByModule());
         return "view/admin/role/role-form";
@@ -54,13 +56,14 @@ public class AdminRoleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_CREATE)")
     public String create(@RequestParam String name,
                          @RequestParam(required = false) String moTa,
+                         @RequestParam(required = false) Boolean isActive,
                          @RequestParam(required = false) List<Integer> permissionIds,
                          RedirectAttributes ra) {
         if (name == null || name.isBlank()) {
             ra.addFlashAttribute("errorMsg", "Tên vai trò không được để trống");
             return "redirect:/admin/vai-tro/them-moi";
         }
-        var saved = roleService.save(null, name.trim().toUpperCase(), moTa, permissionIds);
+        var saved = roleService.save(null, name.trim().toUpperCase(), moTa, isActive, permissionIds);
         var admin = securityUtil.getCurrentUser();
         if (admin != null) {
             adminLogService.ghiLog(admin, "TAO_ROLE", "ROLE", saved.getId(),
@@ -79,6 +82,7 @@ public class AdminRoleController {
             return "redirect:/admin/vai-tro";
         }
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("role", role);
         model.addAttribute("groupedPermissions", roleService.getPermissionsGroupedByModule());
         return "view/admin/role/role-form";
@@ -89,6 +93,7 @@ public class AdminRoleController {
     public String edit(@PathVariable Integer id,
                        @RequestParam String name,
                        @RequestParam(required = false) String moTa,
+                       @RequestParam(required = false) Boolean isActive,
                        @RequestParam(required = false) List<Integer> permissionIds,
                        RedirectAttributes ra) {
         if (name == null || name.isBlank()) {
@@ -97,7 +102,7 @@ public class AdminRoleController {
         }
         var oldRole = roleService.findById(id);
         try {
-            roleService.save(id, name.trim().toUpperCase(), moTa, permissionIds);
+            roleService.save(id, name.trim().toUpperCase(), moTa, isActive, permissionIds);
             var admin = securityUtil.getCurrentUser();
             if (admin != null && oldRole != null) {
                 adminLogService.ghiLog(admin, "SUA_ROLE", "ROLE", id,

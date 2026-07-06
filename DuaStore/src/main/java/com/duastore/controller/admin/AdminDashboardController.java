@@ -55,6 +55,13 @@ public class AdminDashboardController {
         model.addAttribute("dailyRevenue", dashboardService.getDailyRevenueLast7Days());
         model.addAttribute("topProducts", dashboardService.getTopSellingProducts(5));
 
+        // Enhanced dashboard data
+        model.addAttribute("statComparison", dashboardService.getStatComparison());
+        model.addAttribute("previousWeekRevenue", dashboardService.getPreviousWeekRevenue());
+        model.addAttribute("paymentMethodDistribution", dashboardService.getPaymentMethodDistribution());
+        model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
+        model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
+
         return "view/admin/dashboard";
     }
 }

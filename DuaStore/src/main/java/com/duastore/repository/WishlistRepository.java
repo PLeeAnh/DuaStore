@@ -4,6 +4,7 @@ import com.duastore.model.Wishlist;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,8 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
 
     @Query("SELECT w.productId FROM Wishlist w WHERE w.userId = ?1")
     List<Integer> findProductIdsByUserId(Integer userId);
+
+    @Query("SELECT w.productId, COUNT(w) FROM Wishlist w WHERE w.productId IN :productIds GROUP BY w.productId")
+    List<Object[]> countByProductIds(@Param("productIds") List<Integer> productIds);
+    long countByProductId(Integer productId);
 }

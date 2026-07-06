@@ -5,13 +5,7 @@
       layout:decorate="~{layout/client/base}">
     <head>
         <title>Ví Voucher — DuaStore</title>
-        <style>
-            .vc-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:#6b7280}
-            .vc-dot{width:7px;height:7px;border-radius:50%}
-            .vc-dot.green{background:#22c55e}
-            .vc-dot.yellow{background:#eab308}
-            .vc-dot.gray{background:#9ca3af}
-        </style>
+
     </head>
     <body>
     <div layout:fragment="content">
@@ -124,7 +118,7 @@
 
                         <!-- Bottom row -->
                         <div class="vc-bottom">
-                            <button class="vc-btn vc-btn-ghost btn-detail" type="button"
+                            <button class="vc-btn ds-btn-outline btn-detail" type="button"
                                     th:data-id="${v.promotion.id}">Chi tiết</button>
                             <th:block th:if="${v.status.name() == 'AVAILABLE'}">
                                 <button class="vc-btn vc-btn-disabled" type="button"
@@ -157,9 +151,10 @@
                 </ul>
             </nav>
         </div>
-    </div>
 
-    <th:block th:include="~{fragments/promotion-modal :: promotionModal}"></th:block>
+        <!-- Modal phải nằm TRONG layout:fragment="content" mới được ghép vào trang render cuối cùng. -->
+        <th:block th:include="~{fragments/promotion-modal :: promotionModal}"></th:block>
+    </div>
 
 <th:block layout:fragment="extra-script">
     <script>

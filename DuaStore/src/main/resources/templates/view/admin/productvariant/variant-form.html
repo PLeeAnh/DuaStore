@@ -44,7 +44,7 @@
         <div class="adm-card-body">
             <form id="variantForm"
                   th:action="${variant.id != null} ? @{/admin/bien-the/sua/{id}(id=${variant.id})} : @{/admin/bien-the/them-moi}"
-                  th:object="${variant}" method="post" enctype="multipart/form-data" class="row g-3">
+                  th:object="${variant}" method="post" data-dirty-bar enctype="multipart/form-data" class="row g-3">
                 <input type="hidden" th:field="*{id}" />
                 <input type="hidden" th:field="*{productId}" />
 

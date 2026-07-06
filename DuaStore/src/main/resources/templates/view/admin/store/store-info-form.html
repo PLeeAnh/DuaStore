@@ -37,7 +37,7 @@
 
     <form id="storeForm"
           th:action="${store.id != null} ? @{/admin/dia-chi/sua/{id}(id=${store.id})} : @{/admin/dia-chi/them-moi}"
-          th:object="${store}" method="post">
+          th:object="${store}" method="post" data-dirty-bar>
         <input type="hidden" th:field="*{id}" />
 
         <div class="row g-4">

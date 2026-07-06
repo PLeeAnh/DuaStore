@@ -8,12 +8,16 @@ import com.duastore.model.ProductVariant;
 import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserVoucherRepository;
+import com.duastore.repository.WishlistRepository;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
+import com.duastore.service.PricingService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
@@ -21,7 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +47,10 @@ public class HomeController {
     private final UserVoucherRepository userVoucherRepository;
     private final SecurityUtil securityUtil;
     private final SiteSettingService siteSettingService;
+    private final OrderItemRepository orderItemRepository;
+    private final WishlistRepository wishlistRepository;
+    private final ReviewsRepository reviewsRepository;
+    private final PricingService pricingService;
 
     public HomeController(ProductService productService,
                           CategoryService categoryService,
@@ -55,7 +62,11 @@ public class HomeController {
                           BannerService bannerService,
                           UserVoucherRepository userVoucherRepository,
                           SecurityUtil securityUtil,
-                          SiteSettingService siteSettingService) {
+                          SiteSettingService siteSettingService,
+                          OrderItemRepository orderItemRepository,
+                          WishlistRepository wishlistRepository,
+                          ReviewsRepository reviewsRepository) {
+                          PricingService pricingService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -67,6 +78,10 @@ public class HomeController {
         this.userVoucherRepository = userVoucherRepository;
         this.securityUtil = securityUtil;
         this.siteSettingService = siteSettingService;
+        this.orderItemRepository = orderItemRepository;
+        this.wishlistRepository = wishlistRepository;
+        this.reviewsRepository = reviewsRepository;
+        this.pricingService = pricingService;
     }
 
     @GetMapping("/")
@@ -115,6 +130,57 @@ public class HomeController {
         model.addAttribute("featuredProducts", featured.stream().limit(prodLimit).toList());
         model.addAttribute("featuredCategories", categoryService.getFeaturedCategories().stream().limit(catLimit).toList());
 
+        // ─ Bán chạy nhất (Top sellers) - chỉ tính đơn đã giao/hoàn thành ─
+        List<Object[]> topSellingRows = orderItemRepository.findTopSellingProductIds(PageRequest.of(0, 6));
+        List<Integer> topSellerIds = topSellingRows.stream().map(r -> (Integer) r[0]).toList();
+        Map<Integer, Long> soldCountMap = new HashMap<>();
+        for (Object[] row : topSellingRows) {
+            soldCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
+        }
+        Map<Integer, Product> productById = productRepository.findAllById(topSellerIds).stream()
+            .collect(Collectors.toMap(Product::getId, p -> p));
+        List<Product> topSellers = topSellerIds.stream()
+            .map(productById::get)
+            .filter(p -> p != null && p.isActive())
+            .toList();
+        model.addAttribute("topSellers", topSellers);
+        model.addAttribute("soldCountMap", soldCountMap);
+
+        // ─ Sản phẩm mới ─
+        List<Product> newestProducts = productRepository.findByIsActiveTrueOrderByNgayTaoDesc(PageRequest.of(0, 10)).getContent();
+        model.addAttribute("newestProducts", newestProducts);
+
+        // ─ Dưới 300.000đ ─
+        List<Product> underPriceProducts = productRepository.findUnderPrice(new BigDecimal("300000"), PageRequest.of(0, 10));
+        model.addAttribute("underPriceProducts", underPriceProducts);
+
+        // ─ Duyệt sản phẩm (Browse) - sản phẩm nổi bật cho section hai cột ─
+        List<Product> browseProducts = featured.stream().limit(10).toList();
+        model.addAttribute("browseProducts", browseProducts);
+
+        // Tính rating trung bình + số lượt yêu thích cho browse products
+        Map<Integer, Double> ratingMap = new HashMap<>();
+        Map<Integer, Long> ratingCountMap = new HashMap<>();
+        Map<Integer, Long> wishlistCountMap = new HashMap<>();
+        if (!browseProducts.isEmpty()) {
+            List<Integer> browseIds = browseProducts.stream().map(Product::getId).toList();
+            List<Object[]> ratingRows = reviewsRepository.getAverageRatings(browseIds);
+            for (Object[] row : ratingRows) {
+                Integer pid = (Integer) row[0];
+                Double avg = row[1] != null ? ((Number) row[1]).doubleValue() : null;
+                Long cnt = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+                ratingMap.put(pid, avg);
+                ratingCountMap.put(pid, cnt);
+            }
+            List<Object[]> wlRows = wishlistRepository.countByProductIds(browseIds);
+            for (Object[] row : wlRows) {
+                wishlistCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
+            }
+        }
+        model.addAttribute("ratingMap", ratingMap);
+        model.addAttribute("ratingCountMap", ratingCountMap);
+        model.addAttribute("wishlistCountMap", wishlistCountMap);
+
         Map<Integer, Long> productCountMap = productRepository.countProductsByDanhMuc()
             .stream()
             .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
@@ -132,14 +198,30 @@ public class HomeController {
         long totalProducts = productCountMap.values().stream().mapToLong(Long::longValue).sum();
         model.addAttribute("totalProducts", totalProducts);
 
+        // Map danh mục ID → tên danh mục (dùng cho browse section)
+        Map<Integer, String> categoryNameMap = allCategories.stream()
+            .collect(Collectors.toMap(Category::getId, Category::getTenDanhMuc, (a, b) -> a));
+        model.addAttribute("categoryNameMap", categoryNameMap);
+
+        // Gộp toàn bộ ID sản phẩm ở mọi khối để tính chung 1 lần variants/flashsale/promo
+        List<Product> allSectionProducts = new ArrayList<>();
+        allSectionProducts.addAll(featured);
+        allSectionProducts.addAll(topSellers);
+        allSectionProducts.addAll(newestProducts);
+        allSectionProducts.addAll(underPriceProducts);
+        allSectionProducts.addAll(browseProducts);
+
         Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
-        if (!featured.isEmpty()) {
-            List<Integer> ids = featured.stream().map(Product::getId).collect(Collectors.toList());
+        if (!allSectionProducts.isEmpty()) {
+            List<Integer> ids = allSectionProducts.stream().map(Product::getId).distinct().collect(Collectors.toList());
             List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
             for (FlashSale fs : activeFlashSales) {
                 flashSaleMap.put(fs.getProductId(), fs);
             }
+        if (!featured.isEmpty()) {
+            List<Integer> ids = featured.stream().map(Product::getId).collect(Collectors.toList());
+            flashSaleMap = pricingService.loadActiveFlashSaleMap(ids);
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                 .collect(Collectors.groupingBy(ProductVariant::getProductId));
@@ -239,8 +321,4 @@ public class HomeController {
         try { return Integer.parseInt(value); } catch (NumberFormatException e) { return defaultValue; }
     }
 
-    @GetMapping("/wishlist")
-    public RedirectView wishlistRedirect() {
-        return new RedirectView("/");
-    }
 }

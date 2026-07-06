@@ -1,6 +1,7 @@
 package com.duastore.repository;
 
 import com.duastore.model.OrderItem;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -16,6 +17,13 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
     @Query("SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END FROM OrderItem oi WHERE oi.productId = :productId AND oi.order.user.id = :userId")
     boolean existsByProductIdAndUserId(@Param("productId") Integer productId, @Param("userId") Integer userId);
 
-    @Query("SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END FROM OrderItem oi WHERE oi.productId = :productId AND oi.order.user.id = :userId AND oi.order.trangThaiTT = 'DA_THANH_TOAN'")
+    @Query("SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END FROM OrderItem oi WHERE oi.productId = :productId AND oi.order.user.id = :userId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
     boolean existsByProductIdAndUserIdAndPaid(@Param("productId") Integer productId, @Param("userId") Integer userId);
+
+    @Query("SELECT oi.productId AS productId, SUM(oi.soLuong) AS total FROM OrderItem oi " +
+            "WHERE (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH') " +
+            "GROUP BY oi.productId ORDER BY total DESC")
+    List<Object[]> findTopSellingProductIds(Pageable pageable);
+    @Query("SELECT COALESCE(SUM(oi.soLuong), 0) FROM OrderItem oi WHERE oi.productId = :productId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
+    long sumSoldQuantityByProductId(@Param("productId") Integer productId);
 }

@@ -33,6 +33,24 @@ public class User {
     @Column(length = 15)
     private String soDienThoai;
 
+    @Column(length = 255)
+    private String avatar;
+
+    @Column(length = 100)
+    private String nickname;
+
+    @Column(length = 20)
+    private String status = "ONLINE";
+
+    @Column
+    private Boolean emailVisible = false;
+
+    @Column
+    private Boolean phoneVisible = false;
+
+    @Column
+    private Boolean emailMarketing = true;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_roles",

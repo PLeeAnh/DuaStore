@@ -19,7 +19,7 @@
             </h4>
         </div>
         <div class="adm-form-wrap">
-            <form th:action="@{${formAction}}" th:object="${post}" method="post" enctype="multipart/form-data" class="row g-3">
+            <form th:action="@{${formAction}}" th:object="${post}" method="post" data-dirty-bar enctype="multipart/form-data" class="row g-3">
                 <input type="hidden" th:field="*{id}" />
                 <div class="col-md-8">
                     <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Danh mục</label>
-                    <select th:field="*{danhMucId}" class="form-select">
+                    <select th:field="*{danhMucId}" class="form-select searchable-select">
                         <option value="">-- Chọn danh mục --</option>
                         <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"></option>
                     </select>

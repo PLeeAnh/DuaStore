@@ -108,8 +108,8 @@
                                     </td>
                                     <td th:text="${productCountMap.get(child.id) != null ? productCountMap.get(child.id) : 0}">0</td>
                                     <td>
-                                        <span th:if="${child.active}" class="badge bg-success">Hiển thị</span>
-                                        <span th:unless="${child.active}" class="badge bg-secondary">Ẩn</span>
+                                        <span th:if="${child.active}" class="status-pill status-ACTIVE">Hiển thị</span>
+                                        <span th:unless="${child.active}" class="status-pill status-AN">Ẩn</span>
                                     </td>
                                     <td class="text-center">
                                         <div class="dropdown">

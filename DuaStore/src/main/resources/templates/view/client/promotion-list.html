@@ -58,9 +58,9 @@
 
                     <!-- Bottom row -->
                     <div class="vc-bottom">
-                        <button class="vc-btn vc-btn-ghost btn-detail" type="button"
+                        <button class="vc-btn ds-btn-outline btn-detail" type="button"
                                 th:data-id="${p.id}">Chi tiết</button>
-                        <button class="vc-btn vc-btn-cta btn-save-voucher" type="button"
+                        <button class="vc-btn ds-btn-fill btn-save-voucher" type="button"
                                 th:data-id="${p.id}">Nhận</button>
                     </div>
                 </div>
@@ -80,10 +80,12 @@
                 </li>
             </ul>
         </nav>
+
+        <!-- Modal phải nằm TRONG layout:fragment="content" mới được Thymeleaf ghép vào trang.
+             Trước đây đặt ngoài div này nên bị loại bỏ hoàn toàn khi render layout -> popup không bao giờ hiện. -->
+        <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
     </div>
 </div>
-
-<th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
 
 <th:block layout:fragment="extra-script">
 </th:block>

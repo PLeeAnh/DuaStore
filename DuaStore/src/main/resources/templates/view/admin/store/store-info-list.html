@@ -57,12 +57,12 @@
                                 <td><span th:text="${s.soDienThoai}">090...</span></td>
                                 <td><span th:text="${s.email}">email</span></td>
                                 <td>
-                                    <span th:if="${s.isDefault}" class="badge bg-success">Mặc định</span>
-                                    <span th:unless="${s.isDefault}" class="badge bg-secondary">Không</span>
+                                    <span th:if="${s.isDefault}" class="status-pill status-MAC_DINH">Mặc định</span>
+                                    <span th:unless="${s.isDefault}" class="status-pill status-KHONG">Không</span>
                                 </td>
                                 <td>
-                                    <span th:if="${s.isActive}" class="badge bg-success">Hoạt động</span>
-                                    <span th:unless="${s.isActive}" class="badge bg-secondary">Ẩn</span>
+                                    <span th:if="${s.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                                    <span th:unless="${s.isActive}" class="status-pill status-AN">Ẩn</span>
                                 </td>
                                 <td class="text-end">
                                     <button class="btn btn-outline-primary btn-sm" th:onclick="'openEditModal(' + ${s.id} + ')'">

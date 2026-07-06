@@ -73,6 +73,9 @@ public class Order {
     @Column(length = 500)
     private String ghiChu;
 
+    @Column(length = 50)
+    private String maVanDon;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime ngayDat;
 

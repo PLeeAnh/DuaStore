@@ -118,7 +118,7 @@
                                 <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
                                     <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                                 </button>
-                                <input type="text" class="ds-qty-val" value="1" readonly>
+                                <input type="text" class="ds-qty-val" value="1">
                                 <button class="ds-qty-btn ds-qty-plus" type="button">
                                     <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                                 </button>
@@ -128,8 +128,6 @@
 
                     <div class="ds-card-body">
                         <a th:href="@{/san-pham/{id}(id=${p.id})}" class="ds-product-name" th:text="${p.tenSanPham}">Tên SP</a>
-
-                        <div class="star-rating-readonly small" th:if="${avgRatings != null and avgRatings.containsKey(p.id)}" th:data-score="${#numbers.formatDecimal(avgRatings.get(p.id), 1, 0)}"></div>
 
                         <div class="ds-card-actions">
                             <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">
@@ -223,17 +221,6 @@
     </div>
 </div>
 
-<th:block layout:fragment="extra-script">
-<script>
-    document.querySelectorAll('.star-rating-readonly[data-score]').forEach(function(el) {
-        var score = parseInt(el.dataset.score) || 0;
-        var html = '';
-        for (var i = 5; i >= 1; i--) {
-            html += i <= score ? '\u2605' : '\u2606';
-        }
-        el.textContent = html;
-    });
-</script>
-</th:block>
+
 </body>
 </html>

@@ -6,9 +6,9 @@
     </head>
     <body>
         <div layout:fragment="content">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- HERO BANNER SLIDER -->
-                <section class="ds-hero-v2" th:if="${banners != null and !banners.isEmpty() and (themeSettings.get('hp_1_active') == null or themeSettings.get('hp_1_active') != '0')}">
+            <!-- HERO BANNER SLIDER (full-width) -->
+            <section class="ds-hero-v2" th:if="${banners != null and !banners.isEmpty() and (themeSettings.get('hp_1_active') == null or themeSettings.get('hp_1_active') != '0')}">
+                <div class="ds-hero-v2-inner">
                     <div class="swiper hero-banner-swiper">
                         <div class="swiper-wrapper">
                             <div th:each="banner : ${banners}" class="swiper-slide">
@@ -23,27 +23,12 @@
                         <div class="swiper-button-prev"></div>
                         <div class="swiper-pagination"></div>
                     </div>
-                    <style>
-                        .hero-banner-swiper { width:100%; border-radius:16px; overflow:hidden; }
-                        .hero-banner-swiper .swiper-slide a { display:block; }
-                        .hero-banner-swiper .swiper-slide img { width:100%; height:auto; display:block; object-fit:cover; border-radius:16px; }
-                        .hero-banner-swiper .swiper-button-next,
-                        .hero-banner-swiper .swiper-button-prev { color:#fff; }
-                    </style>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function(){
-                            new Swiper('.hero-banner-swiper', {
-                                loop: true,
-                                autoplay: { delay: 4000, disableOnInteraction: false },
-                                pagination: { el: '.hero-banner-swiper .swiper-pagination', clickable: true },
-                                navigation: { nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev' }
-                            });
-                        });
-                    </script>
-                </section>
+                </div>
+            </section>
 
-                <!-- HERO CAROUSEL -->
-                <section class="ds-hero sr-up d-none">
+            <!-- HERO CAROUSEL (full-width) -->
+            <section class="ds-hero sr-up d-none">
+                <div class="ds-hero-v2-inner">
                     <div class="swiper hero-swiper">
                         <div class="swiper-wrapper">
                             <!-- Slide 1 -->
@@ -100,89 +85,81 @@
                             <div class="hero-pagination"></div>
                         </div>
                     </div>
+                </div>
                 </section>
 
+                <!-- Content constrained to 1200px -->
+                <div class="ds-home-content">
                 <!-- FEATURES STRIP -->
                 <section class="ds-features sr-up" th:if="${themeSettings.get('hp_2_active') == null or themeSettings.get('hp_2_active') != '0'}">
-                        <div class="row g-3">
-                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-truck"></i><span>Miễn phí vận chuyển</span><small>Cho đơn trên 500K</small></div></div>
-                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-arrow-counterclockwise"></i><span>Đổi trả 7 ngày</span><small>Hoàn tiền 100%</small></div></div>
-                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-shield-check"></i><span>Bảo hành chính hãng</span><small>Sản phẩm cao cấp</small></div></div>
-                            <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-headset"></i><span>Hỗ trợ 24/7</span><small>Hotline 1900...</small></div></div>
-                        </div>
+                    <div class="row g-3">
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-truck"></i><span>Miễn phí vận chuyển</span><small>Cho đơn trên 500K</small></div></div>
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-arrow-counterclockwise"></i><span>Đổi trả 7 ngày</span><small>Hoàn tiền 100%</small></div></div>
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-shield-check"></i><span>Bảo hành chính hãng</span><small>Sản phẩm cao cấp</small></div></div>
+                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-headset"></i><span>Hỗ trợ 24/7</span><small>Hotline 1900...</small></div></div>
+                    </div>
                 </section>
 
-                <!-- FEATURED PROMOTIONS -->
-                <section class="sr-up" th:if="${(themeSettings.get('hp_3_active') == null or themeSettings.get('hp_3_active') != '0') and not #lists.isEmpty(featuredPromotions)}">
+                <!-- DANH MỤC (cuộn ngang kiểu Steam "Browse by Category") -->
+                <section class="ds-cat-v2 sr-up" th:if="${themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0'}">
                     <div class="ds-section-header">
-                        <h2 class="ds-section-title" th:text="${themeSettings.get('hp_3_title') ?: 'Khuyến mãi nổi bật'}">Khuyến mãi nổi bật</h2>
-                        <a th:href="@{/khuyen-mai}" class="ds-section-link">Xem tất cả</a>
+                        <h2 class="ds-section-title-sm">Duyệt theo danh mục</h2>
                     </div>
-                    <div class="row g-3">
-                        <div th:each="p : ${featuredPromotions}" th:class="${promotionGridClass}">
-                            <div class="vc-card h-100">
-                                <div class="vc-discount">
-                                    <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                          th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
-                                    <span th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
-                                          th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                    <div class="ds-scroll-row">
+                        <a th:href="@{/san-pham}" class="ds-cat-tile">
+                            <div class="ds-cat-tile-img ds-cat-tile-all"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                            <div class="ds-cat-tile-overlay">
+                                <span class="ds-cat-tile-label">Tất cả</span>
+                                <span class="ds-cat-tile-count" th:text="${totalProducts} + ' mẫu'">300 mẫu</span>
+                            </div>
+                        </a>
+                        <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                            <div class="ds-cat-tile-img">
+                                <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}">
+                            </div>
+                            <div class="ds-cat-tile-overlay">
+                                <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                <span class="ds-cat-tile-count" th:text="${productCountMap.get(cat.id) ?: 0} + ' mẫu'">30 mẫu</span>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- BÁN CHẠY NHẤT (list + panel xem trước, kiểu Steam Top Sellers) -->
+                <section class="ds-topsellers sr-up" th:if="${not #lists.isEmpty(topSellers)}">
+                    <div class="ds-section-header">
+                        <h2 class="ds-section-title-sm">Bán chạy nhất</h2>
+                    </div>
+                    <div class="ds-topsellers-wrap">
+                        <div class="ds-topsellers-list">
+                            <div th:each="p, iter : ${topSellers}"
+                                 class="ds-topseller-row" th:classappend="${iter.index == 0} ? 'active'"
+                                 th:data-index="${iter.index}"
+                                 th:data-name="${p.tenSanPham}"
+                                 th:data-desc="${p.moTa != null ? (#strings.length(p.moTa) > 140 ? #strings.substring(p.moTa,0,140) + '…' : p.moTa) : ''}"
+                                 th:data-img="${p.hinhAnhChinh ?: '/images/no-image.png'}"
+                                 th:data-href="@{'/san-pham/' + ${p.id}}"
+                                 th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                          v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null"
+                                 th:data-price="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : ''}">
+                                <span class="ds-topseller-rank" th:text="${iter.index + 1}">1</span>
+                                <img class="ds-topseller-thumb" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                <div class="ds-topseller-info">
+                                    <span class="ds-topseller-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                    <span class="ds-topseller-sold">Đã bán <span th:text="${soldCountMap.get(p.id) ?: 0}">0</span></span>
                                 </div>
-
-                                <div class="vc-desc" th:text="${p.tenChuongTrinh}"></div>
-
-                                <span class="vc-code">Mã: <span th:text="${p.maCode}">CODE</span></span>
-
-                                <div class="vc-grid">
-                                    <div class="vc-grid-item" th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}">
-                                        <span>&#x1F6D2;</span> Tối thiểu: <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
-                                    </div>
-                                    <div class="vc-grid-item" th:if="${p.giamToiDa != null}">
-                                        <span>&#x1F4B0;</span> Tối đa: <strong th:text="${#numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
-                                    </div>
-                                    <div class="vc-grid-item">
-                                        <span>&#x1F4C5;</span> HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}"></span>
-                                    </div>
-                                    <div class="vc-grid-item" th:if="${p.savedCount != null and p.savedCount > 0}">
-                                        <span>&#x1F465;</span> <span th:text="${p.savedCount}"></span> người lưu
-                                    </div>
-                                </div>
-
-                                <div class="vc-bottom">
-                                    <button class="vc-btn vc-btn-ghost btn-detail" type="button"
-                                            th:data-id="${p.id}">Chi tiết</button>
-                                    <button class="vc-btn vc-btn-cta btn-save-voucher" type="button"
-                                            th:data-id="${p.id}">Nhận</button>
-                                </div>
+                                <span class="ds-topseller-price" th:text="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : ''}"></span>
                             </div>
                         </div>
+                        <a class="ds-topsellers-panel" id="topsellerPanel" th:href="@{'/san-pham/' + ${topSellers[0].id}}">
+                            <img id="topsellerPanelImg" th:src="${topSellers[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                            <div class="ds-topsellers-panel-body">
+                                <h4 id="topsellerPanelName" th:text="${topSellers[0].tenSanPham}">Tên sản phẩm</h4>
+                                <p id="topsellerPanelDesc" th:text="${topSellers[0].moTa != null ? (#strings.length(topSellers[0].moTa) > 140 ? #strings.substring(topSellers[0].moTa,0,140) + '…' : topSellers[0].moTa) : ''}"></p>
+                                <span class="ds-btn ds-btn-fill ds-btn-sm">Xem chi tiết <i class="bi bi-arrow-right ms-1"></i></span>
+                            </div>
+                        </a>
                     </div>
-                </section>
-
-                <!-- CATEGORIES V2 -->
-                <section class="ds-cat-v2 sr-up" th:if="${themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0'}">
-                        <div class="text-center mb-2">
-                            <span class="ds-section-badge">Danh mục</span>
-                        </div>
-                        <div class="ds-cat-v2-grid" th:style="'--cols:' + ${categoryColumns}">
-                            <a th:href="@{/san-pham}" class="ds-cat-v2-card">
-                                <div class="ds-cat-v2-img-wrap ds-cat-v2-all">
-                                    <i class="bi bi-grid-3x3-gap-fill"></i>
-                                </div>
-                                <div class="ds-cat-v2-info">
-                                    <span class="ds-cat-v2-label">Tất cả</span>
-                                    <span class="ds-cat-v2-count" th:text="${totalProducts} + ' mẫu'">300 mẫu</span>
-                                </div>
-                            </a>
-                            <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-v2-card">
-                                <div class="ds-cat-v2-img-wrap">
-                                    <img class="ds-cat-v2-img" th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}">
-                                </div>
-                                <div class="ds-cat-v2-info">
-                                    <span class="ds-cat-v2-label" th:text="${cat.tenDanhMuc}">Category</span>
-                                    <span class="ds-cat-v2-count" th:text="${productCountMap.get(cat.id) ?: 0} + ' mẫu'">30 mẫu</span>
-                                </div>
-                            </a>
-                        </div>
                 </section>
 
                 <!-- SẢN PHẨM NỔI BẬT -->
@@ -209,36 +186,36 @@
                                     <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                                 </button>
 
-                                 <div class="ds-product-image-wrap">
-                                     <a th:href="@{'/san-pham/' + ${p.id}}">
-                                         <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
-                                         <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
-<span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-      th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-<span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai == null and bestPercentagePromo != null}"
-      th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
-                                          <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
-                                         <div class="ds-flash-timer" th:if="${fs != null}"
-                                              th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
-                                             <i class="bi bi-clock"></i>
-                                             <span class="flash-countdown">--:--:--</span>
-                                         </div>
-                                          <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
-                                     </a>
-                                     <div class="ds-qty-row ds-qty-row-image">
-                                         <div class="ds-qty-selector">
-                                             <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
-                                                 <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                             </button>
-                                             <input type="text" class="ds-qty-val" value="1" readonly>
-                                             <button class="ds-qty-btn ds-qty-plus" type="button">
-                                                 <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                             </button>
-                                         </div>
-                                     </div>
-                                 </div>
+                                <div class="ds-product-image-wrap">
+                                    <a th:href="@{'/san-pham/' + ${p.id}}">
+                                        <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
+                                        <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
+                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
+                                              th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
+                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai == null and bestPercentagePromo != null}"
+                                              th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
+                                        <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
+                                        <div class="ds-flash-timer" th:if="${fs != null}"
+                                             th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
+                                            <i class="bi bi-clock"></i>
+                                            <span class="flash-countdown">--:--:--</span>
+                                        </div>
+                                        <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
+                                    </a>
+                                    <div class="ds-qty-row ds-qty-row-image">
+                                        <div class="ds-qty-selector">
+                                            <button class="ds-qty-btn ds-qty-minus" type="button" disabled>
+                                                <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                            </button>
+                                            <input type="text" class="ds-qty-val" value="1">
+                                            <button class="ds-qty-btn ds-qty-plus" type="button">
+                                                <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                 <div class="ds-card-body">
+                                <div class="ds-card-body">
                                     <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
                                        th:text="${p.tenSanPham}">Tên sản phẩm</a>
 
@@ -258,11 +235,11 @@
                                                     <button th:each="pv, stat : ${groupEntry.value}"
                                                             class="ds-variant-chip"
                                                             th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
-                                                             th:data-variantid="${pv.id}"
-                                                             th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
-                                                             th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
-                                                             th:data-promo-price="${variantPromoPriceMap.get(pv.id)}"
-                                                             th:data-stock="${pv.soLuongTon}"
+                                                            th:data-variantid="${pv.id}"
+                                                            th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
+                                                            th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
+                                                            th:data-promo-price="${variantPromoPriceMap.get(pv.id)}"
+                                                            th:data-stock="${pv.soLuongTon}"
                                                             th:disabled="${pv.soLuongTon <= 0}"
                                                             th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
                                                             type="button">50ml</button>
@@ -307,66 +284,231 @@
                     </div>
                 </section>
 
-                <!-- TESTIMONIALS -->
-                <section class="ds-testi sr-up" th:if="${themeSettings.get('hp_6_active') == null or themeSettings.get('hp_6_active') != '0'}">
-                        <div class="text-center mb-5"><span class="ds-section-badge">Khách hàng nói gì</span><h2 class="ds-section-title">Phản hồi từ khách hàng</h2></div>
-                        <div class="swiper testi-swiper">
-                            <div class="swiper-wrapper">
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">M</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                    <p class="ds-testi-text">"Sản phẩm rất đẹp, chất lượng hơn mong đợi. Đóng gói cẩn thận, giao hàng nhanh!"</p>
-                                    <div class="ds-testi-name">Minh Anh</div><div class="ds-testi-role">Khách hàng thân thiết</div>
-                                </div>
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">T</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                    <p class="ds-testi-text">"Bộ ấm trà thủy tinh mua tặng mẹ rất ưng ý. Mẹ khen đẹp và dùng rất tốt."</p>
-                                    <div class="ds-testi-name">Tuấn Kiệt</div><div class="ds-testi-role">Khách hàng thân thiết</div>
-                                </div>
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">H</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                                    <p class="ds-testi-text">"Mua set quà tặng đối tác, cảm ơn DuaStore vì dịch vụ chuyên nghiệp và sản phẩm cao cấp."</p>
-                                    <div class="ds-testi-name">Hoàng Yến</div><div class="ds-testi-role">Doanh nghiệp</div>
-                                </div>
-                                <div class="swiper-slide ds-testi-slide">
-                                    <div class="ds-testi-avatar">Đ</div>
-                                    <div class="ds-testi-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
-                                    <p class="ds-testi-text">"Ly rượu vang pha lê cắt cạnh rất sang. Giá hơi cao nhưng xứng đáng với chất lượng."</p>
-                                    <div class="ds-testi-name">Đức Minh</div><div class="ds-testi-role">Khách hàng VIP</div>
+                <!-- SẢN PHẨM MỚI (cuộn ngang) -->
+                <section class="ds-scroll-section sr-up" th:if="${not #lists.isEmpty(newestProducts)}">
+                    <div class="ds-section-header">
+                        <h2 class="ds-section-title-sm">Sản phẩm mới</h2>
+                        <a th:href="@{/san-pham(sortBy='newest')}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                    <div class="ds-scroll-row">
+                        <a th:each="p : ${newestProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
+                           th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                            <div class="ds-mini-card-img">
+                                <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                            </div>
+                            <div class="ds-mini-card-body">
+                                <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                <span class="ds-mini-card-price" th:if="${v != null}"
+                                      th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- DƯỚI 300.000Đ (cuộn ngang) -->
+                <section class="ds-scroll-section sr-up" th:if="${not #lists.isEmpty(underPriceProducts)}">
+                    <div class="ds-section-header">
+                        <h2 class="ds-section-title-sm">Dưới 300.000đ</h2>
+                        <a th:href="@{/san-pham(priceRange='0-300000')}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                    <div class="ds-scroll-row">
+                        <a th:each="p : ${underPriceProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
+                           th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                            <div class="ds-mini-card-img">
+                                <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                            </div>
+                            <div class="ds-mini-card-body">
+                                <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                <span class="ds-mini-card-price" th:if="${v != null}"
+                                      th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- DUYỆT SẢN PHẨM (Browse: hai cột list + preview) -->
+                <section class="ds-browse sr-up" th:if="${not #lists.isEmpty(browseProducts)}">
+                    <div class="ds-section-header">
+                        <h2 class="ds-section-title-sm">Duyệt sản phẩm</h2>
+                    </div>
+                    <div class="ds-browse-wrap">
+                        <!-- Cột trái: tabs + list -->
+                        <div>
+                            <div class="ds-browse-tabs">
+                                <button class="ds-browse-tab active" data-tab="fav">Yêu thích nhất</button>
+                                <button class="ds-browse-tab" data-tab="sold">Bán chạy nhất</button>
+                                <button class="ds-browse-tab" data-tab="new">Sắp ra mắt</button>
+                            </div>
+                            <div class="ds-browse-list" id="browseList">
+                                <div th:each="p, iter : ${browseProducts}"
+                                     class="ds-browse-row" th:classappend="${iter.index == 0} ? 'active'"
+                                     th:data-index="${iter.index}"
+                                     th:data-id="${p.id}"
+                                     th:data-name="${p.tenSanPham}"
+                                     th:data-img="${p.hinhAnhChinh ?: '/images/no-image.png'}"
+                                     th:data-desc="${p.moTa != null ? (#strings.length(p.moTa) > 140 ? #strings.substring(p.moTa,0,140) + '…' : p.moTa) : ''}"
+                                     th:data-cat="${categoryNameMap.get(p.danhMucId) ?: ''}"
+                                     th:data-rating="${ratingMap.get(p.id) != null ? #numbers.formatDecimal(ratingMap.get(p.id), 1, 1) : ''}"
+                                     th:data-rating-count="${ratingCountMap.get(p.id) ?: 0}"
+                                     th:data-wishlist="${wishlistCountMap.get(p.id) ?: 0}"
+                                     th:data-href="@{'/san-pham/' + ${p.id}}"
+                                     th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                              v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                              fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
+                                     th:data-price="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : ''}"
+                                     th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
+                                     th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
+                                     th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
+                                     th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}">
+                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                    <div class="ds-browse-row-info">
+                                        <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                        <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
+                                    </div>
+                                    <div class="ds-browse-row-price">
+                                        <span class="ds-browse-row-price-discount" th:if="${v != null and v.giaKhuyenMai != null}"
+                                              th:text="'-' + ${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)} + '%'">-70%</span>
+                                        <span class="ds-browse-row-price-current"
+                                              th:text="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : ''}">297.000₫</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="testi-pagination"></div>
                         </div>
-                    
+                        <!-- Cột phải: preview panel -->
+                        <a class="ds-browse-preview" id="browsePreview" th:href="@{'/san-pham/' + ${browseProducts[0].id}}">
+                            <div class="ds-browse-preview-header">
+                                <h4 class="ds-browse-preview-name" id="browsePreviewName" th:text="${browseProducts[0].tenSanPham}">Tên sản phẩm</h4>
+                                <div class="ds-browse-preview-rating" id="browsePreviewRating">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span id="browsePreviewRatingValue" th:text="${ratingMap.get(browseProducts[0].id) != null ? #numbers.formatDecimal(ratingMap.get(browseProducts[0].id), 1, 1) : '0'}">4.2</span>
+                                    <span class="ds-browse-preview-rating-label" id="browsePreviewRatingLabel"
+                                          th:text="${ratingMap.get(browseProducts[0].id) != null ? (ratingMap.get(browseProducts[0].id) >= 4.5 ? 'Tốt' : (ratingMap.get(browseProducts[0].id) >= 3.5 ? 'Khá' : (ratingMap.get(browseProducts[0].id) >= 2.5 ? 'Bình thường' : 'Kém'))) : ''}">Khá</span>
+                                </div>
+                                <div class="ds-browse-preview-cat" id="browsePreviewCat">
+                                    Danh mục: <span th:text="${categoryNameMap.get(browseProducts[0].danhMucId) ?: ''}">...</span>
+                                </div>
+                            </div>
+                            <div class="ds-browse-preview-images" id="browsePreviewImages">
+                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                            </div>
+                            <span class="ds-browse-preview-btn">Xem chi tiết <i class="bi bi-arrow-right ms-1"></i></span>
+                        </a>
+                    </div>
                 </section>
 
                 <!-- FAQ ACCORDION -->
                 <section class="ds-faq sr-up" th:if="${themeSettings.get('hp_7_active') == null or themeSettings.get('hp_7_active') != '0'}">
-                        <div class="text-center mb-5"><span class="ds-section-badge">FAQ</span><h2 class="ds-section-title">Câu hỏi thường gặp</h2></div>
-                        <div class="mx-auto ds-faq-wrap">
-                            <div class="ds-faq-item">
-                                <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>
-                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm phải còn nguyên tem, chưa qua sử dụng.</div></div>
-                            </div>
-                            <div class="ds-faq-item">
-                                <button class="ds-faq-btn" aria-expanded="false">Thời gian giao hàng bao lâu? <i class="bi bi-chevron-down"></i></button>
-                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Nội thành Hải Phòng: 1-2 ngày. Các tỉnh khác: 3-5 ngày làm việc. Miễn phí vận chuyển cho đơn trên 500K.</div></div>
-                            </div>
-                            <div class="ds-faq-item">
-                                <button class="ds-faq-btn" aria-expanded="false">Sản phẩm có bảo hành không? <i class="bi bi-chevron-down"></i></button>
-                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Tất cả sản phẩm thủy tinh đều được bảo hành 6 tháng về lỗi sản xuất. Bảo hành 12 tháng đối với sản phẩm pha lê.</div></div>
-                            </div>
-                            <div class="ds-faq-item">
-                                <button class="ds-faq-btn" aria-expanded="false">Có thể đặt hàng theo yêu cầu không? <i class="bi bi-chevron-down"></i></button>
-                                <div class="ds-faq-body"><div class="ds-faq-body-inner">Có, chúng tôi nhận thiết kế và sản xuất theo yêu cầu riêng cho khách hàng doanh nghiệp và cá nhân.</div></div>
-                            </div>
+                    <div class="text-center mb-5"><span class="ds-section-badge">FAQ</span><h2 class="ds-section-title">Câu hỏi thường gặp</h2></div>
+                    <div class="mx-auto ds-faq-wrap">
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm phải còn nguyên tem, chưa qua sử dụng.</div></div>
                         </div>
-                    
-                    </section>
-            </div>
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Thời gian giao hàng bao lâu? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Nội thành Hải Phòng: 1-2 ngày. Các tỉnh khác: 3-5 ngày làm việc. Miễn phí vận chuyển cho đơn trên 500K.</div></div>
+                        </div>
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Sản phẩm có bảo hành không? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Tất cả sản phẩm thủy tinh đều được bảo hành 6 tháng về lỗi sản xuất. Bảo hành 12 tháng đối với sản phẩm pha lê.</div></div>
+                        </div>
+                        <div class="ds-faq-item">
+                            <button class="ds-faq-btn" aria-expanded="false">Có thể đặt hàng theo yêu cầu không? <i class="bi bi-chevron-down"></i></button>
+                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Có, chúng tôi nhận thiết kế và sản xuất theo yêu cầu riêng cho khách hàng doanh nghiệp và cá nhân.</div></div>
+                        </div>
+                    </div>
+
+                </section>
+                </div><!-- /.ds-home-content -->
         </div>
-        <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
-    </body>
+    <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
+    <th:block layout:fragment="extra-script">
+    <script>
+    (function() {
+        // ── Top Sellers panel ──
+        var rows = document.querySelectorAll('.ds-topseller-row');
+        var panel = document.getElementById('topsellerPanel');
+        if (rows.length && panel) {
+            rows.forEach(function(row) {
+                row.addEventListener('mouseenter', function() { activateTopSeller(row); });
+                row.addEventListener('click', function() { activateTopSeller(row); });
+            });
+            function activateTopSeller(row) {
+                rows.forEach(function(r) { r.classList.remove('active'); });
+                row.classList.add('active');
+                document.getElementById('topsellerPanelImg').src = row.dataset.img;
+                document.getElementById('topsellerPanelName').textContent = row.dataset.name;
+                document.getElementById('topsellerPanelDesc').textContent = row.dataset.desc || '';
+                panel.href = row.dataset.href;
+            }
+        }
+
+        // ── Browse Products: tabs + preview panel ──
+        var browseTabs = document.querySelectorAll('.ds-browse-tab');
+        var browseList = document.getElementById('browseList');
+        var browsePreview = document.getElementById('browsePreview');
+        if (browseTabs.length && browseList && browsePreview) {
+            var browseRows = Array.from(browseList.querySelectorAll('.ds-browse-row'));
+
+            // Tab switching: sort rows
+            browseTabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    browseTabs.forEach(function(t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    var key = tab.dataset.tab;
+                    browseRows.sort(function(a, b) {
+                        if (key === 'fav') return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
+                        if (key === 'sold') return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
+                        if (key === 'new') return (b.dataset.daysOld || '').localeCompare(a.dataset.daysOld || '');
+                        return 0;
+                    });
+                    browseRows.forEach(function(r) { browseList.appendChild(r); });
+                    if (browseRows.length) activateBrowseRow(browseRows[0]);
+                });
+            });
+
+            // Row hover/click → update preview
+            browseRows.forEach(function(row) {
+                row.addEventListener('mouseenter', function() { activateBrowseRow(row); });
+                row.addEventListener('click', function() { activateBrowseRow(row); });
+            });
+
+            function activateBrowseRow(row) {
+                browseRows.forEach(function(r) { r.classList.remove('active'); });
+                row.classList.add('active');
+                browsePreview.href = row.dataset.href;
+                document.getElementById('browsePreviewName').textContent = row.dataset.name;
+
+                // Rating
+                var ratingVal = row.dataset.rating || '';
+                var ratingCount = row.dataset.ratingCount || '0';
+                var ratingLabel = '';
+                if (ratingVal) {
+                    var r = parseFloat(ratingVal);
+                    if (r >= 4.5) ratingLabel = 'Tốt';
+                    else if (r >= 3.5) ratingLabel = 'Khá';
+                    else if (r >= 2.5) ratingLabel = 'Bình thường';
+                    else if (r >= 1.5) ratingLabel = 'Kém';
+                    else ratingLabel = 'Rất kém';
+                }
+                document.getElementById('browsePreviewRatingValue').textContent = ratingVal || '0';
+                document.getElementById('browsePreviewRatingLabel').textContent = ratingLabel;
+
+                // Category
+                document.getElementById('browsePreviewCat').innerHTML = 'Danh mục: ' + (row.dataset.cat || '');
+
+                // Images (use same main image for all 4 slots)
+                var imgs = document.getElementById('browsePreviewImages').querySelectorAll('img');
+                imgs.forEach(function(img) { img.src = row.dataset.img; });
+            }
+        }
+    })();
+    </script>
+    </th:block>
+</body>
 </html>

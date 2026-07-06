@@ -10,45 +10,38 @@ import java.math.RoundingMode;
 @Service
 public class ShippingFeeService {
 
-    private static final BigDecimal BASE_FEE = new BigDecimal("10000");
-    private static final BigDecimal PER_KM = new BigDecimal("200");
     private static final BigDecimal MIN_FEE = new BigDecimal("10000");
-    private static final BigDecimal MAX_FEE = new BigDecimal("1000000");
     private static final double EARTH_RADIUS_KM = 6371.0;
 
     private final double storeLat;
     private final double storeLng;
+    private final GHNShippingService ghnShippingService;
 
     public ShippingFeeService(
             @Value("${store.latitude}") double storeLat,
-            @Value("${store.longitude}") double storeLng) {
+            @Value("${store.longitude}") double storeLng,
+            GHNShippingService ghnShippingService) {
         this.storeLat = storeLat;
         this.storeLng = storeLng;
+        this.ghnShippingService = ghnShippingService;
     }
 
     public BigDecimal calculateFee(Address address, String shippingMethod) {
+        BigDecimal ghnFee = ghnShippingService.calculateFee(address, shippingMethod);
+        if (ghnFee != null) return ghnFee;
+
         if (address.getLatitude() == null || address.getLongitude() == null) {
-            return fallbackFee(shippingMethod);
+            return MIN_FEE;
         }
         return calculateFee(address.getLatitude(), address.getLongitude(), shippingMethod);
     }
 
     public BigDecimal calculateFee(double userLat, double userLng, String shippingMethod) {
-        if ("NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)) {
-            return BigDecimal.ZERO;
-        }
         double distance = haversine(userLat, userLng, storeLat, storeLng);
-        BigDecimal fee = BASE_FEE.add(PER_KM.multiply(BigDecimal.valueOf(distance)));
+        BigDecimal fee = new BigDecimal("10000").add(new BigDecimal("200").multiply(BigDecimal.valueOf(distance)));
         if (fee.compareTo(MIN_FEE) < 0) fee = MIN_FEE;
-        if (fee.compareTo(MAX_FEE) > 0) fee = MAX_FEE;
+        if (fee.compareTo(new BigDecimal("1000000")) > 0) fee = new BigDecimal("1000000");
         return fee.setScale(0, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal fallbackFee(String shippingMethod) {
-        if ("NHAN_TAI_CONG".equalsIgnoreCase(shippingMethod)) {
-            return BigDecimal.ZERO;
-        }
-        return MIN_FEE;
     }
 
     public double getStoreLat() {

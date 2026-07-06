@@ -94,14 +94,12 @@
             <div class="adm-card-body">
                 <form th:action="@{/admin/danh-muc}" method="get" class="row g-3 align-items-end" id="filterForm">
                     <div class="col-md-7">
-                        <label class="form-label">Tìm kiếm</label>
                         <input type="text" name="keyword" class="form-control" placeholder="Tên danh mục, mô tả..."
                                th:value="${param.keyword}" id="keywordInput" />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Trạng thái</label>
-                        <select name="status" class="form-select" id="statusSelect">
-                            <option value="">Tất cả</option>
+                        <select name="status" class="form-select searchable-select" id="statusSelect" data-autosubmit>
+                            <option value="">Trạng thái</option>
                             <option value="active" th:selected="${param.status == 'active'}">Hoạt động</option>
                             <option value="inactive" th:selected="${param.status == 'inactive'}">Ngừng hoạt động</option>
                         </select>

@@ -14,11 +14,13 @@ import com.duastore.model.OrderEventType;
 import com.duastore.service.EmailService;
 import com.duastore.service.PaymentService;
 import com.duastore.service.ShippingFeeService;
+import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.OrderService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.util.PriceUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -51,6 +53,7 @@ public class CheckoutController {
     private final PaymentService paymentService;
     private final OrderStatusLogService orderStatusLogService;
     private final NotificationHelper notificationHelper;
+    private final VNPAYService vnpayService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
                               AddressRepository addressRepository,
@@ -60,7 +63,8 @@ public class CheckoutController {
                               EmailService emailService,
                               PaymentService paymentService,
                               OrderStatusLogService orderStatusLogService,
-                              NotificationHelper notificationHelper) {
+                              NotificationHelper notificationHelper,
+                              VNPAYService vnpayService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -71,6 +75,7 @@ public class CheckoutController {
         this.paymentService = paymentService;
         this.orderStatusLogService = orderStatusLogService;
         this.notificationHelper = notificationHelper;
+        this.vnpayService = vnpayService;
     }
 
     private Integer getUserId() {
@@ -156,26 +161,12 @@ public class CheckoutController {
 
     @PostMapping
     public String processCheckout(@Valid @ModelAttribute("checkoutRequest") CheckoutRequestDTO req,
-                                   BindingResult result, Model model) {
+                                   BindingResult result, Model model,
+                                   HttpServletRequest httpReq) {
         Integer userId = getUserId();
 
         if (result.hasErrors()) {
-            List<CartItemDTO> cartItems = cartService.getItems(userId);
-            List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(userId);
-            BigDecimal subtotal = cartService.total(cartItems);
-            BigDecimal phiShip = addresses.isEmpty()
-                    ? new BigDecimal("10000")
-                    : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
-            BigDecimal tienGiam = calcAutoDiscount(subtotal);
-            model.addAttribute("cartItems", cartItems);
-            model.addAttribute("addresses", addresses);
-            model.addAttribute("subtotal", subtotal);
-            model.addAttribute("phiVanChuyen", phiShip);
-            model.addAttribute("tienGiam", tienGiam);
-            model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
-            model.addAttribute("storeLat", shippingFeeService.getStoreLat());
-            model.addAttribute("storeLng", shippingFeeService.getStoreLng());
-            model.addAttribute("title", "Thanh toán");
+            buildCheckoutModel(model, userId);
             return "view/client/checkout";
         }
 
@@ -197,8 +188,8 @@ public class CheckoutController {
             }
 
             User finalUser = order.getUser();
-            String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "COD";
-            String finalGh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+            String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "VNPAY".equals(order.getPhuongThucTT()) ? "VNPay" : "COD";
+            String finalGh = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
             String finalMaDon = order.getMaDon();
             String finalNgayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
             String finalDiaChi = order.getSnapDiaChi();
@@ -228,25 +219,14 @@ public class CheckoutController {
             if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
                 return "redirect:/checkout/chuyen-khoan/" + order.getId();
             }
+            if ("VNPAY".equals(order.getPhuongThucTT())) {
+                String vnpayUrl = orderService.createVNPAYPaymentUrl(order.getId(), httpReq);
+                if (vnpayUrl != null) return "redirect:" + vnpayUrl;
+            }
             return "redirect:/checkout/thanh-cong/" + order.getId();
         } catch (RuntimeException e) {
-            List<CartItemDTO> cartItems = cartService.getItems(userId);
-            List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(userId);
-            BigDecimal subtotal = cartService.total(cartItems);
-            BigDecimal phiShip = addresses.isEmpty()
-                    ? new BigDecimal("10000")
-                    : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
-            BigDecimal tienGiam = calcAutoDiscount(subtotal);
-            model.addAttribute("cartItems", cartItems);
-            model.addAttribute("addresses", addresses);
-            model.addAttribute("subtotal", subtotal);
-            model.addAttribute("phiVanChuyen", phiShip);
-            model.addAttribute("tienGiam", tienGiam);
-            model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
-            model.addAttribute("storeLat", shippingFeeService.getStoreLat());
-            model.addAttribute("storeLng", shippingFeeService.getStoreLng());
+            buildCheckoutModel(model, userId);
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("title", "Thanh toán");
             return "view/client/checkout";
         }
     }
@@ -270,6 +250,25 @@ public class CheckoutController {
             return orderService.calculateDiscount(bestPromo, subtotal);
         }
         return BigDecimal.ZERO;
+    }
+
+    private void buildCheckoutModel(Model model, Integer userId) {
+        List<CartItemDTO> cartItems = cartService.getItems(userId);
+        List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(userId);
+        BigDecimal subtotal = cartService.total(cartItems);
+        BigDecimal phiShip = addresses.isEmpty()
+                ? new BigDecimal("10000")
+                : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
+        BigDecimal tienGiam = calcAutoDiscount(subtotal);
+        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("addresses", addresses);
+        model.addAttribute("subtotal", subtotal);
+        model.addAttribute("phiVanChuyen", phiShip);
+        model.addAttribute("tienGiam", tienGiam);
+        model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
+        model.addAttribute("storeLat", shippingFeeService.getStoreLat());
+        model.addAttribute("storeLng", shippingFeeService.getStoreLng());
+        model.addAttribute("title", "Thanh toán");
     }
 
     private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
@@ -303,10 +302,6 @@ public class CheckoutController {
                         userId, req.getAddressId(), req.getPhuongThucTT(),
                         req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
                 );
-                if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
-                    orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
-                }
-
                 try {
                     notificationHelper.notifyStaff(
                         "Khách hàng vừa đặt đơn hàng mới: " + order.getMaDon(),
@@ -410,7 +405,7 @@ public class CheckoutController {
 
                 User finalUser = order.getUser();
                 String finalTt2 = "Chuyển khoản";
-                String finalGh2 = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+                String finalGh2 = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
                 String finalMaDon2 = order.getMaDon();
                 String finalNgayDat2 = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
                 String finalDiaChi2 = order.getSnapDiaChi();
@@ -441,6 +436,57 @@ public class CheckoutController {
         } catch (RuntimeException e) {
             return "redirect:/";
         }
+    }
+
+    @GetMapping("/vnpay/return")
+    public String vnpayReturn(@RequestParam Map<String, String> params, Model model) {
+        Map<String, String> result = vnpayService.verifyReturn(params);
+        if (!"true".equals(result.get("success"))) {
+            model.addAttribute("error", result.get("message"));
+            return "view/client/payment-fail";
+        }
+        String txnRef = result.get("txnRef");
+        if (txnRef != null) {
+            try {
+                int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
+                orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                Order order = orderService.getOrderByUserAndId(getUserId(), orderId);
+                model.addAttribute("order", orderService.convertToDTO(order));
+            } catch (Exception e) {
+                model.addAttribute("error", "Không tìm thấy đơn hàng");
+                return "view/client/payment-fail";
+            }
+        }
+        return "redirect:/checkout/thanh-cong/" + txnRef.replace("DUASTORE", "");
+    }
+
+    @PostMapping("/vnpay/ipn")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> vnpayIPN(@RequestParam Map<String, String> params) {
+        Map<String, String> result = vnpayService.verifyReturn(params);
+        Map<String, String> response = new HashMap<>();
+        if ("true".equals(result.get("success"))
+                && "00".equals(result.get("responseCode"))) {
+            String txnRef = result.get("txnRef");
+            if (txnRef != null) {
+                try {
+                    int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
+                    orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                    response.put("RspCode", "00");
+                    response.put("Message", "Confirm Success");
+                } catch (Exception e) {
+                    response.put("RspCode", "99");
+                    response.put("Message", "Order not found");
+                }
+            } else {
+                response.put("RspCode", "99");
+                response.put("Message", "Invalid TxnRef");
+            }
+        } else {
+            response.put("RspCode", "99");
+            response.put("Message", "Invalid signature");
+        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/thanh-cong/{id}")

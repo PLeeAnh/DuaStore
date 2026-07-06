@@ -45,14 +45,12 @@ public class ClientNavbarAdvice {
         model.addAttribute("myCart", java.util.List.of());
         model.addAttribute("myWishlist", java.util.List.of());
         model.addAttribute("likedIds", java.util.List.of());
-        model.addAttribute("isLoggedIn", false);
         model.addAttribute("recentNotifs", java.util.List.of());
         model.addAttribute("notifCount", 0L);
 
         try {
             Integer userId = securityUtil.getCurrentUserId();
             if (userId != null) {
-                model.addAttribute("isLoggedIn", true);
                 model.addAttribute("myCart", cartService.getItems(userId));
                 model.addAttribute("myWishlist", wishlistService.getWishlistByUser(userId));
                 model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
@@ -60,7 +58,7 @@ public class ClientNavbarAdvice {
                 Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
                 Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
                 final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
-                List<Notification> allNotifs = notificationRepository.findCustomerNotifications();
+                List<Notification> allNotifs = notificationRepository.findCustomerNotifications(userId);
 
                 if (readMaxId != null && readMaxId > 0) {
                     List<Notification> unread = allNotifs.stream()

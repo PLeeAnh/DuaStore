@@ -9,11 +9,32 @@
     <li class="breadcrumb-item active" aria-current="page">Phân quyền</li>
 </th:block>
 <div layout:fragment="content">
-    <div class="adm-page-header">
-        <h4><i class="bi bi-shield-lock me-2"></i>Phân quyền</h4>
-        <a th:href="@{/admin/vai-tro/them-moi}" class="btn btn-primary btn-sm"
-           th:if="${#authorization.expression('@sec.hasPermission(''ROLE_CREATE'')')}">
-            <i class="bi bi-plus-lg me-1"></i>Thêm vai trò
+    <div class="adm-detail-hero">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4>Phân quyền</h4>
+                        <div class="adm-detail-meta">Quản lý vai trò và quyền hạn trong hệ thống.</div>
+                    </div>
+                    <a th:href="@{/admin/vai-tro/them-moi}" class="btn btn-primary btn-sm"
+                       th:if="${#authorization.expression('@sec.hasPermission(''ROLE_CREATE'')')}">
+                        <i class="bi bi-plus-lg me-1"></i>Thêm vai trò
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="adm-tab-nav">
+        <a class="adm-tab" th:classappend="${userTab == 'nguoi-dung' ? ' active' : ''}" th:href="@{/admin/nguoi-dung}">
+            <i class="bi bi-people"></i>Người dùng
+        </a>
+        <a class="adm-tab" th:classappend="${userTab == 'phan-quyen' ? ' active' : ''}" th:href="@{/admin/vai-tro}">
+            <i class="bi bi-shield-lock"></i>Phân quyền
         </a>
     </div>
 
@@ -25,6 +46,7 @@
                 <th>Tên vai trò</th>
                 <th>Mô tả</th>
                 <th class="text-center">Số quyền</th>
+                <th class="text-center">Trạng thái</th>
                 <th>Ngày tạo</th>
                 <th class="text-center">Thao tác</th>
             </tr>
@@ -33,10 +55,14 @@
             <tr th:each="r : ${roles}">
                 <td class="text-muted" th:text="${r.id}">1</td>
                 <td>
-                    <span class="badge bg-dark" th:text="${r.name}">ADMIN</span>
+                    <span class="status-pill" th:classappend="'status-' + ${r.name}" th:text="${r.name}">ADMIN</span>
                 </td>
                 <td th:text="${r.moTa ?: '--'}">Mô tả</td>
                 <td class="text-center" th:text="${r.permissions != null ? #sets.size(r.permissions) : 0}">0</td>
+                <td class="text-center">
+                    <span th:if="${r.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                    <span th:unless="${r.isActive}" class="status-pill status-TAM_KHOA">Tạm khóa</span>
+                </td>
                 <td th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                 <td class="text-center">
                     <a th:href="@{/admin/vai-tro/sua/{id}(id=${r.id})}"
@@ -56,7 +82,7 @@
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(roles)}">
-                <td colspan="6" class="text-muted text-center py-4">Chưa có vai trò nào</td>
+                <td colspan="7" class="text-muted text-center py-4">Chưa có vai trò nào</td>
             </tr>
             </tbody>
         </table>

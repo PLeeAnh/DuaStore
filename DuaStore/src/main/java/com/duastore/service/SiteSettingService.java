@@ -2,6 +2,8 @@ package com.duastore.service;
 
 import com.duastore.model.SiteSetting;
 import com.duastore.repository.SiteSettingRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class SiteSettingService {
         this.siteSettingRepository = siteSettingRepository;
     }
 
+    @Cacheable(value = "siteSettings", key = "#key", unless = "#result == null")
     public String getValue(String key) {
         return siteSettingRepository.findBySettingKey(key)
                 .map(SiteSetting::getSettingValue)
@@ -38,6 +41,7 @@ public class SiteSettingService {
     }
 
     @Transactional
+    @CacheEvict(value = "siteSettings", key = "#key")
     public void save(String key, String value, String group) {
         SiteSetting setting = siteSettingRepository.findBySettingKey(key)
                 .orElseGet(() -> {

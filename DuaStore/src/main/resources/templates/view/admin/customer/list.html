@@ -11,10 +11,48 @@
     <li class="breadcrumb-item active" aria-current="page">Khách hàng</li>
 </th:block>
 <div layout:fragment="content">
-    <div class="adm-page-header">
-        <div>
-            <h4><i class="bi bi-person-lines-fill me-2"></i>Khách hàng</h4>
-            <small class="text-muted">Tổng cộng <span th:text="${totalItems}">0</span> khách hàng</small>
+    <div class="adm-detail-hero">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <i class="bi bi-person-lines-fill"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4>Khách hàng</h4>
+                        <div class="adm-detail-meta">Quản lý tất cả khách hàng trong cửa hàng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-6">
+            <div class="adm-stat">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div>
+                        <div class="adm-stat-value" th:text="${totalItems}">0</div>
+                        <div class="adm-stat-label">Tổng khách hàng</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="adm-filter-bar">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div class="d-flex gap-2">
+                <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm tên, email..." th:value="${keyword}" />
+                <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
+                    <option value="LOCKED" th:selected="${status == 'LOCKED'}">Khóa</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -51,8 +89,8 @@
                     </td>
                     <td class="small text-muted" th:text="${#temporals.format(customer.ngayTao, 'dd/MM/yyyy HH:mm')}"></td>
                     <td>
-                        <span th:if="${customer.isActive}" class="badge bg-success">Hoạt động</span>
-                        <span th:if="${!customer.isActive}" class="badge bg-secondary">Khóa</span>
+                        <span th:if="${customer.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                        <span th:if="${!customer.isActive}" class="status-pill status-LOCKED">Khóa</span>
                     </td>
                     <td>
                         <a th:href="@{/admin/khach-hang/{id}(id=${customer.id})}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
@@ -86,5 +124,25 @@
         </ul>
     </nav>
 </div>
+<th:block layout:fragment="extra-script">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function doFilter() {
+        var keyword = document.getElementById('searchKeyword').value;
+        var status = document.getElementById('filterStatus').value;
+        var params = new URLSearchParams();
+        if (keyword) params.set('keyword', keyword);
+        if (status) params.set('status', status);
+        window.location.href = '/admin/khach-hang?' + params.toString();
+    }
+    document.getElementById('filterStatus').addEventListener('change', doFilter);
+    var searchTimer;
+    document.getElementById('searchKeyword').addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(doFilter, 400);
+    });
+});
+</script>
+</th:block>
 </body>
 </html>

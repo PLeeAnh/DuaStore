@@ -20,7 +20,16 @@ public class CouponApiController {
     @PostMapping("/validate")
     public ResponseEntity<Map<String, Object>> validateCoupon(@RequestBody Map<String, Object> payload) {
         String maCode = (String) payload.get("maCode");
-        BigDecimal subtotal = new BigDecimal(payload.get("subtotal").toString());
+        Object subObj = payload.get("subtotal");
+        if (subObj == null) {
+            return ResponseEntity.badRequest().body(Map.of("valid", false, "message", "Thiếu thông tin subtotal"));
+        }
+        BigDecimal subtotal;
+        try {
+            subtotal = new BigDecimal(subObj.toString());
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("valid", false, "message", "Subtotal không hợp lệ"));
+        }
         Map<String, Object> result = orderService.validateCouponForApi(maCode, subtotal);
         return ResponseEntity.ok(result);
     }

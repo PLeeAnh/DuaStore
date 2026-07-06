@@ -3,6 +3,7 @@ package com.duastore.service.client;
 import com.duastore.model.Category;
 import com.duastore.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class CategoryService {
         this.categoryRepository = categoryRepository;
     }
 
+    @Cacheable(value = "featuredCategories", unless = "#result.isEmpty()")
     public List<Category> getFeaturedCategories() {
         return categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc()
                 .stream()

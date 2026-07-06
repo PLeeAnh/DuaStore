@@ -27,6 +27,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,6 +48,8 @@ public class AdminOrderController {
     private final OrderNoteService orderNoteService;
     private final NotificationHelper notificationHelper;
     private final OrderRepository orderRepository;
+    private final com.duastore.repository.ProductRepository productRepository;
+    private final com.duastore.repository.ProductVariantRepository variantRepository;
 
     public AdminOrderController(AdminOrderService adminOrderService,
                                 OrderService orderService,
@@ -55,7 +58,9 @@ public class AdminOrderController {
                                 OrderStatusLogService orderStatusLogService,
                                 OrderNoteService orderNoteService,
                                 NotificationHelper notificationHelper,
-                                OrderRepository orderRepository) {
+                                OrderRepository orderRepository,
+                                com.duastore.repository.ProductRepository productRepository,
+                                com.duastore.repository.ProductVariantRepository variantRepository) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
@@ -64,6 +69,8 @@ public class AdminOrderController {
         this.orderNoteService = orderNoteService;
         this.notificationHelper = notificationHelper;
         this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
+        this.variantRepository = variantRepository;
     }
 
     @GetMapping
@@ -110,6 +117,7 @@ public class AdminOrderController {
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("trangThaiTT", trangThaiTT);
         model.addAttribute("title", "don-hang");
+        model.addAttribute("orderTab", "don-hang");
 
         model.addAttribute("totalOrders", orderRepository.count());
         model.addAttribute("pendingOrdersCount", orderRepository.countByTrangThaiDon("CHO_XAC_NHAN"));
@@ -167,9 +175,12 @@ public class AdminOrderController {
             model.addAttribute("items", items);
             model.addAttribute("logs", logs);
             model.addAttribute("assignment", assignment);
-            model.addAttribute("statusLogs", orderStatusLogService.getLogsByOrder(id));
+            List<com.duastore.model.OrderStatusLog> allLogs = orderStatusLogService.getLogsByOrder(id);
+            model.addAttribute("statusLogs", allLogs);
+            model.addAttribute("paymentLogs", allLogs.stream().filter(l -> l.getLoaiSuKien() == com.duastore.model.OrderEventType.PAYMENT_CONFIRMED).toList());
             model.addAttribute("currentStep", com.duastore.util.OrderStatusUtil.getStepIndex(order.getTrangThaiDon()));
             model.addAttribute("notes", orderNoteService.getNotesByOrder(id));
+            model.addAttribute("activeAdmins", adminLogService.getActiveAdmins());
             OrderStatusDTO statusDTO = new OrderStatusDTO();
             statusDTO.setTrangThaiDon(order.getTrangThaiDon());
             statusDTO.setTrangThaiTT(order.getTrangThaiTT());
@@ -208,20 +219,14 @@ public class AdminOrderController {
             }
 
             String oldStatus = order.getTrangThaiDon();
-            String oldPayment = order.getTrangThaiTT();
 
-            // Show confirmation modal when completing unpaid non-COD order
-            if ("DA_HOAN_THANH".equals(dto.getTrangThaiDon())
-                    && "CHUA_THANH_TOAN".equals(oldPayment)
-                    && !"COD".equals(order.getPhuongThucTT())
-                    && !"true".equals(request.getParameter("confirmed"))) {
-                ra.addFlashAttribute("showConfirmModal", true);
-                return "redirect:/admin/don-hang/" + id;
-            }
-
+            boolean wasUnpaid = "CHUA_THANH_TOAN".equals(order.getTrangThaiTT());
             String newStatus = dto.getTrangThaiDon();
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, newStatus, oldStatus, admin, request);
             if (!"DA_HUY".equals(newStatus)) {
+                if (wasUnpaid && "DA_HOAN_THANH".equals(newStatus)) {
+                    ra.addFlashAttribute("warningMsg", "Khách hàng chưa thanh toán. Bạn đã xác nhận thanh toán thay khách hàng.");
+                }
                 try {
                     String statusName = AdminOrderService.getStatusName(newStatus);
                     notificationHelper.notifyAll(
@@ -243,8 +248,8 @@ public class AdminOrderController {
             if ("DA_HUY".equals(newStatus)) {
                 return "redirect:/admin/don-hang";
             }
-            if (dto.getTrangThaiTT() != null && !dto.getTrangThaiTT().isBlank() && !dto.getTrangThaiTT().equals(oldPayment)) {
-                adminOrderService.updatePaymentStatusWithLog(id, dto.getTrangThaiTT(), oldPayment, admin, request);
+            if (dto.getTrangThaiTT() != null && !dto.getTrangThaiTT().isBlank() && !dto.getTrangThaiTT().equals(order.getTrangThaiTT())) {
+                adminOrderService.updatePaymentStatusWithLog(id, dto.getTrangThaiTT(), order.getTrangThaiTT(), admin, request);
             }
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -276,17 +281,7 @@ public class AdminOrderController {
             }
 
             String oldStatus = order.getTrangThaiDon();
-
-            // Check if confirmation needed for unpaid non-COD completion
-            if ("DA_HOAN_THANH".equals(trangThai)
-                    && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())
-                    && !"COD".equals(order.getPhuongThucTT())
-                    && !"true".equals(request.getParameter("confirmed"))) {
-                result.put("success", false);
-                result.put("needsConfirmation", true);
-                result.put("message", "Khách hàng chưa thanh toán. Bạn có chắc muốn hoàn thành đơn hàng này không?");
-                return ResponseEntity.ok(result);
-            }
+            boolean wasUnpaid = "CHUA_THANH_TOAN".equals(order.getTrangThaiTT());
 
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, trangThai, oldStatus, admin, request);
             if (!"DA_HUY".equals(trangThai)) {
@@ -307,6 +302,9 @@ public class AdminOrderController {
                 msg = "Cập nhật trạng thái thành công";
             }
             if (stockMsg != null) msg += ". " + stockMsg;
+            if (wasUnpaid && "DA_HOAN_THANH".equals(trangThai)) {
+                msg += " Khách chưa thanh toán — bạn đã xác nhận thay khách.";
+            }
 
             result.put("success", true);
             result.put("message", msg);
@@ -322,10 +320,96 @@ public class AdminOrderController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/api/san-pham/{productId}/quick-view")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_READ)")
+    public ResponseEntity<Map<String, Object>> quickViewProduct(@PathVariable Integer productId) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            var product = productRepository.findById(productId).orElse(null);
+            if (product == null) {
+                result.put("success", false);
+                result.put("message", "Không tìm thấy sản phẩm");
+                return ResponseEntity.ok(result);
+            }
+            result.put("success", true);
+
+            Map<String, Object> pData = new LinkedHashMap<>();
+            pData.put("id", product.getId());
+            pData.put("tenSanPham", product.getTenSanPham());
+            pData.put("hinhAnh", product.getHinhAnhChinh());
+            pData.put("moTa", product.getMoTa());
+            result.put("product", pData);
+
+            var variants = variantRepository.findByProductIdAndIsActiveTrue(productId);
+            List<Map<String, Object>> vList = new java.util.ArrayList<>();
+            for (var v : variants) {
+                Map<String, Object> vData = new LinkedHashMap<>();
+                vData.put("id", v.getId());
+                vData.put("tenBienThe", v.getTenBienThe());
+                vData.put("giaGoc", v.getGiaGoc());
+                vData.put("giaKhuyenMai", v.getGiaKhuyenMai());
+                vData.put("soLuongTon", v.getSoLuongTon());
+                vData.put("hinhAnh", v.getHinhAnh());
+                vList.add(vData);
+            }
+            result.put("variants", vList);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/api/{id}/cap-nhat-ma-van-don")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
+    public ResponseEntity<Map<String, Object>> updateMaVanDon(@PathVariable Integer id,
+                                                               @RequestParam("maVanDon") String maVanDon) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            Order order = orderRepository.findById(id).orElse(null);
+            if (order == null) {
+                result.put("success", false);
+                result.put("message", "Không tìm thấy đơn hàng");
+                return ResponseEntity.ok(result);
+            }
+            order.setMaVanDon(maVanDon);
+            orderRepository.save(order);
+            result.put("success", true);
+            result.put("message", "Cập nhật mã vận đơn thành công");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{id}/phan-cong")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
+    public String reassignAdmin(@PathVariable Integer id,
+                                 @RequestParam("adminId") Integer adminId,
+                                 RedirectAttributes ra,
+                                 HttpServletRequest request) {
+        try {
+            User admin = securityUtil.getCurrentUser();
+            if (admin == null) return "redirect:/login";
+            Order order = adminOrderService.getOrderById(id);
+            User newAdmin = new User();
+            newAdmin.setId(adminId);
+            adminLogService.reassignAdmin(order, admin, newAdmin, request);
+            ra.addFlashAttribute("successMsg", "Đã phân công lại đơn hàng");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/admin/don-hang/" + id;
+    }
+
     @PostMapping("/{id}/ghi-chu")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
     public String addNote(@PathVariable Integer id,
                            @RequestParam("noiDung") String noiDung,
+                           @RequestParam(value = "tag", required = false, defaultValue = "") String tag,
                            RedirectAttributes ra) {
         if (noiDung == null || noiDung.isBlank()) {
             ra.addFlashAttribute("errorMsg", "Nội dung ghi chú không được để trống");
@@ -338,7 +422,8 @@ public class AdminOrderController {
                 return "redirect:/admin/don-hang/" + id;
             }
             Order order = adminOrderService.getOrderById(id);
-            orderNoteService.addNote(order, admin, noiDung.trim());
+            String tagVal = (tag == null || tag.isBlank()) ? null : tag.trim();
+            orderNoteService.addNote(order, admin, noiDung.trim(), tagVal);
             ra.addFlashAttribute("successMsg", "Đã thêm ghi chú");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());

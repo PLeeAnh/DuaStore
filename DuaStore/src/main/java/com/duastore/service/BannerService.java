@@ -3,6 +3,8 @@ package com.duastore.service;
 import com.duastore.dto.BannerFormDTO;
 import com.duastore.model.Banner;
 import com.duastore.repository.BannerRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -34,6 +36,7 @@ public class BannerService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "activeBanners", unless = "#result.isEmpty()")
     public List<Banner> getActiveForClient() {
         try {
             return bannerRepository.findActiveForDisplay(LocalDateTime.now());
@@ -50,6 +53,7 @@ public class BannerService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy banner"));
     }
 
+    @CacheEvict(value = "activeBanners", allEntries = true)
     public Banner save(BannerFormDTO dto) {
         Banner banner = dto.getId() == null ? new Banner() : getById(dto.getId());
         String oldImageUrl = banner.getImageUrl();
@@ -84,6 +88,7 @@ public class BannerService {
         return saved;
     }
 
+    @CacheEvict(value = "activeBanners", allEntries = true)
     public void delete(Integer id) {
         Banner banner = getById(id);
         String imageUrl = banner.getImageUrl();
@@ -92,6 +97,7 @@ public class BannerService {
         deleteImageAfterCommit(imageUrl);
     }
 
+    @CacheEvict(value = "activeBanners", allEntries = true)
     public Banner toggleActive(Integer id) {
         Banner banner = getById(id);
         banner.setActive(!Boolean.TRUE.equals(banner.getActive()));
