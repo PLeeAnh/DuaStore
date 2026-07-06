@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+<head><title>Khuyến mãi — DuaStore</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="ds-container py-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                <li class="breadcrumb-item active">Khuyến mãi</li>
+            </ol>
+        </nav>
+
+        <h4 class="fw-bold mb-3">Khuyến mãi hiện có</h4>
+
+        <div th:if="${#lists.isEmpty(promotions)}" class="text-center py-5 text-muted">
+            <i class="bi bi-ticket-perforated" style="font-size: 3rem;"></i>
+            <p class="mt-3">Hiện chưa có chương trình khuyến mãi nào</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(promotions)}" class="row g-3">
+            <div th:each="p : ${promotions}" class="col-md-4 col-6">
+                <div class="vc-card h-100">
+
+                    <!-- Discount -->
+                    <div class="vc-discount">
+                        <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                              th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                        <span th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
+                              th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="vc-desc" th:text="${p.tenChuongTrinh}">Tên chương trình</div>
+
+                    <!-- Code pill -->
+                    <span class="vc-code">Mã: <span th:text="${p.maCode}">CODE</span></span>
+
+                    <!-- Conditions grid -->
+                    <div class="vc-grid">
+                        <div class="vc-grid-item" th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}">
+                            <span>&#x1F6D2;</span> Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                        </div>
+                        <div class="vc-grid-item" th:if="${p.giamToiDa != null}">
+                            <span>&#x1F4B0;</span> Giảm tối đa: <strong th:text="${#numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                        </div>
+                        <div class="vc-grid-item">
+                            <span>&#x1F4C5;</span> HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}"></span>
+                        </div>
+                        <div class="vc-grid-item" th:if="${p.savedCount != null and p.savedCount > 0}">
+                            <span>&#x1F465;</span> <span th:text="${p.savedCount}"></span> người lưu
+                        </div>
+                    </div>
+
+                    <!-- Bottom row -->
+                    <div class="vc-bottom">
+                        <button class="vc-btn ds-btn-outline btn-detail" type="button"
+                                th:data-id="${p.id}">Chi tiết</button>
+                        <button class="vc-btn ds-btn-fill btn-save-voucher" type="button"
+                                th:data-id="${p.id}">Nhận</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav th:if="${totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/khuyen-mai(page=${currentPage - 1}, size=${pageSize})}">Trước</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/khuyen-mai(page=${i}, size=${pageSize})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/khuyen-mai(page=${currentPage + 1}, size=${pageSize})}">Sau</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Modal phải nằm TRONG layout:fragment="content" mới được Thymeleaf ghép vào trang.
+             Trước đây đặt ngoài div này nên bị loại bỏ hoàn toàn khi render layout -> popup không bao giờ hiện. -->
+        <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
+    </div>
+</div>
+
+<th:block layout:fragment="extra-script">
+</th:block>
+</body>
+</html>

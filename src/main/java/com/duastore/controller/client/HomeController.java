@@ -65,8 +65,8 @@ public class HomeController {
                           SiteSettingService siteSettingService,
                           OrderItemRepository orderItemRepository,
                           WishlistRepository wishlistRepository,
-                          ReviewsRepository reviewsRepository) {
-                          PricingService pricingService) {
+                           ReviewsRepository reviewsRepository,
+                           PricingService pricingService) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
