@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-
 public class CategoryService {
 
     @Value("${homepage.categories.limit:7}")
@@ -24,7 +23,6 @@ public class CategoryService {
 
     @Cacheable(value = "featuredCategories", unless = "#result.isEmpty()")
     public List<Category> getFeaturedCategories() {
-        // Cache kết quả khác rỗng để giảm số lần truy vấn khi nhiều người cùng mở trang chủ.
         return categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc()
                 .stream()
                 .limit(categoryLimit)

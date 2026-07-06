@@ -11,12 +11,16 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-// Tầng nghiệp vụ của Danh Mục quản trị. Lớp này sắp xếp dữ liệu, chuyển Entity/DTO,
-// xây cây cha-con và kiểm tra ràng buộc trước khi Controller quyết định hiển thị
 public class AdminCategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -28,7 +32,6 @@ public class AdminCategoryService {
     }
 
     public List<Category> findAll() {
-        // nullsLast giữ các danh mục chưa có thứ tự ở cuối; id là tiêu chí phụ để kết quả ổn định.
         return categoryRepository.findAll().stream()
                 .sorted(Comparator.comparing(Category::getThuTuHienThi, Comparator.nullsLast(Integer::compareTo))
                         .thenComparing(Category::getId))
@@ -44,7 +47,6 @@ public class AdminCategoryService {
     }
 
     public Page<Category> findAllPaged(int page, int size) {
-        // Phân trang trên danh sách đã sắp xếp; hiện tại chưa truy vấn Page trực tiếp từ CSDL.
         List<Category> sorted = findAll();
         int start = page * size;
         int end = Math.min(start + size, sorted.size());
@@ -53,10 +55,9 @@ public class AdminCategoryService {
     }
 
     public List<Category> findAvailableParents(Integer currentId) {
-        // Loại chính danh mục đang sửa để ngăn chọn nó làm cha của chính nó.
         return findAll().stream()
                 .filter(Category::isActive)
-                .filter(c -> !c.getId().equals(currentId))
+                .filter(c -> currentId == null || !c.getId().equals(currentId))
                 .toList();
     }
 
@@ -72,7 +73,6 @@ public class AdminCategoryService {
     }
 
     public CategoryDTO toDto(Category category) {
-        // Chỉ đọc parent khi tồn tại; DTO giữ cả id và tên cha cho form/chi tiết.
         CategoryDTO dto = new CategoryDTO();
         dto.setId(category.getId());
         dto.setTenDanhMuc(category.getTenDanhMuc());
@@ -91,7 +91,6 @@ public class AdminCategoryService {
 
     @Transactional
     public Category save(CategoryDTO dto) {
-        // id rỗng nghĩa là thêm mới; có id thì nạp bản ghi cũ để cập nhật.
         Category category = dto.getId() == null
                 ? new Category()
                 : categoryRepository.findById(dto.getId()).orElse(new Category());
@@ -102,7 +101,6 @@ public class AdminCategoryService {
         category.setActive(dto.isActive());
         category.setImageUrl(dto.getImageUrl());
 
-        // parentId quyết định đây là danh mục gốc hay danh mục con.
         if (dto.getParentId() != null) {
             category.setParent(categoryRepository.findById(dto.getParentId()).orElse(null));
         } else {
@@ -123,7 +121,6 @@ public class AdminCategoryService {
 
     @Transactional
     public boolean softDelete(Integer id) {
-        // Không xóa vật lý nhằm bảo toàn các liên kết và lịch sử dữ liệu.
         Category category = findById(id);
         if (category == null) {
             return false;
@@ -145,7 +142,6 @@ public class AdminCategoryService {
 
     @Transactional(readOnly = true)
     public List<Category> getTree() {
-        // Bắt đầu từ các nút gốc rồi nạp con đệ quy cho từng nhánh.
         List<Category> roots = categoryRepository
                 .findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
         for (Category root : roots) {
@@ -155,7 +151,6 @@ public class AdminCategoryService {
     }
 
     private List<Category> getChildrenRecursive(Integer parentId) {
-        // Lấy con trực tiếp của một nút, sau đó tiếp tục tới khi không còn con.
         List<Category> children = categoryRepository
                 .findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(parentId);
         for (Category child : children) {
@@ -165,7 +160,6 @@ public class AdminCategoryService {
     }
 
     public List<TreeNodeDto> getFlatTree(Map<Integer, Long> productCountMap) {
-        // View dùng danh sách phẳng và level để render bảng cây đơn giản hơn.
         List<Category> roots = getTree();
         List<TreeNodeDto> result = new ArrayList<>();
         buildFlatTree(roots, 0, productCountMap, result);
@@ -173,11 +167,9 @@ public class AdminCategoryService {
     }
 
     private void buildFlatTree(List<Category> nodes, int level, Map<Integer, Long> productCountMap, List<TreeNodeDto> result) {
-        // Duyệt tiền thứ tự: thêm cha trước, rồi mới thêm toàn bộ các con.
         for (Category cat : nodes) {
             TreeNodeDto dto = new TreeNodeDto();
             dto.setId(cat.getId());
-            dto.setParentId(cat.getParent() != null ? cat.getParent().getId() : null);
             dto.setTenDanhMuc(cat.getTenDanhMuc());
             dto.setImageUrl(cat.getImageUrl());
             dto.setActive(cat.isActive());
@@ -185,8 +177,7 @@ public class AdminCategoryService {
             dto.setHasChildren(!cat.getChildren().isEmpty());
             dto.setLevel(level);
             dto.setProductCount(productCountMap.getOrDefault(cat.getId(), 0L));
-            // Giao diện ghi "danh mục con" nên chỉ đếm các con trực tiếp của nút hiện tại.
-            dto.setChildCount(cat.getChildren().size());
+            dto.setChildCount(countRecursiveChildren(cat));
             result.add(dto);
             if (!cat.getChildren().isEmpty()) {
                 buildFlatTree(cat.getChildren(), level + 1, productCountMap, result);
@@ -194,15 +185,22 @@ public class AdminCategoryService {
         }
     }
 
+    private int countRecursiveChildren(Category cat) {
+        int count = 0;
+        for (Category child : cat.getChildren()) {
+            count += 1 + countRecursiveChildren(child);
+        }
+        return count;
+    }
+
     public List<Category> search(String keyword, String status) {
-        // Bộ lọc được thực hiện trong bộ nhớ trên danh sách findAll hiện tại.
         Stream<Category> stream = findAll().stream();
 
         if (keyword != null && !keyword.isBlank()) {
             String kw = keyword.toLowerCase().trim();
             stream = stream.filter(c ->
                     (c.getTenDanhMuc() != null && c.getTenDanhMuc().toLowerCase().contains(kw)) ||
-                            (c.getMoTa() != null && c.getMoTa().toLowerCase().contains(kw))
+                    (c.getMoTa() != null && c.getMoTa().toLowerCase().contains(kw))
             );
         }
 
@@ -224,7 +222,6 @@ public class AdminCategoryService {
     }
 
     public Map<Integer, Long> getProductCountMap() {
-        // Mỗi row là Object[]{categoryId, count}; chuyển thành Map để Controller/View tra nhanh.
         List<Object[]> rows = productRepository.countProductsByDanhMuc();
         Map<Integer, Long> map = new HashMap<>();
         for (Object[] row : rows) {
