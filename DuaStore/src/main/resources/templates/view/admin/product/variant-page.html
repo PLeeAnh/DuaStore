@@ -83,7 +83,6 @@
             <div class="adm-card-body">
                 <form method="get" class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label class="form-label">Tìm kiếm</label>
                         <input type="text" name="keyword" class="form-control"
                                placeholder="Tên biến thể..." th:value="${keyword}"
                                data-autosubmit="300" />
@@ -106,7 +105,7 @@
                             <div class="adm-variant-name" th:text="${v.tenBienThe}">Tên biến thể</div>
                             <div class="adm-variant-meta">SKU: #<span th:text="${v.id}">0</span></div>
                         </div>
-                        <span class="badge bg-success" style="font-size:10px" th:if="${v.isDefault}">Mặc định</span>
+                        <span class="status-pill status-MAC_DINH" style="font-size:10px" th:if="${v.isDefault}">Mặc định</span>
                     </div>
                     <div class="adm-variant-meta">Sản phẩm: <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${v.productId})}" class="text-decoration-none" th:text="${productNames.get(v.productId)}">Tên SP</a></div>
                     <div class="adm-variant-meta" th:if="${v.dungTich}">Dung tích: <span th:text="${v.dungTich + 'ml'}">—</span></div>
@@ -134,5 +133,5 @@
 
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
-    </body>
+</body>
 </html>

@@ -53,6 +53,8 @@ public class RefundRequest {
     @PrePersist
     protected void onCreate() {
         ngayYeuCau = LocalDateTime.now();
-        if (trangThai == null) trangThai = "CHO_DUYET";
+        if (trangThai == null) {
+            trangThai = "CHO_DUYET";
+        }
     }
 }

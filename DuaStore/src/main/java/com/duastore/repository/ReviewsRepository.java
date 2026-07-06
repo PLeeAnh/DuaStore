@@ -14,13 +14,22 @@ import java.util.Optional;
 @Repository
 public interface ReviewsRepository extends JpaRepository<Review, Integer> {
 
-        Page<Review> findByProductIdAndIsApproved(Integer productId, Boolean isApproved, Pageable pageable);
+    Page<Review> findByProductIdAndIsApproved(Integer productId, Boolean isApproved, Pageable pageable);
 
     @Query("SELECT r FROM Review r WHERE r.productId = :productId AND (r.isApproved = true OR r.userId = :userId)")
     Page<Review> findVisibleReviews(@Param("productId") Integer productId, @Param("userId") Integer userId, Pageable pageable);
 
     @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.isApproved = true")
     Page<Review> findApprovedReviews(@Param("productId") Integer productId, Pageable pageable);
+
+    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.isApproved = true AND r.danhGia = :rating")
+    Page<Review> findApprovedReviewsByRating(@Param("productId") Integer productId, @Param("rating") Integer rating, Pageable pageable);
+
+    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND (r.isApproved = true OR r.userId = :userId) AND r.danhGia = :rating")
+    Page<Review> findVisibleReviewsByRating(@Param("productId") Integer productId, @Param("userId") Integer userId, @Param("rating") Integer rating, Pageable pageable);
+
+    @Query("SELECT r.danhGia, COUNT(r) FROM Review r WHERE r.productId = :productId AND r.isApproved = true GROUP BY r.danhGia ORDER BY r.danhGia DESC")
+    List<Object[]> getRatingDistribution(@Param("productId") Integer productId);
 
     List<Review> findByProductIdAndIsApprovedOrderByNgayTaoDesc(Integer productId, Boolean isApproved);
 

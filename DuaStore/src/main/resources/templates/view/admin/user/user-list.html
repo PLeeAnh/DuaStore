@@ -16,8 +16,27 @@
 
     <div layout:fragment="content">
 
-        <div class="adm-page-header">
-            <h4><i class="bi bi-people me-2"></i>Người dùng</h4>
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Người dùng</h4>
+                        <div class="adm-detail-meta">Quản lý tất cả người dùng trong hệ thống.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${userTab == 'nguoi-dung' ? ' active' : ''}" th:href="@{/admin/nguoi-dung}">
+                <i class="bi bi-people"></i>Người dùng
+            </a>
+            <a class="adm-tab" th:classappend="${userTab == 'phan-quyen' ? ' active' : ''}" th:href="@{/admin/vai-tro}">
+                <i class="bi bi-shield-lock"></i>Phân quyền
+            </a>
         </div>
 
         <div class="adm-table-wrap">
@@ -29,7 +48,7 @@
                     <span>USER: <strong th:text="${userCount}">0</strong></span>
                 </div>
                 <form class="d-flex align-items-center gap-2" method="get">
-                    <select name="role" class="form-select form-select-sm" style="width:auto">
+                    <select name="role" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
                         <option value="">Tất cả</option>
                         <option th:each="r : ${allRoles}" th:value="${r.name}" th:selected="${role == r.name}" th:text="${r.name}">ROLE</option>
                     </select>
@@ -59,15 +78,15 @@
                         <td th:text="${u.soDienThoai} ?: '--'">0900000000</td>
                         <td>
                             <span th:each="role : ${u.roles}">
-                                <span th:if="${role.name == 'SUPER_ADMIN'}" class="badge bg-dark me-1">SUPER_ADMIN</span>
+                                <span th:if="${role.name == 'SUPER_ADMIN'}" class="status-pill status-SUPER_ADMIN me-1">SUPER_ADMIN</span>
                                 <span th:if="${role.name == 'ADMIN'}" class="badge bg-warning me-1">Admin</span>
-                                <span th:if="${role.name == 'USER'}" class="badge bg-secondary me-1">Khách hàng</span>
+                                <span th:if="${role.name == 'USER'}" class="status-pill status-USER me-1">Khách hàng</span>
                                 <span th:unless="${role.name == 'SUPER_ADMIN' or role.name == 'ADMIN' or role.name == 'USER'}" class="badge bg-info me-1" th:text="${role.name}">ROLE</span>
                             </span>
                         </td>
                         <td>
-                            <span th:if="${u.isActive}" class="badge bg-success">Hoạt động</span>
-                            <span th:unless="${u.isActive}" class="badge bg-danger">Khóa</span>
+                            <span th:if="${u.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                            <span th:unless="${u.isActive}" class="status-pill status-KHOA">Khóa</span>
                         </td>
                         <td style="font-size:.82rem;color:var(--ef-text-muted)" th:text="${#temporals.format(u.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                         <td>

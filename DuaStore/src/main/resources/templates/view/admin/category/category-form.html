@@ -3,236 +3,244 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-<head><title th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Form</title></head>
-<body>
-<th:block layout:fragment="breadcrumb">
-    <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc}">Danh mục</a></li>
-    <li class="breadcrumb-item active" th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Form</li>
-</th:block>
-<div layout:fragment="content">
+    <head><title th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Form</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc}">Danh mục</a></li>
+        <li class="breadcrumb-item active" th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Form</li>
+    </th:block>
+    <div layout:fragment="content">
 
-    <!-- Hero Header -->
-    <div class="adm-detail-hero">
-        <div class="d-flex align-items-start gap-3">
-            <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
-                <i class="bi bi-tags"></i>
-            </div>
-            <div class="flex-grow-1">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h4><span th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Thêm danh mục</span></h4>
-                        <div class="adm-detail-meta" th:text="${category.id != null} ? 'Chỉnh sửa thông tin danh mục.' : 'Tạo danh mục mới.'">Sub</div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-x-lg me-1"></i>Hủy
-                        </a>
-                        <button type="submit" form="categoryForm" class="btn btn-primary btn-sm">
-                            <i class="bi bi-check-lg me-1"></i><span th:text="${category.id != null} ? 'Lưu thay đổi' : 'Tạo danh mục'">Lưu</span>
-                        </button>
-                    </div>
+        <!-- Hero Header -->
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-tags"></i>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Form -->
-    <form id="categoryForm"
-          th:action="${category.id != null} ? @{/admin/danh-muc/sua/{id}(id=${category.id})} : @{/admin/danh-muc/them-moi}"
-          th:object="${category}" method="post" enctype="multipart/form-data">
-        <input type="hidden" th:field="*{id}" />
-
-        <div class="row g-4">
-            <!-- Left column -->
-            <div class="col-lg-8">
-                <div class="adm-card">
-                    <div class="adm-card-header">
-                        <span><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</span>
-                    </div>
-                    <div class="adm-card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
-                                <input type="text" th:field="*{tenDanhMuc}" class="form-control" required maxlength="100" />
-                                <div th:if="${#fields.hasErrors('tenDanhMuc')}" th:errors="*{tenDanhMuc}" class="text-danger small"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Danh mục cha</label>
-                                <select th:field="*{parentId}" class="form-select">
-                                    <option value="">Danh mục gốc</option>
-                                    <option th:each="parent : ${parents}"
-                                            th:value="${parent.id}"
-                                            th:text="${parent.tenDanhMuc}">Danh mục cha</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Thứ tự hiển thị</label>
-                                <input type="number" th:field="*{thuTuHienThi}" class="form-control" min="0" max="9999" />
-                            </div>
-                            <div class="col-md-6 d-flex align-items-end">
-                                <div class="d-flex gap-3">
-                                    <div class="form-check">
-                                        <input type="radio" class="form-check-input" th:field="*{active}" th:value="true" th:checked="*{active}" id="activeTrue" />
-                                        <label class="form-check-label" for="activeTrue">Hiển thị</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input type="radio" class="form-check-input" th:field="*{active}" th:value="false" th:checked="!*{active}" id="activeFalse" />
-                                        <label class="form-check-label" for="activeFalse">Ẩn</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Mô tả</label>
-                                <textarea th:field="*{moTa}" class="form-control" rows="3" maxlength="500"></textarea>
-                            </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4><span th:text="${category.id != null} ? 'Sửa danh mục' : 'Thêm danh mục'">Thêm danh mục</span></h4>
+                            <div class="adm-detail-meta" th:text="${category.id != null} ? 'Chỉnh sửa thông tin danh mục.' : 'Tạo danh mục mới.'">Sub</div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right column -->
-            <div class="col-lg-4">
-                <div class="adm-card">
-                    <div class="adm-card-header">
-                        <span><i class="bi bi-image me-2"></i>Ảnh danh mục</span>
-                    </div>
-                    <div class="adm-card-body text-center">
-                        <div class="adm-main-image-wrap">
-                            <img id="categoryImagePreview"
-                                 th:if="${category.imageUrl}" th:src="@{${category.imageUrl}}"
-                                 alt="" style="width:120px;height:120px;object-fit:cover;border-radius:12px" />
-                            <div id="categoryImageEmpty" th:unless="${category.imageUrl}" class="adm-empty py-3">
-                                <i class="bi bi-image adm-empty-icon"></i>
-                                <div class="adm-empty-title">Chưa có ảnh</div>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2 mt-3">
-                            <label class="btn btn-outline-primary btn-sm flex-fill" id="categoryImageLabel">
-                                <i class="bi bi-arrow-repeat me-1"></i>
-                                <span id="categoryImageBtnText" th:text="${category.imageUrl != null} ? 'Thay ảnh' : 'Thêm ảnh'">Thêm ảnh</span>
-                                <input type="file" name="imageFile" id="categoryImageInput" accept="image/*" hidden />
-                            </label>
-                            <button type="button" class="btn btn-outline-danger btn-sm flex-fill"
-                                    id="categoryImageDeleteBtn"
-                                    th:if="${category.imageUrl}"
-                                    th:data-category-id="${category.id}"
-                                    onclick="confirmDeleteCategoryImage(this)">
-                                <i class="bi bi-trash me-1"></i>Xóa ảnh
+                        <div class="d-flex gap-2">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-x-lg me-1"></i>Hủy
+                            </a>
+                            <button type="submit" form="categoryForm" class="btn btn-primary btn-sm">
+                                <i class="bi bi-check-lg me-1"></i><span th:text="${category.id != null} ? 'Lưu thay đổi' : 'Tạo danh mục'">Lưu</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </form>
 
-</div>
+        <!-- Form -->
+        <form id="categoryForm"
+              th:action="${category.id != null} ? @{/admin/danh-muc/sua/{id}(id=${category.id})} : @{/admin/danh-muc/them-moi}"
+              th:object="${category}" method="post" data-dirty-bar enctype="multipart/form-data">
+            <input type="hidden" th:field="*{id}" />
 
-<th:block layout:fragment="extra-script">
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var input = document.getElementById('categoryImageInput');
-        var preview = document.getElementById('categoryImagePreview');
-        var empty = document.getElementById('categoryImageEmpty');
-        var btnText = document.getElementById('categoryImageBtnText');
-        var deleteBtn = document.getElementById('categoryImageDeleteBtn');
+            <div class="row g-4">
+                <!-- Left column -->
+                <div class="col-lg-8">
+                    <div class="adm-card">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                                    <input type="text" th:field="*{tenDanhMuc}" class="form-control" required maxlength="100" />
+                                    <div th:if="${#fields.hasErrors('tenDanhMuc')}" th:errors="*{tenDanhMuc}" class="text-danger small"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Danh mục cha</label>
+                                    <select th:field="*{parentId}" class="form-select searchable-select">
+                                        <option value="">Danh mục gốc</option>
+                                        <option th:each="parent : ${parents}"
+                                                th:value="${parent.id}"
+                                                th:text="${parent.tenDanhMuc}">Danh mục cha</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Thứ tự hiển thị</label>
+                                    <input type="number" th:field="*{thuTuHienThi}" class="form-control" min="0" max="9999" />
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <div class="d-flex gap-3">
+                                        <div class="form-check">
+                                            <input type="radio" class="form-check-input" th:field="*{active}" th:value="true" th:checked="*{active}" id="activeTrue" />
+                                            <label class="form-check-label" for="activeTrue">Hiển thị</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input type="radio" class="form-check-input" th:field="*{active}" th:value="false" th:checked="!*{active}" id="activeFalse" />
+                                            <label class="form-check-label" for="activeFalse">Ẩn</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Mô tả</label>
+                                    <textarea th:field="*{moTa}" class="form-control" rows="3" maxlength="500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        if (input) {
-            input.addEventListener('change', function() {
-                var file = this.files[0];
-                if (!file) return;
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    if (!preview) {
-                        var wrap = document.querySelector('.adm-main-image-wrap');
-                        if (wrap) {
-                            preview = document.createElement('img');
-                            preview.id = 'categoryImagePreview';
-                            preview.alt = '';
-                            preview.style.cssText = 'width:120px;height:120px;object-fit:cover;border-radius:12px';
-                            if (empty) empty.style.display = 'none';
-                            wrap.insertBefore(preview, empty);
-                        }
-                    }
-                    if (preview) {
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
-                        preview.style.opacity = '1';
-                    }
-                    if (empty) empty.style.display = 'none';
-                    btnText.textContent = 'Thay ảnh';
-                    if (!deleteBtn) {
-                        var parent = input.closest('.d-flex');
-                        if (parent) {
-                            var newBtn = document.createElement('button');
-                            newBtn.type = 'button';
-                            newBtn.className = 'btn btn-outline-danger btn-sm flex-fill';
-                            newBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Xóa ảnh';
-                            newBtn.onclick = function() {
-                                var modalEl = document.getElementById('confirmModal');
-                                if (!modalEl) return;
-                                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                                document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh danh mục này?';
-                                var confirmBtn = document.getElementById('confirmModalConfirm');
-                                var handler = function() {
+                <!-- Right column -->
+                <div class="col-lg-4">
+                    <div class="adm-card">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-image me-2"></i>Ảnh danh mục</span>
+                        </div>
+                        <div class="adm-card-body text-center">
+                            <div class="adm-main-image-wrap">
+                                <img id="categoryImagePreview"
+                                     th:if="${category.imageUrl}" th:src="@{${category.imageUrl}}"
+                                     alt="" style="width:120px;height:120px;object-fit:cover;border-radius:12px" />
+                                <div id="categoryImageEmpty" th:unless="${category.imageUrl}" class="adm-empty py-3">
+                                    <i class="bi bi-image adm-empty-icon"></i>
+                                    <div class="adm-empty-title">Chưa có ảnh</div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <label class="btn btn-outline-primary btn-sm flex-fill" id="categoryImageLabel">
+                                    <i class="bi bi-arrow-repeat me-1"></i>
+                                    <span id="categoryImageBtnText" th:text="${category.imageUrl != null} ? 'Thay ảnh' : 'Thêm ảnh'">Thêm ảnh</span>
+                                    <input type="file" name="imageFile" id="categoryImageInput" accept="image/*" hidden />
+                                </label>
+                                <button type="button" class="btn btn-outline-danger btn-sm flex-fill"
+                                        id="categoryImageDeleteBtn"
+                                        th:if="${category.imageUrl}"
+                                        th:data-category-id="${category.id}"
+                                        onclick="confirmDeleteCategoryImage(this)">
+                                    <i class="bi bi-trash me-1"></i>Xóa ảnh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var input = document.getElementById('categoryImageInput');
+                var preview = document.getElementById('categoryImagePreview');
+                var empty = document.getElementById('categoryImageEmpty');
+                var btnText = document.getElementById('categoryImageBtnText');
+                var deleteBtn = document.getElementById('categoryImageDeleteBtn');
+
+                if (input) {
+                    input.addEventListener('change', function () {
+                        var file = this.files[0];
+                        if (!file)
+                            return;
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            if (!preview) {
+                                var wrap = document.querySelector('.adm-main-image-wrap');
+                                if (wrap) {
+                                    preview = document.createElement('img');
+                                    preview.id = 'categoryImagePreview';
+                                    preview.alt = '';
+                                    preview.style.cssText = 'width:120px;height:120px;object-fit:cover;border-radius:12px';
+                                    if (empty)
+                                        empty.style.display = 'none';
+                                    wrap.insertBefore(preview, empty);
+                                }
+                            }
+                            if (preview) {
+                                preview.src = e.target.result;
+                                preview.style.display = 'block';
+                                preview.style.opacity = '1';
+                            }
+                            if (empty)
+                                empty.style.display = 'none';
+                            btnText.textContent = 'Thay ảnh';
+                            if (!deleteBtn) {
+                                var parent = input.closest('.d-flex');
+                                if (parent) {
+                                    var newBtn = document.createElement('button');
+                                    newBtn.type = 'button';
+                                    newBtn.className = 'btn btn-outline-danger btn-sm flex-fill';
+                                    newBtn.innerHTML = '<i class="bi bi-trash me-1"></i>Xóa ảnh';
+                                    newBtn.onclick = function () {
+                                        var modalEl = document.getElementById('confirmModal');
+                                        if (!modalEl)
+                                            return;
+                                        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                                        document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh danh mục này?';
+                                        var confirmBtn = document.getElementById('confirmModalConfirm');
+                                        var handler = function () {
+                                            if (preview) {
+                                                preview.src = '/images/no-image.png';
+                                                preview.style.opacity = '0.4';
+                                            }
+                                            if (empty)
+                                                empty.style.display = '';
+                                            newBtn.remove();
+                                            modal.hide();
+                                            confirmBtn.removeEventListener('click', handler);
+                                        };
+                                        confirmBtn.addEventListener('click', handler);
+                                        modalEl.addEventListener('hidden.bs.modal', function () {
+                                            confirmBtn.removeEventListener('click', handler);
+                                        }, {once: true});
+                                        modal.show();
+                                    };
+                                    parent.appendChild(newBtn);
+                                    deleteBtn = newBtn;
+                                }
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+            });
+
+            function confirmDeleteCategoryImage(btn) {
+                var modalEl = document.getElementById('confirmModal');
+                if (!modalEl)
+                    return;
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh danh mục này?';
+                var confirmBtn = document.getElementById('confirmModalConfirm');
+                var handler = function () {
+                    var catId = btn.getAttribute('data-category-id');
+                    fetch('/admin/danh-muc/' + catId + '/xoa-anh', {method: 'POST'})
+                            .then(function (r) {
+                                if (r.ok) {
+                                    var preview = document.getElementById('categoryImagePreview');
+                                    var empty = document.getElementById('categoryImageEmpty');
                                     if (preview) {
                                         preview.src = '/images/no-image.png';
                                         preview.style.opacity = '0.4';
                                     }
-                                    if (empty) empty.style.display = '';
-                                    newBtn.remove();
-                                    modal.hide();
-                                    confirmBtn.removeEventListener('click', handler);
-                                };
-                                confirmBtn.addEventListener('click', handler);
-                                modalEl.addEventListener('hidden.bs.modal', function() {
-                                    confirmBtn.removeEventListener('click', handler);
-                                }, { once: true });
-                                modal.show();
-                            };
-                            parent.appendChild(newBtn);
-                            deleteBtn = newBtn;
-                        }
-                    }
+                                    if (empty)
+                                        empty.style.display = '';
+                                    btn.remove();
+                                    var btnText = document.getElementById('categoryImageBtnText');
+                                    if (btnText)
+                                        btnText.textContent = 'Thêm ảnh';
+                                }
+                            });
+                    modal.hide();
+                    confirmBtn.removeEventListener('click', handler);
                 };
-                reader.readAsDataURL(file);
-            });
-        }
-    });
-
-    function confirmDeleteCategoryImage(btn) {
-        var modalEl = document.getElementById('confirmModal');
-        if (!modalEl) return;
-        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh danh mục này?';
-        var confirmBtn = document.getElementById('confirmModalConfirm');
-        var handler = function() {
-            var catId = btn.getAttribute('data-category-id');
-            fetch('/admin/danh-muc/' + catId + '/xoa-anh', { method: 'POST' })
-                .then(function(r) {
-                    if (r.ok) {
-                        var preview = document.getElementById('categoryImagePreview');
-                        var empty = document.getElementById('categoryImageEmpty');
-                        if (preview) {
-                            preview.src = '/images/no-image.png';
-                            preview.style.opacity = '0.4';
-                        }
-                        if (empty) empty.style.display = '';
-                        btn.remove();
-                        var btnText = document.getElementById('categoryImageBtnText');
-                        if (btnText) btnText.textContent = 'Thêm ảnh';
-                    }
-                });
-            modal.hide();
-            confirmBtn.removeEventListener('click', handler);
-        };
-        confirmBtn.addEventListener('click', handler);
-        modalEl.addEventListener('hidden.bs.modal', function() {
-            confirmBtn.removeEventListener('click', handler);
-        }, { once: true });
-        modal.show();
-    }
-</script>
-</th:block>
+                confirmBtn.addEventListener('click', handler);
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    confirmBtn.removeEventListener('click', handler);
+                }, {once: true});
+                modal.show();
+            }
+        </script>
+    </th:block>
 </body>
 </html>

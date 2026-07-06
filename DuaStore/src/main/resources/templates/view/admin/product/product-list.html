@@ -6,7 +6,16 @@
     <head><title>Quản lý sản phẩm</title></head>
     <body>
     <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item active">Sản phẩm</li>
+        <li class="breadcrumb-item" th:classappend="${categoryBreadcrumb == null} ? 'active' : ''">
+            <a th:if="${categoryBreadcrumb != null}" th:href="@{/admin/san-pham}">Sản phẩm</a>
+            <span th:if="${categoryBreadcrumb == null}">Sản phẩm</span>
+        </li>
+        <th:block th:if="${categoryBreadcrumb != null}" th:each="cat, stat : ${categoryBreadcrumb}">
+            <li class="breadcrumb-item" th:classappend="${stat.last} ? 'active' : ''">
+                <a th:if="${!stat.last}" th:href="@{/admin/san-pham(danhMuc=${cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
+                <span th:if="${stat.last}" th:text="${cat.tenDanhMuc}">Danh mục</span>
+            </li>
+        </th:block>
     </th:block>
     <div layout:fragment="content">
 
@@ -104,23 +113,20 @@
             <div class="adm-card-body">
                 <form th:action="@{/admin/san-pham}" method="get" class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label class="form-label">Tìm kiếm</label>
                         <input type="text" name="keyword" class="form-control"
                                placeholder="Tên sản phẩm..." th:value="${keyword}"
                                data-autosubmit="300" />
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Danh mục</label>
-                        <select name="danhMuc" class="form-select searchable-select" data-autosubmit>
-                            <option value="">Tất cả</option>
+                        <select name="danhMuc" class="form-select searchable-select" placeholder="Danh mục" data-autosubmit>
+                            <option value="">Danh mục</option>
                             <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"
                                     th:selected="${danhMuc == cat.id}">DM</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Trạng thái</label>
-                        <select name="trangThai" class="form-select" onchange="this.form.submit()">
-                            <option value="">Tất cả</option>
+                        <select name="trangThai" class="form-select searchable-select" data-autosubmit>
+                            <option value="">Trạng thái</option>
                             <option value="DANG_BAN" th:selected="${trangThai == 'DANG_BAN'}">Đang bán</option>
                             <option value="DAT_TRUOC" th:selected="${trangThai == 'DAT_TRUOC'}">Đặt trước</option>
                             <option value="NGUNG_BAN" th:selected="${trangThai == 'NGUNG_BAN'}">Ngừng bán</option>

@@ -3,6 +3,7 @@ package com.duastore.controller.client;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.CartItemDTO;
 import com.duastore.dto.CheckoutRequestDTO;
+import com.duastore.dto.OrderDTO;
 import com.duastore.model.Address;
 import com.duastore.model.Order;
 import com.duastore.model.OrderItem;
@@ -27,17 +28,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 @Controller
 @RequestMapping("/checkout")
@@ -56,15 +54,15 @@ public class CheckoutController {
     private final VNPAYService vnpayService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
-                              AddressRepository addressRepository,
-                              PromotionRepository promotionRepository,
-                              SecurityUtil securityUtil,
-                              ShippingFeeService shippingFeeService,
-                              EmailService emailService,
-                              PaymentService paymentService,
-                              OrderStatusLogService orderStatusLogService,
-                              NotificationHelper notificationHelper,
-                              VNPAYService vnpayService) {
+            AddressRepository addressRepository,
+            PromotionRepository promotionRepository,
+            SecurityUtil securityUtil,
+            ShippingFeeService shippingFeeService,
+            EmailService emailService,
+            PaymentService paymentService,
+            OrderStatusLogService orderStatusLogService,
+            NotificationHelper notificationHelper,
+            VNPAYService vnpayService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -86,7 +84,9 @@ public class CheckoutController {
     public String showCheckout(Model model) {
         Integer userId = getUserId();
         List<CartItemDTO> cartItems = cartService.getItems(userId);
-        if (cartItems.isEmpty()) return "redirect:/gio-hang";
+        if (cartItems.isEmpty()) {
+            return "redirect:/gio-hang";
+        }
 
         List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(userId);
         BigDecimal subtotal = cartService.total(cartItems);
@@ -108,8 +108,8 @@ public class CheckoutController {
                     if ("PHAN_TRAM".equals(bestPromo.getLoaiGiam())) {
                         BigDecimal discountPct = bestPromo.getGiaTriGiam();
                         BigDecimal discountedPrice = item.getGiaBan()
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         item.setGiaBanSauGiam(discountedPrice);
                     } else {
                         // For fixed-amount, apply proportional discount
@@ -161,8 +161,8 @@ public class CheckoutController {
 
     @PostMapping
     public String processCheckout(@Valid @ModelAttribute("checkoutRequest") CheckoutRequestDTO req,
-                                   BindingResult result, Model model,
-                                   HttpServletRequest httpReq) {
+            BindingResult result, Model model,
+            HttpServletRequest httpReq) {
         Integer userId = getUserId();
 
         if (result.hasErrors()) {
@@ -178,10 +178,10 @@ public class CheckoutController {
 
             try {
                 notificationHelper.notifyStaff(
-                    "Khách hàng đã đặt đơn hàng mới: " + order.getMaDon(),
-                    "ORDER", order.getId(),
-                    "/admin/don-hang",
-                    order.getMaDon()
+                        "Khách hàng đã đặt đơn hàng mới: " + order.getMaDon(),
+                        "ORDER", order.getId(),
+                        "/admin/don-hang",
+                        order.getMaDon()
                 );
             } catch (Exception e) {
                 // notifyStaff đã log lỗi, không break flow chính
@@ -189,7 +189,7 @@ public class CheckoutController {
 
             User finalUser = order.getUser();
             String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "VNPAY".equals(order.getPhuongThucTT()) ? "VNPay" : "COD";
-            String finalGh = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
+            String finalGh = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
             String finalMaDon = order.getMaDon();
             String finalNgayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
             String finalDiaChi = order.getSnapDiaChi();
@@ -211,7 +211,8 @@ public class CheckoutController {
                             finalNgayDat, finalDiaChi, finalTt, finalGh,
                             finalTongTien, finalItemsHtml
                     );
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             });
             emailThread.setDaemon(true);
             emailThread.start();
@@ -221,7 +222,9 @@ public class CheckoutController {
             }
             if ("VNPAY".equals(order.getPhuongThucTT())) {
                 String vnpayUrl = orderService.createVNPAYPaymentUrl(order.getId(), httpReq);
-                if (vnpayUrl != null) return "redirect:" + vnpayUrl;
+                if (vnpayUrl != null) {
+                    return "redirect:" + vnpayUrl;
+                }
             }
             return "redirect:/checkout/thanh-cong/" + order.getId();
         } catch (RuntimeException e) {
@@ -236,9 +239,9 @@ public class CheckoutController {
         List<Promotion> promos = promotionRepository.findActiveNow(now);
         if (promos.isEmpty()) {
             promos = promotionRepository.findByIsActiveTrue().stream()
-                .filter(p -> p.getTuNgay() == null || !p.getTuNgay().isAfter(now))
-                .filter(p -> p.getDenNgay() == null || !p.getDenNgay().isBefore(now))
-                .toList();
+                    .filter(p -> p.getTuNgay() == null || !p.getTuNgay().isAfter(now))
+                    .filter(p -> p.getDenNgay() == null || !p.getDenNgay().isBefore(now))
+                    .toList();
         }
         return promos;
     }
@@ -274,17 +277,17 @@ public class CheckoutController {
     private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
         BigDecimal maxPct = new BigDecimal("100");
         return promos.stream()
-            .filter(p -> p.getDonHangToiThieu() == null || subtotal.compareTo(p.getDonHangToiThieu()) >= 0)
-            .filter(p -> !"PHAN_TRAM".equals(p.getLoaiGiam()) || p.getGiaTriGiam().compareTo(maxPct) <= 0)
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(p -> orderService.calculateDiscount(p, subtotal)))
-            .orElse(null);
+                .filter(p -> p.getDonHangToiThieu() == null || subtotal.compareTo(p.getDonHangToiThieu()) >= 0)
+                .filter(p -> !"PHAN_TRAM".equals(p.getLoaiGiam()) || p.getGiaTriGiam().compareTo(maxPct) <= 0)
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(p -> orderService.calculateDiscount(p, subtotal)))
+                .orElse(null);
     }
 
     @PostMapping("/api/create")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> apiCreateOrder(@Valid @ModelAttribute("checkoutRequest") CheckoutRequestDTO req,
-                                                               BindingResult result) {
+            BindingResult result) {
         Map<String, Object> res = new HashMap<>();
         Integer userId = getUserId();
         if (userId == null) {
@@ -297,23 +300,24 @@ public class CheckoutController {
             res.put("message", "Dữ liệu không hợp lệ");
             return ResponseEntity.ok(res);
         }
+        try {
+            Order order = orderService.processCheckout(
+                    userId, req.getAddressId(), req.getPhuongThucTT(),
+                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+            );
             try {
-                Order order = orderService.processCheckout(
-                        userId, req.getAddressId(), req.getPhuongThucTT(),
-                        req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
-                );
-                try {
-                    notificationHelper.notifyStaff(
+                notificationHelper.notifyStaff(
                         "Khách hàng vừa đặt đơn hàng mới: " + order.getMaDon(),
                         "ORDER", order.getId(),
                         "/admin/don-hang/" + order.getId(),
                         order.getMaDon()
-                    );
-                } catch (Exception ignored) {}
+                );
+            } catch (Exception ignored) {
+            }
 
-                res.put("success", true);
-                res.put("orderId", order.getId());
-                res.put("maDon", order.getMaDon());
+            res.put("success", true);
+            res.put("orderId", order.getId());
+            res.put("maDon", order.getMaDon());
         } catch (RuntimeException e) {
             res.put("success", false);
             res.put("message", e.getMessage());
@@ -334,7 +338,7 @@ public class CheckoutController {
     @PostMapping("/ap-dung-ma")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> applyPromo(@RequestParam String maCode,
-                                                           @RequestParam BigDecimal subtotal) {
+            @RequestParam BigDecimal subtotal) {
         Map<String, Object> res = new HashMap<>();
         try {
             Promotion promo = promotionRepository.findByMaCodeIgnoreCaseAndIsActiveTrue(maCode.trim())
@@ -348,9 +352,9 @@ public class CheckoutController {
             BigDecimal tienGiam = orderService.calculateDiscount(promo, subtotal);
             res.put("success", true);
             res.put("tienGiam", tienGiam);
-            res.put("message", "Áp dụng mã thành công! Giảm " +
-                    (tienGiam.compareTo(BigDecimal.ZERO) > 0
-                            ? PriceUtils.format(tienGiam) : "0₫"));
+            res.put("message", "Áp dụng mã thành công! Giảm "
+                    + (tienGiam.compareTo(BigDecimal.ZERO) > 0
+                    ? PriceUtils.format(tienGiam) : "0₫"));
         } catch (RuntimeException e) {
             res.put("success", false);
             res.put("message", e.getMessage());
@@ -396,41 +400,43 @@ public class CheckoutController {
 
             try {
                 notificationHelper.notifyStaff(
-                    "Khách hàng đã xác nhận thanh toán cho đơn hàng: " + order.getMaDon(),
-                    "ORDER", order.getId(),
-                    "/admin/don-hang/" + order.getId(),
-                    order.getMaDon()
+                        "Khách hàng đã xác nhận thanh toán cho đơn hàng: " + order.getMaDon(),
+                        "ORDER", order.getId(),
+                        "/admin/don-hang/" + order.getId(),
+                        order.getMaDon()
                 );
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
-                User finalUser = order.getUser();
-                String finalTt2 = "Chuyển khoản";
-                String finalGh2 = "NHAN_TAI_CONG".equals(order.getPhuongThucGiaoHang()) ? "Nhận tại cửa hàng" : "Giao hàng tiêu chuẩn";
-                String finalMaDon2 = order.getMaDon();
-                String finalNgayDat2 = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-                String finalDiaChi2 = order.getSnapDiaChi();
-                String finalTongTien2 = PriceUtils.format(order.getTongThanhToan());
+            User finalUser = order.getUser();
+            String finalTt2 = "Chuyển khoản";
+            String finalGh2 = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
+            String finalMaDon2 = order.getMaDon();
+            String finalNgayDat2 = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            String finalDiaChi2 = order.getSnapDiaChi();
+            String finalTongTien2 = PriceUtils.format(order.getTongThanhToan());
 
-                StringBuilder itemsHtml = new StringBuilder();
-                for (OrderItem item : order.getOrderItems()) {
-                    itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
-                            .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
-                            .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
-                            .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
+            StringBuilder itemsHtml = new StringBuilder();
+            for (OrderItem item : order.getOrderItems()) {
+                itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
+                        .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
+                        .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
+                        .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
+            }
+            String finalItemsHtml2 = itemsHtml.toString();
+
+            Thread emailThread = new Thread(() -> {
+                try {
+                    emailService.sendOrderSuccessEmail(
+                            finalUser.getEmail(), finalUser.getHoTen(), finalMaDon2,
+                            finalNgayDat2, finalDiaChi2, finalTt2, finalGh2,
+                            finalTongTien2, finalItemsHtml2
+                    );
+                } catch (Exception ignored) {
                 }
-                String finalItemsHtml2 = itemsHtml.toString();
-
-                Thread emailThread = new Thread(() -> {
-                    try {
-                        emailService.sendOrderSuccessEmail(
-                                finalUser.getEmail(), finalUser.getHoTen(), finalMaDon2,
-                                finalNgayDat2, finalDiaChi2, finalTt2, finalGh2,
-                                finalTongTien2, finalItemsHtml2
-                        );
-                    } catch (Exception ignored) {}
-                });
-                emailThread.setDaemon(true);
-                emailThread.start();
+            });
+            emailThread.setDaemon(true);
+            emailThread.start();
 
             return "redirect:/checkout/thanh-cong/" + id;
         } catch (RuntimeException e) {
@@ -494,7 +500,9 @@ public class CheckoutController {
         Integer userId = getUserId();
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);
-            model.addAttribute("order", orderService.convertToDTO(order));
+            OrderDTO dto = orderService.convertToDTO(order);
+            model.addAttribute("order", dto);
+            model.addAttribute("items", orderService.getOrderItemsByOrder(order));
             model.addAttribute("title", "Đặt hàng thành công");
             return "view/client/order-success";
         } catch (RuntimeException e) {

@@ -39,10 +39,10 @@ public class AdminPostService {
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
     public AdminPostService(PostsRepository postsRepository,
-                            FileUploadService fileUploadService,
-                            UserRepository userRepository,
-                            PostCategoryRepository postCategoryRepository,
-                            PostTagRepository postTagRepository) {
+            FileUploadService fileUploadService,
+            UserRepository userRepository,
+            PostCategoryRepository postCategoryRepository,
+            PostTagRepository postTagRepository) {
         this.postsRepository = postsRepository;
         this.fileUploadService = fileUploadService;
         this.userRepository = userRepository;
@@ -51,7 +51,9 @@ public class AdminPostService {
     }
 
     public static String toSlug(String input) {
-        if (input == null) return null;
+        if (input == null) {
+            return null;
+        }
         String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
         String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
         String slug = NONLATIN.matcher(normalized).replaceAll("");

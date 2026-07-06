@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout">
@@ -19,17 +19,18 @@
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css}"/>
 
-    <script th:src="@{/js/main.js(v=1)}"></script>
-    <script th:src="@{/js/toast.js(v=1)}"></script>
-    <script th:src="@{/js/api.js(v=1)}"></script>
-    <script th:src="@{/js/utils.js(v=1)}"></script>
-    <script th:src="@{/js/modules/auth.js(v=1)}"></script>
-    <script th:src="@{/js/modules/product.js(v=1)}"></script>
-    <script th:src="@{/js/modules/wishlist.js(v=1)}"></script>
-    <script th:src="@{/js/modules/cart.js(v=1)}"></script>
-    <script th:src="@{/js/modules/promotion.js(v=1)}"></script>
-    <script th:src="@{/js/modules/checkout.js(v=1)}"></script>
+    <script defer th:src="@{/js/main.js(v=1)}"></script>
+    <script defer th:src="@{/js/toast.js(v=1)}"></script>
+    <script defer th:src="@{/js/api.js(v=1)}"></script>
+    <script defer th:src="@{/js/utils.js(v=1)}"></script>
+    <script defer th:src="@{/js/modules/auth.js(v=1)}"></script>
+    <script defer th:src="@{/js/modules/product.js(v=1)}"></script>
+    <script defer th:src="@{/js/modules/wishlist.js(v=1)}"></script>
+    <script defer th:src="@{/js/modules/cart.js(v=1)}"></script>
+    <script defer th:src="@{/js/modules/promotion.js(v=1)}"></script>
+    <script defer th:src="@{/js/modules/checkout.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
     <script th:inline="javascript">
         /*<![CDATA[*/
@@ -54,24 +55,14 @@
         }
         .ds-ctn-width { max-width: [[${themeSettings.get('theme_container_width') ?: '1280'}]]px !important; }
     </style>
-    <style>
-        .notif-item { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; transition: background .15s; }
-        .notif-item:hover { background: #f8f9fa; }
-        .notif-item:last-child { border-bottom: none; }
-        .notif-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .85rem; }
-        .notif-text { font-size: .82rem; color: #333; line-height: 1.4; }
-        .notif-link { font-size: .78rem; color: #0d6efd; text-decoration: none; display: inline-flex; align-items: center; }
-        .notif-link:hover { text-decoration: underline; }
-        .notif-time { font-size: .72rem; color: #999; display: block; margin-top: 2px; }
-        .cursor-pointer { cursor: pointer; }
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/base-ui.css}"/>
 </head>
 <body>
 
-<nav class="ds-navbar navbar navbar-expand-lg" th:style="'background:' + (${themeSettings.get('theme_header_bg') ?: '#ffffff'})">
+<div class="ds-bg-gradient" style="position:fixed;inset:0;z-index:-3;min-height:0;pointer-events:none;"></div>
+<div class="ds-bg-pattern"></div>
+
+<nav class="ds-navbar navbar navbar-expand-lg ds-nav-glass">
     <div class="container-xl ds-ctn-width">
         <div class="d-flex align-items-center w-100 gap-3">
 
@@ -143,7 +134,7 @@
 <div th:if="${themeSettings.get('header_cart') != '0'}" class="position-relative d-inline-block ds-cart-wrap">
     <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
         <i class="bi bi-bag"></i>
-        <span id="cartBadge" class="ds-cart-badge d-none">0</span>
+        <span id="cartBadge" class="ds-cart-badge" th:classappend="${cartCount == null or cartCount == 0} ? 'd-none'" th:text="${cartCount != null and cartCount > 99} ? '99+' : (${cartCount != null} ? ${cartCount} : '0')">0</span>
     </button>
     <div id="cart-popup" class="custom-popup" style="width: 340px;">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
@@ -160,31 +151,31 @@
                                     <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP">
                                     <i th:unless="${item.hinhAnh != null}" class="bi bi-box-seam text-secondary"></i>
                                 </div>
-                                <div class="popup-item-info flex-grow-1">
-                                    <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold" style="max-width: 180px; font-size: 0.9rem;">Tên SP</a>
-                                    <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
-                                    
-                                     <div class="d-flex align-items-center">
-                                        <div class="input-group input-group-sm" style="width: 90px;">
-                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">-</button>
-                                            <input class="form-control text-center py-0 px-1" type="number" min="1"
-                                                   th:attr="max=${item.soLuongTon}"
-                                                   th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}"
-                                                   th:onchange="'setPopupQty(' + ${uid} + ', this)'"
-                                                   onfocus="this.select()" style="font-size: 0.85rem;" />
-                                            <button class="btn btn-outline-secondary px-2 py-0" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">+</button>
-                                        </div>
-                                        
-                                        <span class="text-danger fw-semibold popup-item-price" 
-                                              th:id="'popup-price-' + ${uid}" 
+                                <div class="popup-item-info flex-grow-1 min-w-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold text-decoration-none" style="max-width: 150px; font-size: 0.9rem;">Tên SP</a>
+                                        <span class="text-danger fw-semibold popup-item-price flex-shrink-0 ms-2"
+                                              th:id="'popup-price-' + ${uid}"
                                               th:data-price="${item.giaBan}"
-                                              style="font-size: 0.9rem;" 
+                                              style="font-size: 0.85rem;"
                                               th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + 'đ'">0đ</span>
                                     </div>
+                                    <div class="small text-muted mb-2" style="font-size: 0.8rem;" th:text="${item.tenBienThe}">Biến thể</div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="ds-qty-selector">
+                                            <button class="ds-qty-btn ds-qty-minus" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', -1)'">
+                                                <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                            <input type="text" class="ds-qty-val" th:id="'popup-qty-' + ${uid}" th:value="${item.soLuong}" th:attr="data-stock=${item.soLuongTon}" th:onchange="'validatePopupQty(' + ${uid} + ', this)'">
+                                            <button class="ds-qty-btn ds-qty-plus" type="button" th:onclick="'updatePopupQty(' + ${uid} + ', 1)'">
+                                                <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                        </div>
+                                        <button class="btn-delete-item text-muted border-0 bg-transparent p-0" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ" style="line-height:1;">
+                                            <i class="bi bi-trash text-danger" style="font-size:.85rem;"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" th:onclick="'removeCartItem(' + ${uid} + ')'" title="Xóa khỏi giỏ">
-                                    <i class="bi bi-trash text-danger"></i>
-                                </button>
                             </div>
                         </div>
                         
@@ -258,19 +249,34 @@
                             title="Tài khoản" aria-label="Tài khoản">
                         <i class="bi bi-person-circle"></i>
                     </button>
-                    <div id="profile-popup" class="custom-popup" style="width:240px;">
+                    <div id="profile-popup" class="custom-popup" style="width:260px;">
                         <th:block th:if="${session.loggedIn}">
                             <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom" style="border-color:var(--ds-border);">
-                                <span class="ds-profile-avatar lg flex-shrink-0" th:text="${session.userInitial}">A</span>
+                                <div class="position-relative flex-shrink-0">
+                                    <img th:if="${session.userAvatar}" th:src="@{${session.userAvatar}}" class="ds-profile-avatar lg object-fit-cover" alt="Avatar" style="width:48px;height:48px;border-radius:50%;">
+                                    <span th:unless="${session.userAvatar}" class="ds-profile-avatar lg d-inline-flex align-items-center justify-content-center" th:text="${session.userInitial}">A</span>
+                                    <span class="position-absolute bottom-0 end-0 border border-2 border-white rounded-circle" style="width:12px;height:12px;"
+                                          th:classappend="${session.userStatus == 'ONLINE'} ? 'bg-success' : (${session.userStatus == 'AWAY'} ? 'bg-warning' : (${session.userStatus == 'DND'} ? 'bg-danger' : 'bg-secondary'))"></span>
+                                </div>
                                 <div class="text-truncate">
                                     <div class="fw-semibold text-truncate" th:text="${session.userName}" style="color:var(--ds-text);font-size:0.9rem;">User</div>
-                                    <small class="text-muted text-truncate d-block" th:text="${session.userEmail}" style="font-size:0.78rem;">user@email.com</small>
                                 </div>
                             </div>
-                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Hồ sơ</a>
-                            <a class="ds-popup-link" th:href="@{/vi-voucher}"><i class="bi bi-wallet2"></i> Ví Voucher</a>
-                            <a class="ds-popup-link" href="#"><i class="bi bi-activity"></i> Hoạt động</a>
-                            <a class="ds-popup-link" href="#"><i class="bi bi-gear"></i> Cài đặt</a>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="bi bi-pencil"></i> Sửa hồ sơ</a>
+                            <div class="ds-popup-link d-flex align-items-center justify-content-between cursor-pointer dropdown" data-bs-toggle="dropdown">
+                                <span><span class="status-dot" id="popupStatusDot" th:classappend="${session.userStatus == 'ONLINE'} ? 'status-online' : (${session.userStatus == 'AWAY'} ? 'status-away' : (${session.userStatus == 'DND'} ? 'status-dnd' : 'status-invisible'))"></span><span id="popupStatusLabel" th:text="${session.userStatus == 'ONLINE'} ? 'Trực tuyến' : (${session.userStatus == 'AWAY'} ? 'Tạm vắng' : (${session.userStatus == 'DND'} ? 'Không làm phiền' : 'Ẩn'))">Trực tuyến</span></span>
+                                <div>
+                                    <button class="ds-status-btn" type="button" tabindex="-1"><i class="bi bi-chevron-right" style="font-size:.75rem;"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-end ds-status-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('ONLINE')"><span class="ds-status-icon online"></span>Trực tuyến</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('AWAY')"><span class="ds-status-icon away"></span>Tạm vắng</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('DND')"><span class="ds-status-icon dnd"></span>Không làm phiền</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus('INVISIBLE')"><span class="ds-status-icon offline"></span>Ẩn</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#switchAccountModal"><i class="bi bi-arrow-repeat"></i> Đổi tài khoản</a>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal"><i class="bi bi-gear"></i> Cài đặt</a>
                             <a th:if="${session.userRole == 'ADMIN'}" class="ds-popup-link" href="/admin"><i class="bi bi-shield-lock"></i> Quản trị</a>
                             <form th:action="@{/dang-xuat}" method="post" class="d-block mt-2 pt-2 border-top" style="border-color:var(--ds-border);">
                                 <button type="submit" class="ds-popup-link text-danger border-0 bg-transparent w-100 text-start"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
@@ -295,42 +301,297 @@
     <th:block layout:fragment="content"></th:block>
 </main>
 
-<!-- Profile Modal -->
-<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+
+
+<!-- Settings Modal (Discord-style) -->
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-sm" style="min-height:420px;border-radius:12px;overflow:hidden;border:none;">
+            <div class="modal-body p-0 d-flex" style="background:#fff;">
+                <div class="ds-settings-sidebar">
+                    <button class="ds-settings-nav-item active" data-setting-tab="account"><i class="bi bi-person"></i>Tài khoản</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="security"><i class="bi bi-shield-lock"></i>Bảo mật</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="notifications"><i class="bi bi-bell"></i>Thông báo</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="appearance"><i class="bi bi-palette"></i>Giao diện</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="general"><i class="bi bi-sliders"></i>Chung</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="sessions"><i class="bi bi-phone"></i>Phiên đăng nhập</button>
+                    <button class="ds-settings-nav-item" data-setting-tab="delete-account" style="color:#f87171;"><i class="bi bi-trash"></i>Xóa tài khoản</button>
+                </div>
+                <div class="ds-settings-content">
+                    <!-- Tài khoản -->
+                    <div class="settings-tab-content" id="settings-account">
+                        <h6>Thông tin tài khoản</h6>
+                        <div class="ds-setting-section">
+                            <label>Họ tên</label>
+                            <input type="text" class="form-control form-control-sm" id="sHoTen" th:value="${session.userName}">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Nickname</label>
+                            <input type="text" class="form-control form-control-sm" id="sNickname" th:value="${session.userNickname}" placeholder="Tên hiển thị phụ">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Số điện thoại</label>
+                            <input type="text" class="form-control form-control-sm" id="sPhone" th:value="${session.userPhone}" placeholder="Chưa cập nhật">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Email</label>
+                            <div class="ds-setting-value" th:text="${session.userEmail}">user@email.com</div>
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Tên đăng nhập</label>
+                            <div class="ds-setting-value" th:text="${session.userUsername}">username</div>
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Vai trò</label>
+                            <div class="ds-setting-value" th:text="${session.userRole}">USER</div>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sEmailVisible" th:checked="${session.userEmailVisible == true}">
+                            <label class="form-check-label small" for="sEmailVisible">Hiển thị email</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sPhoneVisible" th:checked="${session.userPhoneVisible == true}">
+                            <label class="form-check-label small" for="sPhoneVisible">Hiển thị số điện thoại</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sEmailMarketing" th:checked="${session.userEmailMarketing != false}">
+                            <label class="form-check-label small" for="sEmailMarketing">Nhận email khuyến mãi</label>
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="saveSettingsAccount()"><i class="bi bi-floppy me-1"></i>Lưu thay đổi</button>
+                    </div>
+                    <!-- Bảo mật -->
+                    <div class="settings-tab-content d-none" id="settings-security">
+                        <h6>Đổi mật khẩu</h6>
+                        <div class="ds-setting-section">
+                            <label>Mật khẩu cũ</label>
+                            <input type="password" class="form-control form-control-sm" id="sOldPassword">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Mật khẩu mới</label>
+                            <input type="password" class="form-control form-control-sm" id="sNewPassword">
+                        </div>
+                        <div class="ds-setting-section">
+                            <label>Xác nhận mật khẩu mới</label>
+                            <input type="password" class="form-control form-control-sm" id="sConfirmPassword">
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-2" onclick="saveSettingsPassword()"><i class="bi bi-floppy me-1"></i>Đổi mật khẩu</button>
+                        <div id="settingsPassError" class="text-danger small mt-2 d-none"></div>
+                    </div>
+                    <!-- Thông báo -->
+                    <div class="settings-tab-content d-none" id="settings-notifications">
+                        <h6>Cài đặt thông báo</h6>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input setting-toggle" type="checkbox" data-key="notif_order" id="notif_order" checked>
+                            <label class="form-check-label" for="notif_order">Thông báo đơn hàng</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input setting-toggle" type="checkbox" data-key="notif_promotion" id="notif_promotion" checked>
+                            <label class="form-check-label" for="notif_promotion">Thông báo khuyến mãi</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input setting-toggle" type="checkbox" data-key="notif_system" id="notif_system" checked>
+                            <label class="form-check-label" for="notif_system">Thông báo hệ thống</label>
+                        </div>
+                    </div>
+                    <!-- Giao diện -->
+                    <div class="settings-tab-content d-none" id="settings-appearance">
+                        <h6>Giao diện</h6>
+                        <div class="ds-setting-section">
+                            <label>Chủ đề</label>
+                            <select class="form-select form-select-sm setting-select" data-key="theme_mode" style="width:auto;">
+                                <option value="light">Sáng</option>
+                                <option value="dark">Tối</option>
+                                <option value="system">Theo hệ thống</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Chung -->
+                    <div class="settings-tab-content d-none" id="settings-general">
+                        <h6>Cài đặt chung</h6>
+                        <div class="ds-setting-section">
+                            <label>Ngôn ngữ</label>
+                            <select class="form-select form-select-sm" style="width:auto;">
+                                <option value="vi">Tiếng Việt</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Phiên đăng nhập -->
+                    <div class="settings-tab-content d-none" id="settings-sessions">
+                        <h6>Phiên đăng nhập</h6>
+                        <div class="ds-setting-section">
+                            <label>Đăng xuất thiết bị</label>
+                            <p class="small text-muted">Đăng xuất khỏi tất cả thiết bị khác.</p>
+                            <button class="btn btn-outline-danger btn-sm" onclick="logoutAllDevices()">
+                                <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất mọi thiết bị
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Xóa tài khoản -->
+                    <div class="settings-tab-content d-none" id="settings-delete-account">
+                        <h6 style="color:#dc3545;">Xóa tài khoản</h6>
+                        <div class="alert alert-danger small">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Hành động này không thể hoàn tác. Tài khoản của bạn sẽ bị vô hiệu hóa.
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="deactivateAccount()">
+                            <i class="bi bi-trash me-1"></i>Vô hiệu hóa tài khoản
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Edit Profile Modal (Discord-style: left profile card + right tabs) -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-sm" style="border-radius:12px;overflow:hidden;border:none;">
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Left: Profile Card -->
+                    <div class="col-4 p-4 text-center" style="background:#f8f9fa;border-right:1px solid #e9ecef;">
+                        <div class="position-relative d-inline-block mb-2 cursor-pointer" data-bs-toggle="modal" data-bs-target="#avatarUploadModal" title="Đổi ảnh đại diện">
+                            <img th:if="${session.userAvatar}" th:src="@{${session.userAvatar}}" class="rounded-circle object-fit-cover" alt="Avatar" style="width:80px;height:80px;">
+                            <span th:unless="${session.userAvatar}" class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted" style="width:80px;height:80px;font-size:2rem;" th:text="${session.userInitial}">A</span>
+                        </div>
+                        <div class="fw-bold" th:text="${session.userName}">User</div>
+                        <div th:if="${session.userNickname}" class="small text-muted" th:text="'@' + ${session.userNickname}">@nick</div>
+                        <div th:unless="${session.userNickname}" class="small text-muted" th:text="'@' + ${session.userUsername}">@user</div>
+                        <div class="mt-3">
+                            <label class="small text-secondary d-block mb-1">Biệt danh</label>
+                            <div class="input-group input-group-sm" style="max-width:180px;margin:0 auto;">
+                                <input type="text" class="form-control text-center" id="epNickname" th:value="${session.userNickname}" placeholder="Thêm biệt danh">
+                                <button class="btn btn-primary" type="button" onclick="saveNickname()" title="Lưu"><i class="bi bi-check"></i></button>
+                            </div>
+                        </div>
+                        <hr class="my-3" style="border-color:#e9ecef;">
+                        <div class="small text-start mb-2">
+                            <span class="text-secondary">Tham gia:</span>
+                            <span class="fw-semibold" th:text="${#temporals.format(session.userCreatedAt, 'dd/MM/yyyy')}">01/01/2024</span>
+                        </div>
+                        <div class="small text-start mb-2 d-flex align-items-center justify-content-between">
+                            <span><span class="text-secondary">Đăng ký:</span> Google</span>
+                            <span th:if="${session.hasGoogleLinked == true}" class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+                            <a th:unless="${session.hasGoogleLinked == true}" href="#" class="btn btn-outline-primary btn-sm py-0 px-2" data-bs-toggle="modal" data-bs-target="#linkAccountModal" style="font-size:.75rem;">Liên kết</a>
+                        </div>
+
+                    </div>
+                    <!-- Right: Tabs -->
+                    <div class="col-8 d-flex flex-column" style="max-height:440px;">
+                        <ul class="nav nav-tabs border-bottom" style="padding:0 16px;flex-shrink:0;">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="epTabActivity" href="javascript:;" onclick="switchEpTab('activity', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Hoạt động</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="epTabWishlist" href="javascript:;" onclick="switchEpTab('wishlist', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Yêu thích</a>
+                            </li>
+                        </ul>
+                        <div class="p-3 flex-grow-1" style="overflow-y:auto;">
+                            <!-- Tab: Hoạt động -->
+                            <div id="epActivityContent">
+                                <div class="text-center py-4 text-muted" id="epActivityLoading"><i class="bi bi-arrow-repeat me-1"></i>Đang tải...</div>
+                                <div id="epActivityOrders" class="d-none"></div>
+                                <div id="epActivityReviews" class="d-none"></div>
+                            </div>
+                            <!-- Tab: Yêu thích -->
+                            <div id="epWishlistContent" class="d-none">
+                                <div th:if="${#lists.isEmpty(myWishlist)}" class="text-center py-4 text-muted">
+                                    <i class="bi bi-heartbreak" style="font-size:1.5rem;"></i>
+                                    <p class="mt-1 mb-0 small">Chưa có đồ yêu thích</p>
+                                </div>
+                                <div th:each="item : ${myWishlist}" class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom" style="border-color:#f0f0f0!important;">
+                                    <div style="width:40px;height:40px;background:#e5e5e5;border-radius:4px;overflow:hidden;flex-shrink:0;">
+                                        <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="">
+                                        <i th:unless="${item.hinhAnh != null}" class="bi bi-box-seam text-secondary d-flex align-items-center justify-content-center w-100 h-100"></i>
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-truncate d-block small fw-semibold text-dark text-decoration-none" th:text="${item.tenSanPham}">Tên SP</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Avatar Upload Modal -->
+<div class="modal fade" id="avatarUploadModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow-sm">
+            <div class="modal-header">
+                <h5 class="fw-bold">Cập nhật ảnh đại diện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <img th:if="${session.userAvatar}" th:src="@{${session.userAvatar}}" class="rounded-circle object-fit-cover" alt="Avatar" style="width:150px;height:150px;" id="avatarPreview">
+                    <span th:unless="${session.userAvatar}" class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted" style="width:150px;height:150px;font-size:4rem;" th:text="${session.userInitial}" id="avatarPreview">A</span>
+                </div>
+                <div class="d-grid gap-2">
+                    <label class="btn btn-outline-primary btn-sm mb-0">
+                        <i class="bi bi-upload me-1"></i>Chọn ảnh
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="d-none" id="avatarInput">
+                    </label>
+                    <button class="btn btn-outline-danger btn-sm" id="removeAvatarBtn" th:if="${session.userAvatar}">
+                        <i class="bi bi-trash me-1"></i>Xóa ảnh
+                    </button>
+                    <small class="text-muted">JPG, PNG, WEBP. Tối đa 5MB. Tối thiểu 300×300px</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Switch Account Modal -->
+<div class="modal fade" id="switchAccountModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow-sm">
-            <form th:action="@{/tai-khoan/cap-nhat}" method="post">
-                <div class="modal-header">
-                    <h5 class="fw-bold">Hồ sơ của tôi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="fw-bold"><i class="bi bi-arrow-repeat me-2"></i>Đổi tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="linkedAccountsList">
+                    <p class="text-muted small text-center py-3">Đang tải...</p>
                 </div>
-                <div class="modal-body">
+                <hr>
+                <a href="#" class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#linkAccountModal">
+                    <i class="bi bi-plus-circle me-1"></i>Thêm tài khoản
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Account Modal -->
+<div class="modal fade" id="linkAccountModal" tabindex="-1" aria-hidden="true" th:if="${session.loggedIn}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-sm">
+            <div class="modal-header">
+                <h5 class="fw-bold"><i class="bi bi-link me-2"></i>Liên kết tài khoản</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="linkAccountForm">
                     <div class="mb-3">
-                        <label class="form-label small text-secondary">Họ tên</label>
-                        <input type="text" name="hoTen" th:value="${session.userName}" class="form-control" required/>
+                        <label class="form-label small text-secondary">Tên đăng nhập hoặc Email</label>
+                        <input type="text" class="form-control" id="linkUsername" placeholder="username@email.com" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small text-secondary">Tên đăng nhập</label>
-                        <input type="text" th:value="${session.userUsername}" class="form-control" disabled/>
+                        <label class="form-label small text-secondary">Mật khẩu</label>
+                        <input type="password" class="form-control" id="linkPassword" placeholder="Mật khẩu" required minlength="6">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">Email</label>
-                        <input type="email" th:value="${session.userEmail}" class="form-control" disabled/>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">Số điện thoại</label>
-                        <input type="text" name="soDienThoai" th:value="${session.userPhone}" class="form-control" placeholder="Chưa cập nhật"/>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-secondary">Vai trò</label>
-                        <input type="text" th:value="${session.userRole}" class="form-control" disabled/>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-dark px-4 py-2 fw-semibold">Lưu thay đổi</button>
-                    <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold" data-bs-dismiss="modal">Hủy</button>
-                </div>
-            </form>
+                    <div id="linkAccountError" class="alert alert-danger small d-none"></div>
+                    <button type="submit" class="btn btn-primary w-100">Liên kết</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -554,7 +815,7 @@
     </div>
 </div>
 
-<footer class="ds-footer">
+<footer class="ds-footer ds-footer-glass">
     <div class="container-xl ds-ctn-width">
         <div class="ds-footer-card">
             <div class="row g-5">
@@ -614,526 +875,19 @@
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
 
-<script>
-/* ── Auth modal helpers ── */
-function togglePass(id, btn) {
-    var inp = document.getElementById(id);
-    var ico = btn.querySelector('i');
-    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'bi bi-eye'; }
-    else { inp.type = 'password'; ico.className = 'bi bi-eye-slash'; }
-    
-}
-document.addEventListener('DOMContentLoaded', function() {
-    var profileBtn = document.getElementById('btn-profile-toggle');
-    if (profileBtn) {
-        profileBtn.addEventListener('click', function() {
-            if (this.dataset.profile === 'true') { togglePopup('profile-popup'); }
-            else { showLoginPopup(); }
-        });
-    }
-});
-function switchModal(from, to) {
-    bootstrap.Modal.getInstance(document.querySelector(from))?.hide();
-    new bootstrap.Modal(document.querySelector(to)).show();
-}
-function showAuthError(el) { if (el) el.classList.add('show'); }
-function hideAuthError(el) { if (el) el.classList.remove('show'); }
-
-document.addEventListener('DOMContentLoaded', function() {
-    /* ── Login error param ── */
-    var urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('loginError')) {
-        var m = new bootstrap.Modal(document.getElementById('loginModal'));
-        m.show();
-        showAuthError(document.getElementById('loginServerError'));
-    }
-
-    /* ── Blur validation: show error when field loses focus and empty ── */
-    document.querySelectorAll('.ds-auth-field input').forEach(function(inp) {
-        var err = inp.closest('.mb-3')?.querySelector('.ds-auth-error');
-        if (!err) return;
-        inp.addEventListener('blur', function() {
-            if (!inp.value.trim()) showAuthError(err); else hideAuthError(err);
-        });
-        inp.addEventListener('input', function() {
-            if (inp.value.trim()) hideAuthError(err);
-        });
-    });
-
-    /* ── Login form ── */
-    var loginForm = document.querySelector('#loginModal form');
-    if (loginForm) {
-        loginForm.addEventListener('input', function() {
-            var email = document.getElementById('loginEmail')?.value.trim() || '';
-            var pass = document.getElementById('loginPassword')?.value.trim() || '';
-            var btn = document.getElementById('loginSubmitBtn');
-            var ok = email.length > 0 && pass.length >= 6;
-            if (btn) { btn.disabled = !ok; btn.classList.toggle('active', ok); }
-        });
-    }
-
-    /* ── Register form ── */
-    var regForm = document.getElementById('registerForm');
-    if (regForm) {
-        regForm.addEventListener('input', function() {
-            var email = document.getElementById('regEmail')?.value.trim() || '';
-            var pass = document.getElementById('regPassword')?.value.trim() || '';
-            var confirm = document.getElementById('regConfirmPass')?.value.trim() || '';
-            var terms = document.getElementById('regTerms');
-            var btn = document.getElementById('regSubmitBtn');
-            var ok = email.includes('@') && pass.length >= 6 && confirm === pass && terms?.checked;
-            if (btn) { btn.disabled = !ok; btn.classList.toggle('active', ok); }
-        });
-        document.getElementById('regTerms')?.addEventListener('change', function() { regForm.dispatchEvent(new Event('input')); });
-    }
-
-    /* ── Forgot form ── */
-    var forgotForm = document.getElementById('forgotForm');
-    if (forgotForm) {
-        forgotForm.addEventListener('input', function() {
-            var email = document.getElementById('forgotEmail')?.value.trim() || '';
-            var pass = document.getElementById('forgotPass')?.value.trim() || '';
-            var confirm = document.getElementById('forgotConfirmPass')?.value.trim() || '';
-            var btn = document.getElementById('forgotSubmitBtn');
-            var ok = email.includes('@') && pass.length >= 6 && confirm === pass;
-            if (btn) { btn.disabled = !ok; btn.classList.toggle('active', ok); }
-        });
-    }
-
-    /* ── Send code buttons ── */
-    document.querySelectorAll('.ds-auth-code-inline').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var field = this.closest('.ds-auth-field')?.querySelector('input[type="email"]');
-            var emailField = field || document.getElementById('regEmail') || document.getElementById('forgotEmail');
-            var email = emailField?.value.trim();
-            if (!email || !email.includes('@')) {
-                var errEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
-                if (errEl) { errEl.querySelector('span').textContent = 'Email không hợp lệ'; errEl.classList.add('show'); }
-                return;
-            }
-            var orig = this.textContent;
-            this.disabled = true;
-            this.textContent = 'Đang gửi...';
-            fetch('/api/auth/send-code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
-            }).then(function(r) { return r.json(); }).then(function(data) {
-                if (data.success) {
-                    btn.textContent = 'Đã gửi';
-                    setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
-                } else {
-                    btn.textContent = 'Thử lại';
-                    var errMsg = data.error || 'Gửi mã thất bại';
-                    var emailErr = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
-                    if (emailErr) { emailErr.querySelector('span').textContent = errMsg; emailErr.classList.add('show'); }
-                    setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
-                }
-            }).catch(function() {
-                btn.textContent = 'Lỗi';
-                setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
-            });
-        });
-    });
-
-    /* ── Forgot password submit ── */
-    document.getElementById('forgotForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        var email = document.getElementById('forgotEmail')?.value.trim();
-        var code = document.getElementById('forgotCode')?.value.trim();
-        var pass = document.getElementById('forgotPass')?.value.trim();
-        var btn = document.getElementById('forgotSubmitBtn');
-        if (!email || !code || !pass) return;
-        btn.disabled = true;
-        btn.textContent = 'Đang xử lý...';
-        fetch('/api/auth/verify-code', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, code: code })
-        }).then(function(r) { return r.json(); }).then(function(data) {
-            if (data.success) {
-                fetch('/quen-mat-khau', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ email: email, password: pass })
-                }).then(function(r) { return r.text(); }).then(function() {
-                    btn.textContent = 'Thành công!';
-                    setTimeout(function() {
-                        bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'))?.hide();
-                        showLoginPopup();
-                    }, 1000);
-                });
-            } else {
-                var errEl = document.getElementById('forgotCodeError');
-                if (errEl) { errEl.querySelector('span').textContent = 'Mã xác thực không đúng'; errEl.classList.add('show'); }
-                btn.disabled = false;
-                btn.textContent = 'OK';
-            }
-        }).catch(function() {
-            btn.disabled = false;
-            btn.textContent = 'OK';
-        });
-    });
-
-    
-});
-</script>   
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // --- 1. LÔ-GÍC GHI NHỚ CHO GIỎ HÀNG ---
-    const cartItems = document.querySelectorAll('#cart-items-container .popup-item');
-    let currentCartState = [];
-    cartItems.forEach(item => {
-        const qtyEl = item.querySelector('input[id^="popup-qty-"]');
-        const qty = qtyEl ? qtyEl.value : '1';
-        currentCartState.push(item.id + '-qty-' + qty);
-    });
-
-    let viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
-
-    // Badge count is managed by cart.js/wishlist.js, not shown on page load
-});
-
-/* ── HÀM BẬT/TẮT POPUP ── */
-function togglePopup(popupId) {
-    document.querySelectorAll('.custom-popup').forEach(function(popup) { 
-        if(popup.id !== popupId) popup.style.display = 'none'; 
-    });
-    
-    var popup = document.getElementById(popupId);
-    if(popup) {
-        var isOpening = (popup.style.display !== 'block');
-        popup.style.display = isOpening ? 'block' : 'none';
-        
-        if (isOpening) {
-            if (popupId === 'wishlist-popup') {
-                var wBadge = document.getElementById('wishlistBadge');
-                if(wBadge) wBadge.classList.add('d-none');
-
-                const items = document.querySelectorAll('#wishlist-items-container .popup-item');
-                let states = [];
-                items.forEach(i => states.push(i.id));
-                localStorage.setItem('viewedWishlistState', JSON.stringify(states));
-
-            } else if (popupId === 'cart-popup') {
-                var cBadge = document.getElementById('cartBadge');
-                if(cBadge) cBadge.classList.add('d-none');
-
-                const items = document.querySelectorAll('#cart-items-container .popup-item');
-                let states = [];
-                items.forEach(item => {
-                    const inp = item.querySelector('input[id^="popup-qty-"]');
-                    const qty = inp ? inp.value : '1';
-                    states.push(item.id + '-qty-' + qty);
-                });
-                localStorage.setItem('viewedCartState', JSON.stringify(states));
-            }
-        }
-    }
-}
-
-/* ── HÀM TĂNG GIẢM SỐ LƯỢNG ── */
-function updatePopupQty(itemId, delta) {
-    const qtyInput = document.getElementById('popup-qty-' + itemId);
-    const priceSpan = document.getElementById('popup-price-' + itemId);
-
-    if (!qtyInput) return;
-
-    let currentQty = parseInt(qtyInput.value) || 1;
-    let newQty = currentQty + delta;
-    let stock = parseInt(qtyInput.getAttribute('data-stock')) || 999;
-
-    if (newQty < 1) {
-        if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-            removeCartItem(itemId);
-        }
-        return;
-    }
-
-    if (newQty > stock) {
-        DuaStore.toast.warning('Chỉ còn ' + stock + ' sản phẩm trong kho');
-        qtyInput.value = stock;
-        newQty = stock;
-    }
-
-    qtyInput.value = newQty;
-
-    if (priceSpan) {
-        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
-        priceSpan.innerText = (unitPrice * newQty).toLocaleString('vi-VN') + '₫';
-    }
-
-    fetch('/api/cart/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty })
-    })
-    .then(function(r) {
-        if (r.status === 403) {
-            if (typeof showLoginPopup === 'function') showLoginPopup();
-            qtyInput.value = currentQty;
-            return null;
-        }
-        return r.json();
-    })
-    .then(data => {
-        if (!data) return;
-        if (!data.success) {
-            DuaStore.toast.error(data.message);
-            qtyInput.value = currentQty;
-            return;
-        }
-
-        const items = document.querySelectorAll('#cart-items-container .popup-item');
-        let states = [];
-        items.forEach(item => {
-            const inp = item.querySelector('input[id^="popup-qty-"]');
-            const q = inp ? inp.value : '1';
-            states.push(item.id + '-qty-' + q);
-        });
-        localStorage.setItem('viewedCartState', JSON.stringify(states));
-
-        if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-    })
-    .catch(err => {
-        console.error('Lỗi đồng bộ giỏ hàng:', err);
-        qtyInput.value = currentQty;
-    });
-}
-
-/* ── HÀM NHẬP TRỰC TIẾP SỐ LƯỢNG ── */
-function setPopupQty(itemId) {
-    const qtyInput = document.getElementById('popup-qty-' + itemId);
-    const priceSpan = document.getElementById('popup-price-' + itemId);
-    if (!qtyInput) return;
-
-    let val = parseInt(qtyInput.value) || 1;
-    let stock = parseInt(qtyInput.getAttribute('data-stock')) || 999;
-
-    if (val < 1) val = 1;
-    if (val > stock) {
-        DuaStore.toast.warning('Chỉ còn ' + stock + ' sản phẩm trong kho');
-        val = stock;
-    }
-
-    qtyInput.value = val;
-
-    if (priceSpan) {
-        let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
-        priceSpan.innerText = (unitPrice * val).toLocaleString('vi-VN') + '₫';
-    }
-
-    fetch('/api/cart/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
-    })
-    .then(function(r) {
-        if (r.status === 403) {
-            if (typeof showLoginPopup === 'function') showLoginPopup();
-            return null;
-        }
-        return r.json();
-    })
-    .then(data => {
-        if (!data) return;
-        if (!data.success) {
-            DuaStore.toast.error(data.message);
-            return;
-        }
-        if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
-    })
-    .catch(err => console.error('Lỗi cập nhật:', err));
-}
-function refreshWishlistBadgeCount() {
-    // Đếm số lượng thẻ sản phẩm đang nằm trong popup container
-    let currentCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
-    let badge = document.getElementById('wishlistBadge');
-    
-    if (!badge) return;
-    
-    if (currentCount > 0) {
-        badge.textContent = currentCount;
-        badge.classList.remove('d-none'); // Hiển thị badge che icon
-    } else {
-        badge.classList.add('d-none'); // Ẩn badge nếu không còn sản phẩm nào
-        
-        // Hiển thị trạng thái trống kèm icon trái tim tan vỡ
-        let container = document.getElementById('wishlist-items-container');
-        if (container && !container.querySelector('.bi-heartbreak')) {
-            container.innerHTML = `
-                <div class="text-center py-4 text-muted">
-                    <i class="bi bi-heartbreak" style="font-size: 2rem;"></i>
-                    <p class="mt-2 mb-0">Chưa có sản phẩm nào</p>
-                </div>
-            `;
-        }
-    }
-}
-
-/* ── THÔNG BÁO ── */
-function toggleNotifPopup() {
-    togglePopup('notif-popup');
-    var badge = document.getElementById('notifBadge');
-    if (badge && !badge.classList.contains('d-none')) {
-        fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
-            .then(function(r) {
-                if (r.status === 403) {
-                    if (typeof showLoginPopup === 'function') showLoginPopup();
-                    return null;
-                }
-                return r.text();
-            })
-            .then(function(text) {
-                if (text === null) return;
-                if (text && (text.indexOf('dang nhap') !== -1 || text.indexOf('đăng nhập') !== -1)) {
-                    if (typeof showLoginPopup === 'function') showLoginPopup();
-                    return;
-                }
-                badge.classList.add('d-none');
-            })
-            .catch(function() { badge.classList.add('d-none'); });
-    }
-}
-function markNotifRead(id) {
-    fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
-        .then(function(r) {
-            if (r.status === 403) {
-                if (typeof showLoginPopup === 'function') showLoginPopup();
-                return null;
-            }
-            return r.text();
-        })
-        .then(function(text) {
-            if (text === null) return;
-            if (text && (text.indexOf('dang nhap') !== -1 || text.indexOf('đăng nhập') !== -1)) {
-                if (typeof showLoginPopup === 'function') showLoginPopup();
-            }
-        })
-        .catch(function() {});
-}
-var _lastNotifCount = 0;
-function pollNotifications() {
-    fetch('/api/thong-bao')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            var badge = document.getElementById('notifBadge');
-            var count = data.count || 0;
-            if (badge) {
-                if (count > 0) { badge.textContent = count; badge.classList.remove('d-none'); }
-                else { badge.classList.add('d-none'); }
-            }
-            if (count > _lastNotifCount && _lastNotifCount > 0) {
-                var newNotifs = (data.notifications || []).filter(function(n) { return !n.read; });
-                if (newNotifs.length > 0) showToastNotification(newNotifs[0]);
-            }
-            _lastNotifCount = count;
-        })
-        .catch(function() {});
-}
-function showToastNotification(notif) {
-    var toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;background:#fff;border:1px solid #e0e0e0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:14px 18px;max-width:340px;animation:slideIn .3s ease;cursor:pointer;';
-    var icon = notif.linkType === 'ORDER' ? 'bi-bag-check' : notif.linkType === 'PRODUCT' ? 'bi-box-seam' : 'bi-megaphone';
-    toast.innerHTML = '<div style="display:flex;align-items-start;gap:10px;"><span style="width:32px;height:32px;border-radius:50%;background:#e7f1ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi ' + icon + '" style="color:#0d6efd;"></i></span><div style="flex:1;min-width:0;"><p style="margin:0;font-size:.85rem;color:#333;line-height:1.3;">' + (notif.content || '') + '</p><small style="color:#999;font-size:.72rem;">Vừa xong</small></div></div>';
-    toast.onclick = function() { if (notif.linkUrl) window.location.href = notif.linkUrl; };
-    document.body.appendChild(toast);
-    setTimeout(function() { toast.remove(); }, 5000);
-}
-function groupNotifications(notifs) {
-    var groups = {};
-    notifs.forEach(function(n) {
-        var match = n.content && n.content.match(/đã chuyển trạng thái.*?đơn hàng/);
-        var key = match ? 'STATUS' : (n.content || '');
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(n);
-    });
-    var result = [];
-    Object.keys(groups).forEach(function(key) {
-        if (key === 'STATUS' && groups[key].length > 1) {
-            var first = groups[key][0];
-            result.push({ id: first.id, content: groups[key].length + ' đơn hàng đã chuyển trạng thái', linkType: first.linkType, linkUrl: first.linkUrl, createdAt: first.createdAt, read: first.read });
-        } else {
-            groups[key].forEach(function(n) { result.push(n); });
-        }
-    });
-    return result;
-}
-
-function getNotifIcon(linkType) {
-    if (linkType === 'PRODUCT') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-box-seam"></i></span>';
-    if (linkType === 'PROMOTION') return '<span class="notif-icon bg-warning-subtle text-warning flex-shrink-0"><i class="bi bi-tag"></i></span>';
-    if (linkType === 'ORDER') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-bag-check"></i></span>';
-    return '<span class="notif-icon bg-primary-subtle text-primary flex-shrink-0"><i class="bi bi-megaphone"></i></span>';
-}
-
-function pollNotifications() {
-    fetch('/api/thong-bao')
-        .then(r => r.json())
-        .then(data => {
-            var badge = document.getElementById('notifBadge');
-            if (badge) {
-                if (data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.classList.remove('d-none');
-                } else {
-                    badge.classList.add('d-none');
-                }
-            }
-            var container = document.querySelector('#notif-popup .mt-2');
-            if (!container) return;
-            if (!data.notifications || data.notifications.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size: 2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
-                return;
-            }
-            var html = '';
-            data.notifications.forEach(function(n) {
-                if (n.linkType) {
-                    html += '<a href="' + n.linkUrl + '" class="text-decoration-none text-reset d-block notif-item">';
-                    html += '<div class="d-flex align-items-start gap-2">';
-                    html += getNotifIcon(n.linkType);
-                    html += '<div class="flex-grow-1 min-w-0">';
-                    html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
-                    if (n.linkLabel) {
-                        html += '<div class="mt-1"><span class="notif-link"><span>' + n.linkLabel.substring(0, 35) + '</span><i class="bi bi-arrow-right ms-1"></i></span></div>';
-                    }
-                    html += '<small class="notif-time">' + n.time + '</small>';
-                    html += '</div></div></a>';
-                } else {
-                    html += '<div class="notif-item"><div class="d-flex align-items-start gap-2">';
-                    html += getNotifIcon(null);
-                    html += '<div class="flex-grow-1 min-w-0">';
-                    html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
-                    html += '<small class="notif-time">' + n.time + '</small>';
-                    html += '</div></div></div>';
-                }
-            });
-            container.innerHTML = html;
-        })
-        .catch(function() {});
-}
-
-setInterval(pollNotifications, 15000);
-</script>
-
+<script defer th:src="@{/js/base-ui.js}"></script>
 <div id="dsToast"
      class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
      style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
 
-<script>
-function showToast(msg) {
-    var t = document.getElementById('dsToast');
-    if (!t) return;
-    t.textContent = msg;
-    t.style.opacity = '1';
-    t.style.pointerEvents = 'auto';
-    clearTimeout(t._hide);
-    t._hide = setTimeout(function() {
-        t.style.opacity = '0';
-        t.style.pointerEvents = 'none';
-    }, 3000);
-}
-</script>
+<!-- Save Bar -->
+<div id="dsSaveBar" class="ds-save-bar" style="display:none;">
+    <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>
+    <div class="ds-save-bar-actions">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="dsSaveBarReset">Đặt lại</button>
+        <button type="button" class="btn btn-primary btn-sm" id="dsSaveBarSave"><i class="bi bi-floppy me-1"></i>Lưu</button>
+    </div>
+</div>
 
 <th:block layout:fragment="extra-script"></th:block>
 

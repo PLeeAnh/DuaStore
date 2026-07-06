@@ -21,8 +21,8 @@ public class WishlistService {
     private final ProductVariantRepository variantRepository;
 
     public WishlistService(WishlistRepository wishlistRepository,
-                           ProductRepository productRepository,
-                           ProductVariantRepository variantRepository) {
+            ProductRepository productRepository,
+            ProductVariantRepository variantRepository) {
         this.wishlistRepository = wishlistRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
@@ -39,13 +39,21 @@ public class WishlistService {
     }
 
     public boolean isLiked(Integer userId, Integer productId) {
-        if (userId == null) return false;
+        if (userId == null) {
+            return false;
+        }
         return wishlistRepository.existsByUserIdAndProductId(userId, productId);
+    }
+
+    public long countByProduct(Integer productId) {
+        return wishlistRepository.countByProductId(productId);
     }
 
     @Transactional
     public boolean toggle(Integer userId, Integer productId) {
-        if (productId == null) return false;
+        if (productId == null) {
+            return false;
+        }
         if (wishlistRepository.existsByUserIdAndProductId(userId, productId)) {
             wishlistRepository.deleteByUserIdAndProductId(userId, productId);
             return false;

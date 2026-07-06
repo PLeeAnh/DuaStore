@@ -34,10 +34,10 @@ public class AdminPostController {
     private final PostTagRepository postTagRepository;
 
     public AdminPostController(AdminPostService adminPostService,
-                               UserRepository userRepository,
-                               SecurityUtil securityUtil,
-                               PostCategoryRepository postCategoryRepository,
-                               PostTagRepository postTagRepository) {
+            UserRepository userRepository,
+            SecurityUtil securityUtil,
+            PostCategoryRepository postCategoryRepository,
+            PostTagRepository postTagRepository) {
         this.adminPostService = adminPostService;
         this.userRepository = userRepository;
         this.securityUtil = securityUtil;
@@ -48,8 +48,8 @@ public class AdminPostController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            Model model) {
         Page<Post> postPage = adminPostService.getAllPosts(page, size);
 
         Map<Integer, String> tacGiaMap = new HashMap<>();
@@ -132,8 +132,12 @@ public class AdminPostController {
             dto.setLuotXem(post.getLuotXem());
             dto.setFeatured(Boolean.TRUE.equals(post.getFeatured()));
             dto.setNgayXuatBan(post.getNgayXuatBan());
-            if (post.getDanhMuc() != null) dto.setDanhMucId(post.getDanhMuc().getId());
-            if (post.getTags() != null) dto.setTagIds(post.getTags().stream().map(PostTag::getId).collect(Collectors.toSet()));
+            if (post.getDanhMuc() != null) {
+                dto.setDanhMucId(post.getDanhMuc().getId());
+            }
+            if (post.getTags() != null) {
+                dto.setTagIds(post.getTags().stream().map(PostTag::getId).collect(Collectors.toSet()));
+            }
 
             if (post.getTacGiaId() != null) {
                 userRepository.findById(post.getTacGiaId())
@@ -204,7 +208,7 @@ public class AdminPostController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_UPDATE)")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> batchUpdate(@RequestParam List<Integer> ids,
-                                                             @RequestParam String trangThai) {
+            @RequestParam String trangThai) {
         Map<String, Object> res = new HashMap<>();
         try {
             adminPostService.batchUpdateStatus(ids, trangThai);

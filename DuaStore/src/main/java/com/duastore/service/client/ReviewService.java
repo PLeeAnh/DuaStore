@@ -36,11 +36,11 @@ public class ReviewService {
     private final FileUploadService fileUploadService;
 
     public ReviewService(ReviewsRepository reviewsRepository,
-                         ProductRepository productRepository,
-                         UserRepository userRepository,
-                         OrderItemRepository orderItemRepository,
-                         EmailService emailService,
-                         FileUploadService fileUploadService) {
+            ProductRepository productRepository,
+            UserRepository userRepository,
+            OrderItemRepository orderItemRepository,
+            EmailService emailService,
+            FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
@@ -50,13 +50,21 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<ReviewDTO> getApprovedReviews(Integer productId, int page, int size, Integer currentUserId) {
+    public org.springframework.data.domain.Page<ReviewDTO> getApprovedReviews(Integer productId, int page, int size, Integer currentUserId, Integer ratingFilter) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
         org.springframework.data.domain.Page<Review> reviewPage;
-        if (currentUserId != null) {
-            reviewPage = reviewsRepository.findVisibleReviews(productId, currentUserId, pageable);
+        if (ratingFilter != null && ratingFilter >= 1 && ratingFilter <= 5) {
+            if (currentUserId != null) {
+                reviewPage = reviewsRepository.findVisibleReviewsByRating(productId, currentUserId, ratingFilter, pageable);
+            } else {
+                reviewPage = reviewsRepository.findApprovedReviewsByRating(productId, ratingFilter, pageable);
+            }
         } else {
-            reviewPage = reviewsRepository.findApprovedReviews(productId, pageable);
+            if (currentUserId != null) {
+                reviewPage = reviewsRepository.findVisibleReviews(productId, currentUserId, pageable);
+            } else {
+                reviewPage = reviewsRepository.findApprovedReviews(productId, pageable);
+            }
         }
         List<Review> reviews = reviewPage.getContent();
         Map<Integer, String> productNames = new HashMap<>();
@@ -157,14 +165,15 @@ public class ReviewService {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
                 emailService.send(
-                    "nguyenhuydung1506@gmail.com",
-                    "[DuaStore] Đánh giá mới từ " + user.getHoTen(),
-                    "<p>Sản phẩm #" + request.getProductId() + "</p>"
-                    + "<p>Đánh giá: " + request.getDanhGia() + " sao</p>"
-                    + "<p>Nội dung: " + HtmlSanitizer.sanitize(request.getBinhLuan()) + "</p>"
+                        "nguyenhuydung1506@gmail.com",
+                        "[DuaStore] Đánh giá mới từ " + user.getHoTen(),
+                        "<p>Sản phẩm #" + request.getProductId() + "</p>"
+                        + "<p>Đánh giá: " + request.getDanhGia() + " sao</p>"
+                        + "<p>Nội dung: " + HtmlSanitizer.sanitize(request.getBinhLuan()) + "</p>"
                 );
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return toDTO(review);
     }
@@ -192,11 +201,28 @@ public class ReviewService {
         return result;
     }
 
+    public Map<Integer, Long> getRatingDistribution(Integer productId) {
+        List<Object[]> rows = reviewsRepository.getRatingDistribution(productId);
+        Map<Integer, Long> dist = new HashMap<>();
+        for (int i = 1; i <= 5; i++) dist.put(i, 0L);
+        for (Object[] row : rows) {
+            dist.put(((Number) row[0]).intValue(), ((Number) row[1]).longValue());
+        }
+        return dist;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewDTO> getRecentReviewsByUser(Integer userId, int limit) {
+        return reviewsRepository.findByUserIdOrderByNgayTaoDesc(userId)
+                .stream().limit(limit).map(this::toDTO).toList();
+    }
+
     private void cleanupFile(String url) {
         if (url != null) {
             try {
                 fileUploadService.delete(url, "reviews");
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 }

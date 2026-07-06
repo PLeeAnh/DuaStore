@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,12 +32,12 @@ public class AdminCustomersController {
     private final OrderItemRepository orderItemRepository;
 
     public AdminCustomersController(UserRepository userRepository,
-                                     OrderRepository orderRepository,
-                                     AddressRepository addressRepository,
-                                     WishlistRepository wishlistRepository,
-                                     ReviewsRepository reviewsRepository,
-                                     UserVoucherRepository userVoucherRepository,
-                                     OrderItemRepository orderItemRepository) {
+            OrderRepository orderRepository,
+            AddressRepository addressRepository,
+            WishlistRepository wishlistRepository,
+            ReviewsRepository reviewsRepository,
+            UserVoucherRepository userVoucherRepository,
+            OrderItemRepository orderItemRepository) {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.addressRepository = addressRepository;
@@ -51,10 +50,10 @@ public class AdminCustomersController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_READ)")
     public String list(@RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) String status,
-                       @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "10") int size,
-                       Model model) {
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Model model) {
         model.addAttribute("title", "khach-hang");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
@@ -74,8 +73,8 @@ public class AdminCustomersController {
                 .collect(Collectors.toList());
         Map<Integer, Long> orderCountMap = new HashMap<>();
         if (!userIds.isEmpty()) {
-            orderRepository.countByUserIds(userIds).forEach(row ->
-                orderCountMap.put((Integer) row[0], (Long) row[1]));
+            orderRepository.countByUserIds(userIds).forEach(row
+                    -> orderCountMap.put((Integer) row[0], (Long) row[1]));
         }
 
         model.addAttribute("customers", userPage.getContent());

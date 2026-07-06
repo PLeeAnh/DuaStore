@@ -9,6 +9,7 @@ import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.OrderItemRepository;
+import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
@@ -17,6 +18,7 @@ import com.duastore.repository.UserVoucherRepository;
 import com.duastore.repository.WishlistRepository;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
+import com.duastore.service.PricingService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
@@ -49,21 +51,25 @@ public class HomeController {
     private final OrderItemRepository orderItemRepository;
     private final WishlistRepository wishlistRepository;
     private final ReviewsRepository reviewsRepository;
+    private final PricingService pricingService;
+    private final ProductImageRepository productImageRepository;
 
     public HomeController(ProductService productService,
-                          CategoryService categoryService,
-                          FlashSaleRepository flashSaleRepository,
-                          ProductVariantRepository variantRepository,
-                          PromotionRepository promotionRepository,
-                          ProductRepository productRepository,
-                          CategoryRepository categoryRepository,
-                          BannerService bannerService,
-                          UserVoucherRepository userVoucherRepository,
-                          SecurityUtil securityUtil,
-                          SiteSettingService siteSettingService,
-                          OrderItemRepository orderItemRepository,
-                          WishlistRepository wishlistRepository,
-                          ReviewsRepository reviewsRepository) {
+            CategoryService categoryService,
+            FlashSaleRepository flashSaleRepository,
+            ProductVariantRepository variantRepository,
+            PromotionRepository promotionRepository,
+            ProductRepository productRepository,
+            CategoryRepository categoryRepository,
+            BannerService bannerService,
+            UserVoucherRepository userVoucherRepository,
+            SecurityUtil securityUtil,
+            SiteSettingService siteSettingService,
+            OrderItemRepository orderItemRepository,
+            WishlistRepository wishlistRepository,
+            ReviewsRepository reviewsRepository,
+            PricingService pricingService,
+            ProductImageRepository productImageRepository) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -78,6 +84,8 @@ public class HomeController {
         this.orderItemRepository = orderItemRepository;
         this.wishlistRepository = wishlistRepository;
         this.reviewsRepository = reviewsRepository;
+        this.pricingService = pricingService;
+        this.productImageRepository = productImageRepository;
     }
 
     @GetMapping("/")
@@ -95,11 +103,16 @@ public class HomeController {
         // Grid class for promotions (Bootstrap responsive)
         int clampedLayout = Math.min(Math.max(promoLayout, 1), 6);
         String mdClass = switch (clampedLayout) {
-            case 1 -> "col-md-12";
-            case 2 -> "col-md-6";
-            case 3 -> "col-md-4";
-            case 4 -> "col-md-3";
-            default -> "col-md";
+            case 1 ->
+                "col-md-12";
+            case 2 ->
+                "col-md-6";
+            case 3 ->
+                "col-md-4";
+            case 4 ->
+                "col-md-3";
+            default ->
+                "col-md";
         };
         model.addAttribute("promotionGridClass", "col-6 " + mdClass);
 
@@ -114,7 +127,10 @@ public class HomeController {
 
         // Available voucher count for logged-in user
         Integer currentUserId = null;
-        try { currentUserId = securityUtil.getCurrentUserId(); } catch (Exception ignored) {}
+        try {
+            currentUserId = securityUtil.getCurrentUserId();
+        } catch (Exception ignored) {
+        }
         if (currentUserId != null) {
             model.addAttribute("voucherCount", userVoucherRepository.countByUserIdAndStatus(currentUserId, VoucherStatus.AVAILABLE));
         }
@@ -134,11 +150,11 @@ public class HomeController {
             soldCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
         }
         Map<Integer, Product> productById = productRepository.findAllById(topSellerIds).stream()
-            .collect(Collectors.toMap(Product::getId, p -> p));
+                .collect(Collectors.toMap(Product::getId, p -> p));
         List<Product> topSellers = topSellerIds.stream()
-            .map(productById::get)
-            .filter(p -> p != null && p.isActive())
-            .toList();
+                .map(productById::get)
+                .filter(p -> p != null && p.isActive())
+                .toList();
         model.addAttribute("topSellers", topSellers);
         model.addAttribute("soldCountMap", soldCountMap);
 
@@ -177,9 +193,38 @@ public class HomeController {
         model.addAttribute("ratingCountMap", ratingCountMap);
         model.addAttribute("wishlistCountMap", wishlistCountMap);
 
+        // Gallery images cho browse section
+        Map<Integer, List<String>> browseGalleryMap = new HashMap<>();
+        if (!browseProducts.isEmpty()) {
+            List<Integer> browseIds = browseProducts.stream().map(Product::getId).toList();
+            Map<Integer, String> mainImgMap = browseProducts.stream()
+                    .filter(p -> p.getHinhAnhChinh() != null)
+                    .collect(Collectors.toMap(Product::getId, Product::getHinhAnhChinh));
+            Map<Integer, List<com.duastore.model.ProductImage>> grouped = productImageRepository
+                    .findByProductIdInAndIsActiveTrue(browseIds)
+                    .stream()
+                    .collect(Collectors.groupingBy(com.duastore.model.ProductImage::getProductId));
+            for (Integer pid : browseIds) {
+                List<String> urls = new ArrayList<>();
+                if (mainImgMap.containsKey(pid)) {
+                    urls.add(mainImgMap.get(pid));
+                }
+                List<com.duastore.model.ProductImage> imgs = grouped.getOrDefault(pid, java.util.Collections.emptyList());
+                int maxBrowseImgs = 10;
+                for (com.duastore.model.ProductImage img : imgs) {
+                    if (img.getImageUrl() != null && !urls.contains(img.getImageUrl())) {
+                        if (urls.size() >= maxBrowseImgs) break;
+                        urls.add(img.getImageUrl());
+                    }
+                }
+                browseGalleryMap.put(pid, urls);
+            }
+        }
+        model.addAttribute("browseGalleryMap", browseGalleryMap);
+
         Map<Integer, Long> productCountMap = productRepository.countProductsByDanhMuc()
-            .stream()
-            .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
+                .stream()
+                .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
 
         // Aggregate child category counts into parents
         List<Category> allCategories = categoryRepository.findByIsActiveTrue();
@@ -196,7 +241,7 @@ public class HomeController {
 
         // Map danh mục ID → tên danh mục (dùng cho browse section)
         Map<Integer, String> categoryNameMap = allCategories.stream()
-            .collect(Collectors.toMap(Category::getId, Category::getTenDanhMuc, (a, b) -> a));
+                .collect(Collectors.toMap(Category::getId, Category::getTenDanhMuc, (a, b) -> a));
         model.addAttribute("categoryNameMap", categoryNameMap);
 
         // Gộp toàn bộ ID sản phẩm ở mọi khối để tính chung 1 lần variants/flashsale/promo
@@ -211,13 +256,10 @@ public class HomeController {
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
         if (!allSectionProducts.isEmpty()) {
             List<Integer> ids = allSectionProducts.stream().map(Product::getId).distinct().collect(Collectors.toList());
-            List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
-            for (FlashSale fs : activeFlashSales) {
-                flashSaleMap.put(fs.getProductId(), fs);
-            }
+            flashSaleMap = pricingService.loadActiveFlashSaleMap(ids);
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
-                .collect(Collectors.groupingBy(ProductVariant::getProductId));
+                    .collect(Collectors.groupingBy(ProductVariant::getProductId));
         }
         model.addAttribute("flashSaleMap", flashSaleMap);
         model.addAttribute("variantsMap", variantsMap);
@@ -230,7 +272,9 @@ public class HomeController {
                 String kieuNap = "Phân loại";
                 if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                     String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                    if (parts.length >= 2) kieuNap = parts[1].trim();
+                    if (parts.length >= 2) {
+                        kieuNap = parts[1].trim();
+                    }
                 } else if (v.getDungTich() != null) {
                     kieuNap = "Dung tích";
                 }
@@ -246,16 +290,16 @@ public class HomeController {
         model.addAttribute("activePromotions", activePromotions);
         BigDecimal maxPct = new BigDecimal("100");
         Promotion bestPercentagePromo = activePromotions.stream()
-            .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
-            .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         Promotion bestFixedPromo = activePromotions.stream()
-            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
 
@@ -272,11 +316,11 @@ public class HomeController {
                     BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                     if (basePrice != null) {
                         BigDecimal raw = basePrice
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                    .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                             if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
                                 raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
                             }
@@ -289,11 +333,11 @@ public class HomeController {
                     BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
                     if (basePrice != null) {
                         BigDecimal raw = basePrice
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                    .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                             if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
                                 raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
                             }
@@ -310,8 +354,14 @@ public class HomeController {
     }
 
     private int parseInt(String value, int defaultValue) {
-        if (value == null) return defaultValue;
-        try { return Integer.parseInt(value); } catch (NumberFormatException e) { return defaultValue; }
+        if (value == null) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
 }

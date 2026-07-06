@@ -3,170 +3,179 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-<head>
-    <title>Quản lý Homepage</title>
-</head>
-<body>
-<th:block layout:fragment="breadcrumb">
-    <li class="breadcrumb-item active" aria-current="page">Homepage</li>
-</th:block>
-<div layout:fragment="content">
-    <div class="adm-page-header">
-        <div>
-            <h4><i class="bi bi-house-gear me-2"></i>Quản lý nội dung trang chủ</h4>
-            <small class="text-muted">Quản lý các khu vực hiển thị trên trang chủ DuaStore</small>
+    <head>
+        <title>Quản lý Homepage</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Homepage</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-house-gear"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Quản lý nội dung trang chủ</h4>
+                            <div class="adm-detail-meta">Quản lý các khu vực hiển thị trên trang chủ DuaStore</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Slider -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-sliders fs-1 text-primary"></i>
+                        </div>
+                        <h6 class="card-title">Slider</h6>
+                        <p class="text-muted small mb-3">Banner slider hiển thị đầu trang chủ</p>
+                        <a href="/admin/banner" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-images fs-1 text-success"></i>
+                        </div>
+                        <h6 class="card-title">Banner</h6>
+                        <p class="text-muted small mb-3">Banner quảng cáo trang chủ</p>
+                        <span class="status-pill status-ACTIVE" th:text="${bannerCount + ' banner'}">0 banner</span>
+                        <a href="/admin/banner" class="btn btn-sm btn-outline-success ms-2">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sản phẩm nổi bật -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-star fs-1 text-warning"></i>
+                        </div>
+                        <h6 class="card-title">Sản phẩm nổi bật</h6>
+                        <p class="text-muted small mb-3">Sản phẩm được hiển thị nổi bật trên trang chủ</p>
+                        <span class="status-pill status-SAN_SANG" th:text="${productCount + ' sản phẩm'}">0 sản phẩm</span>
+                        <a href="/admin/san-pham" class="btn btn-sm btn-outline-warning ms-2">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh mục nổi bật -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-grid-3x3-gap fs-1 text-info"></i>
+                        </div>
+                        <h6 class="card-title">Danh mục nổi bật</h6>
+                        <p class="text-muted small mb-3">Danh mục hiển thị trên trang chủ</p>
+                        <span class="status-pill status-ACTIVE" th:text="${categoryCount + ' danh mục'}">0 danh mục</span>
+                        <a href="/admin/danh-muc" class="btn btn-sm btn-outline-info ms-2">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flash Sale -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-lightning fs-1 text-danger"></i>
+                        </div>
+                        <h6 class="card-title">Flash Sale</h6>
+                        <p class="text-muted small mb-3">Chương trình flash sale có giới hạn thời gian</p>
+                        <a href="/admin/khuyen-mai" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voucher nổi bật -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-ticket-perforated fs-1 text-success"></i>
+                        </div>
+                        <h6 class="card-title">Voucher nổi bật</h6>
+                        <p class="text-muted small mb-3">Mã giảm giá hiển thị trên trang chủ</p>
+                        <a href="/admin/khuyen-mai" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bộ sưu tập -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-collection fs-1 text-secondary"></i>
+                        </div>
+                        <h6 class="card-title">Bộ sưu tập</h6>
+                        <p class="text-muted small mb-3">Bộ sưu tập sản phẩm đặc biệt</p>
+                        <a href="/admin/san-pham" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Blog nổi bật -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-newspaper fs-1 text-primary"></i>
+                        </div>
+                        <h6 class="card-title">Blog nổi bật</h6>
+                        <p class="text-muted small mb-3">Bài viết nổi bật hiển thị trên trang chủ</p>
+                        <span class="status-pill status-XUAT_BAN" th:text="${postCount + ' bài viết'}">0 bài viết</span>
+                        <a href="/admin/bai-viet" class="btn btn-sm btn-outline-primary ms-2">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popup -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <div class="mb-3">
+                            <i class="bi bi-phone fs-1 text-dark"></i>
+                        </div>
+                        <h6 class="card-title">Popup</h6>
+                        <p class="text-muted small mb-3">Thông báo popup khi người dùng truy cập trang</p>
+                        <a href="/admin/thong-bao" class="btn btn-sm btn-outline-dark">
+                            <i class="bi bi-gear me-1"></i>Quản lý
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div class="row g-3">
-        <!-- Slider -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-sliders fs-1 text-primary"></i>
-                    </div>
-                    <h6 class="card-title">Slider</h6>
-                    <p class="text-muted small mb-3">Banner slider hiển thị đầu trang chủ</p>
-                    <a href="/admin/banner" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Banner -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-images fs-1 text-success"></i>
-                    </div>
-                    <h6 class="card-title">Banner</h6>
-                    <p class="text-muted small mb-3">Banner quảng cáo trang chủ</p>
-                    <span class="badge bg-info" th:text="${bannerCount + ' banner'}">0 banner</span>
-                    <a href="/admin/banner" class="btn btn-sm btn-outline-success ms-2">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sản phẩm nổi bật -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-star fs-1 text-warning"></i>
-                    </div>
-                    <h6 class="card-title">Sản phẩm nổi bật</h6>
-                    <p class="text-muted small mb-3">Sản phẩm được hiển thị nổi bật trên trang chủ</p>
-                    <span class="badge bg-warning text-dark" th:text="${productCount + ' sản phẩm'}">0 sản phẩm</span>
-                    <a href="/admin/san-pham" class="btn btn-sm btn-outline-warning ms-2">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Danh mục nổi bật -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-grid-3x3-gap fs-1 text-info"></i>
-                    </div>
-                    <h6 class="card-title">Danh mục nổi bật</h6>
-                    <p class="text-muted small mb-3">Danh mục hiển thị trên trang chủ</p>
-                    <span class="badge bg-info" th:text="${categoryCount + ' danh mục'}">0 danh mục</span>
-                    <a href="/admin/danh-muc" class="btn btn-sm btn-outline-info ms-2">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Flash Sale -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-lightning fs-1 text-danger"></i>
-                    </div>
-                    <h6 class="card-title">Flash Sale</h6>
-                    <p class="text-muted small mb-3">Chương trình flash sale có giới hạn thời gian</p>
-                    <a href="/admin/khuyen-mai" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Voucher nổi bật -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-ticket-perforated fs-1 text-success"></i>
-                    </div>
-                    <h6 class="card-title">Voucher nổi bật</h6>
-                    <p class="text-muted small mb-3">Mã giảm giá hiển thị trên trang chủ</p>
-                    <a href="/admin/khuyen-mai" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bộ sưu tập -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-collection fs-1 text-secondary"></i>
-                    </div>
-                    <h6 class="card-title">Bộ sưu tập</h6>
-                    <p class="text-muted small mb-3">Bộ sưu tập sản phẩm đặc biệt</p>
-                    <a href="/admin/san-pham" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Blog nổi bật -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-newspaper fs-1 text-primary"></i>
-                    </div>
-                    <h6 class="card-title">Blog nổi bật</h6>
-                    <p class="text-muted small mb-3">Bài viết nổi bật hiển thị trên trang chủ</p>
-                    <span class="badge bg-primary" th:text="${postCount + ' bài viết'}">0 bài viết</span>
-                    <a href="/admin/bai-viet" class="btn btn-sm btn-outline-primary ms-2">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Popup -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-phone fs-1 text-dark"></i>
-                    </div>
-                    <h6 class="card-title">Popup</h6>
-                    <p class="text-muted small mb-3">Thông báo popup khi người dùng truy cập trang</p>
-                    <a href="/admin/thong-bao" class="btn btn-sm btn-outline-dark">
-                        <i class="bi bi-gear me-1"></i>Quản lý
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 </body>
 </html>

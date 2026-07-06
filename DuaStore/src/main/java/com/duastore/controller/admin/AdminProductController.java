@@ -35,6 +35,18 @@ public class AdminProductController {
     private static final int LOW_STOCK_THRESHOLD = 20;
 
     private final AdminProductService productService;
+
+    private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
+        List<Category> path = new ArrayList<>();
+        Integer id = categoryId;
+        while (id != null) {
+            Category cat = categoryRepository.findById(id).orElse(null);
+            if (cat == null) break;
+            path.add(0, cat);
+            id = cat.getParent() != null ? cat.getParent().getId() : null;
+        }
+        return path;
+    }
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
@@ -43,12 +55,12 @@ public class AdminProductController {
     private final NotificationHelper notificationHelper;
 
     public AdminProductController(AdminProductService productService,
-                                   CategoryRepository categoryRepository,
-                                   ProductRepository productRepository,
-                                   ProductImageRepository productImageRepository,
-                                   ProductVariantRepository productVariantRepository,
-                                   FileUploadService fileUploadService,
-                                   NotificationHelper notificationHelper) {
+            CategoryRepository categoryRepository,
+            ProductRepository productRepository,
+            ProductImageRepository productImageRepository,
+            ProductVariantRepository productVariantRepository,
+            FileUploadService fileUploadService,
+            NotificationHelper notificationHelper) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
@@ -61,20 +73,24 @@ public class AdminProductController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       @RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) Integer danhMuc,
-                       @RequestParam(required = false) String trangThai,
-                       Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer danhMuc,
+            @RequestParam(required = false) String trangThai,
+            Model model) {
         model.addAttribute("title", "san-pham");
         model.addAttribute("productTab", "thong-tin");
 
-        if (keyword != null && keyword.isBlank()) keyword = null;
-        if (trangThai != null && trangThai.isBlank()) trangThai = null;
+        if (keyword != null && keyword.isBlank()) {
+            keyword = null;
+        }
+        if (trangThai != null && trangThai.isBlank()) {
+            trangThai = null;
+        }
 
         boolean hasFilter = (keyword != null)
-                         || danhMuc != null
-                         || (trangThai != null);
+                || danhMuc != null
+                || (trangThai != null);
 
         Page<Product> productPage;
         if (hasFilter) {
@@ -86,6 +102,9 @@ public class AdminProductController {
 
         model.addAttribute("keyword", keyword);
         model.addAttribute("danhMuc", danhMuc);
+        if (danhMuc != null) {
+            model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+        }
         model.addAttribute("trangThai", trangThai);
         List<Category> cats = categoryRepository.findByIsActiveTrue();
         model.addAttribute("categories", cats);
@@ -103,9 +122,15 @@ public class AdminProductController {
         model.addAttribute("totalStock", totalStock);
 
         Map<String, Object> filterParams = new HashMap<>();
-        if (keyword != null) filterParams.put("keyword", keyword);
-        if (danhMuc != null) filterParams.put("danhMuc", danhMuc);
-        if (trangThai != null) filterParams.put("trangThai", trangThai);
+        if (keyword != null) {
+            filterParams.put("keyword", keyword);
+        }
+        if (danhMuc != null) {
+            filterParams.put("danhMuc", danhMuc);
+        }
+        if (trangThai != null) {
+            filterParams.put("trangThai", trangThai);
+        }
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("totalItems", productPage.getTotalElements());
@@ -148,11 +173,11 @@ public class AdminProductController {
         model.addAttribute("totalStock", totalStock);
 
         BigDecimal minPrice = variants.stream()
-            .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
-            .min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                .min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
         BigDecimal maxPrice = variants.stream()
-            .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
-            .max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                .max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
 
@@ -162,9 +187,9 @@ public class AdminProductController {
     @GetMapping("/bien-the")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_READ)")
     public String variantPage(@RequestParam(defaultValue = "0") int page,
-                              @RequestParam(defaultValue = "20") int size,
-                              @RequestParam(required = false) String keyword,
-                              Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            Model model) {
         model.addAttribute("title", "san-pham");
         model.addAttribute("productTab", "bien-the");
 
@@ -185,7 +210,9 @@ public class AdminProductController {
         }
 
         Map<String, Object> filterParams = new HashMap<>();
-        if (hasFilter) filterParams.put("keyword", keyword);
+        if (hasFilter) {
+            filterParams.put("keyword", keyword);
+        }
 
         model.addAttribute("variants", variantPage.getContent());
         model.addAttribute("productNames", productNames);
@@ -208,8 +235,8 @@ public class AdminProductController {
     @GetMapping("/hinh-anh")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_READ)")
     public String imagePage(@RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "20") int size,
-                            Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            Model model) {
         model.addAttribute("title", "san-pham");
         model.addAttribute("productTab", "hinh-anh");
 
@@ -217,7 +244,7 @@ public class AdminProductController {
         Map<Integer, Integer> imageCounts = new HashMap<>();
         for (Product p : productPage.getContent()) {
             imageCounts.put(p.getId(),
-                productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(p.getId()).size());
+                    productImageRepository.findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(p.getId()).size());
         }
 
         model.addAttribute("products", productPage.getContent());
@@ -266,12 +293,13 @@ public class AdminProductController {
         if (saved != null) {
             try {
                 notificationHelper.notifyAll(
-                    "Sản phẩm mới: " + saved.getTenSanPham(),
-                    "PRODUCT", saved.getId(),
-                    "/san-pham/" + saved.getId(),
-                    saved.getTenSanPham()
+                        "Sản phẩm mới: " + saved.getTenSanPham(),
+                        "PRODUCT", saved.getId(),
+                        "/san-pham/" + saved.getId(),
+                        saved.getTenSanPham()
                 );
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         ra.addFlashAttribute("successMsg", "Thêm sản phẩm thành công");
         return "redirect:/admin/san-pham";
@@ -300,6 +328,7 @@ public class AdminProductController {
         dto.setTrangThaiSanPham(p.getTrangThaiSanPham());
         dto.setLeadTimeDays(p.getLeadTimeDays());
         dto.setFeatured(p.isFeatured());
+        dto.setNgayPhatHanh(p.getNgayPhatHanh());
 
         model.addAttribute("title", "san-pham");
         model.addAttribute("productTab", "thong-tin");
@@ -370,8 +399,8 @@ public class AdminProductController {
             return "redirect:/admin/san-pham";
         }
         int order = productImageRepository
-            .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id)
-            .size();
+                .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id)
+                .size();
         for (MultipartFile file : files) {
             if (!file.isEmpty()) {
                 String url = fileUploadService.save(file);
@@ -408,7 +437,9 @@ public class AdminProductController {
     @ResponseBody
     public ResponseEntity<?> clearMainImage(@PathVariable Integer id) {
         Product p = productService.findById(id);
-        if (p == null) return ResponseEntity.notFound().build();
+        if (p == null) {
+            return ResponseEntity.notFound().build();
+        }
         p.setHinhAnhChinh(null);
         productRepository.save(p);
         return ResponseEntity.ok().build();

@@ -31,29 +31,29 @@ public interface UserVoucherRepository extends JpaRepository<UserVoucher, Intege
 
     long countByUserIdAndStatus(Integer userId, VoucherStatus status);
 
-    @Query("SELECT uv FROM UserVoucher uv WHERE uv.userId = :userId " +
-           "AND uv.expiredAt BETWEEN :now AND :soon AND uv.status = 'AVAILABLE'")
+    @Query("SELECT uv FROM UserVoucher uv WHERE uv.userId = :userId "
+            + "AND uv.expiredAt BETWEEN :now AND :soon AND uv.status = 'AVAILABLE'")
     List<UserVoucher> findExpiringSoon(@Param("userId") Integer userId,
-                                       @Param("now") LocalDateTime now,
-                                       @Param("soon") LocalDateTime soon);
+            @Param("now") LocalDateTime now,
+            @Param("soon") LocalDateTime soon);
 
     @Modifying
-    @Query("UPDATE UserVoucher uv SET uv.status = 'EXPIRED' " +
-           "WHERE uv.expiredAt < :now AND uv.status = 'AVAILABLE'")
+    @Query("UPDATE UserVoucher uv SET uv.status = 'EXPIRED' "
+            + "WHERE uv.expiredAt < :now AND uv.status = 'AVAILABLE'")
     int expireVouchers(@Param("now") LocalDateTime now);
 
-    @Query("SELECT uv FROM UserVoucher uv WHERE uv.userId = :userId AND uv.status = 'AVAILABLE' " +
-           "AND (uv.expiredAt IS NULL OR uv.expiredAt >= :now)")
+    @Query("SELECT uv FROM UserVoucher uv WHERE uv.userId = :userId AND uv.status = 'AVAILABLE' "
+            + "AND (uv.expiredAt IS NULL OR uv.expiredAt >= :now)")
     List<UserVoucher> findAvailableByUserId(@Param("userId") Integer userId,
-                                            @Param("now") LocalDateTime now);
+            @Param("now") LocalDateTime now);
 
-    @Query("SELECT uv FROM UserVoucher uv JOIN FETCH uv.promotion p WHERE uv.userId = :userId AND uv.status = :status " +
-           "AND (:keyword IS NULL OR LOWER(p.tenChuongTrinh) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%')) " +
-           "OR LOWER(p.maCode) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%')))")
+    @Query("SELECT uv FROM UserVoucher uv JOIN FETCH uv.promotion p WHERE uv.userId = :userId AND uv.status = :status "
+            + "AND (:keyword IS NULL OR LOWER(p.tenChuongTrinh) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%')) "
+            + "OR LOWER(p.maCode) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%')))")
     Page<UserVoucher> searchByUserIdAndStatus(@Param("userId") Integer userId,
-                                               @Param("status") VoucherStatus status,
-                                               @Param("keyword") String keyword,
-                                               Pageable pageable);
+            @Param("status") VoucherStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable);
 
     @Query("SELECT uv.status, COUNT(uv) FROM UserVoucher uv GROUP BY uv.status")
     List<Object[]> countGroupByStatus();

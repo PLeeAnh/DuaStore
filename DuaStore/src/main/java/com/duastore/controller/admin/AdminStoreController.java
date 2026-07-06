@@ -20,7 +20,7 @@ public class AdminStoreController {
     private final String googleMapsApiKey;
 
     public AdminStoreController(SiteSettingService siteSettingService,
-                                @Value("${google.maps.api.key}") String googleMapsApiKey) {
+            @Value("${google.maps.api.key}") String googleMapsApiKey) {
         this.siteSettingService = siteSettingService;
         this.googleMapsApiKey = googleMapsApiKey;
     }

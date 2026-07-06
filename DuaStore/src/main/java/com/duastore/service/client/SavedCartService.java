@@ -22,8 +22,8 @@ public class SavedCartService {
     private final ProductVariantRepository variantRepository;
 
     public SavedCartService(SavedCartItemRepository savedRepository,
-                            CartItemRepository cartItemRepository,
-                            ProductVariantRepository variantRepository) {
+            CartItemRepository cartItemRepository,
+            ProductVariantRepository variantRepository) {
         this.savedRepository = savedRepository;
         this.cartItemRepository = cartItemRepository;
         this.variantRepository = variantRepository;
@@ -38,10 +38,14 @@ public class SavedCartService {
     @Transactional
     public boolean saveForLater(Integer userId, Integer variantId) {
         CartItem cartItem = cartItemRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
-        if (cartItem == null) return false;
+        if (cartItem == null) {
+            return false;
+        }
 
         ProductVariant variant = variantRepository.findById(variantId).orElse(null);
-        if (variant == null) return false;
+        if (variant == null) {
+            return false;
+        }
 
         SavedCartItem existing = savedRepository.findByUserIdAndVariantId(userId, variantId).orElse(null);
         if (existing != null) {
@@ -66,10 +70,14 @@ public class SavedCartService {
     @Transactional
     public boolean moveToCart(Integer userId, Integer savedId) {
         SavedCartItem saved = savedRepository.findById(savedId).orElse(null);
-        if (saved == null || !saved.getUserId().equals(userId)) return false;
+        if (saved == null || !saved.getUserId().equals(userId)) {
+            return false;
+        }
 
         ProductVariant variant = variantRepository.findById(saved.getVariantId()).orElse(null);
-        if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) return false;
+        if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) {
+            return false;
+        }
 
         int finalQty = Math.min(saved.getSoLuong(), variant.getSoLuongTon());
         CartItem existing = cartItemRepository.findByUserIdAndVariantId(userId, saved.getVariantId()).orElse(null);
@@ -94,7 +102,9 @@ public class SavedCartService {
     }
 
     public int count(Integer userId) {
-        if (userId == null) return 0;
+        if (userId == null) {
+            return 0;
+        }
         return savedRepository.countByUserId(userId);
     }
 

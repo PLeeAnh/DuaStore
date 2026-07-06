@@ -17,4 +17,6 @@ public interface RefundRequestRepository extends JpaRepository<RefundRequest, In
     long countByTrangThai(String trangThai);
 
     long countByTrangThaiAndNgayYeuCauBetween(String trangThai, LocalDateTime start, LocalDateTime end);
+
+    boolean existsByOrderId(Integer orderId);
 }

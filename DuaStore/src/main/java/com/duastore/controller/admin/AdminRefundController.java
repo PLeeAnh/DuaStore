@@ -25,6 +25,8 @@ public class AdminRefundController {
     public String list(Model model) {
         model.addAttribute("refunds", refundService.getAll());
         model.addAttribute("pendingCount", refundService.getPendingCount());
+        model.addAttribute("title", "hoan-tien");
+        model.addAttribute("orderTab", "hoan-tien");
         return "view/admin/refund/list";
     }
 
@@ -38,9 +40,9 @@ public class AdminRefundController {
     @PostMapping("/approve/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).REFUND_UPDATE)")
     public String approve(@PathVariable Integer id,
-                          @RequestParam(required = false) String ghiChu,
-                          @AuthenticationPrincipal UserDetails userDetails,
-                          RedirectAttributes ra) {
+            @RequestParam(required = false) String ghiChu,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes ra) {
         try {
             Integer adminId = Integer.parseInt(userDetails.getUsername());
             refundService.approve(id, adminId, ghiChu);
@@ -54,9 +56,9 @@ public class AdminRefundController {
     @PostMapping("/reject/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).REFUND_UPDATE)")
     public String reject(@PathVariable Integer id,
-                         @RequestParam(required = false) String ghiChu,
-                         @AuthenticationPrincipal UserDetails userDetails,
-                         RedirectAttributes ra) {
+            @RequestParam(required = false) String ghiChu,
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes ra) {
         try {
             Integer adminId = Integer.parseInt(userDetails.getUsername());
             refundService.reject(id, adminId, ghiChu);

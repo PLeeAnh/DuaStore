@@ -3,6 +3,7 @@ package com.duastore.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +13,9 @@ import java.util.List;
 @Entity
 @Table(name = "Products")
 public class Product {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -41,16 +44,23 @@ public class Product {
     private boolean isFeatured = false;
     private boolean isActive = true;
 
+    private LocalDate ngayPhatHanh;
+
     @Column(updatable = false)
     private LocalDateTime ngayTao;
 
     private LocalDateTime ngayCapNhat;
 
     @PrePersist
-    protected void onCreate() { ngayTao = LocalDateTime.now(); ngayCapNhat = LocalDateTime.now(); }
+    protected void onCreate() {
+        ngayTao = LocalDateTime.now();
+        ngayCapNhat = LocalDateTime.now();
+    }
 
     @PreUpdate
-    protected void onUpdate() { ngayCapNhat = LocalDateTime.now(); }
+    protected void onUpdate() {
+        ngayCapNhat = LocalDateTime.now();
+    }
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ProductVariant> variants;

@@ -11,6 +11,8 @@ import com.duastore.model.ProductVariant;
 import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.OrderItemRepository;
+import com.duastore.service.PricingService;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
@@ -52,17 +54,33 @@ public class ProductController {
     private final WishlistService wishlistService;
     private final SecurityUtil securityUtil;
     private final FileUploadService fileUploadService;
+    private final PricingService pricingService;
+    private final OrderItemRepository orderItemRepository;
+
+    private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
+        List<Category> path = new ArrayList<>();
+        Integer id = categoryId;
+        while (id != null) {
+            Category cat = categoryRepository.findById(id).orElse(null);
+            if (cat == null) break;
+            path.add(0, cat);
+            id = cat.getParent() != null ? cat.getParent().getId() : null;
+        }
+        return path;
+    }
 
     public ProductController(ProductService productService,
-                             ProductVariantRepository variantRepository,
-                             ProductImageRepository productImageRepository,
-                             CategoryRepository categoryRepository,
-                             ReviewService reviewService,
-                             FlashSaleRepository flashSaleRepository,
-                             PromotionRepository promotionRepository,
-                             WishlistService wishlistService,
-                             SecurityUtil securityUtil,
-                             FileUploadService fileUploadService) {
+            ProductVariantRepository variantRepository,
+            ProductImageRepository productImageRepository,
+            CategoryRepository categoryRepository,
+            ReviewService reviewService,
+            FlashSaleRepository flashSaleRepository,
+            PromotionRepository promotionRepository,
+            WishlistService wishlistService,
+            SecurityUtil securityUtil,
+            FileUploadService fileUploadService,
+            PricingService pricingService,
+            OrderItemRepository orderItemRepository) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -73,31 +91,44 @@ public class ProductController {
         this.wishlistService = wishlistService;
         this.securityUtil = securityUtil;
         this.fileUploadService = fileUploadService;
+        this.pricingService = pricingService;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @GetMapping("/san-pham")
     public String list(@RequestParam(required = false) Integer danhMuc,
-                       @RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) Integer dungTich,
-                       @RequestParam(required = false) String chatLieu,
-                       @RequestParam(required = false) String priceRange,
-                       @RequestParam(defaultValue = "newest") String sortBy,
-                       @RequestParam(defaultValue = "0") int page,
-                       Model model) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer dungTich,
+            @RequestParam(required = false) String chatLieu,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(defaultValue = "newest") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
         model.addAttribute("title", "san-pham");
 
-        if (keyword != null && keyword.isBlank()) keyword = null;
-        if (chatLieu != null && chatLieu.isBlank()) chatLieu = null;
-        if (priceRange != null && priceRange.isBlank()) priceRange = null;
+        if (keyword != null && keyword.isBlank()) {
+            keyword = null;
+        }
+        if (chatLieu != null && chatLieu.isBlank()) {
+            chatLieu = null;
+        }
+        if (priceRange != null && priceRange.isBlank()) {
+            priceRange = null;
+        }
 
         boolean hasFilters = (priceRange != null || dungTich != null || chatLieu != null
                 || !"newest".equals(sortBy));
 
         Page<Product> productPage;
         if (hasFilters) {
-            if (keyword != null) model.addAttribute("keyword", keyword);
+            if (keyword != null) {
+                model.addAttribute("keyword", keyword);
+            }
             if (danhMuc != null) {
-                categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
+                categoryRepository.findById(danhMuc).ifPresent(c -> {
+                    model.addAttribute("selectedCategory", c);
+                    model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+                });
             }
             productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, PAGE_SIZE);
         } else if (keyword != null && !keyword.isBlank()) {
@@ -109,7 +140,10 @@ public class ProductController {
             categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
                     .forEach(child -> categoryIds.add(child.getId()));
             productPage = productService.findByCategoriesPaged(categoryIds, page, PAGE_SIZE);
-            categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
+            categoryRepository.findById(danhMuc).ifPresent(c -> {
+                model.addAttribute("selectedCategory", c);
+                model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+            });
         } else {
             productPage = productService.getDangBanPaged(page, PAGE_SIZE);
         }
@@ -138,11 +172,8 @@ public class ProductController {
             List<Integer> ids = products.stream().map(Product::getId).collect(Collectors.toList());
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
-                .collect(Collectors.groupingBy(ProductVariant::getProductId));
-            List<FlashSale> activeFlashSales = flashSaleRepository.findActiveNow(LocalDateTime.now());
-            for (FlashSale fs : activeFlashSales) {
-                flashSaleMap.put(fs.getProductId(), fs);
-            }
+                    .collect(Collectors.groupingBy(ProductVariant::getProductId));
+            flashSaleMap.putAll(pricingService.loadActiveFlashSaleMap(ids));
         }
         model.addAttribute("variantsMap", variantsMap);
         model.addAttribute("flashSaleMap", flashSaleMap);
@@ -153,16 +184,16 @@ public class ProductController {
         model.addAttribute("activePromotions", activePromotions);
         BigDecimal maxPct = new BigDecimal("100");
         Promotion bestPercentagePromo = activePromotions.stream()
-            .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
-            .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         Promotion bestFixedPromo = activePromotions.stream()
-            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
 
@@ -179,11 +210,11 @@ public class ProductController {
                     BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                     if (basePrice != null) {
                         BigDecimal raw = basePrice
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                    .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                             if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
                                 raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
                             }
@@ -196,11 +227,11 @@ public class ProductController {
                     BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
                     if (basePrice != null) {
                         BigDecimal raw = basePrice
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                    .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                             if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
                                 raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
                             }
@@ -221,7 +252,9 @@ public class ProductController {
                 String groupKey = "Phân loại";
                 if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                     String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                    if (parts.length >= 2) groupKey = parts[1].trim();
+                    if (parts.length >= 2) {
+                        groupKey = parts[1].trim();
+                    }
                 } else if (v.getDungTich() != null) {
                     groupKey = "Dung tích";
                 }
@@ -250,10 +283,13 @@ public class ProductController {
 
     @GetMapping("/san-pham/{id}")
     public String detail(@PathVariable Integer id,
-                         @RequestParam(defaultValue = "0") int reviewPage,
-                         Model model) {
+            @RequestParam(defaultValue = "0") int reviewPage,
+            @RequestParam(required = false) Integer reviewRating,
+            Model model) {
         var product = productService.findById(id);
-        if (product == null) return "redirect:/san-pham?errorMsg=Khong+tim+thay+san+pham";
+        if (product == null) {
+            return "redirect:/san-pham?errorMsg=Khong+tim+thay+san+pham";
+        }
 
         List<ProductVariant> variants = productService.getVariants(id);
         model.addAttribute("title", product.getTenSanPham());
@@ -262,14 +298,18 @@ public class ProductController {
 
         // Build gallery images: ProductImages from DB + fallback to main + variant images
         List<ProductImage> dbImages = productImageRepository
-            .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id);
+                .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id);
         List<String> galleryImages = new ArrayList<>();
         if (!dbImages.isEmpty()) {
             for (ProductImage pi : dbImages) {
-                if (pi.getImageUrl() != null) galleryImages.add(pi.getImageUrl());
+                if (pi.getImageUrl() != null) {
+                    galleryImages.add(pi.getImageUrl());
+                }
             }
         } else {
-            if (product.getHinhAnhChinh() != null) galleryImages.add(product.getHinhAnhChinh());
+            if (product.getHinhAnhChinh() != null) {
+                galleryImages.add(product.getHinhAnhChinh());
+            }
             for (ProductVariant v : variants) {
                 if (v.getHinhAnh() != null && !galleryImages.contains(v.getHinhAnh())) {
                     galleryImages.add(v.getHinhAnh());
@@ -284,7 +324,9 @@ public class ProductController {
             String groupKey = "Khác";
             if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                 String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                if (parts.length >= 2) groupKey = parts[1].trim();
+                if (parts.length >= 2) {
+                    groupKey = parts[1].trim();
+                }
             }
             grouped.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(v);
         }
@@ -299,21 +341,26 @@ public class ProductController {
             log.warn("Loi doc likedIds o trang chi tiet san pham: {}", e.getMessage());
         }
 
+        // ── Số liệu xã hội thật: đã bán, lượt yêu thích, đánh giá trung bình ──
+        model.addAttribute("soldCount", orderItemRepository.sumSoldQuantityByProductId(id));
+        model.addAttribute("wishlistCount", wishlistService.countByProduct(id));
+        model.addAttribute("ratingSummary", reviewService.getRatingSummary(id));
+
         // Active promotions for discount badge
         LocalDateTime now = LocalDateTime.now();
         List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
         BigDecimal maxPct = new BigDecimal("100");
         Promotion bestPercentagePromo = activePromotions.stream()
-            .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
-            .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         Promotion bestFixedPromo = activePromotions.stream()
-            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
         model.addAttribute("productPromotions", activePromotions);
@@ -327,12 +374,12 @@ public class ProductController {
                 BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                 if (basePrice != null) {
                     BigDecimal raw = basePrice
-                        .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                     if (hasGiamToiDa) {
                         BigDecimal maxDiscount = bestPercentagePromo.getGiamToiDa();
                         BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (actualDiscount.compareTo(maxDiscount) > 0) {
                             raw = basePrice.subtract(maxDiscount);
                         }
@@ -353,12 +400,17 @@ public class ProductController {
 
         int reviewSize = 10;
         Integer currentUserId = null;
-        try { currentUserId = securityUtil.getCurrentUserId(); } catch (Exception e) {}
-        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId);
+        try {
+            currentUserId = securityUtil.getCurrentUserId();
+        } catch (Exception e) {
+        }
+        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId, reviewRating);
         model.addAttribute("reviews", reviewPageResult.getContent());
         model.addAttribute("reviewCurrentPage", reviewPage);
         model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
         model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
+        model.addAttribute("reviewRating", reviewRating);
+        model.addAttribute("ratingDistribution", reviewService.getRatingDistribution(id));
         if (currentUserId != null) {
             try {
                 model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
@@ -380,14 +432,14 @@ public class ProductController {
         Integer maxVolume = null;
         if (!variants.isEmpty()) {
             List<BigDecimal> prices = variants.stream()
-                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
-                .sorted().collect(Collectors.toList());
+                    .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                    .sorted().collect(Collectors.toList());
             minPrice = prices.get(0);
             maxPrice = prices.get(prices.size() - 1);
             List<Integer> volumes = variants.stream()
-                .map(ProductVariant::getDungTich)
-                .filter(Objects::nonNull)
-                .sorted().collect(Collectors.toList());
+                    .map(ProductVariant::getDungTich)
+                    .filter(Objects::nonNull)
+                    .sorted().collect(Collectors.toList());
             if (!volumes.isEmpty()) {
                 minVolume = volumes.get(0);
                 maxVolume = volumes.get(volumes.size() - 1);
@@ -406,10 +458,14 @@ public class ProductController {
             }
         }
 
-        // Category name
-        String categoryName = categoryRepository.findById(product.getDanhMucId())
-            .map(Category::getTenDanhMuc).orElse("—");
+        // Category name + breadcrumb
+        Integer catId = product.getDanhMucId();
+        String categoryName = categoryRepository.findById(catId)
+                .map(Category::getTenDanhMuc).orElse("—");
         model.addAttribute("categoryName", categoryName);
+        if (catId != null) {
+            model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(catId));
+        }
 
         List<Product> related = productService.getRelatedProducts(id, product.getDanhMucId(), 8);
         model.addAttribute("relatedProducts", related);
@@ -417,13 +473,13 @@ public class ProductController {
             List<Integer> relatedIds = related.stream().map(Product::getId).collect(Collectors.toList());
             List<ProductVariant> relatedVariants = variantRepository.findByProductIdInAndIsActiveTrue(relatedIds);
             Map<Integer, List<ProductVariant>> relatedVariantsMap = relatedVariants.stream()
-                .collect(Collectors.groupingBy(ProductVariant::getProductId));
+                    .collect(Collectors.groupingBy(ProductVariant::getProductId));
             Map<Integer, BigDecimal> relatedMinPrices = new HashMap<>();
             for (var entry : relatedVariantsMap.entrySet()) {
                 entry.getValue().stream()
-                    .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
-                    .min(BigDecimal::compareTo)
-                    .ifPresent(price -> relatedMinPrices.put(entry.getKey(), price));
+                        .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                        .min(BigDecimal::compareTo)
+                        .ifPresent(price -> relatedMinPrices.put(entry.getKey(), price));
             }
             model.addAttribute("relatedMinPrices", relatedMinPrices);
         }
@@ -433,10 +489,10 @@ public class ProductController {
 
     @PostMapping("/san-pham/{id}/danh-gia")
     public String submitReview(@PathVariable Integer id,
-                               @Valid @ModelAttribute ReviewRequestDTO request,
-                               BindingResult result,
-                               @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
-                               RedirectAttributes ra) {
+            @Valid @ModelAttribute ReviewRequestDTO request,
+            BindingResult result,
+            @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
+            RedirectAttributes ra) {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
             ra.addFlashAttribute("errorMsg", "Vui long dang nhap de danh gia");
@@ -456,7 +512,9 @@ public class ProductController {
                         urls.add(fileUploadService.save(f, "reviews"));
                     }
                 }
-                if (!urls.isEmpty()) hinhAnhUrls = String.join(",", urls);
+                if (!urls.isEmpty()) {
+                    hinhAnhUrls = String.join(",", urls);
+                }
             } catch (Exception e) {
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;
@@ -472,7 +530,6 @@ public class ProductController {
     }
 
     // ── API for variant switching (AJAX) ──
-
     @GetMapping("/api/variants/{variantId}")
     @ResponseBody
     public VariantApiDTO getVariant(@PathVariable Integer variantId) {

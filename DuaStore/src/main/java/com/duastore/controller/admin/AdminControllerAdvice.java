@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.List;
 
 @ControllerAdvice(basePackages = "com.duastore.controller.admin")
 public class AdminControllerAdvice {
@@ -19,7 +18,7 @@ public class AdminControllerAdvice {
     private final SecurityUtil securityUtil;
 
     public AdminControllerAdvice(AdminOrderService adminOrderService,
-                                 SecurityUtil securityUtil) {
+            SecurityUtil securityUtil) {
         this.adminOrderService = adminOrderService;
         this.securityUtil = securityUtil;
     }
@@ -28,7 +27,9 @@ public class AdminControllerAdvice {
     public long pendingOrders() {
         try {
             User admin = securityUtil.getCurrentUser();
-            if (admin == null) return 0;
+            if (admin == null) {
+                return 0;
+            }
             return adminOrderService.countMyPendingOrders(admin.getId());
         } catch (Exception e) {
             return 0;
@@ -37,7 +38,9 @@ public class AdminControllerAdvice {
 
     @ModelAttribute("userPermissions")
     public Set<String> getUserPermissions(Authentication auth) {
-        if (auth == null) return Set.of();
+        if (auth == null) {
+            return Set.of();
+        }
 
         Set<String> roleAuthorities = Set.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_USER");
         Set<String> perms = auth.getAuthorities().stream()
@@ -47,13 +50,13 @@ public class AdminControllerAdvice {
 
         if (auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()))) {
-            return Set.of("DASHBOARD_READ","PRODUCT_READ","CATEGORY_READ",
-                          "ORDER_READ","PROMOTION_READ","POST_READ",
-                          "REVIEW_READ","USER_READ","ROLE_READ","AUDIT_LOG_READ",
-                          "NOTIFICATION_READ","ANALYTICS_READ","CUSTOMER_READ",
-                          "HOMEPAGE_READ","STORE_READ","APPEARANCE_READ",
-                          "EMAIL_SETTING_READ","PAYMENT_SETTING_READ","SHIPPING_SETTING_READ",
-                          "BANNER_READ");
+            return Set.of("DASHBOARD_READ", "PRODUCT_READ", "CATEGORY_READ",
+                    "ORDER_READ", "PROMOTION_READ", "POST_READ",
+                    "REVIEW_READ", "USER_READ", "ROLE_READ", "AUDIT_LOG_READ",
+                    "NOTIFICATION_READ", "ANALYTICS_READ", "CUSTOMER_READ",
+                    "HOMEPAGE_READ", "STORE_READ", "APPEARANCE_READ",
+                    "EMAIL_SETTING_READ", "PAYMENT_SETTING_READ", "SHIPPING_SETTING_READ",
+                    "BANNER_READ", "FLASH_SALE_READ", "REFUND_READ");
         }
 
         return perms;

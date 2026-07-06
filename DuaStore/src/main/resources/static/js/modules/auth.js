@@ -1,7 +1,7 @@
 /* =====================================================
-   DuaStore — Module: Auth (Login / Register)
-   Dependency: api.js, toast.js, utils.js
-===================================================== */
+ DuaStore — Module: Auth (Login / Register)
+ Dependency: api.js, toast.js, utils.js
+ ===================================================== */
 'use strict';
 
 /* ═══ LOGIN POPUP ═══ */
@@ -79,7 +79,8 @@ async function registerSubmit(event) {
             form.reset();
             setTimeout(function () {
                 var m = bootstrap.Modal.getInstance(DuaStore.utils.qs('#registerModal'));
-                if (m) m.hide();
+                if (m)
+                    m.hide();
                 showLoginPopup();
             }, 1500);
         }

@@ -29,8 +29,8 @@ public class CartController {
     private final SecurityUtil securityUtil;
 
     public CartController(CartService cartService, SavedCartService savedCartService,
-                          ProductVariantRepository variantRepository,
-                          ProductRepository productRepository, SecurityUtil securityUtil) {
+            ProductVariantRepository variantRepository,
+            ProductRepository productRepository, SecurityUtil securityUtil) {
         this.cartService = cartService;
         this.savedCartService = savedCartService;
         this.variantRepository = variantRepository;
@@ -41,13 +41,19 @@ public class CartController {
     @SuppressWarnings("unchecked")
     private List<CartItemDTO> buildGuestCartItems(HttpSession session) {
         Map<Integer, Integer> guestCart = (Map<Integer, Integer>) session.getAttribute("guestCart");
-        if (guestCart == null || guestCart.isEmpty()) return List.of();
+        if (guestCart == null || guestCart.isEmpty()) {
+            return List.of();
+        }
         List<CartItemDTO> items = new ArrayList<>();
         for (Map.Entry<Integer, Integer> e : guestCart.entrySet()) {
             ProductVariant v = variantRepository.findById(e.getKey()).orElse(null);
-            if (v == null || !v.isActive()) continue;
+            if (v == null || !v.isActive()) {
+                continue;
+            }
             Product p = v.getProduct();
-            if (p == null) continue;
+            if (p == null) {
+                continue;
+            }
             CartItemDTO dto = new CartItemDTO();
             dto.setVariantId(v.getId());
             dto.setProductId(p.getId());
@@ -106,8 +112,8 @@ public class CartController {
 
     @PostMapping("/gio-hang/cap-nhat/{id}")
     public String update(@PathVariable Integer id,
-                         @RequestParam Integer soLuong,
-                         HttpSession session) {
+            @RequestParam Integer soLuong,
+            HttpSession session) {
         Integer userId = currentUserId();
         if (userId != null) {
             cartService.updateQuantity(userId, id, soLuong);
@@ -149,9 +155,13 @@ public class CartController {
 
         if (userId == null) {
             // Guest cart — store in session
-            if (variantId == null) return failResponse("Vui lòng chọn biến thể sản phẩm");
+            if (variantId == null) {
+                return failResponse("Vui lòng chọn biến thể sản phẩm");
+            }
             ProductVariant variant = variantRepository.findById(variantId).orElse(null);
-            if (variant == null || !variant.isActive()) return failResponse("Sản phẩm không tồn tại");
+            if (variant == null || !variant.isActive()) {
+                return failResponse("Sản phẩm không tồn tại");
+            }
             Map<Integer, Integer> guestCart = getGuestCart(session);
             int qty = Math.min(Math.max(quantity != null ? quantity : 1, 1), 99);
             qty = Math.min(qty, variant.getSoLuongTon());
@@ -183,7 +193,9 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> saveForLater(@RequestBody Map<String, Integer> body, HttpSession session) {
         Integer variantId = body.get("variantId");
-        if (variantId == null) return failResponse("Thiếu thông tin");
+        if (variantId == null) {
+            return failResponse("Thiếu thông tin");
+        }
         boolean ok = savedCartService.saveForLater(currentUserId(), variantId);
         Map<String, Object> data = new HashMap<>();
         data.put("success", ok);
@@ -196,7 +208,9 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> moveToCart(@RequestBody Map<String, Integer> body, HttpSession session) {
         Integer savedId = body.get("savedId");
-        if (savedId == null) return failResponse("Thiếu thông tin");
+        if (savedId == null) {
+            return failResponse("Thiếu thông tin");
+        }
         boolean ok = savedCartService.moveToCart(currentUserId(), savedId);
         Map<String, Object> data = new HashMap<>();
         data.put("success", ok);
@@ -209,7 +223,9 @@ public class CartController {
     @ResponseBody
     public Map<String, Object> removeSaved(@RequestBody Map<String, Integer> body, HttpSession session) {
         Integer savedId = body.get("savedId");
-        if (savedId == null) return failResponse("Thiếu thông tin");
+        if (savedId == null) {
+            return failResponse("Thiếu thông tin");
+        }
         savedCartService.removeSaved(currentUserId(), savedId);
         Map<String, Object> data = new HashMap<>();
         data.put("success", true);

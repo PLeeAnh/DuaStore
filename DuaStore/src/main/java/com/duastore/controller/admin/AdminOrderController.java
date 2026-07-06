@@ -52,15 +52,15 @@ public class AdminOrderController {
     private final com.duastore.repository.ProductVariantRepository variantRepository;
 
     public AdminOrderController(AdminOrderService adminOrderService,
-                                OrderService orderService,
-                                AdminLogService adminLogService,
-                                SecurityUtil securityUtil,
-                                OrderStatusLogService orderStatusLogService,
-                                OrderNoteService orderNoteService,
-                                NotificationHelper notificationHelper,
-                                OrderRepository orderRepository,
-                                com.duastore.repository.ProductRepository productRepository,
-                                com.duastore.repository.ProductVariantRepository variantRepository) {
+            OrderService orderService,
+            AdminLogService adminLogService,
+            SecurityUtil securityUtil,
+            OrderStatusLogService orderStatusLogService,
+            OrderNoteService orderNoteService,
+            NotificationHelper notificationHelper,
+            OrderRepository orderRepository,
+            com.duastore.repository.ProductRepository productRepository,
+            com.duastore.repository.ProductVariantRepository variantRepository) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
@@ -76,14 +76,16 @@ public class AdminOrderController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_READ)")
     public String listOrders(@RequestParam(defaultValue = "0") int page,
-                              @RequestParam(defaultValue = "20") int size,
-                              @RequestParam(defaultValue = "false") boolean tatCa,
-                              @RequestParam(required = false) String q,
-                              @RequestParam(required = false) String trangThai,
-                              @RequestParam(name = "trangThaiTT", required = false) String trangThaiTT,
-                              Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "false") boolean tatCa,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(name = "trangThaiTT", required = false) String trangThaiTT,
+            Model model) {
         User admin = securityUtil.getCurrentUser();
-        if (admin == null) return "redirect:/login";
+        if (admin == null) {
+            return "redirect:/login";
+        }
 
         String query = (q != null && !q.isBlank()) ? q.trim() : null;
         String filterTT = (trangThai != null && !trangThai.isBlank()) ? trangThai : null;
@@ -108,15 +110,22 @@ public class AdminOrderController {
         model.addAttribute("url", "/admin/don-hang");
         Map<String, Object> filterParams = new HashMap<>();
         filterParams.put("tatCa", tatCa);
-        if (query != null) filterParams.put("q", query);
-        if (filterTT != null) filterParams.put("trangThai", filterTT);
-        if (filterTTTT != null) filterParams.put("trangThaiTT", filterTTTT);
+        if (query != null) {
+            filterParams.put("q", query);
+        }
+        if (filterTT != null) {
+            filterParams.put("trangThai", filterTT);
+        }
+        if (filterTTTT != null) {
+            filterParams.put("trangThaiTT", filterTTTT);
+        }
         model.addAttribute("filterParams", filterParams);
         model.addAttribute("tatCa", tatCa);
         model.addAttribute("q", q);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("trangThaiTT", trangThaiTT);
         model.addAttribute("title", "don-hang");
+        model.addAttribute("orderTab", "don-hang");
 
         model.addAttribute("totalOrders", orderRepository.count());
         model.addAttribute("pendingOrdersCount", orderRepository.countByTrangThaiDon("CHO_XAC_NHAN"));
@@ -142,7 +151,9 @@ public class AdminOrderController {
             var statusLogs = orderStatusLogService.getLogsByOrder(id);
             result.put("statusLogsCount", statusLogs.size());
             for (var sl : statusLogs) {
-                if (sl.getNguoiThucHien() != null) sl.getNguoiThucHien().getHoTen();
+                if (sl.getNguoiThucHien() != null) {
+                    sl.getNguoiThucHien().getHoTen();
+                }
             }
             var notes = orderNoteService.getNotesByOrder(id);
             result.put("notesCount", notes.size());
@@ -195,10 +206,10 @@ public class AdminOrderController {
     @PostMapping("/{id}/cap-nhat-trang-thai")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
     public String updateStatus(@PathVariable Integer id,
-                                @Valid @ModelAttribute("statusDTO") OrderStatusDTO dto,
-                                BindingResult result,
-                                RedirectAttributes ra,
-                                HttpServletRequest request) {
+            @Valid @ModelAttribute("statusDTO") OrderStatusDTO dto,
+            BindingResult result,
+            RedirectAttributes ra,
+            HttpServletRequest request) {
         if (result.hasErrors()) {
             ra.addFlashAttribute("errorMsg", "Dữ liệu không hợp lệ");
             return "redirect:/admin/don-hang/" + id;
@@ -229,12 +240,13 @@ public class AdminOrderController {
                 try {
                     String statusName = AdminOrderService.getStatusName(newStatus);
                     notificationHelper.notifyAll(
-                        "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
-                        "ORDER", order.getId(),
-                        "/tai-khoan/don-hang/" + order.getId(),
-                        order.getMaDon()
+                            "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                            "ORDER", order.getId(),
+                            "/tai-khoan/don-hang/" + order.getId(),
+                            order.getMaDon()
                     );
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             String msg;
             if ("DA_HUY".equals(newStatus)) {
@@ -242,7 +254,9 @@ public class AdminOrderController {
             } else {
                 msg = "Cập nhật trạng thái thành công";
             }
-            if (stockMsg != null) msg += ". " + stockMsg;
+            if (stockMsg != null) {
+                msg += ". " + stockMsg;
+            }
             ra.addFlashAttribute("successMsg", msg);
             if ("DA_HUY".equals(newStatus)) {
                 return "redirect:/admin/don-hang";
@@ -260,8 +274,8 @@ public class AdminOrderController {
     @ResponseBody
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
     public ResponseEntity<Map<String, Object>> updateStatusInline(@PathVariable Integer id,
-                                                                    @RequestParam String trangThai,
-                                                                    HttpServletRequest request) {
+            @RequestParam String trangThai,
+            HttpServletRequest request) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             User admin = securityUtil.getCurrentUser();
@@ -287,12 +301,13 @@ public class AdminOrderController {
                 try {
                     String statusName = AdminOrderService.getStatusName(trangThai);
                     notificationHelper.notifyAll(
-                        "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
-                        "ORDER", order.getId(),
-                        "/tai-khoan/don-hang/" + order.getId(),
-                        order.getMaDon()
+                            "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                            "ORDER", order.getId(),
+                            "/tai-khoan/don-hang/" + order.getId(),
+                            order.getMaDon()
                     );
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             String msg;
             if ("DA_HUY".equals(trangThai)) {
@@ -300,7 +315,9 @@ public class AdminOrderController {
             } else {
                 msg = "Cập nhật trạng thái thành công";
             }
-            if (stockMsg != null) msg += ". " + stockMsg;
+            if (stockMsg != null) {
+                msg += ". " + stockMsg;
+            }
             if (wasUnpaid && "DA_HOAN_THANH".equals(trangThai)) {
                 msg += " Khách chưa thanh toán — bạn đã xác nhận thay khách.";
             }
@@ -364,7 +381,7 @@ public class AdminOrderController {
     @ResponseBody
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
     public ResponseEntity<Map<String, Object>> updateMaVanDon(@PathVariable Integer id,
-                                                               @RequestParam("maVanDon") String maVanDon) {
+            @RequestParam("maVanDon") String maVanDon) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
             Order order = orderRepository.findById(id).orElse(null);
@@ -387,12 +404,14 @@ public class AdminOrderController {
     @PostMapping("/{id}/phan-cong")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
     public String reassignAdmin(@PathVariable Integer id,
-                                 @RequestParam("adminId") Integer adminId,
-                                 RedirectAttributes ra,
-                                 HttpServletRequest request) {
+            @RequestParam("adminId") Integer adminId,
+            RedirectAttributes ra,
+            HttpServletRequest request) {
         try {
             User admin = securityUtil.getCurrentUser();
-            if (admin == null) return "redirect:/login";
+            if (admin == null) {
+                return "redirect:/login";
+            }
             Order order = adminOrderService.getOrderById(id);
             User newAdmin = new User();
             newAdmin.setId(adminId);
@@ -407,9 +426,9 @@ public class AdminOrderController {
     @PostMapping("/{id}/ghi-chu")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
     public String addNote(@PathVariable Integer id,
-                           @RequestParam("noiDung") String noiDung,
-                           @RequestParam(value = "tag", required = false, defaultValue = "") String tag,
-                           RedirectAttributes ra) {
+            @RequestParam("noiDung") String noiDung,
+            @RequestParam(value = "tag", required = false, defaultValue = "") String tag,
+            RedirectAttributes ra) {
         if (noiDung == null || noiDung.isBlank()) {
             ra.addFlashAttribute("errorMsg", "Nội dung ghi chú không được để trống");
             return "redirect:/admin/don-hang/" + id;

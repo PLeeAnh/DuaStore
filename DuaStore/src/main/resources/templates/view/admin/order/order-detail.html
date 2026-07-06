@@ -15,34 +15,86 @@
     <th:block layout:fragment="extra-head">
         <style>
             @media print {
-                .no-print, .adm-sidebar, .adm-topbar { display: none !important; }
-                .adm-main { margin: 0 !important; padding: 0 !important; }
-                body { background: #fff !important; }
+                .no-print, .adm-sidebar, .adm-topbar {
+                    display: none !important;
+                }
+                .adm-main {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+                body {
+                    background: #fff !important;
+                }
             }
             .oms-timeline-node {
-                width: 42px; height: 42px; border-radius: 50%;
-                display: flex; align-items: center; justify-content: center;
-                font-size: 1.1rem; transition: all .25s; position: relative; z-index: 1;
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.1rem;
+                transition: all .25s;
+                position: relative;
+                z-index: 1;
             }
-            .oms-timeline-node.done { background: #198754; color: #fff; }
-            .oms-timeline-node.current { background: #0d6efd; color: #fff; box-shadow: 0 0 0 5px rgba(13,110,253,.15); }
-            .oms-timeline-node.pending { background: #e9ecef; color: #adb5bd; }
-            .oms-timeline-node.clickable { cursor: pointer; }
-            .oms-timeline-node.clickable:hover { transform: scale(1.08); }
-            .oms-item-row img { width: 56px; height: 56px; object-fit: cover; border-radius: .5rem; border: 1px solid #eee; }
+            .oms-timeline-node.done {
+                background: #198754;
+                color: #fff;
+            }
+            .oms-timeline-node.current {
+                background: #0d6efd;
+                color: #fff;
+                box-shadow: 0 0 0 5px rgba(13,110,253,.15);
+            }
+            .oms-timeline-node.pending {
+                background: #e9ecef;
+                color: #adb5bd;
+            }
+            .oms-timeline-node.clickable {
+                cursor: pointer;
+            }
+            .oms-timeline-node.clickable:hover {
+                transform: scale(1.08);
+            }
+            .oms-item-row img {
+                width: 56px;
+                height: 56px;
+                object-fit: cover;
+                border-radius: .5rem;
+                border: 1px solid #eee;
+            }
             .oms-admin-pill {
-                width: 38px; height: 38px; border-radius: 50%; background: #e7f1ff; color: #0d6efd;
-                display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                background: #e7f1ff;
+                color: #0d6efd;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                flex-shrink: 0;
             }
             .oms-toast {
-                position: fixed; top: 20px; right: 20px; z-index: 9999;
-                min-width: 320px; max-width: 450px;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 320px;
+                max-width: 450px;
                 box-shadow: 0 10px 40px rgba(0,0,0,.15);
                 animation: oms-slide-in .3s ease-out;
             }
             @keyframes oms-slide-in {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
             }
         </style>
     </th:block>
@@ -75,6 +127,13 @@
 
             <div class="position-relative px-2 py-3">
                 <div class="d-flex justify-content-between align-items-start position-relative" style="z-index:1">
+                    <div class="position-absolute" style="top:27px; left:0; right:0; height:4px; z-index:0">
+                        <div class="bg-light h-100 w-100 position-absolute rounded"></div>
+                        <div class="h-100 position-absolute rounded"
+                             th:classappend="${order.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-success'"
+                             th:style="${'width: ' + ((currentStep - 0.5) * 100.0 / T(com.duastore.util.OrderStatusUtil).getTotalSteps()) + '%; transition: width 0.3s'}">
+                        </div>
+                    </div>
                     <div th:each="s, iter : ${T(com.duastore.util.OrderStatusUtil).getOrderedStatuses()}"
                          class="d-flex flex-column align-items-center" style="flex:1">
                         <div class="oms-timeline-node timeline-step"
@@ -96,18 +155,11 @@
                         </small>
                     </div>
                 </div>
-                <div class="position-absolute start-0 end-0 mx-4" style="height:4px; top:21px; z-index:0">
-                    <div class="bg-light h-100 w-100 position-absolute rounded"></div>
-                    <div class="h-100 position-absolute rounded"
-                         th:classappend="${order.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-success'"
-                         th:style="${'width: ' + ((currentStep - 1) * 100.0 / (T(com.duastore.util.OrderStatusUtil).getTotalSteps() - 1)) + '%; transition: width 0.3s'}">
-                    </div>
-                </div>
             </div>
             <div id="timelineMessage" class="mt-1 small"></div>
         </div>
 
-        
+
 
         <!-- SPLIT LAYOUT: 7/5 -->
         <div class="row g-4 mt-2">
@@ -130,10 +182,11 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-2 oms-item-row" style="cursor:pointer"
                                              th:data-productid="${item.productId}" onclick="openProductQuickView(this.dataset.productid)">
-                                            <img th:if="${item.hinhAnhSP}" th:src="@{${item.hinhAnhSP}}" alt="" />
+                                            <img th:if="${item.hinhAnhSP}" th:src="@{${item.hinhAnhSP}}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px" />
                                             <img th:unless="${item.hinhAnhSP}" src="https://via.placeholder.com/56" alt="" />
                                             <div>
                                                 <div class="fw-semibold small" th:text="${item.tenSanPham}"></div>
+                                                <span th:if="${item.loaiGia == 'FLASH_SALE'}" class="badge bg-danger" style="font-size:.6rem">Flash Sale</span>
                                                 <div class="text-muted small" th:text="${item.tenBienThe}"></div>
                                             </div>
                                         </div>
@@ -163,7 +216,7 @@
                               th:text="${T(com.duastore.util.PaymentStatusUtil).getPaymentMethodLabel(order.phuongThucTT)}"></span>
                         <span class="text-muted mx-1">|</span>
                         <span class="text-muted small"
-                              th:text="${order.phuongThucGiaoHang == 'NHAN_TAI_CONG' ? 'Nhận tại cửa hàng' : 'Giao hàng tiêu chuẩn'}"></span>
+                              th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao hàng nhanh' : 'Giao hàng an toàn'}"></span>
                         <span class="text-muted mx-1">|</span>
                         <span class="text-muted small" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></span>
                     </div>
@@ -284,7 +337,7 @@
                     <div class="small">
                         <div class="d-flex justify-content-between mb-1">
                             <span class="text-muted">Phương thức</span>
-                            <span class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'NHAN_TAI_CONG' ? 'Nhận tại cửa hàng' : 'Giao hàng tiêu chuẩn'}"></span>
+                            <span class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao hàng nhanh' : 'Giao hàng an toàn'}"></span>
                         </div>
                         <div class="d-flex justify-content-between mb-1 align-items-center">
                             <span class="text-muted">Mã vận đơn</span>
@@ -308,7 +361,7 @@
                                         th:onclick="'cancelMaVanDon(' + ${order.id} + ')'"><i class="bi bi-x-lg"></i></button>
                             </div>
                         </div>
-                        <div th:if="${order.phuongThucGiaoHang != 'NHAN_TAI_CONG'}" class="mt-2 p-2 bg-light rounded">
+                        <div class="mt-2 p-2 bg-light rounded">
                             <div class="text-muted small">
                                 <i class="bi bi-clock-history me-1"></i>Trạng thái hành trình:
                                 <span th:if="${order.trangThaiDon == 'DANG_GIAO'}" class="text-primary fw-semibold">Đang được vận chuyển</span>
@@ -355,13 +408,13 @@
                     </div>
                     <div th:if="${not #lists.isEmpty(statusLogs)}" class="position-relative ps-4" style="border-left:2px solid #e9ecef; max-height:400px; overflow-y:auto">
                         <div th:each="log : ${statusLogs}" class="position-relative pb-3 mb-3" style="border-bottom:1px solid #f1f3f5">
-<span class="position-absolute dot-indicator"
-                              th:classappend="${T(com.duastore.util.OrderStatusUtil).getBadgeClass(log.loaiSuKien)}"
-                              style="width:14px;height:14px;border-radius:50%;left:-23px;top:4px;border:3px solid #fff;box-shadow:0 0 0 3px rgba(0,0,0,.08)"></span>
+                            <span class="position-absolute dot-indicator"
+                                  th:classappend="${T(com.duastore.util.OrderStatusUtil).getBadgeClass(log.loaiSuKien)}"
+                                  style="width:14px;height:14px;border-radius:50%;left:-23px;top:4px;border:3px solid #fff;box-shadow:0 0 0 3px rgba(0,0,0,.08)"></span>
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="fw-semibold small text-dark">
-<i th:classappend="${'bi ' + T(com.duastore.util.OrderStatusUtil).getIconClass(log.loaiSuKien) + ' ' + T(com.duastore.util.OrderStatusUtil).getIconColorClass(log.loaiSuKien)}"
-                                      class="me-1"></i>
+                                    <i th:classappend="${'bi ' + T(com.duastore.util.OrderStatusUtil).getIconClass(log.loaiSuKien) + ' ' + T(com.duastore.util.OrderStatusUtil).getIconColorClass(log.loaiSuKien)}"
+                                       class="me-1"></i>
                                     <span th:switch="${log.loaiSuKien.name()}">
                                         <span th:case="'CREATE_ORDER'">Đơn hàng được khởi tạo</span>
                                         <span th:case="'ASSIGN_ADMIN'" th:text="${log.ghiChu != null ? log.ghiChu : 'Phân công admin'}"></span>
@@ -382,7 +435,7 @@
                                 <span th:switch="${log.loaiSuKien.name()}">
                                     <span th:case="'CREATE_ORDER'">Đơn tạo thành công từ Web Portal DuaStore</span>
                                     <span th:case="'STATUS_CHANGE'">Admin <strong class="text-dark" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'Hệ thống'}"></strong> cập nhật trạng thái đơn
-                                            <span th:if="${log.ghiChu != null and !log.ghiChu.isEmpty()}" class="d-block small text-muted mt-1" th:text="${log.ghiChu}"></span></span>
+                                        <span th:if="${log.ghiChu != null and !log.ghiChu.isEmpty()}" class="d-block small text-muted mt-1" th:text="${log.ghiChu}"></span></span>
                                     <span th:case="'CANCEL_ORDER'">
                                         <span th:if="${log.ghiChu}" th:text="${'Lý do: ' + log.ghiChu}"></span>
                                         <span th:unless="${log.ghiChu}">Khách hàng yêu cầu hủy đơn</span>
@@ -398,7 +451,7 @@
                     </div>
                 </div>
 
-                </div>
+            </div>
         </div>
 
         <!-- ASSIGN MODAL -->
@@ -457,132 +510,154 @@
 
     <th:block layout:fragment="extra-script">
         <script th:inline="javascript">
-        (function() {
-            var orderId = /*[[${order.id}]]*/ 0;
-            var currentStep = /*[[${currentStep}]]*/ 1;
-            var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
-            var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
-
-            function postStatus(status) {
-                var headers = { };
-                if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
-                return fetch('/admin/don-hang/api/' + orderId + '/cap-nhat-trang-thai?trangThai=' + status,
-                    { method: 'POST', headers: headers }).then(function(r) { return r.json(); });
-            }
-
-            // Show error toast
-            function showErrorToast(msg) {
-                var el = document.getElementById('errorToast');
-                if (!el) {
-                    el = document.createElement('div');
-                    el.id = 'errorToast';
-                    el.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5';
-                    el.style.zIndex = '9999';
-                    document.body.appendChild(el);
-                }
-                el.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>' + msg +
-                    '<button type="button" class="btn-close ms-3" data-bs-dismiss="alert"></button>';
-                el.classList.remove('d-none');
-                setTimeout(function() { el.classList.add('d-none'); }, 6000);
-            }
-
-            // Clickable timeline nodes
-            document.querySelectorAll('.timeline-step.clickable').forEach(function(el) {
-                el.addEventListener('click', function() {
-                    var status = this.dataset.status;
-                    var stepIndex = parseInt(this.dataset.stepindex);
-                    if (!status) return;
-                    if (stepIndex === currentStep) return;
-                    var node = this;
-                    node.style.opacity = '0.5';
-                    postStatus(status).then(function(data) {
-                        if (data.success) {
-                            location.reload();
-                        } else {
-                            if (data.message) showErrorToast(data.message);
-                            node.style.opacity = '1';
-                        }
-                    }).catch(function() { node.style.opacity = '1'; });
-                });
-            });
-
-            // Inline edit maVanDon
-            window.editMaVanDon = function(orderId) {
-                document.getElementById('maVanDonText-' + orderId).classList.add('d-none');
-                document.getElementById('maVanDonBtn-' + orderId).classList.add('d-none');
-                document.getElementById('maVanDonInput-' + orderId).classList.remove('d-none');
-                document.getElementById('maVanDonSave-' + orderId).classList.remove('d-none');
-                document.getElementById('maVanDonCancel-' + orderId).classList.remove('d-none');
-                document.getElementById('maVanDonInput-' + orderId).focus();
-            };
-            window.saveMaVanDon = function(orderId) {
-                var input = document.getElementById('maVanDonInput-' + orderId);
-                var val = input.value.trim();
-                if (!val) { showErrorToast('Mã vận đơn không được để trống'); return; }
-                var headers = {};
+            (function () {
+                var orderId = /*[[${order.id}]]*/ 0;
+                var currentStep = /*[[${currentStep}]]*/ 1;
                 var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
                 var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
-                if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
-                fetch('/admin/don-hang/api/' + orderId + '/cap-nhat-ma-van-don?maVanDon=' + encodeURIComponent(val),
-                    { method: 'POST', headers: headers })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.success) { location.reload(); }
-                    else { showErrorToast(data.message || 'Lỗi'); }
-                });
-            };
-            window.cancelMaVanDon = function(orderId) {
-                document.getElementById('maVanDonText-' + orderId).classList.remove('d-none');
-                document.getElementById('maVanDonBtn-' + orderId).classList.remove('d-none');
-                document.getElementById('maVanDonInput-' + orderId).classList.add('d-none');
-                document.getElementById('maVanDonSave-' + orderId).classList.add('d-none');
-                document.getElementById('maVanDonCancel-' + orderId).classList.add('d-none');
-            };
 
-            // Product quick view
-            window.openProductQuickView = function(productId) {
-                if (!productId) return;
-                var body = document.getElementById('qvBody');
-                body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>';
-                var modal = new bootstrap.Modal(document.getElementById('productQuickViewModal'));
-                modal.show();
-                fetch('/admin/don-hang/api/san-pham/' + productId + '/quick-view')
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (!data.success) {
-                        body.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Lỗi tải dữ liệu') + '</div>';
+                function postStatus(status) {
+                    var headers = {};
+                    if (csrfHeader && csrfToken)
+                        headers[csrfHeader] = csrfToken;
+                    return fetch('/admin/don-hang/api/' + orderId + '/cap-nhat-trang-thai?trangThai=' + status,
+                            {method: 'POST', headers: headers}).then(function (r) {
+                        return r.json();
+                    });
+                }
+
+                // Show error toast
+                function showErrorToast(msg) {
+                    var el = document.getElementById('errorToast');
+                    if (!el) {
+                        el = document.createElement('div');
+                        el.id = 'errorToast';
+                        el.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5';
+                        el.style.zIndex = '9999';
+                        document.body.appendChild(el);
+                    }
+                    el.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>' + msg +
+                            '<button type="button" class="btn-close ms-3" data-bs-dismiss="alert"></button>';
+                    el.classList.remove('d-none');
+                    setTimeout(function () {
+                        el.classList.add('d-none');
+                    }, 6000);
+                }
+
+                // Clickable timeline nodes
+                document.querySelectorAll('.timeline-step.clickable').forEach(function (el) {
+                    el.addEventListener('click', function () {
+                        var status = this.dataset.status;
+                        var stepIndex = parseInt(this.dataset.stepindex);
+                        if (!status)
+                            return;
+                        if (stepIndex === currentStep)
+                            return;
+                        var node = this;
+                        node.style.opacity = '0.5';
+                        postStatus(status).then(function (data) {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                if (data.message)
+                                    showErrorToast(data.message);
+                                node.style.opacity = '1';
+                            }
+                        }).catch(function () {
+                            node.style.opacity = '1';
+                        });
+                    });
+                });
+
+                // Inline edit maVanDon
+                window.editMaVanDon = function (orderId) {
+                    document.getElementById('maVanDonText-' + orderId).classList.add('d-none');
+                    document.getElementById('maVanDonBtn-' + orderId).classList.add('d-none');
+                    document.getElementById('maVanDonInput-' + orderId).classList.remove('d-none');
+                    document.getElementById('maVanDonSave-' + orderId).classList.remove('d-none');
+                    document.getElementById('maVanDonCancel-' + orderId).classList.remove('d-none');
+                    document.getElementById('maVanDonInput-' + orderId).focus();
+                };
+                window.saveMaVanDon = function (orderId) {
+                    var input = document.getElementById('maVanDonInput-' + orderId);
+                    var val = input.value.trim();
+                    if (!val) {
+                        showErrorToast('Mã vận đơn không được để trống');
                         return;
                     }
-                    var p = data.product;
-                    var html = '<div class="row g-4">';
-                    html += '<div class="col-md-5 text-center">';
-                    html += p.hinhAnh ? '<img src="' + p.hinhAnh + '" class="img-fluid rounded" style="max-height:300px;object-fit:contain">' : '<i class="bi bi-image text-muted" style="font-size:5rem;"></i>';
-                    html += '</div><div class="col-md-7">';
-                    html += '<h5 class="fw-bold">' + (p.tenSanPham || '') + '</h5>';
-                    html += '<p class="text-muted small mt-2">' + (p.moTa || '') + '</p>';
-                    html += '<hr>';
-                    if (data.variants && data.variants.length > 0) {
-                        html += '<h6 class="fw-semibold">Biến thể</h6>';
-                        html += '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Tên</th><th class="text-end">Giá gốc</th><th class="text-end">Giá KM</th><th class="text-center">Tồn kho</th></tr></thead><tbody>';
-                        data.variants.forEach(function(v) {
-                            html += '<tr>';
-                            html += '<td>' + (v.tenBienThe || 'Mặc định') + '</td>';
-                            html += '<td class="text-end">' + (v.giaGoc ? Number(v.giaGoc).toLocaleString('vi-VN') + '&#x20AB;' : '-') + '</td>';
-                            html += '<td class="text-end">' + (v.giaKhuyenMai ? Number(v.giaKhuyenMai).toLocaleString('vi-VN') + '&#x20AB;' : '-') + '</td>';
-                            html += '<td class="text-center">' + (v.soLuongTon != null ? v.soLuongTon : '?') + '</td>';
-                            html += '</tr>';
-                        });
-                        html += '</tbody></table></div>';
-                    }
-                    html += '</div></div>';
-                    body.innerHTML = html;
-                })
-                .catch(function() {
-                    body.innerHTML = '<div class="alert alert-danger">Lỗi kết nối</div>';
-                });
-            };
-        })();
+                    var headers = {};
+                    var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
+                    var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+                    if (csrfHeader && csrfToken)
+                        headers[csrfHeader] = csrfToken;
+                    fetch('/admin/don-hang/api/' + orderId + '/cap-nhat-ma-van-don?maVanDon=' + encodeURIComponent(val),
+                            {method: 'POST', headers: headers})
+                            .then(function (r) {
+                                return r.json();
+                            })
+                            .then(function (data) {
+                                if (data.success) {
+                                    location.reload();
+                                } else {
+                                    showErrorToast(data.message || 'Lỗi');
+                                }
+                            });
+                };
+                window.cancelMaVanDon = function (orderId) {
+                    document.getElementById('maVanDonText-' + orderId).classList.remove('d-none');
+                    document.getElementById('maVanDonBtn-' + orderId).classList.remove('d-none');
+                    document.getElementById('maVanDonInput-' + orderId).classList.add('d-none');
+                    document.getElementById('maVanDonSave-' + orderId).classList.add('d-none');
+                    document.getElementById('maVanDonCancel-' + orderId).classList.add('d-none');
+                };
+
+                // Product quick view
+                window.openProductQuickView = function (productId) {
+                    if (!productId)
+                        return;
+                    var body = document.getElementById('qvBody');
+                    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>';
+                    var modal = new bootstrap.Modal(document.getElementById('productQuickViewModal'));
+                    modal.show();
+                    fetch('/admin/don-hang/api/san-pham/' + productId + '/quick-view')
+                            .then(function (r) {
+                                return r.json();
+                            })
+                            .then(function (data) {
+                                if (!data.success) {
+                                    body.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Lỗi tải dữ liệu') + '</div>';
+                                    return;
+                                }
+                                var p = data.product;
+                                var html = '<div class="row g-4">';
+                                html += '<div class="col-md-5 text-center">';
+                                html += p.hinhAnh ? '<img src="' + p.hinhAnh + '" class="img-fluid rounded" style="max-height:300px;object-fit:contain">' : '<i class="bi bi-image text-muted" style="font-size:5rem;"></i>';
+                                html += '</div><div class="col-md-7">';
+                                html += '<h5 class="fw-bold">' + (p.tenSanPham || '') + '</h5>';
+                                html += '<p class="text-muted small mt-2">' + (p.moTa || '') + '</p>';
+                                html += '<hr>';
+                                if (data.variants && data.variants.length > 0) {
+                                    html += '<h6 class="fw-semibold">Biến thể</h6>';
+                                    html += '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Tên</th><th class="text-end">Giá gốc</th><th class="text-end">Giá KM</th><th class="text-center">Tồn kho</th></tr></thead><tbody>';
+                                    data.variants.forEach(function (v) {
+                                        html += '<tr>';
+                                        html += '<td>' + (v.tenBienThe || 'Mặc định') + '</td>';
+                                        html += '<td class="text-end">' + (v.giaGoc ? Number(v.giaGoc).toLocaleString('vi-VN') + '&#x20AB;' : '-') + '</td>';
+                                        html += '<td class="text-end">' + (v.giaKhuyenMai ? Number(v.giaKhuyenMai).toLocaleString('vi-VN') + '&#x20AB;' : '-') + '</td>';
+                                        html += '<td class="text-center">' + (v.soLuongTon != null ? v.soLuongTon : '?') + '</td>';
+                                        html += '</tr>';
+                                    });
+                                    html += '</tbody></table></div>';
+                                }
+                                html += '</div></div>';
+                                body.innerHTML = html;
+                            })
+                            .catch(function () {
+                                body.innerHTML = '<div class="alert alert-danger">Lỗi kết nối</div>';
+                            });
+                };
+            })();
         </script>
     </th:block>
-    </body>
+</body>
 </html>

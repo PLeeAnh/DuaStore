@@ -2,6 +2,8 @@ package com.duastore.controller.admin;
 
 import com.duastore.model.Promotion;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.ProductRepository;
+import com.duastore.repository.CategoryRepository;
 import com.duastore.service.admin.AdminPromotionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -23,20 +25,32 @@ public class AdminPromotionController {
 
     private final AdminPromotionService adminPromotionService;
     private final PromotionRepository promotionRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
     public AdminPromotionController(AdminPromotionService adminPromotionService,
-                                    PromotionRepository promotionRepository) {
+            PromotionRepository promotionRepository,
+            ProductRepository productRepository,
+            CategoryRepository categoryRepository) {
         this.adminPromotionService = adminPromotionService;
         this.promotionRepository = promotionRepository;
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+    }
+
+    @ModelAttribute
+    public void addTargetModels(Model model) {
+        model.addAttribute("categories", categoryRepository.findByIsActiveTrue());
+        model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
     }
 
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       @RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) Boolean isActive,
-                       Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean isActive,
+            Model model) {
         Page<Promotion> promoPage;
         if (keyword != null || isActive != null) {
             promoPage = adminPromotionService.searchPromotions(keyword, isActive, page, size);
@@ -51,12 +65,17 @@ public class AdminPromotionController {
         model.addAttribute("entityLabel", "khuyến mãi");
         model.addAttribute("url", "/admin/khuyen-mai");
         java.util.Map<String, Object> filterParams = new java.util.HashMap<>();
-        if (keyword != null) filterParams.put("keyword", keyword);
-        if (isActive != null) filterParams.put("isActive", isActive);
+        if (keyword != null) {
+            filterParams.put("keyword", keyword);
+        }
+        if (isActive != null) {
+            filterParams.put("isActive", isActive);
+        }
         model.addAttribute("filterParams", filterParams);
         model.addAttribute("keyword", keyword);
         model.addAttribute("isActive", isActive);
         model.addAttribute("title", "khuyen-mai");
+        model.addAttribute("promotionTab", "khuyen-mai");
         model.addAttribute("totalPromotions", promotionRepository.count());
         model.addAttribute("activePromotionsCount", promotionRepository.countByIsActiveTrue());
         model.addAttribute("inactivePromotionsCount", promotionRepository.countByIsActiveFalse());
@@ -75,9 +94,9 @@ public class AdminPromotionController {
     @PostMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_CREATE)")
     public String create(@Valid @ModelAttribute Promotion promotion, BindingResult result,
-                          @RequestParam(required = false) String tuNgay,
-                          @RequestParam(required = false) String denNgay,
-                          Model model, RedirectAttributes ra) {
+            @RequestParam(required = false) String tuNgay,
+            @RequestParam(required = false) String denNgay,
+            Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "khuyen-mai");
             model.addAttribute("promotion", promotion);
@@ -149,9 +168,9 @@ public class AdminPromotionController {
     @PostMapping("/sua/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_UPDATE)")
     public String edit(@PathVariable Integer id, @Valid @ModelAttribute Promotion promotion, BindingResult result,
-                        @RequestParam(required = false) String tuNgay,
-                        @RequestParam(required = false) String denNgay,
-                        Model model, RedirectAttributes ra) {
+            @RequestParam(required = false) String tuNgay,
+            @RequestParam(required = false) String denNgay,
+            Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "khuyen-mai");
             model.addAttribute("promotion", promotion);

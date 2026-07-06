@@ -2,6 +2,8 @@ package com.duastore.controller.admin;
 
 import com.duastore.dto.FlashSaleFormDTO;
 import com.duastore.model.FlashSale;
+import com.duastore.model.Product;
+import com.duastore.repository.ProductRepository;
 import com.duastore.service.admin.FlashSaleService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,9 +20,12 @@ import java.util.List;
 public class AdminFlashSaleController {
 
     private final FlashSaleService flashSaleService;
+    private final ProductRepository productRepository;
 
-    public AdminFlashSaleController(FlashSaleService flashSaleService) {
+    public AdminFlashSaleController(FlashSaleService flashSaleService,
+            ProductRepository productRepository) {
         this.flashSaleService = flashSaleService;
+        this.productRepository = productRepository;
     }
 
     @GetMapping
@@ -28,6 +33,8 @@ public class AdminFlashSaleController {
     public String list(Model model) {
         List<FlashSale> list = flashSaleService.getAll();
         model.addAttribute("flashSales", list);
+        model.addAttribute("title", "flash-sale");
+        model.addAttribute("promotionTab", "flash-sale");
         return "view/admin/flashsale/list";
     }
 
@@ -35,6 +42,7 @@ public class AdminFlashSaleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_CREATE)")
     public String createForm(Model model) {
         model.addAttribute("flashSale", new FlashSaleFormDTO());
+        model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
         return "view/admin/flashsale/form";
     }
 
@@ -51,6 +59,7 @@ public class AdminFlashSaleController {
             dto.setNgayKetThuc(fs.getNgayKetThuc());
             dto.setIsActive(fs.getIsActive());
             model.addAttribute("flashSale", dto);
+            model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
             return "view/admin/flashsale/form";
         } catch (Exception e) {
             return "redirect:/admin/flash-sale";
@@ -58,11 +67,12 @@ public class AdminFlashSaleController {
     }
 
     @PostMapping("/save")
-    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_CREATE) or " +
-                  "@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_UPDATE)")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_CREATE) or "
+            + "@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_UPDATE)")
     public String save(@Valid @ModelAttribute("flashSale") FlashSaleFormDTO dto,
-                       BindingResult result, Model model, RedirectAttributes ra) {
+            BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
+            model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
             return "view/admin/flashsale/form";
         }
         try {
@@ -70,6 +80,7 @@ public class AdminFlashSaleController {
             ra.addFlashAttribute("successMsg", "Lưu Flash Sale thành công");
         } catch (Exception e) {
             model.addAttribute("flashSale", dto);
+            model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
             model.addAttribute("errorMsg", e.getMessage());
             return "view/admin/flashsale/form";
         }

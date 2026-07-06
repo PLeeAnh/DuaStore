@@ -79,7 +79,9 @@ public class BannerService {
         try {
             saved = bannerRepository.saveAndFlush(banner);
         } catch (RuntimeException ex) {
-            if (newImageUrl != null) fileUploadService.delete(newImageUrl, UPLOAD_DIRECTORY);
+            if (newImageUrl != null) {
+                fileUploadService.delete(newImageUrl, UPLOAD_DIRECTORY);
+            }
             throw ex;
         }
         if (newImageUrl != null && oldImageUrl != null) {
@@ -105,7 +107,9 @@ public class BannerService {
     }
 
     private String trimToNull(String value) {
-        if (value == null || value.isBlank()) return null;
+        if (value == null || value.isBlank()) {
+            return null;
+        }
         return value.trim();
     }
 

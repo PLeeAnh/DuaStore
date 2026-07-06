@@ -24,8 +24,8 @@ public class AdminRoleController {
     private final SecurityUtil securityUtil;
 
     public AdminRoleController(AdminRoleService roleService,
-                               AdminLogService adminLogService,
-                               SecurityUtil securityUtil) {
+            AdminLogService adminLogService,
+            SecurityUtil securityUtil) {
         this.roleService = roleService;
         this.adminLogService = adminLogService;
         this.securityUtil = securityUtil;
@@ -35,6 +35,7 @@ public class AdminRoleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_READ)")
     public String list(Model model) {
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("roles", roleService.findAll());
         model.addAttribute("entityLabel", "vai trò");
         model.addAttribute("url", "/admin/vai-tro");
@@ -45,6 +46,7 @@ public class AdminRoleController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_CREATE)")
     public String createForm(Model model) {
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("role", new com.duastore.model.Role());
         model.addAttribute("groupedPermissions", roleService.getPermissionsGroupedByModule());
         return "view/admin/role/role-form";
@@ -53,10 +55,10 @@ public class AdminRoleController {
     @PostMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_CREATE)")
     public String create(@RequestParam String name,
-                         @RequestParam(required = false) String moTa,
-                         @RequestParam(required = false) Boolean isActive,
-                         @RequestParam(required = false) List<Integer> permissionIds,
-                         RedirectAttributes ra) {
+            @RequestParam(required = false) String moTa,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) List<Integer> permissionIds,
+            RedirectAttributes ra) {
         if (name == null || name.isBlank()) {
             ra.addFlashAttribute("errorMsg", "Tên vai trò không được để trống");
             return "redirect:/admin/vai-tro/them-moi";
@@ -80,6 +82,7 @@ public class AdminRoleController {
             return "redirect:/admin/vai-tro";
         }
         model.addAttribute("title", "vai-tro");
+        model.addAttribute("userTab", "phan-quyen");
         model.addAttribute("role", role);
         model.addAttribute("groupedPermissions", roleService.getPermissionsGroupedByModule());
         return "view/admin/role/role-form";
@@ -88,11 +91,11 @@ public class AdminRoleController {
     @PostMapping("/sua/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ROLE_UPDATE)")
     public String edit(@PathVariable Integer id,
-                       @RequestParam String name,
-                       @RequestParam(required = false) String moTa,
-                       @RequestParam(required = false) Boolean isActive,
-                       @RequestParam(required = false) List<Integer> permissionIds,
-                       RedirectAttributes ra) {
+            @RequestParam String name,
+            @RequestParam(required = false) String moTa,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) List<Integer> permissionIds,
+            RedirectAttributes ra) {
         if (name == null || name.isBlank()) {
             ra.addFlashAttribute("errorMsg", "Tên vai trò không được để trống");
             return "redirect:/admin/vai-tro/sua/" + id;

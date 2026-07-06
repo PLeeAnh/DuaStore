@@ -30,10 +30,10 @@ public class AdminLogService {
     private final OrderStatusLogService orderStatusLogService;
 
     public AdminLogService(AdminActionLogRepository logRepository,
-                           OrderAssignmentRepository assignmentRepository,
-                           OrderRepository orderRepository,
-                           UserRepository userRepository,
-                           OrderStatusLogService orderStatusLogService) {
+            OrderAssignmentRepository assignmentRepository,
+            OrderRepository orderRepository,
+            UserRepository userRepository,
+            OrderStatusLogService orderStatusLogService) {
         this.logRepository = logRepository;
         this.assignmentRepository = assignmentRepository;
         this.orderRepository = orderRepository;
@@ -42,7 +42,7 @@ public class AdminLogService {
     }
 
     public void ghiLog(User admin, String hanhDong, String loaiEntity, Integer entityId,
-                       String giaTriCu, String giaTriMoi, String moTa) {
+            String giaTriCu, String giaTriMoi, String moTa) {
         AdminActionLog log = new AdminActionLog();
         log.setAdmin(admin);
         log.setHanhDong(Objects.requireNonNull(hanhDong));
@@ -55,8 +55,8 @@ public class AdminLogService {
     }
 
     public void ghiLogDonHang(User admin, Integer orderId, String hanhDong,
-                               String giaTriCu, String giaTriMoi, String moTa,
-                               HttpServletRequest request) {
+            String giaTriCu, String giaTriMoi, String moTa,
+            HttpServletRequest request) {
         AdminActionLog log = new AdminActionLog();
         log.setAdmin(admin);
         log.setHanhDong(hanhDong);
@@ -76,11 +76,17 @@ public class AdminLogService {
     }
 
     public void tuDongPhanDon(Order order) {
-        if (order == null) return;
-        if (assignmentRepository.findByOrderId(order.getId()).isPresent()) return;
+        if (order == null) {
+            return;
+        }
+        if (assignmentRepository.findByOrderId(order.getId()).isPresent()) {
+            return;
+        }
 
         List<User> admins = userRepository.findAllActiveAdmins();
-        if (admins.isEmpty()) return;
+        if (admins.isEmpty()) {
+            return;
+        }
 
         User adminChon = admins.get(0);
         long minLoad = Long.MAX_VALUE;
@@ -129,7 +135,9 @@ public class AdminLogService {
 
     @Transactional
     public void reassignAdmin(Order order, User currentAdmin, User newAdmin, HttpServletRequest request) {
-        if (order == null || newAdmin == null) return;
+        if (order == null || newAdmin == null) {
+            return;
+        }
         OrderAssignment existing = assignmentRepository.findByOrderId(order.getId()).orElse(null);
         if (existing != null) {
             String oldName = existing.getAdmin().getHoTen();
