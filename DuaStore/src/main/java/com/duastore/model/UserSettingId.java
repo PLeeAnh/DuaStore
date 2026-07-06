@@ -7,6 +7,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserSettingId implements Serializable {
+
     private Integer userId;
     private String settingKey;
 }

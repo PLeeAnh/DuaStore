@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @ToString(exclude = {"admin"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AdminActionLog {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include

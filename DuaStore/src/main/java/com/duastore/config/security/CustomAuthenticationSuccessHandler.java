@@ -25,7 +25,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     private final UserAuthProviderRepository userAuthProviderRepository;
 
     public CustomAuthenticationSuccessHandler(UserRepository userRepository, CartService cartService,
-                                               UserAuthProviderRepository userAuthProviderRepository) {
+            UserAuthProviderRepository userAuthProviderRepository) {
         this.userRepository = userRepository;
         this.cartService = cartService;
         this.userAuthProviderRepository = userAuthProviderRepository;
@@ -34,7 +34,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     @Override
     @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+            Authentication authentication) throws IOException, ServletException {
         HttpSession session = request.getSession();
 
         User user = null;

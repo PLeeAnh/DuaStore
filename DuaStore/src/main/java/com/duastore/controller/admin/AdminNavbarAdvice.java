@@ -34,17 +34,17 @@ public class AdminNavbarAdvice {
 
             if (readMaxId != null && readMaxId > 0) {
                 List<Notification> unread = allStaffNotifs.stream()
-                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
-                    .toList();
+                        .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                        .toList();
                 model.addAttribute("staffNotifs", unread);
                 long count = allStaffNotifs.stream()
-                    .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
-                    .count();
+                        .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                        .count();
                 model.addAttribute("staffNotifCount", count);
             } else {
                 List<Notification> unread = allStaffNotifs.stream()
-                    .filter(n -> !readIds.contains(n.getId()))
-                    .toList();
+                        .filter(n -> !readIds.contains(n.getId()))
+                        .toList();
                 model.addAttribute("staffNotifs", unread);
                 model.addAttribute("staffNotifCount", (long) unread.size());
             }

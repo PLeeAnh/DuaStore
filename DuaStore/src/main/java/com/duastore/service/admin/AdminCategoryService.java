@@ -68,7 +68,9 @@ public class AdminCategoryService {
     @Transactional(readOnly = true)
     public CategoryDTO findByIdAsDto(Integer id) {
         Category category = categoryRepository.findById(id).orElse(null);
-        if (category == null) return null;
+        if (category == null) {
+            return null;
+        }
         return toDto(category);
     }
 
@@ -198,9 +200,9 @@ public class AdminCategoryService {
 
         if (keyword != null && !keyword.isBlank()) {
             String kw = keyword.toLowerCase().trim();
-            stream = stream.filter(c ->
-                    (c.getTenDanhMuc() != null && c.getTenDanhMuc().toLowerCase().contains(kw)) ||
-                    (c.getMoTa() != null && c.getMoTa().toLowerCase().contains(kw))
+            stream = stream.filter(c
+                    -> (c.getTenDanhMuc() != null && c.getTenDanhMuc().toLowerCase().contains(kw))
+                    || (c.getMoTa() != null && c.getMoTa().toLowerCase().contains(kw))
             );
         }
 

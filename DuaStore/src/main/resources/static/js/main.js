@@ -1,18 +1,20 @@
 /* =====================================================
-   DuaStore — main.js (Client) — Entry point
-   Modules: toast.js, api.js, utils.js, modules/*
-===================================================== */
+ DuaStore — main.js (Client) — Entry point
+ Modules: toast.js, api.js, utils.js, modules/*
+ ===================================================== */
 'use strict';
 
 /* ── CSRF: auto-inject token into same-origin non-GET fetch ── */
-(function() {
+(function () {
     var token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
     var header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-    if (!token || !header) return;
+    if (!token || !header)
+        return;
     var orig = window.fetch;
-    window.fetch = function(url, opts) {
+    window.fetch = function (url, opts) {
         opts = opts || {};
-        if (!opts.method || opts.method.toUpperCase() === 'GET') return orig.call(this, url, opts);
+        if (!opts.method || opts.method.toUpperCase() === 'GET')
+            return orig.call(this, url, opts);
         var isSameOrigin = typeof url === 'string' && (url.startsWith('/') || new URL(url, location.origin).origin === location.origin);
         if (isSameOrigin) {
             opts.headers = opts.headers || {};
@@ -26,7 +28,7 @@
     };
 })();
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
     /* ═══ MOBILE NAV TOGGLE ═══ */
     var toggle = document.getElementById('dsNavToggle');
@@ -46,28 +48,37 @@ document.addEventListener('DOMContentLoaded', function() {
         toggle.classList.remove('is-open');
         toggle.setAttribute('aria-label', 'Mở menu');
         document.body.style.overflow = '';
-        document.querySelectorAll('.ds-sub-menu.open').forEach(function(el) { el.classList.remove('open'); });
-        document.querySelectorAll('.ds-chevron.rotated').forEach(function(el) { el.classList.remove('rotated'); });
+        document.querySelectorAll('.ds-sub-menu.open').forEach(function (el) {
+            el.classList.remove('open');
+        });
+        document.querySelectorAll('.ds-chevron.rotated').forEach(function (el) {
+            el.classList.remove('rotated');
+        });
     }
     if (toggle && panel) {
-        toggle.addEventListener('click', function() { panel.classList.contains('open') ? closeNav() : openNav(); });
+        toggle.addEventListener('click', function () {
+            panel.classList.contains('open') ? closeNav() : openNav();
+        });
     }
-    if (overlay) overlay.addEventListener('click', closeNav);
+    if (overlay)
+        overlay.addEventListener('click', closeNav);
 
-    document.querySelectorAll('.ds-sub-toggle').forEach(function(btn) {
+    document.querySelectorAll('.ds-sub-toggle').forEach(function (btn) {
         var menu = btn.nextElementSibling;
         if (menu) {
-            btn.addEventListener('click', function(e) {
+            btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 menu.classList.toggle('open');
                 var ch = btn.querySelector('.ds-chevron');
-                if (ch) ch.classList.toggle('rotated');
+                if (ch)
+                    ch.classList.toggle('rotated');
             });
         }
     });
-    document.querySelectorAll('.ds-nav-panel .ds-nav-link:not(.ds-nav-no-close), .ds-nav-panel .ds-sub-link').forEach(function(link) {
-        link.addEventListener('click', function() {
-            if (!link.classList.contains('ds-sub-toggle')) setTimeout(closeNav, 200);
+    document.querySelectorAll('.ds-nav-panel .ds-nav-link:not(.ds-nav-no-close), .ds-nav-panel .ds-sub-link').forEach(function (link) {
+        link.addEventListener('click', function () {
+            if (!link.classList.contains('ds-sub-toggle'))
+                setTimeout(closeNav, 200);
         });
     });
 
@@ -76,53 +87,53 @@ document.addEventListener('DOMContentLoaded', function() {
         if (document.querySelector('.hero-banner-swiper')) {
             new Swiper('.hero-banner-swiper', {
                 loop: true,
-                autoplay: { delay: 4000, disableOnInteraction: false },
-                pagination: { el: '.hero-banner-swiper .swiper-pagination', clickable: true },
-                navigation: { nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev' }
+                autoplay: {delay: 4000, disableOnInteraction: false},
+                pagination: {el: '.hero-banner-swiper .swiper-pagination', clickable: true},
+                navigation: {nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev'}
             });
         }
         if (document.querySelector('.hero-swiper')) {
             new Swiper('.hero-swiper', {
                 loop: true, effect: 'fade',
-                autoplay: { delay: 5000, disableOnInteraction: false },
-                pagination: { el: '.hero-pagination', clickable: true },
+                autoplay: {delay: 5000, disableOnInteraction: false},
+                pagination: {el: '.hero-pagination', clickable: true},
             });
         }
         if (document.querySelector('.testi-swiper')) {
             new Swiper('.testi-swiper', {
-                loop: true, autoplay: { delay: 4000, disableOnInteraction: false },
-                pagination: { el: '.testi-pagination', clickable: true },
-                breakpoints: { 0: { slidesPerView: 1 }, 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
+                loop: true, autoplay: {delay: 4000, disableOnInteraction: false},
+                pagination: {el: '.testi-pagination', clickable: true},
+                breakpoints: {0: {slidesPerView: 1}, 768: {slidesPerView: 2}, 1024: {slidesPerView: 3}}
             });
         }
         if (document.querySelector('.product-swiper')) {
             new Swiper('.product-swiper', {
-                loop: true, autoplay: { delay: 5000, disableOnInteraction: false },
-                navigation: { nextEl: '.product-next', prevEl: '.product-prev' },
-                breakpoints: { 0: { slidesPerView: 1, spaceBetween: 16 }, 576: { slidesPerView: 2, spaceBetween: 16 }, 992: { slidesPerView: 4, spaceBetween: 20 } }
+                loop: true, autoplay: {delay: 5000, disableOnInteraction: false},
+                navigation: {nextEl: '.product-next', prevEl: '.product-prev'},
+                breakpoints: {0: {slidesPerView: 1, spaceBetween: 16}, 576: {slidesPerView: 2, spaceBetween: 16}, 992: {slidesPerView: 4, spaceBetween: 20}}
             });
         }
     }
 
     /* ═══ SCROLLREVEAL ═══ */
     if (typeof ScrollReveal !== 'undefined') {
-        var sr = ScrollReveal({ origin: 'bottom', distance: '40px', duration: 800, delay: 200, easing: 'ease-out' });
-        sr.reveal('.sr-card', { interval: 200 });
+        var sr = ScrollReveal({origin: 'bottom', distance: '40px', duration: 800, delay: 200, easing: 'ease-out'});
+        sr.reveal('.sr-card', {interval: 200});
         sr.reveal('.sr-up', {});
-        sr.reveal('.sr-left', { origin: 'left', distance: '60px' });
-        sr.reveal('.sr-right', { origin: 'right', distance: '60px' });
+        sr.reveal('.sr-left', {origin: 'left', distance: '60px'});
+        sr.reveal('.sr-right', {origin: 'right', distance: '60px'});
     }
 
     /* ═══ PROFILE MENU ═══ */
     var prTrigger = document.getElementById('dsProfileTrigger');
     var prDropdown = document.getElementById('dsProfileDropdown');
     if (prTrigger && prDropdown) {
-        prTrigger.addEventListener('click', function(e) {
+        prTrigger.addEventListener('click', function (e) {
             e.stopPropagation();
             var isOpen = prDropdown.classList.toggle('open');
             prTrigger.setAttribute('aria-expanded', isOpen);
         });
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             if (!prTrigger.contains(e.target) && !prDropdown.contains(e.target)) {
                 prDropdown.classList.remove('open');
                 prTrigger.setAttribute('aria-expanded', 'false');
@@ -131,11 +142,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ═══ FAQ ACCORDION ═══ */
-    document.querySelectorAll('.ds-faq-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
+    document.querySelectorAll('.ds-faq-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
             var body = btn.nextElementSibling;
             var isOpen = btn.getAttribute('aria-expanded') === 'true';
-            document.querySelectorAll('.ds-faq-btn').forEach(function(b) {
+            document.querySelectorAll('.ds-faq-btn').forEach(function (b) {
                 b.setAttribute('aria-expanded', 'false');
                 b.nextElementSibling.style.maxHeight = '0';
             });
@@ -148,14 +159,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     /* ═══ PRODUCT CARD ENHANCEMENTS ═══ */
-    function getCard(el) { return el.closest('.ds-product-card'); }
+    function getCard(el) {
+        return el.closest('.ds-product-card');
+    }
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const chip = e.target.closest('.ds-variant-chip');
         if (chip && !chip.classList.contains('oos')) {
             e.preventDefault();
             const card = getCard(chip);
-            if (!card) return;
+            if (!card)
+                return;
             card.querySelectorAll('.ds-variant-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
 
@@ -178,22 +192,27 @@ document.addEventListener('DOMContentLoaded', function() {
             if (priceBtn) {
                 priceBtn.disabled = (newStock <= 0);
                 const amountEl = priceBtn.querySelector('.ds-price-btn-amount');
-                if (amountEl) amountEl.textContent = parseInt(newPrice).toLocaleString('vi-VN') + 'đ';
+                if (amountEl)
+                    amountEl.textContent = parseInt(newPrice).toLocaleString('vi-VN') + 'đ';
             }
             const qtyVal = card.querySelector('.ds-qty-val');
-            if (qtyVal) qtyVal.value = '1';
+            if (qtyVal)
+                qtyVal.value = '1';
             const minus = card.querySelector('.ds-qty-minus');
-            if (minus) minus.disabled = true;
+            if (minus)
+                minus.disabled = true;
         }
     });
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const btn = e.target.closest('.ds-qty-btn');
-        if (!btn || btn.closest('#cart-items-container, .ds-cart-qty')) return;
+        if (!btn || btn.closest('#cart-items-container, .ds-cart-qty'))
+            return;
         e.stopPropagation();
         e.preventDefault();
         const card = getCard(btn);
-        if (!card) return;
+        if (!card)
+            return;
         const qtyEl = card.querySelector('.ds-qty-val');
         let qty = parseInt(qtyEl.value) || 1;
         const activeChip = getActiveVariant(card);
@@ -202,9 +221,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const plus = card.querySelector('.ds-qty-plus');
 
         if (btn.classList.contains('ds-qty-plus')) {
-            if (qty < maxStock) qty++;
-            else { plus.style.color = '#ef4444'; setTimeout(() => plus.style.color = '', 600); return; }
-        } else if (btn.classList.contains('ds-qty-minus') && qty > 1) qty--;
+            if (qty < maxStock)
+                qty++;
+            else {
+                plus.style.color = '#ef4444';
+                setTimeout(() => plus.style.color = '', 600);
+                return;
+            }
+        } else if (btn.classList.contains('ds-qty-minus') && qty > 1)
+            qty--;
 
         qtyEl.value = qty;
         minus.disabled = (qty <= 1);
@@ -212,36 +237,50 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /* ── Validate manual qty input on product cards ── */
-    document.addEventListener('change', function(e) {
+    document.addEventListener('change', function (e) {
         const el = e.target.closest('.ds-qty-val');
-        if (!el || el.closest('#cart-items-container')) return; // skip popup (handled separately)
+        if (!el || el.closest('#cart-items-container'))
+            return; // skip popup (handled separately)
         const card = getCard(el);
-        if (!card) return;
+        if (!card)
+            return;
         const activeChip = getActiveVariant(card);
         const maxStock = activeChip ? parseInt(activeChip.getAttribute('data-stock')) || 99 : 99;
         let val = parseInt(el.value) || 1;
-        if (val < 1) val = 1;
-        if (val > maxStock) { val = maxStock; DuaStore.toast.warning('Chỉ còn ' + maxStock + ' sản phẩm'); }
+        if (val < 1)
+            val = 1;
+        if (val > maxStock) {
+            val = maxStock;
+            DuaStore.toast.warning('Chỉ còn ' + maxStock + ' sản phẩm');
+        }
         el.value = val;
         const minus = card.querySelector('.ds-qty-minus');
         const plus = card.querySelector('.ds-qty-plus');
-        if (minus) minus.disabled = (val <= 1);
-        if (plus) plus.disabled = (val >= maxStock);
+        if (minus)
+            minus.disabled = (val <= 1);
+        if (plus)
+            plus.disabled = (val >= maxStock);
     });
 
     /* ═══ FLASH SALE COUNTDOWN ═══ */
     document.querySelectorAll('.ds-flash-timer').forEach(timer => {
         const endStr = timer.getAttribute('data-end');
-        if (!endStr) return;
+        if (!endStr)
+            return;
         const endDate = new Date(endStr);
         function tick() {
             const diff = endDate - new Date();
             const span = timer.querySelector('.flash-countdown');
-            if (!span) return;
-            if (diff <= 0) { span.textContent = 'Đã kết thúc'; timer.style.opacity = '.5'; return; }
+            if (!span)
+                return;
+            if (diff <= 0) {
+                span.textContent = 'Đã kết thúc';
+                timer.style.opacity = '.5';
+                return;
+            }
             const days = Math.floor(diff / 86400000);
             if (days > 0) {
-                const d = endDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const d = endDate.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit', year: 'numeric'});
                 span.textContent = 'HSD: ' + d;
                 return;
             }
@@ -257,16 +296,22 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ═══ PROMO COUNTDOWN ═══ */
     document.querySelectorAll('.ds-promo-timer').forEach(timer => {
         const endStr = timer.getAttribute('data-end');
-        if (!endStr) return;
+        if (!endStr)
+            return;
         const endDate = new Date(endStr);
         function tick() {
             const diff = endDate - new Date();
             const span = timer.querySelector('.promo-countdown');
-            if (!span) return;
-            if (diff <= 0) { span.textContent = 'Đã kết thúc'; timer.style.opacity = '.5'; return; }
+            if (!span)
+                return;
+            if (diff <= 0) {
+                span.textContent = 'Đã kết thúc';
+                timer.style.opacity = '.5';
+                return;
+            }
             const days = Math.floor(diff / 86400000);
             if (days > 0) {
-                const d = endDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const d = endDate.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit', year: 'numeric'});
                 span.textContent = 'HSD: ' + d;
                 return;
             }
@@ -283,7 +328,8 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ═══ COPY PROMO CODE ═══ */
 function copyPromoCode(btn) {
     const code = btn.getAttribute('data-code');
-    if (!code) return;
+    if (!code)
+        return;
     navigator.clipboard.writeText(code).then(() => {
         alert('Đã sao chép mã: ' + code);
     }).catch(() => {
@@ -294,13 +340,13 @@ function copyPromoCode(btn) {
 /* ═══ BACK TO TOP ═══ */
 var backTopBtn = document.getElementById('backTopBtn');
 if (backTopBtn) {
-    window.addEventListener('scroll', function() {
+    window.addEventListener('scroll', function () {
         backTopBtn.style.display = window.scrollY > 400 ? 'flex' : 'none';
-    }, { passive: true });
+    }, {passive: true});
 }
 
 /* ── Render star rating readonly ── */
-document.querySelectorAll('.star-rating-readonly').forEach(function(el) {
+document.querySelectorAll('.star-rating-readonly').forEach(function (el) {
     var score = parseInt(el.dataset.score) || 0;
     el.innerHTML = '★'.repeat(score) + '☆'.repeat(5 - score);
 });

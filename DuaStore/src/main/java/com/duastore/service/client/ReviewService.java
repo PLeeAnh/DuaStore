@@ -36,11 +36,11 @@ public class ReviewService {
     private final FileUploadService fileUploadService;
 
     public ReviewService(ReviewsRepository reviewsRepository,
-                         ProductRepository productRepository,
-                         UserRepository userRepository,
-                         OrderItemRepository orderItemRepository,
-                         EmailService emailService,
-                         FileUploadService fileUploadService) {
+            ProductRepository productRepository,
+            UserRepository userRepository,
+            OrderItemRepository orderItemRepository,
+            EmailService emailService,
+            FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
@@ -157,14 +157,15 @@ public class ReviewService {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
                 emailService.send(
-                    "nguyenhuydung1506@gmail.com",
-                    "[DuaStore] Đánh giá mới từ " + user.getHoTen(),
-                    "<p>Sản phẩm #" + request.getProductId() + "</p>"
-                    + "<p>Đánh giá: " + request.getDanhGia() + " sao</p>"
-                    + "<p>Nội dung: " + HtmlSanitizer.sanitize(request.getBinhLuan()) + "</p>"
+                        "nguyenhuydung1506@gmail.com",
+                        "[DuaStore] Đánh giá mới từ " + user.getHoTen(),
+                        "<p>Sản phẩm #" + request.getProductId() + "</p>"
+                        + "<p>Đánh giá: " + request.getDanhGia() + " sao</p>"
+                        + "<p>Nội dung: " + HtmlSanitizer.sanitize(request.getBinhLuan()) + "</p>"
                 );
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return toDTO(review);
     }
@@ -202,7 +203,8 @@ public class ReviewService {
         if (url != null) {
             try {
                 fileUploadService.delete(url, "reviews");
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -45,7 +46,11 @@ public class Notification {
 
     @PrePersist
     protected void onCreate() {
-        if (isActive == null) isActive = true;
-        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (isActive == null) {
+            isActive = true;
+        }
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 }

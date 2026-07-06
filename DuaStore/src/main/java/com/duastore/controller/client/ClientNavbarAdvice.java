@@ -29,9 +29,9 @@ public class ClientNavbarAdvice {
     private final SiteSettingService siteSettingService;
 
     public ClientNavbarAdvice(CartService cartService, WishlistService wishlistService,
-                               SecurityUtil securityUtil,
-                               NotificationRepository notificationRepository,
-                               SiteSettingService siteSettingService) {
+            SecurityUtil securityUtil,
+            NotificationRepository notificationRepository,
+            SiteSettingService siteSettingService) {
         this.cartService = cartService;
         this.wishlistService = wishlistService;
         this.securityUtil = securityUtil;
@@ -62,17 +62,17 @@ public class ClientNavbarAdvice {
 
                 if (readMaxId != null && readMaxId > 0) {
                     List<Notification> unread = allNotifs.stream()
-                        .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
-                        .toList();
+                            .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                            .toList();
                     model.addAttribute("recentNotifs", unread);
                     long count = allNotifs.stream()
-                        .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
-                        .count();
+                            .filter(n -> n.getId() > readMaxId && !readIds.contains(n.getId()))
+                            .count();
                     model.addAttribute("notifCount", count);
                 } else {
                     List<Notification> unread = allNotifs.stream()
-                        .filter(n -> !readIds.contains(n.getId()))
-                        .toList();
+                            .filter(n -> !readIds.contains(n.getId()))
+                            .toList();
                     model.addAttribute("recentNotifs", unread);
                     model.addAttribute("notifCount", (long) unread.size());
                 }

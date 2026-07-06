@@ -91,7 +91,7 @@
                     <label class="form-label">Ảnh biến thể</label>
                     <input type="file" th:name="hinhAnhFile" class="form-control" accept="image/*" />
                     <div th:if="${variant.hinhAnh}" class="mt-2">
-                        <img th:src="@{${variant.hinhAnh}}" alt="preview" style="max-width:100px;border-radius:6px;" />
+                        <img th:src="@{${variant.hinhAnh}}" alt="preview" style="width:100px;height:100px;object-fit:cover;border-radius:6px;" />
                         <input type="hidden" th:field="*{hinhAnh}" />
                     </div>
                 </div>

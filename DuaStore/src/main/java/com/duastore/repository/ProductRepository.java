@@ -11,12 +11,15 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+
     long countByIsActiveTrue();
 
     long countByIsFeaturedTrueAndIsActiveTrue();
 
     List<Product> findByDanhMucIdAndIsActiveTrue(Integer danhMucId);
+
     List<Product> findByDanhMucIdAndIsActiveTrue(Integer danhMucId, Pageable pageable);
+
     List<Product> findByDanhMucIdInAndIsActiveTrue(List<Integer> danhMucIds);
 
     List<Product> findByIsFeaturedTrueAndIsActiveTrue();
@@ -37,41 +40,41 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     Page<Product> findByDanhMucIdInAndIsActiveTrue(List<Integer> danhMucIds, Pageable pageable);
 
-    @Query("SELECT p FROM Product p WHERE p.isActive = true " +
-            "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) " +
-            "AND (:trangThai IS NULL OR p.trangThaiSanPham = :trangThai) " +
-            "ORDER BY p.ngayTao DESC")
+    @Query("SELECT p FROM Product p WHERE p.isActive = true "
+            + "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
+            + "AND (:trangThai IS NULL OR p.trangThaiSanPham = :trangThai) "
+            + "ORDER BY p.ngayTao DESC")
     List<Product> searchWithFilters(@Param("keyword") String keyword,
-                                    @Param("danhMucId") Integer danhMucId,
-                                    @Param("trangThai") String trangThai);
+            @Param("danhMucId") Integer danhMucId,
+            @Param("trangThai") String trangThai);
 
-    @Query("SELECT p FROM Product p WHERE p.isActive = true " +
-            "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) " +
-            "AND (:trangThai IS NULL OR p.trangThaiSanPham = :trangThai) " +
-            "ORDER BY p.ngayTao DESC")
+    @Query("SELECT p FROM Product p WHERE p.isActive = true "
+            + "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
+            + "AND (:trangThai IS NULL OR p.trangThaiSanPham = :trangThai) "
+            + "ORDER BY p.ngayTao DESC")
     Page<Product> searchWithFiltersPaged(@Param("keyword") String keyword,
-                                         @Param("danhMucId") Integer danhMucId,
-                                         @Param("trangThai") String trangThai,
-                                         Pageable pageable);
+            @Param("danhMucId") Integer danhMucId,
+            @Param("trangThai") String trangThai,
+            Pageable pageable);
 
     Page<Product> findByIsActiveTrueOrderByNgayTaoDesc(Pageable pageable);
 
-    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' " +
-            "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) " +
-            "AND (:minPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) >= :minPrice)) " +
-            "AND (:maxPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice)) " +
-            "AND (:dungTich IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND v.dungTich = :dungTich)) " +
-            "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) ")
+    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
+            + "AND (:minPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) >= :minPrice)) "
+            + "AND (:maxPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice)) "
+            + "AND (:dungTich IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND v.dungTich = :dungTich)) "
+            + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) ")
     Page<Product> filterPaged(@Param("keyword") String keyword,
-                              @Param("danhMucId") Integer danhMucId,
-                              @Param("minPrice") BigDecimal minPrice,
-                              @Param("maxPrice") BigDecimal maxPrice,
-                              @Param("dungTich") Integer dungTich,
-                              @Param("chatLieu") String chatLieu,
-                              Pageable pageable);
+            @Param("danhMucId") Integer danhMucId,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("dungTich") Integer dungTich,
+            @Param("chatLieu") String chatLieu,
+            Pageable pageable);
 
     @Query("SELECT DISTINCT p.hinhDang FROM Product p WHERE p.isActive = true AND p.hinhDang IS NOT NULL ORDER BY p.hinhDang ASC")
     List<String> findDistinctHinhDang();
@@ -96,8 +99,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p.danhMucId, COUNT(p) FROM Product p WHERE p.isActive = true GROUP BY p.danhMucId")
     List<Object[]> countProductsByDanhMuc();
 
-    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham != 'NGUNG_BAN' " +
-            "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice) " +
-            "ORDER BY p.ngayTao DESC")
+    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham != 'NGUNG_BAN' "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice) "
+            + "ORDER BY p.ngayTao DESC")
     List<Product> findUnderPrice(@Param("maxPrice") BigDecimal maxPrice, Pageable pageable);
 }

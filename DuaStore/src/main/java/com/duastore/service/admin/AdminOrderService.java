@@ -50,12 +50,12 @@ public class AdminOrderService {
     private final OrderNoteService orderNoteService;
 
     public AdminOrderService(OrderRepository orderRepository,
-                             AdminLogService adminLogService,
-                             OrderAssignmentRepository assignmentRepository,
-                             OrderItemRepository orderItemRepository,
-                             ProductVariantRepository variantRepository,
-                             OrderStatusLogService orderStatusLogService,
-                             OrderNoteService orderNoteService) {
+            AdminLogService adminLogService,
+            OrderAssignmentRepository assignmentRepository,
+            OrderItemRepository orderItemRepository,
+            ProductVariantRepository variantRepository,
+            OrderStatusLogService orderStatusLogService,
+            OrderNoteService orderNoteService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
@@ -97,7 +97,9 @@ public class AdminOrderService {
     @Transactional(readOnly = true)
     public long countMyPendingOrders(Integer adminId) {
         List<OrderAssignment> assignments = assignmentRepository.findActiveByAdminId(adminId, "DANG_XU_LY");
-        if (assignments.isEmpty()) return 0;
+        if (assignments.isEmpty()) {
+            return 0;
+        }
         List<Integer> ids = assignments.stream()
                 .map(a -> a.getOrder().getId())
                 .collect(java.util.stream.Collectors.toList());
@@ -152,15 +154,21 @@ public class AdminOrderService {
             int totalSubtracted = 0;
             StringBuilder detail = new StringBuilder();
             for (OrderItem item : items) {
-                if (item.getVariantId() == null) continue;
+                if (item.getVariantId() == null) {
+                    continue;
+                }
                 ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
-                if (variant == null) continue;
+                if (variant == null) {
+                    continue;
+                }
                 int oldStock = variant.getSoLuongTon();
                 int qty = item.getSoLuong();
                 variant.setSoLuongTon(oldStock - qty);
                 variantRepository.save(variant);
                 totalSubtracted += qty;
-                if (detail.length() > 0) detail.append("; ");
+                if (detail.length() > 0) {
+                    detail.append("; ");
+                }
                 detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(variant.getSoLuongTon());
             }
             return totalSubtracted > 0 ? "Đã trừ " + totalSubtracted + " sản phẩm khỏi tồn kho. " + detail : null;
@@ -172,9 +180,13 @@ public class AdminOrderService {
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {
-                if (item.getVariantId() == null) continue;
+                if (item.getVariantId() == null) {
+                    continue;
+                }
                 ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
-                if (variant == null) continue;
+                if (variant == null) {
+                    continue;
+                }
                 variant.setSoLuongTon(variant.getSoLuongTon() + item.getSoLuong());
                 variantRepository.save(variant);
                 count += item.getSoLuong();
@@ -185,7 +197,7 @@ public class AdminOrderService {
     }
 
     public String updateOrderStatusWithLog(Integer id, String trangThaiDon, String oldStatus,
-                                           com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
+            com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
         String error = validateTransition(oldStatus, trangThaiDon);
         if (error != null) {
             throw new IllegalArgumentException(error);
@@ -195,7 +207,9 @@ public class AdminOrderService {
         }
 
         Order order = orderRepository.findById(id).orElse(null);
-        if (order == null) throw new RuntimeException("Không tìm thấy đơn hàng");
+        if (order == null) {
+            throw new RuntimeException("Không tìm thấy đơn hàng");
+        }
 
         // Auto-set payment to DA_THANH_TOAN when completing unpaid order
         if ("DA_HOAN_THANH".equals(trangThaiDon) && "CHUA_THANH_TOAN".equals(order.getTrangThaiTT())) {
@@ -220,7 +234,7 @@ public class AdminOrderService {
     }
 
     public String deleteOrderWithLog(Integer id, String oldStatus,
-                                     com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
+            com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
         String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
 
         Order order = orderRepository.findById(id).orElse(null);
@@ -239,7 +253,7 @@ public class AdminOrderService {
     }
 
     public void updatePaymentStatusWithLog(Integer id, String trangThaiTT, String oldPayment,
-                                            com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
+            com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
         updatePaymentStatus(id, trangThaiTT);
         adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
                 oldPayment, trangThaiTT,

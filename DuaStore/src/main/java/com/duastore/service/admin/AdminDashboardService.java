@@ -37,11 +37,11 @@ public class AdminDashboardService {
     private final PromotionRepository promotionRepository;
 
     public AdminDashboardService(ProductRepository productRepository,
-                                  OrderRepository orderRepository,
-                                  UserRepository userRepository,
-                                  OrderAssignmentRepository orderAssignmentRepository,
-                                  OrderItemRepository orderItemRepository,
-                                  PromotionRepository promotionRepository) {
+            OrderRepository orderRepository,
+            UserRepository userRepository,
+            OrderAssignmentRepository orderAssignmentRepository,
+            OrderItemRepository orderItemRepository,
+            PromotionRepository promotionRepository) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
@@ -105,13 +105,16 @@ public class AdminDashboardService {
             try {
                 var ass = orderAssignmentRepository.findByOrderId(o.getId());
                 ass.ifPresent(a -> map.put(o.getId(), a.getAdmin().getHoTen()));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return map;
     }
 
     private String formatVND(BigDecimal amount) {
-        if (amount == null) return "0₫";
+        if (amount == null) {
+            return "0₫";
+        }
         long value = amount.longValue();
         if (value >= 1_000_000) {
             return String.format("%,d", value / 1_000_000) + "," + String.format("%03d", value % 1_000_000 / 1_000) + " triệu₫";
@@ -151,7 +154,9 @@ public class AdminDashboardService {
         for (Order o : orders) {
             var items = orderItemRepository.findByOrderId(o.getId());
             for (var item : items) {
-                if (item.getProductId() == null) continue;
+                if (item.getProductId() == null) {
+                    continue;
+                }
                 productMap.computeIfAbsent(item.getProductId(), k -> {
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("productId", item.getProductId());
@@ -171,7 +176,6 @@ public class AdminDashboardService {
     }
 
     // ==================== ENHANCED DASHBOARD COMPARISONS ====================
-
     public Map<String, Object> getStatComparison() {
         Map<String, Object> result = new LinkedHashMap<>();
 
@@ -283,12 +287,18 @@ public class AdminDashboardService {
 
     private String getFunnelColor(String status) {
         return switch (status) {
-            case "CHO_XAC_NHAN" -> "#4f46e5";
-            case "DA_XAC_NHAN" -> "#0ea5e9";
-            case "DANG_GIAO" -> "#f59e0b";
-            case "DA_GIAO" -> "#10b981";
-            case "DA_HOAN_THANH" -> "#6366f1";
-            default -> "#6b7280";
+            case "CHO_XAC_NHAN" ->
+                "#4f46e5";
+            case "DA_XAC_NHAN" ->
+                "#0ea5e9";
+            case "DANG_GIAO" ->
+                "#f59e0b";
+            case "DA_GIAO" ->
+                "#10b981";
+            case "DA_HOAN_THANH" ->
+                "#6366f1";
+            default ->
+                "#6b7280";
         };
     }
 
@@ -313,10 +323,11 @@ public class AdminDashboardService {
     }
 
     private String calcChange(long current, long previous) {
-        if (previous == 0) return current > 0 ? "+100%" : "0%";
+        if (previous == 0) {
+            return current > 0 ? "+100%" : "0%";
+        }
         double change = ((double) (current - previous) / previous) * 100;
         return (change >= 0 ? "+" : "") + String.format("%.1f", change) + "%";
     }
-
 
 }

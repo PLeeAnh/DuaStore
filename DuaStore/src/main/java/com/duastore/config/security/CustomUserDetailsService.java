@@ -29,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameOrEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Không tìm thấy tài khoản: " + username));
+                "Không tìm thấy tài khoản: " + username));
 
         if (!user.getIsActive()) {
             throw new DisabledException("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
@@ -52,7 +52,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUserId(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Không tìm thấy tài khoản: " + userId));
+                "Không tìm thấy tài khoản: " + userId));
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
@@ -65,7 +65,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
         for (Role role : user.getRoles()) {
-            if (!role.getIsActive()) continue;
+            if (!role.getIsActive()) {
+                continue;
+            }
 
             authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
 

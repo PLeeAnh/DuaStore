@@ -10,6 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserSettingRepository extends JpaRepository<UserSetting, UserSettingId> {
+
     List<UserSetting> findByUserId(Integer userId);
+
     Optional<UserSetting> findByUserIdAndSettingKey(Integer userId, String settingKey);
 }

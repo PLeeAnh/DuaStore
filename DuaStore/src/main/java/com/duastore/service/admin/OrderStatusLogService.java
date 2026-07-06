@@ -21,7 +21,7 @@ public class OrderStatusLogService {
 
     @Transactional
     public OrderStatusLog ghiLog(Order order, OrderEventType loaiSuKien, User nguoiThucHien,
-                                  String trangThaiCu, String trangThaiMoi, String ghiChu) {
+            String trangThaiCu, String trangThaiMoi, String ghiChu) {
         OrderStatusLog log = new OrderStatusLog();
         log.setOrder(order);
         log.setLoaiSuKien(loaiSuKien);

@@ -58,17 +58,17 @@ public class ProductController {
     private final OrderItemRepository orderItemRepository;
 
     public ProductController(ProductService productService,
-                             ProductVariantRepository variantRepository,
-                             ProductImageRepository productImageRepository,
-                             CategoryRepository categoryRepository,
-                             ReviewService reviewService,
-                             FlashSaleRepository flashSaleRepository,
-                             PromotionRepository promotionRepository,
-                             WishlistService wishlistService,
-                             SecurityUtil securityUtil,
-                             FileUploadService fileUploadService,
-                             PricingService pricingService,
-                             OrderItemRepository orderItemRepository) {
+            ProductVariantRepository variantRepository,
+            ProductImageRepository productImageRepository,
+            CategoryRepository categoryRepository,
+            ReviewService reviewService,
+            FlashSaleRepository flashSaleRepository,
+            PromotionRepository promotionRepository,
+            WishlistService wishlistService,
+            SecurityUtil securityUtil,
+            FileUploadService fileUploadService,
+            PricingService pricingService,
+            OrderItemRepository orderItemRepository) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -85,25 +85,33 @@ public class ProductController {
 
     @GetMapping("/san-pham")
     public String list(@RequestParam(required = false) Integer danhMuc,
-                       @RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) Integer dungTich,
-                       @RequestParam(required = false) String chatLieu,
-                       @RequestParam(required = false) String priceRange,
-                       @RequestParam(defaultValue = "newest") String sortBy,
-                       @RequestParam(defaultValue = "0") int page,
-                       Model model) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer dungTich,
+            @RequestParam(required = false) String chatLieu,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(defaultValue = "newest") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
         model.addAttribute("title", "san-pham");
 
-        if (keyword != null && keyword.isBlank()) keyword = null;
-        if (chatLieu != null && chatLieu.isBlank()) chatLieu = null;
-        if (priceRange != null && priceRange.isBlank()) priceRange = null;
+        if (keyword != null && keyword.isBlank()) {
+            keyword = null;
+        }
+        if (chatLieu != null && chatLieu.isBlank()) {
+            chatLieu = null;
+        }
+        if (priceRange != null && priceRange.isBlank()) {
+            priceRange = null;
+        }
 
         boolean hasFilters = (priceRange != null || dungTich != null || chatLieu != null
                 || !"newest".equals(sortBy));
 
         Page<Product> productPage;
         if (hasFilters) {
-            if (keyword != null) model.addAttribute("keyword", keyword);
+            if (keyword != null) {
+                model.addAttribute("keyword", keyword);
+            }
             if (danhMuc != null) {
                 categoryRepository.findById(danhMuc).ifPresent(c -> model.addAttribute("selectedCategory", c));
             }
@@ -146,7 +154,7 @@ public class ProductController {
             List<Integer> ids = products.stream().map(Product::getId).collect(Collectors.toList());
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
-                .collect(Collectors.groupingBy(ProductVariant::getProductId));
+                    .collect(Collectors.groupingBy(ProductVariant::getProductId));
             flashSaleMap.putAll(pricingService.loadActiveFlashSaleMap(ids));
         }
         model.addAttribute("variantsMap", variantsMap);
@@ -158,16 +166,16 @@ public class ProductController {
         model.addAttribute("activePromotions", activePromotions);
         BigDecimal maxPct = new BigDecimal("100");
         Promotion bestPercentagePromo = activePromotions.stream()
-            .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
-            .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         Promotion bestFixedPromo = activePromotions.stream()
-            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
 
@@ -184,11 +192,11 @@ public class ProductController {
                     BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                     if (basePrice != null) {
                         BigDecimal raw = basePrice
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                    .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                             if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
                                 raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
                             }
@@ -201,11 +209,11 @@ public class ProductController {
                     BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
                     if (basePrice != null) {
                         BigDecimal raw = basePrice
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                    .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                             if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
                                 raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
                             }
@@ -226,7 +234,9 @@ public class ProductController {
                 String groupKey = "Phân loại";
                 if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                     String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                    if (parts.length >= 2) groupKey = parts[1].trim();
+                    if (parts.length >= 2) {
+                        groupKey = parts[1].trim();
+                    }
                 } else if (v.getDungTich() != null) {
                     groupKey = "Dung tích";
                 }
@@ -255,10 +265,12 @@ public class ProductController {
 
     @GetMapping("/san-pham/{id}")
     public String detail(@PathVariable Integer id,
-                         @RequestParam(defaultValue = "0") int reviewPage,
-                         Model model) {
+            @RequestParam(defaultValue = "0") int reviewPage,
+            Model model) {
         var product = productService.findById(id);
-        if (product == null) return "redirect:/san-pham?errorMsg=Khong+tim+thay+san+pham";
+        if (product == null) {
+            return "redirect:/san-pham?errorMsg=Khong+tim+thay+san+pham";
+        }
 
         List<ProductVariant> variants = productService.getVariants(id);
         model.addAttribute("title", product.getTenSanPham());
@@ -267,14 +279,18 @@ public class ProductController {
 
         // Build gallery images: ProductImages from DB + fallback to main + variant images
         List<ProductImage> dbImages = productImageRepository
-            .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id);
+                .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id);
         List<String> galleryImages = new ArrayList<>();
         if (!dbImages.isEmpty()) {
             for (ProductImage pi : dbImages) {
-                if (pi.getImageUrl() != null) galleryImages.add(pi.getImageUrl());
+                if (pi.getImageUrl() != null) {
+                    galleryImages.add(pi.getImageUrl());
+                }
             }
         } else {
-            if (product.getHinhAnhChinh() != null) galleryImages.add(product.getHinhAnhChinh());
+            if (product.getHinhAnhChinh() != null) {
+                galleryImages.add(product.getHinhAnhChinh());
+            }
             for (ProductVariant v : variants) {
                 if (v.getHinhAnh() != null && !galleryImages.contains(v.getHinhAnh())) {
                     galleryImages.add(v.getHinhAnh());
@@ -289,7 +305,9 @@ public class ProductController {
             String groupKey = "Khác";
             if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                 String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                if (parts.length >= 2) groupKey = parts[1].trim();
+                if (parts.length >= 2) {
+                    groupKey = parts[1].trim();
+                }
             }
             grouped.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(v);
         }
@@ -314,16 +332,16 @@ public class ProductController {
         List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
         BigDecimal maxPct = new BigDecimal("100");
         Promotion bestPercentagePromo = activePromotions.stream()
-            .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
-            .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         Promotion bestFixedPromo = activePromotions.stream()
-            .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
-            .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-            .max(Comparator.comparing(Promotion::getGiaTriGiam))
-            .orElse(null);
+                .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+                .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
         model.addAttribute("productPromotions", activePromotions);
@@ -337,12 +355,12 @@ public class ProductController {
                 BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                 if (basePrice != null) {
                     BigDecimal raw = basePrice
-                        .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                     if (hasGiamToiDa) {
                         BigDecimal maxDiscount = bestPercentagePromo.getGiamToiDa();
                         BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
                         if (actualDiscount.compareTo(maxDiscount) > 0) {
                             raw = basePrice.subtract(maxDiscount);
                         }
@@ -363,7 +381,10 @@ public class ProductController {
 
         int reviewSize = 10;
         Integer currentUserId = null;
-        try { currentUserId = securityUtil.getCurrentUserId(); } catch (Exception e) {}
+        try {
+            currentUserId = securityUtil.getCurrentUserId();
+        } catch (Exception e) {
+        }
         var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId);
         model.addAttribute("reviews", reviewPageResult.getContent());
         model.addAttribute("reviewCurrentPage", reviewPage);
@@ -390,14 +411,14 @@ public class ProductController {
         Integer maxVolume = null;
         if (!variants.isEmpty()) {
             List<BigDecimal> prices = variants.stream()
-                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
-                .sorted().collect(Collectors.toList());
+                    .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                    .sorted().collect(Collectors.toList());
             minPrice = prices.get(0);
             maxPrice = prices.get(prices.size() - 1);
             List<Integer> volumes = variants.stream()
-                .map(ProductVariant::getDungTich)
-                .filter(Objects::nonNull)
-                .sorted().collect(Collectors.toList());
+                    .map(ProductVariant::getDungTich)
+                    .filter(Objects::nonNull)
+                    .sorted().collect(Collectors.toList());
             if (!volumes.isEmpty()) {
                 minVolume = volumes.get(0);
                 maxVolume = volumes.get(volumes.size() - 1);
@@ -418,7 +439,7 @@ public class ProductController {
 
         // Category name
         String categoryName = categoryRepository.findById(product.getDanhMucId())
-            .map(Category::getTenDanhMuc).orElse("—");
+                .map(Category::getTenDanhMuc).orElse("—");
         model.addAttribute("categoryName", categoryName);
 
         List<Product> related = productService.getRelatedProducts(id, product.getDanhMucId(), 8);
@@ -427,13 +448,13 @@ public class ProductController {
             List<Integer> relatedIds = related.stream().map(Product::getId).collect(Collectors.toList());
             List<ProductVariant> relatedVariants = variantRepository.findByProductIdInAndIsActiveTrue(relatedIds);
             Map<Integer, List<ProductVariant>> relatedVariantsMap = relatedVariants.stream()
-                .collect(Collectors.groupingBy(ProductVariant::getProductId));
+                    .collect(Collectors.groupingBy(ProductVariant::getProductId));
             Map<Integer, BigDecimal> relatedMinPrices = new HashMap<>();
             for (var entry : relatedVariantsMap.entrySet()) {
                 entry.getValue().stream()
-                    .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
-                    .min(BigDecimal::compareTo)
-                    .ifPresent(price -> relatedMinPrices.put(entry.getKey(), price));
+                        .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                        .min(BigDecimal::compareTo)
+                        .ifPresent(price -> relatedMinPrices.put(entry.getKey(), price));
             }
             model.addAttribute("relatedMinPrices", relatedMinPrices);
         }
@@ -443,10 +464,10 @@ public class ProductController {
 
     @PostMapping("/san-pham/{id}/danh-gia")
     public String submitReview(@PathVariable Integer id,
-                               @Valid @ModelAttribute ReviewRequestDTO request,
-                               BindingResult result,
-                               @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
-                               RedirectAttributes ra) {
+            @Valid @ModelAttribute ReviewRequestDTO request,
+            BindingResult result,
+            @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
+            RedirectAttributes ra) {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
             ra.addFlashAttribute("errorMsg", "Vui long dang nhap de danh gia");
@@ -466,7 +487,9 @@ public class ProductController {
                         urls.add(fileUploadService.save(f, "reviews"));
                     }
                 }
-                if (!urls.isEmpty()) hinhAnhUrls = String.join(",", urls);
+                if (!urls.isEmpty()) {
+                    hinhAnhUrls = String.join(",", urls);
+                }
             } catch (Exception e) {
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;
@@ -482,7 +505,6 @@ public class ProductController {
     }
 
     // ── API for variant switching (AJAX) ──
-
     @GetMapping("/api/variants/{variantId}")
     @ResponseBody
     public VariantApiDTO getVariant(@PathVariable Integer variantId) {

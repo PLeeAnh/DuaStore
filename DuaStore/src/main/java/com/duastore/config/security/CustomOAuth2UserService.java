@@ -33,9 +33,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserAuthProviderRepository userAuthProviderRepository;
 
     public CustomOAuth2UserService(UserRepository userRepository,
-                                    PasswordEncoder passwordEncoder,
-                                    RoleRepository roleRepository,
-                                    UserAuthProviderRepository userAuthProviderRepository) {
+            PasswordEncoder passwordEncoder,
+            RoleRepository roleRepository,
+            UserAuthProviderRepository userAuthProviderRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
@@ -47,11 +47,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         try {
             return doLoadUser(userRequest);
         } catch (Exception e) {
-            log.error("OAuth2 loadUser failed for registrationId={}: {}", 
-                userRequest.getClientRegistration().getRegistrationId(), e.getMessage(), e);
+            log.error("OAuth2 loadUser failed for registrationId={}: {}",
+                    userRequest.getClientRegistration().getRegistrationId(), e.getMessage(), e);
             throw new OAuth2AuthenticationException(
-                new OAuth2Error("google_login_failed",
-                    "Đăng nhập Google thất bại: " + e.getMessage(), null), e);
+                    new OAuth2Error("google_login_failed",
+                            "Đăng nhập Google thất bại: " + e.getMessage(), null), e);
         }
     }
 
@@ -62,7 +62,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
 
-        if (email == null) return oauth2User;
+        if (email == null) {
+            return oauth2User;
+        }
 
         User user = userRepository.findByEmailWithRoles(email).orElse(null);
         String googleSub = (String) attributes.get("sub");
@@ -71,7 +73,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user = new User();
 
             String rawUsername = email.split("@")[0] + "_" + UUID.randomUUID().toString().substring(0, 4);
-            if (rawUsername.length() > 50) rawUsername = rawUsername.substring(0, 50);
+            if (rawUsername.length() > 50) {
+                rawUsername = rawUsername.substring(0, 50);
+            }
 
             user.setUsername(rawUsername);
             user.setEmail(email);

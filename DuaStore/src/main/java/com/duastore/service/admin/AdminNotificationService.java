@@ -22,8 +22,8 @@ public class AdminNotificationService {
     private final PromotionRepository promotionRepository;
 
     public AdminNotificationService(NotificationRepository notificationRepository,
-                                    ProductRepository productRepository,
-                                    PromotionRepository promotionRepository) {
+            ProductRepository productRepository,
+            PromotionRepository promotionRepository) {
         this.notificationRepository = notificationRepository;
         this.productRepository = productRepository;
         this.promotionRepository = promotionRepository;

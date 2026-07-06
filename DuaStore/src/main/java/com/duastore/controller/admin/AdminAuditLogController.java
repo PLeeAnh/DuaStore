@@ -25,8 +25,8 @@ public class AdminAuditLogController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).AUDIT_LOG_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            Model model) {
         Page<AdminActionLog> logPage = adminLogService.getAllLogs(page, size);
         model.addAttribute("title", "nhat-ky");
         model.addAttribute("logs", logPage.getContent());

@@ -33,7 +33,7 @@ public class ContactController {
 
     @PostMapping("/lien-he")
     public String contactSubmit(@RequestParam String hoTen, @RequestParam String email,
-                                @RequestParam String noiDung, RedirectAttributes ra) {
+            @RequestParam String noiDung, RedirectAttributes ra) {
         if (!StringUtils.hasText(hoTen) || hoTen.trim().length() > 100) {
             ra.addFlashAttribute("errorMsg", "Họ tên không hợp lệ (1-100 ký tự)");
             return "redirect:/lien-he";

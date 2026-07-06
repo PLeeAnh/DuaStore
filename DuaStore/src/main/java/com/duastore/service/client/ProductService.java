@@ -67,9 +67,9 @@ public class ProductService {
     }
 
     public Page<Product> filterPaged(String keyword, Integer danhMucId,
-                                      String chatLieu, String priceRange,
-                                      Integer dungTich, String sortBy,
-                                      int page, int size) {
+            String chatLieu, String priceRange,
+            Integer dungTich, String sortBy,
+            int page, int size) {
         BigDecimal[] price = parsePriceRange(priceRange);
         BigDecimal minPrice = price != null ? price[0] : null;
         BigDecimal maxPrice = price != null ? price[1] : null;
@@ -86,14 +86,22 @@ public class ProductService {
     }
 
     public BigDecimal[] parsePriceRange(String code) {
-        if (code == null) return null;
+        if (code == null) {
+            return null;
+        }
         return switch (code) {
-            case "lt100" -> new BigDecimal[]{null, new BigDecimal("100000")};
-            case "r100_200" -> new BigDecimal[]{new BigDecimal("100000"), new BigDecimal("200000")};
-            case "r200_500" -> new BigDecimal[]{new BigDecimal("200000"), new BigDecimal("500000")};
-            case "r500_1000" -> new BigDecimal[]{new BigDecimal("500000"), new BigDecimal("1000000")};
-            case "gt1000" -> new BigDecimal[]{new BigDecimal("1000000"), null};
-            default -> null;
+            case "lt100" ->
+                new BigDecimal[]{null, new BigDecimal("100000")};
+            case "r100_200" ->
+                new BigDecimal[]{new BigDecimal("100000"), new BigDecimal("200000")};
+            case "r200_500" ->
+                new BigDecimal[]{new BigDecimal("200000"), new BigDecimal("500000")};
+            case "r500_1000" ->
+                new BigDecimal[]{new BigDecimal("500000"), new BigDecimal("1000000")};
+            case "gt1000" ->
+                new BigDecimal[]{new BigDecimal("1000000"), null};
+            default ->
+                null;
         };
     }
 
@@ -121,8 +129,9 @@ public class ProductService {
                 String[] parts = name.split("\\s*-\\s*");
                 if (parts.length >= 2) {
                     String cap = parts[1].trim();
-                    if (cap.toLowerCase(java.util.Locale.ROOT).contains("nắp"))
+                    if (cap.toLowerCase(java.util.Locale.ROOT).contains("nắp")) {
                         kieuNaps.add(cap);
+                    }
                 }
             }
         }
@@ -131,7 +140,9 @@ public class ProductService {
 
     public Product findById(Integer id) {
         Product p = productRepository.findById(id).orElse(null);
-        if (p != null && !p.isActive()) return null;
+        if (p != null && !p.isActive()) {
+            return null;
+        }
         return p;
     }
 
@@ -148,7 +159,9 @@ public class ProductService {
 
     public VariantApiDTO getVariantApi(Integer variantId) {
         ProductVariant v = variantRepository.findById(variantId).orElse(null);
-        if (v == null) return null;
+        if (v == null) {
+            return null;
+        }
         VariantApiDTO dto = new VariantApiDTO();
         dto.setId(v.getId());
         dto.setTenBienThe(v.getTenBienThe());

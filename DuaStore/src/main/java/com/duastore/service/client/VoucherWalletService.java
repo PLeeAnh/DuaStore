@@ -26,7 +26,7 @@ public class VoucherWalletService {
     private final PromotionRepository promotionRepository;
 
     public VoucherWalletService(UserVoucherRepository userVoucherRepository,
-                                PromotionRepository promotionRepository) {
+            PromotionRepository promotionRepository) {
         this.userVoucherRepository = userVoucherRepository;
         this.promotionRepository = promotionRepository;
     }
@@ -87,8 +87,8 @@ public class VoucherWalletService {
 
     @Transactional(readOnly = true)
     public Page<UserVoucher> getWalletByTabWithFilters(Integer userId, VoucherStatus status,
-                                                        String keyword, String sortBy,
-                                                        int page, int size) {
+            String keyword, String sortBy,
+            int page, int size) {
         Sort sort = buildSort(sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
         if (keyword != null && !keyword.isBlank()) {
@@ -98,11 +98,16 @@ public class VoucherWalletService {
     }
 
     private Sort buildSort(String sortBy) {
-        if (sortBy == null) sortBy = "default";
+        if (sortBy == null) {
+            sortBy = "default";
+        }
         return switch (sortBy) {
-            case "expiry" -> Sort.by(Sort.Direction.ASC, "expiredAt");
-            case "saved" -> Sort.by(Sort.Direction.DESC, "savedAt");
-            default -> Sort.by(Sort.Direction.DESC, "savedAt");
+            case "expiry" ->
+                Sort.by(Sort.Direction.ASC, "expiredAt");
+            case "saved" ->
+                Sort.by(Sort.Direction.DESC, "savedAt");
+            default ->
+                Sort.by(Sort.Direction.DESC, "savedAt");
         };
     }
 

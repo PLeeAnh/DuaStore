@@ -58,7 +58,7 @@
                     <label class="form-label">Ảnh đại diện</label>
                     <input type="file" th:name="hinhAnhFile" class="form-control" />
                     <div th:if="${post.hinhAnh != null}" class="mt-2">
-                        <img th:src="@{${post.hinhAnh}}" alt="Thumb" style="max-height:80px;border-radius:4px;" />
+                        <img th:src="@{${post.hinhAnh}}" alt="Thumb" style="width:80px;height:80px;object-fit:cover;border-radius:4px;" />
                         <small class="text-muted d-block" th:text="${post.hinhAnh}"></small>
                     </div>
                 </div>

@@ -454,6 +454,14 @@ body.adm-body {
     padding: 1.5rem;
 }
 
+.ds-admin-card {
+    padding: 20px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--ds-border, #E2E8F0);
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+}
+
 .breadcrumb-item {
     color: var(--ef-text-muted);
 }

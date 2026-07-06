@@ -23,7 +23,7 @@ public class AdminFlashSaleController {
     private final ProductRepository productRepository;
 
     public AdminFlashSaleController(FlashSaleService flashSaleService,
-                                    ProductRepository productRepository) {
+            ProductRepository productRepository) {
         this.flashSaleService = flashSaleService;
         this.productRepository = productRepository;
     }
@@ -67,10 +67,10 @@ public class AdminFlashSaleController {
     }
 
     @PostMapping("/save")
-    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_CREATE) or " +
-                  "@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_UPDATE)")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_CREATE) or "
+            + "@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_UPDATE)")
     public String save(@Valid @ModelAttribute("flashSale") FlashSaleFormDTO dto,
-                       BindingResult result, Model model, RedirectAttributes ra) {
+            BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
             return "view/admin/flashsale/form";

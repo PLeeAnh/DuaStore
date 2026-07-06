@@ -9,6 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface StoreInfoRepository extends JpaRepository<StoreInfo, Integer> {
+
     Optional<StoreInfo> findByIsDefaultTrueAndIsActiveTrue();
+
     List<StoreInfo> findByIsActiveTrueOrderByIdAsc();
 }

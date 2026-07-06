@@ -26,7 +26,9 @@ public class CartWishlistApiController {
 
     private Integer getUserId() {
         Integer id = securityUtil.getCurrentUserId();
-        if (id == null) throw new RuntimeException("Vui long dang nhap");
+        if (id == null) {
+            throw new RuntimeException("Vui long dang nhap");
+        }
         return id;
     }
 
@@ -37,7 +39,9 @@ public class CartWishlistApiController {
         try {
             Integer userId = getUserId();
             Integer productId = payload.get("productId");
-            if (productId == null) throw new RuntimeException("Thiếu thông tin sản phẩm");
+            if (productId == null) {
+                throw new RuntimeException("Thiếu thông tin sản phẩm");
+            }
             boolean isLiked = wishlistService.toggle(userId, productId);
             response.put("success", true);
             response.put("isLiked", isLiked);
@@ -61,11 +65,15 @@ public class CartWishlistApiController {
 
             if (variantId == null) {
                 var opt = cartService.findDefaultVariant(productId);
-                if (opt.isEmpty()) throw new RuntimeException("Sản phẩm chưa có biến thể");
+                if (opt.isEmpty()) {
+                    throw new RuntimeException("Sản phẩm chưa có biến thể");
+                }
                 variantId = opt.get().getId();
             }
             CartService.CartResult result = cartService.add(userId, variantId, quantity);
-            if (!result.success()) throw new RuntimeException(result.message());
+            if (!result.success()) {
+                throw new RuntimeException(result.message());
+            }
 
             response.put("success", true);
             response.put("cartCount", result.cartCount());
@@ -84,7 +92,9 @@ public class CartWishlistApiController {
         try {
             Integer userId = getUserId();
             Integer variantId = payload.get("variantId");
-            if (variantId == null) throw new RuntimeException("Thiếu thông tin biến thể");
+            if (variantId == null) {
+                throw new RuntimeException("Thiếu thông tin biến thể");
+            }
             cartService.removeByVariantId(userId, variantId);
             response.put("success", true);
             response.put("cartCount", cartService.count(userId));
@@ -97,43 +107,43 @@ public class CartWishlistApiController {
     }
 
     @PostMapping("/cart/update")
-public ResponseEntity<Map<String, Object>> updateCartItem(@RequestBody Map<String, Integer> payload) {
+    public ResponseEntity<Map<String, Object>> updateCartItem(@RequestBody Map<String, Integer> payload) {
 
-    Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
 
-    try {
+        try {
 
-        Integer userId = getUserId();
-        Integer variantId = payload.get("variantId");
-        Integer soLuong = payload.get("soLuong");
+            Integer userId = getUserId();
+            Integer variantId = payload.get("variantId");
+            Integer soLuong = payload.get("soLuong");
 
-        if (variantId == null) {
-            throw new RuntimeException("Thiếu thông tin biến thể");
+            if (variantId == null) {
+                throw new RuntimeException("Thiếu thông tin biến thể");
+            }
+
+            if (soLuong == null || soLuong < 1) {
+                throw new RuntimeException("Số lượng không hợp lệ");
+            }
+
+            CartService.CartResult result
+                    = cartService.updateQuantityByVariantId(
+                            userId,
+                            variantId,
+                            soLuong
+                    );
+
+            response.put("success", result.success());
+            response.put("message", result.message());
+            response.put("cartCount", result.cartCount());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+
+            response.put("success", false);
+            response.put("message", e.getMessage());
+
+            return ResponseEntity.badRequest().body(response);
         }
-
-        if (soLuong == null || soLuong < 1) {
-            throw new RuntimeException("Số lượng không hợp lệ");
-        }
-
-        CartService.CartResult result =
-                cartService.updateQuantityByVariantId(
-                        userId,
-                        variantId,
-                        soLuong
-                );
-
-        response.put("success", result.success());
-        response.put("message", result.message());
-        response.put("cartCount", result.cartCount());
-
-        return ResponseEntity.ok(response);
-
-    } catch (Exception e) {
-
-        response.put("success", false);
-        response.put("message", e.getMessage());
-
-        return ResponseEntity.badRequest().body(response);
     }
-}
 }

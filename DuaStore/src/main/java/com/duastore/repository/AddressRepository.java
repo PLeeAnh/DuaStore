@@ -11,7 +11,9 @@ import java.util.List;
 
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Integer> {
+
     long countByUserId(Integer userId);
+
     @Query("SELECT a FROM Address a WHERE a.userId = ?1 ORDER BY a.isDefault DESC, a.id DESC")
     List<Address> findByUserIdOrderByIsDefaultDesc(Integer userId);
 

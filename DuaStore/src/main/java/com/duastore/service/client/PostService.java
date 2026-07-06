@@ -70,21 +70,28 @@ public class PostService {
         try {
             Integer id = Integer.parseInt(slugOrId);
             Post post = postsRepository.findById(id).orElse(null);
-            if (post != null && "XUAT_BAN".equals(post.getTrangThai())) return post;
-        } catch (NumberFormatException ignored) {}
+            if (post != null && "XUAT_BAN".equals(post.getTrangThai())) {
+                return post;
+            }
+        } catch (NumberFormatException ignored) {
+        }
         return postsRepository.findBySlugAndTrangThai(slugOrId, "XUAT_BAN").orElse(null);
     }
 
     @Transactional(readOnly = true)
     public Post getPostById(Integer id) {
         Post post = postsRepository.findById(id).orElse(null);
-        if (post == null || !"XUAT_BAN".equals(post.getTrangThai())) return null;
+        if (post == null || !"XUAT_BAN".equals(post.getTrangThai())) {
+            return null;
+        }
         return post;
     }
 
     @Transactional(readOnly = true)
     public List<Post> getRelatedPosts(Post post, int limit) {
-        if (post.getDanhMuc() == null || post.getDanhMuc().getId() == null) return List.of();
+        if (post.getDanhMuc() == null || post.getDanhMuc().getId() == null) {
+            return List.of();
+        }
         return postsRepository.findRelatedPosts("XUAT_BAN", post.getDanhMuc().getId(), post.getId(),
                 PageRequest.of(0, limit));
     }
@@ -100,7 +107,9 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public String getTenTacGia(Integer tacGiaId) {
-        if (tacGiaId == null) return null;
+        if (tacGiaId == null) {
+            return null;
+        }
         return userRepository.findById(tacGiaId)
                 .map(User::getHoTen)
                 .orElse(null);
@@ -108,7 +117,9 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public Set<String> getTagNames(Set<PostTag> tags) {
-        if (tags == null) return Set.of();
+        if (tags == null) {
+            return Set.of();
+        }
         return tags.stream().map(PostTag::getTenTag).collect(Collectors.toSet());
     }
 }

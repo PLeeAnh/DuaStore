@@ -1,17 +1,18 @@
 /* =====================================================
-   DuaStore — admin.js
-   ===================================================== */
+ DuaStore — admin.js
+ ===================================================== */
 
 'use strict';
-
-(function() {
+(function () {
     const token = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
     const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-    if (!token || !header) return;
+    if (!token || !header)
+        return;
     const orig = window.fetch;
-    window.fetch = function(url, opts) {
+    window.fetch = function (url, opts) {
         opts = opts || {};
-        if (!opts.method || opts.method.toUpperCase() === 'GET') return orig.call(this, url, opts);
+        if (!opts.method || opts.method.toUpperCase() === 'GET')
+            return orig.call(this, url, opts);
         const isSameOrigin = typeof url === 'string' && (url.startsWith('/') || new URL(url, location.origin).origin === location.origin);
         if (isSameOrigin) {
             opts.headers = opts.headers || {};
@@ -33,7 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const icon = document.getElementById('admToggleIcon');
 
     if (toggle && sidebar) {
-        function isMobile() { return window.innerWidth <= 991; }
+        function isMobile() {
+            return window.innerWidth <= 991;
+        }
 
         toggle.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -53,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isMobile() && sidebar.classList.contains('adm-sidebar-mobile-open')) {
                     sidebar.classList.remove('adm-sidebar-mobile-open');
                     document.body.style.overflow = '';
-                    if (icon) icon.className = 'bi bi-list';
+                    if (icon)
+                        icon.className = 'bi bi-list';
                 }
             });
         }
@@ -62,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isMobile() && sidebar.classList.contains('adm-sidebar-mobile-open')) {
                 sidebar.classList.remove('adm-sidebar-mobile-open');
                 document.body.style.overflow = '';
-                if (icon) icon.className = 'bi bi-list';
+                if (icon)
+                    icon.className = 'bi bi-list';
             }
         });
     }
@@ -87,27 +92,29 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ── Toast notification ── */
     var toastTriggers = document.querySelectorAll('[data-toast-msg]');
     var toastContainer = document.getElementById('toastContainer');
-    toastTriggers.forEach(function(el) {
+    toastTriggers.forEach(function (el) {
         var msg = el.getAttribute('data-toast-msg');
         var type = el.getAttribute('data-toast-type') || 'success';
-        var icons = { success: 'bi-check-circle-fill text-success', error: 'bi-x-circle-fill text-danger', warning: 'bi-exclamation-triangle-fill text-warning' };
-        var titles = { success: 'Thành công', error: 'Lỗi', warning: 'Cảnh báo' };
+        var icons = {success: 'bi-check-circle-fill text-success', error: 'bi-x-circle-fill text-danger', warning: 'bi-exclamation-triangle-fill text-warning'};
+        var titles = {success: 'Thành công', error: 'Lỗi', warning: 'Cảnh báo'};
         var toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
         if (toastContainer) {
             toastContainer.insertAdjacentHTML('beforeend',
-                '<div id="' + toastId + '" class="toast" role="alert" data-bs-delay="4000">' +
-                '<div class="toast-header">' +
-                '<i class="bi ' + (icons[type] || icons.success) + ' me-2"></i>' +
-                '<strong class="me-auto">' + (titles[type] || titles.success) + '</strong>' +
-                '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
-                '</div>' +
-                '<div class="toast-body">' + msg + '</div>' +
-                '</div>');
+                    '<div id="' + toastId + '" class="toast" role="alert" data-bs-delay="4000">' +
+                    '<div class="toast-header">' +
+                    '<i class="bi ' + (icons[type] || icons.success) + ' me-2"></i>' +
+                    '<strong class="me-auto">' + (titles[type] || titles.success) + '</strong>' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
+                    '</div>' +
+                    '<div class="toast-body">' + msg + '</div>' +
+                    '</div>');
             var toastEl = document.getElementById(toastId);
             if (toastEl) {
                 var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
                 toast.show();
-                toastEl.addEventListener('hidden.bs.toast', function() { toastEl.remove(); });
+                toastEl.addEventListener('hidden.bs.toast', function () {
+                    toastEl.remove();
+                });
             }
         }
         el.remove();
@@ -122,7 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', e => {
                 const msg = btn.getAttribute('data-confirm') || 'Xác nhận thực hiện thao tác này?';
                 confirmForm = btn.closest('form');
-                if (!confirmForm) return;
+                if (!confirmForm)
+                    return;
                 e.preventDefault();
                 document.getElementById('confirmModalMessage').textContent = msg;
                 confirmModal.show();
@@ -135,7 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             confirmModal.hide();
         });
-        confirmModalEl.addEventListener('hidden.bs.modal', () => { confirmForm = null; });
+        confirmModalEl.addEventListener('hidden.bs.modal', () => {
+            confirmForm = null;
+        });
     }
 
     /* ── Auto-submit search (debounce) ── */
@@ -146,35 +156,41 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(timer);
             timer = setTimeout(() => {
                 const form = input.closest('form');
-                if (form) form.submit();
+                if (form)
+                    form.submit();
             }, delay);
+        });
+
     });
 
-});
-
-function copyPromoCode(btn) {
-    var code = btn.getAttribute('data-code');
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(code).then(function() {
+    function copyPromoCode(btn) {
+        var code = btn.getAttribute('data-code');
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(function () {
+                var orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(function () {
+                    btn.textContent = orig;
+                }, 1500);
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = code;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
             var orig = btn.textContent;
             btn.textContent = 'Copied!';
-            setTimeout(function() { btn.textContent = orig; }, 1500);
-        });
-    } else {
-        var ta = document.createElement('textarea');
-        ta.value = code;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        var orig = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(function() { btn.textContent = orig; }, 1500);
+            setTimeout(function () {
+                btn.textContent = orig;
+            }, 1500);
+        }
     }
-}
     /* ── Searchable Select (TomSelect) ── */
     document.querySelectorAll('.searchable-select').forEach(el => {
-        if (el.tagName !== 'SELECT') return;
+        if (el.tagName !== 'SELECT')
+            return;
         const opts = {
             placeholder: el.getAttribute('placeholder') || 'Tìm kiếm...',
             maxOptions: null,
@@ -184,93 +200,113 @@ function copyPromoCode(btn) {
             opts.createOnBlur = true;
         }
         if (el.hasAttribute('data-autosubmit')) {
-            opts.onChange = function() {
+            opts.onChange = function () {
                 var form = el.closest('form');
-                if (form) { form.submit(); }
-                else { el.dispatchEvent(new Event('change', { bubbles: true })); }
+                if (form) {
+                    form.submit();
+                } else {
+                    el.dispatchEvent(new Event('change', {bubbles: true}));
+                }
             };
         }
         new TomSelect(el, opts);
-});
+    });
 
-/* ── Dirty Save Bar ── */
-function initDirtyBar() {
-    var bar = document.getElementById('dsSaveBar');
-    if (!bar) return;
-    var forms = document.querySelectorAll('form[data-dirty-bar]');
-    if (!forms.length) return;
-    var activeForm = null;
-    var resetBtn = document.getElementById('dsSaveBarReset');
-    var saveBtn = document.getElementById('dsSaveBarSave');
-    var fields = 'input, select, textarea';
-
-    function getFormData(f) {
-        return new FormData(f);
-    }
-
-    function checkDirty(f) {
-        if (!f._cleanData) {
-            f._cleanData = getFormData(f);
-            f._dirty = false;
+    /* ── Dirty Save Bar ── */
+    function initDirtyBar() {
+        var bar = document.getElementById('dsSaveBar');
+        if (!bar)
             return;
-        }
-        var current = getFormData(f);
-        var dirty = false;
-        var keys = new Set();
-        for (var pair of f._cleanData.entries()) keys.add(pair[0]);
-        for (var pair of current.entries()) keys.add(pair[0]);
-        keys.forEach(function(k) {
-            var v1 = f._cleanData.getAll(k).sort().join(',');
-            var v2 = current.getAll(k).sort().join(',');
-            if (v1 !== v2) dirty = true;
-        });
-        if (dirty !== f._dirty) {
-            f._dirty = dirty;
-            updateBar(dirty, f);
-        }
-    }
+        var forms = document.querySelectorAll('form[data-dirty-bar]');
+        if (!forms.length)
+            return;
+        var activeForm = null;
+        var resetBtn = document.getElementById('dsSaveBarReset');
+        var saveBtn = document.getElementById('dsSaveBarSave');
+        var fields = 'input, select, textarea';
 
-    function updateBar(dirty, f) {
-        if (dirty) {
-            activeForm = f;
-            bar.style.display = 'flex';
-            requestAnimationFrame(function() { bar.classList.add('show'); });
-        } else {
-            bar.classList.remove('show');
-            activeForm = null;
-            setTimeout(function() { bar.style.display = 'none'; }, 300);
+        function getFormData(f) {
+            return new FormData(f);
         }
-    }
 
-    function resetDirty(f) {
-        f.reset();
-        setTimeout(function() {
+        function checkDirty(f) {
+            if (!f._cleanData) {
+                f._cleanData = getFormData(f);
+                f._dirty = false;
+                return;
+            }
+            var current = getFormData(f);
+            var dirty = false;
+            var keys = new Set();
+            for (var pair of f._cleanData.entries())
+                keys.add(pair[0]);
+            for (var pair of current.entries())
+                keys.add(pair[0]);
+            keys.forEach(function (k) {
+                var v1 = f._cleanData.getAll(k).sort().join(',');
+                var v2 = current.getAll(k).sort().join(',');
+                if (v1 !== v2)
+                    dirty = true;
+            });
+            if (dirty !== f._dirty) {
+                f._dirty = dirty;
+                updateBar(dirty, f);
+            }
+        }
+
+        function updateBar(dirty, f) {
+            if (dirty) {
+                activeForm = f;
+                bar.style.display = 'flex';
+                requestAnimationFrame(function () {
+                    bar.classList.add('show');
+                });
+            } else {
+                bar.classList.remove('show');
+                activeForm = null;
+                setTimeout(function () {
+                    bar.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        function resetDirty(f) {
+            f.reset();
+            setTimeout(function () {
+                f._cleanData = getFormData(f);
+                f._dirty = false;
+                updateBar(false, f);
+            }, 50);
+        }
+
+        forms.forEach(function (f) {
             f._cleanData = getFormData(f);
             f._dirty = false;
-            updateBar(false, f);
-        }, 50);
+            f.addEventListener('input', function () {
+                checkDirty(f);
+            });
+            f.addEventListener('change', function () {
+                checkDirty(f);
+            });
+        });
+
+        if (resetBtn)
+            resetBtn.addEventListener('click', function () {
+                if (activeForm)
+                    resetDirty(activeForm);
+            });
+
+        if (saveBtn)
+            saveBtn.addEventListener('click', function () {
+                if (activeForm)
+                    activeForm.requestSubmit();
+            });
     }
 
-    forms.forEach(function(f) {
-        f._cleanData = getFormData(f);
-        f._dirty = false;
-        f.addEventListener('input', function() { checkDirty(f); });
-        f.addEventListener('change', function() { checkDirty(f); });
-    });
-
-    if (resetBtn) resetBtn.addEventListener('click', function() {
-        if (activeForm) resetDirty(activeForm);
-    });
-
-    if (saveBtn) saveBtn.addEventListener('click', function() {
-        if (activeForm) activeForm.requestSubmit();
-    });
-}
-
-initDirtyBar();
+    initDirtyBar();
     const treeRoot = document.querySelector('.category-tree');
     if (treeRoot) {
-        treeRoot.addEventListener('click', function(e) {
+        treeRoot.addEventListener('click', function (e) {
             const toggle = e.target.closest('.tree-toggle');
             if (toggle && toggle.hasAttribute('data-target')) {
                 e.stopPropagation();

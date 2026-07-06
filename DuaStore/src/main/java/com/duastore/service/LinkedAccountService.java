@@ -26,8 +26,8 @@ public class LinkedAccountService {
     private final PasswordEncoder passwordEncoder;
 
     public LinkedAccountService(LinkedAccountRepository linkedAccountRepository,
-                                UserRepository userRepository,
-                                PasswordEncoder passwordEncoder) {
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         this.linkedAccountRepository = linkedAccountRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -74,7 +74,9 @@ public class LinkedAccountService {
             throw new RuntimeException("Tài khoản không được liên kết");
         }
         HttpSession session = request.getSession(false);
-        if (session != null) session.invalidate();
+        if (session != null) {
+            session.invalidate();
+        }
         HttpSession newSession = request.getSession(true);
         newSession.setAttribute("loggedIn", true);
         newSession.setAttribute("userId", target.getId());

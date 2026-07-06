@@ -6,7 +6,7 @@
     </head>
     <body>
         <div layout:fragment="content">
-            <!-- HERO BANNER SLIDER (full-width) -->
+            <!-- HERO BANNER SLIDER (flush với background) -->
             <section class="ds-hero-v2" th:if="${banners != null and !banners.isEmpty() and (themeSettings.get('hp_1_active') == null or themeSettings.get('hp_1_active') != '0')}">
                 <div class="ds-hero-v2-inner">
                     <div class="swiper hero-banner-swiper">
@@ -26,152 +26,42 @@
                 </div>
             </section>
 
-            <!-- HERO CAROUSEL (full-width) -->
-            <section class="ds-hero sr-up d-none">
-                <div class="ds-hero-v2-inner">
-                    <div class="swiper hero-swiper">
-                        <div class="swiper-wrapper">
-                            <!-- Slide 1 -->
-                            <div class="swiper-slide hero-slide">
-                                <div class="hero-bg-shapes">
-                                    <div class="hero-blob hero-blob-1"></div><div class="hero-blob hero-blob-2"></div>
-                                </div>
-                                <div class="container-xl hero-content">
-                                    <div class="row align-items-center g-5">
-                                        <div class="col-12 col-lg-6 hero-text-col">
-                                            <span class="hero-badge">Bộ sưu tập mới</span>
-                                            <h1 class="hero-title">Chai thủy tinh<br/>thủ công cao cấp</h1>
-                                            <p class="hero-desc">Từng đường cắt tinh xảo trên chất liệu thủy tinh borosilicate — chịu nhiệt, bền bỉ, sang trọng.</p>
-                                            <div class="hero-actions">
-                                                <a th:href="@{/san-pham(danhMuc='chai')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                                <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-lg-6 hero-img-col">
-                                            <div class="hero-glass-card">
-                                                <div class="hero-glass-inner"><i class="bi bi-box-seam hero-glass-icon"></i></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Slide 2 -->
-                            <div class="swiper-slide hero-slide">
-                                <div class="hero-bg-shapes">
-                                    <div class="hero-blob hero-blob-1"></div><div class="hero-blob hero-blob-2"></div>
-                                </div>
-                                <div class="container-xl hero-content">
-                                    <div class="row align-items-center g-5">
-                                        <div class="col-12 col-lg-6 hero-text-col">
-                                            <span class="hero-badge hero-badge-purple">Quà tặng</span>
-                                            <h1 class="hero-title">Set quà tặng<br/>cao cấp tinh tế</h1>
-                                            <p class="hero-desc">Gói quà sang trọng kèm thiệp viết tay — dành cho những món quà đặc biệt.</p>
-                                            <div class="hero-actions">
-                                                <a th:href="@{/san-pham(danhMuc='qua-tang')}" class="ds-btn ds-btn-primary">Khám phá ngay <i class="bi bi-arrow-right ms-2"></i></a>
-                                                <a th:href="@{/san-pham}" class="ds-btn ds-btn-outline-hero">Xem tất cả</a>
-                                            </div>
-                                        </div>
-                                        <div class="col-12 col-lg-6 hero-img-col">
-                                            <div class="hero-glass-card">
-                                                <div class="hero-glass-inner"><i class="bi bi-gift hero-glass-icon"></i></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="container-xl hero-content hero-pagination-wrap">
-                            <div class="hero-pagination"></div>
-                        </div>
-                    </div>
-                </div>
-                </section>
-
                 <!-- Content constrained to 1200px -->
                 <div class="ds-home-content">
-                <!-- FEATURES STRIP -->
-                <section class="ds-features sr-up" th:if="${themeSettings.get('hp_2_active') == null or themeSettings.get('hp_2_active') != '0'}">
-                    <div class="row g-3">
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-truck"></i><span>Miễn phí vận chuyển</span><small>Cho đơn trên 500K</small></div></div>
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-arrow-counterclockwise"></i><span>Đổi trả 7 ngày</span><small>Hoàn tiền 100%</small></div></div>
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-shield-check"></i><span>Bảo hành chính hãng</span><small>Sản phẩm cao cấp</small></div></div>
-                        <div class="col-6 col-lg-3"><div class="ds-feature-card"><i class="bi bi-headset"></i><span>Hỗ trợ 24/7</span><small>Hotline 1900...</small></div></div>
-                    </div>
-                </section>
 
-                <!-- DANH MỤC (cuộn ngang kiểu Steam "Browse by Category") -->
-                <section class="ds-cat-v2 sr-up" th:if="${themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0'}">
+                <!-- DANH MỤC (slider 4 cột + arrows + dots) -->
+                <section class="ds-section-card ds-cat-v2 sr-up ds-slider-section" th:if="${themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0'}"
+                         data-items-per-page="4">
                     <div class="ds-section-header">
                         <h2 class="ds-section-title-sm">Duyệt theo danh mục</h2>
                     </div>
-                    <div class="ds-scroll-row">
-                        <a th:href="@{/san-pham}" class="ds-cat-tile">
-                            <div class="ds-cat-tile-img ds-cat-tile-all"><i class="bi bi-grid-3x3-gap-fill"></i></div>
-                            <div class="ds-cat-tile-overlay">
-                                <span class="ds-cat-tile-label">Tất cả</span>
-                                <span class="ds-cat-tile-count" th:text="${totalProducts} + ' mẫu'">300 mẫu</span>
+                    <div class="ds-slider-wrap">
+                        <div class="ds-slider-viewport">
+                            <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                            <div class="ds-slider-track">
+                                <a th:href="@{/san-pham}" class="ds-cat-tile">
+                                    <div class="ds-cat-tile-img ds-cat-tile-all"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                                    <div class="ds-cat-tile-overlay">
+                                        <span class="ds-cat-tile-label">Tất cả</span>
+                                    </div>
+                                </a>
+                                <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                                    <div class="ds-cat-tile-img">
+                                        <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}">
+                                    </div>
+                                    <div class="ds-cat-tile-overlay">
+                                        <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                    </div>
+                                </a>
                             </div>
-                        </a>
-                        <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
-                            <div class="ds-cat-tile-img">
-                                <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}">
-                            </div>
-                            <div class="ds-cat-tile-overlay">
-                                <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Category</span>
-                                <span class="ds-cat-tile-count" th:text="${productCountMap.get(cat.id) ?: 0} + ' mẫu'">30 mẫu</span>
-                            </div>
-                        </a>
-                    </div>
-                </section>
-
-                <!-- BÁN CHẠY NHẤT (list + panel xem trước, kiểu Steam Top Sellers) -->
-                <section class="ds-topsellers sr-up" th:if="${not #lists.isEmpty(topSellers)}">
-                    <div class="ds-section-header">
-                        <h2 class="ds-section-title-sm">Bán chạy nhất</h2>
-                    </div>
-                    <div class="ds-topsellers-wrap">
-                        <div class="ds-topsellers-list">
-                            <div th:each="p, iter : ${topSellers}"
-                                 class="ds-topseller-row" th:classappend="${iter.index == 0} ? 'active'"
-                                 th:data-index="${iter.index}"
-                                 th:data-name="${p.tenSanPham}"
-                                 th:data-desc="${p.moTa != null ? (#strings.length(p.moTa) > 140 ? #strings.substring(p.moTa,0,140) + '…' : p.moTa) : ''}"
-                                 th:data-img="${p.hinhAnhChinh ?: '/images/no-image.png'}"
-                                 th:data-href="@{'/san-pham/' + ${p.id}}"
-                                 th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                          v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null"
-                                 th:data-price="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : ''}">
-                                <span class="ds-topseller-rank" th:text="${iter.index + 1}">1</span>
-                                <img class="ds-topseller-thumb" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                                <div class="ds-topseller-info">
-                                    <span class="ds-topseller-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
-                                    <span class="ds-topseller-sold">Đã bán <span th:text="${soldCountMap.get(p.id) ?: 0}">0</span></span>
-                                </div>
-                                <span class="ds-topseller-price" th:text="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : ''}"></span>
-                            </div>
+                            <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
                         </div>
-                        <a class="ds-topsellers-panel" id="topsellerPanel" th:href="@{'/san-pham/' + ${topSellers[0].id}}">
-                            <img id="topsellerPanelImg" th:src="${topSellers[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                            <div class="ds-topsellers-panel-body">
-                                <h4 id="topsellerPanelName" th:text="${topSellers[0].tenSanPham}">Tên sản phẩm</h4>
-                                <p id="topsellerPanelDesc" th:text="${topSellers[0].moTa != null ? (#strings.length(topSellers[0].moTa) > 140 ? #strings.substring(topSellers[0].moTa,0,140) + '…' : topSellers[0].moTa) : ''}"></p>
-                                <span class="ds-btn ds-btn-fill ds-btn-sm">Xem chi tiết <i class="bi bi-arrow-right ms-1"></i></span>
-                            </div>
-                        </a>
                     </div>
+                    <div class="ds-slider-dots"></div>
                 </section>
 
                 <!-- SẢN PHẨM NỔI BẬT -->
-                <section class="sr-up" th:if="${themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0'}">
-                    <div class="ds-section-header">
-                        <div>
-                            <h2 class="ds-section-title" th:text="${themeSettings.get('hp_5_title') ?: 'Sản phẩm nổi bật'}">Sản phẩm nổi bật</h2>
-                        </div>
-                        <a th:href="@{/san-pham}" class="ds-link-more">
-                            Xem tất cả <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
+                <section class="ds-section-card sr-up" th:if="${themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0'}">
                     <div class="ds-product-grid-v2" th:style="'--cols:' + ${productColumns}">
 
                         <div th:each="p : ${featuredProducts}">
@@ -211,9 +101,11 @@
                                             <button class="ds-qty-btn ds-qty-plus" type="button">
                                                 <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                                             </button>
-                                        </div>
-                                    </div>
                                 </div>
+                            </div>
+                            <div class="ds-see-more">
+                                <a th:href="@{/san-pham}">Xem thêm sản phẩm <i class="bi bi-arrow-right"></i></a>
+                            </div>
 
                                 <div class="ds-card-body">
                                     <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
@@ -284,52 +176,68 @@
                     </div>
                 </section>
 
-                <!-- SẢN PHẨM MỚI (cuộn ngang) -->
-                <section class="ds-scroll-section sr-up" th:if="${not #lists.isEmpty(newestProducts)}">
+                <!-- SẢN PHẨM MỚI (slider 4 cột + arrows + dots) -->
+                <section class="ds-section-card ds-scroll-section sr-up ds-slider-section" th:if="${not #lists.isEmpty(newestProducts)}"
+                         data-items-per-page="4">
                     <div class="ds-section-header">
                         <h2 class="ds-section-title-sm">Sản phẩm mới</h2>
                         <a th:href="@{/san-pham(sortBy='newest')}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
                     </div>
-                    <div class="ds-scroll-row">
-                        <a th:each="p : ${newestProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
-                           th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
-                            <div class="ds-mini-card-img">
-                                <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                    <div class="ds-slider-wrap">
+                        <div class="ds-slider-viewport">
+                            <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                            <div class="ds-slider-track">
+                                <a th:each="p : ${newestProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
+                                   th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                            v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                                    <div class="ds-mini-card-img">
+                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                    </div>
+                                    <div class="ds-mini-card-body">
+                                        <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                        <span class="ds-mini-card-price" th:if="${v != null}"
+                                              th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
+                                    </div>
+                                </a>
                             </div>
-                            <div class="ds-mini-card-body">
-                                <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
-                                <span class="ds-mini-card-price" th:if="${v != null}"
-                                      th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
-                            </div>
-                        </a>
+                            <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
+                        </div>
                     </div>
+                    <div class="ds-slider-dots"></div>
                 </section>
 
-                <!-- DƯỚI 300.000Đ (cuộn ngang) -->
-                <section class="ds-scroll-section sr-up" th:if="${not #lists.isEmpty(underPriceProducts)}">
+                <!-- DƯỚI 300.000Đ (slider 4 cột + arrows + dots) -->
+                <section class="ds-section-card ds-scroll-section sr-up ds-slider-section" th:if="${not #lists.isEmpty(underPriceProducts)}"
+                         data-items-per-page="4">
                     <div class="ds-section-header">
                         <h2 class="ds-section-title-sm">Dưới 300.000đ</h2>
                         <a th:href="@{/san-pham(priceRange='0-300000')}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
                     </div>
-                    <div class="ds-scroll-row">
-                        <a th:each="p : ${underPriceProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
-                           th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
-                            <div class="ds-mini-card-img">
-                                <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                    <div class="ds-slider-wrap">
+                        <div class="ds-slider-viewport">
+                            <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                            <div class="ds-slider-track">
+                                <a th:each="p : ${underPriceProducts}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
+                                   th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                            v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                                    <div class="ds-mini-card-img">
+                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                    </div>
+                                    <div class="ds-mini-card-body">
+                                        <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                        <span class="ds-mini-card-price" th:if="${v != null}"
+                                              th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
+                                    </div>
+                                </a>
                             </div>
-                            <div class="ds-mini-card-body">
-                                <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
-                                <span class="ds-mini-card-price" th:if="${v != null}"
-                                      th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
-                            </div>
-                        </a>
+                            <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
+                        </div>
                     </div>
+                    <div class="ds-slider-dots"></div>
                 </section>
 
                 <!-- DUYỆT SẢN PHẨM (Browse: hai cột list + preview) -->
-                <section class="ds-browse sr-up" th:if="${not #lists.isEmpty(browseProducts)}">
+                <section class="ds-section-card ds-browse sr-up" th:if="${not #lists.isEmpty(browseProducts)}">
                     <div class="ds-section-header">
                         <h2 class="ds-section-title-sm">Duyệt sản phẩm</h2>
                     </div>
@@ -361,7 +269,8 @@
                                      th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
                                      th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
                                      th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
-                                     th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}">
+                                     th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
+                                     th:data-gallery="${#strings.listJoin(browseGalleryMap.get(p.id) ?: java.util.Collections.emptyList(), ',')}">
                                     <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
                                     <div class="ds-browse-row-info">
                                         <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
@@ -376,53 +285,34 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Cột phải: preview panel -->
+                        <!-- Cột phải: preview panel (Steam-style) -->
                         <a class="ds-browse-preview" id="browsePreview" th:href="@{'/san-pham/' + ${browseProducts[0].id}}">
+                            <div class="ds-browse-preview-thumb" id="browsePreviewThumb">
+                                <img th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                            </div>
                             <div class="ds-browse-preview-header">
                                 <h4 class="ds-browse-preview-name" id="browsePreviewName" th:text="${browseProducts[0].tenSanPham}">Tên sản phẩm</h4>
                                 <div class="ds-browse-preview-rating" id="browsePreviewRating">
                                     <i class="bi bi-star-fill"></i>
-                                    <span id="browsePreviewRatingValue" th:text="${ratingMap.get(browseProducts[0].id) != null ? #numbers.formatDecimal(ratingMap.get(browseProducts[0].id), 1, 1) : '0'}">4.2</span>
+                                    <span id="browsePreviewRatingValue" th:text="${ratingMap.get(browseProducts[0].id) != null ? #numbers.formatDecimal(ratingMap.get(browseProducts[0].id), 1, 1) : ''}">4.2</span>
                                     <span class="ds-browse-preview-rating-label" id="browsePreviewRatingLabel"
-                                          th:text="${ratingMap.get(browseProducts[0].id) != null ? (ratingMap.get(browseProducts[0].id) >= 4.5 ? 'Tốt' : (ratingMap.get(browseProducts[0].id) >= 3.5 ? 'Khá' : (ratingMap.get(browseProducts[0].id) >= 2.5 ? 'Bình thường' : 'Kém'))) : ''}">Khá</span>
+                                          th:text="${ratingMap.get(browseProducts[0].id) != null ? (ratingMap.get(browseProducts[0].id) >= 4.5 ? 'Tốt' : (ratingMap.get(browseProducts[0].id) >= 3.5 ? 'Khá' : (ratingMap.get(browseProducts[0].id) >= 2.5 ? 'Bình thường' : 'Kém'))) : 'Chưa ai đánh giá'}">Khá</span>
+                                    <span class="ds-browse-preview-rating-count" id="browsePreviewRatingCount">(0)</span>
                                 </div>
-                                <div class="ds-browse-preview-cat" id="browsePreviewCat">
-                                    Danh mục: <span th:text="${categoryNameMap.get(browseProducts[0].danhMucId) ?: ''}">...</span>
-                                </div>
+                            </div>
+                            <div class="ds-browse-preview-tags" id="browsePreviewTags">
+                                <span class="ds-browse-preview-tag" id="browsePreviewCatTag" th:text="${categoryNameMap.get(browseProducts[0].danhMucId) ?: ''}">Danh mục</span>
                             </div>
                             <div class="ds-browse-preview-images" id="browsePreviewImages">
-                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                                <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                <th:block th:each="img, imgIter : ${browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()}">
+                                    <img class="ds-browse-preview-img" th:src="${img}" alt="" th:if="${imgIter.index < 6}"/>
+                                </th:block>
+                                <th:block th:if="${(browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()).isEmpty()}">
+                                    <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                </th:block>
                             </div>
-                            <span class="ds-browse-preview-btn">Xem chi tiết <i class="bi bi-arrow-right ms-1"></i></span>
                         </a>
                     </div>
-                </section>
-
-                <!-- FAQ ACCORDION -->
-                <section class="ds-faq sr-up" th:if="${themeSettings.get('hp_7_active') == null or themeSettings.get('hp_7_active') != '0'}">
-                    <div class="text-center mb-5"><span class="ds-section-badge">FAQ</span><h2 class="ds-section-title">Câu hỏi thường gặp</h2></div>
-                    <div class="mx-auto ds-faq-wrap">
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Chính sách đổi trả như thế nào? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Chúng tôi hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng. Sản phẩm phải còn nguyên tem, chưa qua sử dụng.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Thời gian giao hàng bao lâu? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Nội thành Hải Phòng: 1-2 ngày. Các tỉnh khác: 3-5 ngày làm việc. Miễn phí vận chuyển cho đơn trên 500K.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Sản phẩm có bảo hành không? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Tất cả sản phẩm thủy tinh đều được bảo hành 6 tháng về lỗi sản xuất. Bảo hành 12 tháng đối với sản phẩm pha lê.</div></div>
-                        </div>
-                        <div class="ds-faq-item">
-                            <button class="ds-faq-btn" aria-expanded="false">Có thể đặt hàng theo yêu cầu không? <i class="bi bi-chevron-down"></i></button>
-                            <div class="ds-faq-body"><div class="ds-faq-body-inner">Có, chúng tôi nhận thiết kế và sản xuất theo yêu cầu riêng cho khách hàng doanh nghiệp và cá nhân.</div></div>
-                        </div>
-                    </div>
-
                 </section>
                 </div><!-- /.ds-home-content -->
         </div>
@@ -430,24 +320,6 @@
     <th:block layout:fragment="extra-script">
     <script>
     (function() {
-        // ── Top Sellers panel ──
-        var rows = document.querySelectorAll('.ds-topseller-row');
-        var panel = document.getElementById('topsellerPanel');
-        if (rows.length && panel) {
-            rows.forEach(function(row) {
-                row.addEventListener('mouseenter', function() { activateTopSeller(row); });
-                row.addEventListener('click', function() { activateTopSeller(row); });
-            });
-            function activateTopSeller(row) {
-                rows.forEach(function(r) { r.classList.remove('active'); });
-                row.classList.add('active');
-                document.getElementById('topsellerPanelImg').src = row.dataset.img;
-                document.getElementById('topsellerPanelName').textContent = row.dataset.name;
-                document.getElementById('topsellerPanelDesc').textContent = row.dataset.desc || '';
-                panel.href = row.dataset.href;
-            }
-        }
-
         // ── Browse Products: tabs + preview panel ──
         var browseTabs = document.querySelectorAll('.ds-browse-tab');
         var browseList = document.getElementById('browseList');
@@ -484,11 +356,15 @@
                 browsePreview.href = row.dataset.href;
                 document.getElementById('browsePreviewName').textContent = row.dataset.name;
 
+                // Thumbnail
+                var thumb = document.querySelector('#browsePreviewThumb img');
+                if (thumb) thumb.src = row.dataset.img || '/images/no-image.png';
+
                 // Rating
                 var ratingVal = row.dataset.rating || '';
-                var ratingCount = row.dataset.ratingCount || '0';
+                var ratingCount = parseInt(row.dataset.ratingCount) || 0;
                 var ratingLabel = '';
-                if (ratingVal) {
+                if (ratingCount > 0 && ratingVal) {
                     var r = parseFloat(ratingVal);
                     if (r >= 4.5) ratingLabel = 'Tốt';
                     else if (r >= 3.5) ratingLabel = 'Khá';
@@ -496,18 +372,117 @@
                     else if (r >= 1.5) ratingLabel = 'Kém';
                     else ratingLabel = 'Rất kém';
                 }
-                document.getElementById('browsePreviewRatingValue').textContent = ratingVal || '0';
-                document.getElementById('browsePreviewRatingLabel').textContent = ratingLabel;
+                document.getElementById('browsePreviewRatingValue').textContent = ratingCount > 0 ? ratingVal : '';
+                document.getElementById('browsePreviewRatingLabel').textContent = ratingCount > 0 ? ratingLabel : 'Chưa ai đánh giá';
+                document.getElementById('browsePreviewRatingCount').textContent = ratingCount > 0 ? '(' + ratingCount + ')' : '(0)';
 
-                // Category
-                document.getElementById('browsePreviewCat').innerHTML = 'Danh mục: ' + (row.dataset.cat || '');
+                // Tags
+                var catTag = document.getElementById('browsePreviewCatTag');
+                if (catTag) catTag.textContent = row.dataset.cat || '';
 
-                // Images (use same main image for all 4 slots)
-                var imgs = document.getElementById('browsePreviewImages').querySelectorAll('img');
-                imgs.forEach(function(img) { img.src = row.dataset.img; });
+                // Images (gallery from data-gallery attribute)
+                var container = document.getElementById('browsePreviewImages');
+                var galleryStr = row.dataset.gallery || '';
+                var gallery = galleryStr ? galleryStr.split(',').filter(function(s) { return s.trim(); }) : [];
+                if (gallery.length === 0) gallery = [row.dataset.img || '/images/no-image.png'];
+                container.innerHTML = '';
+                gallery.slice(0, 6).forEach(function(url) {
+                    var img = document.createElement('img');
+                    img.className = 'ds-browse-preview-img';
+                    img.src = url;
+                    img.alt = '';
+                    container.appendChild(img);
+                });
             }
         }
     })();
+
+    // ── Dot‑nav slider ──
+        // slider
+    (function() {
+        function initSlider(el) {
+            var viewport = el.querySelector('.ds-slider-viewport');
+            var track = el.querySelector('.ds-slider-track');
+            var dots = el.querySelector('.ds-slider-dots');
+            var wrap = el.querySelector('.ds-slider-wrap');
+            var prevBtn = wrap ? wrap.querySelector('.ds-slider-arrow-prev') : null;
+            var nextBtn = wrap ? wrap.querySelector('.ds-slider-arrow-next') : null;
+            if (!viewport || !track) return;
+            var items = Array.from(track.children);
+            if (items.length === 0) return;
+            var currentPage = 0;
+            var totalPages = 1;
+
+            function goTo(page) {
+                if (page < 0 || page >= totalPages || totalPages <= 1) return;
+                currentPage = page;
+                track.style.transform = 'translateX(-' + (page * viewport.offsetWidth) + 'px)';
+                if (dots) {
+                    var allDots = dots.querySelectorAll('.ds-slider-dot');
+                    for (var j = 0; j < allDots.length; j++) {
+                        allDots[j].classList.toggle('active', j === page);
+                    }
+                }
+                if (prevBtn) prevBtn.style.display = page > 0 ? 'flex' : 'none';
+                if (nextBtn) nextBtn.style.display = page < totalPages - 1 ? 'flex' : 'none';
+            }
+
+            function recalc() {
+                var vw = viewport.offsetWidth;
+                if (!vw) return;
+                var perPage = parseInt(el.dataset.itemsPerPage) || 0;
+                var gap = 20;
+                if (!perPage) {
+                    var iw = items[0].offsetWidth;
+                    perPage = iw ? Math.max(1, Math.floor(vw / (iw + gap))) : 1;
+                }
+                var basis = 'calc((100% - ' + (gap * (perPage - 1)) + 'px) / ' + perPage + ')';
+                for (var k = 0; k < items.length; k++) {
+                    items[k].style.flex = '0 0 ' + basis;
+                }
+                totalPages = Math.ceil(items.length / perPage);
+                if (dots) dots.innerHTML = '';
+                if (totalPages <= 1) {
+                    track.style.transform = '';
+                    if (prevBtn) prevBtn.style.display = 'none';
+                    if (nextBtn) nextBtn.style.display = 'none';
+                    return;
+                }
+                for (var i = 0; i < totalPages; i++) {
+                    var dot = document.createElement('button');
+                    dot.className = 'ds-slider-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('aria-label', 'Trang ' + (i + 1));
+                    dot.addEventListener('click', function(p) { return function() { goTo(p); }; }(i));
+                    if (dots) dots.appendChild(dot);
+                }
+                currentPage = 0;
+                goTo(0);
+            }
+
+            if (prevBtn) prevBtn.addEventListener('click', function() { goTo(currentPage - 1); });
+            if (nextBtn) nextBtn.addEventListener('click', function() { goTo(currentPage + 1); });
+
+            recalc();
+            var timer;
+            window.addEventListener('resize', function() {
+                clearTimeout(timer);
+                timer = setTimeout(recalc, 200);
+            });
+        }
+        document.querySelectorAll('.ds-slider-section').forEach(initSlider);
+    })();
+
+    // ── Ghi nhớ trạng thái giỏ hàng ──
+    document.addEventListener('DOMContentLoaded', function() {
+        var cartItems = document.querySelectorAll('#cart-items-container .popup-item');
+        var currentCartState = [];
+        cartItems.forEach(function(item) {
+            var qtyEl = item.querySelector('input[id^="popup-qty-"]');
+            var qty = qtyEl ? qtyEl.value : '1';
+            currentCartState.push(item.id + '-qty-' + qty);
+        });
+        var viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
+    });
     </script>
     </th:block>
 </body>

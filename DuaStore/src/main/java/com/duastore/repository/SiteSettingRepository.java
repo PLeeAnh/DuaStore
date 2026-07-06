@@ -8,6 +8,8 @@ import java.util.Optional;
 
 @Repository
 public interface SiteSettingRepository extends JpaRepository<SiteSetting, Integer> {
+
     Optional<SiteSetting> findBySettingKey(String settingKey);
+
     List<SiteSetting> findBySettingGroup(String settingGroup);
 }

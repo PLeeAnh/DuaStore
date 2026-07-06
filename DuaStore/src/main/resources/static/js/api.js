@@ -1,18 +1,19 @@
 /* =====================================================
-   DuaStore — API Layer
-   Centralized fetch with CSRF, error handling, normalization
-===================================================== */
+ DuaStore — API Layer
+ Centralized fetch with CSRF, error handling, normalization
+ ===================================================== */
 'use strict';
 
 window.DuaStore = window.DuaStore || {};
 window.DuaStore.api = window.DuaStore.api || {};
 
-(function() {
+(function () {
     var csrfToken = null;
     var csrfHeader = null;
 
     function initCsrf() {
-        if (csrfToken !== null) return;
+        if (csrfToken !== null)
+            return;
         var tokenMeta = document.querySelector('meta[name="_csrf"]');
         var headerMeta = document.querySelector('meta[name="_csrf_header"]');
         csrfToken = tokenMeta ? tokenMeta.getAttribute('content') : '';
@@ -21,7 +22,8 @@ window.DuaStore.api = window.DuaStore.api || {};
 
     function getCsrfHeaders() {
         initCsrf();
-        if (!csrfToken || !csrfHeader) return {};
+        if (!csrfToken || !csrfHeader)
+            return {};
         var h = {};
         h[csrfHeader] = csrfToken;
         return h;
@@ -37,32 +39,34 @@ window.DuaStore.api = window.DuaStore.api || {};
     function handleResponse(res) {
         var message = statusMessages[res.status] || 'Yêu cầu thất bại';
         if (res.status === 401 || res.status === 403) {
-            if (typeof showLoginPopup === 'function') showLoginPopup();
+            if (typeof showLoginPopup === 'function')
+                showLoginPopup();
         }
         if (res.ok) {
-            return res.json().then(function(data) {
-                return { ok: true, data: data };
-            }).catch(function() {
-                return { ok: true, data: null };
+            return res.json().then(function (data) {
+                return {ok: true, data: data};
+            }).catch(function () {
+                return {ok: true, data: null};
             });
         }
-        return { ok: false, message: message };
+        return {ok: false, message: message};
     }
 
     function networkError() {
-        return { ok: false, message: 'Không thể kết nối máy chủ' };
+        return {ok: false, message: 'Không thể kết nối máy chủ'};
     }
 
     function request(method, url, data) {
         var opts = {
             method: method,
-            headers: { 'Content-Type': 'application/json' }
+            headers: {'Content-Type': 'application/json'}
         };
 
         if (method !== 'GET') {
             var csrf = getCsrfHeaders();
             for (var k in csrf) {
-                if (csrf.hasOwnProperty(k)) opts.headers[k] = csrf[k];
+                if (csrf.hasOwnProperty(k))
+                    opts.headers[k] = csrf[k];
             }
         }
 
@@ -73,8 +77,16 @@ window.DuaStore.api = window.DuaStore.api || {};
         return fetch(url, opts).then(handleResponse).catch(networkError);
     }
 
-    window.DuaStore.api.get    = function(url) { return request('GET', url); };
-    window.DuaStore.api.post   = function(url, data) { return request('POST', url, data); };
-    window.DuaStore.api.put    = function(url, data) { return request('PUT', url, data); };
-    window.DuaStore.api.delete = function(url) { return request('DELETE', url); };
+    window.DuaStore.api.get = function (url) {
+        return request('GET', url);
+    };
+    window.DuaStore.api.post = function (url, data) {
+        return request('POST', url, data);
+    };
+    window.DuaStore.api.put = function (url, data) {
+        return request('PUT', url, data);
+    };
+    window.DuaStore.api.delete = function (url) {
+        return request('DELETE', url);
+    };
 })();

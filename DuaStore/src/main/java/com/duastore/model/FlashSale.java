@@ -7,9 +7,14 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "FlashSales")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class FlashSale {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(nullable = false)
@@ -35,7 +40,11 @@ public class FlashSale {
 
     @PrePersist
     protected void onCreate() {
-        if (isActive == null) isActive = true;
-        if (soLuongDaBan == null) soLuongDaBan = 0;
+        if (isActive == null) {
+            isActive = true;
+        }
+        if (soLuongDaBan == null) {
+            soLuongDaBan = 0;
+        }
     }
 }

@@ -19,23 +19,27 @@ public class VoucherWalletController {
     private final SecurityUtil securityUtil;
 
     public VoucherWalletController(VoucherWalletService voucherWalletService,
-                                   SecurityUtil securityUtil) {
+            SecurityUtil securityUtil) {
         this.voucherWalletService = voucherWalletService;
         this.securityUtil = securityUtil;
     }
 
     @GetMapping("/vi-voucher")
     public String wallet(@RequestParam(defaultValue = "0") int page,
-                         @RequestParam(defaultValue = "20") int size,
-                         @RequestParam(defaultValue = "") String tab,
-                         @RequestParam(defaultValue = "") String keyword,
-                         @RequestParam(defaultValue = "default") String sort,
-                         Model model, Principal principal) {
-        if (principal == null) return "redirect:/login";
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "") String tab,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "default") String sort,
+            Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/login";
+        }
         Integer userId = securityUtil.getCurrentUserId();
 
         VoucherStatus status = parseTab(tab);
-        if (status == null) status = VoucherStatus.AVAILABLE;
+        if (status == null) {
+            status = VoucherStatus.AVAILABLE;
+        }
 
         Page<UserVoucher> voucherPage = voucherWalletService.getWalletByTabWithFilters(
                 userId, status, keyword, sort, page, size);
@@ -56,7 +60,7 @@ public class VoucherWalletController {
     @PostMapping("/api/vi-voucher/luu/{promotionId}")
     @ResponseBody
     public Map<String, Object> saveVoucher(@PathVariable Integer promotionId,
-                                            Principal principal) {
+            Principal principal) {
         if (principal == null) {
             return Map.of("success", false, "message", "Vui lòng đăng nhập");
         }
@@ -72,7 +76,7 @@ public class VoucherWalletController {
     @PostMapping("/api/vi-voucher/xoa/{voucherId}")
     @ResponseBody
     public Map<String, Object> removeVoucher(@PathVariable Integer voucherId,
-                                              Principal principal) {
+            Principal principal) {
         if (principal == null) {
             return Map.of("success", false, "message", "Vui lòng đăng nhập");
         }
@@ -87,10 +91,14 @@ public class VoucherWalletController {
 
     private VoucherStatus parseTab(String tab) {
         return switch (tab.toLowerCase()) {
-            case "available" -> VoucherStatus.AVAILABLE;
-            case "used" -> VoucherStatus.USED;
-            case "expired" -> VoucherStatus.EXPIRED;
-            default -> null;
+            case "available" ->
+                VoucherStatus.AVAILABLE;
+            case "used" ->
+                VoucherStatus.USED;
+            case "expired" ->
+                VoucherStatus.EXPIRED;
+            default ->
+                null;
         };
     }
 }

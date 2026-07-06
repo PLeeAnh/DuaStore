@@ -18,6 +18,7 @@ import java.util.List;
 @ToString(exclude = {"user", "promotion", "orderItems"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -88,11 +89,21 @@ public class Order {
     @PrePersist
     protected void onCreate() {
         ngayDat = LocalDateTime.now();
-        if (phiVanChuyen == null) phiVanChuyen = BigDecimal.ZERO;
-        if (tienGiam == null) tienGiam = BigDecimal.ZERO;
-        if (trangThaiTT == null) trangThaiTT = "CHUA_THANH_TOAN";
-        if (trangThaiDon == null) trangThaiDon = "CHO_XAC_NHAN";
-        if (phuongThucGiaoHang == null) phuongThucGiaoHang = "SHIP";
+        if (phiVanChuyen == null) {
+            phiVanChuyen = BigDecimal.ZERO;
+        }
+        if (tienGiam == null) {
+            tienGiam = BigDecimal.ZERO;
+        }
+        if (trangThaiTT == null) {
+            trangThaiTT = "CHUA_THANH_TOAN";
+        }
+        if (trangThaiDon == null) {
+            trangThaiDon = "CHO_XAC_NHAN";
+        }
+        if (phuongThucGiaoHang == null) {
+            phuongThucGiaoHang = "SHIP";
+        }
     }
 
     @PreUpdate

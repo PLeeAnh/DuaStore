@@ -25,7 +25,9 @@ public class PricingService {
             Integer discountPercent,
             PriceSource source,
             FlashSale flashSale
-    ) {}
+            ) {
+
+    }
 
     private final FlashSaleRepository flashSaleRepository;
 
@@ -35,7 +37,9 @@ public class PricingService {
 
     public PriceResult resolvePrice(ProductVariant variant, FlashSale activeFlashSale) {
         BigDecimal giaGoc = variant.getGiaGoc();
-        if (giaGoc == null) giaGoc = BigDecimal.ZERO;
+        if (giaGoc == null) {
+            giaGoc = BigDecimal.ZERO;
+        }
         BigDecimal giaKM = variant.getGiaKhuyenMai();
 
         BigDecimal flashPrice = null;
@@ -76,7 +80,9 @@ public class PricingService {
     }
 
     public Map<Integer, FlashSale> loadActiveFlashSaleMap(List<Integer> productIds) {
-        if (productIds == null || productIds.isEmpty()) return Map.of();
+        if (productIds == null || productIds.isEmpty()) {
+            return Map.of();
+        }
         return flashSaleRepository.findByProductIdInAndIsActiveTrue(productIds).stream()
                 .filter(this::isWithinTimeWindow)
                 .filter(this::hasRemainingQuota)
@@ -93,14 +99,18 @@ public class PricingService {
     }
 
     public boolean isFlashSaleUsable(FlashSale fs) {
-        if (fs == null || !Boolean.TRUE.equals(fs.getIsActive())) return false;
+        if (fs == null || !Boolean.TRUE.equals(fs.getIsActive())) {
+            return false;
+        }
         return isWithinTimeWindow(fs) && hasRemainingQuota(fs);
     }
 
     public boolean incrementSoldQuantity(FlashSale fs, int soLuong) {
         int current = fs.getSoLuongDaBan() == null ? 0 : fs.getSoLuongDaBan();
         int newSold = current + soLuong;
-        if (newSold > fs.getSoLuongToiDa()) return false;
+        if (newSold > fs.getSoLuongToiDa()) {
+            return false;
+        }
         fs.setSoLuongDaBan(newSold);
         return true;
     }

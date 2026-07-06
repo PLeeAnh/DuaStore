@@ -1,13 +1,13 @@
 /* =====================================================
-   DuaStore — Toast Manager
-   Dependency: style.css (26. TOAST / NOTIFICATION)
-===================================================== */
+ DuaStore — Toast Manager
+ Dependency: style.css (26. TOAST / NOTIFICATION)
+ ===================================================== */
 'use strict';
 
 window.DuaStore = window.DuaStore || {};
 window.DuaStore.toast = window.DuaStore.toast || {};
 
-(function() {
+(function () {
     var container = null;
 
     function getContainer() {
@@ -24,9 +24,9 @@ window.DuaStore.toast = window.DuaStore.toast || {};
 
     var icons = {
         success: 'bi-check-circle-fill',
-        error:   'bi-x-circle-fill',
+        error: 'bi-x-circle-fill',
         warning: 'bi-exclamation-triangle-fill',
-        info:    'bi-info-circle-fill'
+        info: 'bi-info-circle-fill'
     };
 
     function show(type, message, duration) {
@@ -53,11 +53,13 @@ window.DuaStore.toast = window.DuaStore.toast || {};
 
         var dismissed = false;
         function dismiss() {
-            if (dismissed) return;
+            if (dismissed)
+                return;
             dismissed = true;
             el.style.animation = 'ds-toast-fade-out .3s ease forwards';
-            el.addEventListener('animationend', function() {
-                if (el.parentNode) el.parentNode.removeChild(el);
+            el.addEventListener('animationend', function () {
+                if (el.parentNode)
+                    el.parentNode.removeChild(el);
             });
         }
 
@@ -68,8 +70,16 @@ window.DuaStore.toast = window.DuaStore.toast || {};
         }
     }
 
-    window.DuaStore.toast.success = function(msg, d) { show('success', msg, d); };
-    window.DuaStore.toast.error   = function(msg, d) { show('error',   msg, d); };
-    window.DuaStore.toast.warning = function(msg, d) { show('warning', msg, d); };
-    window.DuaStore.toast.info    = function(msg, d) { show('info',    msg, d); };
+    window.DuaStore.toast.success = function (msg, d) {
+        show('success', msg, d);
+    };
+    window.DuaStore.toast.error = function (msg, d) {
+        show('error', msg, d);
+    };
+    window.DuaStore.toast.warning = function (msg, d) {
+        show('warning', msg, d);
+    };
+    window.DuaStore.toast.info = function (msg, d) {
+        show('info', msg, d);
+    };
 })();

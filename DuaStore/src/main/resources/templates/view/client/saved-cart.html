@@ -8,7 +8,8 @@
 
 <div layout:fragment="content" class="py-5">
     <div class="container-xl">
-        <h2 class="fw-bold mb-4"><i class="bi bi-bookmark me-2"></i>Sản phẩm đã lưu</h2>
+        <div class="ds-section-card">
+            <h2 class="fw-bold mb-4"><i class="bi bi-bookmark me-2"></i>Sản phẩm đã lưu</h2>
 
         <div th:if="${#lists.isEmpty(savedItems)}" class="ds-cart-empty">
             <i class="bi bi-bookmark-dash ds-cart-empty-icon"></i>
@@ -68,6 +69,7 @@
                     <i class="bi bi-arrow-left me-1"></i> Quay lại giỏ hàng
                 </a>
             </div>
+        </div>
         </div>
     </div>
 </div>
