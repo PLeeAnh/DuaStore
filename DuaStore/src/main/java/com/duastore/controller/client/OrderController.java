@@ -29,7 +29,7 @@ public class OrderController {
     private final FileUploadService fileUploadService;
 
     public OrderController(OrderService orderService, SecurityUtil securityUtil,
-                           RefundService refundService, FileUploadService fileUploadService) {
+            RefundService refundService, FileUploadService fileUploadService) {
         this.orderService = orderService;
         this.securityUtil = securityUtil;
         this.refundService = refundService;
@@ -42,8 +42,8 @@ public class OrderController {
 
     @GetMapping
     public String listOrders(@RequestParam(defaultValue = "0") int page,
-                             @RequestParam(required = false) String trangThai,
-                             Model model) {
+            @RequestParam(required = false) String trangThai,
+            Model model) {
         Integer userId = getUserId();
 
         Page<Order> orderPage;
@@ -82,8 +82,8 @@ public class OrderController {
 
     @PostMapping("/huy/{id}")
     public String cancelOrder(@PathVariable Integer id,
-                               @RequestParam("lyDo") String lyDo,
-                               RedirectAttributes ra) {
+            @RequestParam("lyDo") String lyDo,
+            RedirectAttributes ra) {
         Integer userId = getUserId();
 
         try {
@@ -111,11 +111,11 @@ public class OrderController {
 
     @PostMapping("/hoan-tien/{id}")
     public String submitRefund(@PathVariable Integer id,
-                               @RequestParam String lydo,
-                               @RequestParam BigDecimal soTienHoan,
-                               @RequestParam String phuongThucHoan,
-                               @RequestParam(required = false) MultipartFile anhMinhChung,
-                               RedirectAttributes ra) {
+            @RequestParam String lydo,
+            @RequestParam BigDecimal soTienHoan,
+            @RequestParam String phuongThucHoan,
+            @RequestParam(required = false) MultipartFile anhMinhChung,
+            RedirectAttributes ra) {
         Integer userId = getUserId();
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);

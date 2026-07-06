@@ -16,7 +16,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -30,8 +29,8 @@ public class SecurityConfig {
     private String rememberMeKey;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          CustomAuthenticationSuccessHandler successHandler,
-                          CustomOAuth2UserService oAuth2UserService) {
+            CustomAuthenticationSuccessHandler successHandler,
+            CustomOAuth2UserService oAuth2UserService) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
         this.oAuth2UserService = oAuth2UserService;
@@ -40,50 +39,50 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/wishlist/**", "/api/cart/**").authenticated()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()
                 .anyRequest().permitAll()
-            )
-            .formLogin(login -> login
+                )
+                .formLogin(login -> login
                 .loginPage("/dang-nhap")
                 .loginProcessingUrl("/dang-nhap")
                 .successHandler(successHandler)
                 .failureUrl("/?loginError=true")
                 .permitAll()
-            )
-            .oauth2Login(oauth2 -> oauth2
+                )
+                .oauth2Login(oauth2 -> oauth2
                 .loginPage("/dang-nhap")
                 .userInfoEndpoint(userInfo -> userInfo
-                    .userService(oAuth2UserService)
+                .userService(oAuth2UserService)
                 )
                 .successHandler(successHandler)
                 .failureUrl("/?loginError=true")
-            )
-            .logout(logout -> logout
+                )
+                .logout(logout -> logout
                 .logoutUrl("/dang-xuat")
                 .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "remember-me")
                 .permitAll()
-            )
-            .rememberMe(remember -> remember
+                )
+                .rememberMe(remember -> remember
                 .rememberMeServices(rememberMeServices())
                 .key(rememberMeKey)
-            )
-            .sessionManagement(session -> session
+                )
+                .sessionManagement(session -> session
                 .sessionFixation().migrateSession()
                 .maximumSessions(1)
                 .expiredUrl("/dang-nhap?expired=true")
-            )
-            .exceptionHandling(ex -> ex
+                )
+                .exceptionHandling(ex -> ex
                 .accessDeniedHandler(accessDeniedHandler())
                 .authenticationEntryPoint(authenticationEntryPoint())
-            )
-            .csrf(csrf -> csrf
+                )
+                .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/auth/**", "/admin/thong-bao/api/**", "/api/thong-bao/**", "/api/cart/**")
-            );
+                );
 
         return http.build();
     }
@@ -98,7 +97,7 @@ public class SecurityConfig {
         return new AuthenticationEntryPoint() {
             @Override
             public void commence(HttpServletRequest request, HttpServletResponse response,
-                                 AuthenticationException authException) throws IOException {
+                    AuthenticationException authException) throws IOException {
                 if (request.getRequestURI().startsWith("/api/")) {
                     response.setContentType("application/json;charset=UTF-8");
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);

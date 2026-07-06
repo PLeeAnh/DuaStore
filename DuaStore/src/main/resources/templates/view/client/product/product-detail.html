@@ -13,6 +13,7 @@
                 </ol>
             </nav>
 
+            <div class="ds-section-card">
             <div class="ds-card p-4" th:with="defaultVariant=${#lists.isEmpty(variants) ? null : variants[0]}">
             <div class="row g-5">
                 <div class="col-lg-6">
@@ -181,10 +182,12 @@
                     </button>
                 </div>
             </div>
+            </div>
         </div>
         </div>
 
         <div class="container-xl">
+            <div class="ds-section-card">
             <div class="ds-card p-4 mt-4">
             <div class="sticky-tabs">
                 <ul class="nav" id="detailTabs">
@@ -283,6 +286,7 @@
                     </div>
                 </div>
             </div>
+        </div>
         </div>
         </div>
 
@@ -412,6 +416,7 @@
         </div>
 
         <div class="container-xl py-4" th:if="${not #lists.isEmpty(relatedProducts)}">
+            <div class="ds-section-card">
             <h5 class="fw-bold mb-4" style="font-size:1rem;color:#0F172A">Sản phẩm liên quan</h5>
             <div class="row g-3">
                 <div class="col-6 col-md-4 col-lg-3" th:each="rp : ${relatedProducts}">
@@ -434,6 +439,7 @@
                         </div>
                     </a>
                 </div>
+            </div>
             </div>
         </div>
 

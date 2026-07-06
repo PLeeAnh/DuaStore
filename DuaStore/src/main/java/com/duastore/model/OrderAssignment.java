@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @ToString(exclude = {"order", "admin"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class OrderAssignment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -35,6 +36,8 @@ public class OrderAssignment {
     @PrePersist
     protected void onCreate() {
         ngayPhan = LocalDateTime.now();
-        if (trangThai == null) trangThai = "DANG_XU_LY";
+        if (trangThai == null) {
+            trangThai = "DANG_XU_LY";
+        }
     }
 }

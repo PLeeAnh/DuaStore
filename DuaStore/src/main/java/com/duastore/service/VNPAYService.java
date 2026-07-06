@@ -38,7 +38,9 @@ public class VNPAYService {
     }
 
     public String createPaymentUrl(String txnRef, long amount, String orderInfo, HttpServletRequest req) {
-        if (!isConfigured()) return null;
+        if (!isConfigured()) {
+            return null;
+        }
 
         Map<String, String> params = new LinkedHashMap<>();
         params.put("vnp_Version", VERSION);
@@ -126,7 +128,9 @@ public class VNPAYService {
                 sb.append(key).append("=").append(value).append("&");
             }
         }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
         return sb.toString();
     }
 
@@ -142,7 +146,9 @@ public class VNPAYService {
         } catch (Exception e) {
             throw new RuntimeException("Lỗi xây dựng query", e);
         }
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+        }
         return sb.toString();
     }
 

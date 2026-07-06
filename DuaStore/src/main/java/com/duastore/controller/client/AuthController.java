@@ -31,9 +31,9 @@ public class AuthController {
     private final VerificationCodeService verifyCodeService;
 
     public AuthController(UserRepository userRepository,
-                          PasswordEncoder passwordEncoder,
-                          RoleRepository roleRepository,
-                          VerificationCodeService verifyCodeService) {
+            PasswordEncoder passwordEncoder,
+            RoleRepository roleRepository,
+            VerificationCodeService verifyCodeService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
@@ -55,10 +55,10 @@ public class AuthController {
 
     @PostMapping("/dang-ky")
     public String register(@Valid @ModelAttribute("registerRequest") RegisterRequest req,
-                           BindingResult result,
-                           @RequestParam("verificationCode") String verificationCode,
-                           RedirectAttributes ra,
-                           Model model) {
+            BindingResult result,
+            @RequestParam("verificationCode") String verificationCode,
+            RedirectAttributes ra,
+            Model model) {
         model.addAttribute("title", "Đăng ký");
 
         if (!req.getPassword().equals(req.getConfirmPassword())) {
@@ -97,6 +97,7 @@ public class AuthController {
     }
 
     public static class RegisterRequest {
+
         @NotBlank(message = "Tên đăng nhập không được để trống")
         @Size(min = 3, max = 50, message = "Tên đăng nhập từ 3-50 ký tự")
         private String username;

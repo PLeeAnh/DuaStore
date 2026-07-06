@@ -8,7 +8,10 @@ import java.util.List;
 
 @Repository
 public interface LinkedAccountRepository extends JpaRepository<LinkedAccount, Integer> {
+
     List<LinkedAccount> findByUserId(Integer userId);
+
     boolean existsByUserIdAndLinkedUserId(Integer userId, Integer linkedUserId);
+
     void deleteByUserIdAndLinkedUserId(Integer userId, Integer linkedUserId);
 }

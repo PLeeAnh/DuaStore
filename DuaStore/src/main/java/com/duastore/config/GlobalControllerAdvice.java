@@ -28,8 +28,8 @@ public class GlobalControllerAdvice {
     private String googleMapsApiKey;
 
     public GlobalControllerAdvice(CategoryRepository categoryRepository,
-                                  CartService cartService,
-                                  SecurityUtil securityUtil) {
+            CartService cartService,
+            SecurityUtil securityUtil) {
         this.categoryRepository = categoryRepository;
         this.cartService = cartService;
         this.securityUtil = securityUtil;
@@ -54,7 +54,9 @@ public class GlobalControllerAdvice {
     public int cartCount() {
         try {
             Integer userId = securityUtil.getCurrentUserId();
-            if (userId == null) return 0;
+            if (userId == null) {
+                return 0;
+            }
             return cartService.count(userId);
         } catch (Exception e) {
             log.warn("Loi cartCount: {}", e.getMessage());

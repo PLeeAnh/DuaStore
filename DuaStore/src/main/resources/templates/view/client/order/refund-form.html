@@ -5,6 +5,7 @@
     <body>
     <div layout:fragment="content">
         <div class="container-xl py-4" style="max-width:600px;">
+            <div class="ds-section-card">
             <a th:href="@{'/tai-khoan/don-hang/' + ${order.id}}" class="text-decoration-none text-muted mb-3 d-inline-block">
                 <i class="bi bi-arrow-left"></i> Quay lại đơn hàng
             </a>
@@ -45,6 +46,7 @@
 
                     <button type="submit" class="btn btn-danger w-100 fw-semibold py-2">Gửi yêu cầu</button>
                 </form>
+            </div>
             </div>
         </div>
     </div>

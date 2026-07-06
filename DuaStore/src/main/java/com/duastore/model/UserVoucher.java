@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "UserVouchers",
-       uniqueConstraints = @UniqueConstraint(columnNames = {"userId", "promotionId"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"userId", "promotionId"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -45,7 +45,11 @@ public class UserVoucher {
     @PrePersist
     protected void onCreate() {
         savedAt = LocalDateTime.now();
-        if (status == null) status = VoucherStatus.AVAILABLE;
-        if (totalSaved == null) totalSaved = BigDecimal.ZERO;
+        if (status == null) {
+            status = VoucherStatus.AVAILABLE;
+        }
+        if (totalSaved == null) {
+            totalSaved = BigDecimal.ZERO;
+        }
     }
 }

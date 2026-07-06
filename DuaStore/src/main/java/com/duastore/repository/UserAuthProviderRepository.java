@@ -9,7 +9,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserAuthProviderRepository extends JpaRepository<UserAuthProvider, Integer> {
+
     List<UserAuthProvider> findByUserId(Integer userId);
+
     Optional<UserAuthProvider> findByProviderAndProviderSub(String provider, String providerSub);
+
     boolean existsByUserIdAndProvider(Integer userId, String provider);
 }

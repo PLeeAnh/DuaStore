@@ -62,11 +62,17 @@ public class AdminVariantService {
         v.setDefault(dto.isDefault());
 
         String uploaded = fileUploadService.save(dto.getHinhAnhFile());
-        if (uploaded != null) v.setHinhAnh(uploaded);
+        if (uploaded != null) {
+            v.setHinhAnh(uploaded);
+        }
 
         if (dto.isDefault()) {
             List<ProductVariant> others = variantRepository.findByProductIdAndIsActiveTrue(dto.getProductId());
-            others.forEach(o -> { if (!o.getId().equals(v.getId())) o.setDefault(false); });
+            others.forEach(o -> {
+                if (!o.getId().equals(v.getId())) {
+                    o.setDefault(false);
+                }
+            });
             variantRepository.saveAll(others);
         }
 

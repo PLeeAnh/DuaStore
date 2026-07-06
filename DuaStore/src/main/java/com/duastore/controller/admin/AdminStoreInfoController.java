@@ -82,7 +82,9 @@ public class AdminStoreInfoController {
     @ResponseBody
     public ResponseEntity<StoreInfo> getApi(@PathVariable Integer id) {
         StoreInfo store = service.findById(id);
-        if (store == null) return ResponseEntity.notFound().build();
+        if (store == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(store);
     }
 }

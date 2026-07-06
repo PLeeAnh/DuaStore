@@ -33,9 +33,9 @@ public class AdminNotificationController {
     private final NotificationRepository notificationRepository;
 
     public AdminNotificationController(AdminNotificationService adminNotificationService,
-                                        ProductRepository productRepository,
-                                        PromotionRepository promotionRepository,
-                                        NotificationRepository notificationRepository) {
+            ProductRepository productRepository,
+            PromotionRepository promotionRepository,
+            NotificationRepository notificationRepository) {
         this.adminNotificationService = adminNotificationService;
         this.productRepository = productRepository;
         this.promotionRepository = promotionRepository;
@@ -45,8 +45,8 @@ public class AdminNotificationController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            Model model) {
         Page<Notification> notifPage = adminNotificationService.getAllNotifications(page, size);
         model.addAttribute("notifications", notifPage.getContent());
         model.addAttribute("currentPage", page);
@@ -77,7 +77,7 @@ public class AdminNotificationController {
     @PostMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_CREATE)")
     public String create(@Valid @ModelAttribute("notif") AdminNotificationDTO dto,
-                         BindingResult result, Model model, RedirectAttributes ra) {
+            BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
             model.addAttribute("promotions", promotionRepository.findAll());
@@ -122,8 +122,8 @@ public class AdminNotificationController {
     @PostMapping("/sua/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_UPDATE)")
     public String edit(@PathVariable Integer id,
-                       @Valid @ModelAttribute("notif") AdminNotificationDTO dto,
-                       BindingResult result, Model model, RedirectAttributes ra) {
+            @Valid @ModelAttribute("notif") AdminNotificationDTO dto,
+            BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
             model.addAttribute("promotions", promotionRepository.findAll());
@@ -158,8 +158,8 @@ public class AdminNotificationController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_READ)")
     public String markAllStaffRead(HttpSession session) {
         session.setAttribute("staffNotifReadMaxId",
-            notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
-                .map(Notification::getId).orElse(0));
+                notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
+                        .map(Notification::getId).orElse(0));
         return "ok";
     }
 
@@ -170,10 +170,13 @@ public class AdminNotificationController {
         try {
             @SuppressWarnings("unchecked")
             Set<Integer> readIds = (Set<Integer>) session.getAttribute("staffNotifReadIds");
-            if (readIds == null) readIds = new HashSet<>();
+            if (readIds == null) {
+                readIds = new HashSet<>();
+            }
             readIds.add(id);
             session.setAttribute("staffNotifReadIds", readIds);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return "ok";
     }
 }

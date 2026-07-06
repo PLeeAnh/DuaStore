@@ -77,6 +77,7 @@
             <span th:if="${keyword == null && selectedCategory == null}"><strong th:text="${totalItems}">0</strong> sản phẩm</span>
         </div>
 
+        <div class="ds-section-card">
         <div th:if="${#lists.isEmpty(products)}" class="text-center py-5">
             <i class="bi bi-inbox ds-empty-icon"></i>
             <p class="text-muted mt-3">Không tìm thấy sản phẩm nào</p>
@@ -217,6 +218,7 @@
                     </a>
                 </div>
             </nav>
+        </div>
         </div>
     </div>
 </div>

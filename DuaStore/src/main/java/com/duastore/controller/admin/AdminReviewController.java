@@ -25,8 +25,8 @@ public class AdminReviewController {
     private final UserRepository userRepository;
 
     public AdminReviewController(AdminReviewService adminReviewService,
-                                  ProductRepository productRepository,
-                                  UserRepository userRepository) {
+            ProductRepository productRepository,
+            UserRepository userRepository) {
         this.adminReviewService = adminReviewService;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
@@ -35,8 +35,8 @@ public class AdminReviewController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).REVIEW_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "20") int size,
-                       Model model) {
+            @RequestParam(defaultValue = "20") int size,
+            Model model) {
         Page<Review> reviewPage = adminReviewService.getAllReviews(page, size);
 
         Map<Integer, String> productNames = new HashMap<>();

@@ -38,8 +38,8 @@ public class AdminCategoryController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CATEGORY_READ)")
     public String list(@RequestParam(required = false) String keyword,
-                       @RequestParam(required = false) String status,
-                       Model model) {
+            @RequestParam(required = false) String status,
+            Model model) {
         model.addAttribute("title", "danh-muc");
 
         boolean searching = (keyword != null && !keyword.isBlank())
@@ -99,10 +99,10 @@ public class AdminCategoryController {
     @PostMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CATEGORY_CREATE)")
     public String create(@Valid @ModelAttribute("category") CategoryDTO dto,
-                         BindingResult result,
-                         @RequestParam(name = "imageFile", required = false) MultipartFile imageFile,
-                         Model model,
-                         RedirectAttributes ra) {
+            BindingResult result,
+            @RequestParam(name = "imageFile", required = false) MultipartFile imageFile,
+            Model model,
+            RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "danh-muc");
             model.addAttribute("parents", categoryService.findAvailableParents(null));
@@ -134,11 +134,11 @@ public class AdminCategoryController {
     @PostMapping("/sua/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CATEGORY_UPDATE)")
     public String edit(@PathVariable Integer id,
-                       @Valid @ModelAttribute("category") CategoryDTO dto,
-                       BindingResult result,
-                       @RequestParam(name = "imageFile", required = false) MultipartFile imageFile,
-                       Model model,
-                       RedirectAttributes ra) {
+            @Valid @ModelAttribute("category") CategoryDTO dto,
+            BindingResult result,
+            @RequestParam(name = "imageFile", required = false) MultipartFile imageFile,
+            Model model,
+            RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "danh-muc");
             model.addAttribute("parents", categoryService.findAvailableParents(id));

@@ -24,8 +24,8 @@ public class AdminDashboardController {
     @GetMapping("/admin")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).DASHBOARD_READ)")
     public String home(Model model,
-                       @RequestParam(defaultValue = "0") int page,
-                       @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
         model.addAttribute("title", "dashboard");
         model.addAttribute("totalProducts", dashboardService.getTotalProducts());
         model.addAttribute("todayOrders", dashboardService.getTodayOrders());

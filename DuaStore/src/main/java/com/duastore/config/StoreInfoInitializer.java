@@ -19,7 +19,9 @@ public class StoreInfoInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (repository.count() > 0) return;
+        if (repository.count() > 0) {
+            return;
+        }
 
         StoreInfo store = new StoreInfo();
         store.setTenCuaHang("DuaStore");

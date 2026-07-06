@@ -70,8 +70,12 @@ public class Post {
     protected void onCreate() {
         ngayTao = LocalDateTime.now();
         ngayCapNhat = LocalDateTime.now();
-        if (trangThai == null) trangThai = "NHAP";
-        if (luotXem == null) luotXem = 0;
+        if (trangThai == null) {
+            trangThai = "NHAP";
+        }
+        if (luotXem == null) {
+            luotXem = 0;
+        }
     }
 
     @PreUpdate

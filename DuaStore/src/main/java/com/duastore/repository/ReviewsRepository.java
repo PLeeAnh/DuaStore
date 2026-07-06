@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public interface ReviewsRepository extends JpaRepository<Review, Integer> {
 
-        Page<Review> findByProductIdAndIsApproved(Integer productId, Boolean isApproved, Pageable pageable);
+    Page<Review> findByProductIdAndIsApproved(Integer productId, Boolean isApproved, Pageable pageable);
 
     @Query("SELECT r FROM Review r WHERE r.productId = :productId AND (r.isApproved = true OR r.userId = :userId)")
     Page<Review> findVisibleReviews(@Param("productId") Integer productId, @Param("userId") Integer userId, Pageable pageable);

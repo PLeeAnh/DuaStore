@@ -1,27 +1,29 @@
 /* =====================================================
-   DuaStore — Module: Wishlist
-==================================================== */
+ DuaStore — Module: Wishlist
+ ==================================================== */
 'use strict';
 
 /* ═══ WISHLIST (Toggle) ═══ */
 /* ═══ WISHLIST (Toggle) ═══ */
 /* toggleWishlist(btnElement) đọc productId từ data-id hoặc data-productid của
-   .ds-product-card gần nhất, rồi gọi toggleWishlistCore() xử lý logic thật.
-   (Trước đây có 1 bản trùng nhận (btnElement, productId) nằm lẫn trong comment
-   chưa đóng ở trên - đã gộp lại còn 1 bản duy nhất cho dễ bảo trì.) */
+ .ds-product-card gần nhất, rồi gọi toggleWishlistCore() xử lý logic thật.
+ (Trước đây có 1 bản trùng nhận (btnElement, productId) nằm lẫn trong comment
+ chưa đóng ở trên - đã gộp lại còn 1 bản duy nhất cho dễ bảo trì.) */
 
 function toggleWishlistFromDetail(btnElement) {
     var productId = btnElement.getAttribute('data-id');
-    if (!productId) return;
+    if (!productId)
+        return;
     toggleWishlist(btnElement, parseInt(productId));
 }
 
 function toggleWishlist(btnElement) {
-    var productId = btnElement.getAttribute('data-id') || 
-                   (btnElement.closest('.ds-product-card') ? 
-                     parseInt(btnElement.closest('.ds-product-card').getAttribute('data-productid')) : 
-                     null);
-    if (!productId) return;
+    var productId = btnElement.getAttribute('data-id') ||
+            (btnElement.closest('.ds-product-card') ?
+                    parseInt(btnElement.closest('.ds-product-card').getAttribute('data-productid')) :
+                    null);
+    if (!productId)
+        return;
     toggleWishlistCore(btnElement, productId);
 }
 
@@ -36,26 +38,33 @@ function toggleWishlistCore(btnElement, productId) {
     if (card) {
         var nameEl = card.querySelector('.ds-product-name');
         var priceEl = card.querySelector('.ds-price-btn-amount');
-        if (nameEl) productName = nameEl.textContent;
-        if (priceEl) productPrice = priceEl.textContent;
+        if (nameEl)
+            productName = nameEl.textContent;
+        if (priceEl)
+            productPrice = priceEl.textContent;
     } else {
         var detailName = document.querySelector('.product-detail-info h3');
         var detailPrice = document.getElementById('productPrice');
         var detailImg = document.getElementById('mainImage');
-        if (detailName) productName = detailName.innerText;
-        if (detailPrice) productPrice = detailPrice.innerText;
-        if (detailImg) productImg = detailImg.src;
+        if (detailName)
+            productName = detailName.innerText;
+        if (detailPrice)
+            productPrice = detailPrice.innerText;
+        if (detailImg)
+            productImg = detailImg.src;
     }
 
-    DuaStore.api.post('/api/wishlist/toggle', { productId: productId }).then(function(result) {
+    DuaStore.api.post('/api/wishlist/toggle', {productId: productId}).then(function (result) {
         if (!result.ok) {
-            if (result.message && result.message.indexOf('đăng nhập') !== -1) showLoginPopup();
+            if (result.message && result.message.indexOf('đăng nhập') !== -1)
+                showLoginPopup();
             DuaStore.toast.error(result.message);
             return;
         }
         var data = result.data;
         if (!data.success) {
-            if (data.message && data.message.indexOf('dang nhap') !== -1) showLoginPopup();
+            if (data.message && data.message.indexOf('dang nhap') !== -1)
+                showLoginPopup();
             return;
         }
 
@@ -64,7 +73,8 @@ function toggleWishlistCore(btnElement, productId) {
             icon.classList.replace('bi-heart-fill', 'bi-heart');
 
             var item = document.getElementById('wishlist-item-' + productId);
-            if (item) item.remove();
+            if (item)
+                item.remove();
 
             refreshWishlistBadgeCount();
             DuaStore.toast.success('Đã xóa khỏi yêu thích');
@@ -73,21 +83,22 @@ function toggleWishlistCore(btnElement, productId) {
             btnElement.classList.add('active');
             icon.classList.replace('bi-heart', 'bi-heart-fill');
             var emptyMsg = container ? container.querySelector('.text-muted.text-center') : null;
-            if (emptyMsg) emptyMsg.remove();
+            if (emptyMsg)
+                emptyMsg.remove();
 
             var imgHtml = productImg && productImg.trim()
-                ? '<img src="' + productImg + '" class="w-100 h-100 object-fit-cover" alt="SP">'
-                : '<i class="bi bi-box-seam text-secondary"></i>';
+                    ? '<img src="' + productImg + '" class="w-100 h-100 object-fit-cover" alt="SP">'
+                    : '<i class="bi bi-box-seam text-secondary"></i>';
 
             if (container) {
                 container.insertAdjacentHTML('beforeend',
-                    '<div class="popup-item" id="wishlist-item-' + productId + '">' +
+                        '<div class="popup-item" id="wishlist-item-' + productId + '">' +
                         '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:15px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
                         '<div class="popup-item-info">' +
-                            '<a href="/san-pham/' + productId + '">' + productName + '</a>' +
+                        '<a href="/san-pham/' + productId + '">' + productName + '</a>' +
                         '</div>' +
                         '<button class="btn-delete-item" onclick="removeWishlist(' + productId + ')" title="Xóa"><i class="bi bi-x-circle"></i></button>' +
-                    '</div>');
+                        '</div>');
             }
 
             refreshWishlistBadgeCount();
@@ -104,20 +115,22 @@ function removeWishlist(wishlistId) {
     }
 
     var item = document.getElementById('wishlist-item-' + wishlistId);
-    if (item) item.remove();
+    if (item)
+        item.remove();
 
     refreshWishlistBadgeCount();
 
-    DuaStore.api.post('/api/wishlist/toggle', { productId: wishlistId }).then(function(result) {
+    DuaStore.api.post('/api/wishlist/toggle', {productId: wishlistId}).then(function (result) {
         if (!result.ok) {
             DuaStore.toast.error(result.message);
         }
     });
 
-    document.querySelectorAll('.btn-wishlist-card[data-id="' + wishlistId + '"], .btn-detail-wishlist[data-id="' + wishlistId + '"]').forEach(function(btn) {
+    document.querySelectorAll('.btn-wishlist-card[data-id="' + wishlistId + '"], .btn-detail-wishlist[data-id="' + wishlistId + '"]').forEach(function (btn) {
         btn.classList.remove('active');
         var ic = btn.querySelector('i');
-        if (ic) ic.classList.replace('bi-heart-fill', 'bi-heart');
+        if (ic)
+            ic.classList.replace('bi-heart-fill', 'bi-heart');
     });
 }
 
@@ -125,7 +138,8 @@ function removeWishlist(wishlistId) {
 function refreshWishlistBadgeCount() {
     var items = document.querySelectorAll('#wishlist-items-container .popup-item');
     var badge = document.getElementById('wishlistBadge');
-    if (!badge) return;
+    if (!badge)
+        return;
     var count = items.length;
     badge.textContent = count;
     if (count > 0) {

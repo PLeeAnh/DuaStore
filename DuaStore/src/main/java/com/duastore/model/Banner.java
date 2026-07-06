@@ -56,8 +56,12 @@ public class Banner {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-        if (active == null) active = true;
-        if (displayOrder == null) displayOrder = 0;
+        if (active == null) {
+            active = true;
+        }
+        if (displayOrder == null) {
+            displayOrder = 0;
+        }
     }
 
     @PreUpdate

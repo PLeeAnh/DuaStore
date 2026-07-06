@@ -23,8 +23,8 @@ public class ForgotPasswordController {
     private final PasswordEncoder passwordEncoder;
 
     public ForgotPasswordController(UserRepository userRepository,
-                                    EmailService emailService,
-                                    PasswordEncoder passwordEncoder) {
+            EmailService emailService,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
@@ -38,7 +38,7 @@ public class ForgotPasswordController {
 
     @PostMapping("/quen-mat-khau")
     public String forgotSubmit(@RequestParam String email,
-                               RedirectAttributes ra) {
+            RedirectAttributes ra) {
         Optional<User> opt = userRepository.findByEmail(email);
         if (opt.isEmpty()) {
             ra.addFlashAttribute("successMsg", "Nếu email tồn tại, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu");
@@ -79,7 +79,7 @@ public class ForgotPasswordController {
 
     @PostMapping("/dat-lai-mat-khau")
     public String resetSubmit(@RequestParam String token, @RequestParam String password,
-                              @RequestParam String confirmPassword, RedirectAttributes ra) {
+            @RequestParam String confirmPassword, RedirectAttributes ra) {
         if (!password.equals(confirmPassword)) {
             ra.addFlashAttribute("errorMsg", "Mật khẩu không khớp");
             return "redirect:/dat-lai-mat-khau?token=" + token;

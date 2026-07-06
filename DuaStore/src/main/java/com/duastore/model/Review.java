@@ -41,6 +41,8 @@ public class Review {
     @PrePersist
     protected void onCreate() {
         ngayTao = LocalDateTime.now();
-        if (isApproved == null) isApproved = false;
+        if (isApproved == null) {
+            isApproved = false;
+        }
     }
 }

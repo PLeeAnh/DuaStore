@@ -32,10 +32,10 @@ public class PostController {
 
     @GetMapping("/blog")
     public String list(@RequestParam(defaultValue = "0") int page,
-                        @RequestParam(defaultValue = "12") int size,
-                        @RequestParam(required = false) Integer danhMuc,
-                        @RequestParam(required = false) String keyword,
-                        Model model) {
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) Integer danhMuc,
+            @RequestParam(required = false) String keyword,
+            Model model) {
         model.addAttribute("title", "blog");
         Page<Post> postPage;
         if (keyword != null || danhMuc != null) {
@@ -58,7 +58,9 @@ public class PostController {
     @GetMapping("/blog/{slugOrId}")
     public String detail(@PathVariable String slugOrId, Model model) {
         Post post = postService.getPostBySlugOrId(slugOrId);
-        if (post == null) return "redirect:/blog";
+        if (post == null) {
+            return "redirect:/blog";
+        }
 
         postService.incrementLuotXem(post.getId());
 

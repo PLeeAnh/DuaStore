@@ -13,11 +13,17 @@ import java.util.Optional;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
+
     Page<Notification> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
     List<Notification> findByIsActiveTrueOrderByCreatedAtDesc();
+
     List<Notification> findTop5ByIsActiveTrueOrderByCreatedAtDesc();
+
     long countByIsActiveTrue();
+
     long countByIsActiveTrueAndIdGreaterThan(Integer id);
+
     Optional<Notification> findTopByIsActiveTrueOrderByIdDesc();
 
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) ORDER BY n.createdAt DESC")

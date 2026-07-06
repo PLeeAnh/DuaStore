@@ -25,9 +25,9 @@ public class AdminReviewService {
     private final FileUploadService fileUploadService;
 
     public AdminReviewService(ReviewsRepository reviewsRepository,
-                              ProductRepository productRepository,
-                              UserRepository userRepository,
-                              FileUploadService fileUploadService) {
+            ProductRepository productRepository,
+            UserRepository userRepository,
+            FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;

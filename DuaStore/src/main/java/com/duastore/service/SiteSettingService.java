@@ -65,12 +65,16 @@ public class SiteSettingService {
     public void saveGroupFromParams(Map<String, List<String>> params, String group) {
         for (var entry : params.entrySet()) {
             String key = entry.getKey();
-            if ("_csrf".equals(key) || key.isEmpty() || key.endsWith("_text")) continue;
+            if ("_csrf".equals(key) || key.isEmpty() || key.endsWith("_text")) {
+                continue;
+            }
             String value = "";
             List<String> values = entry.getValue();
             if (values != null) {
                 for (String v : values) {
-                    if (v != null && !v.isEmpty()) value = v;
+                    if (v != null && !v.isEmpty()) {
+                        value = v;
+                    }
                 }
             }
             save(key, value, group);

@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "ProductVariants")
 public class ProductVariant {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Integer id;
 

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Promotion {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
@@ -85,13 +86,29 @@ public class Promotion {
 
     @PostLoad
     protected void normalizeDefaults() {
-        if (donHangToiThieu == null) donHangToiThieu = BigDecimal.ZERO;
-        if (daDung == null) daDung = 0;
-        if (isActive == null) isActive = true;
-        if (usedBudget == null) usedBudget = BigDecimal.ZERO;
-        if (voucherType == null) voucherType = VoucherType.VOUCHER;
-        if (priority == null) priority = 0;
-        if (stackable == null) stackable = false;
-        if (savedCount == null) savedCount = 0;
+        if (donHangToiThieu == null) {
+            donHangToiThieu = BigDecimal.ZERO;
+        }
+        if (daDung == null) {
+            daDung = 0;
+        }
+        if (isActive == null) {
+            isActive = true;
+        }
+        if (usedBudget == null) {
+            usedBudget = BigDecimal.ZERO;
+        }
+        if (voucherType == null) {
+            voucherType = VoucherType.VOUCHER;
+        }
+        if (priority == null) {
+            priority = 0;
+        }
+        if (stackable == null) {
+            stackable = false;
+        }
+        if (savedCount == null) {
+            savedCount = 0;
+        }
     }
 }
