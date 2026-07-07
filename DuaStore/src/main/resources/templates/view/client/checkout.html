@@ -5,8 +5,6 @@
       layout:decorate="~{layout/client/base}">
     <head>
         <title>Thanh toán — DuaStore</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     </head>
     <body>
         <div layout:fragment="content">
@@ -254,6 +252,9 @@
                         <div class="modal-content border-0 shadow">
                             <div class="modal-header border-0 pb-0">
                                 <h5 class="fw-bold modal-title" id="addressModalTitle">Quản lý địa chỉ</h5>
+                                <button type="button" id="addressAddBtn" class="ds-btn ds-btn-fill ds-btn-sm ms-auto" onclick="showAddressForm()">
+                                    <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
+                                </button>
                             </div>
                             <div class="modal-body pt-3">
                                 <div id="addressModalList">
@@ -263,15 +264,17 @@
                                     </div>
                                     <div th:each="a : ${addresses}" class="ds-address-card" th:classappend="${a.isDefault} ? 'is-default'">
                                         <div class="ds-address-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
-                                        <div class="ds-address-card-body">
-                                            <div class="ds-address-card-top">
-                                                <strong th:text="${a.tenNguoiNhan}"></strong>
-                                                <span class="text-muted" th:text="${a.soDienThoai}"></span>
-                                                <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
+                                        <div class="ds-address-card-body" th:data-id="${a.id}">
+                                            <div class="ds-address-card-info">
+                                                <div class="ds-address-card-top">
+                                                    <strong th:text="${a.tenNguoiNhan}"></strong>
+                                                    <span class="text-muted" th:text="${a.soDienThoai}"></span>
+                                                    <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
+                                                </div>
+                                                <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
                                             </div>
-                                            <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
                                             <div class="dropdown ds-address-card-actions">
-                                                <button class="ds-kebab-btn" type="button" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                                <button class="ds-kebab-btn" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-label="Thao tác">
                                                     <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end ds-kebab-menu">
@@ -285,9 +288,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" class="ds-btn ds-btn-fill ds-btn-sm mt-2" onclick="showAddressForm()">
-                                        <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
-                                    </button>
                                 </div>
 
                                 <div id="addressModalForm" style="display:none;">
@@ -303,10 +303,7 @@
                                                  style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;border-radius:10px;"></div>
                                         </div>
                                         <div id="modalMapContainer" style="border-radius:8px;overflow:hidden;">
-                                            <iframe id="modalGoogleMapFrame"
-                                                    src="https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13"
-                                                    width="100%" height="220" style="border:0;" allowfullscreen="" loading="lazy">
-                                            </iframe>
+                                            <div id="checkoutGoogleMap" style="width:100%;height:220px;border-radius:8px;"></div>
                                         </div>
                                         <div class="d-flex gap-2 mt-1">
                                             <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalGetMyLocation()">
@@ -403,7 +400,6 @@
                     </div>
                 </div>
 
-<<<<<<< Updated upstream
                 <!-- Modal chọn mã giảm giá -->
                 <div class="modal fade" id="promoModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -413,203 +409,56 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body px-4 pt-3 pb-4">
-                                <div class="input-group mb-3">
-                                    <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" />
-                                    <button class="btn btn-primary" type="button" onclick="applyVoucherInput()">Áp dụng</button>
+                                <div class="d-flex gap-2 mb-3">
+                                    <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" style="border-radius:var(--ds-r);" />
+                                    <button class="ds-btn ds-btn-outline flex-shrink-0" type="button" onclick="applyVoucherInput()">Áp dụng</button>
                                 </div>
-                                <div th:if="${#lists.isEmpty(availablePromos)}" class="text-muted text-center py-4">Không có mã giảm giá nào khả dụng</div>
-                                <div th:each="p : ${availablePromos}" class="promo-item d-flex align-items-stretch mb-2"
-                                     th:data-code="${p.maCode}"
-                                     th:data-loai="${p.loaiGiam}"
-                                     th:data-giatri="${p.giaTriGiam}"
-                                     th:data-min="${p.donHangToiThieu}"
-                                     th:data-maxgiam="${p.giamToiDa}"
-                                     th:data-ten="${p.tenChuongTrinh}"
+                                <div th:if="${#lists.isEmpty(userVouchers)}" class="text-muted text-center py-4">Bạn chưa lưu mã giảm giá nào</div>
+                                <div th:each="uv : ${userVouchers}" class="promo-item d-flex align-items-stretch mb-2"
+                                     th:data-code="${uv.promotion.maCode}"
+                                     th:data-loai="${uv.promotion.loaiGiam}"
+                                     th:data-giatri="${uv.promotion.giaTriGiam}"
+                                     th:data-min="${uv.promotion.donHangToiThieu}"
+                                     th:data-maxgiam="${uv.promotion.giamToiDa}"
+                                     th:data-ten="${uv.promotion.tenChuongTrinh}"
                                      onclick="selectPromo(this)" style="cursor:pointer;">
                                     <div class="bg-danger rounded-start" style="width:5px;flex-shrink:0;"></div>
                                     <div class="border border-start-0 rounded-end p-3 w-100" style="border-color:#e5e7eb!important;">
                                         <div class="d-flex justify-content-between align-items-start mb-1">
                                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                                 <span class="text-danger fw-bold" style="font-size:1.05rem;"
-                                                      th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                                      th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                                                       th:if="${'PHAN_TRAM'.equals(uv.promotion.loaiGiam)}"
+                                                       th:text="${'-' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
                                                 <span class="text-danger fw-bold" style="font-size:1.05rem;"
-                                                      th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
-                                                      th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                                <span class="badge bg-light text-dark border font-monospace" style="font-size:.7rem;letter-spacing:.5px;" th:text="${p.maCode}"></span>
+                                                       th:if="${'SO_TIEN'.equals(uv.promotion.loaiGiam)}"
+                                                       th:text="${'Giảm ' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                                <span class="badge bg-light text-dark border font-monospace" style="font-size:.7rem;letter-spacing:.5px;" th:text="${uv.promotion.maCode}"></span>
                                                 <button class="btn btn-sm py-0 px-1 border-0" style="font-size:.6rem;color:#6b7280;" type="button"
-                                                        th:data-code="${p.maCode}" onclick="event.stopPropagation();copyCode(this)">Copy</button>
+                                                        th:data-code="${uv.promotion.maCode}" onclick="event.stopPropagation();copyCode(this)">Copy</button>
                                             </div>
                                             <span class="badge bg-danger rounded-pill" style="font-size:.55rem;font-weight:500;">Giảm giá</span>
+                                            <span th:if="${uv.remainingUses != null}" class="badge bg-secondary rounded-pill ms-1" style="font-size:.55rem;font-weight:500;">Còn ${uv.remainingUses} lượt</span>
                                         </div>
-                                        <div class="text-muted" style="font-size:.75rem;" th:text="${p.tenChuongTrinh}"></div>
+                                        <div class="text-muted" style="font-size:.75rem;" th:text="${uv.promotion.tenChuongTrinh}"></div>
                                         <div class="d-flex flex-wrap gap-x-3 gap-y-1 small text-muted mt-1" style="font-size:.7rem!important;">
-                                            <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
-                                                  th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                            <span th:if="${p.giamToiDa != null}"
-                                                  th:text="${'Giảm tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                            <span th:if="${p.denNgay != null}" class="ds-promo-timer"
-                                                  th:data-end="${#strings.concat(#temporals.format(p.denNgay, 'yyyy-MM-dd'), 'T', #temporals.format(p.denNgay, 'HH:mm:ss'))}">
-                                                HSD: <span class="promo-countdown" th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}"></span>
+                                            <span th:if="${uv.promotion.donHangToiThieu != null and uv.promotion.donHangToiThieu > 0}"
+                                                  th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(uv.promotion.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                            <span th:if="${uv.promotion.giamToiDa != null}"
+                                                  th:text="${'Giảm tối đa ' + #numbers.formatDecimal(uv.promotion.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                            <span th:if="${uv.promotion.denNgay != null}" class="ds-promo-timer"
+                                                  th:data-end="${#strings.concat(#temporals.format(uv.promotion.denNgay, 'yyyy-MM-dd'), 'T', #temporals.format(uv.promotion.denNgay, 'HH:mm:ss'))}">
+                                                HSD: <span class="promo-countdown" th:text="${#temporals.format(uv.promotion.denNgay, 'dd/MM/yyyy')}"></span>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-=======
-        <!-- Modal QR Payment -->
-        <div class="modal fade" id="qrPaymentModal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog modal-md modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-              <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold modal-title">Quét mã QR để thanh toán</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body pt-3 text-center">
-                <div class="mb-3">
-                  <img id="qrPaymentImage" src="" alt="QR thanh toán"
-                       class="img-fluid rounded-3 border" style="max-width:260px;width:100%" />
-                </div>
-                <div class="bg-light rounded-3 p-3 mb-3 text-start small">
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Ngân hàng</span>
-                    <span class="fw-medium">Techcombank</span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Số tài khoản</span>
-                    <span class="fw-medium" id="qrAccountNumber"></span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Chủ tài khoản</span>
-                    <span class="fw-medium" id="qrAccountName"></span>
-                  </div>
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted">Mã đơn</span>
-                    <span class="fw-medium" id="qrMaDon"></span>
-                  </div>
-                  <div class="d-flex justify-content-between">
-                    <span class="text-muted">Số tiền</span>
-                    <span class="fw-bold text-danger" id="qrAmount"></span>
-                  </div>
-                </div>
-                <div class="alert alert-warning small py-2 mb-3">
-                  <i class="bi bi-info-circle me-1"></i>
-                  Sau khi chuyển khoản, bấm <strong>"Đã thanh toán"</strong> để hoàn tất.
-                </div>
-                <div class="d-flex gap-2">
-                  <button type="button" class="btn btn-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Đóng</button>
-                  <button type="button" class="btn btn-success rounded-pill flex-fill fw-semibold" id="qrConfirmBtn">
-                    <i class="bi bi-check-circle me-1"></i>Đã thanh toán
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Address Management -->
-        <div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow">
-              <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold modal-title" id="addressModalTitle">Quản lý địa chỉ</h5>
-              </div>
-              <div class="modal-body pt-3">
-                <div id="addressModalList">
-                   <div th:if="${#lists.isEmpty(addresses)}" class="text-center text-muted py-4">
-                      <i class="bi bi-geo-alt display-6 d-block mb-2 opacity-50"></i>
-                      Bạn chưa có địa chỉ nào
-                   </div>
-<div th:each="a : ${addresses}" class="ds-address-card" th:classappend="${a.isDefault} ? 'is-default'">
-                     <div class="ds-address-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
-                     <div class="ds-address-card-body">
-                       <div class="ds-address-card-top">
-                         <strong th:text="${a.tenNguoiNhan}"></strong>
-                         <span class="text-muted" th:text="${a.soDienThoai}"></span>
-                         <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
-                       </div>
-                       <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
-                       <div class="dropdown ds-address-card-actions">
-                         <button class="ds-btn ds-btn-outline ds-btn-sm" type="button" data-bs-toggle="dropdown">
-                           <i class="bi bi-three-dots-vertical"></i>
-                         </button>
-                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                           <li th:unless="${a.isDefault}">
-                             <a class="dropdown-item btn-address-default" th:data-id="${a.id}" href="#"><i class="bi bi-check-circle me-2"></i>Mặc định</a>
-                           </li>
-                           <li><a class="dropdown-item btn-address-edit" th:data-id="${a.id}" href="#"><i class="bi bi-pencil me-2"></i>Sửa</a></li>
-                           <li><hr class="dropdown-divider"></li>
-                           <li><a class="dropdown-item text-danger btn-address-delete" th:data-id="${a.id}" href="#"><i class="bi bi-trash me-2"></i>Xoá</a></li>
-                         </ul>
-                       </div>
-                     </div>
-                   </div>
-                  <button type="button" class="ds-btn ds-btn-fill ds-btn-sm mt-2" onclick="showAddressForm()">
-                    <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
-                  </button>
-                </div>
-
-                <div id="addressModalForm" style="display:none;">
-                  <div class="mb-3">
-                    <label class="form-label fw-medium small">Địa chỉ trên bản đồ</label>
-                    <div class="position-relative mb-1">
-                      <div class="ds-combo-search" style="border:1.5px solid var(--ds-border,#dee2e6);border-radius:10px;border-bottom:1.5px solid var(--ds-border,#dee2e6);">
-                        <i class="bi bi-search"></i>
-                        <input type="text" id="modalDiaChiCuThe" class="ds-combo-search-input" placeholder="Nhập địa chỉ..." autocomplete="off" />
-                        <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalSearchMap()" style="flex-shrink:0;">Tìm</button>
-                      </div>
-                      <div id="modalSuggestionBox" class="list-group position-absolute w-100 shadow-sm"
-                           style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;border-radius:10px;"></div>
-                    </div>
-                    <div id="modalMapContainer" style="border-radius:8px;overflow:hidden;">
-                      <div id="checkoutLeafletMap" style="width:100%;height:220px;"></div>
-                    </div>
-                    <div class="d-flex gap-2 mt-1">
-                      <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalGetMyLocation()">
-                        <i class="bi bi-crosshair me-1"></i>Vị trí hiện tại
-                      </button>
-                      <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalClearMap()">
-                        <i class="bi bi-x-circle me-1"></i>Xoá
-                      </button>
-                    </div>
-                    <div id="modalMapStatus" class="form-text small text-muted mt-1"></div>
-                    <input type="hidden" id="modalLatitude" />
-                    <input type="hidden" id="modalLongitude" />
-                  </div>
-                  <div class="row g-2 mb-3">
-                    <div class="col-md-6">
-                      <label class="form-label fw-medium small">Họ và tên <span class="text-danger">*</span></label>
-                      <input type="text" id="modalTenNguoiNhan" class="form-control form-control-sm rounded-3" required />
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label fw-medium small">SĐT <span class="text-danger">*</span></label>
-                      <input type="tel" id="modalSoDienThoai" class="form-control form-control-sm rounded-3" required />
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label fw-medium small">Số nhà, đường <span class="text-danger">*</span></label>
-                      <input type="text" id="modalDiaChiCuTheText" class="form-control form-control-sm rounded-3" required placeholder="Số 1, Đại Cồ Việt" />
-                      <input type="hidden" id="modalDiaChiCuTheHidden" />
-                    </div>
-                    <div class="col-md-6">
-                      <label class="form-label fw-medium small">Tỉnh/Thành phố <span class="text-danger">*</span></label>
-                      <div class="ds-combo" id="modalTinhThanhCombo" data-selected-code="">
-                        <button type="button" class="ds-combo-toggle">
-                          <i class="bi bi-geo-alt ds-combo-icon"></i>
-                          <span class="ds-combo-label">Chọn tỉnh/thành</span>
-                          <i class="bi bi-chevron-down ds-combo-chevron"></i>
-                        </button>
-                        <div class="ds-combo-panel">
-                          <div class="ds-combo-search">
-                            <i class="bi bi-search"></i>
-                            <input type="text" class="ds-combo-search-input" placeholder="Tìm tỉnh/thành..." autocomplete="off" />
-                          </div>
-                          <div class="ds-combo-list"></div>
->>>>>>> Stashed changes
                         </div>
                     </div>
                 </div>
 
                 <th:block layout:fragment="extra-script">
+                    <script src="https://maps.googleapis.com/maps/api/js?key=[[${googleMapsApiKey}]]&libraries=places&language=vi"></script>
                     <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
                     <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
                     <script>
@@ -745,7 +594,6 @@
                                 document.getElementById('checkoutCopyPromo').style.display = '';
                             }
 
-<<<<<<< Updated upstream
                             document.querySelectorAll('.btn-address-edit').forEach(function (btn) {
                                 btn.addEventListener('click', function () {
                                     editAddress(parseInt(this.getAttribute('data-id')));
@@ -764,44 +612,9 @@
                         });
                     </script>
                     <script th:inline="javascript">
-                        var STORE_LAT = [[${storeLat}
-                        ]];
-                                var STORE_LNG = [[${storeLng}
-                                ]];
+                        window.storeLat = [[${storeLat}]];
+                        window.storeLng = [[${storeLng}]];
                     </script>
                 </th:block>
                 </body>
                 </html>
-=======
-        document.addEventListener('DOMContentLoaded', function() {
-            initPromoTimers();
-            window.appliedDiscount = parseInt(document.getElementById('rawDiscount').textContent) || 0;
-            if (window.appliedDiscount > 0) {
-                document.getElementById('checkoutCopyPromo').style.display = '';
-            }
-
-            document.querySelectorAll('.btn-address-edit').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    editAddress(parseInt(this.getAttribute('data-id')));
-                });
-            });
-            document.querySelectorAll('.btn-address-default').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    setDefaultAddress(parseInt(this.getAttribute('data-id')));
-                });
-            });
-            document.querySelectorAll('.btn-address-delete').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    deleteAddress(parseInt(this.getAttribute('data-id')));
-                });
-            });
-        });
-    </script>
-    <script th:inline="javascript">
-        window.storeLat = [[${storeLat}]];
-        window.storeLng = [[${storeLng}]];
-    </script>
-</th:block>
-    </body>
-</html>
->>>>>>> Stashed changes

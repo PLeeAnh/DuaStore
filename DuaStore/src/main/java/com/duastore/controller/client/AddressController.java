@@ -4,6 +4,7 @@ import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.Address;
 import com.duastore.repository.AddressRepository;
 import com.duastore.service.GeocodingService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,8 +85,13 @@ public class AddressController {
         }
         addressRepository.findById(id).ifPresent(a -> {
             if (a.getUserId().equals(userId)) {
-                addressRepository.deleteById(id);
-                res.put("success", true);
+                try {
+                    addressRepository.deleteById(id);
+                    res.put("success", true);
+                } catch (DataIntegrityViolationException e) {
+                    res.put("success", false);
+                    res.put("message", "Không thể xoá địa chỉ vì có đơn hàng liên quan");
+                }
             }
         });
         res.putIfAbsent("success", false);
