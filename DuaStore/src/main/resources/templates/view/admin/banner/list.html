@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý banner</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Banner</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-images"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Banner trang chủ</h4>
+                            <div class="adm-detail-meta">Banner được hiển thị theo thứ tự tăng dần.</div>
+                        </div>
+                        <a th:href="@{/admin/banner/them-moi}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm banner
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Thứ tự</th>
+                            <th>Ảnh</th>
+                            <th>Thông tin</th>
+                            <th>Thời gian hiển thị</th>
+                            <th>Trạng thái</th>
+                            <th>Cập nhật</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="banner : ${banners}">
+                            <td><span class="badge text-bg-light" th:text="${banner.displayOrder}">0</span></td>
+                            <td>
+                                <img th:src="@{${banner.imageUrl}}" th:alt="${banner.title}"
+                                     style="width:150px;height:64px;object-fit:cover;border-radius:8px"
+                                     onerror="this.onerror=null;this.src='/images/no-image.png'"/>
+                            </td>
+                            <td style="min-width:220px">
+                                <strong class="d-block" th:text="${banner.title}">Banner</strong>
+                                <small th:if="${banner.description != null}" class="text-muted d-block text-truncate"
+                                       style="max-width:320px" th:text="${banner.description}"></small>
+                                <a th:if="${banner.linkUrl != null}" th:href="${banner.linkUrl}" target="_blank"
+                                   rel="noopener noreferrer" class="small text-truncate d-block" style="max-width:320px"
+                                   th:text="${banner.linkUrl}"></a>
+                            </td>
+                            <td class="small" style="min-width:180px">
+                                <div><i class="bi bi-play-circle me-1"></i>
+                                    <span th:text="${banner.startDate != null ? #temporals.format(banner.startDate, 'dd/MM/yyyy HH:mm') : 'Không giới hạn'}"></span>
+                                </div>
+                                <div><i class="bi bi-stop-circle me-1"></i>
+                                    <span th:text="${banner.endDate != null ? #temporals.format(banner.endDate, 'dd/MM/yyyy HH:mm') : 'Không giới hạn'}"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span th:if="${!banner.active}" class="status-pill status-AN">Đang tắt</span>
+                                <span th:if="${banner.active and banner.startDate != null and banner.startDate.isAfter(now)}"
+                                      class="status-pill status-CHO_DUYET">Sắp hiển thị</span>
+                                <span th:if="${banner.active and banner.endDate != null and banner.endDate.isBefore(now)}"
+                                      class="status-pill status-TAM_DUNG">Đã hết hạn</span>
+                                <span th:if="${banner.active and (banner.startDate == null or !banner.startDate.isAfter(now)) and (banner.endDate == null or !banner.endDate.isBefore(now))}"
+                                      class="status-pill status-DANG_HIEN_THI">Đang hiển thị</span>
+                            </td>
+                            <td class="small text-muted" th:text="${#temporals.format(banner.updatedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-end text-nowrap">
+                                <form th:action="@{/admin/banner/toggle/{id}(id=${banner.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm"
+                                            th:classappend="${banner.active ? 'btn-outline-secondary' : 'btn-outline-success'}"
+                                            th:title="${banner.active ? 'Tắt banner' : 'Bật banner'}">
+                                        <i th:class="${banner.active ? 'bi bi-toggle-on' : 'bi bi-toggle-off'}"></i>
+                                    </button>
+                                </form>
+                                <a th:href="@{/admin/banner/sua/{id}(id=${banner.id})}"
+                                   class="btn btn-sm btn-outline-primary" title="Sửa">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/admin/banner/xoa/{id}(id=${banner.id})}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa banner này và ảnh đã upload?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(banners)}">
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <i class="bi bi-images fs-2 d-block mb-2"></i>
+                                Chưa có banner. Trang chủ vẫn hoạt động bình thường.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

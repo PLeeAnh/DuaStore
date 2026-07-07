@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+    <head><meta charset="UTF-8"></head>
+    <body>
+    <th:block th:fragment="pagination(currentPage, totalPages, totalItems, pageSize, entityLabel, url, filterParams)">
+        <div class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <small class="text-muted fw-medium" th:if="${totalItems > 0}" style="font-size:.85rem;">
+                    Hiển thị <strong th:text="${currentPage * pageSize + 1}">1</strong>-<strong th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">10</strong> trong tổng số <strong th:text="${totalItems}">0</strong> <span th:text="${entityLabel}">mục</span>
+                </small>
+            </div>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <form th:action="${url}" method="get" class="d-inline">
+                    <input type="hidden" th:each="entry : ${filterParams ?: {}}" th:name="${entry.key}" th:value="${entry.value}" />
+                    <input type="hidden" name="page" value="0" />
+                    <select name="size" onchange="this.form.submit()"
+                            style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
+                        <option th:each="s : ${ {5, 10, 20, 50} }" th:value="${s}" th:selected="${s == pageSize}" th:text="'Hiển thị ' + ${s}"></option>
+                    </select>
+                </form>
+                <nav th:if="${totalPages > 1}">
+                    <div class="d-flex align-items-center gap-1">
+                        <a th:href="@{${url}(page=${currentPage - 1}, size=${pageSize}, ${filterParams ?: {}})}"
+                           class="adm-pagination-nav-btn"
+                           th:classappend="${currentPage == 0} ? 'disabled' : ''"
+                           th:attr="tabindex=${currentPage == 0} ? '-1' : ''">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </a>
+                        <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                           th:href="@{${url}(page=${i}, size=${pageSize}, ${filterParams ?: {}})}"
+                           class="adm-pagination-btn"
+                           th:classappend="${i == currentPage} ? 'active' : ''"
+                           th:text="${i + 1}">1</a>
+                        <a th:href="@{${url}(page=${currentPage + 1}, size=${pageSize}, ${filterParams ?: {}})}"
+                           class="adm-pagination-nav-btn"
+                           th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''"
+                           th:attr="tabindex=${currentPage >= totalPages - 1} ? '-1' : ''">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </th:block>
+</body>
+</html>

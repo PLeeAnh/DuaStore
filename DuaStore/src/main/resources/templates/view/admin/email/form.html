@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Cấu hình Email/SMTP</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Email/SMTP</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Cấu hình Email/SMTP</h4>
+                        <div class="adm-detail-meta">Cấu hình máy chủ SMTP để gửi email từ hệ thống.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form th:action="@{/admin/email-smtp}" method="post" data-dirty-bar class="row g-3">
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-server me-1"></i>SMTP Server</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">SMTP Host</label>
+                        <input type="text" name="email_host" class="form-control"
+                               th:value="${settings.get('email_host')}" placeholder="smtp.gmail.com" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Cổng</label>
+                        <input type="number" name="email_port" class="form-control"
+                               th:value="${settings.get('email_port')}" placeholder="587" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mã hóa</label>
+                        <select name="email_encryption" class="form-select">
+                            <option value="tls" th:selected="${settings.get('email_encryption') == 'tls'}">TLS</option>
+                            <option value="ssl" th:selected="${settings.get('email_encryption') == 'ssl'}">SSL</option>
+                            <option value="none" th:selected="${settings.get('email_encryption') == 'none'}">Không</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email gửi</label>
+                        <input type="email" name="email_from" class="form-control"
+                               th:value="${settings.get('email_from')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên hiển thị</label>
+                        <input type="text" name="email_from_name" class="form-control"
+                               th:value="${settings.get('email_from_name')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" name="email_username" class="form-control"
+                               th:value="${settings.get('email_username')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" name="email_password" class="form-control"
+                               th:value="${settings.get('email_password')}" />
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

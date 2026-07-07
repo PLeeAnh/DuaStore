@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý khách hàng</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Khách hàng</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-person-lines-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Khách hàng</h4>
+                            <div class="adm-detail-meta">Quản lý tất cả khách hàng trong cửa hàng.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
+                            <div class="adm-stat-label">Tổng khách hàng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-filter-bar">
+            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div class="d-flex gap-2">
+                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm tên, email..." th:value="${keyword}" />
+                    <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
+                        <option value="LOCKED" th:selected="${status == 'LOCKED'}">Khóa</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Đơn hàng</th>
+                            <th>Ngày tạo</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="customer : ${customers}">
+                            <td><span class="badge text-bg-light" th:text="${customer.id}">1</span></td>
+                            <td>
+                                <a th:href="@{/admin/khach-hang/{id}(id=${customer.id})}" class="text-decoration-none">
+                                    <strong class="d-block" th:text="${customer.hoTen}">Tên khách hàng</strong>
+                                </a>
+                                <small class="text-muted" th:text="'@' + ${customer.username}">@username</small>
+                            </td>
+                            <td>
+                                <a th:href="'mailto:' + ${customer.email}" th:text="${customer.email}">email@example.com</a>
+                            </td>
+                            <td th:text="${customer.soDienThoai != null ? customer.soDienThoai : '—'}">—</td>
+                            <td>
+                                <span class="badge bg-info text-dark" th:text="${orderCountMap.getOrDefault(customer.id, 0L)}">0</span>
+                            </td>
+                            <td class="small text-muted" th:text="${#temporals.format(customer.ngayTao, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td>
+                                <span th:if="${customer.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                                <span th:if="${!customer.isActive}" class="status-pill status-LOCKED">Khóa</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/admin/khach-hang/{id}(id=${customer.id})}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(customers)}">
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="bi bi-person-lines-fill fs-2 d-block mb-2"></i>
+                                Chưa có khách hàng nào.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <nav th:if="${totalPages > 1}" class="mt-3">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/admin/khach-hang(page=${currentPage - 1}, keyword=${keyword}, status=${status})}">Trước</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage ? 'active' : ''}">
+                    <a class="page-link" th:href="@{/admin/khach-hang(page=${i}, keyword=${keyword}, status=${status})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/admin/khach-hang(page=${currentPage + 1}, keyword=${keyword}, status=${status})}">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <th:block layout:fragment="extra-script">
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                function doFilter() {
+                    var keyword = document.getElementById('searchKeyword').value;
+                    var status = document.getElementById('filterStatus').value;
+                    var params = new URLSearchParams();
+                    if (keyword)
+                        params.set('keyword', keyword);
+                    if (status)
+                        params.set('status', status);
+                    window.location.href = '/admin/khach-hang?' + params.toString();
+                }
+                document.getElementById('filterStatus').addEventListener('change', doFilter);
+                var searchTimer;
+                document.getElementById('searchKeyword').addEventListener('input', function () {
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(doFilter, 400);
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

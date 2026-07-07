@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Thông tin cửa hàng</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Cửa hàng</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Thông tin cửa hàng</h4>
+                        <div class="adm-detail-meta">Cấu hình thông tin và vị trí cửa hàng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form th:action="@{/admin/cua-hang}" method="post" data-dirty-bar class="row g-3">
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-info-circle me-1"></i>Thông tin cơ bản</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên cửa hàng</label>
+                        <input type="text" name="store_name" class="form-control"
+                               th:value="${settings.get('store_name')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" name="store_phone" class="form-control"
+                               th:value="${settings.get('store_phone')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="store_email" class="form-control"
+                               th:value="${settings.get('store_email')}" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Địa chỉ <small class="text-muted">(Gõ địa chỉ để tìm kiếm)</small></label>
+                        <input type="text" id="storeAddress" name="store_address" class="form-control"
+                               th:value="${settings.get('store_address')}"
+                               placeholder="Nhập địa chỉ cửa hàng..." autocomplete="off" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vĩ độ (Latitude)</label>
+                        <input type="text" id="storeLatitude" name="store_latitude" class="form-control"
+                               th:value="${settings.get('store_latitude')}" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Kinh độ (Longitude)</label>
+                        <input type="text" id="storeLongitude" name="store_longitude" class="form-control"
+                               th:value="${settings.get('store_longitude')}" readonly />
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-geo-alt me-1"></i>Vị trí trên bản đồ</h6>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Bản đồ</label>
+                        <div id="map" style="width:100%;height:350px;border-radius:8px;border:1px solid var(--ef-border);background:#e9ecef"></div>
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-clock me-1"></i>Giờ hoạt động</h6>
+                    </div>
+                    <div class="col-12">
+                        <input type="hidden" name="store_business_hours" id="businessHoursInput"
+                               th:value="${settings.get('store_business_hours')}" />
+                        <div id="businessHoursEditor">
+                            <div class="d-flex gap-2 mb-3 flex-wrap" id="bhDayBtns">
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="mon" style="width:40px;height:40px" title="Thứ Hai">T2</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="tue" style="width:40px;height:40px" title="Thứ Ba">T3</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="wed" style="width:40px;height:40px" title="Thứ Tư">T4</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="thu" style="width:40px;height:40px" title="Thứ Năm">T5</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="fri" style="width:40px;height:40px" title="Thứ Sáu">T6</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="sat" style="width:40px;height:40px" title="Thứ Bảy">T7</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="sun" style="width:40px;height:40px" title="Chủ Nhật">CN</button>
+                            </div>
+                            <div id="bhDayPanel" style="display:none" class="border rounded-3 p-3 mb-3">
+                                <div class="d-flex align-items-center gap-4 mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="bhAllDay" />
+                                        <label class="form-check-label" for="bhAllDay">Mở cả ngày</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="bhClosed" />
+                                        <label class="form-check-label" for="bhClosed">Đóng cửa</label>
+                                    </div>
+                                </div>
+                                <div id="bhSlots"></div>
+                                <a href="javascript:void(0)" id="bhAddSlot" class="small text-primary fw-semibold">Thêm giờ hoạt động</a>
+                            </div>
+                            <div id="bhSelectedDays" class="small text-muted mb-2"></div>
+                        </div>
+                        <style>
+                            .bh-day-btn{border:2px solid #dee2e6;background:#fff;color:#495057;font-weight:600;font-size:.8rem;transition:all .15s;display:flex;align-items:center;justify-content:center}
+                            .bh-day-btn.selected{border-color:var(--primary);background:var(--primary);color:#fff}
+                        </style>
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-images me-1"></i>Ảnh cửa hàng</h6>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap gap-3" id="storeImagesPreview">
+                            <th:block th:if="${settings.get('store_images') != null and settings.get('store_images') != ''}">
+                                <th:block th:each="img : ${#strings.listSplit(settings.get('store_images'), ',')}">
+                                    <div class="position-relative store-img-item" th:data-url="${#strings.trim(img)}">
+                                        <img th:src="${#strings.trim(img)}" alt="Ảnh cửa hàng"
+                                             style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
+                                        <button type="button" class="btn btn-sm position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center store-img-remove"
+                                                style="width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:.7rem;line-height:1"
+                                                title="Xóa ảnh"><i class="bi bi-x"></i></button>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </div>
+                        <input type="hidden" name="store_images" id="storeImagesInput"
+                               th:value="${settings.get('store_images')}" />
+                        <label class="btn btn-outline-primary btn-sm mt-2" style="cursor:pointer">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm ảnh
+                            <input type="file" accept="image/*" multiple style="display:none" id="storeImagesFile" />
+                        </label>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script src="https://maps.googleapis.com/maps/api/js?key=[[${googleMapsApiKey}]]&libraries=places&language=vi"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var bhInput = document.getElementById('businessHoursInput');
+                var bhData = {};
+                try { bhData = JSON.parse(bhInput.value || '{}'); } catch(e) { bhData = {}; }
+
+                var allDays = ['mon','tue','wed','thu','fri','sat','sun'];
+                var selectedDays = new Set();
+                var dayBtns = document.getElementById('bhDayBtns');
+                var dayPanel = document.getElementById('bhDayPanel');
+                var bhAllDay = document.getElementById('bhAllDay');
+                var bhClosed = document.getElementById('bhClosed');
+                var bhSlots = document.getElementById('bhSlots');
+                var bhAddSlot = document.getElementById('bhAddSlot');
+                var bhSelectedLabel = document.getElementById('bhSelectedDays');
+
+                function ensureDay(day) {
+                    if (!bhData[day]) bhData[day] = {open:false, allDay:false, slots:[]};
+                }
+
+                function formatTimeDisplay(raw) {
+                    if (!raw) return '';
+                    var digits = raw.replace(/[^0-9ap]/gi, '');
+                    if (!digits) return '';
+                    var h = '', m = '', ap = '';
+                    if (digits.length >= 1) h = digits.substring(0, 2);
+                    if (digits.length >= 3) m = digits.substring(2, 4);
+                    if (digits.length >= 5) ap = digits.substring(4, 5).toLowerCase();
+                    var hNum = parseInt(h, 10);
+                    if (!isNaN(hNum)) {
+                        if (hNum > 23) hNum = 23;
+                        h = String(hNum).padStart(2, '0');
+                    }
+                    var mNum = parseInt(m, 10);
+                    if (!isNaN(mNum)) {
+                        if (mNum > 59) mNum = 59;
+                        m = String(mNum).padStart(2, '0');
+                    }
+                    var result = h;
+                    if (m) result += ':' + m;
+                    if (ap === 'a') result += ' AM';
+                    else if (ap === 'p') result += ' PM';
+                    return result;
+                }
+
+                function parseTimeForStorage(display) {
+                    if (!display) return '';
+                    var match = display.match(/(\d{1,2}):?(\d{2})?\s*(AM|PM|am|pm)?/i);
+                    if (!match) return display;
+                    var h = match[1].padStart(2, '0');
+                    var m = match[2] || '00';
+                    var ap = match[3] ? match[3].toUpperCase() : '';
+                    return h + ':' + m + (ap ? ' ' + ap : '');
+                }
+
+                function initTimeInputs() {
+                    document.querySelectorAll('.time-input').forEach(function(input) {
+                        input.removeEventListener('focus', onTimeFocus);
+                        input.removeEventListener('blur', onTimeBlur);
+                        input.addEventListener('focus', onTimeFocus);
+                        input.addEventListener('blur', onTimeBlur);
+                    });
+                }
+
+                function onTimeFocus(e) {
+                    var v = e.target.value;
+                    e.target.dataset.raw = v.replace(/[^0-9ap]/gi, '');
+                }
+
+                function onTimeBlur(e) {
+                    var input = e.target;
+                    var raw = (input.dataset.raw || '').replace(/[^0-9ap]/gi, '');
+                    input.value = formatTimeDisplay(raw);
+                }
+
+                document.addEventListener('input', function(e) {
+                    if (!e.target.classList.contains('time-input')) return;
+                    var input = e.target;
+                    var pos = input.selectionStart;
+                    var oldLen = input.value.length;
+                    var raw = input.value.replace(/[^0-9ap]/gi, '');
+                    var formatted = formatTimeDisplay(raw);
+                    input.value = formatted;
+                    var diff = formatted.length - oldLen;
+                    input.setSelectionRange(pos + diff, pos + diff);
+                });
+
+                function renderButtons() {
+                    dayBtns.querySelectorAll('.bh-day-btn').forEach(function(btn) {
+                        var d = btn.dataset.day;
+                        btn.classList.toggle('selected', selectedDays.has(d));
+                    });
+                }
+
+                function renderSelectedLabel() {
+                    if (selectedDays.size === 0) {
+                        bhSelectedLabel.textContent = '';
+                        return;
+                    }
+                    var names = [];
+                    selectedDays.forEach(function(d) {
+                        if (d==='mon') names.push('T2'); else if (d==='tue') names.push('T3');
+                        else if (d==='wed') names.push('T4'); else if (d==='thu') names.push('T5');
+                        else if (d==='fri') names.push('T6'); else if (d==='sat') names.push('T7');
+                        else if (d==='sun') names.push('CN');
+                    });
+                    bhSelectedLabel.textContent = 'Áp dụng cho: ' + names.join(', ');
+                }
+
+                function getSelectedData() {
+                    var ref = null;
+                    selectedDays.forEach(function(d) {
+                        ensureDay(d);
+                        if (!ref) ref = JSON.parse(JSON.stringify(bhData[d]));
+                    });
+                    return ref;
+                }
+
+                function renderSlots() {
+                    var data = getSelectedData();
+                    if (!data || selectedDays.size === 0) {
+                        dayPanel.style.display = 'none';
+                        return;
+                    }
+                    dayPanel.style.display = '';
+                    bhAllDay.checked = !!data.allDay;
+                    bhClosed.checked = !data.open;
+                    bhSlots.innerHTML = '';
+                    if (data.allDay || !data.open) {
+                        bhSlots.style.display = 'none';
+                        bhAddSlot.style.display = 'none';
+                    } else {
+                        bhSlots.style.display = '';
+                        bhAddSlot.style.display = '';
+                        (data.slots || []).forEach(function(slot, idx) {
+                            var openVal = formatTimeDisplay(slot.open || '');
+                            var closeVal = formatTimeDisplay(slot.close || '');
+                            var row = document.createElement('div');
+                            row.className = 'd-flex align-items-center gap-3 mb-2';
+                            row.innerHTML =
+                                '<div style="flex:1">' +
+                                    '<label class="small text-muted">Giờ mở cửa</label>' +
+                                    '<input type="text" class="form-control form-control-sm bh-slot-open time-input" data-idx="' + idx + '" value="' + openVal + '" placeholder="HH:MM" maxlength="8" autocomplete="off" />' +
+                                '</div>' +
+                                '<div style="flex:1">' +
+                                    '<label class="small text-muted">Giờ đóng cửa</label>' +
+                                    '<input type="text" class="form-control form-control-sm bh-slot-close time-input" data-idx="' + idx + '" value="' + closeVal + '" placeholder="HH:MM" maxlength="8" autocomplete="off" />' +
+                                '</div>' +
+                                '<button type="button" class="btn btn-sm mt-3 bh-slot-remove" data-idx="' + idx + '" style="color:#dc3545;border:none;font-size:1.1rem" title="Xóa"><i class="bi bi-x-lg"></i></button>';
+                            bhSlots.appendChild(row);
+                        });
+                        initTimeInputs();
+                    }
+                }
+
+                function applyToSelected(patch) {
+                    selectedDays.forEach(function(d) {
+                        ensureDay(d);
+                        Object.assign(bhData[d], patch);
+                    });
+                    renderButtons();
+                    renderSelectedLabel();
+                    renderSlots();
+                    saveBH();
+                }
+
+                dayBtns.addEventListener('click', function(e) {
+                    var btn = e.target.closest('.bh-day-btn');
+                    if (!btn) return;
+                    var d = btn.dataset.day;
+                    if (selectedDays.has(d)) {
+                        selectedDays.delete(d);
+                    } else {
+                        selectedDays.add(d);
+                    }
+                    renderButtons();
+                    renderSelectedLabel();
+                    renderSlots();
+                });
+
+                bhAllDay.addEventListener('change', function() {
+                    if (this.checked) {
+                        selectedDays.forEach(function(d) {
+                            ensureDay(d);
+                            bhData[d].allDay = true;
+                            bhData[d].open = true;
+                            bhData[d].slots = [];
+                        });
+                        bhClosed.checked = false;
+                    } else {
+                        var firstDay = null;
+                        selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
+                        if (firstDay) {
+                            ensureDay(firstDay);
+                            bhData[firstDay].allDay = false;
+                            bhData[firstDay].open = true;
+                            bhData[firstDay].slots = [{open:'08:00', close:'19:00'}];
+                        }
+                        bhClosed.checked = false;
+                    }
+                    renderButtons(); renderSelectedLabel(); renderSlots(); saveBH();
+                });
+
+                bhClosed.addEventListener('change', function() {
+                    if (this.checked) {
+                        selectedDays.forEach(function(d) {
+                            ensureDay(d);
+                            bhData[d].open = false;
+                            bhData[d].allDay = false;
+                            bhData[d].slots = [];
+                        });
+                        bhAllDay.checked = false;
+                    } else {
+                        selectedDays.forEach(function(d) {
+                            ensureDay(d);
+                            bhData[d].open = true;
+                        });
+                    }
+                    renderButtons(); renderSelectedLabel(); renderSlots(); saveBH();
+                });
+
+                bhAddSlot.addEventListener('click', function() {
+                    if (selectedDays.size === 0) return;
+                    var firstDay = null;
+                    selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
+                    ensureDay(firstDay);
+                    if (!bhData[firstDay].allDay && bhData[firstDay].open) {
+                        if (!bhData[firstDay].slots) bhData[firstDay].slots = [];
+                        bhData[firstDay].slots.push({open:'', close:''});
+                    }
+                    renderSlots(); saveBH();
+                });
+
+                bhSlots.addEventListener('click', function(e) {
+                    var rmBtn = e.target.closest('.bh-slot-remove');
+                    if (!rmBtn) return;
+                    var idx = parseInt(rmBtn.dataset.idx);
+                    var firstDay = null;
+                    selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
+                    if (firstDay && bhData[firstDay] && bhData[firstDay].slots && bhData[firstDay].slots[idx]) {
+                        bhData[firstDay].slots.splice(idx, 1);
+                    }
+                    renderSlots(); saveBH();
+                });
+
+                bhSlots.addEventListener('input', function(e) {
+                    var idx = parseInt(e.target.dataset.idx);
+                    var val = e.target.value;
+                    var firstDay = null;
+                    selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
+                    if (firstDay && bhData[firstDay] && bhData[firstDay].slots && bhData[firstDay].slots[idx]) {
+                        if (e.target.classList.contains('bh-slot-open')) bhData[firstDay].slots[idx].open = val;
+                        if (e.target.classList.contains('bh-slot-close')) bhData[firstDay].slots[idx].close = val;
+                    }
+                    saveBH();
+                });
+
+                function saveBH() {
+                    var toSave = JSON.parse(JSON.stringify(bhData));
+                    Object.keys(toSave).forEach(function(d) {
+                        if (toSave[d].slots) {
+                            toSave[d].slots = toSave[d].slots.map(function(s) {
+                                return { open: parseTimeForStorage(s.open), close: parseTimeForStorage(s.close) };
+                            });
+                        }
+                    });
+                    bhInput.value = JSON.stringify(toSave);
+                }
+
+                allDays.forEach(function(d) {
+                    if (bhData[d] && (bhData[d].open || bhData[d].allDay || (bhData[d].slots && bhData[d].slots.length))) {
+                        selectedDays.add(d);
+                    }
+                });
+                renderButtons();
+                renderSelectedLabel();
+                renderSlots();
+
+                var storeImagesInput = document.getElementById('storeImagesInput');
+                var preview = document.getElementById('storeImagesPreview');
+
+                function refreshPreview() {
+                    var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
+                    preview.innerHTML = '';
+                    urls.forEach(function(url) {
+                        var div = document.createElement('div');
+                        div.className = 'position-relative store-img-item';
+                        div.dataset.url = url;
+                        div.innerHTML = '<img src="' + url + '" alt="Ảnh cửa hàng" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />' +
+                            '<button type="button" class="btn btn-sm position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center store-img-remove" ' +
+                            'style="width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:.7rem;line-height:1" title="Xóa ảnh"><i class="bi bi-x"></i></button>';
+                        preview.appendChild(div);
+                    });
+                }
+
+                preview.addEventListener('click', function(e) {
+                    var btn = e.target.closest('.store-img-remove');
+                    if (!btn) return;
+                    var item = btn.closest('.store-img-item');
+                    if (!item) return;
+                    var url = item.dataset.url;
+                    var urls = storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+                    urls = urls.filter(function(u){ return u !== url });
+                    storeImagesInput.value = urls.join(',');
+                    refreshPreview();
+                });
+
+                document.getElementById('storeImagesFile').addEventListener('change', function() {
+                    var files = Array.from(this.files);
+                    if (!files.length) return;
+                    var uploaded = [];
+                    var done = 0;
+                    files.forEach(function(file) {
+                        var fd = new FormData();
+                        fd.append('file', file);
+                        fetch('/admin/upload', { method: 'POST', body: fd })
+                            .then(function(r){ return r.json(); })
+                            .then(function(data){
+                                if (data.url) uploaded.push(data.url);
+                                done++;
+                                if (done === files.length) {
+                                    var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
+                                    urls = urls.concat(uploaded);
+                                    storeImagesInput.value = urls.join(',');
+                                    refreshPreview();
+                                }
+                            })
+                            .catch(function(){
+                                done++;
+                                if (done === files.length && uploaded.length) {
+                                    var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
+                                    urls = urls.concat(uploaded);
+                                    storeImagesInput.value = urls.join(',');
+                                    refreshPreview();
+                                }
+                            });
+                    });
+                    this.value = '';
+                });
+            });
+
+            function initGoogleMap() {
+                var latInput = document.getElementById('storeLatitude');
+                var lngInput = document.getElementById('storeLongitude');
+                var addrInput = document.getElementById('storeAddress');
+                var lat = parseFloat(latInput?.value) || 20.8565;
+                var lng = parseFloat(lngInput?.value) || 106.6756;
+                var mapEl = document.getElementById('map');
+
+                var pos = { lat: lat, lng: lng };
+                var map = new google.maps.Map(mapEl, { center: pos, zoom: 15, mapTypeControl: false, streetViewControl: false });
+                var marker = new google.maps.Marker({ position: pos, map: map, draggable: true });
+
+                var geocoder = new google.maps.Geocoder();
+
+                function reverseGeocode(latLng) {
+                    geocoder.geocode({ location: latLng }, function(results, status) {
+                        if (status === 'OK' && results[0]) {
+                            addrInput.value = results[0].formatted_address;
+                        }
+                    });
+                }
+
+                marker.addListener('dragend', function() {
+                    var p = marker.getPosition();
+                    latInput.value = p.lat().toFixed(6);
+                    lngInput.value = p.lng().toFixed(6);
+                    reverseGeocode(p);
+                });
+                map.addListener('click', function(e) {
+                    marker.setPosition(e.latLng);
+                    latInput.value = e.latLng.lat().toFixed(6);
+                    lngInput.value = e.latLng.lng().toFixed(6);
+                    reverseGeocode(e.latLng);
+                });
+
+                var autocomplete = new google.maps.places.Autocomplete(addrInput, { componentRestrictions: { country: 'VN' } });
+                autocomplete.addListener('place_changed', function() {
+                    var place = autocomplete.getPlace();
+                    if (!place.geometry) return;
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(15);
+                    marker.setPosition(place.geometry.location);
+                    latInput.value = place.geometry.location.lat().toFixed(6);
+                    lngInput.value = place.geometry.location.lng().toFixed(6);
+                });
+
+                if (addrInput.value) {
+                    geocoder.geocode({ address: addrInput.value + ', Việt Nam' }, function(results, status) {
+                        if (status === 'OK' && results[0]) {
+                            map.setCenter(results[0].geometry.location);
+                            marker.setPosition(results[0].geometry.location);
+                            latInput.value = results[0].geometry.location.lat().toFixed(6);
+                            lngInput.value = results[0].geometry.location.lng().toFixed(6);
+                        }
+                    });
+                }
+            }
+            document.addEventListener('DOMContentLoaded', initGoogleMap);
+        </script>
+    </th:block>
+</body>
+</html>
