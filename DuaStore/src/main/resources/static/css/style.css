@@ -1910,6 +1910,20 @@ a {
     color: #22c55e;
 }
 
+.ds-card-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 4px 10px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ds-primary, #2563eb);
+    letter-spacing: -.02em;
+    min-height: 46px;
+    margin-top: auto;
+}
+
 /* ── Out of Stock ── */
 .ds-product-card.oos {
     opacity: 1;
@@ -1922,6 +1936,9 @@ a {
     cursor: not-allowed;
     opacity: .5;
     pointer-events: none;
+}
+.ds-product-card.oos .ds-card-price {
+    display: none;
 }
 
 /* ── Hover preview (soft blue theme) ── */
