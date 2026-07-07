@@ -78,21 +78,45 @@
                         </div>
                     </div>
 
-                    <div th:if="${totalPages > 1}" class="mt-3">
-                        <nav>
-                            <ul class="pagination pagination-sm justify-content-center mb-0">
-                                <li class="page-item" th:classappend="${currentPage == 0} ? disabled">
-                                    <a class="page-link" th:href="@{/tai-khoan/don-hang(page=${currentPage - 1}, trangThai=${trangThai})}">&laquo;</a>
-                                </li>
-                                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                                    th:classappend="${i == currentPage} ? active">
-                                    <a class="page-link" th:href="@{/tai-khoan/don-hang(page=${i}, trangThai=${trangThai})}" th:text="${i + 1}"></a>
-                                </li>
-                                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? disabled">
-                                    <a class="page-link" th:href="@{/tai-khoan/don-hang(page=${currentPage + 1}, trangThai=${trangThai})}">&raquo;</a>
-                                </li>
-                            </ul>
-                        </nav>
+                    <div class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <small class="text-muted fw-medium" style="font-size:.85rem;">
+                                Hiển thị <strong th:text="${totalElements == 0 ? 0 : currentPage * size + 1}">1</strong>-<strong th:text="${(currentPage + 1) * size > totalElements ? totalElements : (currentPage + 1) * size}">5</strong> trong tổng số <strong th:text="${totalElements}">12</strong> <span>đơn hàng</span>
+                            </small>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <form th:action="@{/tai-khoan/don-hang}" method="get" class="d-inline">
+                                <input type="hidden" name="trangThai" th:value="${trangThai}" />
+                                <input type="hidden" name="page" value="0" />
+                                <select name="size" onchange="this.form.submit()" style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
+                                    <option value="5" th:selected="${size == 5}">Hiển thị 5</option>
+                                    <option value="10" th:selected="${size == 10}">Hiển thị 10</option>
+                                    <option value="20" th:selected="${size == 20}">Hiển thị 20</option>
+                                    <option value="50" th:selected="${size == 50}">Hiển thị 50</option>
+                                </select>
+                            </form>
+                            <nav>
+                                <div class="d-flex align-items-center gap-1">
+                                    <a th:href="@{/tai-khoan/don-hang(page=${currentPage - 1}, trangThai=${trangThai}, size=${size})}"
+                                       class="adm-pagination-nav-btn"
+                                       th:classappend="${currentPage == 0} ? disabled"
+                                       th:tabindex="${currentPage == 0} ? -1">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                    </a>
+                                    <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                       th:href="@{/tai-khoan/don-hang(page=${i}, trangThai=${trangThai}, size=${size})}"
+                                       class="adm-pagination-btn"
+                                       th:classappend="${i == currentPage} ? active"
+                                       th:text="${i + 1}">1</a>
+                                    <a th:href="@{/tai-khoan/don-hang(page=${currentPage + 1}, trangThai=${trangThai}, size=${size})}"
+                                       class="adm-pagination-nav-btn"
+                                       th:classappend="${currentPage >= totalPages - 1} ? disabled"
+                                       th:tabindex="${currentPage >= totalPages - 1} ? -1">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                    </a>
+                                </div>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>

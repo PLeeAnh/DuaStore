@@ -67,6 +67,14 @@ function initLocationCombo(comboId, opts) {
         setTimeout(function () {
             search.focus();
         }, 0);
+        // position fixed panel below toggle
+        var panel = combo.querySelector('.ds-combo-panel');
+        if (panel) {
+            var rect = toggle.getBoundingClientRect();
+            panel.style.left = rect.left + 'px';
+            panel.style.top = (rect.bottom + 4) + 'px';
+            panel.style.width = rect.width + 'px';
+        }
     });
 
     search.addEventListener('input', function () {

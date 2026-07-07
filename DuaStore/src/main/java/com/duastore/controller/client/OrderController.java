@@ -42,20 +42,23 @@ public class OrderController {
 
     @GetMapping
     public String listOrders(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String trangThai,
             Model model) {
         Integer userId = getUserId();
 
         Page<Order> orderPage;
         if (trangThai != null && !trangThai.isBlank()) {
-            orderPage = orderService.getOrdersByUserIdAndStatus(userId, trangThai, page, 10);
+            orderPage = orderService.getOrdersByUserIdAndStatus(userId, trangThai, page, size);
         } else {
-            orderPage = orderService.getOrdersByUserId(userId, page, 10);
+            orderPage = orderService.getOrdersByUserId(userId, page, size);
         }
 
         model.addAttribute("orders", orderPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", orderPage.getTotalPages());
+        model.addAttribute("totalElements", orderPage.getTotalElements());
+        model.addAttribute("size", size);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("title", "Lịch sử đơn hàng");
         return "view/client/order/order-history";

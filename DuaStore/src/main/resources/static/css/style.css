@@ -1,6 +1,6 @@
 /* =====================================================
    GLOBAL: prevent dropdown clipping
-===================================================== */
+   ===================================================== */
 .dropdown-menu,
 .ds-combo-panel {
     position: fixed !important;
@@ -1847,7 +1847,7 @@ a {
     justify-content: center;
     padding: 0 10px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     background: #363636;
     color: #fff;
     font-size: .85rem;
@@ -1856,7 +1856,7 @@ a {
     transition: all 0.3s ease-in-out;
     line-height: 1.3;
     margin-top: auto;
-    height: 28px;
+    min-height: 46px;
 }
 .ds-price-btn:hover {
     background: var(--ds-primary) !important;
@@ -6164,4 +6164,25 @@ body.ds-checkout-page #main-content {
 }
 .ds-footer-glass .ds-footer-bottom {
     color: rgba(71, 85, 105, 0.7);
+}
+
+/* Pagination */
+.adm-pagination-btn,
+.adm-pagination-nav-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 32px; height: 32px; padding: 0 8px;
+    border-radius: 8px; border: 1px solid #e5e7eb;
+    background: #fff; color: #374151;
+    font-size: .85rem; font-weight: 500;
+    text-decoration: none; transition: all .15s;
+}
+.adm-pagination-btn:hover,
+.adm-pagination-nav-btn:hover {
+    background: #f3f4f6; color: #374151;
+}
+.adm-pagination-btn.active {
+    background: #2563eb; color: #fff; border-color: #2563eb;
+}
+.adm-pagination-nav-btn.disabled {
+    opacity: .35; pointer-events: none;
 }

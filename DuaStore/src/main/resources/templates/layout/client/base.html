@@ -482,14 +482,16 @@
                     </div>
                     <!-- Right: Tabs -->
                     <div class="col-8 d-flex flex-column" style="max-height:440px;">
-                        <ul class="nav nav-tabs border-bottom" style="padding:0 16px;flex-shrink:0;">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="epTabActivity" href="javascript:;" onclick="switchEpTab('activity', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Hoạt động</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="epTabWishlist" href="javascript:;" onclick="switchEpTab('wishlist', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Yêu thích</a>
-                            </li>
-                        </ul>
+                        <div class="sticky-tabs">
+                            <ul class="nav" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link active" id="epTabActivity" href="javascript:;" onclick="switchEpTab('activity', this)">Hoạt động</a>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="epTabWishlist" href="javascript:;" onclick="switchEpTab('wishlist', this)">Yêu thích</a>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="p-3 flex-grow-1" style="overflow-y:auto;">
                             <!-- Tab: Hoạt động -->
                             <div id="epActivityContent">
