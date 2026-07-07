@@ -19,6 +19,7 @@ import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.OrderService;
+import com.duastore.service.client.VoucherWalletService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.util.PriceUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,6 +53,7 @@ public class CheckoutController {
     private final OrderStatusLogService orderStatusLogService;
     private final NotificationHelper notificationHelper;
     private final VNPAYService vnpayService;
+    private final VoucherWalletService voucherWalletService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
             AddressRepository addressRepository,
@@ -62,7 +64,8 @@ public class CheckoutController {
             PaymentService paymentService,
             OrderStatusLogService orderStatusLogService,
             NotificationHelper notificationHelper,
-            VNPAYService vnpayService) {
+            VNPAYService vnpayService,
+            VoucherWalletService voucherWalletService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -74,6 +77,7 @@ public class CheckoutController {
         this.orderStatusLogService = orderStatusLogService;
         this.notificationHelper = notificationHelper;
         this.vnpayService = vnpayService;
+        this.voucherWalletService = voucherWalletService;
     }
 
     private Integer getUserId() {
@@ -136,7 +140,7 @@ public class CheckoutController {
         model.addAttribute("storeLng", shippingFeeService.getStoreLng());
         model.addAttribute("checkoutRequest", checkoutRequest);
         model.addAttribute("title", "Thanh toán");
-        model.addAttribute("availablePromos", activePromotions);
+        model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
         return "view/client/checkout";
     }
 
