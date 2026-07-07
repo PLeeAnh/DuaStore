@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Thông tin cửa hàng</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Cửa hàng</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Thông tin cửa hàng</h4>
+                        <div class="adm-detail-meta">Cấu hình thông tin và vị trí cửa hàng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+            <form th:action="@{/admin/cua-hang}" method="post" data-dirty-bar class="row g-3">
+                <div class="col-12">
+                    <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-info-circle me-1"></i>Thông tin cơ bản</h6>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Tên cửa hàng</label>
+                    <input type="text" name="store_name" class="form-control"
+                           th:value="${settings.get('store_name')}" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="text" name="store_phone" class="form-control"
+                           th:value="${settings.get('store_phone')}" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="store_email" class="form-control"
+                           th:value="${settings.get('store_email')}" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Giờ mở cửa</label>
+                    <input type="text" name="store_hours" class="form-control"
+                           th:value="${settings.get('store_hours')}" placeholder="VD: 8:00 - 21:00" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Địa chỉ <small class="text-muted">(Gõ địa chỉ để tìm kiếm)</small></label>
+                    <input type="text" id="storeAddress" name="store_address" class="form-control"
+                           th:value="${settings.get('store_address')}"
+                           placeholder="Nhập địa chỉ cửa hàng..." autocomplete="off" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Vĩ độ (Latitude)</label>
+                    <input type="text" id="storeLatitude" name="store_latitude" class="form-control"
+                           th:value="${settings.get('store_latitude')}" readonly />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Kinh độ (Longitude)</label>
+                    <input type="text" id="storeLongitude" name="store_longitude" class="form-control"
+                           th:value="${settings.get('store_longitude')}" readonly />
+                </div>
+                <div class="col-12">
+                    <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-geo-alt me-1"></i>Vị trí trên bản đồ</h6>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Bản đồ</label>
+                    <div id="map" style="width:100%;height:350px;border-radius:8px;border:1px solid var(--ef-border);background:#e9ecef"></div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+    <script th:inline="javascript">
+        var lat = [[${settings.get('store_latitude')}]];
+        var lng = [[${settings.get('store_longitude')}]];
+        var address = [[${settings.get('store_address')}]];
+        var map, marker;
+
+        function showMapFallback() {
+            var mapEl = document.getElementById('map');
+            if (mapEl) {
+                mapEl.innerHTML = '<div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted"><i class="bi bi-map" style="font-size:2rem;"></i><p class="mt-2 mb-0">Bản đồ không khả dụng</p><small>Vui lòng kiểm tra API key Google Maps</small></div>';
+            }
+        }
+
+        window.initMap = function() {
+            try {
+                var pos = { lat: parseFloat(lat) || 21.0285, lng: parseFloat(lng) || 105.8542 };
+
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: pos,
+                    zoom: 15,
+                    mapTypeControl: true,
+                    streetViewControl: false
+                });
+
+                if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+                    marker = new google.maps.marker.AdvancedMarkerElement({
+                        position: pos,
+                        map: map,
+                        draggable: true,
+                        title: 'Vị trí cửa hàng'
+                    });
+                    marker.addListener('dragend', function() {
+                        var p = marker.position;
+                        document.getElementById('storeLatitude').value = p.lat.toFixed(6);
+                        document.getElementById('storeLongitude').value = p.lng.toFixed(6);
+                        reverseGeocode(p.lat, p.lng);
+                    });
+                } else {
+                    marker = new google.maps.Marker({
+                        position: pos,
+                        map: map,
+                        draggable: true,
+                        title: 'Vị trí cửa hàng'
+                    });
+                    marker.addListener('dragend', function() {
+                        var p = marker.getPosition();
+                        document.getElementById('storeLatitude').value = p.lat().toFixed(6);
+                        document.getElementById('storeLongitude').value = p.lng().toFixed(6);
+                        reverseGeocode(p.lat(), p.lng());
+                    });
+                }
+
+                var input = document.getElementById('storeAddress');
+                if (google.maps.places && google.maps.places.PlaceAutocompleteElement) {
+                    var autocomplete = new google.maps.places.PlaceAutocompleteElement({
+                        inputElement: input,
+                        componentRestrictions: { country: 'vn' }
+                    });
+                    autocomplete.addEventListener('gmp-placeselect', function(e) {
+                        var place = e.place;
+                        if (!place || !place.location) return;
+                        var loc = place.location;
+                        map.setCenter(loc);
+                        if (marker.position !== undefined) {
+                            marker.position = loc;
+                        } else {
+                            marker.setPosition(loc);
+                        }
+                        var lat = typeof loc.lat === 'function' ? loc.lat() : loc.lat;
+                        var lng = typeof loc.lng === 'function' ? loc.lng() : loc.lng;
+                        document.getElementById('storeLatitude').value = lat.toFixed(6);
+                        document.getElementById('storeLongitude').value = lng.toFixed(6);
+                        document.getElementById('storeAddress').value = place.formattedAddress || input.value;
+                    });
+                } else {
+                    var autocomplete = new google.maps.places.Autocomplete(input, {
+                        componentRestrictions: { country: 'vn' },
+                        fields: ['geometry', 'formatted_address', 'name']
+                    });
+                    autocomplete.addListener('place_changed', function() {
+                        var place = autocomplete.getPlace();
+                        if (!place.geometry) return;
+                        var loc = place.geometry.location;
+                        map.setCenter(loc);
+                        if (marker.setPosition) {
+                            marker.setPosition(loc);
+                        } else {
+                            marker.position = loc;
+                        }
+                        document.getElementById('storeLatitude').value = loc.lat().toFixed(6);
+                        document.getElementById('storeLongitude').value = loc.lng().toFixed(6);
+                        document.getElementById('storeAddress').value = place.formatted_address || input.value;
+                    });
+                }
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') e.preventDefault();
+                });
+
+                if (map && address) {
+                    reverseGeocode(pos.lat, pos.lng);
+                }
+            } catch (err) {
+                console.error('Google Maps init error:', err);
+                showMapFallback();
+            }
+        };
+
+        window.gm_authFailure = function() {
+            showMapFallback();
+        };
+
+        function reverseGeocode(lat, lng) {
+            var geocoder = new google.maps.Geocoder();
+            geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    document.getElementById('storeAddress').value = results[0].formatted_address;
+                }
+            });
+        }
+    </script>
+    <script
+        th:src="@{https://maps.googleapis.com/maps/api/js(key=${googleMapsApiKey}, libraries='places,marker', callback='initMap', region='VN', language='vi', loading='async')}">
+    </script>
+    </th:block>
+    </body>
+</html>
