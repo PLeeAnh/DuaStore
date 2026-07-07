@@ -5,6 +5,7 @@
       layout:decorate="~{layout/client/base}">
     <head>
         <title>Thanh toán — DuaStore</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     </head>
     <body>
         <div layout:fragment="content">
@@ -458,7 +459,7 @@
                 </div>
 
                 <th:block layout:fragment="extra-script">
-                    <script src="https://maps.googleapis.com/maps/api/js?key=[[${googleMapsApiKey}]]&libraries=places&language=vi"></script>
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
                     <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
                     <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
                     <script>

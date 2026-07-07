@@ -138,7 +138,8 @@
     </div>
 
     <th:block layout:fragment="extra-script">
-        <script src="https://maps.googleapis.com/maps/api/js?key=[[${googleMapsApiKey}]]&libraries=places&language=vi"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 var bhInput = document.getElementById('businessHoursInput');
@@ -478,9 +479,11 @@
                     });
                     this.value = '';
                 });
+
+                initLeafletMap();
             });
 
-            function initGoogleMap() {
+            function initLeafletMap() {
                 var latInput = document.getElementById('storeLatitude');
                 var lngInput = document.getElementById('storeLongitude');
                 var addrInput = document.getElementById('storeAddress');
@@ -488,56 +491,72 @@
                 var lng = parseFloat(lngInput?.value) || 106.6756;
                 var mapEl = document.getElementById('map');
 
-                var pos = { lat: lat, lng: lng };
-                var map = new google.maps.Map(mapEl, { center: pos, zoom: 15, mapTypeControl: false, streetViewControl: false });
-                var marker = new google.maps.Marker({ position: pos, map: map, draggable: true });
+                var map = L.map(mapEl, { center: [lat, lng], zoom: 15, zoomControl: true });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+                var marker = L.marker([lat, lng], { draggable: true }).addTo(map);
 
-                var geocoder = new google.maps.Geocoder();
-
-                function reverseGeocode(latLng) {
-                    geocoder.geocode({ location: latLng }, function(results, status) {
-                        if (status === 'OK' && results[0]) {
-                            addrInput.value = results[0].formatted_address;
-                        }
-                    });
+                function reverseGeocode(latlng) {
+                    var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latlng.lat + '&lon=' + latlng.lng + '&addressdetails=1&accept-language=vi';
+                    fetch(url, { headers: { 'User-Agent': 'DuaStore/1.0' } })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data && data.display_name) {
+                                addrInput.value = data.display_name;
+                            }
+                        });
                 }
 
-                marker.addListener('dragend', function() {
-                    var p = marker.getPosition();
-                    latInput.value = p.lat().toFixed(6);
-                    lngInput.value = p.lng().toFixed(6);
+                marker.on('dragend', function() {
+                    var p = marker.getLatLng();
+                    latInput.value = p.lat.toFixed(6);
+                    lngInput.value = p.lng.toFixed(6);
                     reverseGeocode(p);
                 });
-                map.addListener('click', function(e) {
-                    marker.setPosition(e.latLng);
-                    latInput.value = e.latLng.lat().toFixed(6);
-                    lngInput.value = e.latLng.lng().toFixed(6);
-                    reverseGeocode(e.latLng);
+                map.on('click', function(e) {
+                    marker.setLatLng(e.latlng);
+                    latInput.value = e.latlng.lat.toFixed(6);
+                    lngInput.value = e.latlng.lng.toFixed(6);
+                    reverseGeocode(e.latlng);
                 });
 
-                var autocomplete = new google.maps.places.Autocomplete(addrInput, { componentRestrictions: { country: 'VN' } });
-                autocomplete.addListener('place_changed', function() {
-                    var place = autocomplete.getPlace();
-                    if (!place.geometry) return;
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(15);
-                    marker.setPosition(place.geometry.location);
-                    latInput.value = place.geometry.location.lat().toFixed(6);
-                    lngInput.value = place.geometry.location.lng().toFixed(6);
+                var searchTimeout;
+                addrInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    var q = this.value.trim();
+                    if (q.length < 3) return;
+                    searchTimeout = setTimeout(function() {
+                        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q + ', Việt Nam') + '&limit=5&accept-language=vi', { headers: { 'User-Agent': 'DuaStore/1.0' } })
+                            .then(function(r) { return r.json(); })
+                            .then(function(results) {
+                                if (results && results.length) {
+                                    var r = results[0];
+                                    var lat = parseFloat(r.lat);
+                                    var lng = parseFloat(r.lon);
+                                    map.setView([lat, lng], 15);
+                                    marker.setLatLng([lat, lng]);
+                                    latInput.value = lat.toFixed(6);
+                                    lngInput.value = lng.toFixed(6);
+                                }
+                            });
+                    }, 500);
                 });
 
                 if (addrInput.value) {
-                    geocoder.geocode({ address: addrInput.value + ', Việt Nam' }, function(results, status) {
-                        if (status === 'OK' && results[0]) {
-                            map.setCenter(results[0].geometry.location);
-                            marker.setPosition(results[0].geometry.location);
-                            latInput.value = results[0].geometry.location.lat().toFixed(6);
-                            lngInput.value = results[0].geometry.location.lng().toFixed(6);
-                        }
-                    });
+                    fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(addrInput.value + ', Việt Nam') + '&limit=1&accept-language=vi', { headers: { 'User-Agent': 'DuaStore/1.0' } })
+                        .then(function(r) { return r.json(); })
+                        .then(function(results) {
+                            if (results && results.length) {
+                                var r = results[0];
+                                var lat = parseFloat(r.lat);
+                                var lng = parseFloat(r.lon);
+                                map.setView([lat, lng], 15);
+                                marker.setLatLng([lat, lng]);
+                                latInput.value = lat.toFixed(6);
+                                lngInput.value = lng.toFixed(6);
+                            }
+                        });
                 }
             }
-            document.addEventListener('DOMContentLoaded', initGoogleMap);
         </script>
     </th:block>
 </body>

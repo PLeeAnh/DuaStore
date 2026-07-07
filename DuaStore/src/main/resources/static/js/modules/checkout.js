@@ -189,44 +189,43 @@ function modalSetFromNominatim(tinhThanh, quanHuyen, phuongXa, diaChi) {
     });
 }
 
-function initCheckoutGoogleMap() {
+function initCheckoutMap() {
     if (window.checkoutMap) return;
     var mapEl = document.getElementById('checkoutGoogleMap');
     if (!mapEl) return;
     var lat = window.storeLat || 20.8565;
     var lng = window.storeLng || 106.6756;
-    var pos = { lat: lat, lng: lng };
-    window.checkoutMap = new google.maps.Map(mapEl, { center: pos, zoom: 13, mapTypeControl: false, streetViewControl: false });
-    window.checkoutMarker = new google.maps.Marker({ position: pos, map: window.checkoutMap, draggable: true });
-    window.checkoutMarker.addListener('dragend', function () {
-        var p = window.checkoutMarker.getPosition();
-        document.getElementById('modalLatitude').value = p.lat().toFixed(6);
-        document.getElementById('modalLongitude').value = p.lng().toFixed(6);
+    window.checkoutMap = L.map(mapEl, { center: [lat, lng], zoom: 13, zoomControl: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(window.checkoutMap);
+    window.checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(window.checkoutMap);
+    window.checkoutMarker.on('dragend', function () {
+        var p = window.checkoutMarker.getLatLng();
+        document.getElementById('modalLatitude').value = p.lat.toFixed(6);
+        document.getElementById('modalLongitude').value = p.lng.toFixed(6);
     });
-    window.checkoutMap.addListener('click', function (e) {
-        window.checkoutMarker.setPosition(e.latLng);
-        document.getElementById('modalLatitude').value = e.latLng.lat().toFixed(6);
-        document.getElementById('modalLongitude').value = e.latLng.lng().toFixed(6);
+    window.checkoutMap.on('click', function (e) {
+        window.checkoutMarker.setLatLng(e.latlng);
+        document.getElementById('modalLatitude').value = e.latlng.lat.toFixed(6);
+        document.getElementById('modalLongitude').value = e.latlng.lng.toFixed(6);
     });
-    setTimeout(function () { google.maps.event.trigger(window.checkoutMap, 'resize'); }, 200);
+    setTimeout(function () { window.checkoutMap.invalidateSize(); }, 200);
 }
 
 function reverseGeocodeForModal(lat, lng) {
-    var geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: { lat: lat, lng: lng } }, function (results, status) {
-        if (status !== 'OK' || !results[0]) return;
-        var comps = results[0].address_components;
-        var city = '', district = '', ward = '', street = '';
-        comps.forEach(function (c) {
-            if (c.types.includes('administrative_area_level_1')) city = c.long_name;
-            if (c.types.includes('administrative_area_level_2')) district = c.long_name;
-            if (c.types.includes('sublocality_level_1') || c.types.includes('sublocality')) ward = c.long_name;
-            if (c.types.includes('route')) street = c.long_name;
+    var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1&accept-language=vi';
+    fetch(url, { headers: { 'User-Agent': 'DuaStore/1.0' } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data || data.error) return;
+            var comps = data.address || {};
+            var city = comps.city || comps.town || comps.county || comps.state_district || '';
+            var district = comps.district || '';
+            var ward = comps.suburb || comps.neighbourhood || comps.village || '';
+            var street = comps.road || comps.path || '';
+            document.getElementById('modalDiaChiCuTheText').value = street;
+            modalSetFromNominatim(city, district, ward, street);
+            document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + (data.display_name || '');
         });
-        document.getElementById('modalDiaChiCuTheText').value = street;
-        modalSetFromNominatim(city, district, ward, street);
-        document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + results[0].formatted_address;
-    });
 }
 
 function openAddressModal() {
@@ -247,7 +246,7 @@ function showAddressForm() {
     document.getElementById('modalSoDienThoai').value = '';
     document.getElementById('modalDiaChiCuThe').value = '';
     document.getElementById('modalDiaChiCuTheText').value = '';
-    initCheckoutGoogleMap();
+    initCheckoutMap();
     resetCombo('modalTinhThanhCombo');
     resetCombo('modalQuanHuyenCombo');
     resetCombo('modalPhuongXaCombo');
@@ -258,10 +257,10 @@ function showAddressForm() {
     document.getElementById('modalIsDefault').checked = false;
     document.getElementById('modalMapStatus').textContent = '';
     if (window.checkoutMap) {
-        var pos = { lat: window.storeLat || 20.8565, lng: window.storeLng || 106.6756 };
-        checkoutMap.setCenter(pos);
-        checkoutMap.setZoom(13);
-        if (window.checkoutMarker) checkoutMarker.setPosition(pos);
+        var lat = window.storeLat || 20.8565;
+        var lng = window.storeLng || 106.6756;
+        checkoutMap.setView([lat, lng], 13);
+        if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
     }
     loadModalProvinces();
 }
@@ -281,7 +280,7 @@ function editAddress(id) {
     document.getElementById('addressModalTitle').textContent = 'Sửa địa chỉ';
     var addBtn = document.getElementById('addressAddBtn');
     if (addBtn) addBtn.style.display = 'none';
-    initCheckoutGoogleMap();
+    initCheckoutMap();
     resetCombo('modalTinhThanhCombo');
     resetCombo('modalQuanHuyenCombo');
     resetCombo('modalPhuongXaCombo');
@@ -332,29 +331,28 @@ function modalSearchMap() {
     var q = document.getElementById('modalDiaChiCuThe').value.trim();
     if (!q) return;
     document.getElementById('modalMapStatus').textContent = 'Đang tra cứu...';
-    var geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ address: q + ', Việt Nam' }, function (results, status) {
-        if (status === 'OK' && results[0]) {
-            var loc = results[0].geometry.location;
-            var lat = loc.lat(), lng = loc.lng();
-            document.getElementById('modalLatitude').value = lat;
-            document.getElementById('modalLongitude').value = lng;
-            if (window.checkoutMap) { checkoutMap.setCenter(loc); checkoutMap.setZoom(16); }
-            if (window.checkoutMarker) checkoutMarker.setPosition(loc);
-            var comps = results[0].address_components;
-            var city = '', district = '', ward = '', street = '';
-            comps.forEach(function (c) {
-                if (c.types.includes('administrative_area_level_1')) city = c.long_name;
-                if (c.types.includes('administrative_area_level_2')) district = c.long_name;
-                if (c.types.includes('sublocality_level_1') || c.types.includes('sublocality')) ward = c.long_name;
-                if (c.types.includes('route')) street = c.long_name;
-            });
-            modalSetFromNominatim(city, district, ward, street);
-            document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + results[0].formatted_address;
-        } else {
-            document.getElementById('modalMapStatus').textContent = 'Không tìm thấy địa chỉ';
-        }
-    });
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q + ', Việt Nam') + '&limit=5&addressdetails=1&accept-language=vi';
+    fetch(url, { headers: { 'User-Agent': 'DuaStore/1.0' } })
+        .then(function (r) { return r.json(); })
+        .then(function (results) {
+            if (results && results.length) {
+                var r = results[0];
+                var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+                document.getElementById('modalLatitude').value = lat;
+                document.getElementById('modalLongitude').value = lng;
+                if (window.checkoutMap) { checkoutMap.setView([lat, lng], 16); }
+                if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+                var comps = r.address || {};
+                var city = comps.city || comps.town || comps.county || comps.state_district || '';
+                var district = comps.district || '';
+                var ward = comps.suburb || comps.neighbourhood || comps.village || '';
+                var street = comps.road || comps.path || '';
+                modalSetFromNominatim(city, district, ward, street);
+                document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + (r.display_name || '');
+            } else {
+                document.getElementById('modalMapStatus').textContent = 'Không tìm thấy địa chỉ';
+            }
+        });
 }
 
 function modalGetMyLocation() {
@@ -368,9 +366,8 @@ function modalGetMyLocation() {
         var lng = pos.coords.longitude;
         document.getElementById('modalLatitude').value = lat;
         document.getElementById('modalLongitude').value = lng;
-        var loc = new google.maps.LatLng(lat, lng);
-        if (window.checkoutMap) { checkoutMap.setCenter(loc); checkoutMap.setZoom(16); }
-        if (window.checkoutMarker) checkoutMarker.setPosition(loc);
+        if (window.checkoutMap) { checkoutMap.setView([lat, lng], 16); }
+        if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
         reverseGeocodeForModal(lat, lng);
     }, function () {
         document.getElementById('modalMapStatus').textContent = 'Không thể lấy vị trí. Kiểm tra quyền GPS.';
@@ -383,10 +380,10 @@ function modalClearMap() {
     document.getElementById('modalLongitude').value = '';
     document.getElementById('modalMapStatus').textContent = '';
     if (window.checkoutMap) {
-        var pos = { lat: window.storeLat || 20.8565, lng: window.storeLng || 106.6756 };
-        checkoutMap.setCenter(pos);
-        checkoutMap.setZoom(13);
-        if (window.checkoutMarker) checkoutMarker.setPosition(pos);
+        var lat = window.storeLat || 20.8565;
+        var lng = window.storeLng || 106.6756;
+        checkoutMap.setView([lat, lng], 13);
+        if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
     }
 }
 
@@ -536,22 +533,48 @@ document.addEventListener('DOMContentLoaded', function () {
     // already call location.reload() themselves when something actually changed, so
     // no blanket reload is needed here anymore.
 
-    /* ── Google Places Autocomplete ── */
+    /* ── Nominatim Autocomplete ── */
     var modalAddrInput = document.getElementById('modalDiaChiCuThe');
-    if (modalAddrInput && typeof google !== 'undefined' && google.maps.places) {
-        var ac = new google.maps.places.Autocomplete(modalAddrInput, {
-            componentRestrictions: { country: 'VN' },
-            fields: ['geometry', 'formatted_address', 'address_components']
-        });
-        ac.addListener('place_changed', function () {
-            var place = ac.getPlace();
-            if (!place.geometry) return;
-            var lat = place.geometry.location.lat(), lng = place.geometry.location.lng();
-            document.getElementById('modalLatitude').value = lat;
-            document.getElementById('modalLongitude').value = lng;
-            if (window.checkoutMap) { checkoutMap.setCenter(place.geometry.location); checkoutMap.setZoom(16); }
-            if (window.checkoutMarker) checkoutMarker.setPosition(place.geometry.location);
-            reverseGeocodeForModal(lat, lng);
+    if (modalAddrInput) {
+        var suggestionBox = document.getElementById('modalSuggestionBox');
+        var searchTimeout;
+        modalAddrInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            var q = this.value.trim();
+            if (q.length < 3) { if (suggestionBox) suggestionBox.style.display = 'none'; return; }
+            searchTimeout = setTimeout(function () {
+                fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q + ', Việt Nam') + '&limit=5&addressdetails=1&accept-language=vi', { headers: { 'User-Agent': 'DuaStore/1.0' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (results) {
+                        if (!suggestionBox) return;
+                        suggestionBox.innerHTML = '';
+                        if (!results || !results.length) { suggestionBox.style.display = 'none'; return; }
+                        results.forEach(function (r) {
+                            var a = document.createElement('button');
+                            a.type = 'button';
+                            a.className = 'list-group-item list-group-item-action';
+                            a.textContent = r.display_name;
+                            a.addEventListener('click', function () {
+                                modalAddrInput.value = r.display_name;
+                                suggestionBox.style.display = 'none';
+                                var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+                                document.getElementById('modalLatitude').value = lat;
+                                document.getElementById('modalLongitude').value = lng;
+                                if (window.checkoutMap) { checkoutMap.setView([lat, lng], 16); }
+                                if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+                                var comps = r.address || {};
+                                var city = comps.city || comps.town || comps.county || comps.state_district || '';
+                                var district = comps.district || '';
+                                var ward = comps.suburb || comps.neighbourhood || comps.village || '';
+                                var street = comps.road || comps.path || '';
+                                modalSetFromNominatim(city, district, ward, street);
+                                document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + r.display_name;
+                            });
+                            suggestionBox.appendChild(a);
+                        });
+                        suggestionBox.style.display = '';
+                    });
+            }, 400);
         });
     }
 
@@ -734,7 +757,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var addrModal = document.getElementById('addressModal');
     if (addrModal) {
         addrModal.addEventListener('shown.bs.modal', function () {
-            if (window.checkoutMap) setTimeout(function() { google.maps.event.trigger(window.checkoutMap, 'resize'); }, 150);
+            if (window.checkoutMap) setTimeout(function() { window.checkoutMap.invalidateSize(); }, 150);
         });
     }
 
