@@ -37,7 +37,6 @@ public class AdminStoreController {
     public String edit(Model model) {
         model.addAttribute("settings", siteSettingService.getGroup(GROUP));
         model.addAttribute("title", "cua-hang");
-        model.addAttribute("googleMapsApiKey", googleMapsApiKey);
         return "view/admin/store/form";
     }
 

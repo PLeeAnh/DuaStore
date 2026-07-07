@@ -482,14 +482,16 @@
                     </div>
                     <!-- Right: Tabs -->
                     <div class="col-8 d-flex flex-column" style="max-height:440px;">
-                        <ul class="nav nav-tabs border-bottom" style="padding:0 16px;flex-shrink:0;">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="epTabActivity" href="javascript:;" onclick="switchEpTab('activity', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Hoạt động</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="epTabWishlist" href="javascript:;" onclick="switchEpTab('wishlist', this)" style="font-size:.82rem;padding:10px 16px;border:none;color:#666;border-bottom:2px solid transparent;">Yêu thích</a>
-                            </li>
-                        </ul>
+                        <div class="sticky-tabs">
+                            <ul class="nav" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link active" id="epTabActivity" href="javascript:;" onclick="switchEpTab('activity', this)">Hoạt động</a>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="epTabWishlist" href="javascript:;" onclick="switchEpTab('wishlist', this)">Yêu thích</a>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="p-3 flex-grow-1" style="overflow-y:auto;">
                             <!-- Tab: Hoạt động -->
                             <div id="epActivityContent">
@@ -879,7 +881,7 @@
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
 
-<script defer th:src="@{/js/base-ui.js}"></script>
+<script th:src="@{/js/base-ui.js}"></script>
 <div id="dsToast"
      class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
      style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
