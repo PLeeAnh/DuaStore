@@ -1,4 +1,13 @@
 /* =====================================================
+   GLOBAL: prevent dropdown clipping
+===================================================== */
+.dropdown-menu,
+.ds-combo-panel {
+    position: fixed !important;
+    z-index: 9999 !important;
+}
+
+/* =====================================================
    01. VARIABLES
 ===================================================== */
 :root {
@@ -4120,6 +4129,11 @@ a {
     border-color: var(--ds-primary, #16a34a);
     background: rgba(22,163,74,.04);
 }
+#addressModalList .ds-address-card.is-selected {
+    border-color: var(--ds-gray-900, #0f172a);
+    border-width: 2px;
+    background: rgba(15,23,42,.04);
+}
 #addressModalList .ds-address-card-icon {
     width: 34px;
     height: 34px;
@@ -4134,6 +4148,21 @@ a {
 #addressModalList .ds-address-card-body {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+}
+#addressModalList .ds-address-card-info {
+    flex: 1;
+    min-width: 0;
+}
+#addressModalList .ds-address-card-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-top: 0;
 }
 #addressModalList .ds-address-card-top {
     display: flex;
@@ -4155,12 +4184,6 @@ a {
     color: var(--ds-gray-500);
     line-height: 1.4;
 }
-#addressModalList .ds-address-card-actions {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-}
-
 .ds-combo {
     position: relative;
 }

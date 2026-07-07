@@ -5,7 +5,6 @@
       layout:decorate="~{layout/client/base}">
     <head>
         <title>Thanh toán — DuaStore</title>
-
     </head>
     <body>
         <div layout:fragment="content">
@@ -253,6 +252,9 @@
                         <div class="modal-content border-0 shadow">
                             <div class="modal-header border-0 pb-0">
                                 <h5 class="fw-bold modal-title" id="addressModalTitle">Quản lý địa chỉ</h5>
+                                <button type="button" id="addressAddBtn" class="ds-btn ds-btn-fill ds-btn-sm ms-auto" onclick="showAddressForm()">
+                                    <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
+                                </button>
                             </div>
                             <div class="modal-body pt-3">
                                 <div id="addressModalList">
@@ -262,15 +264,17 @@
                                     </div>
                                     <div th:each="a : ${addresses}" class="ds-address-card" th:classappend="${a.isDefault} ? 'is-default'">
                                         <div class="ds-address-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
-                                        <div class="ds-address-card-body">
-                                            <div class="ds-address-card-top">
-                                                <strong th:text="${a.tenNguoiNhan}"></strong>
-                                                <span class="text-muted" th:text="${a.soDienThoai}"></span>
-                                                <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
+                                        <div class="ds-address-card-body" th:data-id="${a.id}">
+                                            <div class="ds-address-card-info">
+                                                <div class="ds-address-card-top">
+                                                    <strong th:text="${a.tenNguoiNhan}"></strong>
+                                                    <span class="text-muted" th:text="${a.soDienThoai}"></span>
+                                                    <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
+                                                </div>
+                                                <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
                                             </div>
-                                            <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
                                             <div class="dropdown ds-address-card-actions">
-                                                <button class="ds-kebab-btn" type="button" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                                <button class="ds-kebab-btn" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-label="Thao tác">
                                                     <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end ds-kebab-menu">
@@ -284,9 +288,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" class="ds-btn ds-btn-fill ds-btn-sm mt-2" onclick="showAddressForm()">
-                                        <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
-                                    </button>
                                 </div>
 
                                 <div id="addressModalForm" style="display:none;">
@@ -302,10 +303,7 @@
                                                  style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;border-radius:10px;"></div>
                                         </div>
                                         <div id="modalMapContainer" style="border-radius:8px;overflow:hidden;">
-                                            <iframe id="modalGoogleMapFrame"
-                                                    src="https://maps.google.com/maps?q=Hai+Phong,Vietnam&output=embed&z=13"
-                                                    width="100%" height="220" style="border:0;" allowfullscreen="" loading="lazy">
-                                            </iframe>
+                                            <div id="checkoutGoogleMap" style="width:100%;height:220px;border-radius:8px;"></div>
                                         </div>
                                         <div class="d-flex gap-2 mt-1">
                                             <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalGetMyLocation()">
@@ -411,44 +409,45 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body px-4 pt-3 pb-4">
-                                <div class="input-group mb-3">
-                                    <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" />
-                                    <button class="btn btn-primary" type="button" onclick="applyVoucherInput()">Áp dụng</button>
+                                <div class="d-flex gap-2 mb-3">
+                                    <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" style="border-radius:var(--ds-r);" />
+                                    <button class="ds-btn ds-btn-outline flex-shrink-0" type="button" onclick="applyVoucherInput()">Áp dụng</button>
                                 </div>
-                                <div th:if="${#lists.isEmpty(availablePromos)}" class="text-muted text-center py-4">Không có mã giảm giá nào khả dụng</div>
-                                <div th:each="p : ${availablePromos}" class="promo-item d-flex align-items-stretch mb-2"
-                                     th:data-code="${p.maCode}"
-                                     th:data-loai="${p.loaiGiam}"
-                                     th:data-giatri="${p.giaTriGiam}"
-                                     th:data-min="${p.donHangToiThieu}"
-                                     th:data-maxgiam="${p.giamToiDa}"
-                                     th:data-ten="${p.tenChuongTrinh}"
+                                <div th:if="${#lists.isEmpty(userVouchers)}" class="text-muted text-center py-4">Bạn chưa lưu mã giảm giá nào</div>
+                                <div th:each="uv : ${userVouchers}" class="promo-item d-flex align-items-stretch mb-2"
+                                     th:data-code="${uv.promotion.maCode}"
+                                     th:data-loai="${uv.promotion.loaiGiam}"
+                                     th:data-giatri="${uv.promotion.giaTriGiam}"
+                                     th:data-min="${uv.promotion.donHangToiThieu}"
+                                     th:data-maxgiam="${uv.promotion.giamToiDa}"
+                                     th:data-ten="${uv.promotion.tenChuongTrinh}"
                                      onclick="selectPromo(this)" style="cursor:pointer;">
                                     <div class="bg-danger rounded-start" style="width:5px;flex-shrink:0;"></div>
                                     <div class="border border-start-0 rounded-end p-3 w-100" style="border-color:#e5e7eb!important;">
                                         <div class="d-flex justify-content-between align-items-start mb-1">
                                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                                 <span class="text-danger fw-bold" style="font-size:1.05rem;"
-                                                      th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                                      th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                                                       th:if="${'PHAN_TRAM'.equals(uv.promotion.loaiGiam)}"
+                                                       th:text="${'-' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
                                                 <span class="text-danger fw-bold" style="font-size:1.05rem;"
-                                                      th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
-                                                      th:text="${'Giảm ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                                <span class="badge bg-light text-dark border font-monospace" style="font-size:.7rem;letter-spacing:.5px;" th:text="${p.maCode}"></span>
+                                                       th:if="${'SO_TIEN'.equals(uv.promotion.loaiGiam)}"
+                                                       th:text="${'Giảm ' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                                <span class="badge bg-light text-dark border font-monospace" style="font-size:.7rem;letter-spacing:.5px;" th:text="${uv.promotion.maCode}"></span>
                                                 <button class="btn btn-sm py-0 px-1 border-0" style="font-size:.6rem;color:#6b7280;" type="button"
-                                                        th:data-code="${p.maCode}" onclick="event.stopPropagation();copyCode(this)">Copy</button>
+                                                        th:data-code="${uv.promotion.maCode}" onclick="event.stopPropagation();copyCode(this)">Copy</button>
                                             </div>
                                             <span class="badge bg-danger rounded-pill" style="font-size:.55rem;font-weight:500;">Giảm giá</span>
+                                            <span th:if="${uv.remainingUses != null}" class="badge bg-secondary rounded-pill ms-1" style="font-size:.55rem;font-weight:500;">Còn ${uv.remainingUses} lượt</span>
                                         </div>
-                                        <div class="text-muted" style="font-size:.75rem;" th:text="${p.tenChuongTrinh}"></div>
+                                        <div class="text-muted" style="font-size:.75rem;" th:text="${uv.promotion.tenChuongTrinh}"></div>
                                         <div class="d-flex flex-wrap gap-x-3 gap-y-1 small text-muted mt-1" style="font-size:.7rem!important;">
-                                            <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
-                                                  th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                            <span th:if="${p.giamToiDa != null}"
-                                                  th:text="${'Giảm tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                            <span th:if="${p.denNgay != null}" class="ds-promo-timer"
-                                                  th:data-end="${#strings.concat(#temporals.format(p.denNgay, 'yyyy-MM-dd'), 'T', #temporals.format(p.denNgay, 'HH:mm:ss'))}">
-                                                HSD: <span class="promo-countdown" th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}"></span>
+                                            <span th:if="${uv.promotion.donHangToiThieu != null and uv.promotion.donHangToiThieu > 0}"
+                                                  th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(uv.promotion.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                            <span th:if="${uv.promotion.giamToiDa != null}"
+                                                  th:text="${'Giảm tối đa ' + #numbers.formatDecimal(uv.promotion.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                            <span th:if="${uv.promotion.denNgay != null}" class="ds-promo-timer"
+                                                  th:data-end="${#strings.concat(#temporals.format(uv.promotion.denNgay, 'yyyy-MM-dd'), 'T', #temporals.format(uv.promotion.denNgay, 'HH:mm:ss'))}">
+                                                HSD: <span class="promo-countdown" th:text="${#temporals.format(uv.promotion.denNgay, 'dd/MM/yyyy')}"></span>
                                             </span>
                                         </div>
                                     </div>
@@ -459,6 +458,7 @@
                 </div>
 
                 <th:block layout:fragment="extra-script">
+                    <script src="https://maps.googleapis.com/maps/api/js?key=[[${googleMapsApiKey}]]&libraries=places&language=vi"></script>
                     <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
                     <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
                     <script>
@@ -612,10 +612,8 @@
                         });
                     </script>
                     <script th:inline="javascript">
-                        var STORE_LAT = [[${storeLat}
-                        ]];
-                                var STORE_LNG = [[${storeLng}
-                                ]];
+                        window.storeLat = [[${storeLat}]];
+                        window.storeLng = [[${storeLng}]];
                     </script>
                 </th:block>
                 </body>

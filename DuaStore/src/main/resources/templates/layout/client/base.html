@@ -862,6 +862,10 @@
         </div>
         <div class="ds-footer-bottom">
             <span th:text="${themeSettings.get('footer_copyright') ?: '© 2026 DuaStore. All rights reserved.'}">© 2026 DuaStore</span>
+            <span class="ms-auto d-flex align-items-center gap-2" th:if="${storeSettings.get('store_address')}">
+                <i class="bi bi-geo-alt-fill" style="color:var(--ds-primary);font-size:.85rem;"></i>
+                <span th:text="${storeSettings.get('store_address')}" style="font-size:.8rem;color:var(--ds-gray-500);">167 P. Phan Bội Châu, Hồng Bàng, Hải Phòng</span>
+            </span>
         </div>
     </div>
 </footer>

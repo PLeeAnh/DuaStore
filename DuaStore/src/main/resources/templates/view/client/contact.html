@@ -80,15 +80,7 @@
                             <div class="col-12 col-lg-7">
                                 <div class="ds-card">
                                     <div class="ds-card-body p-0" style="overflow:hidden;border-radius:12px;">
-                                        <iframe
-                                            th:src="'https://www.google.com/maps/embed/v1/place?key=' + ${googleMapsApiKey} + '&q=' + ${storeLat} + ',' + ${storeLng} + '&center=' + ${storeLat} + ',' + ${storeLng} + '&zoom=16&language=vi'"
-                                            width="100%"
-                                            height="400"
-                                            style="border:0;display:block;"
-                                            allowfullscreen=""
-                                            loading="lazy"
-                                            referrerpolicy="no-referrer-when-downgrade">
-                                        </iframe>
+                                        <div id="contactMap" style="width:100%;height:400px;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -134,5 +126,20 @@
                 </div>
             </section>
         </div>
+    <th:block layout:fragment="extra-script">
+        <script>
+            function initContactMap() {
+                var mapEl = document.getElementById('contactMap');
+                if (!mapEl) return;
+                var lat = [[${storeLat}]] || 21.028511;
+                var lng = [[${storeLng}]] || 105.854170;
+                var pos = { lat: lat, lng: lng };
+                var map = new google.maps.Map(mapEl, { center: pos, zoom: 16, mapTypeControl: false, streetViewControl: false });
+                new google.maps.Marker({ position: pos, map: map });
+            }
+            document.addEventListener('DOMContentLoaded', initContactMap);
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=[[${googleMapsApiKey}]]&language=vi"></script>
+    </th:block>
     </body>
 </html>
