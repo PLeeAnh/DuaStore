@@ -5,6 +5,8 @@
       layout:decorate="~{layout/admin/base}">
     <head>
         <title>Thông tin cửa hàng</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     </head>
     <body>
     <th:block layout:fragment="breadcrumb">
@@ -82,6 +84,7 @@
     </div>
 
     <th:block layout:fragment="extra-script">
+<<<<<<< Updated upstream
         <script th:inline="javascript">
             var lat = [[${
                 settings.get('store_latitude')
@@ -214,6 +217,86 @@
         <script
             th:src="@{https://maps.googleapis.com/maps/api/js(key=${googleMapsApiKey}, libraries='places,marker', callback='initMap', region='VN', language='vi', loading='async')}">
         </script>
+=======
+    <script th:inline="javascript">
+        var lat = parseFloat([[${settings.get('store_latitude')}]]) || 21.0285;
+        var lng = parseFloat([[${settings.get('store_longitude')}]]) || 105.8542;
+        var address = [[${settings.get('store_address')}]];
+        var map, marker;
+
+        function initLeafletMap() {
+            var mapEl = document.getElementById('map');
+
+            map = L.map(mapEl, {
+                center: [lat, lng],
+                zoom: 15,
+                zoomControl: true
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.bindPopup('Vị trí cửa hàng');
+
+            marker.on('dragend', function() {
+                var p = marker.getLatLng();
+                document.getElementById('storeLatitude').value = p.lat.toFixed(6);
+                document.getElementById('storeLongitude').value = p.lng.toFixed(6);
+                reverseGeocode(p.lat, p.lng);
+            });
+
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                document.getElementById('storeLatitude').value = e.latlng.lat.toFixed(6);
+                document.getElementById('storeLongitude').value = e.latlng.lng.toFixed(6);
+                reverseGeocode(e.latlng.lat, e.latlng.lng);
+            });
+
+            var input = document.getElementById('storeAddress');
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchAddress(input.value);
+                }
+            });
+
+            if (address) reverseGeocode(lat, lng);
+        }
+
+        function searchAddress(query) {
+            if (!query.trim()) return;
+            fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1&countrycodes=vn')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.length) {
+                        var loc = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+                        map.setView([loc.lat, loc.lng], 15);
+                        marker.setLatLng([loc.lat, loc.lng]);
+                        document.getElementById('storeLatitude').value = loc.lat.toFixed(6);
+                        document.getElementById('storeLongitude').value = loc.lng.toFixed(6);
+                        document.getElementById('storeAddress').value = data[0].display_name;
+                    }
+                })
+                .catch(function(err) { console.error('Geocode error:', err); });
+        }
+
+        function reverseGeocode(lat, lng) {
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&accept-language=vi')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data && data.display_name) {
+                        document.getElementById('storeAddress').value = data.display_name;
+                    }
+                })
+                .catch(function(err) { console.error('Reverse geocode error:', err); });
+        }
+
+        document.addEventListener('DOMContentLoaded', initLeafletMap);
+    </script>
+>>>>>>> Stashed changes
     </th:block>
 </body>
 </html>
