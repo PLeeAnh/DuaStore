@@ -6,8 +6,21 @@
 
 /* ═══ LOGIN POPUP ═══ */
 function showLoginPopup() {
-    var modal = new bootstrap.Modal(document.getElementById('loginModal'));
-    modal.show();
+    try {
+        var el = document.getElementById('loginModal');
+        if (!el) return;
+        var modal = bootstrap.Modal.getOrCreateInstance(el);
+        modal.show();
+    } catch(e) {
+        console.error('showLoginPopup error:', e);
+        try {
+            var fallback = document.getElementById('loginModal');
+            if (fallback) {
+                fallback.style.display = 'block';
+                fallback.classList.add('show');
+            }
+        } catch(e2) {}
+    }
 }
 
 /* ═══ REGISTER ═══ */
