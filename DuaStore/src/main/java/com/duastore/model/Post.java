@@ -3,8 +3,6 @@ package com.duastore.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "Posts")
@@ -43,12 +41,6 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "danhMucId")
     private PostCategory danhMuc;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "Post_Tags",
-            joinColumns = @JoinColumn(name = "postId"),
-            inverseJoinColumns = @JoinColumn(name = "tagId"))
-    private Set<PostTag> tags = new HashSet<>();
 
     @Column(nullable = false, length = 15)
     private String trangThai = "NHAP";

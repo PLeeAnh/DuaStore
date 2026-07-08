@@ -1,7 +1,6 @@
 package com.duastore.service.client;
 
 import com.duastore.model.Post;
-import com.duastore.model.PostTag;
 import com.duastore.model.User;
 import com.duastore.repository.PostsRepository;
 import com.duastore.repository.UserRepository;
@@ -13,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -113,13 +110,5 @@ public class PostService {
         return userRepository.findById(tacGiaId)
                 .map(User::getHoTen)
                 .orElse(null);
-    }
-
-    @Transactional(readOnly = true)
-    public Set<String> getTagNames(Set<PostTag> tags) {
-        if (tags == null) {
-            return Set.of();
-        }
-        return tags.stream().map(PostTag::getTenTag).collect(Collectors.toSet());
     }
 }

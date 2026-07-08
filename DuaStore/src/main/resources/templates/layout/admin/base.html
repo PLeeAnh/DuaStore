@@ -105,6 +105,12 @@
                 <i class="bi bi-newspaper"></i>
                 <span>Bài viết</span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/danh-muc-bai-viet}"
+               th:if="${userPermissions.contains('POST_CATEGORY_READ')}"
+               th:classappend="${title == 'danh-muc-bai-viet' ? ' active' : ''}">
+                <i class="bi bi-folder"></i>
+                <span>Danh mục bài viết</span>
+            </a>
             <a class="adm-nav-link" th:href="@{/admin/thong-bao}"
                th:if="${userPermissions.contains('NOTIFICATION_READ')}"
                th:classappend="${title == 'thong-bao' ? ' active' : ''}">

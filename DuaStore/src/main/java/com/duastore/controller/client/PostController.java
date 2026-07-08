@@ -67,7 +67,6 @@ public class PostController {
         model.addAttribute("title", post.getTieuDe());
         model.addAttribute("post", post);
         model.addAttribute("tacGia", postService.getTenTacGia(post.getTacGiaId()));
-        model.addAttribute("tagNames", postService.getTagNames(post.getTags()));
         model.addAttribute("relatedPosts", postService.getRelatedPosts(post, 4));
         return "view/client/post/blog-detail";
     }
