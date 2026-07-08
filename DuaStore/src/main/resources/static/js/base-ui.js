@@ -161,19 +161,71 @@ btn.disabled = false;
 });
 
 // ── Ghi nhớ trạng thái giỏ hàng ──
+function safeReadPopupState(key) {
+        try {
+        var raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : null;
+        } catch (e) {
+        return null;
+        }
+}
+
+function writePopupState(key, state) {
+        localStorage.setItem(key, JSON.stringify(state || []));
+}
+
+function samePopupState(a, b) {
+        if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+        for (var i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+        }
+        return true;
+}
+
+function getWishlistPopupState() {
+        return Array.from(document.querySelectorAll('#wishlist-items-container .popup-item'))
+                .map(function(item) { return item.id; })
+                .sort();
+}
+
+function getCartPopupState() {
+        return Array.from(document.querySelectorAll('#cart-items-container .popup-item'))
+                .map(function(item) {
+                var inp = item.querySelector('input[id^="popup-qty-"]');
+                        var qty = inp ? inp.value : '1';
+                        return item.id + '-qty-' + qty;
+                })
+                .sort();
+}
+
+function setPopupBadge(badgeId, count, visible) {
+        var badge = document.getElementById(badgeId);
+        if (!badge) return;
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.classList.toggle('d-none', !visible || count <= 0);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-        var cartItems = document.querySelectorAll('#cart-items-container .popup-item');
-        var currentCartState = [];
-        cartItems.forEach(function(item) {
-        var qtyEl = item.querySelector('input[id^="popup-qty-"]');
-                var qty = qtyEl ? qtyEl.value : '1';
-                currentCartState.push(item.id + '-qty-' + qty);
-                });
-        var viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
+        var currentCartState = getCartPopupState();
+        var viewedCartState = safeReadPopupState('viewedCartState');
+        if (viewedCartState === null) {
+        writePopupState('viewedCartState', currentCartState);
+                viewedCartState = currentCartState;
+        }
+        setPopupBadge('cartBadge', currentCartState.length, !samePopupState(currentCartState, viewedCartState));
+
+        var currentWishlistState = getWishlistPopupState();
+        var viewedWishlistState = safeReadPopupState('viewedWishlistState');
+        if (viewedWishlistState === null) {
+        writePopupState('viewedWishlistState', currentWishlistState);
+                viewedWishlistState = currentWishlistState;
+        }
+        setPopupBadge('wishlistBadge', currentWishlistState.length, !samePopupState(currentWishlistState, viewedWishlistState));
+        localStorage.removeItem('cartViewed');
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
-function togglePopup(popupId) {
+function togglePopup(popupId, markAsViewed) {
         document.querySelectorAll('.custom-popup').forEach(function(popup) {
 if (popup.id !== popupId) popup.style.display = 'none';
         });
@@ -181,26 +233,15 @@ if (popup.id !== popupId) popup.style.display = 'none';
         if (popup) {
 var isOpening = (popup.style.display !== 'block');
         popup.style.display = isOpening ? 'block' : 'none';
-        if (isOpening) {
+        if (isOpening && markAsViewed === true) {
 if (popupId === 'wishlist-popup') {
 var wBadge = document.getElementById('wishlistBadge');
         if (wBadge) wBadge.classList.add('d-none');
-        const items = document.querySelectorAll('#wishlist-items-container .popup-item');
-        let states = [];
-        items.forEach(i => states.push(i.id));
-        localStorage.setItem('viewedWishlistState', JSON.stringify(states));
+        writePopupState('viewedWishlistState', getWishlistPopupState());
         } else if (popupId === 'cart-popup') {
 var cBadge = document.getElementById('cartBadge');
         if (cBadge) cBadge.classList.add('d-none');
-        localStorage.setItem('cartViewed', 'true');
-        const items = document.querySelectorAll('#cart-items-container .popup-item');
-        let states = [];
-        items.forEach(item => {
-        const inp = item.querySelector('input[id^="popup-qty-"]');
-                const qty = inp ? inp.value : '1';
-                states.push(item.id + '-qty-' + qty);
-                });
-        localStorage.setItem('viewedCartState', JSON.stringify(states));
+        writePopupState('viewedCartState', getCartPopupState());
         }
 }
 }
@@ -361,26 +402,6 @@ container.innerHTML = `
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
         togglePopup('notif-popup');
-        var badge = document.getElementById('notifBadge');
-        if (badge && !badge.classList.contains('d-none')) {
-fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
-        .then(function(r) {
-        if (r.status === 403) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                return null;
-                }
-        return r.text();
-                })
-        .then(function(text) {
-        if (text === null) return;
-                if (text && (text.indexOf('dang nhap') !== - 1 || text.indexOf('đăng nhập') !== - 1)) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                return;
-                }
-        badge.classList.add('d-none');
-                })
-        .catch(function() { badge.classList.add('d-none'); });
-        }
 }
 function markNotifRead(id) {
         fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
@@ -419,36 +440,7 @@ function pollNotifications() {
         badge.classList.add('d-none');
                 }
         }
-        var container = document.querySelector('#notif-popup .mt-2');
-                if (!container) return;
-                if (!data.notifications || data.notifications.length === 0) {
-        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size: 2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
-                return;
-                }
-        var html = '';
-                data.notifications.forEach(function(n) {
-                if (n.linkType) {
-                html += '<a href="' + n.linkUrl + '" class="text-decoration-none text-reset d-block notif-item">';
-                        html += '<div class="d-flex align-items-start gap-2">';
-                        html += getNotifIcon(n.linkType);
-                        html += '<div class="flex-grow-1 min-w-0">';
-                        html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
-                        if (n.linkLabel) {
-                html += '<div class="mt-1"><span class="notif-link"><span>' + n.linkLabel.substring(0, 35) + '</span><i class="bi bi-arrow-right ms-1"></i></span></div>';
-                }
-                html += '<small class="notif-time">' + n.time + '</small>';
-                        html += '</div></div></a>';
-                } else {
-                html += '<div class="notif-item"><div class="d-flex align-items-start gap-2">';
-                        html += getNotifIcon(null);
-                        html += '<div class="flex-grow-1 min-w-0">';
-                        html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
-                        html += '<small class="notif-time">' + n.time + '</small>';
-                        html += '</div></div></div>';
-                }
-                });
-                container.innerHTML = html;
-                })
+        })
         .catch(function() {});
 }
 
@@ -852,8 +844,5 @@ function showToast(msg) {
 }
 /* ── Ẩn badge giỏ hàng nếu đã xem trước đó ── */
 document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('cartViewed') === 'true') {
-        var b = document.getElementById('cartBadge');
-        if (b) b.classList.add('d-none');
-    }
+    localStorage.removeItem('cartViewed');
 });
