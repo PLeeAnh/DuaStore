@@ -2,11 +2,8 @@ package com.duastore.controller.admin;
 
 import com.duastore.dto.PostDTO;
 import com.duastore.model.Post;
-import com.duastore.model.PostCategory;
-import com.duastore.model.PostTag;
 import com.duastore.model.User;
 import com.duastore.repository.PostCategoryRepository;
-import com.duastore.repository.PostTagRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.service.admin.AdminPostService;
@@ -31,18 +28,15 @@ public class AdminPostController {
     private final UserRepository userRepository;
     private final SecurityUtil securityUtil;
     private final PostCategoryRepository postCategoryRepository;
-    private final PostTagRepository postTagRepository;
 
     public AdminPostController(AdminPostService adminPostService,
             UserRepository userRepository,
             SecurityUtil securityUtil,
-            PostCategoryRepository postCategoryRepository,
-            PostTagRepository postTagRepository) {
+            PostCategoryRepository postCategoryRepository) {
         this.adminPostService = adminPostService;
         this.userRepository = userRepository;
         this.securityUtil = securityUtil;
         this.postCategoryRepository = postCategoryRepository;
-        this.postTagRepository = postTagRepository;
     }
 
     @GetMapping
@@ -86,7 +80,6 @@ public class AdminPostController {
         model.addAttribute("post", dto);
         model.addAttribute("formAction", "/admin/bai-viet/them-moi");
         model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
-        model.addAttribute("allTags", postTagRepository.findAll());
         return "view/admin/post/post-form";
     }
 
@@ -102,7 +95,6 @@ public class AdminPostController {
             model.addAttribute("post", dto);
             model.addAttribute("formAction", "/admin/bai-viet/them-moi");
             model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
-            model.addAttribute("allTags", postTagRepository.findAll());
             return "view/admin/post/post-form";
         }
         try {
@@ -135,9 +127,6 @@ public class AdminPostController {
             if (post.getDanhMuc() != null) {
                 dto.setDanhMucId(post.getDanhMuc().getId());
             }
-            if (post.getTags() != null) {
-                dto.setTagIds(post.getTags().stream().map(PostTag::getId).collect(Collectors.toSet()));
-            }
 
             if (post.getTacGiaId() != null) {
                 userRepository.findById(post.getTacGiaId())
@@ -148,7 +137,6 @@ public class AdminPostController {
             model.addAttribute("post", dto);
             model.addAttribute("formAction", "/admin/bai-viet/sua/" + id);
             model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
-            model.addAttribute("allTags", postTagRepository.findAll());
             return "view/admin/post/post-form";
         } catch (Exception e) {
             return "redirect:/admin/bai-viet";
@@ -167,7 +155,6 @@ public class AdminPostController {
             model.addAttribute("post", dto);
             model.addAttribute("formAction", "/admin/bai-viet/sua/" + id);
             model.addAttribute("categories", postCategoryRepository.findAllByOrderByThuTuAsc());
-            model.addAttribute("allTags", postTagRepository.findAll());
             return "view/admin/post/post-form";
         }
         try {

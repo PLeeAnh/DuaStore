@@ -273,6 +273,7 @@ public class CheckoutController {
         model.addAttribute("phiVanChuyen", phiShip);
         model.addAttribute("tienGiam", tienGiam);
         model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
+        model.addAttribute("checkoutRequest", new com.duastore.dto.CheckoutRequestDTO());
         model.addAttribute("storeLat", shippingFeeService.getStoreLat());
         model.addAttribute("storeLng", shippingFeeService.getStoreLng());
         model.addAttribute("title", "Thanh toán");

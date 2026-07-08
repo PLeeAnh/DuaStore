@@ -2,10 +2,7 @@ package com.duastore.service.admin;
 
 import com.duastore.dto.PostDTO;
 import com.duastore.model.Post;
-import com.duastore.model.PostTag;
-import com.duastore.model.User;
 import com.duastore.repository.PostCategoryRepository;
-import com.duastore.repository.PostTagRepository;
 import com.duastore.repository.PostsRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.FileUploadService;
@@ -15,14 +12,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
@@ -33,7 +27,6 @@ public class AdminPostService {
     private final FileUploadService fileUploadService;
     private final UserRepository userRepository;
     private final PostCategoryRepository postCategoryRepository;
-    private final PostTagRepository postTagRepository;
 
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
@@ -41,13 +34,11 @@ public class AdminPostService {
     public AdminPostService(PostsRepository postsRepository,
             FileUploadService fileUploadService,
             UserRepository userRepository,
-            PostCategoryRepository postCategoryRepository,
-            PostTagRepository postTagRepository) {
+            PostCategoryRepository postCategoryRepository) {
         this.postsRepository = postsRepository;
         this.fileUploadService = fileUploadService;
         this.userRepository = userRepository;
         this.postCategoryRepository = postCategoryRepository;
-        this.postTagRepository = postTagRepository;
     }
 
     public static String toSlug(String input) {
@@ -145,13 +136,6 @@ public class AdminPostService {
             postCategoryRepository.findById(dto.getDanhMucId()).ifPresent(post::setDanhMuc);
         } else {
             post.setDanhMuc(null);
-        }
-
-        if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
-            Set<PostTag> tags = new HashSet<>(postTagRepository.findAllById(dto.getTagIds()));
-            post.setTags(tags);
-        } else {
-            post.setTags(new HashSet<>());
         }
 
         if ("XUAT_BAN".equals(post.getTrangThai()) && post.getNgayXuatBan() == null) {

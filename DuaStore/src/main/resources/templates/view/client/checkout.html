@@ -53,7 +53,7 @@
                                                    th:data-lat="${a.latitude}" th:data-lng="${a.longitude}"
                                                    th:each="a : ${addresses}">
                                                 <input type="radio" name="addressId" th:value="${a.id}"
-                                                       th:checked="${a.isDefault}" required class="ds-address-card-radio" />
+                                                       th:checked="${a.isDefault}" class="ds-address-card-radio" />
                                                 <div class="ds-address-card-body">
                                                     <div class="ds-address-card-title">
                                                         <strong th:text="${a.tenNguoiNhan}"></strong>

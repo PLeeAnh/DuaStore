@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -28,7 +27,6 @@ public class PostDTO {
 
     private Integer tacGiaId;
     private Integer danhMucId;
-    private Set<Integer> tagIds;
 
     private String trangThai = "NHAP";
     private Integer luotXem;
