@@ -30,57 +30,7 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ═══ MOBILE NAV TOGGLE ═══ */
-    var toggle = document.getElementById('dsNavToggle');
-    var panel = document.getElementById('dsNavPanel');
-    var overlay = document.getElementById('dsNavOverlay');
 
-    function openNav() {
-        panel.classList.add('open');
-        overlay.classList.add('open');
-        toggle.classList.add('is-open');
-        toggle.setAttribute('aria-label', 'Đóng menu');
-        document.body.style.overflow = 'hidden';
-    }
-    function closeNav() {
-        panel.classList.remove('open');
-        overlay.classList.remove('open');
-        toggle.classList.remove('is-open');
-        toggle.setAttribute('aria-label', 'Mở menu');
-        document.body.style.overflow = '';
-        document.querySelectorAll('.ds-sub-menu.open').forEach(function (el) {
-            el.classList.remove('open');
-        });
-        document.querySelectorAll('.ds-chevron.rotated').forEach(function (el) {
-            el.classList.remove('rotated');
-        });
-    }
-    if (toggle && panel) {
-        toggle.addEventListener('click', function () {
-            panel.classList.contains('open') ? closeNav() : openNav();
-        });
-    }
-    if (overlay)
-        overlay.addEventListener('click', closeNav);
-
-    document.querySelectorAll('.ds-sub-toggle').forEach(function (btn) {
-        var menu = btn.nextElementSibling;
-        if (menu) {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                menu.classList.toggle('open');
-                var ch = btn.querySelector('.ds-chevron');
-                if (ch)
-                    ch.classList.toggle('rotated');
-            });
-        }
-    });
-    document.querySelectorAll('.ds-nav-panel .ds-nav-link:not(.ds-nav-no-close), .ds-nav-panel .ds-sub-link').forEach(function (link) {
-        link.addEventListener('click', function () {
-            if (!link.classList.contains('ds-sub-toggle'))
-                setTimeout(closeNav, 200);
-        });
-    });
 
     /* ═══ SWIPERS ═══ */
     if (typeof Swiper !== 'undefined') {

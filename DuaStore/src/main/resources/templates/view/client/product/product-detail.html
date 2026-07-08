@@ -809,8 +809,10 @@
                         var newSection = temp.querySelector('#reviews-section');
                         if (newSection) {
                             section.innerHTML = newSection.innerHTML;
+                            section.style.opacity = '1';
+                        } else {
+                            section.style.opacity = '1';
                         }
-                        section.style.opacity = '1';
                         document.querySelectorAll('.star-rating-readonly[data-score]').forEach(function (el) {
                             var score = parseInt(el.dataset.score) || 0;
                             var h = '';

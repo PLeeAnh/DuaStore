@@ -40,6 +40,11 @@ public class AuthController {
         this.verifyCodeService = verifyCodeService;
     }
 
+    @GetMapping("/oauth2/success")
+    public String oauth2Success() {
+        return "view/auth/oauth2-success";
+    }
+
     @GetMapping("/dang-nhap")
     public String login(Model model) {
         model.addAttribute("title", "Đăng nhập");
@@ -91,6 +96,7 @@ public class AuthController {
         user.setRoles(Set.of(userRole));
         user.setIsActive(true);
         userRepository.save(user);
+        verifyCodeService.delete(req.getEmail());
 
         ra.addFlashAttribute("successMsg", "Đăng ký thành công! Vui lòng đăng nhập.");
         return "redirect:/dang-nhap";

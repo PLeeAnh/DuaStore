@@ -81,6 +81,11 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             session.removeAttribute("guestCart");
         }
 
+        if (authentication.getPrincipal() instanceof OAuth2User) {
+            response.sendRedirect(request.getContextPath() + "/oauth2/success");
+            return;
+        }
+
         super.onAuthenticationSuccess(request, response, authentication);
     }
 }

@@ -66,10 +66,7 @@
     <div class="container-xl ds-ctn-width">
         <div class="d-flex align-items-center w-100 gap-3">
 
-            <button class="ds-nav-toggle" id="dsNavToggle" type="button" aria-label="Mở menu">
-                <span class="ds-toggle-text" id="dsToggleIcon">&lt;/&gt;</span>
-            </button>
-            <a class="ds-logo me-auto me-lg-0" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}">DuaStore</a>
+            <a class="ds-logo me-auto" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}">DuaStore</a>
 
             <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavDesktop">
                 <th:block th:each="i : ${#numbers.sequence(1,10)}">
@@ -78,24 +75,6 @@
                     </th:block>
                 </th:block>
             </ul>
-
-            <div class="ds-nav-overlay" id="dsNavOverlay"></div>
-            <div class="ds-nav-panel" id="dsNavPanel">
-                <div class="ds-nav-panel-header">
-                    <a class="ds-logo-panel" th:href="@{/}">DuaStore</a>
-                </div>
-                <ul class="ds-nav-list">
-                    <th:block th:each="i : ${#numbers.sequence(1,10)}">
-                        <th:block th:if="${themeSettings.containsKey('menu_' + i + '_label') and themeSettings.get('menu_' + i + '_active') != '0'}">
-                            <li class="ds-nav-item">
-                                <a class="ds-nav-link" th:href="${themeSettings.get('menu_' + i + '_url') ?: '/'}">
-                                    <i class="bi bi-house"></i> <span th:text="${themeSettings.get('menu_' + i + '_label')}">Menu</span>
-                                </a>
-                            </li>
-                        </th:block>
-                    </th:block>
-                </ul>
-            </div>
 
             <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">
                 <form th:if="${themeSettings.get('header_search') != '0'}" th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
@@ -648,7 +627,9 @@
 
                     <div class="ds-auth-accent-fade mt-3 mb-3"></div>
 
-                    <a class="ds-auth-google" th:href="@{/oauth2/authorization/google}" title="Đăng nhập với Google">
+                    <a class="ds-auth-google" href="#"
+                       onclick="event.preventDefault(); var w=window.open('/oauth2/authorization/google','google-login','width=600,height=700'); if(w) { var t=setInterval(function(){ if(w.closed) { clearInterval(t); window.location.reload(); } },500); }"
+                       title="Đăng nhập với Google">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
                              width="20" height="20" alt="Google">
                     </a>
@@ -678,6 +659,27 @@
                             <input type="email" name="email" placeholder="Nhập email" id="regEmail" required>
                         </div>
                         <div class="ds-auth-error" id="regEmailError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                        <div class="ds-auth-status" id="codeStatus" style="display:none;font-size:.78rem;color:#2563eb;margin-top:4px;"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-person"></i>
+                            <input type="text" name="hoTen" placeholder="Họ tên" id="regHoTen" required maxlength="100">
+                        </div>
+                        <div class="ds-auth-error" id="regHoTenError">
+                            <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="ds-auth-field">
+                            <i class="bi bi-person-badge"></i>
+                            <input type="text" name="username" placeholder="Tên đăng nhập" id="regUsername" required minlength="3" maxlength="50">
+                        </div>
+                        <div class="ds-auth-error" id="regUsernameError">
                             <i class="bi bi-exclamation-circle"></i><span>Không được bỏ trống</span>
                         </div>
                     </div>
@@ -727,7 +729,7 @@
                     </div>
 
                     <div id="registerError" class="ds-auth-error">
-                        <i class="bi bi-exclamation-circle"></i><span></span>
+                        <i class="bi bi-exclamation-circle"></i><span class="ds-auth-err-text"></span>
                     </div>
                     <div id="registerSuccess" class="ds-auth-success">
                         <i class="bi bi-check-circle"></i><span>Đăng ký thành công! Vui lòng đăng nhập.</span>
@@ -863,7 +865,7 @@
                                 <div class="col-6 col-md-3">
                                     <h6 class="ds-footer-col-title" th:text="${themeSettings.get('footer_col_' + i + '_title')}">Tiêu đề</h6>
                                     <ul class="ds-footer-links">
-                                        <th:block th:each="line : ${#strings.listSplit(themeSettings.get('footer_col_' + i + '_content'), '\\r?\\n')}">
+                                        <th:block th:each="line : ${#strings.arraySplit(themeSettings.get('footer_col_' + i + '_content'), '\\r?\\n|\\\\n')}">
                                             <li th:unless="${#strings.isEmpty(#strings.trim(line))}">
                                                 <a th:href="${#strings.contains(line, ' | ')} ? ${#strings.substringAfter(line, ' | ').trim()} : '#'"
                                                    th:text="${#strings.contains(line, ' | ')} ? ${#strings.substringBefore(line, ' | ').trim()} : ${#strings.trim(line)}">Link</a>

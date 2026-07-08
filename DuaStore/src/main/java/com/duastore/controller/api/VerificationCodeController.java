@@ -32,12 +32,23 @@ public class VerificationCodeController {
             return ResponseEntity.badRequest().body(Map.of("error", "Email không được bỏ trống"));
         }
 
+        if (userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.ok(Map.of("success", false, "error", "Email đã được sử dụng"));
+        }
+
         String code = codeService.generate(email);
+        System.out.println("╔══════════════════════════════════════════════╗");
+        System.out.println("║  OTP cho " + email);
+        System.out.println("║  Mã: " + code);
+        System.out.println("╚══════════════════════════════════════════════╝");
+
         try {
             emailService.sendOtpEmail(email, code, "REGISTER");
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            return ResponseEntity.ok(Map.of("success", false, "error", "Không thể gửi email. Vui lòng thử lại sau."));
+            System.out.println("[send-code] Gửi email thất bại: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(Map.of("success", false, "error", "Không thể gửi email: " + e.getMessage(), "dev_code", code));
         }
     }
 
