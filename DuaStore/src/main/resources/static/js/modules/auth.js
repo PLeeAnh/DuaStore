@@ -24,6 +24,24 @@ function showLoginPopup() {
 }
 
 /* ═══ REGISTER ═══ */
+document.addEventListener('DOMContentLoaded', function () {
+    var regModal = document.getElementById('registerModal');
+    if (regModal) {
+        regModal.addEventListener('show.bs.modal', function () {
+            var errDiv = document.getElementById('registerError');
+            var okDiv = document.getElementById('registerSuccess');
+            var statusEl = document.getElementById('codeStatus');
+            var form = document.getElementById('registerForm');
+            if (errDiv) errDiv.classList.remove('show');
+            if (okDiv) okDiv.classList.remove('show');
+            if (statusEl) { statusEl.textContent = ''; statusEl.style.display = 'none'; }
+            if (form) form.reset();
+            var btn = document.getElementById('regSubmitBtn');
+            if (btn) { btn.disabled = false; btn.textContent = 'Đăng ký'; }
+        });
+    }
+});
+
 async function registerSubmit(event) {
     event.preventDefault();
     var form = DuaStore.utils.qs('#registerForm');
@@ -31,11 +49,29 @@ async function registerSubmit(event) {
     var okDiv = DuaStore.utils.qs('#registerSuccess');
     errDiv.classList.remove('show');
     okDiv.classList.remove('show');
-    var errText = DuaStore.utils.qs('span', errDiv);
+    var errText = DuaStore.utils.qs('.ds-auth-err-text', errDiv) || DuaStore.utils.qs('span', errDiv);
     var btn = DuaStore.utils.qs('#regSubmitBtn');
 
     if (DuaStore.utils.qs('[name="password"]', form).value !== DuaStore.utils.qs('[name="confirmPassword"]', form).value) {
         errText.textContent = 'Mật khẩu xác nhận không khớp';
+        errDiv.classList.add('show');
+        return;
+    }
+
+    var hoTen = DuaStore.utils.qs('[name="hoTen"]', form).value;
+    if (!hoTen || !hoTen.trim()) {
+        errText.textContent = 'Họ tên không được để trống';
+        errDiv.classList.add('show');
+        return;
+    }
+    var username = DuaStore.utils.qs('[name="username"]', form).value;
+    if (!username || !username.trim()) {
+        errText.textContent = 'Tên đăng nhập không được để trống';
+        errDiv.classList.add('show');
+        return;
+    }
+    if (username.trim().length < 3) {
+        errText.textContent = 'Tên đăng nhập phải có ít nhất 3 ký tự';
         errDiv.classList.add('show');
         return;
     }
@@ -82,8 +118,13 @@ async function registerSubmit(event) {
         if (html.includes('is-invalid') || html.includes('alert-danger')) {
             var tmp = document.createElement('div');
             tmp.innerHTML = html;
-            var msg = tmp.querySelector('.invalid-feedback') || tmp.querySelector('.alert-danger');
-            errText.textContent = msg ? msg.textContent.trim() : 'Đăng ký thất bại';
+            var msgs = tmp.querySelectorAll('.invalid-feedback, .alert-danger');
+            var errMsgs = [];
+            msgs.forEach(function (el) {
+                var t = el.textContent.trim();
+                if (t) errMsgs.push(t);
+            });
+            errText.innerHTML = errMsgs.length > 0 ? errMsgs.join('<br>') : 'Đăng ký thất bại';
             errDiv.classList.add('show');
             btn.disabled = false;
             btn.textContent = 'Đăng ký';

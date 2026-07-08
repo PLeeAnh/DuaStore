@@ -429,7 +429,7 @@ CREATE TABLE orders (
     CONSTRAINT FK_orders_Address   FOREIGN KEY (addressId)   REFERENCES Addresses(id),
     CONSTRAINT FK_orders_Promotion FOREIGN KEY (promotionId) REFERENCES Promotions(id),
     CONSTRAINT CK_orders_TT        CHECK (phuongThucTT       IN ('CHUYEN_KHOAN','COD','VNPAY')),
-    CONSTRAINT CK_orders_GH        CHECK (phuongThucGiaoHang IN ('SHIP','NHAN_TAI_CONG')),
+    CONSTRAINT CK_orders_GH        CHECK (phuongThucGiaoHang IN ('SHIP','NHAN_TAI_CONG','EXPRESS')),
     CONSTRAINT CK_orders_ThanhToan CHECK (trangThaiTT        IN ('CHUA_THANH_TOAN','DA_THANH_TOAN')),
     CONSTRAINT CK_orders_TrangThai CHECK (trangThaiDon       IN ('CHO_XAC_NHAN','DA_XAC_NHAN','DANG_GIAO','DA_GIAO','DA_HOAN_THANH','DA_HUY'))
 );

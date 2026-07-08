@@ -351,6 +351,7 @@
             <!-- FOOTER -->
             <div class="tab-pane fade" id="footer" role="tabpanel">
                 <form th:action="@{/admin/giao-dien}" method="post">
+                    <input type="hidden" name="_footer_form" value="1" />
                     <div class="adm-form-wrap">
                         <h6 class="text-muted border-bottom pb-2">Cột Footer</h6>
                         <p class="text-muted small">Quản lý các cột hiển thị ở footer. Mỗi cột có tiêu đề và nội dung riêng. Mỗi dòng trong nội dung là một link. Dùng định dạng <code>Tiêu đề | https://example.com</code> để tạo link có đường dẫn tùy chỉnh.</p>
@@ -370,7 +371,8 @@
                                         </div>
                                         <div class="col-md-8">
                                             <textarea name="footer_col_1_content" class="form-control form-control-sm" rows="3"
-                                                      placeholder="Nội dung">[[${settings.get('footer_col_1_content') ?: 'Giới thiệu về cửa hàng...'}]]</textarea>
+                                                      placeholder="Nội dung" th:text="${settings.containsKey('footer_col_1_content')} ? ${settings.get('footer_col_1_content') : _}">Giới thiệu về cửa hàng
+Liên hệ | lien-he</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -390,7 +392,9 @@
                                         </div>
                                         <div class="col-md-8">
                                             <textarea name="footer_col_2_content" class="form-control form-control-sm" rows="3"
-                                                      placeholder="Nội dung">[[${settings.get('footer_col_2_content') ?: 'Chính sách đổi trả\nChính sách bảo mật\nChính sách vận chuyển'}]]</textarea>
+                                                      placeholder="Nội dung" th:text="${settings.containsKey('footer_col_2_content')} ? ${settings.get('footer_col_2_content') : _}">Chính sách đổi trả
+Chính sách bảo mật
+Chính sách vận chuyển</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -410,7 +414,9 @@
                                         </div>
                                         <div class="col-md-8">
                                             <textarea name="footer_col_3_content" class="form-control form-control-sm" rows="3"
-                                                      placeholder="Nội dung">[[${settings.get('footer_col_3_content') ?: 'Địa chỉ: ...\nSĐT: 1900...\nEmail: ...'}]]</textarea>
+                                                      placeholder="Nội dung" th:text="${settings.containsKey('footer_col_3_content')} ? ${settings.get('footer_col_3_content') : _}">Địa chỉ: ...
+SĐT: 1900...
+Email: ...</textarea>
                                         </div>
                                     </div>
                                 </div>

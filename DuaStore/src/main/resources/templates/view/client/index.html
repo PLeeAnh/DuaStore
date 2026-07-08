@@ -265,6 +265,7 @@
                             <div class="ds-browse-preview-tags" id="browsePreviewTags">
                                 <span class="ds-browse-preview-tag" id="browsePreviewCatTag" th:text="${categoryNameMap.get(browseProducts[0].danhMucId) ?: ''}">Danh mục</span>
                             </div>
+                            <a class="ds-browse-preview-link" id="browsePreviewLink" th:href="'/san-pham/' + ${browseProducts[0].id}">Xem chi tiết <i class="bi bi-arrow-right"></i></a>
                             <div class="ds-browse-preview-images" id="browsePreviewImages">
                                 <th:block th:each="img, imgIter : ${browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()}">
                                     <img class="ds-browse-preview-img" th:src="${img}" alt="" th:if="${imgIter.index < 6}"/>
@@ -321,14 +322,29 @@
                     });
 
                     // Row hover/click → update preview
+                    var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
                     browseRows.forEach(function (row) {
                         row.addEventListener('mouseenter', function () {
                             activateBrowseRow(row);
                         });
-                        row.addEventListener('click', function () {
-                            var href = row.dataset.href;
-                            if (href) window.location.href = href;
-                        });
+                        if (isTouch) {
+                            var tapped = false;
+                            row.addEventListener('click', function () {
+                                if (tapped) {
+                                    var href = row.dataset.href;
+                                    if (href) window.location.href = href;
+                                } else {
+                                    tapped = true;
+                                    activateBrowseRow(row);
+                                    setTimeout(function () { tapped = false; }, 1500);
+                                }
+                            });
+                        } else {
+                            row.addEventListener('click', function () {
+                                var href = row.dataset.href;
+                                if (href) window.location.href = href;
+                            });
+                        }
                     });
 
                     function activateBrowseRow(row) {
@@ -337,6 +353,9 @@
                         });
                         row.classList.add('active');
                         document.getElementById('browsePreviewName').textContent = row.dataset.name;
+
+                        var link = document.getElementById('browsePreviewLink');
+                        if (link) link.href = row.dataset.href || '#';
 
                         // Thumbnail
                         var thumb = document.querySelector('#browsePreviewThumb img');

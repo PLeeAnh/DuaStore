@@ -80,4 +80,10 @@ public class SiteSettingService {
             save(key, value, group);
         }
     }
+
+    @Transactional
+    public void deleteByPrefix(String prefix) {
+        siteSettingRepository.findBySettingKeyStartingWith(prefix)
+                .forEach(siteSettingRepository::delete);
+    }
 }

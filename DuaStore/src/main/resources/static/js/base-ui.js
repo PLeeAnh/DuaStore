@@ -85,7 +85,8 @@ var email = document.getElementById('forgotEmail')?.value.trim() || '';
 /* ── Send code buttons ── */
 document.querySelectorAll('.ds-auth-code-inline').forEach(function(btn) {
 btn.addEventListener('click', function() {
-var field = this.closest('.ds-auth-field')?.querySelector('input[type="email"]');
+var modal = this.closest('.modal');
+        var field = modal ? modal.querySelector('input[type="email"]') : this.closest('.ds-auth-field')?.querySelector('input[type="email"]');
         var emailField = field || document.getElementById('regEmail') || document.getElementById('forgotEmail');
         var email = emailField?.value.trim();
         if (!email || !email.includes('@')) {
@@ -101,7 +102,12 @@ var orig = this.textContent;
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email })
         }).then(function(r) { return r.json(); }).then(function(data) {
-if (data.success) {
+if (data.dev_code) {
+        var statusEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-status') || document.getElementById('codeStatus');
+        if (statusEl) { statusEl.textContent = 'Mã: ' + data.dev_code; statusEl.style.display = ''; }
+        console.log('OTP:', data.dev_code);
+        }
+        if (data.success) {
 btn.textContent = 'Đã gửi';
         setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
         } else {
@@ -109,11 +115,8 @@ btn.textContent = 'Thử lại';
         var errMsg = data.error || 'Gửi mã thất bại';
         var emailErr = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
         if (emailErr) { emailErr.querySelector('span').textContent = errMsg; emailErr.classList.add('show'); }
-setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
+setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 3000);
         }
-}).catch(function() {
-btn.textContent = 'Lỗi';
-        setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
         });
         });
         });
