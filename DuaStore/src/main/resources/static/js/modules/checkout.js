@@ -510,7 +510,7 @@ function updateShipFee() {
     });
     fetchFee('SHIP', function (fee) {
         var el = document.getElementById('shipTTPrice');
-        if (el) el.textContent = fee.toLocaleString('en-US') + 'đ';
+        if (el) el.textContent = fee.toLocaleString('vi-VN') + 'đ';
     });
 }
 
