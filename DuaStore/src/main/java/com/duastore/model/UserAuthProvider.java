@@ -16,16 +16,16 @@ public class UserAuthProvider {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(nullable = false, length = 20)
+    @Column(name = "provider", nullable = false, length = 20)
     private String provider;
 
-    @Column(length = 255)
+    @Column(name = "provider_sub", length = 255)
     private String providerSub;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "linked_at", nullable = false, updatable = false)
     private LocalDateTime linkedAt;
 
     @PrePersist
