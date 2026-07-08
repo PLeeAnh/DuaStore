@@ -2,7 +2,6 @@ package com.duastore.controller.admin;
 
 import com.duastore.service.FileUploadService;
 import com.duastore.service.SiteSettingService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -22,14 +21,11 @@ public class AdminStoreController {
 
     private final SiteSettingService siteSettingService;
     private final FileUploadService fileUploadService;
-    private final String googleMapsApiKey;
 
     public AdminStoreController(SiteSettingService siteSettingService,
-            FileUploadService fileUploadService,
-            @Value("${google.maps.api.key}") String googleMapsApiKey) {
+            FileUploadService fileUploadService) {
         this.siteSettingService = siteSettingService;
         this.fileUploadService = fileUploadService;
-        this.googleMapsApiKey = googleMapsApiKey;
     }
 
     @GetMapping

@@ -516,8 +516,8 @@ initDirtyBar();
 
 /* ── Edit profile tabs ── */
 function switchEpTab(tab, el) {
-        document.querySelectorAll('#editProfileModal .nav-link').forEach(function(l) { l.style.color = '#666'; l.style.borderBottomColor = 'transparent'; });
-        if (el) { el.style.color = '#2563eb'; el.style.borderBottomColor = '#2563eb'; }
+        document.querySelectorAll('#editProfileModal .nav-link').forEach(function(l) { l.classList.remove('active'); });
+        if (el) el.classList.add('active');
 document.getElementById('epActivityContent').classList.toggle('d-none', tab !== 'activity');
         document.getElementById('epWishlistContent').classList.toggle('d-none', tab !== 'wishlist');
         if (tab === 'activity') loadEpActivity();
@@ -539,7 +539,7 @@ function loadEpActivity() {
                         var label = statusLabels[o.trangThaiDon] || o.trangThaiDon;
                         html += '<div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color:#f0f0f0!important;"><div><a href="/tai-khoan/don-hang/' + o.id + '" class="small fw-semibold text-dark text-decoration-none">' + o.maDon + '</a><br><small class="text-muted">' + new Date(o.ngayDat).toLocaleDateString('vi-VN') + '</small></div><span class="small badge bg-light text-dark">' + label + '</span></div>';
                 });
-                ordersDiv.innerHTML = html;
+                ordersDiv.innerHTML = html + '<div class="text-end mt-2"><a href="/tai-khoan/don-hang" class="small fw-semibold" style="color:#2563eb;text-decoration:none;">Xem tất cả <i class="bi bi-chevron-right" style="font-size:.65rem;"></i></a></div>';
                 ordersDiv.classList.remove('d-none');
                 }
         if (data.reviews && data.reviews.length) {

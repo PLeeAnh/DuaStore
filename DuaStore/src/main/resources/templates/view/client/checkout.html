@@ -5,6 +5,7 @@
       layout:decorate="~{layout/client/base}">
     <head>
         <title>Thanh toán — DuaStore</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     </head>
     <body>
         <div layout:fragment="content">
@@ -52,7 +53,7 @@
                                                    th:data-lat="${a.latitude}" th:data-lng="${a.longitude}"
                                                    th:each="a : ${addresses}">
                                                 <input type="radio" name="addressId" th:value="${a.id}"
-                                                       th:checked="${a.isDefault}" required class="ds-address-card-radio" />
+                                                       th:checked="${a.isDefault}" class="ds-address-card-radio" />
                                                 <div class="ds-address-card-body">
                                                     <div class="ds-address-card-title">
                                                         <strong th:text="${a.tenNguoiNhan}"></strong>
@@ -458,7 +459,7 @@
                 </div>
 
                 <th:block layout:fragment="extra-script">
-                    <script src="https://maps.googleapis.com/maps/api/js?key=[[${googleMapsApiKey}]]&libraries=places&language=vi"></script>
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
                     <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
                     <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
                     <script>

@@ -286,7 +286,7 @@
                             </div>
                         </div>
                         <!-- Cột phải: preview panel -->
-                        <a class="ds-browse-preview" id="browsePreview" th:href="@{'/san-pham/' + ${browseProducts[0].id}}">
+                        <div class="ds-browse-preview" id="browsePreview">
                             <div class="ds-browse-preview-header">
                                 <h4 class="ds-browse-preview-name" id="browsePreviewName" th:text="${browseProducts[0].tenSanPham}">Tên sản phẩm</h4>
                                 <div class="ds-browse-preview-rating" id="browsePreviewRating">
@@ -307,7 +307,7 @@
                                     <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
                                 </th:block>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 </section>
             </div><!-- /.ds-home-content -->
@@ -348,13 +348,14 @@
                         });
                     });
 
-                    // Row hover/click → update preview
+                    // Row hover → update preview; click → navigate
                     browseRows.forEach(function (row) {
                         row.addEventListener('mouseenter', function () {
                             activateBrowseRow(row);
                         });
                         row.addEventListener('click', function () {
-                            activateBrowseRow(row);
+                            var href = row.dataset.href;
+                            if (href) window.location.href = href;
                         });
                     });
 
@@ -363,7 +364,6 @@
                             r.classList.remove('active');
                         });
                         row.classList.add('active');
-                        browsePreview.href = row.dataset.href;
                         document.getElementById('browsePreviewName').textContent = row.dataset.name;
 
                         // Rating

@@ -46,6 +46,12 @@ public final class PermissionEnum {
     public static final String POST_UPDATE = "POST_UPDATE";
     public static final String POST_DELETE = "POST_DELETE";
 
+    // POST_CATEGORY
+    public static final String POST_CATEGORY_CREATE = "POST_CATEGORY_CREATE";
+    public static final String POST_CATEGORY_READ = "POST_CATEGORY_READ";
+    public static final String POST_CATEGORY_UPDATE = "POST_CATEGORY_UPDATE";
+    public static final String POST_CATEGORY_DELETE = "POST_CATEGORY_DELETE";
+
     // VARIANT
     public static final String VARIANT_CREATE = "VARIANT_CREATE";
     public static final String VARIANT_READ = "VARIANT_READ";

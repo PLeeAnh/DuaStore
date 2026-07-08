@@ -424,6 +424,7 @@ public class ProductController {
             model.addAttribute("canReview", false);
         }
         model.addAttribute("reviewRequest", new com.duastore.dto.ReviewRequestDTO());
+        model.addAttribute("productId", id);
 
         // Price range
         BigDecimal minPrice = null;
@@ -485,6 +486,42 @@ public class ProductController {
         }
 
         return "view/client/product/product-detail";
+    }
+
+    @GetMapping("/san-pham/{id}/reviews")
+    public String reviewsFragment(@PathVariable Integer id,
+            @RequestParam(defaultValue = "0") int reviewPage,
+            @RequestParam(required = false) Integer reviewRating,
+            Model model) {
+        int reviewSize = 10;
+        Integer currentUserId = null;
+        try {
+            currentUserId = securityUtil.getCurrentUserId();
+        } catch (Exception e) {
+        }
+        var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId, reviewRating);
+        model.addAttribute("productId", id);
+        model.addAttribute("reviews", reviewPageResult.getContent());
+        model.addAttribute("reviewCurrentPage", reviewPage);
+        model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
+        model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
+        model.addAttribute("reviewRating", reviewRating);
+        model.addAttribute("ratingDistribution", reviewService.getRatingDistribution(id));
+        if (currentUserId != null) {
+            try {
+                model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
+                model.addAttribute("canReview", reviewService.hasCompletedOrderAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
+            } catch (Exception e) {
+                model.addAttribute("hasReviewed", false);
+                model.addAttribute("canReview", false);
+            }
+        } else {
+            model.addAttribute("hasReviewed", false);
+            model.addAttribute("canReview", false);
+        }
+        model.addAttribute("reviewRequest", new ReviewRequestDTO());
+        model.addAttribute("ratingSummary", reviewService.getRatingSummary(id));
+        return "view/client/product/parts/product-reviews :: reviews";
     }
 
     @PostMapping("/san-pham/{id}/danh-gia")

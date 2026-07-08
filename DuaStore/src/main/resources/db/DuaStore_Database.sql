@@ -52,9 +52,7 @@ DROP TABLE IF EXISTS order_assignments;
 DROP TABLE IF EXISTS Notifications;
 DROP TABLE IF EXISTS UserVouchers;
 DROP TABLE IF EXISTS Wishlists;
-DROP TABLE IF EXISTS Post_Tags;
 DROP TABLE IF EXISTS Posts;
-DROP TABLE IF EXISTS PostTags;
 DROP TABLE IF EXISTS PostCategories;
 DROP TABLE IF EXISTS banners;
 DROP TABLE IF EXISTS SavedCartItems;
@@ -645,19 +643,6 @@ CREATE TABLE PostCategories (
 GO
 
 -- ============================================================
--- [23] BANG: PostTags  (PostTag.java)
--- ============================================================
-CREATE TABLE PostTags (
-    id       INT            IDENTITY(1,1)  NOT NULL,
-    tenTag   NVARCHAR(100)                 NOT NULL,
-    slug     NVARCHAR(300)                 NULL,
-
-    CONSTRAINT PK_PostTags PRIMARY KEY (id),
-    CONSTRAINT UQ_PostTags_Ten UNIQUE (tenTag)
-);
-GO
-
--- ============================================================
 -- [24] BANG: Posts  (Post.java)
 -- ============================================================
 -- Khac ban cu: danhMucId gio la FK toi PostCategories. Them metaDescription,
@@ -686,19 +671,6 @@ CREATE TABLE Posts (
     CONSTRAINT FK_Posts_DanhMuc   FOREIGN KEY (danhMucId)
         REFERENCES PostCategories(id) ON DELETE SET NULL,
     CONSTRAINT CK_Posts_TrangThai CHECK (trangThai IN ('NHAP','XUAT_BAN','AN'))
-);
-GO
-
--- ============================================================
--- [25] BANG: Post_Tags  (Post.tags @ManyToMany)
--- ============================================================
-CREATE TABLE Post_Tags (
-    postId  INT NOT NULL,
-    tagId   INT NOT NULL,
-
-    CONSTRAINT PK_Post_Tags PRIMARY KEY (postId, tagId),
-    CONSTRAINT FK_Post_Tags_Post FOREIGN KEY (postId) REFERENCES Posts(id) ON DELETE CASCADE,
-    CONSTRAINT FK_Post_Tags_Tag  FOREIGN KEY (tagId)  REFERENCES PostTags(id) ON DELETE CASCADE
 );
 GO
 
@@ -1149,7 +1121,7 @@ GO
 
 PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 31 (gom 3 bang join: role_permissions, user_roles, Post_Tags)';
+PRINT ' Tong so bang  : 30 (gom 2 bang join: role_permissions, user_roles)';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
 PRINT ' File nay thay the hoan toan cho:';
