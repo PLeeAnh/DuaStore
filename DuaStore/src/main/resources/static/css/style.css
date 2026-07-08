@@ -5717,6 +5717,9 @@ a {
     border-radius:16px;
     overflow:hidden;
 }
+.hero-banner-swiper .swiper-slide {
+    width: 100%;
+}
 .hero-banner-swiper .swiper-slide a {
     display:block;
 }
