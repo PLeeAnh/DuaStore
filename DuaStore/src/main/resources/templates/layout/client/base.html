@@ -83,7 +83,7 @@
                 </form>
 
                 <div class="position-relative d-inline-block ds-wishlist-wrap">
-    <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup')" title="Danh sách yêu thích" aria-label="Yêu thích">
+    <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup', true)" title="Danh sách yêu thích" aria-label="Yêu thích">
         <i class="bi bi-heart"></i>
         <span id="wishlistBadge" class="ds-wishlist-badge d-none">0</span>
     </button>
@@ -111,7 +111,7 @@
 
                 <!-- NÚT GIỎ HÀNG VÀ POPUP -->
 <div th:if="${themeSettings.get('header_cart') != '0'}" class="position-relative d-inline-block ds-cart-wrap">
-    <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup')" title="Giỏ hàng" aria-label="Giỏ hàng">
+    <button class="ds-icon-btn" id="btn-cart-toggle" onclick="togglePopup('cart-popup', true)" title="Giỏ hàng" aria-label="Giỏ hàng">
         <i class="bi bi-bag"></i>
         <span id="cartBadge" class="ds-cart-badge" th:classappend="${cartCount == null or cartCount == 0} ? 'd-none'" th:text="${cartCount != null and cartCount > 99} ? '99+' : (${cartCount != null} ? ${cartCount} : '0')">0</span>
     </button>
@@ -968,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<script th:src="@{/js/base-ui.js}"></script>
+<script th:src="@{/js/base-ui.js(v=2)}"></script>
 <div id="dsToast"
      class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
      style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>

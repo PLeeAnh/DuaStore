@@ -243,7 +243,8 @@ public class AdminOrderController {
                             "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
                             "ORDER", order.getId(),
                             "/tai-khoan/don-hang/" + order.getId(),
-                            order.getMaDon()
+                            order.getMaDon(),
+                            order.getUser() != null ? order.getUser().getId() : null
                     );
                 } catch (Exception ignored) {
                 }
@@ -304,7 +305,8 @@ public class AdminOrderController {
                             "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
                             "ORDER", order.getId(),
                             "/tai-khoan/don-hang/" + order.getId(),
-                            order.getMaDon()
+                            order.getMaDon(),
+                            order.getUser() != null ? order.getUser().getId() : null
                     );
                 } catch (Exception ignored) {
                 }
