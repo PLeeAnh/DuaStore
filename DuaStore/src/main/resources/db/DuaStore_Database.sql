@@ -1,0 +1,997 @@
+/*
+================================================================================
+ DuaStore_Database.sql
+ Script tao du lieu SQL Server cho du an DuaStore (Spring Boot)
+================================================================================
+ FIX SO VOI BAN CU:
+ Ban cu (viet tay) bi LECH voi @Entity trong code -> Hibernate "ddl-auto=validate"
+ bao loi khong khoi dong duoc app. Cac loi da sua trong ban nay:
+
+  1. THIEU BANG "RefundRequests" (entity RefundRequest.java) -> da them day du.
+  2. Toan bo cot kieu chuoi (ten, dia chi, ghi chu...) dang la NVARCHAR nhung
+     entity KHONG khai bao Unicode -> Hibernate doi VARCHAR. Da doi tat ca ve
+     VARCHAR de khop 100% voi entity (con cac cot that su can Unicode/text dai
+     nhu mo ta san pham, noi dung bai viet, ly do hoan tien... entity dung
+     @Lob/columnDefinition nen van la NVARCHAR(MAX), giu nguyen).
+  3. 3 bang "linked_accounts", "user_settings", "user_auth_providers" dat sai
+     ten cot kieu snake_case (user_id, created_at, setting_key...) trong khi
+     entity dung PhysicalNamingStrategyStandardImpl (khong tu convert) nen cot
+     that su phai la camelCase (userId, createdAt, settingKey...). Da sua.
+  4. Bang "roles" thieu cot "isActive" (co trong entity Role.java). Da them.
+  5. Bang "users" thieu 7 cot moi trong entity: hoTen, nickname, avatar,
+     emailVisible, phoneVisible, emailMarketing, status. Da them.
+  6. Bang "Addresses" thieu 2 cot GHN (ghnDistrictId, ghnWardCode). Da them.
+  7. Bang "FlashSales" thieu soLuongToiDa, soLuongDaBan. Da them.
+  8. Bang "order_items" thieu cot "loaiGia". Bang "order_notes" thieu "tag". Da them.
+  9. Cac cot NOT NULL (isActive, trangThai...) van giu DEFAULT (nhu ban cu) de
+     insert seed du lieu khong bi loi - Hibernate validate KHONG kiem tra
+     DEFAULT constraint nen an toan 100%.
+
+ File nay tu sinh tu schema.sql (Hibernate xuat truc tiep tu @Entity, dam bao
+ khop tuyet doi) + gop lai phan seed data / index / view huu ich cua ban cu.
+
+ QUAN TRONG: Neu sau nay ban SUA/THEM entity (@Column moi, doi kieu du lieu...),
+ file nay se LAI BI LECH. Luc do lam lai theo dung huong dan trong
+ application-ddlgen.properties (chay profile "ddlgen" de Hibernate tu xuat
+ schema.sql moi tu entity, roi generate lai script nay).
+
+ Tai khoan mac dinh sau khi seed: admin / admin@123 (vai tro SUPER_ADMIN)
+================================================================================
+*/
+
+-- ============================================================
+-- BUOC 0: TAO DATABASE (neu chua co)
+-- ============================================================
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'DuaStore')
+    CREATE DATABASE DuaStore;
+GO
+USE DuaStore;
+GO
+
+-- ============================================================
+-- BUOC 0.5: XOA BANG/VIEW CU (de chay lai script nhieu lan an toan)
+-- ============================================================
+DROP VIEW IF EXISTS vw_PostsPublished;
+DROP VIEW IF EXISTS vw_ProductPrice;
+DROP VIEW IF EXISTS vw_DoanhThu;
+GO
+DROP TABLE IF EXISTS RefundRequests;
+DROP TABLE IF EXISTS admin_action_logs;
+DROP TABLE IF EXISTS order_status_logs;
+DROP TABLE IF EXISTS order_notes;
+DROP TABLE IF EXISTS order_assignments;
+DROP TABLE IF EXISTS Notifications;
+DROP TABLE IF EXISTS UserVouchers;
+DROP TABLE IF EXISTS Wishlists;
+DROP TABLE IF EXISTS Posts;
+DROP TABLE IF EXISTS PostCategories;
+DROP TABLE IF EXISTS banners;
+DROP TABLE IF EXISTS SavedCartItems;
+DROP TABLE IF EXISTS CartItems;
+DROP TABLE IF EXISTS Reviews;
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS FlashSales;
+DROP TABLE IF EXISTS Promotions;
+DROP TABLE IF EXISTS Addresses;
+DROP TABLE IF EXISTS ProductVariants;
+DROP TABLE IF EXISTS ProductImages;
+DROP TABLE IF EXISTS Products;
+DROP TABLE IF EXISTS Categories;
+DROP TABLE IF EXISTS user_roles;
+DROP TABLE IF EXISTS role_permissions;
+DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS user_settings;
+DROP TABLE IF EXISTS linked_accounts;
+DROP TABLE IF EXISTS user_auth_providers;
+DROP TABLE IF EXISTS SiteSettings;
+DROP TABLE IF EXISTS store_info;
+DROP TABLE IF EXISTS users;
+GO
+
+-- ============================================================
+-- BUOC 1: TAO BANG (sinh tu Hibernate @Entity - khop 100% voi code)
+-- ============================================================
+    create table Addresses (
+        ghnDistrictId int,
+        id int identity not null,
+        isDefault bit default 0 not null,
+        latitude float(53),
+        longitude float(53),
+        userId int not null,
+        soDienThoai varchar(15) not null,
+        ghnWardCode varchar(20),
+        phuongXa varchar(100) not null,
+        quanHuyen varchar(100) not null,
+        tenNguoiNhan varchar(100) not null,
+        tinhThanh varchar(100) not null,
+        diaChiCuThe varchar(200) not null,
+        primary key (id)
+    );
+
+    create table admin_action_logs (
+        adminId int not null,
+        entityId int not null,
+        id int identity not null,
+        ngayTao datetime2(7) not null,
+        hanhDong varchar(50) not null,
+        ipAddress varchar(50),
+        loaiEntity varchar(50) not null,
+        giaTriCu nvarchar(max),
+        giaTriMoi nvarchar(max),
+        moTa nvarchar(max),
+        primary key (id)
+    );
+
+    create table banners (
+        active bit default 1 not null,
+        display_order int default 0 not null,
+        id int identity not null,
+        created_at datetime2(7) not null,
+        end_date datetime2(7),
+        start_date datetime2(7),
+        updated_at datetime2(7) not null,
+        title varchar(200) not null,
+        description varchar(500),
+        image_url varchar(500) not null,
+        link_url varchar(1000),
+        primary key (id)
+    );
+
+    create table CartItems (
+        giaLucThem numeric(12,0),
+        id int identity not null,
+        productId int not null,
+        soLuong int default 1 not null,
+        userId int not null,
+        variantId int not null,
+        ngayThem datetime2(7),
+        primary key (id)
+    );
+
+    create table Categories (
+        id int identity not null,
+        isActive bit default 1 not null,
+        parentId int,
+        thuTuHienThi int default 0,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7),
+        imageUrl varchar(500),
+        moTa varchar(255),
+        tenDanhMuc varchar(255) not null,
+        primary key (id)
+    );
+
+    create table FlashSales (
+        giaTriGiam numeric(5,2) not null,
+        id int identity not null,
+        isActive bit default 1 not null,
+        productId int not null,
+        soLuongDaBan int not null,
+        soLuongToiDa int not null,
+        ngayBatDau datetime2(7) not null,
+        ngayKetThuc datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table linked_accounts (
+        id int identity not null,
+        linkedUserId int not null,
+        userId int not null,
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table Notifications (
+        id int identity not null,
+        isActive bit default 1 not null,
+        linkId int,
+        userId int,
+        createdAt datetime2(7) not null,
+        linkType varchar(20),
+        targetRole varchar(20),
+        linkUrl varchar(500),
+        content NVARCHAR(MAX) not null,
+        linkLabel varchar(255),
+        primary key (id)
+    );
+
+    create table order_assignments (
+        adminId int not null,
+        id int identity not null,
+        orderId int not null,
+        ngayPhan datetime2(7) not null,
+        trangThai varchar(20),
+        primary key (id)
+    );
+
+    create table order_items (
+        donGia numeric(12,0) not null,
+        id int identity not null,
+        orderId int not null,
+        productId int,
+        soLuong int not null,
+        thanhTien numeric(12,0) not null,
+        variantId int,
+        loaiGia varchar(20),
+        tenBienThe varchar(150),
+        tenSanPham varchar(200) not null,
+        hinhAnhSP varchar(255),
+        primary key (id)
+    );
+
+    create table order_notes (
+        admin_id int not null,
+        id int identity not null,
+        order_id int not null,
+        ngayTao datetime2(7) not null,
+        tag varchar(50),
+        noiDung varchar(1000) not null,
+        primary key (id)
+    );
+
+    create table order_status_logs (
+        id int identity not null,
+        nguoi_thuc_hien_id int,
+        order_id int not null,
+        thoi_gian datetime2(7) not null,
+        loai_su_kien varchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
+        trang_thai_cu varchar(50),
+        trang_thai_moi varchar(50),
+        ghiChu varchar(500),
+        primary key (id)
+    );
+
+    create table orders (
+        addressId int,
+        id int identity not null,
+        phiVanChuyen numeric(10,0) default 0 not null,
+        promotionId int,
+        tienGiam numeric(10,0) default 0 not null,
+        tienHang numeric(12,0) not null,
+        tongThanhToan numeric(12,0) not null,
+        userId int not null,
+        ngayCapNhat datetime2(7),
+        ngayDat datetime2(7) not null,
+        snapSoDienThoai varchar(15) not null,
+        maDon varchar(20) not null,
+        phuongThucGiaoHang varchar(20) default 'SHIP' not null,
+        phuongThucTT varchar(20) not null,
+        trangThaiDon varchar(20) default 'CHO_XAC_NHAN' not null,
+        trangThaiTT varchar(25) default 'CHUA_THANH_TOAN' not null,
+        maVanDon varchar(50),
+        snapTenNguoiNhan varchar(100) not null,
+        ghiChu varchar(500),
+        snapDiaChi varchar(500) not null,
+        primary key (id)
+    );
+
+    create table permissions (
+        id int identity not null,
+        ngayTao datetime2(7) not null,
+        action varchar(50) not null,
+        module varchar(50) not null,
+        moTa varchar(200),
+        primary key (id)
+    );
+
+    create table PostCategories (
+        id int identity not null,
+        thuTu int default 0,
+        ngayTao datetime2(7) not null,
+        tenDanhMuc varchar(200) not null,
+        slug varchar(300),
+        moTa varchar(500),
+        primary key (id)
+    );
+
+    create table Posts (
+        danhMucId int,
+        id int identity not null,
+        isFeatured bit default 0,
+        luotXem int default 0 not null,
+        tacGiaId int,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7) not null,
+        ngayXuatBan datetime2(7),
+        trangThai varchar(15) default 'NHAP' not null,
+        tieuDe varchar(300) not null,
+        metaDescription varchar(500),
+        slug varchar(500),
+        tomTat varchar(500),
+        hinhAnh varchar(255),
+        noiDung NVARCHAR(MAX),
+        primary key (id)
+    );
+
+    create table ProductImages (
+        id int identity not null,
+        isActive bit default 1 not null,
+        productId int not null,
+        sortOrder int default 0,
+        createdAt datetime2(7),
+        imageUrl varchar(255) not null,
+        primary key (id)
+    );
+
+    create table Products (
+        danhMucId int not null,
+        id int identity not null,
+        isActive bit default 1 not null,
+        isFeatured bit default 0 not null,
+        leadTimeDays int,
+        ngayPhatHanh date,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7),
+        chatLieu varchar(255),
+        hinhAnhChinh varchar(255),
+        hinhDang varchar(255),
+        kinhLoai varchar(255),
+        moTa NVARCHAR(MAX),
+        mucDichSuDung varchar(255),
+        tenSanPham varchar(255) not null,
+        thuongHieu varchar(255),
+        trangThaiSanPham varchar(255) default 'DANG_BAN' not null,
+        xuatXu varchar(255),
+        primary key (id)
+    );
+
+    create table ProductVariants (
+        dungTich int,
+        giaGoc numeric(12,0) not null,
+        giaKhuyenMai numeric(12,0),
+        id int identity not null,
+        isActive bit default 1 not null,
+        isDefault bit default 0 not null,
+        productId int not null,
+        soLuongTon int default 0 not null,
+        hinhAnh varchar(255),
+        tenBienThe varchar(255) not null,
+        primary key (id)
+    );
+
+    create table Promotions (
+        budget numeric(12,0),
+        daDung int default 0 not null,
+        donHangToiThieu numeric(12,0) default 0 not null,
+        giaTriGiam numeric(10,2) not null,
+        giamToiDa numeric(12,0),
+        id int identity not null,
+        isActive bit default 1 not null,
+        maxClaims int,
+        maxClaimsPerUser int,
+        priority int default 0,
+        savedCount int default 0,
+        soLanDung int,
+        stackable bit default 0,
+        usedBudget numeric(12,0) default 0,
+        denNgay datetime2(7) not null,
+        tuNgay datetime2(7) not null,
+        loaiGiam varchar(15) not null,
+        targetType varchar(20),
+        voucherType varchar(20) check ((voucherType in ('VOUCHER','FREESHIP','MEMBER','BIRTHDAY'))) default 'VOUCHER',
+        maCode varchar(50) not null,
+        tenChuongTrinh varchar(200) not null,
+        targetIds varchar(500),
+        primary key (id)
+    );
+
+    create table RefundRequests (
+        id int identity not null,
+        nguoiXuLyId int,
+        orderId int not null,
+        soTienHoan numeric(18,2) not null,
+        userId int not null,
+        ngayXuLy datetime2(7),
+        ngayYeuCau datetime2(7) not null,
+        lydo varchar(2000) not null,
+        anhMinhChung varchar(255),
+        ghiChuXuLy varchar(255),
+        phuongThucHoan varchar(255),
+        trangThai varchar(255) not null,
+        primary key (id)
+    );
+
+    create table Reviews (
+        danhGia int not null,
+        id int identity not null,
+        isApproved bit default 0 not null,
+        productId int not null,
+        userId int not null,
+        ngayTao datetime2(7) not null,
+        hinhAnh varchar(500),
+        binhLuan varchar(1000),
+        primary key (id)
+    );
+
+    create table role_permissions (
+        permission_id int not null,
+        role_id int not null,
+        primary key (permission_id, role_id)
+    );
+
+    create table roles (
+        id int identity not null,
+        isActive bit default 1 not null,
+        ngayTao datetime2(7) not null,
+        name varchar(50) not null,
+        moTa varchar(200),
+        primary key (id)
+    );
+
+    create table SavedCartItems (
+        giaLuu numeric(38,2) not null,
+        id int identity not null,
+        productId int not null,
+        soLuong int default 1 not null,
+        userId int not null,
+        variantId int not null,
+        ngayLuu datetime2(7),
+        primary key (id)
+    );
+
+    create table SiteSettings (
+        id int identity not null,
+        createdAt datetime2(7),
+        updatedAt datetime2(7),
+        settingGroup varchar(50),
+        settingKey varchar(100) not null,
+        settingValue NVARCHAR(MAX),
+        primary key (id)
+    );
+
+    create table store_info (
+        id int identity not null,
+        isActive bit default 1 not null,
+        isDefault bit default 0 not null,
+        latitude float(53),
+        longitude float(53),
+        createdAt datetime2(7),
+        updatedAt datetime2(7),
+        soDienThoai varchar(20),
+        email varchar(100),
+        phuongXa varchar(100),
+        quanHuyen varchar(100),
+        soNha varchar(100),
+        tinhThanh varchar(100),
+        duong varchar(200),
+        tenCuaHang varchar(200) not null,
+        primary key (id)
+    );
+
+    create table user_auth_providers (
+        id int identity not null,
+        userId int not null,
+        linkedAt datetime2(7) not null,
+        provider varchar(20) not null,
+        provider_sub varchar(255),
+        primary key (id)
+    );
+
+    create table user_roles (
+        role_id int not null,
+        user_id int not null,
+        primary key (role_id, user_id)
+    );
+
+    create table user_settings (
+        userId int not null,
+        settingKey varchar(50) not null,
+        settingValue varchar(500),
+        primary key (userId, settingKey)
+    );
+
+    create table users (
+        emailMarketing bit,
+        emailVisible bit,
+        id int identity not null,
+        isActive bit default 1 not null,
+        phoneVisible bit,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7) not null,
+        resetTokenExpiry datetime2(7),
+        soDienThoai varchar(15),
+        status varchar(20),
+        username varchar(50) not null,
+        email varchar(100) not null,
+        hoTen varchar(100) not null,
+        nickname varchar(100),
+        avatar varchar(255),
+        password varchar(255) not null,
+        resetToken varchar(255),
+        primary key (id)
+    );
+
+    create table UserVouchers (
+        id int identity not null,
+        promotionId int not null,
+        remainingUses int,
+        totalSaved numeric(38,2),
+        userId int not null,
+        expiredAt datetime2(7),
+        savedAt datetime2(7) not null,
+        usedAt datetime2(7),
+        status varchar(15) default 'AVAILABLE' not null check ((status in ('AVAILABLE','USED','EXPIRED'))),
+        voucherCode varchar(50),
+        primary key (id)
+    );
+
+    create table Wishlists (
+        id int identity not null,
+        productId int not null,
+        userId int not null,
+        ngayThem datetime2(7),
+        primary key (id)
+    );
+GO
+
+-- ============================================================
+-- BUOC 2: KHOA NGOAI (FOREIGN KEY) - sinh tu Hibernate @Entity
+-- ============================================================
+    alter table orders 
+       add constraint UKkdjgqq60gdh45821e0iqp357q unique (maDon);
+
+    alter table Promotions 
+       add constraint UKjb4yn746ot7vi7ltwkoggcyik unique (maCode);
+
+    alter table roles 
+       add constraint UKofx66keruapi6vyqpv6f2or37 unique (name);
+
+    alter table SiteSettings 
+       add constraint UK6fllodnub8qh92fkirlt3rjhr unique (settingKey);
+
+    alter table users 
+       add constraint UKr43af9ap4edm43mmtq01oddj6 unique (username);
+
+    alter table users 
+       add constraint UK6dotkott2kjsp8vw4d0m25fb7 unique (email);
+
+    alter table UserVouchers 
+       add constraint UKg1q4hrfehhwey62vcyt9tj3ge unique (userId, promotionId);
+
+    alter table Wishlists 
+       add constraint UKnyiaslokuixrb7h9fpmo6j4nc unique (userId, productId);
+
+    alter table admin_action_logs 
+       add constraint FKb2noouv518ekq5ffcxosgdj4g 
+       foreign key (adminId) 
+       references users;
+
+    alter table CartItems 
+       add constraint FK3j8oshhm6rclt8i57qr0lesxb 
+       foreign key (productId) 
+       references Products;
+
+    alter table CartItems 
+       add constraint FKqdx0vb6alnqltskjqw8nhpl9n 
+       foreign key (variantId) 
+       references ProductVariants;
+
+    alter table Categories 
+       add constraint FKom1a8i2mg4xhf6ktacsh1vogp 
+       foreign key (parentId) 
+       references Categories;
+
+    alter table order_assignments 
+       add constraint FKd32o2ndn8s6dv1i1yajxao80a 
+       foreign key (adminId) 
+       references users;
+
+    alter table order_assignments 
+       add constraint FKcm6mruj1t58wjglpnfsd6xgcd 
+       foreign key (orderId) 
+       references orders;
+
+    alter table order_items 
+       add constraint FK5dledqxrq55xmpqy9fr4cpbsu 
+       foreign key (orderId) 
+       references orders;
+
+    alter table order_notes 
+       add constraint FKov5hr2bsjgqbc4mgc40bmdoin 
+       foreign key (admin_id) 
+       references users;
+
+    alter table order_notes 
+       add constraint FKgl7kbn92v2whrvmco2ygu3cdt 
+       foreign key (order_id) 
+       references orders;
+
+    alter table order_status_logs 
+       add constraint FKmr8kbxx88motp36uk5jqlwwi2 
+       foreign key (nguoi_thuc_hien_id) 
+       references users;
+
+    alter table order_status_logs 
+       add constraint FKpoehv8fptppd81oysnw7l44by 
+       foreign key (order_id) 
+       references orders;
+
+    alter table orders 
+       add constraint FKg960mua4eodibuhrm6gokmn6i 
+       foreign key (promotionId) 
+       references Promotions;
+
+    alter table orders 
+       add constraint FK6co8q7ko456baksb6tdjq2dfv 
+       foreign key (userId) 
+       references users;
+
+    alter table Posts 
+       add constraint FKh5leuxac6k9g6eh7i8tjuhfp1 
+       foreign key (danhMucId) 
+       references PostCategories;
+
+    alter table ProductImages 
+       add constraint FK3bsgj9dw8f36hb7p8s3c8sj96 
+       foreign key (productId) 
+       references Products;
+
+    alter table ProductVariants 
+       add constraint FKnrqu92gwc9ue8usxv9dov5cn7 
+       foreign key (productId) 
+       references Products;
+
+    alter table role_permissions 
+       add constraint FKegdk29eiy7mdtefy5c7eirr6e 
+       foreign key (permission_id) 
+       references permissions;
+
+    alter table role_permissions 
+       add constraint FKn5fotdgk8d1xvo8nav9uv3muc 
+       foreign key (role_id) 
+       references roles;
+
+    alter table SavedCartItems 
+       add constraint FKgy3yiei9ahvjudjm37tp11ll5 
+       foreign key (productId) 
+       references Products;
+
+    alter table SavedCartItems 
+       add constraint FKsx0f2p008q6e0pwb9bipq8opu 
+       foreign key (variantId) 
+       references ProductVariants;
+
+    alter table user_roles 
+       add constraint FKh8ciramu9cc9q3qcqiv4ue8a6 
+       foreign key (role_id) 
+       references roles;
+
+    alter table user_roles 
+       add constraint FKhfh9dx7w3ubf1co1vdev94g3f 
+       foreign key (user_id) 
+       references users;
+
+    alter table UserVouchers 
+       add constraint FK78mpv1easxbi2d20hfixypd82 
+       foreign key (promotionId) 
+       references Promotions;
+
+    alter table Wishlists 
+       add constraint FKl8me5k171y8fskc8x4r5ht3nc 
+       foreign key (productId) 
+       references Products;
+GO
+
+-- ============================================================
+-- BUOC 3: INDEX HO TRO TRUY VAN NHANH
+-- ============================================================
+CREATE INDEX IX_Products_DanhMuc      ON Products        (danhMucId, isActive);
+CREATE INDEX IX_Products_TrangThai    ON Products        (trangThaiSanPham, isActive);
+CREATE INDEX IX_Products_MucDich      ON Products        (mucDichSuDung, isActive);
+CREATE INDEX IX_Products_Featured     ON Products        (isFeatured, isActive);
+CREATE INDEX IX_banners_ActiveOrder   ON banners         (active, display_order, start_date, end_date);
+CREATE INDEX IX_Variants_DungTich     ON ProductVariants (productId, dungTich, isActive);
+CREATE INDEX IX_Variants_Default      ON ProductVariants (productId, isDefault);
+CREATE INDEX IX_orders_User           ON orders          (userId, ngayDat DESC);
+CREATE INDEX IX_orders_TrangThai      ON orders          (trangThaiDon, trangThaiTT);
+CREATE INDEX IX_CartItems_User        ON CartItems       (userId);
+CREATE INDEX IX_Wishlists_User        ON Wishlists       (userId);
+CREATE INDEX IX_Reviews_Product       ON Reviews         (productId, isApproved);
+CREATE INDEX IX_ProductImages_Product ON ProductImages   (productId, isActive);
+CREATE INDEX IX_order_items_ProductUser ON order_items   (productId, orderId) INCLUDE (soLuong);
+CREATE INDEX IX_Posts_TrangThai       ON Posts           (trangThai, ngayTao DESC);
+CREATE INDEX idx_promotions_active_dates    ON Promotions   (isActive, tuNgay, denNgay);
+CREATE INDEX idx_user_vouchers_user_status  ON UserVouchers (userId, status);
+CREATE INDEX idx_user_vouchers_expired_at   ON UserVouchers (expiredAt);
+CREATE INDEX idx_user_vouchers_promotion_id ON UserVouchers (promotionId);
+CREATE INDEX idx_promotions_code            ON Promotions   (maCode);
+GO
+
+-- ============================================================
+-- BUOC 4: SEED DU LIEU MAU
+-- ============================================================
+-- SEED: RBAC (roles / permissions / role_permissions / user_roles)
+-- ============================================================
+-- Danh sach permission khop CHINH XAC voi PermissionEnum.java trong code.
+-- ============================================================
+INSERT INTO roles (name, moTa, ngayTao) VALUES
+    (N'SUPER_ADMIN', N'Toan quyen he thong (bypass moi kiem tra quyen)', GETDATE()),
+    (N'ADMIN',       N'Quan tri vien duoc gan quyen cu the', GETDATE()),
+    (N'USER',        N'Khach hang', GETDATE());
+GO
+
+INSERT INTO permissions (module, action, moTa, ngayTao) VALUES
+    (N'DASHBOARD', N'READ', N'Xem trang tong quan', GETDATE()),
+    (N'PRODUCT', N'CREATE', N'Them san pham', GETDATE()),
+    (N'PRODUCT', N'READ',   N'Xem san pham', GETDATE()),
+    (N'PRODUCT', N'UPDATE', N'Sua san pham', GETDATE()),
+    (N'PRODUCT', N'DELETE', N'Xoa san pham', GETDATE()),
+    (N'ORDER', N'READ',   N'Xem don hang', GETDATE()),
+    (N'ORDER', N'UPDATE', N'Cap nhat don hang', GETDATE()),
+    (N'USER', N'READ',   N'Xem nguoi dung', GETDATE()),
+    (N'USER', N'UPDATE', N'Sua nguoi dung', GETDATE()),
+    (N'CATEGORY', N'CREATE', N'Them danh muc', GETDATE()),
+    (N'CATEGORY', N'READ',   N'Xem danh muc', GETDATE()),
+    (N'CATEGORY', N'UPDATE', N'Sua danh muc', GETDATE()),
+    (N'CATEGORY', N'DELETE', N'Xoa danh muc', GETDATE()),
+    (N'PROMOTION', N'CREATE', N'Them khuyen mai', GETDATE()),
+    (N'PROMOTION', N'READ',   N'Xem khuyen mai', GETDATE()),
+    (N'PROMOTION', N'UPDATE', N'Sua khuyen mai', GETDATE()),
+    (N'PROMOTION', N'DELETE', N'Xoa khuyen mai', GETDATE()),
+    (N'REVIEW', N'READ',    N'Xem danh gia', GETDATE()),
+    (N'REVIEW', N'APPROVE', N'Duyet danh gia', GETDATE()),
+    (N'REVIEW', N'HIDE',    N'An danh gia', GETDATE()),
+    (N'REVIEW', N'DELETE',  N'Xoa danh gia', GETDATE()),
+    (N'POST', N'CREATE', N'Them bai viet', GETDATE()),
+    (N'POST', N'READ',   N'Xem bai viet', GETDATE()),
+    (N'POST', N'UPDATE', N'Sua bai viet', GETDATE()),
+    (N'POST', N'DELETE', N'Xoa bai viet', GETDATE()),
+    (N'VARIANT', N'CREATE', N'Them bien the', GETDATE()),
+    (N'VARIANT', N'READ',   N'Xem bien the', GETDATE()),
+    (N'VARIANT', N'UPDATE', N'Sua bien the', GETDATE()),
+    (N'VARIANT', N'DELETE', N'Xoa bien the', GETDATE()),
+    (N'ROLE', N'CREATE', N'Them vai tro', GETDATE()),
+    (N'ROLE', N'READ',   N'Xem vai tro', GETDATE()),
+    (N'ROLE', N'UPDATE', N'Sua vai tro', GETDATE()),
+    (N'ROLE', N'DELETE', N'Xoa vai tro', GETDATE()),
+    (N'NOTIFICATION', N'CREATE', N'Tao thong bao', GETDATE()),
+    (N'NOTIFICATION', N'READ',   N'Xem thong bao', GETDATE()),
+    (N'NOTIFICATION', N'UPDATE', N'Sua thong bao', GETDATE()),
+    (N'NOTIFICATION', N'DELETE', N'Xoa thong bao', GETDATE()),
+    (N'AUDIT_LOG', N'READ', N'Xem nhat ky he thong', GETDATE()),
+    (N'STORE', N'CREATE', N'Them dia chi cua hang', GETDATE()),
+    (N'STORE', N'READ',   N'Xem dia chi cua hang', GETDATE()),
+    (N'STORE', N'UPDATE', N'Sua dia chi cua hang', GETDATE()),
+    (N'STORE', N'DELETE', N'Xoa dia chi cua hang', GETDATE()),
+    (N'BANNER', N'CREATE', N'Them banner', GETDATE()),
+    (N'BANNER', N'READ',   N'Xem banner', GETDATE()),
+    (N'BANNER', N'UPDATE', N'Sua banner', GETDATE()),
+    (N'BANNER', N'DELETE', N'Xoa banner', GETDATE()),
+    (N'CUSTOMER', N'READ',   N'Xem khach hang', GETDATE()),
+    (N'CUSTOMER', N'UPDATE', N'Sua khach hang', GETDATE()),
+    (N'HOMEPAGE', N'READ',   N'Xem cau hinh trang chu', GETDATE()),
+    (N'HOMEPAGE', N'UPDATE', N'Sua cau hinh trang chu', GETDATE()),
+    (N'APPEARANCE', N'READ',   N'Xem giao dien', GETDATE()),
+    (N'APPEARANCE', N'UPDATE', N'Sua giao dien', GETDATE()),
+    (N'ANALYTICS', N'READ', N'Xem phan tich', GETDATE()),
+    (N'EMAIL_SETTING', N'READ',   N'Xem cau hinh email', GETDATE()),
+    (N'EMAIL_SETTING', N'UPDATE', N'Sua cau hinh email', GETDATE()),
+    (N'PAYMENT_SETTING', N'READ',   N'Xem cau hinh thanh toan', GETDATE()),
+    (N'PAYMENT_SETTING', N'UPDATE', N'Sua cau hinh thanh toan', GETDATE()),
+    (N'SHIPPING_SETTING', N'READ',   N'Xem cau hinh van chuyen', GETDATE()),
+    (N'SHIPPING_SETTING', N'UPDATE', N'Sua cau hinh van chuyen', GETDATE());
+GO
+
+-- ADMIN (vai tro thuong, khong bypass) duoc gan TOAN BO permission ben tren
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT (SELECT id FROM roles WHERE name = N'ADMIN'), id FROM permissions;
+GO
+
+-- Tai khoan mac dinh
+-- Mat khau "admin@123" - hash BCrypt duoi day DA duoc verify thuc te (bcrypt.checkpw)
+INSERT INTO users (username, email, password, hoTen, soDienThoai, isActive, ngayTao) VALUES
+    ('admin', 'admin@duastore.vn',
+     '$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO',
+     N'Quan Tri Vien', '0901234567', 1, GETDATE());
+INSERT INTO users (username, email, password, hoTen, soDienThoai, isActive, ngayTao) VALUES
+    ('nguyenvan', 'nguyen@gmail.com',
+     '$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO',
+     N'Nguyen Van An', '0912345678', 1, GETDATE());
+GO
+
+-- Gan vai tro: admin -> SUPER_ADMIN (toan quyen), nguyenvan -> USER
+INSERT INTO user_roles (user_id, role_id) VALUES
+    ((SELECT id FROM users WHERE username = 'admin'),     (SELECT id FROM roles WHERE name = N'SUPER_ADMIN')),
+    ((SELECT id FROM users WHERE username = 'nguyenvan'), (SELECT id FROM roles WHERE name = N'USER'));
+GO
+
+-- Seed: mac dinh moi user co phuong thuc dang nhap PASSWORD
+INSERT INTO user_auth_providers (userId, provider, linkedAt)
+SELECT id, 'PASSWORD', ngayTao FROM users;
+GO
+
+-- ============================================================
+-- SEED: Danh muc + San pham mau
+-- ============================================================
+INSERT INTO Categories (tenDanhMuc, moTa, thuTuHienThi) VALUES
+    (N'Chai Thuy Tinh',  N'Cac loai chai thuy tinh dung ruou, nuoc hoa, thuc pham', 1),
+    (N'Hu Thuy Tinh',    N'Hu dung do kho, thuc pham, gia vi',                      2),
+    (N'Binh Trang Tri',  N'Binh hoa, binh decor, trung bay nha cua',               3),
+    (N'Ly & Coc',        N'Cac loai ly coc thuy tinh cao cap',                      4),
+    (N'Qua Tang',        N'Bo set qua tang thuy tinh sang trong',                   5);
+
+INSERT INTO Categories (tenDanhMuc, parentId, thuTuHienThi) VALUES
+    (N'Chai Ruou',    1, 1), (N'Chai Nuoc Hoa', 1, 2), (N'Chai Thuc Pham', 1, 3),
+    (N'Binh Hoa',     3, 1), (N'Binh Decor',    3, 2),
+    (N'Ly Ruou Vang', 4, 1), (N'Ly Whisky',     4, 2), (N'Ly Nuoc',       4, 3),
+    (N'Ly Champagne', 4, 4), (N'Ly Highball',   4, 5);
+GO
+
+INSERT INTO Products (tenSanPham, moTa, chatLieu, xuatXu, mucDichSuDung, danhMucId, trangThaiSanPham, isFeatured) VALUES
+    (N'Chai Thuy Tinh Dung Ruou Tron',
+     N'Chai thuy tinh hinh tron, mieng rong, phu hop dung ruou, nuoc ep, siro. Chat lieu thuy tinh trong suot, an toan thuc pham.',
+     N'Thuy tinh trong suot', N'Viet Nam', N'Dung do uong', 6, 'DANG_BAN', 1),
+    (N'Chai Thuy Tinh Vuong Co Lenh',
+     N'Chai hinh vuong co lenh, thiet ke sang trong, dung ruou vang, nuoc hoa cao cap.',
+     N'Thuy tinh trong suot', N'Viet Nam', N'Dung do uong', 6, 'DANG_BAN', 1),
+    (N'Binh Hoa Pha Le Cat Canh',
+     N'Binh cam hoa pha le cat canh thu cong, sang trong, la qua tang y nghia cho dip sinh nhat, cuoi hoi.',
+     N'Pha le cat canh', N'Chau Au', N'Trang tri', 9, 'DANG_BAN', 1),
+    (N'Ly Ruou Vang Pha Le Bohemia',
+     N'Ly ruou vang pha le Bohemia chinh hang, trong suot tuyet doi, thanh lich. Nha may Bohemia - Sec.',
+     N'Pha le Bohemia', N'Sec', N'Dung do uong', 11, 'DANG_BAN', 1),
+    (N'Ly Highball Thuy Tinh Cao Cap',
+     N'Ly Highball thuy tinh cao, thanh mong, phu hop pha cocktail, nuoc co ga, whisky on the rocks.',
+     N'Thuy tinh cuong luc', N'Viet Nam', N'Dung do uong', 15, 'DANG_BAN', 0),
+    (N'Binh Pha Le Pasabahce Nhap Khau',
+     N'Binh pha le cao cap nhap khau tu Tho Nhi Ky, thuong hieu Pasabahce. Dat truoc 7-10 ngay lam viec.',
+     N'Pha le cao cap', N'Tho Nhi Ky', N'Trang tri', 9, 'DAT_TRUOC', 1);
+
+UPDATE Products SET leadTimeDays = 10 WHERE tenSanPham LIKE N'%Pasabahce%';
+GO
+
+INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
+    (1, N'50ml - Nap Go',    50,  15000, NULL,  20, N'/uploads/chai-tron-50ml-nap-go.jpg',    0),
+    (1, N'50ml - Nap Nhua',  50,  13000, NULL,  15, N'/uploads/chai-tron-50ml-nap-nhua.jpg',  0),
+    (1, N'100ml - Nap Go',  100,  23000, NULL,  50, N'/uploads/chai-tron-100ml-nap-go.jpg',   1),
+    (1, N'100ml - Nap Nhua',100,  20000, NULL,  40, N'/uploads/chai-tron-100ml-nap-nhua.jpg', 0),
+    (1, N'250ml - Nap Go',  250,  38000, 34000, 30, N'/uploads/chai-tron-250ml-nap-go.jpg',   0),
+    (1, N'250ml - Nap Nhua',250,  32000, NULL,  25, N'/uploads/chai-tron-250ml-nap-nhua.jpg', 0),
+    (1, N'500ml - Nap Go',  500,  55000, 50000,  0, N'/uploads/chai-tron-500ml-nap-go.jpg',   0),
+    (1, N'500ml - Nap Nhua',500,  48000, NULL,  15, N'/uploads/chai-tron-500ml-nap-nhua.jpg', 0),
+    (1, N'750ml - Nap Go',  750,  72000, NULL,  10, N'/uploads/chai-tron-750ml-nap-go.jpg',   0),
+    (1, N'750ml - Nap Nhua',750,  65000, NULL,   8, N'/uploads/chai-tron-750ml-nap-nhua.jpg', 0);
+
+INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
+    (2, N'250ml - Nap Bac', 250, 25000, NULL,  35, N'/uploads/chai-vuong-250ml-nap-bac.jpg', 1),
+    (2, N'500ml - Nap Bac', 500, 42000, NULL,  20, N'/uploads/chai-vuong-500ml-nap-bac.jpg', 0),
+    (2, N'750ml - Nap Bac', 750, 68000, 60000, 12, N'/uploads/chai-vuong-750ml-nap-bac.jpg', 0);
+
+INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
+    (3, N'Trong suot - Cao 25cm',  NULL, 450000, NULL,   15, N'/uploads/binh-hoa-trong-25cm.jpg',  1),
+    (3, N'Xanh cobalt - Cao 25cm', NULL, 520000, 480000,  8, N'/uploads/binh-hoa-cobalt-25cm.jpg', 0),
+    (3, N'Nau khoi - Cao 25cm',    NULL, 490000, NULL,   10, N'/uploads/binh-hoa-nau-25cm.jpg',    0),
+    (3, N'Trong suot - Cao 35cm',  NULL, 620000, NULL,    6, N'/uploads/binh-hoa-trong-35cm.jpg',  0);
+
+INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
+    (4, N'200ml - Don chiec', NULL,  84000, NULL,   56, N'/uploads/ly-vang-200ml-don.jpg',  1),
+    (4, N'350ml - Don chiec', NULL, 105000,  95000, 22, N'/uploads/ly-vang-350ml-don.jpg',  0),
+    (4, N'Bo 6 cai - 200ml',  NULL, 480000, 430000, 15, N'/uploads/ly-vang-200ml-bo6.jpg',  0),
+    (4, N'Bo 6 cai - 350ml',  NULL, 600000, 550000,  8, N'/uploads/ly-vang-350ml-bo6.jpg',  0);
+
+INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
+    (5, N'300ml - Don chiec', 300,  35000, NULL,   80, N'/uploads/ly-highball-300ml.jpg', 1),
+    (5, N'450ml - Don chiec', 450,  45000,  40000, 60, N'/uploads/ly-highball-450ml.jpg', 0),
+    (5, N'Bo 6 cai - 300ml',  300, 195000, 175000, 20, N'/uploads/ly-highball-bo6.jpg',   0);
+
+INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
+    (6, N'500ml - Pha le trang', 500, 850000, NULL,   0, N'/uploads/pasabahce-500ml.jpg', 1),
+    (6, N'750ml - Pha le trang', 750, 980000, 890000, 0, N'/uploads/pasabahce-750ml.jpg', 0);
+GO
+
+INSERT INTO Addresses (userId, tenNguoiNhan, soDienThoai, tinhThanh, quanHuyen, phuongXa, diaChiCuThe, isDefault) VALUES
+    (2, N'Nguyen Van An', '0912345678', N'Hai Phong', N'Ngo Quyen', N'May To', N'123 Tran Hung Dao', 1);
+
+INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToiThieu, giamToiDa, soLanDung, tuNgay, denNgay) VALUES
+    ('KHAIHANG', N'Khai truong DuaStore Hai Phong', 'PHAN_TRAM', 15, 200000, 100000, 200, '2026-01-01', '2026-12-31'),
+    ('FREESHIP',  N'Mien phi van chuyen don tu 500k', 'SO_TIEN',  30000, 500000, NULL, NULL, '2026-01-01', '2026-12-31'),
+    ('DECO50K',   N'Giam 50k don tu 300k',           'SO_TIEN',  50000, 300000, NULL,  100, '2026-01-01', '2026-12-31');
+
+INSERT INTO orders (maDon, userId, addressId, snapTenNguoiNhan, snapSoDienThoai, snapDiaChi,
+    tienHang, phiVanChuyen, tienGiam, tongThanhToan,
+    phuongThucTT, phuongThucGiaoHang, trangThaiTT, trangThaiDon, promotionId, ngayDat) VALUES
+    ('DUA-20260001', 2, 1, N'Nguyen Van An', '0912345678',
+     N'123 Tran Hung Dao, May To, Ngo Quyen, Hai Phong',
+     354000, 30000, 30000, 354000, 'CHUYEN_KHOAN', 'SHIP', 'CHUA_THANH_TOAN', 'CHO_XAC_NHAN', 2, GETDATE());
+
+INSERT INTO order_items (orderId, productId, variantId, tenSanPham, tenBienThe, hinhAnhSP, donGia, soLuong, thanhTien) VALUES
+    (1, 1,  3, N'Chai Thuy Tinh Dung Ruou Tron', N'100ml - Nap Go',    N'/uploads/chai-tron-100ml-nap-go.jpg',  23000, 2,  46000),
+    (1, 4, 14, N'Ly Ruou Vang Pha Le Bohemia',   N'200ml - Don chiec', N'/uploads/ly-vang-200ml-don.jpg',       84000, 3, 252000),
+    (1, 5, 18, N'Ly Highball Thuy Tinh Cao Cap',  N'300ml - Don chiec', N'/uploads/ly-highball-300ml.jpg',       35000, 1,  35000);
+
+INSERT INTO PostCategories (tenDanhMuc, moTa, thuTu, ngayTao) VALUES
+    (N'Huong Dan', N'Cac bai huong dan chon va bao quan do thuy tinh', 1, GETDATE()),
+    (N'Xu Huong',  N'Xu huong trang tri va qua tang', 2, GETDATE());
+
+INSERT INTO Posts (tieuDe, tomTat, noiDung, tacGiaId, danhMucId, trangThai, ngayTao, ngayCapNhat) VALUES
+    (N'Huong dan chon chai thuy tinh theo muc dich su dung',
+     N'Phan biet chai dung ruou, nuoc hoa, thuc pham - diem khac biet ve mieng chai, kieu nap va chat lieu.',
+     N'<p>Noi dung huong dan day du...</p>', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
+    (N'Uu diem cua thuy tinh Borosilicate so voi thuy tinh thuong',
+     N'Tai sao thuy tinh Borosilicate lai duoc ua chuong trong nganh thuc pham va duoc pham?',
+     N'<p>Noi dung bai viet...</p>', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
+    (N'Top 5 mau binh trang tri duoc ua chuong nhat nam nay',
+     N'Khao sat xu huong thi truong binh thuy tinh va pha le trang tri.',
+     N'<p>Noi dung bai viet...</p>', 1, 2, 'NHAP', GETDATE(), GETDATE());
+
+INSERT INTO Wishlists (userId, productId, ngayThem) VALUES
+    (2, 3, GETDATE()),
+    (2, 4, GETDATE());
+
+INSERT INTO banners (title, image_url, link_url, active, display_order, description, created_at, updated_at)
+VALUES (N'Banner DuaStore', N'/images/Banner 1 DuaStore.jpg', N'/san-pham', 1, 0,
+        N'Banner chinh tren trang chu DuaStore', GETDATE(), GETDATE());
+
+INSERT INTO store_info (tenCuaHang, soNha, duong, phuongXa, quanHuyen, tinhThanh, soDienThoai, email, isActive, isDefault, createdAt, updatedAt)
+VALUES (N'DuaStore Hai Phong', N'123', N'Tran Hung Dao', N'May To', N'Ngo Quyen', N'Hai Phong',
+        '0225.123.4567', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
+GO
+
+PRINT 'Seed du lieu co ban hoan tat!';
+GO
+
+
+GO
+
+-- ============================================================
+-- BUOC 5: VIEW HO TRO
+-- ============================================================
+CREATE VIEW vw_DoanhThu AS
+SELECT
+    CAST(ngayDat AS DATE)      AS ngay,
+    DATEPART(WEEK,  ngayDat)   AS tuan,
+    DATEPART(MONTH, ngayDat)   AS thang,
+    DATEPART(YEAR,  ngayDat)   AS nam,
+    COUNT(*)                   AS soLuongDon,
+    SUM(tongThanhToan)         AS tongDoanhThu
+FROM orders
+WHERE trangThaiDon NOT IN ('DA_HUY')
+  AND trangThaiTT = 'DA_THANH_TOAN'
+GROUP BY CAST(ngayDat AS DATE),
+         DATEPART(WEEK,  ngayDat),
+         DATEPART(MONTH, ngayDat),
+         DATEPART(YEAR,  ngayDat);
+GO
+
+CREATE VIEW vw_ProductPrice AS
+SELECT
+    p.id,
+    p.tenSanPham,
+    p.danhMucId,
+    p.hinhAnhChinh,
+    p.trangThaiSanPham,
+    p.leadTimeDays,
+    p.isFeatured,
+    p.isActive,
+    pv.id                                  AS variantId,
+    pv.tenBienThe,
+    pv.dungTich,
+    pv.giaGoc,
+    ISNULL(pv.giaKhuyenMai, pv.giaGoc)    AS giaBan,
+    pv.soLuongTon,
+    ISNULL(pv.hinhAnh, p.hinhAnhChinh)    AS hinhAnhHienThi
+FROM Products p
+INNER JOIN ProductVariants pv
+    ON pv.productId = p.id
+   AND pv.isDefault = 1
+   AND pv.isActive  = 1
+WHERE p.isActive = 1
+  AND p.trangThaiSanPham != 'NGUNG_BAN';
+GO
+
+CREATE VIEW vw_PostsPublished AS
+SELECT id, tieuDe, tomTat, hinhAnh, tacGiaId, luotXem, ngayTao
+FROM   Posts
+WHERE  trangThai = 'XUAT_BAN'
+ORDER BY ngayTao DESC
+OFFSET 0 ROWS;
+GO
+
+PRINT '====================================================';
+PRINT ' DuaStore Database - San sang su dung!';
+PRINT ' Tong so bang  : 33 (gom 2 bang join: role_permissions, user_roles)';
+PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
+PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
+PRINT '====================================================';
