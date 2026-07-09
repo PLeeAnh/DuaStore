@@ -53,27 +53,31 @@
                 </div>
 
                 <div class="col-12">
-                    <label class="form-label fw-semibold mb-3">Quyền hạn</label>
+                    <label class="form-label fw-semibold mb-3" style="font-size:1.05rem;">Danh sách quyền</label>
+                    <p class="text-muted small mb-3">Tick các thao tác mà vai trò này được phép sử dụng.</p>
 
-                    <div th:each="entry : ${groupedPermissions}" class="card mb-3">
-                        <div class="card-header py-2 d-flex align-items-center">
-                            <input type="checkbox" class="form-check-input module-checkbox me-2"
-                                   data-module="${entry.key}"
-                                   th:id="'ck-module-' + ${entry.key}" />
-                            <label class="mb-0 fw-semibold" th:for="'ck-module-' + ${entry.key}"
-                                   th:text="${entry.key}">MODULE</label>
-                        </div>
-                        <div class="card-body py-2">
-                            <div class="row">
-                                <div class="col-md-3 mb-1" th:each="perm : ${entry.value}">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input perm-checkbox"
-                                               name="permissionIds" th:value="${perm.id}"
-                                               th:attr="data-module=${entry.key}"
-                                               th:id="'perm-' + ${perm.id}"
-                                               th:checked="${role.permissions != null and role.permissions.contains(perm)}" />
-                                        <label class="form-check-label small" th:for="'perm-' + ${perm.id}"
-                                               th:text="${perm.action}">ACTION</label>
+                    <div class="row g-4" id="permissionGrid">
+                        <div class="col-md-6" th:each="entry : ${groupedPermissions}">
+                            <div class="perm-group-card">
+                                <div class="perm-group-header">
+                                    <input type="checkbox" class="form-check-input module-checkbox me-2"
+                                           data-module="${entry.key}"
+                                           th:id="'ck-module-' + ${entry.key}" />
+                                    <span class="perm-group-title" th:text="${moduleLabels.get(entry.key) ?: entry.key}">MODULE</span>
+                                </div>
+                                <div class="perm-group-body">
+                                    <div class="perm-item" th:each="perm : ${entry.value}">
+                                        <label class="perm-item-label">
+                                            <input type="checkbox" class="form-check-input perm-checkbox"
+                                                   name="permissionIds" th:value="${perm.id}"
+                                                   th:attr="data-module=${entry.key}"
+                                                   th:id="'perm-' + ${perm.id}"
+                                                   th:checked="${role.permissions != null and role.permissions.contains(perm)}" />
+                                            <span class="perm-item-text">
+                                                <span class="perm-item-name" th:text="${permLabels.get(entry.key + ':' + perm.action) ?: perm.action}">ACTION</span>
+                                                <span class="perm-item-code" th:text="${entry.key.toLowerCase() + '.' + perm.action.toLowerCase()}">module.action</span>
+                                            </span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -91,15 +95,8 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('module-checkbox')) {
-                var module = e.target.getAttribute('data-module');
-                document.querySelectorAll('.perm-checkbox[data-module="' + module + '"]').forEach(function (cb) {
-                    cb.checked = e.target.checked;
-                });
-            }
-        });
-    </script>
+    <link rel="stylesheet" th:href="@{/css/admin-base.css}" />
+
+    <script th:src="@{/js/admin-role.js}"></script>
 </body>
 </html>

@@ -1,10 +1,12 @@
 package com.duastore.service.admin;
 
 import com.duastore.model.Order;
+import com.duastore.model.Product;
 import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.util.PriceUtils;
@@ -35,19 +37,22 @@ public class AdminDashboardService {
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final OrderItemRepository orderItemRepository;
     private final PromotionRepository promotionRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     public AdminDashboardService(ProductRepository productRepository,
             OrderRepository orderRepository,
             UserRepository userRepository,
             OrderAssignmentRepository orderAssignmentRepository,
             OrderItemRepository orderItemRepository,
-            PromotionRepository promotionRepository) {
+            PromotionRepository promotionRepository,
+            ProductVariantRepository productVariantRepository) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.orderAssignmentRepository = orderAssignmentRepository;
         this.orderItemRepository = orderItemRepository;
         this.promotionRepository = promotionRepository;
+        this.productVariantRepository = productVariantRepository;
     }
 
     public long getTotalProducts() {
@@ -112,9 +117,7 @@ public class AdminDashboardService {
     }
 
     private String formatVND(BigDecimal amount) {
-        if (amount == null) {
-            return "0₫";
-        }
+        if (amount == null) return "0₫";
         long value = amount.longValue();
         if (value >= 1_000_000) {
             return String.format("%,d", value / 1_000_000) + "," + String.format("%03d", value % 1_000_000 / 1_000) + " triệu₫";
@@ -320,6 +323,40 @@ public class AdminDashboardService {
                 .multiply(BigDecimal.valueOf(100))
                 .divide(previous, 1, RoundingMode.HALF_UP);
         return (growth.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "") + growth + "%";
+    }
+
+    private static final int LOW_STOCK_THRESHOLD = 20;
+
+    public long getLowStockCount() {
+        return productVariantRepository.countLowStockProducts(LOW_STOCK_THRESHOLD);
+    }
+
+    public List<Map<String, Object>> getLowStockProducts(int limit) {
+        List<Object[]> rows = productVariantRepository.findLowStockProductIds(LOW_STOCK_THRESHOLD);
+        List<Integer> ids = rows.stream().map(r -> (Integer) r[0]).collect(Collectors.toList());
+        if (ids.isEmpty()) return List.of();
+        Map<Integer, Long> stockMap = new HashMap<>();
+        for (Object[] r : rows) {
+            stockMap.put((Integer) r[0], (Long) r[1]);
+        }
+        List<Product> products = productRepository.findAllById(ids);
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (Product p : products) {
+            if (!p.isActive() || !stockMap.containsKey(p.getId())) continue;
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("productId", p.getId());
+            m.put("tenSanPham", p.getTenSanPham());
+            m.put("hinhAnh", p.getHinhAnhChinh());
+            m.put("totalStock", stockMap.get(p.getId()));
+            resultList.add(m);
+        }
+        resultList.sort((a, b) -> Long.compare((Long) a.get("totalStock"), (Long) b.get("totalStock")));
+        return resultList.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    public long getUrgentOrderCount() {
+        LocalDateTime threshold = LocalDateTime.now().minusHours(48);
+        return orderRepository.countByTrangThaiDonAndNgayDatBefore("CHO_XAC_NHAN", threshold);
     }
 
     private String calcChange(long current, long previous) {

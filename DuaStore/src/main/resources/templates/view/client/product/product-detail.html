@@ -317,6 +317,35 @@
                 </div>
             </div>
 
+            <!-- ═══ RELATED PRODUCTS ═══ -->
+            <div class="container-xl py-4" th:if="${not #lists.isEmpty(relatedProducts)}">
+                <div class="ds-card p-4">
+                    <h5 class="fw-bold mb-4" style="font-size:1rem;color:#0F172A">Sản phẩm liên quan</h5>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4 col-lg-3" th:each="rp : ${relatedProducts}">
+                            <a th:href="@{/san-pham/{id}(id=${rp.id})}" class="text-decoration-none">
+                                <div class="related-card">
+                                    <div class="img-wrap">
+                                        <img th:src="@{${rp.hinhAnhChinh != null ? rp.hinhAnhChinh : '/images/placeholder.png'}}"
+                                             th:alt="${rp.tenSanPham}" />
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="card-title" th:text="${rp.tenSanPham}">Tên SP</div>
+                                        <div class="card-price">
+                                            <th:block th:if="${relatedMinPrices != null and relatedMinPrices.containsKey(rp.id)}">
+                                                <span th:text="${#numbers.formatDecimal(relatedMinPrices.get(rp.id), 0, 0)}">15.000</span>₫
+                                            </th:block>
+                                            <th:block th:unless="${relatedMinPrices != null and relatedMinPrices.containsKey(rp.id)}">Liên hệ</th:block>
+                                        </div>
+                                        <span class="btn-related">Xem chi tiết</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ═══ PROMOTIONS ═══ -->
             <div class="container-xl py-4" th:if="${not #lists.isEmpty(productPromotions)}">
                 <div class="ds-card p-4">
@@ -354,34 +383,6 @@
             <!-- ═══ REVIEWS ═══ -->
             <div th:replace="~{view/client/product/parts/product-reviews :: reviews}"></div>
 
-            <div class="container-xl py-4" th:if="${not #lists.isEmpty(relatedProducts)}">
-                <div class="ds-card p-4">
-                    <h5 class="fw-bold mb-4" style="font-size:1rem;color:#0F172A">Sản phẩm liên quan</h5>
-                    <div class="row g-3">
-                        <div class="col-6 col-md-4 col-lg-3" th:each="rp : ${relatedProducts}">
-                            <a th:href="@{/san-pham/{id}(id=${rp.id})}" class="text-decoration-none">
-                                <div class="related-card">
-                                    <div class="img-wrap">
-                                        <img th:src="@{${rp.hinhAnhChinh != null ? rp.hinhAnhChinh : '/images/placeholder.png'}}"
-                                             th:alt="${rp.tenSanPham}" />
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="card-title" th:text="${rp.tenSanPham}">Tên SP</div>
-                                        <div class="card-price">
-                                            <th:block th:if="${relatedMinPrices != null and relatedMinPrices.containsKey(rp.id)}">
-                                                <span th:text="${#numbers.formatDecimal(relatedMinPrices.get(rp.id), 0, 0)}">15.000</span>₫
-                                            </th:block>
-                                            <th:block th:unless="${relatedMinPrices != null and relatedMinPrices.containsKey(rp.id)}">Liên hệ</th:block>
-                                        </div>
-                                        <span class="btn-related">Xem chi tiết</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Dùng chung fragment thay vì bản sao thủ công (đỡ phải sửa 2 nơi mỗi khi đổi cấu trúc),
                  và đặt TRONG layout:fragment="content" để Thymeleaf thực sự ghép vào trang. -->
             <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
@@ -389,6 +390,21 @@
 
     <th:block layout:fragment="extra-script">
         <script>
+            /* ── Login popup (fallback if auth.js not loaded) ── */
+            if (typeof window.showLoginPopup !== 'function') {
+                window.showLoginPopup = function() {
+                    var el = document.getElementById('loginModal');
+                    if (el && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        try {
+                            var modal = bootstrap.Modal.getOrCreateInstance(el);
+                            modal.show();
+                            return;
+                        } catch(e) {}
+                    }
+                    window.location.href = '/dang-nhap';
+                };
+            }
+
             /* ── Render readonly stars ── */
             document.querySelectorAll('.star-rating-readonly[data-score]').forEach(function (el) {
                 var score = parseInt(el.dataset.score) || 0;
@@ -653,9 +669,8 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({productId: productId, variantId: selectedVariantId, quantity: qty})
                 }).then(function (r) {
-                    if (r.status === 403) {
-                        if (typeof showLoginPopup === 'function')
-                            showLoginPopup();
+                    if (r.status === 401 || r.status === 403) {
+                        showLoginPopup();
                         return null;
                     }
                     return r.json();
@@ -666,8 +681,7 @@
                         window.location.href = '/gio-hang';
                     } else {
                         if (data.message && data.message.includes('dang nhap')) {
-                            if (typeof showLoginPopup === 'function')
-                                showLoginPopup();
+                            showLoginPopup();
                         } else {
                             alert('Lỗi: ' + data.message);
                         }
@@ -697,9 +711,8 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({productId: productId, variantId: variantId, quantity: qty})
                 }).then(function (r) {
-                    if (r.status === 403) {
-                        if (typeof showLoginPopup === 'function')
-                            showLoginPopup();
+                    if (r.status === 401 || r.status === 403) {
+                        showLoginPopup();
                         return null;
                     }
                     return r.json();
@@ -715,8 +728,7 @@
                         }
                     } else {
                         if (data.message && data.message.includes('dang nhap')) {
-                            if (typeof showLoginPopup === 'function')
-                                showLoginPopup();
+                            showLoginPopup();
                         } else {
                             alert('Lỗi: ' + data.message);
                         }

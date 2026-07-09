@@ -48,7 +48,7 @@ public class VerificationCodeController {
         } catch (Exception e) {
             System.out.println("[send-code] Gửi email thất bại: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.ok(Map.of("success", false, "error", "Không thể gửi email: " + e.getMessage(), "dev_code", code));
+            return ResponseEntity.ok(Map.of("success", false, "error", "Không thể gửi email. Vui lòng thử lại sau."));
         }
     }
 

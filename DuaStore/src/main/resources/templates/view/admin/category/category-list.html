@@ -215,26 +215,7 @@
     </div>
 
     <th:block layout:fragment="extra-script">
-        <script>
-            var filterForm = document.getElementById('filterForm');
-            if (filterForm) {
-                var keywordInput = document.getElementById('keywordInput');
-                var statusSelect = document.getElementById('statusSelect');
-                var timer;
-
-                function submitFilter() {
-                    clearTimeout(timer);
-                    timer = setTimeout(function () {
-                        filterForm.submit();
-                    }, 400);
-                }
-
-                keywordInput.addEventListener('input', submitFilter);
-                statusSelect.addEventListener('change', function () {
-                    filterForm.submit();
-                });
-            }
-        </script>
+        <script th:src="@{/js/admin-filters.js}"></script>
     </th:block>
 </body>
 </html>

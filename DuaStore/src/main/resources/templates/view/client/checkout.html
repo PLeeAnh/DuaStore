@@ -525,6 +525,7 @@
                             var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
                             var csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
                             var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+                            document.getElementById('checkoutPromoInput').value = code;
                             labelEl.textContent = code;
                             labelEl.className = 'ds-promo-picker-applied';
                             msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';

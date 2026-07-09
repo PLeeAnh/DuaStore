@@ -204,39 +204,7 @@
     </div>
 
     <th:block layout:fragment="extra-script">
-        <script>
-            function getCsrfHeaders() {
-                const headers = {};
-                const csrf = document.querySelector('meta[name=_csrf]');
-                const header = document.querySelector('meta[name=_csrf_header]');
-                if (csrf && header)
-                    headers[header.content] = csrf.content;
-                return headers;
-            }
-
-            function deleteGalleryImage(imageId, btn) {
-                const modalEl = document.getElementById('confirmModal');
-                if (!modalEl)
-                    return;
-                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh này?';
-                const confirmBtn = document.getElementById('confirmModalConfirm');
-                const handler = function () {
-                    fetch('/admin/san-pham/xoa-anh/' + imageId, {method: 'POST', headers: getCsrfHeaders()})
-                            .then(r => {
-                                if (r.ok)
-                                    btn.closest('.adm-gallery-item').remove();
-                            });
-                    modal.hide();
-                    confirmBtn.removeEventListener('click', handler);
-                };
-                confirmBtn.addEventListener('click', handler);
-                modalEl.addEventListener('hidden.bs.modal', function () {
-                    confirmBtn.removeEventListener('click', handler);
-                }, {once: true});
-                modal.show();
-            }
-        </script>
+        <script th:src="@{/js/admin-product.js}"></script>
     </th:block>
 </body>
 </html>

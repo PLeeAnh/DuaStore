@@ -525,17 +525,21 @@ public class ProductController {
     }
 
     @PostMapping("/san-pham/{id}/danh-gia")
-    public String submitReview(@PathVariable Integer id,
+    public Object submitReview(@PathVariable Integer id,
             @Valid @ModelAttribute ReviewRequestDTO request,
             BindingResult result,
             @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
-            RedirectAttributes ra) {
+            RedirectAttributes ra,
+            jakarta.servlet.http.HttpServletRequest httpRequest) {
+        boolean isAjax = "XMLHttpRequest".equals(httpRequest.getHeader("X-Requested-With"));
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
+            if (isAjax) return java.util.Map.of("success", false, "message", "Vui long dang nhap de danh gia");
             ra.addFlashAttribute("errorMsg", "Vui long dang nhap de danh gia");
             return "redirect:/dang-nhap";
         }
         if (result.hasErrors()) {
+            if (isAjax) return java.util.Map.of("success", false, "message", "Vui long nhap day du thong tin danh gia");
             ra.addFlashAttribute("errorMsg", "Vui long nhap day du thong tin danh gia");
             return "redirect:/san-pham/" + id;
         }
@@ -553,14 +557,17 @@ public class ProductController {
                     hinhAnhUrls = String.join(",", urls);
                 }
             } catch (Exception e) {
+                if (isAjax) return java.util.Map.of("success", false, "message", "Loi upload anh: " + e.getMessage());
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;
             }
         }
         try {
             reviewService.createReview(userId, request, hinhAnhUrls);
+            if (isAjax) return java.util.Map.of("success", true, "message", "Cam on ban da danh gia!");
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {
+            if (isAjax) return java.util.Map.of("success", false, "message", e.getMessage());
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/san-pham/" + id;

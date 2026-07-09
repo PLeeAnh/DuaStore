@@ -1,0 +1,82 @@
+.notif-item:hover { background: #f5f5f5; }
+.notif-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.notif-text { font-size: 0.85rem; color: #333; line-height: 1.3; }
+.notif-link { font-size: 0.78rem; color: #0d6efd; }
+.notif-time { font-size: 0.72rem; color: #999; }
+.custom-popup { display: none; }
+.cursor-pointer { cursor: pointer; }
+
+.adm-nav-sub { overflow: hidden; max-height: 0; transition: max-height .3s ease; }
+.adm-nav-sub.open { max-height: 500px; }
+.adm-nav-section .bi-chevron-down { transition: transform .2s; }
+.adm-nav-section.open .bi-chevron-down { transform: rotate(180deg); }
+
+.adm-bulk-bar {
+    position: sticky; bottom: 0; z-index: 999;
+    background: #fff; border-top: 2px solid var(--ef-primary);
+    padding: 10px 16px; display: flex; align-items: center;
+    box-shadow: 0 -4px 12px rgba(0,0,0,.08);
+}
+
+.perm-group-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.perm-group-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+.perm-group-title {
+    font-weight: 600;
+    font-size: .9rem;
+    color: #1f2937;
+}
+.perm-group-body {
+    padding: 12px 16px;
+}
+.perm-item {
+    padding: 6px 0;
+}
+.perm-item-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+    margin: 0;
+}
+.perm-item-label .form-check-input {
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+.perm-item-text {
+    display: flex;
+    flex-direction: column;
+}
+.perm-item-name {
+    font-size: .88rem;
+    color: #374151;
+    font-weight: 500;
+}
+.perm-item-code {
+    font-size: .75rem;
+    color: #9ca3af;
+    font-family: monospace;
+}
+
+@media (max-width: 767.98px) {
+    .adm-body { font-size: 16px; }
+    .adm-stat-val { font-size: 1.2rem !important; }
+    .adm-stat-lbl { font-size: .85rem !important; }
+    .table, .table td, .table th, .form-label, .form-control, .btn { font-size: 15px !important; }
+    .adm-content { padding: 12px !important; }
+    .adm-sidebar { width: 260px !important; }
+}

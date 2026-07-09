@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.Collection;
@@ -37,6 +38,14 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Query("SELECT v FROM ProductVariant v WHERE v.id = :id")
     Optional<ProductVariant> findByIdWithLock(@Param("id") Integer id);
 
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon - :qty WHERE v.id = :id AND v.soLuongTon >= :qty")
+    int decrementStock(@Param("id") Integer id, @Param("qty") Integer qty);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon + :qty WHERE v.id = :id")
+    void incrementStock(@Param("id") Integer id, @Param("qty") Integer qty);
+
     List<ProductVariant> findByIsActiveTrueOrderByIdAsc();
 
     Page<ProductVariant> findByIsActiveTrueOrderByIdAsc(Pageable pageable);
@@ -62,4 +71,7 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     @Query("SELECT DISTINCT v.tenBienThe FROM ProductVariant v WHERE v.isActive = true AND v.tenBienThe IS NOT NULL ORDER BY v.tenBienThe ASC")
     List<String> findDistinctTenBienThe();
+
+    @Query("SELECT v.productId, SUM(v.soLuongTon) FROM ProductVariant v WHERE v.isActive = true GROUP BY v.productId HAVING SUM(v.soLuongTon) <= :threshold ORDER BY SUM(v.soLuongTon) ASC")
+    List<Object[]> findLowStockProductIds(@Param("threshold") int threshold);
 }

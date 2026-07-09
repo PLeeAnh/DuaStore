@@ -200,15 +200,14 @@ public class OrderService {
                 }
             }
 
-            // Lock variant and decrement stock
+            // Lock variant and decrement stock atomically
             ProductVariant variant = variantRepository.findByIdWithLock(ci.getVariant().getId())
                     .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại trong kho"));
-            if (variant.getSoLuongTon() < ci.getSoLuong()) {
+            int affected = variantRepository.decrementStock(variant.getId(), ci.getSoLuong());
+            if (affected == 0) {
                 throw new RuntimeException("Sản phẩm \"" + oi.getTenSanPham()
                         + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
             }
-            variant.setSoLuongTon(variant.getSoLuongTon() - ci.getSoLuong());
-            variantRepository.save(variant);
         }
 
         cartItemRepository.deleteAll(cartItems);

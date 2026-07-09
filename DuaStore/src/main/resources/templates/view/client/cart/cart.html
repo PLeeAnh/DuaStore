@@ -237,7 +237,7 @@
                 if (newQty < 1)
                     return;
 
-                var max = parseInt(input.getAttribute('data-max')) || 99;
+                var max = parseInt(input.getAttribute('data-stock')) || 99;
                 if (newQty > max) {
                     DuaStore.toast.error('Chỉ còn ' + max + ' sản phẩm trong kho');
                     return;
@@ -305,7 +305,7 @@
                 if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast)
                     return;
 
-                var max = parseInt(inputEl.getAttribute('max')) || 99;
+                var max = parseInt(inputEl.getAttribute('data-stock')) || 99;
                 var newQty = parseInt(inputEl.value);
                 if (isNaN(newQty) || newQty < 1) {
                     newQty = 1;
@@ -509,7 +509,6 @@
             }
 
             function checkPromoHint(currentTotal) {
-                fetch('/checkout/api/qr-info?amount=' + currentTotal).catch(function () {});
                 var hint = document.getElementById('promoHint');
                 var text = document.getElementById('promoHintText');
                 if (!hint || !text)
