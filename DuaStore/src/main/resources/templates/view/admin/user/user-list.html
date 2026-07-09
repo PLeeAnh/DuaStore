@@ -47,13 +47,18 @@
                     <span>ADMIN: <strong th:text="${adminCount}">0</strong></span>
                     <span>USER: <strong th:text="${userCount}">0</strong></span>
                 </div>
-                <form class="d-flex align-items-center gap-2" method="get">
-                    <select name="role" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
-                        <option value="">Tất cả</option>
-                        <option th:each="r : ${allRoles}" th:value="${r.name}" th:selected="${role == r.name}" th:text="${r.name}">ROLE</option>
-                    </select>
-                    <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
-                </form>
+                <div class="d-flex align-items-center gap-2">
+                    <a th:href="@{/admin/nguoi-dung/tao-moi}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Tạo mới
+                    </a>
+                    <form class="d-flex align-items-center gap-2" method="get">
+                        <select name="role" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
+                            <option value="">Tất cả</option>
+                            <option th:each="r : ${allRoles}" th:value="${r.name}" th:selected="${role == r.name}" th:text="${r.name}">ROLE</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
+                    </form>
+                </div>
             </div>
             <table class="table">
                 <thead>

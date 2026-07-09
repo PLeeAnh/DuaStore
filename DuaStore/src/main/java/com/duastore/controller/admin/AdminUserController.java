@@ -106,6 +106,40 @@ public class AdminUserController {
         }
     }
 
+    @GetMapping("/tao-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).USER_CREATE)")
+    public String createForm(Model model) {
+        model.addAttribute("title", "nguoi-dung");
+        model.addAttribute("allRoles", adminUserService.getAllRoles());
+        return "view/admin/user/user-create";
+    }
+
+    @PostMapping("/tao-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).USER_CREATE)")
+    public String create(@RequestParam String username,
+                         @RequestParam String hoTen,
+                         @RequestParam String email,
+                         @RequestParam String password,
+                         @RequestParam(required = false) String soDienThoai,
+                         @RequestParam(required = false) Boolean isActive,
+                         @RequestParam(required = false) List<Integer> roleIds,
+                         RedirectAttributes ra) {
+        try {
+            User admin = securityUtil.getCurrentUser();
+            if (admin == null) {
+                ra.addFlashAttribute("errorMsg", "Không xác định được người dùng hiện tại");
+                return "redirect:/admin/nguoi-dung";
+            }
+            User newUser = adminUserService.createUser(username, hoTen, email, password, soDienThoai, isActive, roleIds, admin);
+            adminLogService.ghiLog(admin, "TAO_USER", "USER", newUser.getId(), null, username, "Tạo tài khoản mới " + hoTen);
+            ra.addFlashAttribute("successMsg", "Tạo tài khoản thành công");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/nguoi-dung/tao-moi";
+        }
+        return "redirect:/admin/nguoi-dung";
+    }
+
     @PostMapping("/sua/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).USER_UPDATE)")
     public String edit(@PathVariable Integer id, @RequestParam String hoTen, @RequestParam String email, @RequestParam(required = false) String soDienThoai, @RequestParam(required = false) Boolean isActive, @RequestParam(required = false) List<Integer> roleIds, RedirectAttributes ra) {

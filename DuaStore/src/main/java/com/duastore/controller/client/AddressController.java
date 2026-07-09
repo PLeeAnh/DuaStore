@@ -42,6 +42,14 @@ public class AddressController {
                 res.put("message", "Chỉ được thêm tối đa 10 địa chỉ");
                 return ResponseEntity.ok(res);
             }
+            String dc = address.getDiaChiCuThe();
+            if (dc != null && (dc.equalsIgnoreCase(address.getTinhThanh())
+                    || dc.equalsIgnoreCase(address.getQuanHuyen())
+                    || dc.equalsIgnoreCase(address.getPhuongXa()))) {
+                res.put("success", false);
+                res.put("message", "Số nhà, đường không được trùng với tên tỉnh/quận/phường");
+                return ResponseEntity.ok(res);
+            }
             if (Boolean.TRUE.equals(address.getIsDefault())) {
                 addressRepository.clearDefaultAddressByUserId(userId);
             }

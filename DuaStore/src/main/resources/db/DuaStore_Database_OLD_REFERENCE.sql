@@ -1,14 +1,9 @@
-/*
-================================================================================
-  ____  _   _    _    ____  _____ ___  ____  _____
- |  _ \| | | |  / \  / ___||_   _/ _ \|  _ \| ____|
- | | | | | | | / _ \ \___ \  | || | | | |_) |  _|
- | |_| | |_| |/ ___ \ ___) | | || |_| |  _ <| |___
- |____/ \___//_/   \_\____/  |_| \___/|_| \_\_____|
-
-  DuaStore -- Do Thuy Tinh Decor, Hai Phong
-================================================================================
-  QUAN TRONG - doc truoc khi chay:
+-- ===============================================================================
+-- *** DEPRECATED / THAM KHAO ***
+-- Giu lai CHI DE LAY seed data (INSERT). Dung profile "ddlgen" de sinh schema.sql
+-- tu Hibernate entity thay cho file nay.
+-- ===============================================================================
+-- QUAN TRONG - doc truoc khi chay:
   1. "validate" la che do NGHIEM NGAT nhat cua Hibernate: no KHONG tu sua bang,
      chi kiem tra bang trong DB co dung 100% voi @Entity trong code khong.
      Neu lech (thieu cot, sai kieu, sai do dai...) -> app se KHONG khoi dong duoc.

@@ -1,20 +1,25 @@
 package com.duastore.service.admin;
 
 import com.duastore.dto.ProductFormDTO;
+import com.duastore.model.Category;
 import com.duastore.model.Product;
 import com.duastore.model.ProductImage;
+import com.duastore.model.ProductVariant;
+import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.FileUploadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminProductService {
@@ -22,13 +27,19 @@ public class AdminProductService {
     private final ProductRepository productRepository;
     private final FileUploadService fileUploadService;
     private final ProductImageRepository productImageRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     public AdminProductService(ProductRepository productRepository,
             FileUploadService fileUploadService,
-            ProductImageRepository productImageRepository) {
+            ProductImageRepository productImageRepository,
+            CategoryRepository categoryRepository,
+            ProductVariantRepository productVariantRepository) {
         this.productRepository = productRepository;
         this.fileUploadService = fileUploadService;
         this.productImageRepository = productImageRepository;
+        this.categoryRepository = categoryRepository;
+        this.productVariantRepository = productVariantRepository;
     }
 
     public List<Product> findAll() {
@@ -73,6 +84,59 @@ public class AdminProductService {
         return productRepository.findDistinctMucDichSuDung();
     }
 
+    public Map<Integer, Integer> getTotalStockMap(List<Product> products) {
+        Map<Integer, Integer> map = new HashMap<>();
+        if (products.isEmpty()) return map;
+        List<Integer> ids = products.stream().map(Product::getId).collect(Collectors.toList());
+        List<ProductVariant> variants = productVariantRepository.findByProductIdInAndIsActiveTrue(ids);
+        for (ProductVariant v : variants) {
+            map.merge(v.getProductId(), v.getSoLuongTon(), Integer::sum);
+        }
+        return map;
+    }
+
+    public List<Category> buildCategoryBreadcrumb(Integer categoryId) {
+        List<Category> path = new ArrayList<>();
+        Integer id = categoryId;
+        while (id != null) {
+            Category cat = categoryRepository.findById(id).orElse(null);
+            if (cat == null) break;
+            path.add(0, cat);
+            id = cat.getParent() != null ? cat.getParent().getId() : null;
+        }
+        return path;
+    }
+
+    public Map<Integer, String> getCategoryMap(List<Category> categories) {
+        return categories.stream().collect(Collectors.toMap(Category::getId, Category::getTenDanhMuc));
+    }
+
+    public List<Category> getActiveCategories() {
+        return categoryRepository.findByIsActiveTrue();
+    }
+
+    public String getCategoryName(Integer categoryId) {
+        Category cat = categoryRepository.findById(categoryId).orElse(null);
+        return cat != null ? cat.getTenDanhMuc() : "—";
+    }
+
+    public int getTotalStockForProduct(Integer productId) {
+        return productVariantRepository.findByProductIdAndIsActiveTrue(productId)
+                .stream().mapToInt(ProductVariant::getSoLuongTon).sum();
+    }
+
+    public BigDecimal getMinPrice(List<ProductVariant> variants) {
+        return variants.stream()
+                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                .min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+    }
+
+    public BigDecimal getMaxPrice(List<ProductVariant> variants) {
+        return variants.stream()
+                .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
+                .max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
+    }
+
     @Transactional
     public Product save(ProductFormDTO dto) {
         Product p;
@@ -107,7 +171,6 @@ public class AdminProductService {
 
         Product saved = productRepository.save(p);
 
-        // Save gallery images
         if (dto.getGalleryFiles() != null) {
             int order = productImageRepository
                     .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(saved.getId())

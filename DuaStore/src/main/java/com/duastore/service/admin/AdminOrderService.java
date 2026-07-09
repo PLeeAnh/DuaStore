@@ -163,13 +163,15 @@ public class AdminOrderService {
                 }
                 int oldStock = variant.getSoLuongTon();
                 int qty = item.getSoLuong();
-                variant.setSoLuongTon(oldStock - qty);
-                variantRepository.save(variant);
+                int affected = variantRepository.decrementStock(variant.getId(), qty);
+                if (affected == 0) {
+                    return "Không thể xác nhận: \"" + item.getTenSanPham() + "\" không đủ hàng trong kho (còn " + oldStock + ", cần " + qty + ")";
+                }
                 totalSubtracted += qty;
                 if (detail.length() > 0) {
                     detail.append("; ");
                 }
-                detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(variant.getSoLuongTon());
+                detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(oldStock - qty);
             }
             return totalSubtracted > 0 ? "Đã trừ " + totalSubtracted + " sản phẩm khỏi tồn kho. " + detail : null;
         }

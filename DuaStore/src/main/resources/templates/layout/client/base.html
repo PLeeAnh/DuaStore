@@ -64,7 +64,11 @@
 
 <nav class="ds-navbar navbar navbar-expand-lg ds-nav-glass">
     <div class="container-xl ds-ctn-width">
-        <div class="d-flex align-items-center w-100 gap-3">
+        <div class="d-flex align-items-center w-100 gap-2">
+
+            <button class="navbar-toggler d-lg-none border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#dsNavMobile" aria-controls="dsNavMobile" aria-expanded="false" aria-label="Menu">
+                <i class="bi bi-list" style="font-size:1.6rem;"></i>
+            </button>
 
             <a class="ds-logo me-auto" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}">DuaStore</a>
 
@@ -273,6 +277,20 @@
 
             </div>
         </div>
+
+        <!-- Mobile collapse nav -->
+        <div class="collapse navbar-collapse d-lg-none" id="dsNavMobile">
+            <ul class="navbar-nav d-flex flex-column gap-1 mt-3 pt-3 border-top" style="border-color:var(--ds-border);">
+                <th:block th:each="i : ${#numbers.sequence(1,10)}">
+                    <th:block th:if="${themeSettings.containsKey('menu_' + i + '_label') and themeSettings.get('menu_' + i + '_active') != '0'}">
+                        <li class="nav-item">
+                            <a class="nav-link py-2 fw-medium" style="font-size:1rem;" th:href="${themeSettings.get('menu_' + i + '_url') ?: '/'}" th:text="${themeSettings.get('menu_' + i + '_label')}">Menu</a>
+                        </li>
+                    </th:block>
+                </th:block>
+            </ul>
+        </div>
+
     </div>
 </nav>
 
@@ -460,7 +478,7 @@
 
                     </div>
                     <!-- Right: Tabs -->
-                    <div class="col-8 d-flex flex-column" style="max-height:440px;">
+                    <div class="col-8" style="max-height:440px;overflow-y:auto;">
                         <div class="sticky-tabs">
                             <ul class="nav" role="tablist">
                                 <li class="nav-item" role="presentation">
@@ -471,7 +489,7 @@
                                 </li>
                             </ul>
                         </div>
-                        <div class="p-3 flex-grow-1" style="overflow-y:auto;">
+                        <div class="p-3">
                             <!-- Tab: Hoạt động -->
                             <div id="epActivityContent">
                                 <div class="text-center py-4 text-muted" id="epActivityLoading"><i class="bi bi-arrow-repeat me-1"></i>Đang tải...</div>

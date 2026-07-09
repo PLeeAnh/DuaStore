@@ -248,6 +248,13 @@ var cBadge = document.getElementById('cartBadge');
 }
 
 /* ── HÀM TĂNG GIẢM SỐ LƯỢNG ── */
+function updateMinusButtonState(itemId) {
+    var minusBtn = document.querySelector('#popup-qty-' + itemId)?.closest('.ds-qty-selector')?.querySelector('.ds-qty-minus');
+    if (!minusBtn) return;
+    var qty = parseInt(document.getElementById('popup-qty-' + itemId)?.value) || 1;
+    minusBtn.style.opacity = qty <= 1 ? '0.35' : '1';
+}
+
 function updatePopupQty(itemId, delta) {
         const qtyInput = document.getElementById('popup-qty-' + itemId);
         const priceSpan = document.getElementById('popup-price-' + itemId);
@@ -256,10 +263,9 @@ function updatePopupQty(itemId, delta) {
         let newQty = currentQty + delta;
         let stock = parseInt(qtyInput.getAttribute('data-stock')) || 999;
         if (newQty < 1) {
-if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-removeCartItem(itemId);
-        }
-return;
+        newQty = 1;
+        updateMinusButtonState(itemId);
+        return;
         }
 
 if (newQty > stock) {
@@ -269,6 +275,7 @@ DuaStore.toast.warning('Chỉ còn ' + stock + ' sản phẩm trong kho');
         }
 
 qtyInput.value = newQty;
+        updateMinusButtonState(itemId);
         if (priceSpan) {
 let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
         priceSpan.innerText = (unitPrice * newQty).toLocaleString('vi-VN') + '₫';
@@ -280,7 +287,7 @@ method: 'POST',
         body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty })
         })
         .then(function(r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
         if (typeof showLoginPopup === 'function') showLoginPopup();
                 qtyInput.value = currentQty;
                 return null;
@@ -325,12 +332,15 @@ el.value = val;
                 body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
                 })
         .then(function(r) {
-        if (r.status === 403) { if (typeof showLoginPopup === 'function') showLoginPopup(); return null; }
+        if (r.status === 401 || r.status === 403) { showLoginPopup(); return null; }
         return r.json();
                 })
         .then(function(data) {
         if (!data) return;
-                if (data.success && typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+                if (data.success && typeof updateCartBadge === 'function') {
+                updateCartBadge(data.cartCount);
+                updateMinusButtonState(itemId);
+                }
                 })
         .catch(function() {});
 }
@@ -359,7 +369,7 @@ method: 'POST',
         body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
         })
         .then(function(r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
         if (typeof showLoginPopup === 'function') showLoginPopup();
                 return null;
                 }
@@ -406,7 +416,7 @@ function toggleNotifPopup() {
 function markNotifRead(id) {
         fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
         .then(function(r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
         if (typeof showLoginPopup === 'function') showLoginPopup();
                 return null;
                 }
@@ -845,4 +855,16 @@ function showToast(msg) {
 /* ── Ẩn badge giỏ hàng nếu đã xem trước đó ── */
 document.addEventListener('DOMContentLoaded', function() {
     localStorage.removeItem('cartViewed');
+    document.querySelectorAll('#cart-popup input[id^="popup-qty-"]').forEach(function(inp) {
+        var id = inp.id.replace('popup-qty-', '');
+        updateMinusButtonState(id);
+    });
+    document.querySelectorAll('#wishlist-items-container .popup-item').forEach(function() {
+        var badge = document.getElementById('wishlistBadge');
+        if (badge) {
+            var count = document.querySelectorAll('#wishlist-items-container .popup-item').length;
+            badge.textContent = count;
+            badge.classList.toggle('d-none', count <= 0);
+        }
+    });
 });
