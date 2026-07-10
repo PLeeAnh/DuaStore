@@ -198,6 +198,13 @@ function getCartPopupState() {
                 .sort();
 }
 
+function getNotifPopupState() {
+        return Array.from(document.querySelectorAll('#notif-popup .notif-item'))
+                .map(function(item) { return item.id || item.getAttribute('onclick') || ''; })
+                .filter(function(s) { return s !== ''; })
+                .sort();
+}
+
 function setPopupBadge(badgeId, count, visible) {
         var badge = document.getElementById(badgeId);
         if (!badge) return;
@@ -221,7 +228,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 viewedWishlistState = currentWishlistState;
         }
         setPopupBadge('wishlistBadge', currentWishlistState.length, !samePopupState(currentWishlistState, viewedWishlistState));
-        localStorage.removeItem('cartViewed');
+
+        var currentNotifState = getNotifPopupState();
+        var viewedNotifState = safeReadPopupState('viewedNotifState');
+        if (viewedNotifState === null) {
+        writePopupState('viewedNotifState', currentNotifState);
+                viewedNotifState = currentNotifState;
+        }
+        setPopupBadge('notifBadge', currentNotifState.length, !samePopupState(currentNotifState, viewedNotifState));
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
@@ -402,6 +416,12 @@ container.innerHTML = `
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
         togglePopup('notif-popup');
+        var popup = document.getElementById('notif-popup');
+        if (popup && popup.style.display === 'block') {
+        var nBadge = document.getElementById('notifBadge');
+                if (nBadge) nBadge.classList.add('d-none');
+                writePopupState('viewedNotifState', getNotifPopupState());
+        }
 }
 function markNotifRead(id) {
         fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
@@ -433,10 +453,15 @@ function pollNotifications() {
         .then(data => {
         var badge = document.getElementById('notifBadge');
                 if (badge) {
-        if (data.count > 0) {
-        badge.textContent = data.count;
-                badge.classList.remove('d-none');
-                } else {
+        var count = data.count || 0;
+                badge.textContent = count > 99 ? '99+' : String(count);
+                if (count > 0) {
+        var viewedState = safeReadPopupState('viewedNotifState');
+                var currentState = getNotifPopupState();
+                if (!samePopupState(currentState, viewedState)) {
+        badge.classList.remove('d-none');
+                }
+        } else {
         badge.classList.add('d-none');
                 }
         }
@@ -843,6 +868,4 @@ function showToast(msg) {
         }, 3000);
 }
 /* ── Ẩn badge giỏ hàng nếu đã xem trước đó ── */
-document.addEventListener('DOMContentLoaded', function() {
-    localStorage.removeItem('cartViewed');
-});
+// Removed legacy cartViewed cleanup — badge state now managed via viewedCartState/viewedWishlistState
