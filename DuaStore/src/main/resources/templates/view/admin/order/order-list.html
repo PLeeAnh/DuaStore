@@ -181,32 +181,8 @@
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
     <th:block layout:fragment="extra-script">
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var tatCa = [[${tatCa}]];
-                function doFilter() {
-                    var q = document.getElementById('searchQ').value;
-                    var trangThai = document.getElementById('filterTrangThai').value;
-                    var trangThaiTT = document.getElementById('filterTrangThaiTT').value;
-                    var params = new URLSearchParams();
-                    if (q)
-                        params.set('q', q);
-                    if (trangThai)
-                        params.set('trangThai', trangThai);
-                    if (trangThaiTT)
-                        params.set('trangThaiTT', trangThaiTT);
-                    params.set('tatCa', tatCa);
-                    window.location.href = '/admin/don-hang?' + params.toString();
-                }
-                document.getElementById('filterTrangThai').addEventListener('change', doFilter);
-                document.getElementById('filterTrangThaiTT').addEventListener('change', doFilter);
-                var searchTimer;
-                document.getElementById('searchQ').addEventListener('input', function () {
-                    clearTimeout(searchTimer);
-                    searchTimer = setTimeout(doFilter, 400);
-                });
-            });
-        </script>
+        <script>var tatCa = [[${tatCa}]];</script>
+        <script th:src="@{/js/admin-filters.js}"></script>
     </th:block>
 </body>
 </html>

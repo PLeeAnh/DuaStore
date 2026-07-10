@@ -27,13 +27,8 @@
             </th:block>
         </div>
 
-        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-            <span th:text="${errorMsg}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
         <div th:if="${canReview}" class="ds-card ds-card-elevated mb-4 p-4">
-                        <form th:action="@{'/san-pham/' + ${productId} + '/danh-gia'}" method="post" th:object="${reviewRequest}" enctype="multipart/form-data">
+            <form th:action="@{'/san-pham/' + ${productId} + '/danh-gia'}" method="post" th:object="${reviewRequest}" enctype="multipart/form-data" id="reviewForm">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Chọn số sao</label>
                     <div class="star-rating-input" id="starRatingInput">
@@ -44,7 +39,6 @@
                         <span class="star" data-value="5">☆</span>
                     </div>
                     <input type="hidden" name="danhGia" id="danhGiaInput" required />
-                    <div class="invalid-feedback" id="starError" style="display:none;">Vui lòng chọn số sao</div>
                 </div>
                 <div class="mb-3">
                     <label for="binhLuan" class="form-label fw-semibold">Nhận xét</label>
@@ -109,4 +103,84 @@
             </nav>
         </div>
     </div>
+    <script th:inline="javascript">
+    (function() {
+        var stars = document.querySelectorAll('#starRatingInput .star');
+        var input = document.getElementById('danhGiaInput');
+        var form = document.getElementById('reviewForm');
+        if (!stars.length || !input || !form) return;
+
+        var selected = 0;
+        stars.forEach(function(s) {
+            s.addEventListener('click', function() {
+                selected = parseInt(this.dataset.value);
+                input.value = selected;
+                stars.forEach(function(x) {
+                    x.textContent = parseInt(x.dataset.value) <= selected ? '★' : '☆';
+                    x.classList.toggle('active', parseInt(x.dataset.value) <= selected);
+                });
+            });
+            s.addEventListener('mouseenter', function() {
+                var val = parseInt(this.dataset.value);
+                stars.forEach(function(x) {
+                    x.textContent = parseInt(x.dataset.value) <= val ? '★' : '☆';
+                });
+            });
+            s.addEventListener('mouseleave', function() {
+                stars.forEach(function(x) {
+                    x.textContent = parseInt(x.dataset.value) <= selected ? '★' : '☆';
+                });
+            });
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!selected) {
+                if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                    DuaStore.toast.error('Vui lòng chọn số sao');
+                }
+                return;
+            }
+            var fd = new FormData(form);
+            var btn = form.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Đang gửi...';
+            fetch(form.action, {
+                method: 'POST',
+                body: fd,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function(r) { return r.json(); })
+                .then(function(res) {
+                    if (res.success) {
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                            DuaStore.toast.success(res.message || 'Gửi đánh giá thành công!');
+                        }
+                        form.reset();
+                        selected = 0;
+                        stars.forEach(function(x) { x.textContent = '☆'; x.classList.remove('active'); });
+                        input.value = '';
+                        form.style.display = 'none';
+                        var msg = document.createElement('div');
+                        msg.className = 'alert alert-info mb-4';
+                        msg.textContent = 'Bạn đã đánh giá sản phẩm này.';
+                        form.parentNode.insertBefore(msg, form.nextSibling);
+                    } else {
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                            DuaStore.toast.error(res.message || 'Gửi đánh giá thất bại. Vui lòng thử lại.');
+                        }
+                    }
+                })
+                .catch(function() {
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.error('Lỗi kết nối. Vui lòng thử lại.');
+                    }
+                })
+                .finally(function() {
+                    btn.disabled = false;
+                    btn.textContent = 'Gửi đánh giá';
+                });
+        });
+    })();
+    </script>
 </div>

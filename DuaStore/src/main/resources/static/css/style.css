@@ -2520,8 +2520,8 @@ a {
         border-radius: 10px;
     }
     .ds-hero-v2-banner img {
-        aspect-ratio: 16 / 9;
-        max-height: 160px;
+        aspect-ratio: 7 / 3;
+        max-height: 180px;
     }
     .hero-banner-swiper {
         border-radius: 10px;
@@ -2546,7 +2546,7 @@ a {
         height: 6px;
     }
     .ds-hero-v2 {
-        margin: 12px 0 0;
+        margin: 8px 12px 0;
     }
 }
 /* Touch devices: luôn hiện qty + card-actions (không hover) */
@@ -2631,6 +2631,26 @@ a {
     letter-spacing: 2px;
     unicode-bidi: bidi-override;
     direction: rtl;
+}
+
+.star-rating-input {
+    display: flex;
+    gap: 4px;
+    direction: ltr;
+}
+.star-rating-input .star {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color .15s, transform .15s;
+    user-select: none;
+    line-height: 1;
+}
+.star-rating-input .star:hover {
+    transform: scale(1.15);
+}
+.star-rating-input .star.active {
+    color: #f59e0b;
 }
 
 .review-item {
@@ -4780,7 +4800,7 @@ a {
 }
 @media (max-width: 576px) {
     .ds-cat-tile {
-        flex: 0 0 calc(50% - 10px) !important;
+        flex: 0 0 calc(50% - 10px);
     }
 }
 .ds-slider-viewport {
@@ -5490,6 +5510,32 @@ a {
     }
 }
 @media (max-width: 576px) {
+    .ds-pl-v2-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: .3rem;
+        padding-bottom: .3rem;
+        scrollbar-width: none;
+    }
+    .ds-pl-v2-bar::-webkit-scrollbar { display: none; }
+    .ds-pl-v2-bar .btn-filter {
+        font-size: .72rem;
+        padding: .35rem .65rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .ds-pl-v2-bar .btn-filter .bi-chevron-down {
+        display: none;
+    }
+    .ds-pl-v2-bar .btn-filter i {
+        font-size: .8rem;
+    }
+    .ds-pl-v2-bar .dropdown-menu {
+        min-width: 150px;
+    }
+    .ds-pl-info {
+        font-size: .75rem;
+    }
     .ds-product-grid-v2 {
         grid-template-columns: repeat(2, 1fr);
         gap: .4rem;
@@ -6127,4 +6173,30 @@ body.ds-checkout-page #main-content {
 }
 .adm-pagination-nav-btn.disabled {
     opacity: .35; pointer-events: none;
+}
+
+/* ── Mobile font-size boost for 40+ readability ── */
+@media (max-width: 767.98px) {
+    body, p, span, div, li, a, label, input, select, textarea,
+    .btn, .table td, .table th, .form-control, .form-label,
+    .dropdown-item, .nav-link, .breadcrumb-item,
+    .product-name, .product-price, .product-description,
+    .cart-item-title, .cart-item-price, .cart-item-quantity,
+    .checkout-summary, .checkout-item,
+    .order-detail, .order-status,
+    .ds-section-title, .ds-card-text,
+    .toast-body, .popover-body,
+    .modal-body, .modal-header, .modal-footer,
+    .list-group-item, .alert,
+    .footer-text, .footer-link {
+        font-size: 16px !important;
+    }
+    h1, .h1 { font-size: 1.75rem !important; }
+    h2, .h2 { font-size: 1.5rem !important; }
+    h3, .h3 { font-size: 1.35rem !important; }
+    h4, .h4 { font-size: 1.2rem !important; }
+    h5, .h5 { font-size: 1.1rem !important; }
+    h6, .h6 { font-size: 1rem !important; }
+    .badge, .tag, .label { font-size: .85rem !important; }
+    small, .small, .text-muted { font-size: .85rem !important; }
 }

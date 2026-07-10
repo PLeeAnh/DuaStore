@@ -54,6 +54,9 @@ public class AdminDashboardController {
 
         model.addAttribute("dailyRevenue", dashboardService.getDailyRevenueLast7Days());
         model.addAttribute("topProducts", dashboardService.getTopSellingProducts(5));
+        model.addAttribute("lowStockCount", dashboardService.getLowStockCount());
+        model.addAttribute("lowStockProducts", dashboardService.getLowStockProducts(8));
+        model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
 
         // Enhanced dashboard data
         model.addAttribute("statComparison", dashboardService.getStatComparison());

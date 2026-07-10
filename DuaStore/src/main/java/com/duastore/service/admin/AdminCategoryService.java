@@ -3,6 +3,7 @@ package com.duastore.service.admin;
 import com.duastore.dto.CategoryDTO;
 import com.duastore.dto.TreeNodeDto;
 import com.duastore.model.Category;
+import com.duastore.model.Product;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductRepository;
 import org.springframework.data.domain.Page;
@@ -55,10 +56,30 @@ public class AdminCategoryService {
     }
 
     public List<Category> findAvailableParents(Integer currentId) {
+        List<Category> excludeIds = new ArrayList<>();
+        if (currentId != null) {
+            excludeIds.addAll(getAllDescendantIds(currentId));
+            excludeIds.add(findById(currentId));
+        }
+        List<Integer> exclude = excludeIds.stream()
+                .filter(Objects::nonNull)
+                .map(Category::getId)
+                .toList();
         return findAll().stream()
                 .filter(Category::isActive)
-                .filter(c -> currentId == null || !c.getId().equals(currentId))
+                .filter(c -> !exclude.contains(c.getId()))
                 .toList();
+    }
+
+    private List<Category> getAllDescendantIds(Integer parentId) {
+        List<Category> descendants = new ArrayList<>();
+        List<Category> children = categoryRepository
+                .findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(parentId);
+        for (Category child : children) {
+            descendants.add(child);
+            descendants.addAll(getAllDescendantIds(child.getId()));
+        }
+        return descendants;
     }
 
     public Category findById(Integer id) {
@@ -135,6 +156,11 @@ public class AdminCategoryService {
     @Transactional(readOnly = true)
     public List<Category> findChildrenByParentId(Integer parentId) {
         return categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(parentId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Product> findProductsByCategory(Integer categoryId) {
+        return productRepository.findByDanhMucIdAndIsActiveTrue(categoryId);
     }
 
     @Transactional(readOnly = true)

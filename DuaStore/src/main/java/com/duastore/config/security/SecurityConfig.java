@@ -100,7 +100,7 @@ public class SecurityConfig {
                     AuthenticationException authException) throws IOException {
                 if (request.getRequestURI().startsWith("/api/")) {
                     response.setContentType("application/json;charset=UTF-8");
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập\"}");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/dang-nhap");

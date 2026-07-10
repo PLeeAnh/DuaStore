@@ -2,6 +2,7 @@ package com.duastore.controller.admin;
 
 import com.duastore.dto.CategoryDTO;
 import com.duastore.model.Category;
+import com.duastore.model.Product;
 import com.duastore.service.FileUploadService;
 import com.duastore.service.admin.AdminCategoryService;
 import jakarta.validation.Valid;
@@ -83,6 +84,9 @@ public class AdminCategoryController {
         Map<Integer, Long> productCountMap = categoryService.getProductCountMap();
         model.addAttribute("productCountMap", productCountMap);
         model.addAttribute("productCount", productCountMap.getOrDefault(id, 0L));
+
+        List<Product> products = categoryService.findProductsByCategory(id);
+        model.addAttribute("products", products);
 
         return "view/admin/category/category-detail";
     }
