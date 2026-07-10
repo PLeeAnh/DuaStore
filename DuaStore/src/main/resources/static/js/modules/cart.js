@@ -21,7 +21,7 @@ function updateCartBadge(count) {
 }
 
 /* ═══ POPUP TOGGLE ═══ */
-function togglePopup(popupId) {
+function togglePopup(popupId, markAsViewed) {
     document.querySelectorAll('.custom-popup').forEach(function (p) {
         if (p.id !== popupId)
             p.style.display = 'none';
@@ -30,23 +30,23 @@ function togglePopup(popupId) {
     var popup = document.getElementById(popupId);
 
     if (popup) {
-        popup.style.display =
-                popup.style.display === 'block' ? 'none' : 'block';
+        var isOpening = (popup.style.display !== 'block');
+        popup.style.display = isOpening ? 'block' : 'none';
 
-        if (popupId === 'wishlist-popup' &&
-                popup.style.display === 'block') {
-
-            document.getElementById('wishlistBadge')
-                    ?.classList.add('d-none');
-        }
-
-        if (popupId === 'cart-popup' &&
-                popup.style.display === 'block') {
-
-            document.getElementById('cartBadge')
-                    ?.classList.add('d-none');
-
-            localStorage.setItem('cartViewed', 'true');
+        if (isOpening && markAsViewed === true) {
+            if (popupId === 'wishlist-popup') {
+                var wBadge = document.getElementById('wishlistBadge');
+                if (wBadge) wBadge.classList.add('d-none');
+                if (typeof saveViewedCount === 'function') {
+                    saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
+                }
+            } else if (popupId === 'cart-popup') {
+                var cBadge = document.getElementById('cartBadge');
+                if (cBadge) cBadge.classList.add('d-none');
+                if (typeof saveViewedCount === 'function' && typeof getBadgeCount === 'function') {
+                    saveViewedCount('ds_viewedCartCount', getBadgeCount('cartBadge'));
+                }
+            }
         }
     }
 }
@@ -400,8 +400,9 @@ function setPopupQty(variantId) {
         }
         return r.json();
     }).then(function (data) {
-        if (data && data.success && typeof updateCartBadge === 'function')
+        if (data && data.success && typeof updateCartBadge === 'function') {
             updateCartBadge(data.cartCount);
+        }
     }).catch(function () {});
 }
 
@@ -477,6 +478,5 @@ function addCartPopupItem(card, productId, variantId, qty) {
             popup.appendChild(div);
         }
     }
-    if (typeof togglePopup === 'function')
-        togglePopup('cart-popup');
+    
 }
