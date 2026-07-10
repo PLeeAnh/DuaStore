@@ -20,6 +20,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -357,6 +358,65 @@ public class AdminDashboardService {
     public long getUrgentOrderCount() {
         LocalDateTime threshold = LocalDateTime.now().minusHours(48);
         return orderRepository.countByTrangThaiDonAndNgayDatBefore("CHO_XAC_NHAN", threshold);
+    }
+
+    public List<Map<String, Object>> getMonthlyRevenueLast12Months() {
+        List<Map<String, Object>> result = new ArrayList<>();
+        LocalDate now = LocalDate.now();
+        for (int i = 11; i >= 0; i--) {
+            java.time.YearMonth ym = java.time.YearMonth.from(now.minusMonths(i));
+            LocalDateTime start = ym.atDay(1).atStartOfDay();
+            LocalDateTime end = ym.atEndOfMonth().atTime(LocalTime.MAX);
+            BigDecimal rev = orderRepository.sumTongThanhToanByTrangThaiDonAndNgayDatBetween(start, end);
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("month", ym.getMonthValue());
+            row.put("year", ym.getYear());
+            row.put("label", "T" + ym.getMonthValue() + "/" + String.valueOf(ym.getYear()).substring(2));
+            row.put("revenue", rev != null ? rev : BigDecimal.ZERO);
+            result.add(row);
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> getTopSellingProductsLast7Days(int limit) {
+        LocalDateTime since = LocalDateTime.now().minusDays(7);
+        List<Order> orders = orderRepository.findCompletedOrdersSince(
+                List.of("DA_GIAO", "DA_HOAN_THANH"), since);
+        Map<Integer, Map<String, Object>> productMap = new LinkedHashMap<>();
+        for (Order o : orders) {
+            var items = orderItemRepository.findByOrderId(o.getId());
+            for (var item : items) {
+                if (item.getProductId() == null) continue;
+                productMap.computeIfAbsent(item.getProductId(), k -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("productId", item.getProductId());
+                    m.put("tenSanPham", item.getTenSanPham());
+                    m.put("hinhAnh", item.getHinhAnhSP());
+                    m.put("totalSold", 0);
+                    return m;
+                });
+                productMap.get(item.getProductId()).merge("totalSold", item.getSoLuong(),
+                        (a, b) -> (Integer) a + (Integer) b);
+            }
+        }
+        return productMap.values().stream()
+                .sorted((a, b) -> Integer.compare((Integer) b.get("totalSold"), (Integer) a.get("totalSold")))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, Object> getCancelRefundRate() {
+        long total = orderRepository.count();
+        long cancelled = orderRepository.countByTrangThaiDon("DA_HUY");
+        long refunded = orderRepository.countByTrangThaiDon("DA_HOAN_TIEN");
+        long bad = cancelled + refunded;
+        String rate = total > 0 ? String.format("%.1f%%", (bad * 100.0 / total)) : "0%";
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("total", total);
+        m.put("cancelled", cancelled);
+        m.put("refunded", refunded);
+        m.put("rate", rate);
+        return m;
     }
 
     private String calcChange(long current, long previous) {

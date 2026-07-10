@@ -805,7 +805,7 @@ function saveSettingsPassword() {
         var confirmP = document.getElementById('sConfirmPassword').value;
         var errDiv = document.getElementById('settingsPassError');
         if (!oldP || !newP || !confirmP) { errDiv.textContent = 'Vui lòng nhập đầy đủ'; errDiv.classList.remove('d-none'); return; }
-if (newP.length < 6) { errDiv.textContent = 'Mật khẩu mới tối thiểu 6 ký tự'; errDiv.classList.remove('d-none'); return; }
+if (newP.length < 8) { errDiv.textContent = 'Mật khẩu mới tối thiểu 8 ký tự'; errDiv.classList.remove('d-none'); return; }
 if (newP !== confirmP) { errDiv.textContent = 'Mật khẩu mới không khớp'; errDiv.classList.remove('d-none'); return; }
 var fd = new FormData();
         fd.append('oldPassword', oldP);

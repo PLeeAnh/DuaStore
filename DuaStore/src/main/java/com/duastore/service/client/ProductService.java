@@ -61,6 +61,12 @@ public class ProductService {
         return productRepository.searchByNamePaged(keyword, pageable);
     }
 
+    public List<Product> searchSuggestions(String keyword, int limit) {
+        if (keyword == null || keyword.trim().isEmpty()) return List.of();
+        Pageable pageable = PageRequest.of(0, limit);
+        return productRepository.findTopByKeyword(keyword.trim(), pageable);
+    }
+
     public Page<Product> findByCategoriesPaged(List<Integer> danhMucIds, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return productRepository.findByDanhMucIdInAndIsActiveTrue(danhMucIds, pageable);

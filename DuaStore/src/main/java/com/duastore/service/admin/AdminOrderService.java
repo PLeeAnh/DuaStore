@@ -204,13 +204,22 @@ public class AdminOrderService {
         if (error != null) {
             throw new IllegalArgumentException(error);
         }
-        if ("DA_HUY".equals(trangThaiDon)) {
-            return deleteOrderWithLog(id, oldStatus, admin, request);
-        }
-
         Order order = orderRepository.findById(id).orElse(null);
         if (order == null) {
             throw new RuntimeException("Không tìm thấy đơn hàng");
+        }
+
+        if ("DA_HUY".equals(trangThaiDon)) {
+            String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
+            order.setTrangThaiDon("DA_HUY");
+            orderRepository.save(order);
+            orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, "DA_HUY",
+                    "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""));
+            adminLogService.ghiLogDonHang(admin, id, "HUY_DON_HANG",
+                    oldStatus, "DA_HUY",
+                    "Hủy đơn hàng (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""),
+                    request);
+            return stockMsg;
         }
 
         // Auto-set payment to DA_THANH_TOAN when completing unpaid order

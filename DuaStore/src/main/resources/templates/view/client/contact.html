@@ -129,7 +129,7 @@
             </section>
         </div>
     <th:block layout:fragment="extra-script">
-        <script th:inline="javascript">
+        <script>
             var cLat = parseFloat([[${storeLat}]]) || 21.0285;
             var cLng = parseFloat([[${storeLng}]]) || 105.8542;
             var contactMap = L.map('contactMap', { center: [cLat, cLng], zoom: 16, zoomControl: true });

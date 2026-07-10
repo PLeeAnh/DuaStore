@@ -32,6 +32,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p FROM Product p WHERE p.isActive = true AND LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY p.ngayTao DESC")
     List<Product> searchByName(String keyword);
 
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' AND LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY p.ngayTao DESC")
+    List<Product> findTopByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
     @Query("SELECT p FROM Product p WHERE p.isActive = true AND LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY p.ngayTao DESC")
     Page<Product> searchByNamePaged(@Param("keyword") String keyword, Pageable pageable);
 
