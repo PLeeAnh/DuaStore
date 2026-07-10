@@ -160,49 +160,24 @@ btn.disabled = false;
         });
 });
 
-// ── Ghi nhớ trạng thái giỏ hàng ──
-function safeReadPopupState(key) {
-        try {
-        var raw = localStorage.getItem(key);
-                return raw ? JSON.parse(raw) : null;
-        } catch (e) {
-        return null;
+// ── Badge persistence (count-based) ──
+function getBadgeCount(badgeId) {
+        if (badgeId === 'cartBadge') {
+        var h = document.getElementById('dsCartCountServer');
+                if (h) return parseInt(h.value) || 0;
         }
+        var el = document.getElementById(badgeId);
+        if (!el) return 0;
+        var text = el.textContent.trim();
+        return parseInt(text) || 0;
 }
 
-function writePopupState(key, state) {
-        localStorage.setItem(key, JSON.stringify(state || []));
+function getViewedCount(key) {
+        try { return parseInt(localStorage.getItem(key)) || 0; } catch (e) { return 0; }
 }
 
-function samePopupState(a, b) {
-        if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
-        for (var i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) return false;
-        }
-        return true;
-}
-
-function getWishlistPopupState() {
-        return Array.from(document.querySelectorAll('#wishlist-items-container .popup-item'))
-                .map(function(item) { return item.id; })
-                .sort();
-}
-
-function getCartPopupState() {
-        return Array.from(document.querySelectorAll('#cart-items-container .popup-item'))
-                .map(function(item) {
-                var inp = item.querySelector('input[id^="popup-qty-"]');
-                        var qty = inp ? inp.value : '1';
-                        return item.id + '-qty-' + qty;
-                })
-                .sort();
-}
-
-function getNotifPopupState() {
-        return Array.from(document.querySelectorAll('#notif-popup .notif-item'))
-                .map(function(item) { return item.id || item.getAttribute('onclick') || ''; })
-                .filter(function(s) { return s !== ''; })
-                .sort();
+function saveViewedCount(key, count) {
+        localStorage.setItem(key, String(count));
 }
 
 function setPopupBadge(badgeId, count, visible) {
@@ -213,29 +188,17 @@ function setPopupBadge(badgeId, count, visible) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-        var currentCartState = getCartPopupState();
-        var viewedCartState = safeReadPopupState('viewedCartState');
-        if (viewedCartState === null) {
-        writePopupState('viewedCartState', currentCartState);
-                viewedCartState = currentCartState;
-        }
-        setPopupBadge('cartBadge', currentCartState.length, !samePopupState(currentCartState, viewedCartState));
+        var cartCount = getBadgeCount('cartBadge');
+        var viewedCart = getViewedCount('ds_viewedCartCount');
+        setPopupBadge('cartBadge', cartCount, cartCount > 0 && cartCount !== viewedCart);
 
-        var currentWishlistState = getWishlistPopupState();
-        var viewedWishlistState = safeReadPopupState('viewedWishlistState');
-        if (viewedWishlistState === null) {
-        writePopupState('viewedWishlistState', currentWishlistState);
-                viewedWishlistState = currentWishlistState;
-        }
-        setPopupBadge('wishlistBadge', currentWishlistState.length, !samePopupState(currentWishlistState, viewedWishlistState));
+        var wishCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
+        var viewedWish = getViewedCount('ds_viewedWishCount');
+        setPopupBadge('wishlistBadge', wishCount, wishCount > 0 && wishCount !== viewedWish);
 
-        var currentNotifState = getNotifPopupState();
-        var viewedNotifState = safeReadPopupState('viewedNotifState');
-        if (viewedNotifState === null) {
-        writePopupState('viewedNotifState', currentNotifState);
-                viewedNotifState = currentNotifState;
-        }
-        setPopupBadge('notifBadge', currentNotifState.length, !samePopupState(currentNotifState, viewedNotifState));
+        var notifCount = getBadgeCount('notifBadge');
+        var viewedNotif = getViewedCount('ds_viewedNotifCount');
+        setPopupBadge('notifBadge', notifCount, notifCount > 0 && notifCount !== viewedNotif);
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
@@ -249,13 +212,13 @@ var isOpening = (popup.style.display !== 'block');
         popup.style.display = isOpening ? 'block' : 'none';
         if (isOpening && markAsViewed === true) {
 if (popupId === 'wishlist-popup') {
-var wBadge = document.getElementById('wishlistBadge');
-        if (wBadge) wBadge.classList.add('d-none');
-        writePopupState('viewedWishlistState', getWishlistPopupState());
+        var wBadge = document.getElementById('wishlistBadge');
+                if (wBadge) wBadge.classList.add('d-none');
+                saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
         } else if (popupId === 'cart-popup') {
-var cBadge = document.getElementById('cartBadge');
-        if (cBadge) cBadge.classList.add('d-none');
-        writePopupState('viewedCartState', getCartPopupState());
+        var cBadge = document.getElementById('cartBadge');
+                if (cBadge) cBadge.classList.add('d-none');
+                saveViewedCount('ds_viewedCartCount', getBadgeCount('cartBadge'));
         }
 }
 }
@@ -317,14 +280,12 @@ method: 'POST',
                 }
 
         const items = document.querySelectorAll('#cart-items-container .popup-item');
-                let states = [];
+                let totalQty = 0;
                 items.forEach(item => {
                 const inp = item.querySelector('input[id^="popup-qty-"]');
-                        const q = inp ? inp.value : '1';
-                        states.push(item.id + '-qty-' + q);
+                        totalQty += inp ? parseInt(inp.value) || 1 : 1;
                 });
-                localStorage.setItem('viewedCartState', JSON.stringify(states));
-                if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+                if (typeof updateCartBadge === 'function') updateCartBadge(totalQty);
                 })
         .catch(err => {
         console.error('Lỗi đồng bộ giỏ hàng:', err);
@@ -400,17 +361,15 @@ method: 'POST',
         .catch(err => console.error('Lỗi cập nhật:', err));
 }
 function refreshWishlistBadgeCount() {
-// Đếm số lượng thẻ sản phẩm đang nằm trong popup container
         let currentCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
         let badge = document.getElementById('wishlistBadge');
         if (!badge) return;
         if (currentCount > 0) {
-badge.textContent = currentCount;
-        badge.classList.remove('d-none'); // Hiển thị badge che icon
+        badge.textContent = currentCount;
+        var viewedWish = getViewedCount('ds_viewedWishCount');
+                badge.classList.toggle('d-none', currentCount === viewedWish);
         } else {
-badge.classList.add('d-none'); // Ẩn badge nếu không còn sản phẩm nào
-
-// Hiển thị trạng thái trống kèm icon trái tim tan vỡ
+        badge.classList.add('d-none');
         let container = document.getElementById('wishlist-items-container');
         if (container && !container.querySelector('.bi-heartbreak')) {
 container.innerHTML = `
@@ -430,7 +389,7 @@ function toggleNotifPopup() {
         if (popup && popup.style.display === 'block') {
         var nBadge = document.getElementById('notifBadge');
                 if (nBadge) nBadge.classList.add('d-none');
-                writePopupState('viewedNotifState', getNotifPopupState());
+                saveViewedCount('ds_viewedNotifCount', getBadgeCount('notifBadge'));
         }
 }
 function markNotifRead(id) {
@@ -465,13 +424,10 @@ function pollNotifications() {
                 if (badge) {
         var count = data.count || 0;
                 badge.textContent = count > 99 ? '99+' : String(count);
-                if (count > 0) {
-        var viewedState = safeReadPopupState('viewedNotifState');
-                var currentState = getNotifPopupState();
-                if (!samePopupState(currentState, viewedState)) {
+                var viewedCount = getViewedCount('ds_viewedNotifCount');
+                if (count > 0 && count !== viewedCount) {
         badge.classList.remove('d-none');
-                }
-        } else {
+                } else {
         badge.classList.add('d-none');
                 }
         }
@@ -877,23 +833,3 @@ function showToast(msg) {
                 t.style.pointerEvents = 'none';
         }, 3000);
 }
-/* ── Ẩn badge giỏ hàng nếu đã xem trước đó ── */
-<<<<<<< HEAD
-// Removed legacy cartViewed cleanup — badge state now managed via viewedCartState/viewedWishlistState
-=======
-document.addEventListener('DOMContentLoaded', function() {
-    localStorage.removeItem('cartViewed');
-    document.querySelectorAll('#cart-popup input[id^="popup-qty-"]').forEach(function(inp) {
-        var id = inp.id.replace('popup-qty-', '');
-        updateMinusButtonState(id);
-    });
-    document.querySelectorAll('#wishlist-items-container .popup-item').forEach(function() {
-        var badge = document.getElementById('wishlistBadge');
-        if (badge) {
-            var count = document.querySelectorAll('#wishlist-items-container .popup-item').length;
-            badge.textContent = count;
-            badge.classList.toggle('d-none', count <= 0);
-        }
-    });
-});
->>>>>>> f781b307a4ef9be0398148ac7d900bf0868b24b5
