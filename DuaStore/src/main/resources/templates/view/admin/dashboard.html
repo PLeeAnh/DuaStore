@@ -165,7 +165,7 @@
             <div class="col-12 col-lg-4">
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top sản phẩm bán chạy</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top sản phẩm (tháng)</h6>
                     </div>
                     <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(topProducts)}">
                         <div th:each="tp, iter : ${topProducts}" class="d-flex align-items-center gap-2">
@@ -198,7 +198,7 @@
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-lg-4">
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i>Phương thức thanh toán</h6>
@@ -208,7 +208,17 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-lg-4">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar-range me-2"></i>Doanh thu theo tháng</h6>
+                    </div>
+                    <div style="position:relative;height:220px;">
+                        <canvas id="monthlyRevenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart-steps me-2"></i>Kênh chuyển đổi đơn hàng</h6>
@@ -261,6 +271,7 @@
                                     <span th:if="${o.trangThaiDon == 'DA_GIAO'}" class="status-da-giao">Đã giao</span>
                                     <span th:if="${o.trangThaiDon == 'DA_HOAN_THANH'}" class="status-da-hoan-thanh">Đã hoàn thành</span>
                                     <span th:if="${o.trangThaiDon == 'DA_HUY'}" class="status-da-huy">Đã hủy</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_HOAN_TIEN'}" class="status-da-huy">Đã hoàn tiền</span>
                                 </td>
                                 <td>
                                     <span th:if="${orderAssignments.containsKey(o.id)}" class="small" th:text="${orderAssignments.get(o.id)}"></span>
@@ -310,6 +321,28 @@
                     </div>
                 </div>
 
+                <div class="adm-table-wrap p-3 mt-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-exclamation-circle me-2"></i>Đơn hủy / hoàn tiền</h6>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã hủy</span>
+                            <span class="badge bg-danger" th:text="${cancelRefundRate.cancelled} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã hoàn tiền</span>
+                            <span class="badge bg-danger" th:text="${cancelRefundRate.refunded} ?: 0">0</span>
+                        </div>
+                        <hr class="my-1"/>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold" style="font-size:.82rem">Tỉ lệ</span>
+                            <span class="badge" th:classappend="${cancelRefundRate.cancelled + cancelRefundRate.refunded > 0} ? 'bg-danger' : 'bg-success'"
+                                  th:text="${cancelRefundRate.rate} ?: '0%'">0%</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="adm-table-wrap p-3 mt-3 text-center">
                     <i class="bi bi-gem" style="font-size:2.5rem;color:var(--ef-primary);opacity:.5"></i>
                     <h6 class="mt-2 mb-1" style="font-size:.9rem">DuaStore Admin</h6>
@@ -336,6 +369,10 @@
     <div id="paymentData" class="d-none">
         <span th:each="pm : ${paymentMethodDistribution}"
               th:attr="data-method=${pm.key}, data-count=${pm.value}"></span>
+    </div>
+    <div id="monthlyRevenueData" class="d-none">
+        <span th:each="mr : ${monthlyRevenueData}"
+              th:attr="data-label=${mr.label}, data-value=${mr.revenue}"></span>
     </div>
     <script th:src="@{/js/admin-dashboard.js}"></script>
     </th:block>

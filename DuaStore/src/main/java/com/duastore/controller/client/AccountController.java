@@ -142,8 +142,8 @@ public class AccountController {
             ra.addFlashAttribute("errorMsg", "Mật khẩu mới không khớp");
             return "redirect:/tai-khoan?tab=security";
         }
-        if (newPassword.length() < 6) {
-            ra.addFlashAttribute("errorMsg", "Mật khẩu tối thiểu 6 ký tự");
+        if (newPassword.length() < 8) {
+                ra.addFlashAttribute("errorMsg", "Mật khẩu tối thiểu 8 ký tự");
             return "redirect:/tai-khoan?tab=security";
         }
         user.setPassword(passwordEncoder.encode(newPassword));

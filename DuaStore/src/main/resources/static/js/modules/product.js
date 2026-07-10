@@ -58,6 +58,9 @@ document.addEventListener('DOMContentLoaded', function () {
         var minus = card.querySelector('.ds-qty-minus');
         if (minus)
             minus.disabled = true;
+        var plus = card.querySelector('.ds-qty-plus');
+        if (plus)
+            plus.disabled = (newStock <= 1);
     }
 
     document.addEventListener('click', function (e) {

@@ -440,9 +440,37 @@ function saveAddressFromModal() {
     var tinh = document.getElementById('modalTinhThanh').value;
     var quan = document.getElementById('modalQuanHuyen').value;
     var phuong = document.getElementById('modalPhuongXa').value;
-    if (dc === tinh || dc === quan || dc === phuong) {
-        DuaStore.toast.warning('Số nhà, đường không được trùng với tên tỉnh/quận/phường');
+    // Check if street address matches any location name (exact or substring)
+    function isLocationName(str, name) {
+        if (!str || !name) return false;
+        var s = str.toLowerCase().trim();
+        var n = name.toLowerCase().trim();
+        return s === n || (n.indexOf(s) !== -1) || (s.indexOf(n) !== -1);
+    }
+    if (isLocationName(dc, tinh) || isLocationName(dc, quan) || isLocationName(dc, phuong)) {
+        DuaStore.toast.warning('Số nhà, đường không được trùng hoặc chứa tên tỉnh/quận/phường');
         return;
+    }
+    // Also check against all province names
+    for (var i = 0; i < modalProvinces.length; i++) {
+        if (isLocationName(dc, modalProvinces[i].name)) {
+            DuaStore.toast.warning('Số nhà, đường không được nhập tên tỉnh/thành phố');
+            return;
+        }
+    }
+    // Check against loaded districts
+    for (var j = 0; j < modalDistricts.length; j++) {
+        if (isLocationName(dc, modalDistricts[j].name)) {
+            DuaStore.toast.warning('Số nhà, đường không được nhập tên quận/huyện');
+            return;
+        }
+    }
+    // Check against loaded wards
+    for (var k = 0; k < modalWards.length; k++) {
+        if (isLocationName(dc, modalWards[k].name)) {
+            DuaStore.toast.warning('Số nhà, đường không được nhập tên phường/xã');
+            return;
+        }
     }
 
     var formData = new URLSearchParams();
@@ -764,9 +792,26 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('ckInfo').style.display = el.value === 'CHUYEN_KHOAN' && el.checked ? 'block' : 'none';
         });
     });
+    /* ── Click address card in checkout → set default ── */
+    document.querySelector('.ds-address-card-list')?.addEventListener('click', function (e) {
+        var card = e.target.closest('.ds-address-card');
+        if (!card) return;
+        if (e.target.closest('.ds-address-card-actions') || e.target.closest('.ds-kebab-btn')) return;
+        var id = card.querySelector('input[name="addressId"]')?.value;
+        if (!id) return;
+        setDefaultAddress(id);
+    });
+
     document.querySelectorAll('input[name="addressId"]').forEach(function (el) {
         el.addEventListener('change', function () {
             updateShipFee();
+            var label = this.closest('.ds-address-card');
+            if (label) {
+                document.querySelectorAll('.ds-address-card-list .ds-address-card').forEach(function (c) {
+                    c.classList.remove('active');
+                });
+                label.classList.add('active');
+            }
         });
     });
 
@@ -784,6 +829,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.closest('.ds-address-card-actions') || e.target.closest('.ds-kebab-btn')) return;
         var id = cardBody.getAttribute('data-id');
         if (!id) return;
+        setDefaultAddress(id);
         var radio = document.querySelector('input[name="addressId"][value="' + id + '"]');
         if (radio) {
             radio.checked = true;

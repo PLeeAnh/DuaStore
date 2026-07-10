@@ -25,6 +25,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -578,5 +579,20 @@ public class ProductController {
     @ResponseBody
     public VariantApiDTO getVariant(@PathVariable Integer variantId) {
         return productService.getVariantApi(variantId);
+    }
+
+    @GetMapping("/api/products/suggestions")
+    @ResponseBody
+    public List<Map<String, Object>> suggest(@RequestParam String keyword) {
+        List<Product> products = productService.searchSuggestions(keyword, 5);
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Product p : products) {
+            Map<String, Object> m = new java.util.HashMap<>();
+            m.put("id", p.getId());
+            m.put("tenSanPham", p.getTenSanPham());
+            m.put("hinhAnhChinh", p.getHinhAnhChinh());
+            result.add(m);
+        }
+        return result;
     }
 }

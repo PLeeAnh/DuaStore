@@ -124,13 +124,15 @@ public class AdminCategoryService {
         category.setActive(dto.isActive());
         category.setImageUrl(dto.getImageUrl());
 
+        // Set parent — load fresh from DB to avoid stale Hibernate proxy
         if (dto.getParentId() != null) {
-            category.setParent(categoryRepository.findById(dto.getParentId()).orElse(null));
+            Category newParent = categoryRepository.findById(dto.getParentId()).orElse(null);
+            category.setParent(newParent);
         } else {
             category.setParent(null);
         }
 
-        return categoryRepository.save(category);
+        return categoryRepository.saveAndFlush(category);
     }
 
     @Transactional

@@ -434,6 +434,7 @@ function addCartPopupItem(card, productId, variantId, qty) {
     if (!variantName)
         variantName = 'Mặc định';
     var rawPrice = activeChip ? parseInt(activeChip.getAttribute('data-price')) : 0;
+    var stock = activeChip ? parseInt(activeChip.getAttribute('data-stock')) || 999 : 999;
     var priceFmt = rawPrice.toLocaleString('vi-VN') + '₫';
 
     var existing = document.getElementById('cart-item-' + variantId);
@@ -454,11 +455,11 @@ function addCartPopupItem(card, productId, variantId, qty) {
             '<div class="popup-item-info flex-grow-1">' +
             '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + productName + '</a>' +
             '<div class="small text-muted mb-2" style="font-size:0.8rem;">' + variantName + '</div>' +
-            '<div class="d-flex align-items-center">' +
-            '<div class="input-group input-group-sm" style="width:90px;">' +
-            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',-1)">-</button>' +
-            '<input class="form-control text-center py-0 px-1" type="number" min="1" id="popup-qty-' + variantId + '" value="' + qty + '" onchange="setPopupQty(' + variantId + ', this)" onfocus="this.select()" style="font-size:0.85rem;" />' +
-            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + variantId + ',1)">+</button>' +
+            '<div class="d-flex align-items-center justify-content-between">' +
+            '<div class="ds-qty-selector">' +
+            '<button class="ds-qty-btn ds-qty-minus" type="button" onclick="updatePopupQty(' + variantId + ',-1)"><svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>' +
+            '<input type="text" class="ds-qty-val" data-stock="' + stock + '" id="popup-qty-' + variantId + '" value="' + qty + '" onchange="validatePopupQty(' + variantId + ', this)" />' +
+            '<button class="ds-qty-btn ds-qty-plus" type="button" onclick="updatePopupQty(' + variantId + ',1)"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>' +
             '</div>' +
             '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + variantId + '" data-price="' + rawPrice + '">' + priceFmt + '</span>' +
             '</div>' +

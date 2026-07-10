@@ -32,16 +32,7 @@
     <script defer th:src="@{/js/modules/promotion.js(v=1)}"></script>
     <script defer th:src="@{/js/modules/checkout.js(v=1)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        var __customCss = [[${customCss ?: ''}]].replace(/\]\]/g, '');
-        if (__customCss) {
-            var __style = document.createElement('style');
-            __style.textContent = __customCss;
-            document.head.appendChild(__style);
-        }
-        /*]]>*/
-    </script>
+    <style th:if="${customCss}" th:utext="${customCss}"></style>
     <style>
         :root {
             --ds-primary: [[${themeSettings.get('theme_primary_color') ?: '#2563EB'}]];
@@ -81,10 +72,13 @@
             </ul>
 
             <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">
-                <form th:if="${themeSettings.get('header_search') != '0'}" th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
-                    <i class="bi bi-search"></i>
-                    <input type="search" name="keyword" class="ds-search-inline-input" placeholder="Tìm sản phẩm..." th:value="${param.keyword}" aria-label="Tìm kiếm"/>
-                </form>
+                <div th:if="${themeSettings.get('header_search') != '0'}" class="ds-search-wrap">
+                    <form th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
+                        <i class="bi bi-search"></i>
+                        <input type="search" name="keyword" class="ds-search-inline-input" id="searchInput" placeholder="Tìm sản phẩm..." th:value="${param.keyword}" autocomplete="off" aria-label="Tìm kiếm"/>
+                    </form>
+                    <div id="searchSuggestions" class="ds-search-suggestions d-none"></div>
+                </div>
 
                 <div class="position-relative d-inline-block ds-wishlist-wrap">
     <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup', true)" title="Danh sách yêu thích" aria-label="Yêu thích">
@@ -624,7 +618,7 @@
                         <div class="ds-auth-field">
                             <i class="bi bi-lock"></i>
                             <input type="password" name="password" placeholder="Nhập mật khẩu"
-                                   id="loginPassword" autocomplete="current-password" required minlength="6">
+                                   id="loginPassword" autocomplete="current-password" required minlength="8">
                             <button type="button" class="toggle-eye" onclick="togglePass('loginPassword',this)">
                                 <i class="bi bi-eye-slash"></i>
                             </button>
@@ -723,7 +717,7 @@
                     <div class="mb-3">
                         <div class="ds-auth-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" name="password" placeholder="Nhập mật khẩu" id="regPassword" required minlength="6">
+                            <input type="password" name="password" placeholder="Nhập mật khẩu" id="regPassword" required minlength="8">
                             <button type="button" class="toggle-eye" onclick="togglePass('regPassword',this)">
                                 <i class="bi bi-eye-slash"></i>
                             </button>
@@ -805,7 +799,7 @@
                     <div class="mb-3">
                         <div class="ds-auth-field">
                             <i class="bi bi-lock"></i>
-                            <input type="password" placeholder="Mật khẩu mới" id="forgotPass" required minlength="6">
+                            <input type="password" placeholder="Mật khẩu mới" id="forgotPass" required minlength="8">
                             <button type="button" class="toggle-eye" onclick="togglePass('forgotPass',this)">
                                 <i class="bi bi-eye-slash"></i>
                             </button>
@@ -984,6 +978,41 @@ document.addEventListener('DOMContentLoaded', function() {
         L.marker([lat, lng]).addTo(map);
     }
 });
+
+/* Search suggestions */
+var searchInput = document.getElementById('searchInput');
+var searchBox = document.getElementById('searchSuggestions');
+if (searchInput && searchBox) {
+    var searchTimer;
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        var q = this.value.trim();
+        if (q.length < 2) { searchBox.classList.add('d-none'); return; }
+        searchTimer = setTimeout(function () {
+            fetch('/api/products/suggestions?keyword=' + encodeURIComponent(q))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    searchBox.innerHTML = '';
+                    if (!data || !data.length) { searchBox.classList.add('d-none'); return; }
+                    var html = '<div class="ds-suggest-header">Gợi ý</div>';
+                    data.forEach(function (p) {
+                        var img = p.hinhAnhChinh || '/images/no-image.png';
+                        html += '<a href="/san-pham/' + p.id + '" class="ds-suggest-item">' +
+                            '<img src="' + img + '" class="ds-suggest-img">' +
+                            '<span class="ds-suggest-name">' + p.tenSanPham + '</span>' +
+                            '</a>';
+                    });
+                    searchBox.innerHTML = html;
+                    searchBox.classList.remove('d-none');
+                });
+        }, 300);
+    });
+    document.addEventListener('click', function (e) {
+        if (!searchBox.contains(e.target) && e.target !== searchInput) {
+            searchBox.classList.add('d-none');
+        }
+    });
+}
 </script>
 
 <script th:src="@{/js/base-ui.js(v=2)}"></script>
