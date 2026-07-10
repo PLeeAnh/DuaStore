@@ -79,6 +79,52 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             @Param("chatLieu") String chatLieu,
             Pageable pageable);
 
+    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
+            + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) "
+            + "AND (:minPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) >= :minPrice)) "
+            + "AND (:maxPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice)) "
+            + "AND (:dungTich IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND v.dungTich = :dungTich)) "
+            + "ORDER BY (SELECT MIN(COALESCE(v2.giaKhuyenMai, v2.giaGoc)) FROM ProductVariant v2 WHERE v2.productId = p.id AND v2.isActive = true) ASC")
+    Page<Product> filterPagedPriceAsc(@Param("keyword") String keyword,
+            @Param("danhMucId") Integer danhMucId,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("dungTich") Integer dungTich,
+            @Param("chatLieu") String chatLieu,
+            Pageable pageable);
+
+    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
+            + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) "
+            + "AND (:minPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) >= :minPrice)) "
+            + "AND (:maxPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice)) "
+            + "AND (:dungTich IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND v.dungTich = :dungTich)) "
+            + "ORDER BY (SELECT MIN(COALESCE(v2.giaKhuyenMai, v2.giaGoc)) FROM ProductVariant v2 WHERE v2.productId = p.id AND v2.isActive = true) DESC")
+    Page<Product> filterPagedPriceDesc(@Param("keyword") String keyword,
+            @Param("danhMucId") Integer danhMucId,
+            @Param("minPrice") BigDecimal minPrice,
+            @Param("maxPrice") BigDecimal maxPrice,
+            @Param("dungTich") Integer dungTich,
+            @Param("chatLieu") String chatLieu,
+            Pageable pageable);
+
+    @Query(value = "SELECT p.id FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
+            + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) "
+            + "ORDER BY (SELECT COALESCE(AVG(r.danhGia), 0) FROM Review r WHERE r.productId = p.id) DESC",
+            countQuery = "SELECT COUNT(DISTINCT p.id) FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND (:keyword IS NULL OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
+            + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu)")
+    Page<Integer> findIdsFilteredTopRated(@Param("keyword") String keyword,
+            @Param("danhMucId") Integer danhMucId,
+            @Param("chatLieu") String chatLieu,
+            Pageable pageable);
+
     @Query("SELECT DISTINCT p.hinhDang FROM Product p WHERE p.isActive = true AND p.hinhDang IS NOT NULL ORDER BY p.hinhDang ASC")
     List<String> findDistinctHinhDang();
 

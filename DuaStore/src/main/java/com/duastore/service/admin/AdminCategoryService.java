@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,6 +70,43 @@ public class AdminCategoryService {
                 .filter(Category::isActive)
                 .filter(c -> !exclude.contains(c.getId()))
                 .toList();
+    }
+
+    public List<TreeNodeDto> findAvailableParentTree(Integer currentId) {
+        List<Category> excludeIds = new ArrayList<>();
+        if (currentId != null) {
+            excludeIds.addAll(getAllDescendantIds(currentId));
+            excludeIds.add(findById(currentId));
+        }
+        Set<Integer> exclude = excludeIds.stream()
+                .filter(Objects::nonNull)
+                .map(Category::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        List<Category> roots = categoryRepository
+                .findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
+        List<TreeNodeDto> result = new ArrayList<>();
+        buildAvailableTree(roots, 0, exclude, result);
+        return result;
+    }
+
+    private void buildAvailableTree(List<Category> nodes, int level, Set<Integer> exclude, List<TreeNodeDto> result) {
+        for (Category cat : nodes) {
+            if (exclude.contains(cat.getId())) {
+                continue;
+            }
+            TreeNodeDto dto = new TreeNodeDto();
+            dto.setId(cat.getId());
+            dto.setTenDanhMuc(cat.getTenDanhMuc());
+            dto.setImageUrl(cat.getImageUrl());
+            dto.setActive(cat.isActive());
+            dto.setThuTuHienThi(cat.getThuTuHienThi());
+            dto.setHasChildren(!cat.getChildren().isEmpty());
+            dto.setLevel(level);
+            result.add(dto);
+            if (!cat.getChildren().isEmpty()) {
+                buildAvailableTree(cat.getChildren(), level + 1, exclude, result);
+            }
+        }
     }
 
     private List<Category> getAllDescendantIds(Integer parentId) {

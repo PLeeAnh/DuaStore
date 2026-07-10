@@ -150,7 +150,7 @@ public class AdminProductService {
         }
 
         p.setTenSanPham(dto.getTenSanPham());
-        p.setMoTa(dto.getMoTa());
+        p.setMoTa(com.duastore.util.HtmlSanitizer.sanitize(dto.getMoTa()));
         p.setChatLieu(dto.getChatLieu());
         p.setXuatXu(dto.getXuatXu());
         p.setMucDichSuDung(dto.getMucDichSuDung());

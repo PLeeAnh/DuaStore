@@ -18,7 +18,7 @@
                     </ol>
                 </nav>
 
-                <div class="ds-card p-4" th:with="defaultVariant=${#lists.isEmpty(variants) ? null : variants[0]}">
+                <div class="ds-card p-4">
                     <div class="row g-5">
                         <div class="col-lg-6">
                             <div class="product-gallery">
@@ -34,8 +34,9 @@
 
                                     <img id="mainImage" th:src="@{${product.hinhAnhChinh}}"
                                          th:alt="${product.tenSanPham}"
-                                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22 fill=%22%23ddd%22%3E%3Crect width=%22400%22 height=%22400%22/%3E%3Ctext x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2224%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'" />
-                                </div>
+                                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22 fill=%22%23ddd%22%3E%3Crect width=%22400%22 height=%22400%22/%3E%3Ctext x=%22200%22 y=%22200%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2224%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E'" loading="lazy"
+                                          style="cursor:zoom-in" onclick="openLightbox(0)" />
+                                 </div>
 
                                 <div class="gallery-bottom" th:if="${#lists.size(galleryImages) > 0}">
                                     <button class="gallery-arrow gallery-arrow-left" id="galleryPrev" type="button">❮</button>
@@ -45,7 +46,7 @@
                                                  class="gallery-thumb" th:classappend="${iter.first} ? 'active' : ''"
                                                  th:data-img="${img}"
                                                  onclick="galleryClick(this)">
-                                                <img th:src="@{${img}}" alt="" />
+                                                <img th:src="@{${img}}" alt="" loading="lazy" />
                                             </div>
                                         </div>
                                     </div>
@@ -170,7 +171,7 @@
                                     </div>
 
                                     <!-- Dòng "Đã chọn: X" -->
-                                    <div class="variant-selected-label" id="variantSelectedDisplay">Đã chọn: <strong th:text="${variants[0].dungTich != null ? variants[0].dungTich + 'ml' : (variants[0].tenBienThe.contains(' - ') ? variants[0].tenBienThe.substring(0, variants[0].tenBienThe.indexOf(' - ')).trim() : variants[0].tenBienThe)}">500ml</strong></div>
+                                    <div class="variant-selected-label" id="variantSelectedDisplay">Đã chọn: <strong th:text="${defaultVariant.dungTich != null ? defaultVariant.dungTich + 'ml' : (defaultVariant.tenBienThe.contains(' - ') ? defaultVariant.tenBienThe.substring(0, defaultVariant.tenBienThe.indexOf(' - ')).trim() : defaultVariant.tenBienThe)}">500ml</strong></div>
                                 </div>
                             </div>
 
@@ -209,6 +210,15 @@
                                     th:disabled="${defaultVariant == null or defaultVariant.soLuongTon <= 0}">
                                 <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ hàng
                             </button>
+
+                            <div class="d-flex gap-2 mt-2 pt-2 border-top" style="border-color:var(--ds-border)!important;">
+                                <span class="small text-muted align-self-center">Chia sẻ:</span>
+                                <a th:href="|https://www.facebook.com/sharer/sharer.php?u=${pageUrl}|" target="_blank" class="text-decoration-none text-secondary" title="Chia sẻ Facebook"><i class="bi bi-facebook"></i></a>
+                                <a th:href="|https://twitter.com/intent/tweet?url=${pageUrl}&text=${product.tenSanPham}|" target="_blank" class="text-decoration-none text-secondary" title="Chia sẻ Twitter"><i class="bi bi-twitter-x"></i></a>
+                                <a th:href="|https://pinterest.com/pin/create/button/?url=${pageUrl}&description=${product.tenSanPham}|" target="_blank" class="text-decoration-none text-secondary" title="Chia sẻ Pinterest"><i class="bi bi-pinterest"></i></a>
+                                <a th:href="|mailto:?subject=DuaStore: ${product.tenSanPham}&body=Xem sản phẩm tại: ${pageUrl}|" class="text-decoration-none text-secondary" title="Chia sẻ qua Email"><i class="bi bi-envelope"></i></a>
+                                <button class="btn btn-sm p-0 border-0 bg-transparent text-secondary" onclick="navigator.clipboard.writeText(window.location.href);DuaStore?.toast?.success('Đã copy link');" title="Copy link"><i class="bi bi-link-45deg"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -231,7 +241,7 @@
                         <div class="col-lg-8">
                             <div class="tab-content">
                                 <div class="tab-pane fade show active" id="tab-mota">
-                                    <div th:if="${product.moTa}" style="font-size:.9rem;color:#475569;line-height:1.8;white-space:pre-wrap" th:text="${product.moTa}">Mô tả chi tiết sản phẩm...</div>
+                                    <div th:if="${product.moTa}" style="font-size:.9rem;color:#475569;line-height:1.8" th:utext="${product.moTa}">Mô tả chi tiết sản phẩm...</div>
                                     <p th:unless="${product.moTa}" class="text-muted mb-0">Chưa có mô tả cho sản phẩm này.</p>
                                 </div>
                                 <div class="tab-pane fade" id="tab-huongdan">
@@ -327,7 +337,7 @@
                                 <div class="related-card">
                                     <div class="img-wrap">
                                         <img th:src="@{${rp.hinhAnhChinh != null ? rp.hinhAnhChinh : '/images/placeholder.png'}}"
-                                             th:alt="${rp.tenSanPham}" />
+                                             th:alt="${rp.tenSanPham}" loading="lazy" />
                                     </div>
                                     <div class="card-body">
                                         <div class="card-title" th:text="${rp.tenSanPham}">Tên SP</div>
@@ -647,7 +657,7 @@
 
                 if (selectedStock > 0 && qty > selectedStock) {
                     qty = selectedStock;
-                    alert('Số lượng vượt quá tồn kho!');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.warning('Số lượng vượt quá tồn kho!'); }
                 }
 
                 this.value = qty;
@@ -683,12 +693,12 @@
                         if (data.message && data.message.includes('dang nhap')) {
                             showLoginPopup();
                         } else {
-                            alert('Lỗi: ' + data.message);
+                            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Lỗi'); }
                         }
                     }
                 }).catch(function (err) {
                     console.error(err);
-                    alert('Có lỗi kết nối xảy ra!');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Có lỗi kết nối xảy ra!'); }
                 });
             }
 
@@ -730,12 +740,12 @@
                         if (data.message && data.message.includes('dang nhap')) {
                             showLoginPopup();
                         } else {
-                            alert('Lỗi: ' + data.message);
+                            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Lỗi'); }
                         }
                     }
                 }).catch(function (err) {
                     console.error(err);
-                    alert('Có lỗi kết nối xảy ra!');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Có lỗi kết nối xảy ra!'); }
                 });
             }
 
@@ -876,8 +886,168 @@
                 reviewImageIndex = (reviewImageIndex + dir + reviewImageGroup.length) % reviewImageGroup.length;
                 document.getElementById('reviewImagePreview').src = reviewImageGroup[reviewImageIndex];
             }
+
+            /* ── Gallery Lightbox ── */
+            var lightboxImages = [];
+            var lightboxIndex = 0;
+            var lightboxEl = null;
+            var lightboxStartX = 0;
+            var lightboxStartY = 0;
+            var lightboxSwiping = false;
+
+            document.querySelectorAll('.gallery-thumb').forEach(function(t) {
+                lightboxImages.push(t.dataset.img);
+            });
+            if (document.getElementById('mainImage')) {
+                var mainSrc = document.getElementById('mainImage').src;
+                if (mainSrc && lightboxImages.indexOf(mainSrc) === -1) {
+                    lightboxImages.unshift(mainSrc);
+                }
+            }
+
+            function openLightbox(idx) {
+                lightboxIndex = idx;
+                var overlay = document.createElement('div');
+                overlay.id = 'dsLightbox';
+                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.92);z-index:99998;display:flex;align-items:center;justify-content:center;cursor:pointer';
+                overlay.onclick = function(e) { if (e.target === overlay) closeLightbox(); };
+
+                var img = document.createElement('img');
+                img.id = 'dsLightboxImg';
+                img.style.cssText = 'max-width:90vw;max-height:88vh;border-radius:6px;box-shadow:0 4px 40px rgba(0,0,0,.4);cursor:default;user-select:none;-webkit-user-select:none';
+                img.ondragstart = function() { return false; };
+                img.src = lightboxImages[lightboxIndex] || '';
+
+                var closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+                closeBtn.style.cssText = 'position:fixed;top:16px;right:20px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.4rem;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:99999;display:flex;align-items:center;justify-content:center;transition:background .2s';
+                closeBtn.onmouseenter = function() { this.style.background = 'rgba(255,255,255,.25)'; };
+                closeBtn.onmouseleave = function() { this.style.background = 'rgba(255,255,255,.15)'; };
+                closeBtn.onclick = closeLightbox;
+
+                var prevBtn = document.createElement('button');
+                prevBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+                prevBtn.style.cssText = 'position:fixed;left:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;z-index:99999;display:' + (lightboxImages.length > 1 ? 'flex' : 'none') + ';align-items:center;justify-content:center;transition:background .2s';
+                prevBtn.onmouseenter = function() { this.style.background = 'rgba(255,255,255,.2)'; };
+                prevBtn.onmouseleave = function() { this.style.background = 'rgba(255,255,255,.1)'; };
+                prevBtn.onclick = function(e) { e.stopPropagation(); navigateLightbox(-1); };
+
+                var nextBtn = document.createElement('button');
+                nextBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+                nextBtn.style.cssText = 'position:fixed;right:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.1);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;z-index:99999;display:' + (lightboxImages.length > 1 ? 'flex' : 'none') + ';align-items:center;justify-content:center;transition:background .2s';
+                nextBtn.onmouseenter = function() { this.style.background = 'rgba(255,255,255,.2)'; };
+                nextBtn.onmouseleave = function() { this.style.background = 'rgba(255,255,255,.1)'; };
+                nextBtn.onclick = function(e) { e.stopPropagation(); navigateLightbox(1); };
+
+                var counter = document.createElement('div');
+                counter.id = 'dsLightboxCounter';
+                counter.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:.85rem;z-index:99999';
+                updateLightboxCounter();
+
+                overlay.appendChild(closeBtn);
+                overlay.appendChild(prevBtn);
+                overlay.appendChild(nextBtn);
+                overlay.appendChild(counter);
+                overlay.appendChild(img);
+                document.body.appendChild(overlay);
+                lightboxEl = overlay;
+                document.body.style.overflow = 'hidden';
+
+                // Keyboard navigation
+                document.addEventListener('keydown', lightboxKeydown);
+
+                // Touch swipe
+                overlay.addEventListener('touchstart', lightboxTouchStart, {passive: true});
+                overlay.addEventListener('touchmove', lightboxTouchMove, {passive: true});
+                overlay.addEventListener('touchend', lightboxTouchEnd, {passive: true});
+
+                // Mouse drag
+                overlay.addEventListener('mousedown', lightboxMouseDown);
+                overlay.addEventListener('mousemove', lightboxMouseMove);
+                overlay.addEventListener('mouseup', lightboxMouseUp);
+                overlay.addEventListener('mouseleave', lightboxMouseUp);
+            }
+
+            function closeLightbox() {
+                if (lightboxEl) {
+                    document.body.removeChild(lightboxEl);
+                    lightboxEl = null;
+                }
+                document.removeEventListener('keydown', lightboxKeydown);
+                document.body.style.overflow = '';
+            }
+
+            function navigateLightbox(dir) {
+                lightboxIndex = (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+                var img = document.getElementById('dsLightboxImg');
+                if (img) img.src = lightboxImages[lightboxIndex];
+                updateLightboxCounter();
+            }
+
+            function updateLightboxCounter() {
+                var el = document.getElementById('dsLightboxCounter');
+                if (el) el.textContent = (lightboxIndex + 1) + ' / ' + lightboxImages.length;
+            }
+
+            function lightboxKeydown(e) {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') navigateLightbox(-1);
+                if (e.key === 'ArrowRight') navigateLightbox(1);
+            }
+
+            function lightboxTouchStart(e) {
+                lightboxStartX = e.touches[0].clientX;
+                lightboxStartY = e.touches[0].clientY;
+                lightboxSwiping = false;
+            }
+
+            function lightboxTouchMove(e) {
+                if (!lightboxStartX) return;
+                var dx = e.touches[0].clientX - lightboxStartX;
+                var dy = e.touches[0].clientY - lightboxStartY;
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
+                    lightboxSwiping = true;
+                }
+            }
+
+            function lightboxTouchEnd(e) {
+                if (!lightboxSwiping) return;
+                var dx = e.changedTouches[0].clientX - lightboxStartX;
+                if (dx > 50) navigateLightbox(-1);
+                if (dx < -50) navigateLightbox(1);
+                lightboxStartX = 0;
+                lightboxStartY = 0;
+                lightboxSwiping = false;
+            }
+
+            function lightboxMouseDown(e) {
+                if (e.target !== document.getElementById('dsLightboxImg')) return;
+                lightboxStartX = e.clientX;
+                lightboxStartY = e.clientY;
+                lightboxSwiping = false;
+            }
+
+            function lightboxMouseMove(e) {
+                if (!lightboxStartX) return;
+                var dx = e.clientX - lightboxStartX;
+                if (Math.abs(dx) > 30) lightboxSwiping = true;
+            }
+
+            function lightboxMouseUp(e) {
+                if (lightboxStartX && lightboxSwiping) {
+                    var dx = e.clientX - lightboxStartX;
+                    if (dx > 50) navigateLightbox(-1);
+                    if (dx < -50) navigateLightbox(1);
+                }
+                lightboxStartX = 0;
+                lightboxStartY = 0;
+                lightboxSwiping = false;
+            }
         </script>
     </th:block>
+
+    <!-- Lightbox overlay container -->
+    <div id="dsLightboxContainer"></div>
 
 </body>
 </html>

@@ -299,9 +299,9 @@ function copyPromoCode(btn) {
     if (!code)
         return;
     navigator.clipboard.writeText(code).then(() => {
-        alert('Đã sao chép mã: ' + code);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã sao chép mã: ' + code); }
     }).catch(() => {
-        alert('Sao chép thất bại, vui lòng tự copy mã: ' + code);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Sao chép thất bại, vui lòng tự copy mã: ' + code); }
     });
 }
 

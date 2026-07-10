@@ -125,17 +125,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmModalEl = document.getElementById('confirmModal');
     if (confirmModalEl) {
         const confirmModal = new bootstrap.Modal(confirmModalEl);
-        document.querySelectorAll('[data-confirm]').forEach(btn => {
-            btn.addEventListener('click', e => {
-                const msg = btn.getAttribute('data-confirm') || 'Xác nhận thực hiện thao tác này?';
-                confirmForm = btn.closest('form');
-                if (!confirmForm)
-                    return;
-                e.preventDefault();
-                document.getElementById('confirmModalMessage').textContent = msg;
-                confirmModal.show();
-            });
+
+        function bindDataConfirm(btn) {
+            btn.removeEventListener('click', handleDataConfirm);
+            btn.addEventListener('click', handleDataConfirm);
+        }
+        function handleDataConfirm(e) {
+            var btn = e.currentTarget;
+            var msg = btn.getAttribute('data-confirm') || 'Xác nhận thực hiện thao tác này?';
+            confirmForm = btn.closest('form');
+            if (!confirmForm) return;
+            e.preventDefault();
+            document.getElementById('confirmModalMessage').textContent = msg;
+            confirmModal.show();
+        }
+
+        // Intercept native confirm() on form submissions → use modal instead
+        document.querySelectorAll('form[onsubmit]').forEach(function(form) {
+            var original = form.getAttribute('onsubmit');
+            if (original && original.includes('confirm(')) {
+                form.removeAttribute('onsubmit');
+                var btn = form.querySelector('[type="submit"]');
+                if (btn) {
+                    btn.setAttribute('data-confirm', original.match(/confirm\(['"](.+?)['"]\)/)?.[1] || 'Xác nhận thực hiện?');
+                    bindDataConfirm(btn);
+                }
+            }
         });
+
+        // Bind existing [data-confirm] buttons
+        document.querySelectorAll('[data-confirm]').forEach(bindDataConfirm);
+
         document.getElementById('confirmModalConfirm').addEventListener('click', () => {
             if (confirmForm) {
                 confirmForm.submit();

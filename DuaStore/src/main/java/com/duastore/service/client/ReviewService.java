@@ -3,8 +3,10 @@ package com.duastore.service.client;
 import com.duastore.dto.ReviewDTO;
 import com.duastore.dto.ReviewRequestDTO;
 import com.duastore.model.Review;
+import com.duastore.model.ReviewImage;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ReviewImageRepository;
 import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.model.Product;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
 
     private final ReviewsRepository reviewsRepository;
+    private final ReviewImageRepository reviewImageRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
@@ -36,12 +39,14 @@ public class ReviewService {
     private final FileUploadService fileUploadService;
 
     public ReviewService(ReviewsRepository reviewsRepository,
+            ReviewImageRepository reviewImageRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
             OrderItemRepository orderItemRepository,
             EmailService emailService,
             FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
+        this.reviewImageRepository = reviewImageRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
@@ -74,6 +79,14 @@ public class ReviewService {
         productRepository.findAllById(productIds).forEach(p -> productNames.put(p.getId(), p.getTenSanPham()));
         userRepository.findAllById(userIds).forEach(u -> userNames.put(u.getId(), u.getHoTen()));
 
+        Map<Integer, List<String>> reviewImages = new HashMap<>();
+        if (!reviews.isEmpty()) {
+            List<ReviewImage> allImages = reviewImageRepository.findByReviewIdIn(reviews.stream().map(Review::getId).toList());
+            for (ReviewImage img : allImages) {
+                reviewImages.computeIfAbsent(img.getReviewId(), k -> new java.util.ArrayList<>()).add(img.getImageUrl());
+            }
+        }
+
         return reviewPage.map(r -> {
             ReviewDTO dto = new ReviewDTO();
             dto.setId(r.getId());
@@ -83,7 +96,7 @@ public class ReviewService {
             dto.setBinhLuan(r.getBinhLuan());
             dto.setApproved(r.getIsApproved());
             dto.setNgayTao(r.getNgayTao());
-            dto.setHinhAnh(r.getHinhAnh());
+            dto.setHinhAnhList(reviewImages.getOrDefault(r.getId(), List.of()));
             dto.setTenSanPham(productNames.get(r.getProductId()));
             dto.setHoTen(userNames.get(r.getUserId()));
             return dto;
@@ -99,7 +112,8 @@ public class ReviewService {
         dto.setBinhLuan(review.getBinhLuan());
         dto.setApproved(review.getIsApproved());
         dto.setNgayTao(review.getNgayTao());
-        dto.setHinhAnh(review.getHinhAnh());
+        dto.setHinhAnhList(reviewImageRepository.findByReviewIdOrderBySortOrderAsc(review.getId())
+                .stream().map(ReviewImage::getImageUrl).toList());
 
         productRepository.findById(review.getProductId())
                 .ifPresent(p -> dto.setTenSanPham(p.getTenSanPham()));
@@ -132,16 +146,17 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewDTO createReview(Integer userId, ReviewRequestDTO request, String hinhAnhUrl) {
+    public ReviewDTO createReview(Integer userId, ReviewRequestDTO request, List<String> hinhAnhUrls) {
         if (hasReviewed(userId, request.getProductId())) {
+            cleanupFiles(hinhAnhUrls);
             throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");
         }
         if (!hasCompletedOrderAndPurchased(userId, request.getProductId())) {
-            cleanupFile(hinhAnhUrl);
+            cleanupFiles(hinhAnhUrls);
             throw new RuntimeException("Bạn cần mua sản phẩm và thanh toán để được đánh giá");
         }
         if (request.getDanhGia() == null) {
-            cleanupFile(hinhAnhUrl);
+            cleanupFiles(hinhAnhUrls);
             throw new RuntimeException("Vui lòng chọn số sao đánh giá");
         }
 
@@ -150,14 +165,27 @@ public class ReviewService {
         review.setUserId(userId);
         review.setDanhGia(request.getDanhGia());
         review.setBinhLuan(HtmlSanitizer.sanitize(request.getBinhLuan()));
-        review.setHinhAnh(hinhAnhUrl);
         review.setIsApproved(false);
 
         try {
             review = reviewsRepository.save(review);
         } catch (Exception e) {
-            cleanupFile(hinhAnhUrl);
+            cleanupFiles(hinhAnhUrls);
             throw new RuntimeException("Lỗi khi lưu đánh giá", e);
+        }
+
+        // Save review images
+        if (hinhAnhUrls != null) {
+            int order = 0;
+            for (String url : hinhAnhUrls) {
+                if (url != null && !url.isBlank()) {
+                    ReviewImage img = new ReviewImage();
+                    img.setReviewId(review.getId());
+                    img.setImageUrl(url);
+                    img.setSortOrder(order++);
+                    reviewImageRepository.save(img);
+                }
+            }
         }
 
         // Email notification to admin
@@ -217,11 +245,15 @@ public class ReviewService {
                 .stream().limit(limit).map(this::toDTO).toList();
     }
 
-    private void cleanupFile(String url) {
-        if (url != null) {
-            try {
-                fileUploadService.delete(url, "reviews");
-            } catch (Exception ignored) {
+    private void cleanupFiles(List<String> urls) {
+        if (urls != null) {
+            for (String url : urls) {
+                if (url != null) {
+                    try {
+                        fileUploadService.delete(url, "reviews");
+                    } catch (Exception ignored) {
+                    }
+                }
             }
         }
     }

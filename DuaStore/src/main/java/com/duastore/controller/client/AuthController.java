@@ -114,8 +114,8 @@ public class AuthController {
 
         @NotBlank(message = "Mật khẩu không được để trống")
         @Size(min = 8, message = "Mật khẩu tối thiểu 8 ký tự")
-        @Pattern(regexp = "^[a-zA-Z0-9]+$",
-                message = "Mật khẩu chỉ gồm chữ và số")
+        @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).{8,}$",
+                message = "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ và số")
         private String password;
 
         private String confirmPassword;

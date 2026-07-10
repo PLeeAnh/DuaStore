@@ -1,7 +1,9 @@
 package com.duastore.service.admin;
 
 import com.duastore.model.Review;
+import com.duastore.model.ReviewImage;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ReviewImageRepository;
 import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.FileUploadService;
@@ -20,15 +22,18 @@ import java.util.stream.Collectors;
 public class AdminReviewService {
 
     private final ReviewsRepository reviewsRepository;
+    private final ReviewImageRepository reviewImageRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final FileUploadService fileUploadService;
 
     public AdminReviewService(ReviewsRepository reviewsRepository,
+            ReviewImageRepository reviewImageRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
             FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
+        this.reviewImageRepository = reviewImageRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.fileUploadService = fileUploadService;
@@ -59,11 +64,12 @@ public class AdminReviewService {
     }
 
     public void deleteReview(Integer id) {
-        Review review = getReviewById(id);
-        if (review.getHinhAnh() != null) {
-            fileUploadService.delete(review.getHinhAnh(), "reviews");
+        List<ReviewImage> images = reviewImageRepository.findByReviewIdOrderBySortOrderAsc(id);
+        for (ReviewImage img : images) {
+            fileUploadService.delete(img.getImageUrl(), "reviews");
         }
-        reviewsRepository.delete(review);
+        reviewImageRepository.deleteByReviewId(id);
+        reviewsRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)

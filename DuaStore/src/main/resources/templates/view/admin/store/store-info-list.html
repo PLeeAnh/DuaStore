@@ -202,6 +202,7 @@
                 var box = document.getElementById(suggestId);
                 var hidden = document.getElementById(hiddenId);
                 var timer;
+                var lastSelected = '';
 
                 input.addEventListener('input', function () {
                     clearTimeout(timer);
@@ -209,7 +210,11 @@
                     if (q.length < 1) {
                         box.style.display = 'none';
                         hidden.value = '';
+                        lastSelected = '';
                         return;
+                    }
+                    if (this.value !== lastSelected) {
+                        hidden.value = '';
                     }
                     timer = setTimeout(function () {
                         var items = source().filter(function (x) {
@@ -228,6 +233,7 @@
                             btn.addEventListener('click', function () {
                                 input.value = item.name;
                                 hidden.value = item.name;
+                                lastSelected = item.name;
                                 box.style.display = 'none';
                                 if (onSelect)
                                     onSelect(item);
@@ -241,6 +247,9 @@
                 input.addEventListener('blur', function () {
                     setTimeout(function () {
                         box.style.display = 'none';
+                        if (input.value !== lastSelected) {
+                            hidden.value = '';
+                        }
                     }, 200);
                 });
                 input.addEventListener('focus', function () {
@@ -357,22 +366,49 @@
                 });
             }
 
+            function validateStoreForm() {
+                var errors = [];
+                if (!document.getElementById('editTenCuaHang').value.trim())
+                    errors.push('Tên cửa hàng');
+                if (!document.getElementById('editTinhThanh').value.trim())
+                    errors.push('Tỉnh/Thành phố');
+                if (!document.getElementById('editQuanHuyen').value.trim())
+                    errors.push('Quận/Huyện');
+                if (!document.getElementById('editPhuongXa').value.trim())
+                    errors.push('Phường/Xã');
+
+                var lat = document.getElementById('editLatitude').value.trim();
+                var lng = document.getElementById('editLongitude').value.trim();
+                if (lat && isNaN(parseFloat(lat))) errors.push('Vĩ độ phải là số');
+                if (lng && isNaN(parseFloat(lng))) errors.push('Kinh độ phải là số');
+
+                if (errors.length) {
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.error('Vui lòng kiểm tra: ' + errors.join(', '));
+                    }
+                    return false;
+                }
+                return true;
+            }
+
             function saveStore() {
+                if (!validateStoreForm()) return;
+
                 var id = document.getElementById('editStoreId').value;
                 var url = id ? '/admin/dia-chi/sua/' + id : '/admin/dia-chi/them-moi';
                 var formData = new URLSearchParams();
                 if (id)
                     formData.append('id', id);
-                formData.append('tenCuaHang', document.getElementById('editTenCuaHang').value);
-                formData.append('soDienThoai', document.getElementById('editSoDienThoai').value);
-                formData.append('soNha', document.getElementById('editSoNha').value);
-                formData.append('duong', document.getElementById('editDuong').value);
+                formData.append('tenCuaHang', document.getElementById('editTenCuaHang').value.trim());
+                formData.append('soDienThoai', document.getElementById('editSoDienThoai').value.trim());
+                formData.append('soNha', document.getElementById('editSoNha').value.trim());
+                formData.append('duong', document.getElementById('editDuong').value.trim());
                 formData.append('phuongXa', document.getElementById('editPhuongXa').value);
                 formData.append('quanHuyen', document.getElementById('editQuanHuyen').value);
                 formData.append('tinhThanh', document.getElementById('editTinhThanh').value);
-                formData.append('email', document.getElementById('editEmail').value);
-                formData.append('latitude', document.getElementById('editLatitude').value);
-                formData.append('longitude', document.getElementById('editLongitude').value);
+                formData.append('email', document.getElementById('editEmail').value.trim());
+                formData.append('latitude', document.getElementById('editLatitude').value.trim());
+                formData.append('longitude', document.getElementById('editLongitude').value.trim());
                 formData.append('isActive', document.getElementById('editIsActive').checked ? 'true' : 'false');
                 formData.append('isDefault', document.getElementById('editIsDefault').checked ? 'true' : 'false');
 
@@ -380,22 +416,29 @@
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
 
+                var token = document.querySelector('meta[name="_csrf"]')?.content || '';
+                var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+                var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+                if (token) headers[header] = token;
+
                 fetch(url, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    headers: headers,
                     body: formData.toString()
                 }).then(function (r) {
-                    if (r.redirected) {
-                        window.location.href = r.url;
-                    } else if (r.ok) {
-                        window.location.reload();
+                    if (r.ok) {
+                        window.location.href = '/admin/dia-chi';
                     } else {
-                        alert('Lỗi khi lưu địa chỉ');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu';
+                        return r.text().then(function (text) {
+                            var msg = 'Lỗi khi lưu địa chỉ';
+                            if (text && text.length < 200) msg = text;
+                            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(msg); }
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu';
+                        });
                     }
                 }).catch(function () {
-                    alert('Lỗi kết nối');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Lỗi kết nối'); }
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu';
                 });

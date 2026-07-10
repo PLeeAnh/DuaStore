@@ -57,6 +57,18 @@
                                 <span th:unless="${refund.phuongThucHoan != null}" class="text-muted">—</span>
                             </td>
                         </tr>
+                        <tr th:if="${refund.phuongThucHoan == 'CHUYEN_KHOAN'}">
+                            <td class="text-muted ps-0">Ngân hàng</td>
+                            <td th:text="${refund.tenNganHang ?: '—'}"></td>
+                        </tr>
+                        <tr th:if="${refund.phuongThucHoan == 'CHUYEN_KHOAN'}">
+                            <td class="text-muted ps-0">Số tài khoản</td>
+                            <td class="fw-semibold" th:text="${refund.soTaiKhoan ?: '—'}"></td>
+                        </tr>
+                        <tr th:if="${refund.phuongThucHoan == 'CHUYEN_KHOAN'}">
+                            <td class="text-muted ps-0">Chủ tài khoản</td>
+                            <td th:text="${refund.chuTaiKhoan ?: '—'}"></td>
+                        </tr>
                         <tr>
                             <td class="text-muted ps-0">Trạng thái</td>
                             <td>

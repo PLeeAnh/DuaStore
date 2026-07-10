@@ -4,23 +4,31 @@ import com.duastore.dto.ProductVariantFormDTO;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.FileUploadService;
+import com.duastore.service.PricingService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AdminVariantService {
 
     private final ProductVariantRepository variantRepository;
     private final FileUploadService fileUploadService;
+    private final PriceHistoryService priceHistoryService;
+    private final PricingService pricingService;
 
-    public AdminVariantService(ProductVariantRepository variantRepository, FileUploadService fileUploadService) {
+    public AdminVariantService(ProductVariantRepository variantRepository, FileUploadService fileUploadService,
+                               PriceHistoryService priceHistoryService, PricingService pricingService) {
         this.variantRepository = variantRepository;
         this.fileUploadService = fileUploadService;
+        this.priceHistoryService = priceHistoryService;
+        this.pricingService = pricingService;
     }
 
     public Page<ProductVariant> findAllPaged(int page, int size) {
@@ -53,6 +61,8 @@ public class AdminVariantService {
     public ProductVariant save(ProductVariantFormDTO dto) {
         ProductVariant v = (dto.getId() != null) ? variantRepository.findById(dto.getId()).orElse(new ProductVariant()) : new ProductVariant();
 
+        BigDecimal oldPrice = v.getGiaGoc();
+
         v.setProductId(dto.getProductId());
         v.setTenBienThe(dto.getTenBienThe());
         v.setDungTich(dto.getDungTich());
@@ -76,15 +86,60 @@ public class AdminVariantService {
             variantRepository.saveAll(others);
         }
 
-        return variantRepository.save(v);
+        ProductVariant saved = variantRepository.save(v);
+        pricingService.recalculateMinPrice(saved.getProductId());
+
+        if (oldPrice != null && dto.getGiaGoc() != null && oldPrice.compareTo(dto.getGiaGoc()) != 0) {
+            priceHistoryService.record(saved.getId(), saved.getTenBienThe(), saved.getProductId(),
+                    null, oldPrice, dto.getGiaGoc(), null, "ADMIN");
+        }
+
+        return saved;
+    }
+
+    @Transactional
+    public void bulkUpdate(List<Map<String, Object>> variants, Integer adminId) {
+        for (Map<String, Object> entry : variants) {
+            Integer id = (Integer) entry.get("id");
+            if (id == null) continue;
+
+            ProductVariant v = variantRepository.findById(id).orElse(null);
+            if (v == null) continue;
+
+            BigDecimal oldPrice = v.getGiaGoc();
+
+            if (entry.containsKey("giaBan")) {
+                Object giaBanObj = entry.get("giaBan");
+                if (giaBanObj instanceof Number) {
+                    v.setGiaGoc(new BigDecimal(((Number) giaBanObj).doubleValue()));
+                }
+            }
+            if (entry.containsKey("soLuongTon")) {
+                Object soLuongObj = entry.get("soLuongTon");
+                if (soLuongObj instanceof Number) {
+                    v.setSoLuongTon(((Number) soLuongObj).intValue());
+                }
+            }
+
+            variantRepository.save(v);
+            pricingService.recalculateMinPrice(v.getProductId());
+
+            if (oldPrice != null && v.getGiaGoc() != null && oldPrice.compareTo(v.getGiaGoc()) != 0) {
+                String productName = v.getProduct() != null ? v.getProduct().getTenSanPham() : null;
+                priceHistoryService.record(v.getId(), v.getTenBienThe(), v.getProductId(),
+                        productName, oldPrice, v.getGiaGoc(), adminId, "ADMIN");
+            }
+        }
     }
 
     @Transactional
     public void delete(Integer id) {
         ProductVariant v = variantRepository.findById(id).orElse(null);
         if (v != null) {
+            Integer productId = v.getProductId();
             v.setActive(false);
             variantRepository.save(v);
+            pricingService.recalculateMinPrice(productId);
         }
     }
 }

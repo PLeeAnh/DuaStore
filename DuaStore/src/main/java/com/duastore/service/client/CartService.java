@@ -3,9 +3,13 @@ package com.duastore.service.client;
 import com.duastore.dto.CartItemDTO;
 import com.duastore.model.CartItem;
 import com.duastore.model.FlashSale;
+import com.duastore.model.Order;
+import com.duastore.model.OrderItem;
 import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.CartItemRepository;
+import com.duastore.repository.OrderItemRepository;
+import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.PricingService;
@@ -25,15 +29,21 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final OrderRepository orderRepository;
     private final PricingService pricingService;
 
     public CartService(CartItemRepository cartItemRepository,
             ProductRepository productRepository,
             ProductVariantRepository variantRepository,
+            OrderItemRepository orderItemRepository,
+            OrderRepository orderRepository,
             PricingService pricingService) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
+        this.orderItemRepository = orderItemRepository;
+        this.orderRepository = orderRepository;
         this.pricingService = pricingService;
     }
 
@@ -302,6 +312,43 @@ public class CartService {
                 existing.setGiaLucThem(pricingService.resolvePrice(variant).finalPrice());
             }
             cartItemRepository.save(existing);
+        }
+    }
+
+    @Transactional
+    public void reorder(Integer userId, Integer orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        if (!order.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Đơn hàng không thuộc về bạn");
+        }
+        String status = order.getTrangThaiDon();
+        if (!"DA_GIAO".equals(status) && !"DA_HOAN_THANH".equals(status) && !"DA_HUY".equals(status)) {
+            throw new RuntimeException("Chỉ có thể mua lại đơn hàng đã giao, hoàn thành hoặc đã hủy");
+        }
+        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+        for (OrderItem item : items) {
+            if (item.getVariantId() == null) {
+                continue;
+            }
+            ProductVariant variant = variantRepository.findById(item.getVariantId()).orElse(null);
+            if (variant == null || !variant.isActive() || variant.getSoLuongTon() <= 0) {
+                continue;
+            }
+            int qty = Math.min(item.getSoLuong(), variant.getSoLuongTon());
+            CartItem existing = cartItemRepository.findByUserIdAndVariantId(userId, item.getVariantId()).orElse(null);
+            if (existing != null) {
+                existing.setSoLuong(Math.min(existing.getSoLuong() + qty, variant.getSoLuongTon()));
+                cartItemRepository.save(existing);
+            } else {
+                CartItem ci = new CartItem();
+                ci.setUserId(userId);
+                ci.setProductId(item.getProductId());
+                ci.setVariantId(item.getVariantId());
+                ci.setSoLuong(qty);
+                ci.setGiaLucThem(pricingService.resolvePrice(variant).finalPrice());
+                cartItemRepository.save(ci);
+            }
         }
     }
 

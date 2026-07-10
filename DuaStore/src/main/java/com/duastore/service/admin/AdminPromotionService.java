@@ -1,6 +1,7 @@
 package com.duastore.service.admin;
 
 import com.duastore.model.Promotion;
+import com.duastore.repository.OrderRepository;
 import com.duastore.repository.PromotionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,9 +18,12 @@ import java.time.LocalDateTime;
 public class AdminPromotionService {
 
     private final PromotionRepository promotionRepository;
+    private final OrderRepository orderRepository;
 
-    public AdminPromotionService(PromotionRepository promotionRepository) {
+    public AdminPromotionService(PromotionRepository promotionRepository,
+            OrderRepository orderRepository) {
         this.promotionRepository = promotionRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -94,5 +98,18 @@ public class AdminPromotionService {
         Promotion p = getPromotionById(id);
         p.setIsActive(false);
         promotionRepository.save(p);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<Integer, Long> getUsageCounts() {
+        java.util.Map<Integer, Long> map = new java.util.HashMap<>();
+        for (Object[] row : orderRepository.countOrdersByPromotion()) {
+            Integer promoId = (Integer) row[0];
+            Long count = (Long) row[1];
+            if (promoId != null) {
+                map.put(promoId, count);
+            }
+        }
+        return map;
     }
 }

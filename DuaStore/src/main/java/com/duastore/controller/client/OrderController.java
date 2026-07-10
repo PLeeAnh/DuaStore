@@ -118,6 +118,9 @@ public class OrderController {
             @RequestParam BigDecimal soTienHoan,
             @RequestParam String phuongThucHoan,
             @RequestParam(required = false) MultipartFile anhMinhChung,
+            @RequestParam(required = false) String tenNganHang,
+            @RequestParam(required = false) String soTaiKhoan,
+            @RequestParam(required = false) String chuTaiKhoan,
             RedirectAttributes ra) {
         Integer userId = getUserId();
         try {
@@ -128,6 +131,9 @@ public class OrderController {
             request.setLydo(lydo);
             request.setSoTienHoan(soTienHoan);
             request.setPhuongThucHoan(phuongThucHoan);
+            request.setTenNganHang(tenNganHang);
+            request.setSoTaiKhoan(soTaiKhoan);
+            request.setChuTaiKhoan(chuTaiKhoan);
             if (anhMinhChung != null && !anhMinhChung.isEmpty()) {
                 request.setAnhMinhChung(fileUploadService.save(anhMinhChung, "refunds"));
             }
@@ -135,6 +141,18 @@ public class OrderController {
             ra.addFlashAttribute("successMsg", "Gửi yêu cầu hoàn tiền thành công! Vui lòng chờ xử lý.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/tai-khoan/don-hang/" + id;
+    }
+
+    @PostMapping("/danh-dau-da-nhan/{id}")
+    public String markReceived(@PathVariable Integer id, RedirectAttributes ra) {
+        Integer userId = getUserId();
+        try {
+            orderService.markOrderReceived(userId, id);
+            ra.addFlashAttribute("successMsg", "Cảm ơn bạn đã xác nhận đơn hàng!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/tai-khoan/don-hang/" + id;
     }

@@ -96,7 +96,7 @@ public class AdminCategoryController {
     public String createForm(Model model) {
         model.addAttribute("title", "danh-muc");
         model.addAttribute("category", new CategoryDTO());
-        model.addAttribute("parents", categoryService.findAvailableParents(null));
+        model.addAttribute("parentOptions", categoryService.findAvailableParentTree(null));
         return "view/admin/category/category-form";
     }
 
@@ -109,7 +109,7 @@ public class AdminCategoryController {
             RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "danh-muc");
-            model.addAttribute("parents", categoryService.findAvailableParents(null));
+            model.addAttribute("parentOptions", categoryService.findAvailableParentTree(null));
             return "view/admin/category/category-form";
         }
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -131,7 +131,7 @@ public class AdminCategoryController {
         }
         model.addAttribute("title", "danh-muc");
         model.addAttribute("category", dto);
-        model.addAttribute("parents", categoryService.findAvailableParents(id));
+        model.addAttribute("parentOptions", categoryService.findAvailableParentTree(id));
         return "view/admin/category/category-form";
     }
 
@@ -145,7 +145,7 @@ public class AdminCategoryController {
             RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "danh-muc");
-            model.addAttribute("parents", categoryService.findAvailableParents(id));
+            model.addAttribute("parentOptions", categoryService.findAvailableParentTree(id));
             return "view/admin/category/category-form";
         }
         dto.setId(id);

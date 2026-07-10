@@ -9,6 +9,7 @@ import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.LoyaltyPointsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +49,7 @@ public class AdminOrderService {
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
     private final OrderNoteService orderNoteService;
+    private final LoyaltyPointsService loyaltyPointsService;
 
     public AdminOrderService(OrderRepository orderRepository,
             AdminLogService adminLogService,
@@ -55,7 +57,8 @@ public class AdminOrderService {
             OrderItemRepository orderItemRepository,
             ProductVariantRepository variantRepository,
             OrderStatusLogService orderStatusLogService,
-            OrderNoteService orderNoteService) {
+            OrderNoteService orderNoteService,
+            LoyaltyPointsService loyaltyPointsService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
@@ -63,6 +66,7 @@ public class AdminOrderService {
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
         this.orderNoteService = orderNoteService;
+        this.loyaltyPointsService = loyaltyPointsService;
     }
 
     @Transactional
@@ -233,6 +237,10 @@ public class AdminOrderService {
 
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
+
+        if ("DA_HOAN_THANH".equals(trangThaiDon) && order.getUser() != null) {
+            loyaltyPointsService.earnPoints(order.getUser().getId(), id, order.getTongThanhToan());
+        }
 
         String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, stockMsg);
