@@ -143,7 +143,9 @@ function refreshWishlistBadgeCount() {
     var count = items.length;
     badge.textContent = count;
     if (count > 0) {
-        badge.classList.remove('d-none');
+        var viewedWish = 0;
+        try { viewedWish = parseInt(localStorage.getItem('ds_viewedWishCount')) || 0; } catch (e) {}
+        badge.classList.toggle('d-none', count === viewedWish);
     } else {
         badge.classList.add('d-none');
     }
