@@ -102,11 +102,11 @@ GO
         userId int not null,
         soDienThoai varchar(15) not null,
         ghnWardCode varchar(20),
-        phuongXa varchar(100) not null,
-        quanHuyen varchar(100) not null,
-        tenNguoiNhan varchar(100) not null,
-        tinhThanh varchar(100) not null,
-        diaChiCuThe varchar(200) not null,
+        phuongXa nvarchar(100) not null,
+        quanHuyen nvarchar(100) not null,
+        tenNguoiNhan nvarchar(100) not null,
+        tinhThanh nvarchar(100) not null,
+        diaChiCuThe nvarchar(200) not null,
         primary key (id)
     );
 

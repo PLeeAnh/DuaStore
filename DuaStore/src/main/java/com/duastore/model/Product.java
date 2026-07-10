@@ -44,6 +44,9 @@ public class Product {
     private boolean isFeatured = false;
     private boolean isActive = true;
 
+    @Column(precision = 12, scale = 0)
+    private java.math.BigDecimal minPrice;
+
     private LocalDate ngayPhatHanh;
 
     @Column(updatable = false)
@@ -62,7 +65,7 @@ public class Product {
         ngayCapNhat = LocalDateTime.now();
     }
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     private List<ProductVariant> variants;
 
     @OneToMany(fetch = FetchType.LAZY)

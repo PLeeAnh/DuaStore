@@ -102,6 +102,8 @@ public class ProductController {
             @RequestParam(required = false) Integer dungTich,
             @RequestParam(required = false) String chatLieu,
             @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) BigDecimal priceFrom,
+            @RequestParam(required = false) BigDecimal priceTo,
             @RequestParam(defaultValue = "newest") String sortBy,
             @RequestParam(defaultValue = "0") int page,
             Model model) {
@@ -117,34 +119,35 @@ public class ProductController {
             priceRange = null;
         }
 
+        // Handle custom price range via priceFrom/priceTo params
+        if (priceRange == null && (priceFrom != null || priceTo != null)) {
+            priceRange = productService.encodePriceRange(priceFrom, priceTo);
+        }
+
         boolean hasFilters = (priceRange != null || dungTich != null || chatLieu != null
-                || !"newest".equals(sortBy));
+                || !"newest".equals(sortBy)) && !"best_selling".equals(sortBy);
+
+        if (keyword != null) {
+            model.addAttribute("keyword", keyword);
+        }
+        if (danhMuc != null) {
+            categoryRepository.findById(danhMuc).ifPresent(c -> {
+                model.addAttribute("selectedCategory", c);
+                model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+            });
+        }
 
         Page<Product> productPage;
-        if (hasFilters) {
-            if (keyword != null) {
-                model.addAttribute("keyword", keyword);
-            }
-            if (danhMuc != null) {
-                categoryRepository.findById(danhMuc).ifPresent(c -> {
-                    model.addAttribute("selectedCategory", c);
-                    model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
-                });
-            }
+        if ("best_selling".equals(sortBy)) {
+            productPage = productService.filterPagedBestSelling(keyword, danhMuc, chatLieu, priceRange, dungTich, page, PAGE_SIZE);
+        } else if (hasFilters || keyword != null) {
             productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, PAGE_SIZE);
-        } else if (keyword != null && !keyword.isBlank()) {
-            productPage = productService.searchPaged(keyword, page, PAGE_SIZE);
-            model.addAttribute("keyword", keyword);
         } else if (danhMuc != null) {
             List<Integer> categoryIds = new ArrayList<>();
             categoryIds.add(danhMuc);
             categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
                     .forEach(child -> categoryIds.add(child.getId()));
             productPage = productService.findByCategoriesPaged(categoryIds, page, PAGE_SIZE);
-            categoryRepository.findById(danhMuc).ifPresent(c -> {
-                model.addAttribute("selectedCategory", c);
-                model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
-            });
         } else {
             productPage = productService.getDangBanPaged(page, PAGE_SIZE);
         }
@@ -296,6 +299,13 @@ public class ProductController {
         model.addAttribute("title", product.getTenSanPham());
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
+
+        // Determine default variant: first with isDefault=true, else first in list
+        ProductVariant defaultVariant = variants.stream()
+                .filter(ProductVariant::isDefault)
+                .findFirst()
+                .orElse(variants.isEmpty() ? null : variants.get(0));
+        model.addAttribute("defaultVariant", defaultVariant);
 
         // Build gallery images: ProductImages from DB + fallback to main + variant images
         List<ProductImage> dbImages = productImageRepository
@@ -452,14 +462,6 @@ public class ProductController {
         model.addAttribute("minVolume", minVolume);
         model.addAttribute("maxVolume", maxVolume);
 
-        // Compute initial promo discounted price for server-rendered display
-        if (bestPercentagePromo != null && !variantPromoPriceMap.isEmpty() && minPrice != null) {
-            BigDecimal promoMin = variantPromoPriceMap.values().stream().min(BigDecimal::compareTo).orElse(null);
-            if (promoMin != null) {
-                model.addAttribute("promoDiscountedPrice", promoMin);
-            }
-        }
-
         // Category name + breadcrumb
         Integer catId = product.getDanhMucId();
         String categoryName = categoryRepository.findById(catId)
@@ -485,6 +487,9 @@ public class ProductController {
             }
             model.addAttribute("relatedMinPrices", relatedMinPrices);
         }
+
+        // Page URL for social sharing
+        model.addAttribute("pageUrl", "https://duastore.vn/san-pham/" + id);
 
         return "view/client/product/product-detail";
     }
@@ -545,17 +550,13 @@ public class ProductController {
             return "redirect:/san-pham/" + id;
         }
         request.setProductId(id);
-        String hinhAnhUrls = null;
+        List<String> hinhAnhUrls = new java.util.ArrayList<>();
         if (hinhAnhFiles != null && !hinhAnhFiles.isEmpty()) {
             try {
-                List<String> urls = new java.util.ArrayList<>();
                 for (MultipartFile f : hinhAnhFiles) {
                     if (!f.isEmpty()) {
-                        urls.add(fileUploadService.save(f, "reviews"));
+                        hinhAnhUrls.add(fileUploadService.save(f, "reviews"));
                     }
-                }
-                if (!urls.isEmpty()) {
-                    hinhAnhUrls = String.join(",", urls);
                 }
             } catch (Exception e) {
                 if (isAjax) return java.util.Map.of("success", false, "message", "Loi upload anh: " + e.getMessage());
@@ -564,7 +565,7 @@ public class ProductController {
             }
         }
         try {
-            reviewService.createReview(userId, request, hinhAnhUrls);
+            reviewService.createReview(userId, request, hinhAnhUrls.isEmpty() ? null : hinhAnhUrls);
             if (isAjax) return java.util.Map.of("success", true, "message", "Cam on ban da danh gia!");
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {

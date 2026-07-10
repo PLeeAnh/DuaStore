@@ -101,7 +101,7 @@
             function sendCode() {
                 var email = document.getElementById('regEmail').value.trim();
                 if (!email || !email.includes('@')) {
-                    alert('Email không hợp lệ');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.warning('Email không hợp lệ'); }
                     return;
                 }
                 var btn = document.getElementById('sendCodeBtn');
@@ -122,7 +122,6 @@
                                 var statusTxt = 'Mã đã gửi đến email của bạn';
                                 if (data.dev_code) {
                                     statusTxt += ' (dev: ' + data.dev_code + ')';
-                                    console.log('OTP:', data.dev_code);
                                 }
                                 document.getElementById('codeStatus').textContent = statusTxt;
                                 btn.textContent = 'Gửi lại';

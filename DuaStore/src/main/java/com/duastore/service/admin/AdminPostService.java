@@ -95,7 +95,7 @@ public class AdminPostService {
             post = getPostById(dto.getId());
             post.setTieuDe(dto.getTieuDe());
             post.setTomTat(dto.getTomTat());
-            post.setNoiDung(dto.getNoiDung());
+            post.setNoiDung(com.duastore.util.HtmlSanitizer.sanitize(dto.getNoiDung()));
             post.setTrangThai(dto.getTrangThai());
             if (dto.getTacGiaId() != null) {
                 post.setTacGiaId(dto.getTacGiaId());
@@ -114,7 +114,7 @@ public class AdminPostService {
             post = new Post();
             post.setTieuDe(dto.getTieuDe());
             post.setTomTat(dto.getTomTat());
-            post.setNoiDung(dto.getNoiDung());
+            post.setNoiDung(com.duastore.util.HtmlSanitizer.sanitize(dto.getNoiDung()));
             post.setTrangThai(dto.getTrangThai() != null ? dto.getTrangThai() : "NHAP");
             post.setTacGiaId(dto.getTacGiaId());
             post.setLuotXem(0);

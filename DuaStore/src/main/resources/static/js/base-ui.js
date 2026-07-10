@@ -105,7 +105,6 @@ var orig = this.textContent;
 if (data.dev_code) {
         var statusEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-status') || document.getElementById('codeStatus');
         if (statusEl) { statusEl.textContent = 'Mã: ' + data.dev_code; statusEl.style.display = ''; }
-        console.log('OTP:', data.dev_code);
         }
         if (data.success) {
 btn.textContent = 'Đã gửi';
@@ -436,6 +435,15 @@ function pollNotifications() {
 }
 
 setInterval(pollNotifications, 15000);
+
+/* ── Prevent stuck modal-backdrop ── */
+document.addEventListener('hidden.bs.modal', function() {
+    if (document.querySelectorAll('.modal.show').length === 0) {
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('padding-right');
+    }
+});
 
 /* ── Dirty Save Bar ── */
 function initDirtyBar() {

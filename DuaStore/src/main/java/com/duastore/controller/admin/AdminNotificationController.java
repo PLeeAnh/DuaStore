@@ -153,6 +153,19 @@ public class AdminNotificationController {
         return "redirect:/admin/thong-bao";
     }
 
+    @GetMapping("/api/count")
+    @ResponseBody
+    public String countUnread(HttpSession session) {
+        try {
+            Integer readMaxId = (Integer) session.getAttribute("staffNotifReadMaxId");
+            if (readMaxId == null) readMaxId = 0;
+            long count = notificationRepository.countUnreadStaffNotifications(readMaxId);
+            return String.valueOf(count);
+        } catch (Exception e) {
+            return "0";
+        }
+    }
+
     @PostMapping("/api/doc-tat-ca")
     @ResponseBody
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_READ)")

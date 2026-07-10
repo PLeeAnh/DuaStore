@@ -295,6 +295,9 @@
         anhMinhChung nvarchar(255),
         ghiChuXuLy nvarchar(255),
         phuongThucHoan nvarchar(255),
+        tenNganHang nvarchar(255),
+        soTaiKhoan nvarchar(255),
+        chuTaiKhoan nvarchar(255),
         trangThai nvarchar(255) not null,
         primary key (id)
     );
@@ -871,6 +874,9 @@
         anhMinhChung nvarchar(255),
         ghiChuXuLy nvarchar(255),
         phuongThucHoan nvarchar(255),
+        tenNganHang nvarchar(255),
+        soTaiKhoan nvarchar(255),
+        chuTaiKhoan nvarchar(255),
         trangThai nvarchar(255) not null,
         primary key (id)
     );
@@ -1447,6 +1453,9 @@
         anhMinhChung nvarchar(255),
         ghiChuXuLy nvarchar(255),
         phuongThucHoan nvarchar(255),
+        tenNganHang nvarchar(255),
+        soTaiKhoan nvarchar(255),
+        chuTaiKhoan nvarchar(255),
         trangThai nvarchar(255) not null,
         primary key (id)
     );
@@ -1726,3 +1735,28 @@
        add constraint FKl8me5k171y8fskc8x4r5ht3nc 
        foreign key (productId) 
        references Products;
+
+    create table PriceHistory (
+        id int identity not null,
+        variantId int not null,
+        variantName nvarchar(255),
+        productId int not null,
+        productName nvarchar(255),
+        giaCu numeric(18,2),
+        giaMoi numeric(18,2),
+        nguoiThayDoiId int,
+        ngayThayDoi datetime2(7) not null,
+        nguon nvarchar(50),
+        primary key (id)
+    );
+
+    create table footer_links (
+        id int identity not null,
+        display_order int not null,
+        column_index int not null,
+        is_active bit not null,
+        created_at datetime2(7) not null,
+        title nvarchar(200) not null,
+        url nvarchar(500) not null,
+        primary key (id)
+    );

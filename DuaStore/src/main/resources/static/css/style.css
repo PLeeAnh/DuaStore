@@ -1,7 +1,6 @@
 /* =====================================================
    GLOBAL: prevent dropdown clipping
    ===================================================== */
-.dropdown-menu,
 .ds-combo-panel {
     position: fixed !important;
     z-index: 9999 !important;
@@ -38,9 +37,9 @@
     --font-logo   : 'Dancing Script', cursive;
     --ds-card-bg  : #ffffff;
 
-    --ds-red       : #2563eb;
+    --ds-red       : #2563EB;
     --ds-red-light : #DBEAFE;
-    --ds-red-dark  : #1d4ed8;
+    --ds-red-dark  : #1D4ED8;
 }
 
 /* ── Bootstrap Overrides (theme: blue) ── */
@@ -1458,6 +1457,49 @@ a {
     flex-direction: column;
     flex: 1;
     gap: 3px;
+}
+
+/* ── Price row (Steam-style) ── */
+.ds-card-price {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: auto;
+}
+.ds-card-price-badge {
+    background: #2563EB;
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+.ds-card-price-oos {
+    background: #999;
+}
+.ds-card-price-values {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+.ds-card-price-old {
+    font-size: .75rem;
+    color: #999;
+    text-decoration: line-through;
+    white-space: nowrap;
+}
+.ds-card-price-current {
+    font-size: .88rem;
+    font-weight: 700;
+    color: var(--ds-red);
+    white-space: nowrap;
+}
+.ds-product-card.oos .ds-card-price-current {
+    color: #999;
 }
 
 /* ── Product name ── */
@@ -3153,7 +3195,7 @@ a {
 /* ── Sticky tabs ── */
 .sticky-tabs {
     position: sticky;
-    top: 72px;
+    top: 0;
     z-index: 20;
     background: #fff;
     padding-top: 0;
@@ -5551,22 +5593,22 @@ a {
 }
 @media (max-width: 1399px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 6), 1fr);
     }
 }
 @media (max-width: 1199px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 5), 1fr);
     }
 }
 @media (max-width: 991px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 4), 1fr);
     }
 }
 @media (max-width: 767px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 2), 1fr);
     }
 }
 @media (max-width: 576px) {
@@ -5597,7 +5639,7 @@ a {
         font-size: .75rem;
     }
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 2), 1fr);
         gap: .4rem;
     }
 }

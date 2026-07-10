@@ -63,6 +63,56 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             @Param("status") String status,
             Pageable pageable);
 
+    @Query(value = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles "
+            + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
+            + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city))",
+            countQuery = "SELECT COUNT(DISTINCT u) FROM User u "
+            + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
+            + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city))")
+    Page<User> searchByKeywordStatusAndCity(@Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("city") String city,
+            Pageable pageable);
+
+    @Query(value = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles "
+            + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
+            + "AND (:spendingTier IS NULL OR (:spendingTier = 'vip' AND u.id IN "
+            + "(SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) >= 10000000)) "
+            + "OR (:spendingTier = 'medium' AND u.id IN "
+            + "(SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) BETWEEN 2000000 AND 9999999)) "
+            + "OR (:spendingTier = 'new' AND (u.id NOT IN "
+            + "(SELECT DISTINCT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH')) "
+            + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000))))",
+            countQuery = "SELECT COUNT(DISTINCT u) FROM User u "
+            + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+            + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
+            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
+            + "AND (:spendingTier IS NULL OR (:spendingTier = 'vip' AND u.id IN "
+            + "(SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) >= 10000000)) "
+            + "OR (:spendingTier = 'medium' AND u.id IN "
+            + "(SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) BETWEEN 2000000 AND 9999999)) "
+            + "OR (:spendingTier = 'new' AND (u.id NOT IN "
+            + "(SELECT DISTINCT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH')) "
+            + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000))))")
+    Page<User> searchByKeywordStatusAndSpending(@Param("keyword") String keyword,
+            @Param("status") String status,
+            @Param("spendingTier") String spendingTier,
+            Pageable pageable);
+
     @Query("SELECT u.id, u.hoTen, COUNT(o) as orderCount, COALESCE(SUM(o.tongThanhToan), 0) as totalSpent "
             + "FROM Order o JOIN o.user u "
             + "WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') AND o.ngayDat BETWEEN :start AND :end "

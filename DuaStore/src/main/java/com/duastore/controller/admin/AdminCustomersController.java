@@ -1,18 +1,18 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.*;
 import com.duastore.repository.*;
+import com.duastore.service.admin.AdminCustomerService;
+import com.duastore.service.LoyaltyPointsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/admin/khach-hang")
 public class AdminCustomersController {
 
+    private final AdminCustomerService adminCustomerService;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
@@ -30,14 +31,20 @@ public class AdminCustomersController {
     private final ReviewsRepository reviewsRepository;
     private final UserVoucherRepository userVoucherRepository;
     private final OrderItemRepository orderItemRepository;
+    private final LoyaltyPointsService loyaltyPointsService;
+    private final SecurityUtil securityUtil;
 
-    public AdminCustomersController(UserRepository userRepository,
+    public AdminCustomersController(AdminCustomerService adminCustomerService,
+            UserRepository userRepository,
             OrderRepository orderRepository,
             AddressRepository addressRepository,
             WishlistRepository wishlistRepository,
             ReviewsRepository reviewsRepository,
             UserVoucherRepository userVoucherRepository,
-            OrderItemRepository orderItemRepository) {
+            OrderItemRepository orderItemRepository,
+            LoyaltyPointsService loyaltyPointsService,
+            SecurityUtil securityUtil) {
+        this.adminCustomerService = adminCustomerService;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.addressRepository = addressRepository;
@@ -45,46 +52,42 @@ public class AdminCustomersController {
         this.reviewsRepository = reviewsRepository;
         this.userVoucherRepository = userVoucherRepository;
         this.orderItemRepository = orderItemRepository;
+        this.loyaltyPointsService = loyaltyPointsService;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_READ)")
     public String list(@RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String spendingTier,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model) {
         model.addAttribute("title", "khach-hang");
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
-        Page<User> userPage;
-
-        boolean searching = (keyword != null && !keyword.isBlank())
-                || (status != null && !status.isBlank());
-
-        if (searching) {
-            userPage = searchUsers(keyword, status, pageable);
-        } else {
-            userPage = userRepository.findAllBy(pageable);
-        }
+        Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "ngayTao"));
+        Page<User> userPage = adminCustomerService.searchCustomers(keyword, status, city, spendingTier, pageable);
 
         List<Integer> userIds = userPage.getContent().stream()
                 .map(User::getId)
                 .collect(Collectors.toList());
-        Map<Integer, Long> orderCountMap = new HashMap<>();
-        if (!userIds.isEmpty()) {
-            orderRepository.countByUserIds(userIds).forEach(row
-                    -> orderCountMap.put((Integer) row[0], (Long) row[1]));
-        }
+        Map<Integer, Long> orderCountMap = adminCustomerService.getOrderCountMap(userIds);
+        Map<Integer, Integer> loyaltyBalanceMap = adminCustomerService.getLoyaltyBalanceMap(userIds);
 
         model.addAttribute("customers", userPage.getContent());
         model.addAttribute("orderCountMap", orderCountMap);
+        model.addAttribute("loyaltyBalanceMap", loyaltyBalanceMap);
         model.addAttribute("currentPage", userPage.getNumber());
         model.addAttribute("totalPages", userPage.getTotalPages());
         model.addAttribute("totalItems", userPage.getTotalElements());
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
-        model.addAttribute("searching", searching);
+        model.addAttribute("city", city);
+        model.addAttribute("spendingTier", spendingTier);
+        model.addAttribute("cities", adminCustomerService.getAllDistinctCities());
+        model.addAttribute("searching", keyword != null || status != null || city != null || spendingTier != null);
 
         return "view/admin/customer/list";
     }
@@ -100,11 +103,9 @@ public class AdminCustomersController {
         model.addAttribute("title", "khach-hang");
         model.addAttribute("customer", user);
 
-        // Orders
-        Page<Order> orders = orderRepository.findByUserId(id, PageRequest.of(0, 50, Sort.by(Sort.Direction.DESC, "ngayDat")));
+        Page<Order> orders = orderRepository.findByUserId(id, PageRequest.of(0, 50, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "ngayDat")));
         model.addAttribute("orders", orders.getContent());
 
-        // Order stats
         List<Order> allOrders = orderRepository.findAllByUserId(id);
         long totalOrders = allOrders.size();
         long completedOrders = allOrders.stream().filter(o -> "DA_HOAN_THANH".equals(o.getTrangThaiDon()) || "DA_GIAO".equals(o.getTrangThaiDon())).count();
@@ -120,15 +121,12 @@ public class AdminCustomersController {
         model.addAttribute("totalSpent", totalSpent);
         model.addAttribute("avgOrderValue", avgOrderValue);
 
-        // Last order
         Optional<Order> lastOrder = allOrders.stream().findFirst();
         model.addAttribute("lastOrderDate", lastOrder.map(Order::getNgayDat).orElse(null));
 
-        // Cancellation rate
         double cancelRate = totalOrders > 0 ? (cancelledOrders * 100.0 / totalOrders) : 0;
         model.addAttribute("cancelRate", cancelRate);
 
-        // Top product
         Map<String, Integer> productCounts = new HashMap<>();
         for (Order o : allOrders) {
             if ("DA_GIAO".equals(o.getTrangThaiDon()) || "DA_HOAN_THANH".equals(o.getTrangThaiDon())) {
@@ -144,26 +142,63 @@ public class AdminCustomersController {
                 .orElse("—");
         model.addAttribute("topProduct", topProduct);
 
-        // Addresses
         List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(id);
         model.addAttribute("addresses", addresses);
 
-        // Vouchers
         List<UserVoucher> vouchers = userVoucherRepository.findByUserIdOrderBySavedAtDesc(id);
         model.addAttribute("vouchers", vouchers);
 
-        // Wishlist
         List<Wishlist> wishlist = wishlistRepository.findByUserIdOrderByNgayThemDesc(id);
         model.addAttribute("wishlistItems", wishlist);
 
-        // Reviews
         List<Review> reviews = reviewsRepository.findByUserIdOrderByNgayTaoDesc(id);
         model.addAttribute("reviews", reviews);
+
+        model.addAttribute("notes", adminCustomerService.getNotes(id));
+        model.addAttribute("tags", adminCustomerService.getTags(id));
+        model.addAttribute("loyaltyBalance", loyaltyPointsService.getBalance(id));
+        model.addAttribute("loyaltyHistory", adminCustomerService.getLoyaltyHistory(id));
 
         return "view/admin/customer/detail";
     }
 
-    private Page<User> searchUsers(String keyword, String status, Pageable pageable) {
-        return userRepository.searchByKeywordAndStatus(keyword, status, pageable);
+    @PostMapping("/{id}/api/notes")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_UPDATE)")
+    public ResponseEntity<?> addNote(@PathVariable Integer id, @RequestParam String content) {
+        String adminName = securityUtil.getCurrentUser().getHoTen();
+        CustomerNote note = adminCustomerService.addNote(id, content, adminName);
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", note.getId());
+        result.put("content", note.getContent());
+        result.put("createdBy", note.getCreatedBy());
+        result.put("createdAt", note.getCreatedAt().toString());
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{id}/api/notes/{noteId}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_UPDATE)")
+    public ResponseEntity<?> deleteNote(@PathVariable Integer id, @PathVariable Integer noteId) {
+        adminCustomerService.deleteNote(noteId, id);
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    @PostMapping("/{id}/api/tags")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_UPDATE)")
+    public ResponseEntity<?> addTag(@PathVariable Integer id, @RequestParam String tag) {
+        CustomerTag ct = adminCustomerService.addTag(id, tag);
+        if (ct == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Tag đã tồn tại"));
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", ct.getId());
+        result.put("tag", ct.getTag());
+        return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{id}/api/tags/{tagId}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_UPDATE)")
+    public ResponseEntity<?> removeTag(@PathVariable Integer id, @PathVariable Integer tagId) {
+        adminCustomerService.removeTag(tagId, id);
+        return ResponseEntity.ok(Map.of("ok", true));
     }
 }

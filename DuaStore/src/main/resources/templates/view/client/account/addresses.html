@@ -172,13 +172,13 @@
             if (result.success) {
             location.reload();
             } else {
-            alert(result.message || 'Lỗi lưu địa chỉ');
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(result.message || 'Lỗi lưu địa chỉ'); }
             }
             });
             async function editAddress(id) {
             const resp = await fetch('/address/api/' + id);
             const data = await resp.json();
-            if (!data.success) { alert(data.message); return; }
+            if (!data.success) { if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message); } return; }
             document.getElementById('addressModalTitle').textContent = 'Địa chỉ';
             document.getElementById('addressId').value = data.id;
             document.getElementById('inputTen').value = data.tenNguoiNhan;
@@ -198,14 +198,14 @@
             const resp = await fetch('/address/api/delete/' + id, { method: 'POST' });
             const result = await resp.json();
             if (result.success) location.reload();
-            else alert(result.message || 'Lỗi xóa địa chỉ');
+            else if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(result.message || 'Lỗi xóa địa chỉ'); }
             }
 
             async function setDefaultAddress(id) {
             const resp = await fetch('/address/api/set-default/' + id, { method: 'POST' });
             const result = await resp.json();
             if (result.success) location.reload();
-            else alert(result.message || 'Lỗi');
+            else if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(result.message || 'Lỗi'); }
             }
         </script>
     </body>

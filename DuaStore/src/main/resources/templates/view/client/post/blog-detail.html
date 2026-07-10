@@ -41,7 +41,7 @@
                         </div>
 
                         <div th:if="${post.hinhAnh != null}" class="mb-4">
-                            <img th:src="@{${post.hinhAnh}}" alt=""
+                            <img th:src="@{${post.hinhAnh}}" alt="" loading="lazy"
                                  class="w-100 rounded"
                                  style="max-height:400px;object-fit:cover;" />
                         </div>

@@ -57,7 +57,7 @@ public class AdminControllerAdvice {
                     "HOMEPAGE_READ", "STORE_READ", "APPEARANCE_READ",
                     "EMAIL_SETTING_READ", "PAYMENT_SETTING_READ", "SHIPPING_SETTING_READ",
                     "BANNER_READ", "FLASH_SALE_READ", "REFUND_READ",
-                    "VARIANT_READ");
+                    "VARIANT_READ", "PRICE_HISTORY_READ");
         }
 
         return perms;

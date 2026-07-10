@@ -5,6 +5,7 @@ import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.*;
 import com.duastore.repository.*;
 import com.duastore.service.GHNShippingService;
+import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PricingService;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.VNPAYService;
@@ -44,6 +45,7 @@ public class OrderService {
     private final VNPAYService vnpayService;
     private final PricingService pricingService;
     private final FlashSaleRepository flashSaleRepository;
+    private final LoyaltyPointsService loyaltyPointsService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             CartService cartService, AddressRepository addressRepository,
@@ -57,7 +59,8 @@ public class OrderService {
             GHNShippingService ghnShippingService,
             VNPAYService vnpayService,
             PricingService pricingService,
-            FlashSaleRepository flashSaleRepository) {
+            FlashSaleRepository flashSaleRepository,
+            LoyaltyPointsService loyaltyPointsService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -74,11 +77,18 @@ public class OrderService {
         this.vnpayService = vnpayService;
         this.pricingService = pricingService;
         this.flashSaleRepository = flashSaleRepository;
+        this.loyaltyPointsService = loyaltyPointsService;
     }
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
             String phuongThucGiaoHang, String maCode, String ghiChu) {
+        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, 0);
+    }
+
+    @Transactional
+    public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
+            String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         Address address = addressRepository.findById(addressId)
@@ -164,11 +174,43 @@ public class OrderService {
             order.setTienGiam(BigDecimal.ZERO);
         }
 
-        BigDecimal tong = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam());
+        BigDecimal pointsDiscount = BigDecimal.ZERO;
+        StringBuilder pointsNote = new StringBuilder();
+        if (pointsToRedeem > 0) {
+            int balance = loyaltyPointsService.getBalance(userId);
+            if (pointsToRedeem > balance) {
+                throw new RuntimeException("Bạn chỉ có " + balance + " điểm tích lũy (cần " + pointsToRedeem + ")");
+            }
+            int maxPoints = loyaltyPointsService.getPointsEarnRate() * 100;
+            if (pointsToRedeem > maxPoints) {
+                throw new RuntimeException("Chỉ có thể dùng tối đa " + maxPoints + " điểm cho một đơn hàng");
+            }
+            BigDecimal redeemValue = loyaltyPointsService.convertPointsToMoney(pointsToRedeem);
+            BigDecimal tongTruocGiam = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam());
+            if (redeemValue.compareTo(tongTruocGiam) > 0) {
+                redeemValue = tongTruocGiam;
+                pointsToRedeem = redeemValue.divideToIntegralValue(BigDecimal.valueOf(loyaltyPointsService.getPointsRedeemRate())).intValue();
+                if (pointsToRedeem <= 0) {
+                    throw new RuntimeException("Số điểm không phù hợp");
+                }
+                redeemValue = loyaltyPointsService.convertPointsToMoney(pointsToRedeem);
+            }
+            loyaltyPointsService.redeemPoints(userId, pointsToRedeem, "Đổi điểm cho đơn hàng #" + order.getMaDon());
+            pointsDiscount = redeemValue;
+            pointsNote.append(" (dùng ").append(pointsToRedeem).append(" điểm, giảm ").append(PriceUtils.format(redeemValue)).append(")");
+        }
+
+        BigDecimal tong = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam()).subtract(pointsDiscount);
         if (tong.compareTo(BigDecimal.ZERO) < 0) {
             tong = BigDecimal.ZERO;
         }
         order.setTongThanhToan(tong);
+        if (ghiChu != null && !ghiChu.isBlank()) {
+            ghiChu = ghiChu + pointsNote.toString();
+        } else if (pointsNote.length() > 0) {
+            ghiChu = pointsNote.toString().trim();
+        }
+        order.setGhiChu(ghiChu);
 
         order = orderRepository.save(order);
 
@@ -337,6 +379,19 @@ public class OrderService {
         Order order = getOrderById(orderId);
         order.setTrangThaiTT(trangThaiTT);
         orderRepository.save(order);
+    }
+
+    @Transactional
+    public void markOrderReceived(Integer userId, Integer orderId) {
+        Order order = getOrderByUserAndId(userId, orderId);
+        if (!"DA_GIAO".equals(order.getTrangThaiDon())) {
+            throw new RuntimeException("Chỉ có thể xác nhận đã nhận khi đơn hàng ở trạng thái 'Đã giao'");
+        }
+        order.setTrangThaiDon("DA_HOAN_THANH");
+        orderRepository.save(order);
+        orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, null,
+                "DA_GIAO", "DA_HOAN_THANH",
+                "Khách hàng xác nhận đã nhận được hàng");
     }
 
     @Transactional

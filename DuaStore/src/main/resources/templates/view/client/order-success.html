@@ -21,7 +21,7 @@
                         <div th:if="${!#lists.isEmpty(items)}" class="rounded p-3 mb-3" style="background:#fff;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);">
                             <div class="fw-semibold mb-2 small text-muted text-uppercase" style="letter-spacing:.05em;">Sản phẩm đã đặt</div>
                             <div th:each="item : ${items}" class="d-flex align-items-center gap-3 py-2 border-bottom" style="border-color:#f3f4f6!important;">
-                                <img th:if="${item.hinhAnhSP != null}" th:src="${item.hinhAnhSP}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #f3f4f6;flex-shrink:0;" />
+                                <img th:if="${item.hinhAnhSP != null}" th:src="${item.hinhAnhSP}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #f3f4f6;flex-shrink:0;" loading="lazy" />
                                 <div class="flex-grow-1 min-w-0">
                                     <div class="fw-semibold" style="font-size:.85rem;" th:text="${item.tenSanPham}"></div>
                                     <div class="text-muted" style="font-size:.75rem;" th:text="${item.tenBienThe}"></div>

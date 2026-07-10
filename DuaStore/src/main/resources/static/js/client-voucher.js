@@ -28,12 +28,12 @@ function removeVoucher(voucherId) {
                 if (!data)
                     return;
                 if (data.success) {
-                    showToast('\u0110\xe3 x\xf3a voucher');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã xóa voucher'); }
                     setTimeout(function () {
                         location.reload();
                     }, 800);
                 } else {
-                    showToast(data.message);
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message); }
                 }
             });
 }

@@ -123,4 +123,21 @@ public final class PermissionEnum {
     public static final String REFUND_READ = "REFUND_READ";
     public static final String REFUND_UPDATE = "REFUND_UPDATE";
     public static final String REFUND_APPROVE = "REFUND_APPROVE";
+
+    // FOOTER_LINK
+    public static final String FOOTER_LINK_READ = "FOOTER_LINK_READ";
+    public static final String FOOTER_LINK_CREATE = "FOOTER_LINK_CREATE";
+    public static final String FOOTER_LINK_UPDATE = "FOOTER_LINK_UPDATE";
+    public static final String FOOTER_LINK_DELETE = "FOOTER_LINK_DELETE";
+
+    // PRICE_HISTORY
+    public static final String PRICE_HISTORY_READ = "PRICE_HISTORY_READ";
+
+    // LOYALTY
+    public static final String LOYALTY_READ = "LOYALTY_READ";
+    public static final String LOYALTY_UPDATE = "LOYALTY_UPDATE";
+
+    // ALERT
+    public static final String ALERT_READ = "ALERT_READ";
+    public static final String ALERT_UPDATE = "ALERT_UPDATE";
 }

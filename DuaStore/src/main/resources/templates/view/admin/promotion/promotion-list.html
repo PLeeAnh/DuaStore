@@ -103,6 +103,7 @@
                         <th>Mã</th>
                         <th>Giá trị</th>
                         <th>SL còn</th>
+                        <th>Đã dùng</th>
                         <th>Ngày BĐ</th>
                         <th>Ngày KT</th>
                         <th>Trạng thái</th>
@@ -120,6 +121,7 @@
                         </td>
                         <td th:text="${p.loaiGiam == 'PHAN_TRAM' ? p.giaTriGiam + '%' : #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></td>
                         <td th:text="${p.soLanDung != null ? p.soLanDung - p.daDung : 'Không giới hạn'}"></td>
+                        <td th:text="${usageCounts.get(p.id) != null ? usageCounts.get(p.id) : 0}"></td>
                         <td th:text="${#temporals.format(p.tuNgay, 'dd/MM/yyyy HH:mm')}"></td>
                         <td th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
@@ -139,7 +141,7 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(promotions)}">
-                        <td colspan="9" class="text-muted text-center py-4">Chưa có dữ liệu</td>
+                        <td colspan="10" class="text-muted text-center py-4">Chưa có dữ liệu</td>
                     </tr>
                 </tbody>
             </table>

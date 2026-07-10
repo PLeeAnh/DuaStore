@@ -64,11 +64,11 @@ async function registerSubmit(event) {
         errDiv.classList.add('show');
         return;
     }
+    var email = DuaStore.utils.qs('[name="email"]', form).value;
     var username = DuaStore.utils.qs('[name="username"]', form).value;
     if (!username || !username.trim()) {
-        errText.textContent = 'Tên đăng nhập không được để trống';
-        errDiv.classList.add('show');
-        return;
+        username = email ? email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '_') : 'user_' + Date.now();
+        DuaStore.utils.qs('[name="username"]', form).value = username;
     }
     if (username.trim().length < 3) {
         errText.textContent = 'Tên đăng nhập phải có ít nhất 3 ký tự';

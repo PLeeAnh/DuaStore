@@ -13,8 +13,10 @@ import com.duastore.repository.AddressRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.model.OrderEventType;
 import com.duastore.service.EmailService;
+import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PaymentService;
 import com.duastore.service.ShippingFeeService;
+import com.duastore.service.SiteSettingService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.CartService;
@@ -54,6 +56,8 @@ public class CheckoutController {
     private final NotificationHelper notificationHelper;
     private final VNPAYService vnpayService;
     private final VoucherWalletService voucherWalletService;
+    private final LoyaltyPointsService loyaltyPointsService;
+    private final SiteSettingService siteSettingService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
             AddressRepository addressRepository,
@@ -65,7 +69,9 @@ public class CheckoutController {
             OrderStatusLogService orderStatusLogService,
             NotificationHelper notificationHelper,
             VNPAYService vnpayService,
-            VoucherWalletService voucherWalletService) {
+            VoucherWalletService voucherWalletService,
+            LoyaltyPointsService loyaltyPointsService,
+            SiteSettingService siteSettingService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -78,6 +84,8 @@ public class CheckoutController {
         this.notificationHelper = notificationHelper;
         this.vnpayService = vnpayService;
         this.voucherWalletService = voucherWalletService;
+        this.loyaltyPointsService = loyaltyPointsService;
+        this.siteSettingService = siteSettingService;
     }
 
     private Integer getUserId() {
@@ -141,6 +149,20 @@ public class CheckoutController {
         model.addAttribute("checkoutRequest", checkoutRequest);
         model.addAttribute("title", "Thanh toán");
         model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
+        model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
+        model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
+        model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
+
+        // Load payment method toggles from DB
+        Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
+        Map<String, Boolean> paymentMethods = new HashMap<>();
+        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
+        paymentMethods.put("vnpay", true); // VNPAY is always available (configured via properties)
+        model.addAttribute("paymentMethods", paymentMethods);
+
+        // Estimated delivery date
+        model.addAttribute("estimatedDeliveryDate", java.time.LocalDate.now().plusDays(5).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " – " + java.time.LocalDate.now().plusDays(10).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         return "view/client/checkout";
     }
 
@@ -277,6 +299,9 @@ public class CheckoutController {
         model.addAttribute("storeLat", shippingFeeService.getStoreLat());
         model.addAttribute("storeLng", shippingFeeService.getStoreLng());
         model.addAttribute("title", "Thanh toán");
+        model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
+        model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
+        model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
     }
 
     private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
@@ -306,9 +331,11 @@ public class CheckoutController {
             return ResponseEntity.ok(res);
         }
         try {
+            int pointsToRedeem = req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0;
             Order order = orderService.processCheckout(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
-                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
+                    pointsToRedeem
             );
             try {
                 notificationHelper.notifyStaff(

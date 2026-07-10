@@ -125,10 +125,32 @@
             </div>
         </div>
 
+        <div class="adm-batch-bar" id="batchBar" style="display:none">
+            <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted" id="batchCount">Đã chọn 0 đơn</span>
+                <select id="batchStatus" class="form-select form-select-sm" style="width:auto">
+                    <option value="">Chọn trạng thái</option>
+                    <option value="CHO_XAC_NHAN">Chờ xác nhận</option>
+                    <option value="DA_XAC_NHAN">Đã xác nhận</option>
+                    <option value="DANG_GIAO">Đang giao</option>
+                    <option value="DA_GIAO">Đã giao</option>
+                    <option value="DA_HOAN_THANH">Đã hoàn thành</option>
+                    <option value="DA_HUY">Đã hủy</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="btnBatchUpdate" onclick="batchUpdateStatus()">
+                    <i class="bi bi-check2-circle me-1"></i>Cập nhật
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearBatchSelection()">Bỏ chọn</button>
+            </div>
+        </div>
+
         <div class="adm-table-wrap">
             <table class="table table-sm table-hover align-middle mb-0">
                 <thead>
                     <tr>
+                        <th style="width:40px">
+                            <input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)" />
+                        </th>
                         <th>#</th>
                         <th>Mã ĐH</th>
                         <th>Khách hàng</th>
@@ -141,6 +163,9 @@
                 </thead>
                 <tbody>
                     <tr th:each="o, iter : ${orders}">
+                        <td>
+                            <input type="checkbox" class="order-checkbox" th:value="${o.id}" onchange="updateBatchBar()" />
+                        </td>
                         <td class="text-muted small" th:text="${iter.index + 1 + currentPage * pageSize}"></td>
                         <td><strong th:text="${o.maDon}"></strong></td>
                         <td>
@@ -173,7 +198,7 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(orders)}">
-                        <td colspan="8" class="text-muted text-center py-4">Chưa có đơn hàng</td>
+                        <td colspan="9" class="text-muted text-center py-4">Chưa có đơn hàng</td>
                     </tr>
                 </tbody>
             </table>
@@ -184,6 +209,86 @@
     <th:block layout:fragment="extra-script">
         <script>var tatCa = [[${tatCa}]];</script>
         <script th:src="@{/js/admin-filters.js}"></script>
+        <script>
+            function toggleCheckAll(source) {
+                document.querySelectorAll('.order-checkbox').forEach(function (cb) {
+                    cb.checked = source.checked;
+                });
+                updateBatchBar();
+            }
+
+            function updateBatchBar() {
+                var checked = document.querySelectorAll('.order-checkbox:checked');
+                var bar = document.getElementById('batchBar');
+                var count = document.getElementById('batchCount');
+                if (checked.length > 0) {
+                    bar.style.display = 'block';
+                    count.textContent = 'Đã chọn ' + checked.length + ' đơn';
+                } else {
+                    bar.style.display = 'none';
+                }
+            }
+
+            function clearBatchSelection() {
+                document.querySelectorAll('.order-checkbox').forEach(function (cb) {
+                    cb.checked = false;
+                });
+                document.getElementById('checkAll').checked = false;
+                updateBatchBar();
+            }
+
+            function batchUpdateStatus() {
+                var checked = document.querySelectorAll('.order-checkbox:checked');
+                var status = document.getElementById('batchStatus').value;
+                if (checked.length === 0) {
+                    DuaStore.toast.warning('Vui lòng chọn ít nhất một đơn hàng');
+                    return;
+                }
+                if (!status) {
+                    DuaStore.toast.warning('Vui lòng chọn trạng thái');
+                    return;
+                }
+
+                var ids = Array.from(checked).map(function (cb) {
+                    return parseInt(cb.value, 10);
+                });
+                var btn = document.getElementById('btnBatchUpdate');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+
+                var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+                fetch('/admin/don-hang/api/batch-cap-nhat-trang-thai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    body: JSON.stringify({ ids: ids, status: status })
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        var msg = 'Đã cập nhật ' + data.updated + ' đơn hàng';
+                        if (data.errors && data.errors.length > 0) {
+                            msg += '. Lỗi: ' + data.errors.join('; ');
+                        }
+                        DuaStore.toast.success(msg);
+                        setTimeout(function () { location.reload(); }, 1500);
+                    } else {
+                        DuaStore.toast.error(data.message || 'Cập nhật thất bại');
+                    }
+                })
+                .catch(function () {
+                    DuaStore.toast.error('Lỗi kết nối');
+                })
+                .finally(function () {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Cập nhật';
+                });
+            }
+        </script>
     </th:block>
 </body>
 </html>

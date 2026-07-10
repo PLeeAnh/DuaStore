@@ -60,9 +60,9 @@
                                     <label class="form-label">Danh mục cha</label>
                                     <select th:field="*{parentId}" class="form-select searchable-select">
                                         <option value="">Danh mục gốc</option>
-                                        <option th:each="parent : ${parents}"
-                                                th:value="${parent.id}"
-                                                th:text="${parent.tenDanhMuc}">Danh mục cha</option>
+                                        <option th:each="opt : ${parentOptions}"
+                                                th:value="${opt.id}"
+                                                th:text="${#strings.repeat('─ ', opt.level) + opt.tenDanhMuc}">Danh mục cha</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">

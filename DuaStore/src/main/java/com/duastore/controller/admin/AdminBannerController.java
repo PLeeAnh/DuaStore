@@ -4,6 +4,7 @@ import com.duastore.dto.BannerFormDTO;
 import com.duastore.model.Banner;
 import com.duastore.service.BannerService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/banner")
@@ -119,6 +122,18 @@ public class AdminBannerController {
             redirectAttributes.addFlashAttribute("errorMsg", ex.getMessage());
         }
         return "redirect:/admin/banner";
+    }
+
+    @PostMapping("/api/reorder")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).BANNER_UPDATE)")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> reorder(@RequestBody Map<String, List<Integer>> body) {
+        try {
+            bannerService.reorder(body.get("order"));
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));
+        }
     }
 
     private void validateImage(BannerFormDTO form, BindingResult result) {

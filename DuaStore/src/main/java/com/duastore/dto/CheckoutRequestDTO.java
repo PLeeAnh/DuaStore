@@ -20,4 +20,6 @@ public class CheckoutRequestDTO {
     private String maCode;
 
     private String ghiChu;
+
+    private Integer pointsToRedeem;
 }
