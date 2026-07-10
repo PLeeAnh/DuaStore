@@ -73,7 +73,7 @@ function addToCart(productId, variantId, quantity) {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({productId: productId, variantId: variantId, quantity: quantity})
     }).then(function (r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
             return null;
@@ -108,7 +108,7 @@ function addToCartFromWishlist(productId, variantId) {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({productId: productId, variantId: variantId || null, quantity: 1})
     }).then(function (r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
             return null;
@@ -138,7 +138,7 @@ function addToCartFromWishlist(productId, variantId) {
                     rawPrice = parseInt(priceEl.innerText.replace(/[^\d]/g, '')) || 0;
             }
 
-            var resolvedVariantId = data.variantId || productId;
+            var resolvedVariantId = variantId || productId;
             var existingEl = document.getElementById('cart-item-' + resolvedVariantId);
             if (existingEl) {
                 var qtyInput = existingEl.querySelector('#popup-qty-' + resolvedVariantId);
@@ -211,7 +211,7 @@ function addToCartFromCard(btn) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({productId: parseInt(productId), variantId: variantId, quantity: qty})
     }).then(function (r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
             return null;
@@ -267,7 +267,7 @@ function removeCartItem(cartItemId) {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({variantId: cartItemId})
     }).then(function (r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
             return null;
@@ -300,6 +300,13 @@ function removeCartItem(cartItemId) {
 }
 
 /* ═══ UPDATE POPUP QTY (+/- số lượng) ═══ */
+function updateMinusBtnState(variantId) {
+    var minusBtn = document.querySelector('#popup-qty-' + variantId)?.closest('.input-group, .ds-qty-selector')?.querySelector('.btn-outline-secondary, .ds-qty-minus');
+    if (!minusBtn) return;
+    var qty = parseInt(document.getElementById('popup-qty-' + variantId)?.value) || 1;
+    minusBtn.style.opacity = qty <= 1 ? '0.35' : '1';
+}
+
 function updatePopupQty(variantId, delta) {
     if (window.event) {
         window.event.stopPropagation();
@@ -314,14 +321,15 @@ function updatePopupQty(variantId, delta) {
     var next = cur + delta;
 
     if (next < 1) {
-        if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?'))
-            removeCartItem(variantId);
+        next = 1;
+        updateMinusBtnState(variantId);
         return;
     }
     if (next > 99)
         next = 99;
 
     qtyInput.value = next;
+    updateMinusBtnState(variantId);
     if (priceSpan) {
         var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
         priceSpan.innerText = (unit * next).toLocaleString('vi-VN') + '₫';
@@ -329,9 +337,9 @@ function updatePopupQty(variantId, delta) {
 
     fetch('/api/cart/update', {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({variantId: variantId, quantity: next})
+        body: JSON.stringify({variantId: variantId, soLuong: next})
     }).then(function (r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
             return null;
@@ -391,7 +399,7 @@ function setPopupQty(variantId) {
         method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({variantId: variantId, quantity: val})
     }).then(function (r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
             return null;

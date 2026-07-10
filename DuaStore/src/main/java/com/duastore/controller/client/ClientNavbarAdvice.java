@@ -52,6 +52,7 @@ public class ClientNavbarAdvice {
                 Integer userId = securityUtil.getCurrentUserId();
                 if (userId != null) {
                     model.addAttribute("myCart", cartService.getItems(userId));
+                    model.addAttribute("cartCount", cartService.count(userId));
                     model.addAttribute("myWishlist", wishlistService.getWishlistByUser(userId));
                     model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
 

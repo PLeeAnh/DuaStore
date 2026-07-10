@@ -232,6 +232,8 @@ function openAddressModal() {
     document.getElementById('addressModalList').style.display = 'block';
     document.getElementById('addressModalForm').style.display = 'none';
     document.getElementById('addressModalTitle').textContent = 'Quản lý địa chỉ';
+    var addBtn = document.getElementById('addressAddBtn');
+    if (addBtn) addBtn.style.display = '';
     bootstrap.Modal.getOrCreateInstance(document.getElementById('addressModal')).show();
 }
 
@@ -286,7 +288,7 @@ function editAddress(id) {
     resetCombo('modalPhuongXaCombo');
     var provincesPromise = loadModalProvinces();
     fetch('/address/api/' + id).then(function (r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
             return null;
@@ -303,9 +305,15 @@ function editAddress(id) {
         document.getElementById('modalSoDienThoai').value = data.soDienThoai || '';
         document.getElementById('modalDiaChiCuThe').value = data.diaChiCuThe || '';
         document.getElementById('modalDiaChiCuTheText').value = data.diaChiCuThe || '';
-        document.getElementById('modalLatitude').value = data.latitude || '';
-        document.getElementById('modalLongitude').value = data.longitude || '';
+        var lat = data.latitude;
+        var lng = data.longitude;
+        document.getElementById('modalLatitude').value = lat || '';
+        document.getElementById('modalLongitude').value = lng || '';
         document.getElementById('modalIsDefault').checked = !!data.isDefault;
+        if (lat && lng && window.checkoutMap) {
+            checkoutMap.setView([lat, lng], 16);
+            if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+        }
 
         provincesPromise.then(function (provinces) {
             var foundProvince = fuzzyFindLocation(provinces, data.tinhThanh);
@@ -429,6 +437,14 @@ function saveAddressFromModal() {
         return;
     }
 
+    var tinh = document.getElementById('modalTinhThanh').value;
+    var quan = document.getElementById('modalQuanHuyen').value;
+    var phuong = document.getElementById('modalPhuongXa').value;
+    if (dc === tinh || dc === quan || dc === phuong) {
+        DuaStore.toast.warning('Số nhà, đường không được trùng với tên tỉnh/quận/phường');
+        return;
+    }
+
     var formData = new URLSearchParams();
     if (editingAddressId)
         formData.append('id', editingAddressId);
@@ -448,7 +464,7 @@ function saveAddressFromModal() {
         body: formData
     })
             .then(function (r) {
-                if (r.status === 403) {
+                if (r.status === 401 || r.status === 403) {
                     if (typeof showLoginPopup === 'function')
                         showLoginPopup();
                     return null;
@@ -634,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var formData = new FormData(form);
         fetch('/checkout/api/create', {method: 'POST', body: new URLSearchParams(formData)})
                 .then(function (r) {
-                    if (r.status === 403) {
+                    if (r.status === 401 || r.status === 403) {
                         if (typeof showLoginPopup === 'function')
                             showLoginPopup();
                         return null;
@@ -706,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: new URLSearchParams(formData)
             })
                     .then(function (r) {
-                        if (r.status === 403) {
+                        if (r.status === 401 || r.status === 403) {
                             if (typeof showLoginPopup === 'function')
                                 showLoginPopup();
                             return null;

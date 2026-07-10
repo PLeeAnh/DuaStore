@@ -451,12 +451,11 @@
                         var vw = viewport.offsetWidth;
                         if (!vw)
                             return;
-                        var perPage = parseInt(el.dataset.itemsPerPage) || 0;
                         var gap = 20;
-                        if (!perPage) {
-                            var iw = items[0].offsetWidth;
-                            perPage = iw ? Math.max(1, Math.floor(vw / (iw + gap))) : 1;
-                        }
+                        var iw = items[0].offsetWidth;
+                        var perPage = iw ? Math.max(1, Math.floor((vw + gap) / (iw + gap))) : 1;
+                        var maxPerPage = parseInt(el.dataset.itemsPerPage) || 0;
+                        if (maxPerPage > 0 && perPage > maxPerPage) perPage = maxPerPage;
                         var basis = 'calc((100% - ' + (gap * (perPage - 1)) + 'px) / ' + perPage + ')';
                         for (var k = 0; k < items.length; k++) {
                             items[k].style.flex = '0 0 ' + basis;

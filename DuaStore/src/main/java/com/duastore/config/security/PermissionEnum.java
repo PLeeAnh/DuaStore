@@ -19,6 +19,7 @@ public final class PermissionEnum {
     public static final String ORDER_UPDATE = "ORDER_UPDATE";
 
     // USER
+    public static final String USER_CREATE = "USER_CREATE";
     public static final String USER_READ = "USER_READ";
     public static final String USER_UPDATE = "USER_UPDATE";
 

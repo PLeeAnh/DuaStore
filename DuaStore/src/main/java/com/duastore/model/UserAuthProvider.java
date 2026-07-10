@@ -16,7 +16,7 @@ public class UserAuthProvider {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "userId", nullable = false)
     private Integer userId;
 
     @Column(name = "provider", nullable = false, length = 20)
@@ -25,7 +25,7 @@ public class UserAuthProvider {
     @Column(name = "provider_sub", length = 255)
     private String providerSub;
 
-    @Column(name = "linked_at", nullable = false, updatable = false)
+    @Column(name = "linkedAt", nullable = false, updatable = false)
     private LocalDateTime linkedAt;
 
     @PrePersist
