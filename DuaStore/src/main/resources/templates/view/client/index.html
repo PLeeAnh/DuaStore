@@ -63,10 +63,11 @@
                                  th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                  v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
                                  fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
-                                 th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''">
+                                 th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''"
+                                 th:onclick="|window.location.href='/san-pham/${p.id}'|">
 
                                 <button th:classappend="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
-                                        th:onclick="|toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
+                                        th:onclick="|event.stopPropagation(); toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
                                     <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                                 </button>
 
@@ -106,21 +107,13 @@
                                 </div>
 
                                 <div class="ds-card-body">
-                                    <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
-                                       th:text="${p.tenSanPham}">Tên sản phẩm</a>
-
                                     <div class="ds-card-price">
                                         <span class="ds-card-price-badge"
-                                              th:if="${v != null and v.giaKhuyenMai != null}"
-                                              th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                                        <span class="ds-card-price-badge"
-                                              th:if="${v != null and v.giaKhuyenMai == null and bestPercentagePromo != null}"
-                                              th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
-                                        <span class="ds-card-price-badge ds-card-price-oos"
-                                              th:if="${v == null or v.soLuongTon <= 0}">Hết hàng</span>
+                                              th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                              th:text="|-${bestDiscountMap.get(p.id)}%|">-15%</span>
                                         <div class="ds-card-price-values">
                                             <span class="ds-card-price-old"
-                                                  th:if="${v != null and (v.giaKhuyenMai != null or bestPercentagePromo != null)}"
+                                                  th:if="${v != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
                                                   th:text="${#numbers.formatInteger(v.giaGoc, 0, 'POINT')} + '₫'">15.000₫</span>
                                             <span class="ds-card-price-current"
                                                   th:text="${#numbers.formatInteger(promoPriceMap.get(p.id) != null ? promoPriceMap.get(p.id) : (v != null and v.giaKhuyenMai != null ? v.giaKhuyenMai : (v != null ? v.giaGoc : 0)), 0, 'POINT')} + '₫'">12.750₫</span>

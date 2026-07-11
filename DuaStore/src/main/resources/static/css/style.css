@@ -1416,6 +1416,11 @@ a {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    cursor: pointer;
+}
+.ds-product-grid-v2 .ds-product-card {
+    background: transparent;
+    border: none;
 }
 .ds-product-card:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,.08);
@@ -1459,44 +1464,51 @@ a {
     gap: 3px;
 }
 
-/* ── Price row (Steam-style) ── */
+/* ── Price row (Steam-style discount badge) ── */
 .ds-card-price {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    display: inline-flex;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 2px;
     margin-top: auto;
+    margin-left: auto;
 }
 .ds-card-price-badge {
-    background: #2563EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    font-weight: 800;
+    font-size: .78rem;
+    background: #1e3a5f;
     color: #fff;
-    font-size: .72rem;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 3px;
     flex-shrink: 0;
-    line-height: 1.4;
-}
-.ds-card-price-oos {
-    background: #999;
 }
 .ds-card-price-values {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-left: auto;
+    padding: 4px 8px;
+    background: #DBEAFE;
+    font-weight: 700;
 }
 .ds-card-price-old {
-    font-size: .75rem;
-    color: #999;
+    font-size: .7rem;
+    color: #94a3b8;
     text-decoration: line-through;
     white-space: nowrap;
 }
 .ds-card-price-current {
-    font-size: .88rem;
-    font-weight: 700;
-    color: var(--ds-red);
+    font-size: .85rem;
+    color: #2563EB;
     white-space: nowrap;
+}
+.ds-card-price-oos .ds-card-price-badge {
+    background: #999;
+    color: #fff;
+}
+.ds-card-price-oos .ds-card-price-values {
+    background: #2a2a2a;
 }
 .ds-product-card.oos .ds-card-price-current {
     color: #999;
@@ -1838,20 +1850,6 @@ a {
     color: #22c55e;
 }
 
-.ds-card-price {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 4px 10px;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ds-primary, #2563eb);
-    letter-spacing: -.02em;
-    min-height: 46px;
-    margin-top: auto;
-}
-
 /* ── Out of Stock ── */
 .ds-product-card.oos {
     opacity: 1;
@@ -1859,14 +1857,10 @@ a {
 .ds-product-card.oos .ds-product-image-wrap img {
     filter: none;
 }
-.ds-product-card.oos .ds-price-btn,
 .ds-product-card.oos .ds-qty-btn {
     cursor: not-allowed;
     opacity: .5;
     pointer-events: none;
-}
-.ds-product-card.oos .ds-card-price {
-    display: none;
 }
 
 /* ── Hover preview (soft blue theme) ── */
