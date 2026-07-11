@@ -162,10 +162,21 @@ public class AdminCategoryService {
         category.setActive(dto.isActive());
         category.setImageUrl(dto.getImageUrl());
 
-        // Set parent — load fresh from DB to avoid stale Hibernate proxy
+        // Set parent — validate to prevent circular reference
         if (dto.getParentId() != null) {
-            Category newParent = categoryRepository.findById(dto.getParentId()).orElse(null);
-            category.setParent(newParent);
+            // Don't allow setting self as parent
+            if (dto.getId() != null && dto.getParentId().equals(dto.getId())) {
+                category.setParent(null);
+            } else {
+                Category newParent = categoryRepository.findById(dto.getParentId()).orElse(null);
+                // Check that newParent is not a descendant of this category
+                if (dto.getId() != null && newParent != null
+                        && getAllDescendantIds(dto.getId()).contains(newParent)) {
+                    category.setParent(null);
+                } else {
+                    category.setParent(newParent);
+                }
+            }
         } else {
             category.setParent(null);
         }

@@ -7,13 +7,9 @@
  Ban cu (viet tay) bi LECH voi @Entity trong code -> Hibernate "ddl-auto=validate"
  bao loi khong khoi dong duoc app. Cac loi da sua trong ban nay:
 
-  1. THIEU BANG "RefundRequests" (entity RefundRequest.java) -> da them day du.
-  2. Toan bo cot kieu chuoi (ten, dia chi, ghi chu...) dang la NVARCHAR nhung
-     entity KHONG khai bao Unicode -> Hibernate doi VARCHAR. Da doi tat ca ve
-     VARCHAR de khop 100% voi entity (con cac cot that su can Unicode/text dai
-     nhu mo ta san pham, noi dung bai viet, ly do hoan tien... entity dung
-     @Lob/columnDefinition nen van la NVARCHAR(MAX), giu nguyen).
-  3. 3 bang "linked_accounts", "user_settings", "user_auth_providers" dat sai
+   1. THIEU BANG "RefundRequests" (entity RefundRequest.java) -> da them day du.
+   2. Toan bo cot kieu chuoi da dung NVARCHAR de ho tro tieng Viet co dau day du.
+   3. 3 bang "linked_accounts", "user_settings", "user_auth_providers" dat sai
      ten cot kieu snake_case (user_id, created_at, setting_key...) trong khi
      entity dung PhysicalNamingStrategyStandardImpl (khong tu convert) nen cot
      that su phai la camelCase (userId, createdAt, settingKey...). Da sua.
