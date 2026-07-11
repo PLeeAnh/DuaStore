@@ -51,12 +51,13 @@ public class AdminControllerAdvice {
         if (auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()))) {
             return Set.of("DASHBOARD_READ", "PRODUCT_READ", "CATEGORY_READ",
-                    "ORDER_READ", "PROMOTION_READ", "POST_READ",
+                    "ORDER_READ", "PROMOTION_READ", "POST_READ", "POST_CATEGORY_READ",
                     "REVIEW_READ", "USER_READ", "ROLE_READ", "AUDIT_LOG_READ",
                     "NOTIFICATION_READ", "ANALYTICS_READ", "CUSTOMER_READ",
                     "HOMEPAGE_READ", "STORE_READ", "APPEARANCE_READ",
                     "EMAIL_SETTING_READ", "PAYMENT_SETTING_READ", "SHIPPING_SETTING_READ",
-                    "BANNER_READ", "FLASH_SALE_READ", "REFUND_READ");
+                    "BANNER_READ", "FLASH_SALE_READ", "REFUND_READ",
+                    "VARIANT_READ", "PRICE_HISTORY_READ");
         }
 
         return perms;

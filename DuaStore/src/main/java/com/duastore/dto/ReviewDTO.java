@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +19,7 @@ public class ReviewDTO {
     private String hoTen;
     private Integer danhGia;
     private String binhLuan;
-    private String hinhAnh;
+    private List<String> hinhAnhList;
     private boolean isApproved;
     private LocalDateTime ngayTao;
 }

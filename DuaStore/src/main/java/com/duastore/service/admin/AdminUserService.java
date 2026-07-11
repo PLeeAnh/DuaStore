@@ -4,6 +4,7 @@ import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +21,16 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AdminUserService(
             UserRepository userRepository,
-            RoleRepository roleRepository
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
@@ -116,6 +120,58 @@ public class AdminUserService {
         );
 
         userRepository.save(user);
+    }
+
+    public User createUser(
+            String username,
+            String hoTen,
+            String email,
+            String password,
+            String soDienThoai,
+            Boolean isActive,
+            List<Integer> roleIds,
+            User currentAdmin
+    ) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Tên đăng nhập không được để trống");
+        }
+        if (hoTen == null || hoTen.isBlank()) {
+            throw new IllegalArgumentException("Họ tên không được để trống");
+        }
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email không được để trống");
+        }
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("Mật khẩu không được để trống");
+        }
+                if (password.length() < 8) {
+                        throw new IllegalArgumentException("Mật khẩu phải có ít nhất 8 ký tự");
+        }
+
+        if (userRepository.findByUsername(username.trim()).isPresent()) {
+            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
+        }
+        if (userRepository.findByEmail(email.trim()).isPresent()) {
+            throw new IllegalArgumentException("Email đã tồn tại");
+        }
+
+        User user = new User();
+        user.setUsername(username.trim());
+        user.setHoTen(hoTen.trim());
+        user.setEmail(email.trim());
+        user.setPassword(passwordEncoder.encode(password));
+        user.setSoDienThoai(soDienThoai);
+        user.setIsActive(isActive != null ? isActive : true);
+
+        Set<Role> roles = roleIds == null || roleIds.isEmpty()
+                ? new HashSet<>()
+                : new HashSet<>(roleRepository.findAllById(roleIds));
+
+        validateRoleAssignment(user, roles, currentAdmin);
+
+        user.setRoles(roles);
+
+        return userRepository.save(user);
     }
 
     private void validateStatusChange(

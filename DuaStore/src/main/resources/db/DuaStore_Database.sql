@@ -1,31 +1,37 @@
 /*
 ================================================================================
-  ____  _   _    _    ____  _____ ___  ____  _____
- |  _ \| | | |  / \  / ___||_   _/ _ \|  _ \| ____|
- | | | | | | | / _ \ \___ \  | || | | | |_) |  _|
- | |_| | |_| |/ ___ \ ___) | | || |_| |  _ <| |___
- |____/ \___//_/   \_\____/  |_| \___/|_| \_\_____|
-
-  DuaStore -- Do Thuy Tinh Decor, Hai Phong
+ DuaStore_Database.sql
+ Script tao du lieu SQL Server cho du an DuaStore (Spring Boot)
 ================================================================================
-  QUAN TRONG - doc truoc khi chay:
-  1. "validate" la che do NGHIEM NGAT nhat cua Hibernate: no KHONG tu sua bang,
-     chi kiem tra bang trong DB co dung 100% voi @Entity trong code khong.
-     Neu lech (thieu cot, sai kieu, sai do dai...) -> app se KHONG khoi dong duoc.
-  2. File nay duoc doi chieu thu cong tung dong voi 27 @Entity trong code
-     (khong the chay Hibernate that de xuat DDL vi moi truong bien soan
-     khong co mang internet toi Maven Central). Vi vay VAN CO XAC SUAT lech
-     nho o vai cot ngay-gio (DATETIME2 precision) hoac do dai chuoi mac dinh
-     (nhung cot khong ghi ro length trong @Column, JPA mac dinh la 255).
-     -> Chay thu tren moi truong dev truoc, neu Hibernate bao loi
-        "Schema-validation: wrong column type/length" o cot nao, gui lai
-        thong bao loi do de sua chinh xac cot ay.
-  3. Mat khau admin mac dinh: admin@123 (BCrypt hash co san).
-  4. Khac voi ban cu: cot "role" (NVARCHAR) trong bang Users DA BI XOA.
-     Toan bo phan quyen gio dung RBAC that: roles / permissions /
-     role_permissions / user_roles. Xem phan SEED RBAC ben duoi.
-  5. File duoc luu UTF-8 (khong phai UTF-16 nhu ban cu) de tranh loi vo
-     tieng Viet (ban cu bi loi encoding o phan seed 22 san pham mo rong).
+ FIX SO VOI BAN CU:
+ Ban cu (viet tay) bi LECH voi @Entity trong code -> Hibernate "ddl-auto=validate"
+ bao loi khong khoi dong duoc app. Cac loi da sua trong ban nay:
+
+   1. THIEU BANG "RefundRequests" (entity RefundRequest.java) -> da them day du.
+   2. Toan bo cot kieu chuoi da dung NVARCHAR de ho tro tieng Viet co dau day du.
+   3. 3 bang "linked_accounts", "user_settings", "user_auth_providers" dat sai
+     ten cot kieu snake_case (user_id, created_at, setting_key...) trong khi
+     entity dung PhysicalNamingStrategyStandardImpl (khong tu convert) nen cot
+     that su phai la camelCase (userId, createdAt, settingKey...). Da sua.
+  4. Bang "roles" thieu cot "isActive" (co trong entity Role.java). Da them.
+  5. Bang "users" thieu 7 cot moi trong entity: hoTen, nickname, avatar,
+     emailVisible, phoneVisible, emailMarketing, status. Da them.
+  6. Bang "Addresses" thieu 2 cot GHN (ghnDistrictId, ghnWardCode). Da them.
+  7. Bang "FlashSales" thieu soLuongToiDa, soLuongDaBan. Da them.
+  8. Bang "order_items" thieu cot "loaiGia". Bang "order_notes" thieu "tag". Da them.
+  9. Cac cot NOT NULL (isActive, trangThai...) van giu DEFAULT (nhu ban cu) de
+     insert seed du lieu khong bi loi - Hibernate validate KHONG kiem tra
+     DEFAULT constraint nen an toan 100%.
+
+ File nay tu sinh tu schema.sql (Hibernate xuat truc tiep tu @Entity, dam bao
+ khop tuyet doi) + gop lai phan seed data / index / view huu ich cua ban cu.
+
+ QUAN TRONG: Neu sau nay ban SUA/THEM entity (@Column moi, doi kieu du lieu...),
+ file nay se LAI BI LECH. Luc do lam lai theo dung huong dan trong
+ application-ddlgen.properties (chay profile "ddlgen" de Hibernate tu xuat
+ schema.sql moi tu entity, roi generate lai script nay).
+
+ Tai khoan mac dinh sau khi seed: admin / admin@123 (vai tro SUPER_ADMIN)
 ================================================================================
 */
 
@@ -39,28 +45,33 @@ USE DuaStore;
 GO
 
 -- ============================================================
--- BUOC 0.5: XOA BANG CU (drop theo thu tu dao nguoc de tranh loi FK)
+-- BUOC 0.5: XOA BANG/VIEW CU (de chay lai script nhieu lan an toan)
 -- ============================================================
 DROP VIEW IF EXISTS vw_PostsPublished;
 DROP VIEW IF EXISTS vw_ProductPrice;
 DROP VIEW IF EXISTS vw_DoanhThu;
 GO
+DROP TABLE IF EXISTS RefundRequests;
 DROP TABLE IF EXISTS admin_action_logs;
 DROP TABLE IF EXISTS order_status_logs;
 DROP TABLE IF EXISTS order_notes;
 DROP TABLE IF EXISTS order_assignments;
 DROP TABLE IF EXISTS Notifications;
 DROP TABLE IF EXISTS UserVouchers;
+DROP TABLE IF EXISTS ReviewImages;
+DROP TABLE IF EXISTS LoyaltyTransactions;
+DROP TABLE IF EXISTS footer_links;
+DROP TABLE IF EXISTS PriceHistory;
+DROP TABLE IF EXISTS CustomerTags;
+DROP TABLE IF EXISTS CustomerNotes;
 DROP TABLE IF EXISTS Wishlists;
-DROP TABLE IF EXISTS Post_Tags;
 DROP TABLE IF EXISTS Posts;
-DROP TABLE IF EXISTS PostTags;
 DROP TABLE IF EXISTS PostCategories;
 DROP TABLE IF EXISTS banners;
 DROP TABLE IF EXISTS SavedCartItems;
 DROP TABLE IF EXISTS CartItems;
 DROP TABLE IF EXISTS Reviews;
-DROP TABLE IF EXISTS OrderItems;
+DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS FlashSales;
 DROP TABLE IF EXISTS Promotions;
@@ -82,762 +93,654 @@ DROP TABLE IF EXISTS users;
 GO
 
 -- ============================================================
--- [1] BANG: users  (User.java)
+-- BUOC 1: TAO BANG (sinh tu Hibernate @Entity - khop 100% voi code)
 -- ============================================================
--- QUAN TRONG: KHONG con cot "role" nua. Phan quyen chuyen sang RBAC
--- (roles / permissions / role_permissions / user_roles) o ben duoi.
--- ============================================================
-CREATE TABLE users (
-    id                INT            IDENTITY(1,1)  NOT NULL,
-    username          NVARCHAR(50)                  NOT NULL,
-    email             NVARCHAR(100)                 NOT NULL,
-    password          NVARCHAR(255)                 NOT NULL,   -- BCrypt hash
-    hoTen             NVARCHAR(100)                 NOT NULL,
-    soDienThoai       NVARCHAR(15)                  NULL,
-    isActive          BIT                           NOT NULL DEFAULT 1,
-    ngayTao           DATETIME2                     NOT NULL,
-    ngayCapNhat       DATETIME2                     NULL,
-    resetToken        NVARCHAR(255)                 NULL,
-    resetTokenExpiry  DATETIME2                     NULL,
+    create table Addresses (
+        ghnDistrictId int,
+        id int identity not null,
+        isDefault bit default 0 not null,
+        latitude float(53),
+        longitude float(53),
+        userId int not null,
+        soDienThoai nvarchar(15) not null,
+        ghnWardCode nvarchar(20),
+        phuongXa nvarchar(100) not null,
+        quanHuyen nvarchar(100) not null,
+        tenNguoiNhan nvarchar(100) not null,
+        tinhThanh nvarchar(100) not null,
+        diaChiCuThe nvarchar(200) not null,
+        primary key (id)
+    );
 
-    CONSTRAINT PK_users          PRIMARY KEY (id),
-    CONSTRAINT UQ_users_email    UNIQUE (email),
-    CONSTRAINT UQ_users_username UNIQUE (username)
-);
+    create table admin_action_logs (
+        adminId int not null,
+        entityId int not null,
+        id int identity not null,
+        ngayTao datetime2(7) not null,
+        hanhDong nvarchar(50) not null,
+        ipAddress nvarchar(50),
+        loaiEntity nvarchar(50) not null,
+        giaTriCu nvarchar(max),
+        giaTriMoi nvarchar(max),
+        moTa nvarchar(max),
+        primary key (id)
+    );
+
+    create table banners (
+        active bit default 1 not null,
+        display_order int default 0 not null,
+        id int identity not null,
+        created_at datetime2(7) not null,
+        end_date datetime2(7),
+        start_date datetime2(7),
+        updated_at datetime2(7) not null,
+        title nvarchar(200) not null,
+        description nvarchar(500),
+        image_url nvarchar(500) not null,
+        link_url nvarchar(1000),
+        primary key (id)
+    );
+
+    create table CartItems (
+        giaLucThem numeric(12,0),
+        id int identity not null,
+        productId int not null,
+        soLuong int default 1 not null,
+        userId int not null,
+        variantId int not null,
+        ngayThem datetime2(7),
+        primary key (id)
+    );
+
+    create table Categories (
+        id int identity not null,
+        isActive bit default 1 not null,
+        parentId int,
+        thuTuHienThi int default 0,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7),
+        imageUrl nvarchar(500),
+        moTa nvarchar(255),
+        tenDanhMuc nvarchar(255) not null,
+        primary key (id)
+    );
+
+    create table FlashSales (
+        giaTriGiam numeric(5,2) not null,
+        id int identity not null,
+        isActive bit default 1 not null,
+        productId int not null,
+        soLuongDaBan int not null,
+        soLuongToiDa int not null,
+        ngayBatDau datetime2(7) not null,
+        ngayKetThuc datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table linked_accounts (
+        id int identity not null,
+        linkedUserId int not null,
+        userId int not null,
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table Notifications (
+        id int identity not null,
+        isActive bit default 1 not null,
+        linkId int,
+        userId int,
+        createdAt datetime2(7) not null,
+        linkType nvarchar(20),
+        targetRole nvarchar(20),
+        linkUrl nvarchar(500),
+        content NVARCHAR(MAX) not null,
+        linkLabel nvarchar(255),
+        primary key (id)
+    );
+
+    create table order_assignments (
+        adminId int not null,
+        id int identity not null,
+        orderId int not null,
+        ngayPhan datetime2(7) not null,
+        trangThai nvarchar(20),
+        primary key (id)
+    );
+
+    create table order_items (
+        donGia numeric(12,0) not null,
+        id int identity not null,
+        orderId int not null,
+        productId int,
+        soLuong int not null,
+        thanhTien numeric(12,0) not null,
+        variantId int,
+        loaiGia nvarchar(20),
+        tenBienThe nvarchar(150),
+        tenSanPham nvarchar(200) not null,
+        hinhAnhSP nvarchar(255),
+        primary key (id)
+    );
+
+    create table order_notes (
+        admin_id int not null,
+        id int identity not null,
+        order_id int not null,
+        ngayTao datetime2(7) not null,
+        tag nvarchar(50),
+        noiDung nvarchar(1000) not null,
+        primary key (id)
+    );
+
+    create table order_status_logs (
+        id int identity not null,
+        nguoi_thuc_hien_id int,
+        order_id int not null,
+        thoi_gian datetime2(7) not null,
+        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
+        trang_thai_cu nvarchar(50),
+        trang_thai_moi nvarchar(50),
+        ghiChu nvarchar(500),
+        primary key (id)
+    );
+
+    create table orders (
+        addressId int,
+        id int identity not null,
+        phiVanChuyen numeric(10,0) default 0 not null,
+        promotionId int,
+        tienGiam numeric(10,0) default 0 not null,
+        tienHang numeric(12,0) not null,
+        tongThanhToan numeric(12,0) not null,
+        userId int not null,
+        ngayCapNhat datetime2(7),
+        ngayDat datetime2(7) not null,
+        snapSoDienThoai nvarchar(15) not null,
+        maDon nvarchar(20) not null,
+        phuongThucGiaoHang nvarchar(20) default 'SHIP' not null,
+        phuongThucTT nvarchar(20) not null,
+        trangThaiDon nvarchar(20) default 'CHO_XAC_NHAN' not null,
+        trangThaiTT nvarchar(25) default 'CHUA_THANH_TOAN' not null,
+        maVanDon nvarchar(50),
+        snapTenNguoiNhan nvarchar(100) not null,
+        ghiChu nvarchar(500),
+        snapDiaChi nvarchar(500) not null,
+        primary key (id)
+    );
+
+    create table permissions (
+        id int identity not null,
+        ngayTao datetime2(7) not null,
+        action nvarchar(50) not null,
+        module nvarchar(50) not null,
+        moTa nvarchar(200),
+        primary key (id)
+    );
+
+    create table PostCategories (
+        id int identity not null,
+        thuTu int default 0,
+        ngayTao datetime2(7) not null,
+        tenDanhMuc nvarchar(200) not null,
+        slug nvarchar(300),
+        moTa nvarchar(500),
+        primary key (id)
+    );
+
+    create table Posts (
+        danhMucId int,
+        id int identity not null,
+        isFeatured bit default 0,
+        luotXem int default 0 not null,
+        tacGiaId int,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7) not null,
+        ngayXuatBan datetime2(7),
+        trangThai nvarchar(15) default 'NHAP' not null,
+        tieuDe nvarchar(300) not null,
+        metaDescription nvarchar(500),
+        slug nvarchar(500),
+        tomTat nvarchar(500),
+        hinhAnh nvarchar(255),
+        noiDung NVARCHAR(MAX),
+        primary key (id)
+    );
+
+    create table ProductImages (
+        id int identity not null,
+        isActive bit default 1 not null,
+        productId int not null,
+        sortOrder int default 0,
+        createdAt datetime2(7),
+        imageUrl nvarchar(255) not null,
+        primary key (id)
+    );
+
+    create table Products (
+        danhMucId int not null,
+        id int identity not null,
+        isActive bit default 1 not null,
+        isFeatured bit default 0 not null,
+        leadTimeDays int,
+        ngayPhatHanh date,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7),
+        chatLieu nvarchar(255),
+        hinhAnhChinh nvarchar(255),
+        hinhDang nvarchar(255),
+        kinhLoai nvarchar(255),
+        moTa NVARCHAR(MAX),
+        mucDichSuDung nvarchar(255),
+        tenSanPham nvarchar(255) not null,
+        thuongHieu nvarchar(255),
+        trangThaiSanPham nvarchar(255) default 'DANG_BAN' not null,
+        xuatXu nvarchar(255),
+        primary key (id)
+    );
+
+    create table ProductVariants (
+        dungTich int,
+        giaGoc numeric(12,0) not null,
+        giaKhuyenMai numeric(12,0),
+        id int identity not null,
+        isActive bit default 1 not null,
+        isDefault bit default 0 not null,
+        productId int not null,
+        soLuongTon int default 0 not null,
+        hinhAnh nvarchar(255),
+        tenBienThe nvarchar(255) not null,
+        primary key (id)
+    );
+
+    create table Promotions (
+        budget numeric(12,0),
+        daDung int default 0 not null,
+        donHangToiThieu numeric(12,0) default 0 not null,
+        giaTriGiam numeric(10,2) not null,
+        giamToiDa numeric(12,0),
+        id int identity not null,
+        isActive bit default 1 not null,
+        maxClaims int,
+        maxClaimsPerUser int,
+        priority int default 0,
+        savedCount int default 0,
+        soLanDung int,
+        stackable bit default 0,
+        usedBudget numeric(12,0) default 0,
+        denNgay datetime2(7) not null,
+        tuNgay datetime2(7) not null,
+        loaiGiam nvarchar(15) not null,
+        targetType nvarchar(20),
+        voucherType nvarchar(20) check ((voucherType in ('VOUCHER','FREESHIP','MEMBER','BIRTHDAY'))) default 'VOUCHER',
+        maCode nvarchar(50) not null,
+        tenChuongTrinh nvarchar(200) not null,
+        targetIds nvarchar(500),
+        primary key (id)
+    );
+
+    create table RefundRequests (
+        id int identity not null,
+        nguoiXuLyId int,
+        orderId int not null,
+        soTienHoan numeric(18,2) not null,
+        userId int not null,
+        ngayXuLy datetime2(7),
+        ngayYeuCau datetime2(7) not null,
+        lydo nvarchar(2000) not null,
+        anhMinhChung nvarchar(255),
+        ghiChuXuLy nvarchar(255),
+        phuongThucHoan nvarchar(255),
+        trangThai nvarchar(255) not null,
+        primary key (id)
+    );
+
+    create table Reviews (
+        danhGia int not null,
+        id int identity not null,
+        isApproved bit default 0 not null,
+        productId int not null,
+        userId int not null,
+        ngayTao datetime2(7) not null,
+        hinhAnh nvarchar(500),
+        binhLuan nvarchar(1000),
+        primary key (id)
+    );
+
+    create table role_permissions (
+        permission_id int not null,
+        role_id int not null,
+        primary key (permission_id, role_id)
+    );
+
+    create table roles (
+        id int identity not null,
+        isActive bit default 1 not null,
+        ngayTao datetime2(7) not null,
+        name nvarchar(50) not null,
+        moTa nvarchar(200),
+        primary key (id)
+    );
+
+    create table SavedCartItems (
+        giaLuu numeric(38,2) not null,
+        id int identity not null,
+        productId int not null,
+        soLuong int default 1 not null,
+        userId int not null,
+        variantId int not null,
+        ngayLuu datetime2(7),
+        primary key (id)
+    );
+
+    create table SiteSettings (
+        id int identity not null,
+        createdAt datetime2(7),
+        updatedAt datetime2(7),
+        settingGroup nvarchar(50),
+        settingKey nvarchar(100) not null,
+        settingValue NVARCHAR(MAX),
+        primary key (id)
+    );
+
+    create table store_info (
+        id int identity not null,
+        isActive bit default 1 not null,
+        isDefault bit default 0 not null,
+        latitude float(53),
+        longitude float(53),
+        createdAt datetime2(7),
+        updatedAt datetime2(7),
+        soDienThoai nvarchar(20),
+        email nvarchar(100),
+        phuongXa nvarchar(100),
+        quanHuyen nvarchar(100),
+        soNha nvarchar(100),
+        tinhThanh nvarchar(100),
+        duong nvarchar(200),
+        tenCuaHang nvarchar(200) not null,
+        primary key (id)
+    );
+
+    create table user_auth_providers (
+        id int identity not null,
+        userId int not null,
+        linkedAt datetime2(7) not null,
+        provider nvarchar(20) not null,
+        provider_sub nvarchar(255),
+        primary key (id)
+    );
+
+    create table user_roles (
+        role_id int not null,
+        user_id int not null,
+        primary key (role_id, user_id)
+    );
+
+    create table user_settings (
+        userId int not null,
+        settingKey nvarchar(50) not null,
+        settingValue nvarchar(500),
+        primary key (userId, settingKey)
+    );
+
+    create table users (
+        emailMarketing bit,
+        emailVisible bit,
+        id int identity not null,
+        isActive bit default 1 not null,
+        phoneVisible bit,
+        ngayCapNhat datetime2(7),
+        ngayTao datetime2(7) not null,
+        resetTokenExpiry datetime2(7),
+        soDienThoai nvarchar(15),
+        status nvarchar(20),
+        username nvarchar(50) not null,
+        email nvarchar(100) not null,
+        hoTen nvarchar(100) not null,
+        nickname nvarchar(100),
+        avatar nvarchar(255),
+        password nvarchar(255) not null,
+        resetToken nvarchar(255),
+        primary key (id)
+    );
+
+    create table UserVouchers (
+        id int identity not null,
+        promotionId int not null,
+        remainingUses int,
+        totalSaved numeric(38,2),
+        userId int not null,
+        expiredAt datetime2(7),
+        savedAt datetime2(7) not null,
+        usedAt datetime2(7),
+        status nvarchar(15) default 'AVAILABLE' not null check ((status in ('AVAILABLE','USED','EXPIRED'))),
+        voucherCode nvarchar(50),
+        primary key (id)
+    );
+
+    create table Wishlists (
+        id int identity not null,
+        productId int not null,
+        userId int not null,
+        ngayThem datetime2(7),
+        primary key (id)
+    );
+
+    create table CustomerNotes (
+        id int identity not null,
+        userId int not null,
+        content nvarchar(max) not null,
+        createdBy nvarchar(100) not null,
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table CustomerTags (
+        id int identity not null,
+        userId int not null,
+        tag nvarchar(50) not null,
+        createdAt datetime2(7) not null,
+        primary key (id),
+        constraint UK_CustomerTags unique (userId, tag)
+    );
+
+    create table PriceHistory (
+        id int identity not null,
+        variantId int,
+        variantName nvarchar(255),
+        productId int,
+        productName nvarchar(255),
+        giaCu numeric(18,2),
+        giaMoi numeric(18,2),
+        nguoiThayDoiId int,
+        ngayThayDoi datetime2(7) not null,
+        nguon nvarchar(255),
+        primary key (id)
+    );
+
+    create table footer_links (
+        id int identity not null,
+        title nvarchar(200) not null,
+        url nvarchar(500) not null,
+        display_order int not null,
+        is_active bit not null,
+        column_index int not null,
+        created_at datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table LoyaltyTransactions (
+        id int identity not null,
+        userId int not null,
+        points int not null,
+        balance int not null,
+        type nvarchar(20) not null,
+        referenceId int,
+        note nvarchar(500),
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table ReviewImages (
+        id int identity not null,
+        reviewId int not null,
+        imageUrl nvarchar(500) not null,
+        sortOrder int not null,
+        primary key (id)
+    );
 GO
 
 -- ============================================================
--- [1b] ALTER users — them cot cho profile
+-- BUOC 2: KHOA NGOAI (FOREIGN KEY) - sinh tu Hibernate @Entity
 -- ============================================================
-ALTER TABLE users ADD avatar          NVARCHAR(255) NULL;
-ALTER TABLE users ADD nickname        NVARCHAR(100) NULL;
-ALTER TABLE users ADD status          NVARCHAR(20)  NOT NULL DEFAULT 'ONLINE';
-ALTER TABLE users ADD email_visible   BIT           NOT NULL DEFAULT 0;
-ALTER TABLE users ADD phone_visible   BIT           NOT NULL DEFAULT 0;
-ALTER TABLE users ADD email_marketing BIT           NOT NULL DEFAULT 1;
+    alter table orders 
+       add constraint UKkdjgqq60gdh45821e0iqp357q unique (maDon);
+
+    alter table Promotions 
+       add constraint UKjb4yn746ot7vi7ltwkoggcyik unique (maCode);
+
+    alter table roles 
+       add constraint UKofx66keruapi6vyqpv6f2or37 unique (name);
+
+    alter table SiteSettings 
+       add constraint UK6fllodnub8qh92fkirlt3rjhr unique (settingKey);
+
+    alter table users 
+       add constraint UKr43af9ap4edm43mmtq01oddj6 unique (username);
+
+    alter table users 
+       add constraint UK6dotkott2kjsp8vw4d0m25fb7 unique (email);
+
+    alter table UserVouchers 
+       add constraint UKg1q4hrfehhwey62vcyt9tj3ge unique (userId, promotionId);
+
+    alter table Wishlists 
+       add constraint UKnyiaslokuixrb7h9fpmo6j4nc unique (userId, productId);
+
+    alter table admin_action_logs 
+       add constraint FKb2noouv518ekq5ffcxosgdj4g 
+       foreign key (adminId) 
+       references users;
+
+    alter table CartItems 
+       add constraint FK3j8oshhm6rclt8i57qr0lesxb 
+       foreign key (productId) 
+       references Products;
+
+    alter table CartItems 
+       add constraint FKqdx0vb6alnqltskjqw8nhpl9n 
+       foreign key (variantId) 
+       references ProductVariants;
+
+    alter table Categories 
+       add constraint FKom1a8i2mg4xhf6ktacsh1vogp 
+       foreign key (parentId) 
+       references Categories;
+
+    alter table order_assignments 
+       add constraint FKd32o2ndn8s6dv1i1yajxao80a 
+       foreign key (adminId) 
+       references users;
+
+    alter table order_assignments 
+       add constraint FKcm6mruj1t58wjglpnfsd6xgcd 
+       foreign key (orderId) 
+       references orders;
+
+    alter table order_items 
+       add constraint FK5dledqxrq55xmpqy9fr4cpbsu 
+       foreign key (orderId) 
+       references orders;
+
+    alter table order_notes 
+       add constraint FKov5hr2bsjgqbc4mgc40bmdoin 
+       foreign key (admin_id) 
+       references users;
+
+    alter table order_notes 
+       add constraint FKgl7kbn92v2whrvmco2ygu3cdt 
+       foreign key (order_id) 
+       references orders;
+
+    alter table order_status_logs 
+       add constraint FKmr8kbxx88motp36uk5jqlwwi2 
+       foreign key (nguoi_thuc_hien_id) 
+       references users;
+
+    alter table order_status_logs 
+       add constraint FKpoehv8fptppd81oysnw7l44by 
+       foreign key (order_id) 
+       references orders;
+
+    alter table orders 
+       add constraint FKg960mua4eodibuhrm6gokmn6i 
+       foreign key (promotionId) 
+       references Promotions;
+
+    alter table orders 
+       add constraint FK6co8q7ko456baksb6tdjq2dfv 
+       foreign key (userId) 
+       references users;
+
+    alter table Posts 
+       add constraint FKh5leuxac6k9g6eh7i8tjuhfp1 
+       foreign key (danhMucId) 
+       references PostCategories;
+
+    alter table ProductImages 
+       add constraint FK3bsgj9dw8f36hb7p8s3c8sj96 
+       foreign key (productId) 
+       references Products;
+
+    alter table ProductVariants 
+       add constraint FKnrqu92gwc9ue8usxv9dov5cn7 
+       foreign key (productId) 
+       references Products;
+
+    alter table role_permissions 
+       add constraint FKegdk29eiy7mdtefy5c7eirr6e 
+       foreign key (permission_id) 
+       references permissions;
+
+    alter table role_permissions 
+       add constraint FKn5fotdgk8d1xvo8nav9uv3muc 
+       foreign key (role_id) 
+       references roles;
+
+    alter table SavedCartItems 
+       add constraint FKgy3yiei9ahvjudjm37tp11ll5 
+       foreign key (productId) 
+       references Products;
+
+    alter table SavedCartItems 
+       add constraint FKsx0f2p008q6e0pwb9bipq8opu 
+       foreign key (variantId) 
+       references ProductVariants;
+
+    alter table user_roles 
+       add constraint FKh8ciramu9cc9q3qcqiv4ue8a6 
+       foreign key (role_id) 
+       references roles;
+
+    alter table user_roles 
+       add constraint FKhfh9dx7w3ubf1co1vdev94g3f 
+       foreign key (user_id) 
+       references users;
+
+    alter table UserVouchers 
+       add constraint FK78mpv1easxbi2d20hfixypd82 
+       foreign key (promotionId) 
+       references Promotions;
+
+    alter table Wishlists 
+       add constraint FKl8me5k171y8fskc8x4r5ht3nc 
+       foreign key (productId) 
+       references Products;
 GO
 
 -- ============================================================
--- [1c] BANG: user_auth_providers  (UserAuthProvider.java)
--- Luu phuong thuc dang nhap (PASSWORD, GOOGLE) cho 1 user.
--- Cung email chi co 1 user, nhung co the co nhieu phuong thuc.
--- ============================================================
-CREATE TABLE user_auth_providers (
-    id              INT IDENTITY(1,1) NOT NULL,
-    user_id         INT               NOT NULL,
-    provider        NVARCHAR(20)      NOT NULL,  -- 'PASSWORD', 'GOOGLE'
-    provider_sub    NVARCHAR(255)     NULL,       -- Google 'sub', NULL for PASSWORD
-    linked_at       DATETIME2         NOT NULL,
-    CONSTRAINT PK_user_auth_providers PRIMARY KEY (id),
-    CONSTRAINT FK_uap_user FOREIGN KEY (user_id) REFERENCES users(id)
-);
-GO
-
--- ============================================================
--- [1d] BANG: linked_accounts  (LinkedAccount.java)
--- Danh sach tai khoan da lien ket de chuc nang "Doi tai khoan".
--- ============================================================
-CREATE TABLE linked_accounts (
-    id              INT IDENTITY(1,1) NOT NULL,
-    user_id         INT               NOT NULL,
-    linked_user_id  INT               NOT NULL,
-    created_at      DATETIME2         NOT NULL,
-    CONSTRAINT PK_linked_accounts PRIMARY KEY (id),
-    CONSTRAINT FK_la_user   FOREIGN KEY (user_id)       REFERENCES users(id),
-    CONSTRAINT FK_la_linked FOREIGN KEY (linked_user_id) REFERENCES users(id),
-    CONSTRAINT UQ_la_pair   UNIQUE (user_id, linked_user_id)
-);
-GO
-
--- ============================================================
--- [1e] BANG: user_settings  (UserSetting.java)
--- Key-value settings cho tung user (thong bao, giao dien, v.v.)
--- ============================================================
-CREATE TABLE user_settings (
-    user_id       INT              NOT NULL,
-    setting_key   NVARCHAR(50)     NOT NULL,
-    setting_value NVARCHAR(500)    NULL,
-    CONSTRAINT PK_user_settings PRIMARY KEY (user_id, setting_key),
-    CONSTRAINT FK_us_user FOREIGN KEY (user_id) REFERENCES users(id)
-);
-GO
-
--- ============================================================
--- [2] BANG: roles  (Role.java)
--- ============================================================
--- Vai tro "SUPER_ADMIN" duoc code (SecurityService.hasPermission) coi la
--- bypass toan bo kiem tra quyen -> khong can gan permission le cho vai tro nay.
--- ============================================================
-CREATE TABLE roles (
-    id       INT            IDENTITY(1,1)  NOT NULL,
-    name     NVARCHAR(50)                  NOT NULL,
-    moTa     NVARCHAR(200)                 NULL,
-    ngayTao  DATETIME2                     NOT NULL,
-
-    CONSTRAINT PK_roles     PRIMARY KEY (id),
-    CONSTRAINT UQ_roles_name UNIQUE (name)
-);
-GO
-
--- ============================================================
--- [3] BANG: permissions  (Permission.java)
--- ============================================================
--- Moi quyen la 1 cap (module, action). GrantedAuthority duoc code ghep
--- thanh "MODULE_ACTION" (vd PRODUCT + CREATE -> "PRODUCT_CREATE"),
--- phai khop 100% voi cac hang so trong PermissionEnum.java.
--- ============================================================
-CREATE TABLE permissions (
-    id       INT            IDENTITY(1,1)  NOT NULL,
-    module   NVARCHAR(50)                  NOT NULL,
-    action   NVARCHAR(50)                  NOT NULL,
-    moTa     NVARCHAR(200)                 NULL,
-    ngayTao  DATETIME2                     NOT NULL,
-
-    CONSTRAINT PK_permissions PRIMARY KEY (id)
-);
-GO
-
--- ============================================================
--- [4] BANG: role_permissions  (Role.permissions @ManyToMany)
--- ============================================================
-CREATE TABLE role_permissions (
-    role_id        INT NOT NULL,
-    permission_id  INT NOT NULL,
-
-    CONSTRAINT PK_role_permissions PRIMARY KEY (role_id, permission_id),
-    CONSTRAINT FK_role_permissions_Role FOREIGN KEY (role_id)
-        REFERENCES roles(id) ON DELETE CASCADE,
-    CONSTRAINT FK_role_permissions_Permission FOREIGN KEY (permission_id)
-        REFERENCES permissions(id) ON DELETE CASCADE
-);
-GO
-
--- ============================================================
--- [5] BANG: user_roles  (User.roles @ManyToMany)
--- ============================================================
--- QUAN TRONG: CustomUserDetailsService se CHAN dang nhap neu user khong co
--- it nhat 1 role (throw DisabledException). Moi user PHAI duoc gan role.
--- ============================================================
-CREATE TABLE user_roles (
-    user_id  INT NOT NULL,
-    role_id  INT NOT NULL,
-
-    CONSTRAINT PK_user_roles PRIMARY KEY (user_id, role_id),
-    CONSTRAINT FK_user_roles_User FOREIGN KEY (user_id)
-        REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT FK_user_roles_Role FOREIGN KEY (role_id)
-        REFERENCES roles(id) ON DELETE NO ACTION
-);
-GO
-
--- ============================================================
--- [6] BANG: Categories  (Category.java)
--- ============================================================
-CREATE TABLE Categories (
-    id              INT            IDENTITY(1,1)  NOT NULL,
-    tenDanhMuc      NVARCHAR(255)                 NOT NULL,
-    moTa            NVARCHAR(255)                 NULL,
-    parentId        INT                           NULL,
-    thuTuHienThi    INT                           NOT NULL DEFAULT 0,
-    isActive        BIT                           NOT NULL DEFAULT 1,
-    imageUrl        NVARCHAR(500)                 NULL,
-    ngayTao         DATETIME2                     NULL,
-    ngayCapNhat     DATETIME2                     NULL,
-
-    CONSTRAINT PK_Categories        PRIMARY KEY (id),
-    CONSTRAINT FK_Categories_Parent FOREIGN KEY (parentId)
-        REFERENCES Categories(id)
-);
-GO
-
--- ============================================================
--- [7] BANG: Products  (Product.java)
--- ============================================================
-CREATE TABLE Products (
-    id                  INT             IDENTITY(1,1)  NOT NULL,
-    tenSanPham          NVARCHAR(255)                  NOT NULL,
-    moTa                NVARCHAR(MAX)                  NULL,
-    chatLieu            NVARCHAR(255)                  NULL,
-    xuatXu              NVARCHAR(255)                  NULL,
-    mucDichSuDung       NVARCHAR(255)                  NULL,
-    thuongHieu          NVARCHAR(255)                  NULL,
-    kinhLoai            NVARCHAR(255)                  NULL,
-    hinhDang            NVARCHAR(255)                  NULL,
-    danhMucId           INT                            NOT NULL,
-    hinhAnhChinh        NVARCHAR(255)                  NULL,
-    trangThaiSanPham    NVARCHAR(255)                  NOT NULL DEFAULT 'DANG_BAN',
-    leadTimeDays        INT                            NULL,
-    isFeatured          BIT                            NOT NULL DEFAULT 0,
-    isActive            BIT                            NOT NULL DEFAULT 1,
-    ngayPhatHanh        DATE                           NULL,
-    ngayTao             DATETIME2                      NULL,
-    ngayCapNhat         DATETIME2                      NULL,
-
-    CONSTRAINT PK_Products           PRIMARY KEY (id),
-    CONSTRAINT FK_Products_DanhMuc   FOREIGN KEY (danhMucId) REFERENCES Categories(id),
-    CONSTRAINT CK_Products_TrangThai CHECK (trangThaiSanPham IN ('DANG_BAN','DAT_TRUOC','NGUNG_BAN'))
-);
-GO
-
--- ============================================================
--- [8] BANG: ProductImages  (ProductImage.java)
--- ============================================================
-CREATE TABLE ProductImages (
-    id          INT            IDENTITY(1,1)  NOT NULL,
-    productId   INT                           NOT NULL,
-    imageUrl    NVARCHAR(255)                 NOT NULL,
-    sortOrder   INT                           NOT NULL DEFAULT 0,
-    isActive    BIT                           NOT NULL DEFAULT 1,
-    createdAt   DATETIME2                     NULL,
-
-    CONSTRAINT PK_ProductImages         PRIMARY KEY (id),
-    CONSTRAINT FK_ProductImages_Product FOREIGN KEY (productId)
-        REFERENCES Products(id) ON DELETE CASCADE
-);
-GO
-
--- ============================================================
--- [9] BANG: ProductVariants  (ProductVariant.java)
--- ============================================================
-CREATE TABLE ProductVariants (
-    id              INT             IDENTITY(1,1)  NOT NULL,
-    productId       INT                            NOT NULL,
-    tenBienThe      NVARCHAR(255)                  NOT NULL,
-    dungTich        INT                            NULL,
-    giaGoc          DECIMAL(12,0)                  NOT NULL,
-    giaKhuyenMai    DECIMAL(12,0)                  NULL,
-    soLuongTon      INT                            NOT NULL DEFAULT 0,
-    hinhAnh         NVARCHAR(255)                  NULL,
-    isDefault       BIT                            NOT NULL DEFAULT 0,
-    isActive        BIT                            NOT NULL DEFAULT 1,
-
-    CONSTRAINT PK_ProductVariants         PRIMARY KEY (id),
-    CONSTRAINT FK_ProductVariants_Product FOREIGN KEY (productId)
-        REFERENCES Products(id) ON DELETE CASCADE,
-    CONSTRAINT CK_ProductVariants_Gia     CHECK (giaGoc >= 0),
-    CONSTRAINT CK_ProductVariants_SoLuong CHECK (soLuongTon >= 0)
-);
-GO
-
--- ============================================================
--- [10] BANG: Addresses  (Address.java)
--- ============================================================
--- Da them latitude/longitude (ban cu chua co) de phuc vu tinh phi ship
--- theo khoang cach thuc te.
--- ============================================================
-CREATE TABLE Addresses (
-    id              INT            IDENTITY(1,1)  NOT NULL,
-    userId          INT                           NOT NULL,
-    tenNguoiNhan    NVARCHAR(100)                 NOT NULL,
-    soDienThoai     NVARCHAR(15)                  NOT NULL,
-    tinhThanh       NVARCHAR(100)                 NOT NULL,
-    quanHuyen       NVARCHAR(100)                 NOT NULL,
-    phuongXa        NVARCHAR(100)                 NOT NULL,
-    diaChiCuThe     NVARCHAR(200)                 NOT NULL,
-    isDefault       BIT                           NOT NULL DEFAULT 0,
-    latitude        FLOAT                         NULL,
-    longitude       FLOAT                         NULL,
-
-    CONSTRAINT PK_Addresses      PRIMARY KEY (id),
-    CONSTRAINT FK_Addresses_User FOREIGN KEY (userId)
-        REFERENCES users(id) ON DELETE CASCADE
-);
-GO
-
--- ============================================================
--- [11] BANG: Promotions  (Promotion.java)
--- ============================================================
--- Da mo rong rat nhieu so voi ban cu: voucherType, priority, stackable,
--- budget/usedBudget (ngan sach voucher), maxClaims(PerUser), targetType/Ids,
--- savedCount (vi da co tinh nang "luu voucher ve vi" - UserVouchers).
--- ============================================================
-CREATE TABLE Promotions (
-    id                  INT             IDENTITY(1,1)  NOT NULL,
-    maCode              NVARCHAR(50)                   NOT NULL,
-    tenChuongTrinh      NVARCHAR(200)                  NOT NULL,
-    loaiGiam            NVARCHAR(15)                   NOT NULL,
-    giaTriGiam          DECIMAL(10,2)                  NOT NULL,
-    donHangToiThieu     DECIMAL(12,0)                  NOT NULL DEFAULT 0,
-    giamToiDa           DECIMAL(12,0)                  NULL,
-    soLanDung           INT                            NULL,
-    daDung              INT                            NOT NULL DEFAULT 0,
-    tuNgay              DATETIME2                      NOT NULL,
-    denNgay             DATETIME2                      NOT NULL,
-    isActive            BIT                            NOT NULL DEFAULT 1,
-    voucherType         NVARCHAR(20)                   NULL DEFAULT 'VOUCHER',
-    priority            INT                            NULL DEFAULT 0,
-    stackable           BIT                            NULL DEFAULT 0,
-    budget              DECIMAL(12,0)                  NULL,
-    usedBudget          DECIMAL(12,0)                  NULL DEFAULT 0,
-    maxClaims           INT                            NULL,
-    maxClaimsPerUser    INT                            NULL,
-    targetType          NVARCHAR(20)                   NULL,
-    targetIds           NVARCHAR(500)                  NULL,
-    savedCount          INT                            NULL DEFAULT 0,
-
-    CONSTRAINT PK_Promotions        PRIMARY KEY (id),
-    CONSTRAINT UQ_Promotions_Code   UNIQUE (maCode),
-    CONSTRAINT CK_Promotions_Loai   CHECK (loaiGiam IN ('PHAN_TRAM','SO_TIEN')),
-    CONSTRAINT CK_Promotions_NgayGT CHECK (tuNgay < denNgay),
-    CONSTRAINT CK_Promotions_VType  CHECK (voucherType IS NULL OR voucherType IN ('VOUCHER','FREESHIP','MEMBER','BIRTHDAY'))
-);
-GO
-
--- ============================================================
--- [12] BANG: FlashSales  (FlashSale.java)
--- ============================================================
-CREATE TABLE FlashSales (
-    id           INT            IDENTITY(1,1)  NOT NULL,
-    productId    INT                           NOT NULL,
-    giaTriGiam   DECIMAL(5,2)                  NOT NULL,
-    ngayBatDau   DATETIME2                     NOT NULL,
-    ngayKetThuc  DATETIME2                     NOT NULL,
-    isActive     BIT                           NOT NULL DEFAULT 1,
-
-    CONSTRAINT PK_FlashSales         PRIMARY KEY (id),
-    CONSTRAINT FK_FlashSales_Product FOREIGN KEY (productId)
-        REFERENCES Products(id) ON DELETE CASCADE
-);
-GO
-
--- ============================================================
--- [13] BANG: orders  (Order.java)
--- ============================================================
-CREATE TABLE orders (
-    id                  INT             IDENTITY(1,1)  NOT NULL,
-    maDon               NVARCHAR(20)                   NOT NULL,
-    userId              INT                            NOT NULL,
-    addressId           INT                            NULL,
-    snapTenNguoiNhan    NVARCHAR(100)                  NOT NULL,
-    snapSoDienThoai     NVARCHAR(15)                   NOT NULL,
-    snapDiaChi          NVARCHAR(500)                  NOT NULL,
-    tienHang            DECIMAL(12,0)                  NOT NULL,
-    phiVanChuyen        DECIMAL(10,0)                  NOT NULL DEFAULT 0,
-    tienGiam            DECIMAL(10,0)                  NOT NULL DEFAULT 0,
-    tongThanhToan       DECIMAL(12,0)                  NOT NULL,
-    phuongThucTT        NVARCHAR(20)                   NOT NULL,
-    phuongThucGiaoHang  NVARCHAR(20)                   NOT NULL DEFAULT 'SHIP',
-    trangThaiTT         NVARCHAR(25)                   NOT NULL DEFAULT 'CHUA_THANH_TOAN',
-    trangThaiDon        NVARCHAR(20)                   NOT NULL DEFAULT 'CHO_XAC_NHAN',
-    promotionId         INT                            NULL,
-    ghiChu              NVARCHAR(500)                  NULL,
-    maVanDon            NVARCHAR(50)                   NULL,
-    ngayDat             DATETIME2                      NULL,
-    ngayCapNhat         DATETIME2                      NULL,
-
-    CONSTRAINT PK_orders           PRIMARY KEY (id),
-    CONSTRAINT UQ_orders_MaDon     UNIQUE (maDon),
-    CONSTRAINT FK_orders_User      FOREIGN KEY (userId)      REFERENCES users(id),
-    CONSTRAINT FK_orders_Address   FOREIGN KEY (addressId)   REFERENCES Addresses(id),
-    CONSTRAINT FK_orders_Promotion FOREIGN KEY (promotionId) REFERENCES Promotions(id),
-    CONSTRAINT CK_orders_TT        CHECK (phuongThucTT       IN ('CHUYEN_KHOAN','COD','VNPAY')),
-    CONSTRAINT CK_orders_GH        CHECK (phuongThucGiaoHang IN ('SHIP','NHAN_TAI_CONG')),
-    CONSTRAINT CK_orders_ThanhToan CHECK (trangThaiTT        IN ('CHUA_THANH_TOAN','DA_THANH_TOAN')),
-    CONSTRAINT CK_orders_TrangThai CHECK (trangThaiDon       IN ('CHO_XAC_NHAN','DA_XAC_NHAN','DANG_GIAO','DA_GIAO','DA_HOAN_THANH','DA_HUY'))
-);
-GO
-IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='orders' AND COLUMN_NAME='maVanDon')
-BEGIN
-    ALTER TABLE orders ADD maVanDon NVARCHAR(50) NULL;
-END
-GO
-
--- ============================================================
--- [14] BANG: OrderItems  (OrderItem.java, table order_items)
--- ============================================================
-CREATE TABLE order_items (
-    id              INT             IDENTITY(1,1)  NOT NULL,
-    orderId         INT                            NOT NULL,
-    productId       INT                            NULL,
-    variantId       INT                            NULL,
-    tenSanPham      NVARCHAR(200)                  NOT NULL,
-    tenBienThe      NVARCHAR(150)                  NULL,
-    hinhAnhSP       NVARCHAR(255)                  NULL,
-    donGia          DECIMAL(12,0)                  NOT NULL,
-    soLuong         INT                            NOT NULL,
-    thanhTien       DECIMAL(12,0)                  NOT NULL,
-
-    CONSTRAINT PK_order_items         PRIMARY KEY (id),
-    CONSTRAINT FK_order_items_Order   FOREIGN KEY (orderId)
-        REFERENCES orders(id) ON DELETE CASCADE,
-    CONSTRAINT FK_order_items_Product FOREIGN KEY (productId)
-        REFERENCES Products(id) ON DELETE SET NULL,
-    CONSTRAINT FK_order_items_Variant FOREIGN KEY (variantId)
-        REFERENCES ProductVariants(id) ON DELETE NO ACTION,
-    CONSTRAINT CK_order_items_Qty     CHECK (soLuong > 0)
-);
-GO
-
--- ============================================================
--- [15] BANG: order_assignments  (OrderAssignment.java)
--- ============================================================
--- Admin nao dang phu trach xu ly don hang nao.
--- ============================================================
-CREATE TABLE order_assignments (
-    id         INT            IDENTITY(1,1)  NOT NULL,
-    orderId    INT                           NOT NULL,
-    adminId    INT                           NOT NULL,
-    ngayPhan   DATETIME2                     NOT NULL,
-    trangThai  NVARCHAR(20)                  NULL,
-
-    CONSTRAINT PK_order_assignments PRIMARY KEY (id),
-    CONSTRAINT FK_order_assignments_Order FOREIGN KEY (orderId)
-        REFERENCES orders(id) ON DELETE CASCADE,
-    CONSTRAINT FK_order_assignments_Admin FOREIGN KEY (adminId)
-        REFERENCES users(id) ON DELETE NO ACTION
-);
-GO
-
--- ============================================================
--- [16] BANG: order_notes  (OrderNote.java)
--- ============================================================
--- Ghi chu noi bo cua Admin tren 1 don hang (khac voi ghiChu cua khach).
--- ============================================================
-CREATE TABLE order_notes (
-    id         INT            IDENTITY(1,1)  NOT NULL,
-    order_id   INT                           NOT NULL,
-    admin_id   INT                           NOT NULL,
-    noiDung    NVARCHAR(1000)                NOT NULL,
-    ngayTao    DATETIME2                     NOT NULL,
-
-    CONSTRAINT PK_order_notes PRIMARY KEY (id),
-    CONSTRAINT FK_order_notes_Order FOREIGN KEY (order_id)
-        REFERENCES orders(id) ON DELETE CASCADE,
-    CONSTRAINT FK_order_notes_Admin FOREIGN KEY (admin_id)
-        REFERENCES users(id) ON DELETE NO ACTION
-);
-GO
-
--- ============================================================
--- [17] BANG: order_status_logs  (OrderStatusLog.java)
--- ============================================================
--- Nhat ky moi thay doi trang thai / su kien cua 1 don hang (audit trail).
--- ============================================================
-CREATE TABLE order_status_logs (
-    id                  INT            IDENTITY(1,1)  NOT NULL,
-    order_id            INT                           NOT NULL,
-    loai_su_kien        NVARCHAR(50)                  NOT NULL,
-    trang_thai_cu       NVARCHAR(50)                  NULL,
-    trang_thai_moi      NVARCHAR(50)                  NULL,
-    nguoi_thuc_hien_id  INT                           NULL,
-    ghiChu              NVARCHAR(500)                 NULL,
-    thoi_gian           DATETIME2                     NOT NULL,
-
-    CONSTRAINT PK_order_status_logs PRIMARY KEY (id),
-    CONSTRAINT FK_order_status_logs_Order FOREIGN KEY (order_id)
-        REFERENCES orders(id) ON DELETE CASCADE,
-    CONSTRAINT FK_order_status_logs_User FOREIGN KEY (nguoi_thuc_hien_id)
-        REFERENCES users(id) ON DELETE NO ACTION,
-    CONSTRAINT CK_order_status_logs_Loai CHECK (loai_su_kien IN
-        ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))
-);
-GO
-
--- ============================================================
--- [18] BANG: Reviews  (Review.java)
--- ============================================================
--- Luu y: danhGia gio la INT (khong con TINYINT nhu ban cu) va them
--- cot hinhAnh (khach co the dinh kem anh khi danh gia).
--- ============================================================
-CREATE TABLE Reviews (
-    id          INT             IDENTITY(1,1)  NOT NULL,
-    productId   INT                            NOT NULL,
-    userId      INT                            NOT NULL,
-    danhGia     INT                            NOT NULL,
-    binhLuan    NVARCHAR(1000)                 NULL,
-    hinhAnh     NVARCHAR(500)                  NULL,
-    isApproved  BIT                            NOT NULL DEFAULT 0,
-    ngayTao     DATETIME2                      NULL,
-
-    CONSTRAINT PK_Reviews             PRIMARY KEY (id),
-    CONSTRAINT UQ_Reviews_UserProduct UNIQUE (userId, productId),
-    CONSTRAINT FK_Reviews_Product     FOREIGN KEY (productId)
-        REFERENCES Products(id) ON DELETE CASCADE,
-    CONSTRAINT FK_Reviews_User        FOREIGN KEY (userId)
-        REFERENCES users(id),
-    CONSTRAINT CK_Reviews_DanhGia     CHECK (danhGia BETWEEN 1 AND 5)
-);
-GO
-
--- ============================================================
--- [19] BANG: CartItems  (CartItem.java)
--- ============================================================
--- Da gop them cot giaLucThem (tu migration__add_gialucthem.sql) de
--- phat hien khi gia san pham thay doi so voi luc khach them vao gio.
--- ============================================================
-CREATE TABLE CartItems (
-    id           INT             IDENTITY(1,1)  NOT NULL,
-    userId       INT                            NOT NULL,
-    productId    INT                            NOT NULL,
-    variantId    INT                            NOT NULL,
-    soLuong      INT                            NOT NULL DEFAULT 1,
-    giaLucThem   DECIMAL(12,0)                  NULL,
-    ngayThem     DATETIME2                      NULL,
-
-    CONSTRAINT PK_CartItems             PRIMARY KEY (id),
-    CONSTRAINT UQ_CartItems_UserVariant UNIQUE (userId, variantId),
-    CONSTRAINT FK_CartItems_User        FOREIGN KEY (userId)
-        REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT FK_CartItems_Product     FOREIGN KEY (productId) REFERENCES Products(id),
-    CONSTRAINT FK_CartItems_Variant     FOREIGN KEY (variantId) REFERENCES ProductVariants(id),
-    CONSTRAINT CK_CartItems_SoLuong     CHECK (soLuong > 0)
-);
-GO
-
--- ============================================================
--- [20] BANG: SavedCartItems  (SavedCartItem.java)
--- ============================================================
--- Gop tu migration__saved_cart_items.sql. San pham khach bam "de mua sau".
--- Ghi chu: file migration goc dung IDENTITY/DATETIME2/GETDATE kieu T-SQL
--- thuan, o day viet lai dung dung kieu Hibernate sinh ra cho khop entity.
--- ============================================================
-CREATE TABLE SavedCartItems (
-    id          INT             IDENTITY(1,1)  NOT NULL,
-    userId      INT                            NOT NULL,
-    productId   INT                            NOT NULL,
-    variantId   INT                            NOT NULL,
-    soLuong     INT                            NOT NULL DEFAULT 1,
-    giaLuu      DECIMAL(19,2)                  NOT NULL,
-    ngayLuu     DATETIME2                      NULL,
-
-    CONSTRAINT PK_SavedCartItems         PRIMARY KEY (id),
-    CONSTRAINT FK_SavedCartItems_User    FOREIGN KEY (userId)    REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT FK_SavedCartItems_Product FOREIGN KEY (productId) REFERENCES Products(id) ON DELETE NO ACTION,
-    CONSTRAINT FK_SavedCartItems_Variant FOREIGN KEY (variantId) REFERENCES ProductVariants(id) ON DELETE NO ACTION
-);
-GO
-
--- ============================================================
--- [21] BANG: banners  (Banner.java)
--- ============================================================
-CREATE TABLE banners (
-    id              INT             IDENTITY(1,1) NOT NULL,
-    title           NVARCHAR(200)                  NOT NULL,
-    image_url       NVARCHAR(500)                  NOT NULL,
-    link_url        NVARCHAR(1000)                 NULL,
-    active          BIT                            NOT NULL DEFAULT 1,
-    display_order   INT                            NOT NULL DEFAULT 0,
-    start_date      DATETIME2                      NULL,
-    end_date        DATETIME2                      NULL,
-    description     NVARCHAR(500)                  NULL,
-    created_at      DATETIME2                      NOT NULL,
-    updated_at      DATETIME2                      NOT NULL,
-
-    CONSTRAINT PK_banners PRIMARY KEY (id),
-    CONSTRAINT CK_banners_DisplayOrder CHECK (display_order >= 0),
-    CONSTRAINT CK_banners_Period CHECK (end_date IS NULL OR start_date IS NULL OR end_date > start_date)
-);
-GO
-
--- ============================================================
--- [22] BANG: PostCategories  (PostCategory.java)
--- ============================================================
-CREATE TABLE PostCategories (
-    id          INT            IDENTITY(1,1)  NOT NULL,
-    tenDanhMuc  NVARCHAR(200)                 NOT NULL,
-    moTa        NVARCHAR(500)                 NULL,
-    slug        NVARCHAR(300)                 NULL,
-    thuTu       INT                           NULL DEFAULT 0,
-    ngayTao     DATETIME2                     NOT NULL,
-
-    CONSTRAINT PK_PostCategories PRIMARY KEY (id)
-);
-GO
-
--- ============================================================
--- [23] BANG: PostTags  (PostTag.java)
--- ============================================================
-CREATE TABLE PostTags (
-    id       INT            IDENTITY(1,1)  NOT NULL,
-    tenTag   NVARCHAR(100)                 NOT NULL,
-    slug     NVARCHAR(300)                 NULL,
-
-    CONSTRAINT PK_PostTags PRIMARY KEY (id),
-    CONSTRAINT UQ_PostTags_Ten UNIQUE (tenTag)
-);
-GO
-
--- ============================================================
--- [24] BANG: Posts  (Post.java)
--- ============================================================
--- Khac ban cu: danhMucId gio la FK toi PostCategories. Them metaDescription,
--- slug, isFeatured.
--- ============================================================
-CREATE TABLE Posts (
-    id                INT             IDENTITY(1,1)  NOT NULL,
-    tieuDe            NVARCHAR(300)                  NOT NULL,
-    slug              NVARCHAR(500)                  NULL,
-    metaDescription   NVARCHAR(500)                  NULL,
-    tomTat            NVARCHAR(500)                  NULL,
-    noiDung           NVARCHAR(MAX)                  NULL,
-    hinhAnh           NVARCHAR(255)                  NULL,
-    tacGiaId          INT                            NULL,
-    danhMucId         INT                            NULL,
-    trangThai         NVARCHAR(15)                   NOT NULL DEFAULT 'NHAP',
-    luotXem           INT                            NOT NULL DEFAULT 0,
-    isFeatured        BIT                            NULL DEFAULT 0,
-    ngayXuatBan       DATETIME2                      NULL,
-    ngayTao           DATETIME2                      NULL,
-    ngayCapNhat       DATETIME2                      NULL,
-
-    CONSTRAINT PK_Posts           PRIMARY KEY (id),
-    CONSTRAINT FK_Posts_TacGia    FOREIGN KEY (tacGiaId)
-        REFERENCES users(id) ON DELETE SET NULL,
-    CONSTRAINT FK_Posts_DanhMuc   FOREIGN KEY (danhMucId)
-        REFERENCES PostCategories(id) ON DELETE SET NULL,
-    CONSTRAINT CK_Posts_TrangThai CHECK (trangThai IN ('NHAP','XUAT_BAN','AN'))
-);
-GO
-
--- ============================================================
--- [25] BANG: Post_Tags  (Post.tags @ManyToMany)
--- ============================================================
-CREATE TABLE Post_Tags (
-    postId  INT NOT NULL,
-    tagId   INT NOT NULL,
-
-    CONSTRAINT PK_Post_Tags PRIMARY KEY (postId, tagId),
-    CONSTRAINT FK_Post_Tags_Post FOREIGN KEY (postId) REFERENCES Posts(id) ON DELETE CASCADE,
-    CONSTRAINT FK_Post_Tags_Tag  FOREIGN KEY (tagId)  REFERENCES PostTags(id) ON DELETE CASCADE
-);
-GO
-
--- ============================================================
--- [26] BANG: Wishlists  (Wishlist.java)
--- ============================================================
-CREATE TABLE Wishlists (
-    id          INT             IDENTITY(1,1)  NOT NULL,
-    userId      INT                            NOT NULL,
-    productId   INT                            NOT NULL,
-    ngayThem    DATETIME2                      NULL,
-
-    CONSTRAINT PK_Wishlists             PRIMARY KEY (id),
-    CONSTRAINT UQ_Wishlists_UserProduct UNIQUE (userId, productId),
-    CONSTRAINT FK_Wishlists_User        FOREIGN KEY (userId)
-        REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT FK_Wishlists_Product     FOREIGN KEY (productId)
-        REFERENCES Products(id) ON DELETE CASCADE
-);
-GO
-
--- ============================================================
--- [27] BANG: UserVouchers  (UserVoucher.java)
--- ============================================================
--- Voucher khach da "luu ve vi" (khac voi Promotions la kho voucher chung).
--- ============================================================
-CREATE TABLE UserVouchers (
-    id               INT             IDENTITY(1,1)  NOT NULL,
-    userId           INT                            NOT NULL,
-    promotionId      INT                            NOT NULL,
-    voucherCode      NVARCHAR(50)                   NULL,
-    remainingUses    INT                            NULL,
-    savedAt          DATETIME2                      NULL,
-    usedAt           DATETIME2                      NULL,
-    expiredAt        DATETIME2                      NULL,
-    status           NVARCHAR(15)                   NOT NULL DEFAULT 'AVAILABLE',
-    totalSaved       DECIMAL(19,2)                  NULL,
-
-    CONSTRAINT PK_UserVouchers PRIMARY KEY (id),
-    CONSTRAINT UQ_UserVouchers_UserPromo UNIQUE (userId, promotionId),
-    CONSTRAINT FK_UserVouchers_User FOREIGN KEY (userId)
-        REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT FK_UserVouchers_Promotion FOREIGN KEY (promotionId)
-        REFERENCES Promotions(id) ON DELETE NO ACTION,
-    CONSTRAINT CK_UserVouchers_Status CHECK (status IN ('AVAILABLE','USED','EXPIRED'))
-);
-GO
-
--- ============================================================
--- [28] BANG: Notifications  (Notification.java)
--- ============================================================
--- userId = NULL nghia la thong bao chung (vd targetRole = 'ADMIN' gui cho
--- toan bo admin thay vi 1 nguoi cu the).
--- ============================================================
-CREATE TABLE Notifications (
-    id          INT             IDENTITY(1,1)  NOT NULL,
-    content     NVARCHAR(MAX)                  NOT NULL,
-    linkType    NVARCHAR(20)                   NULL,
-    linkId      INT                            NULL,
-    linkUrl     NVARCHAR(500)                  NULL,
-    linkLabel   NVARCHAR(255)                  NULL,
-    userId      INT                            NULL,
-    targetRole  NVARCHAR(20)                   NULL,
-    isActive    BIT                            NOT NULL DEFAULT 1,
-    createdAt   DATETIME2                      NOT NULL,
-
-    CONSTRAINT PK_Notifications PRIMARY KEY (id),
-    CONSTRAINT FK_Notifications_User FOREIGN KEY (userId)
-        REFERENCES users(id) ON DELETE CASCADE
-);
-GO
-
--- ============================================================
--- [29] BANG: admin_action_logs  (AdminActionLog.java)
--- ============================================================
--- Nhat ky moi thao tac cua Admin (sua san pham, xoa danh muc...) - audit trail.
--- ============================================================
-CREATE TABLE admin_action_logs (
-    id           INT            IDENTITY(1,1)  NOT NULL,
-    adminId      INT                           NOT NULL,
-    hanhDong     NVARCHAR(50)                  NOT NULL,
-    loaiEntity   NVARCHAR(50)                  NOT NULL,
-    entityId     INT                           NOT NULL,
-    giaTriCu     NVARCHAR(MAX)                 NULL,
-    giaTriMoi    NVARCHAR(MAX)                 NULL,
-    moTa         NVARCHAR(MAX)                 NULL,
-    ngayTao      DATETIME2                     NOT NULL,
-    ipAddress    NVARCHAR(50)                  NULL,
-
-    CONSTRAINT PK_admin_action_logs PRIMARY KEY (id),
-    CONSTRAINT FK_admin_action_logs_Admin FOREIGN KEY (adminId)
-        REFERENCES users(id) ON DELETE NO ACTION
-);
-GO
-
--- ============================================================
--- [30] BANG: SiteSettings  (SiteSetting.java)
--- ============================================================
-CREATE TABLE SiteSettings (
-    id            INT            IDENTITY(1,1)  NOT NULL,
-    settingKey    NVARCHAR(100)                 NOT NULL,
-    settingValue  NVARCHAR(MAX)                 NULL,
-    settingGroup  NVARCHAR(50)                  NULL,
-    createdAt     DATETIME2                     NULL,
-    updatedAt     DATETIME2                     NULL,
-
-    CONSTRAINT PK_SiteSettings PRIMARY KEY (id),
-    CONSTRAINT UQ_SiteSettings_Key UNIQUE (settingKey)
-);
-GO
-
--- ============================================================
--- [31] BANG: store_info  (StoreInfo.java)
--- ============================================================
--- Thong tin cua hang (dung tinh khoang cach ship + hien thi lien he).
--- ============================================================
-CREATE TABLE store_info (
-    id            INT            IDENTITY(1,1)  NOT NULL,
-    tenCuaHang    NVARCHAR(200)                 NOT NULL,
-    soNha         NVARCHAR(100)                 NULL,
-    duong         NVARCHAR(200)                 NULL,
-    phuongXa      NVARCHAR(100)                 NULL,
-    quanHuyen     NVARCHAR(100)                 NULL,
-    tinhThanh     NVARCHAR(100)                 NULL,
-    soDienThoai   NVARCHAR(20)                  NULL,
-    email         NVARCHAR(100)                 NULL,
-    latitude      FLOAT                         NULL,
-    longitude     FLOAT                         NULL,
-    isActive      BIT                           NOT NULL DEFAULT 1,
-    isDefault     BIT                           NOT NULL DEFAULT 0,
-    createdAt     DATETIME2                     NULL,
-    updatedAt     DATETIME2                     NULL,
-
-    CONSTRAINT PK_store_info PRIMARY KEY (id)
-);
-GO
-
--- ============================================================
--- INDEXES
+-- BUOC 3: INDEX HO TRO TRUY VAN NHANH
 -- ============================================================
 CREATE INDEX IX_Products_DanhMuc      ON Products        (danhMucId, isActive);
 CREATE INDEX IX_Products_TrangThai    ON Products        (trangThaiSanPham, isActive);
@@ -854,7 +757,6 @@ CREATE INDEX IX_Reviews_Product       ON Reviews         (productId, isApproved)
 CREATE INDEX IX_ProductImages_Product ON ProductImages   (productId, isActive);
 CREATE INDEX IX_order_items_ProductUser ON order_items   (productId, orderId) INCLUDE (soLuong);
 CREATE INDEX IX_Posts_TrangThai       ON Posts           (trangThai, ngayTao DESC);
--- Gop tu migration__voucher_indexes.sql (sua ten cot is_active -> isActive cho dung schema thuc te)
 CREATE INDEX idx_promotions_active_dates    ON Promotions   (isActive, tuNgay, denNgay);
 CREATE INDEX idx_user_vouchers_user_status  ON UserVouchers (userId, status);
 CREATE INDEX idx_user_vouchers_expired_at   ON UserVouchers (expiredAt);
@@ -862,6 +764,8 @@ CREATE INDEX idx_user_vouchers_promotion_id ON UserVouchers (promotionId);
 CREATE INDEX idx_promotions_code            ON Promotions   (maCode);
 GO
 
+-- ============================================================
+-- BUOC 4: SEED DU LIEU MAU
 -- ============================================================
 -- SEED: RBAC (roles / permissions / role_permissions / user_roles)
 -- ============================================================
@@ -959,7 +863,7 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 GO
 
 -- Seed: mac dinh moi user co phuong thuc dang nhap PASSWORD
-INSERT INTO user_auth_providers (user_id, provider, linked_at)
+INSERT INTO user_auth_providers (userId, provider, linkedAt)
 SELECT id, 'PASSWORD', ngayTao FROM users;
 GO
 
@@ -1093,8 +997,11 @@ GO
 PRINT 'Seed du lieu co ban hoan tat!';
 GO
 
+
+GO
+
 -- ============================================================
--- VIEWS HO TRO
+-- BUOC 5: VIEW HO TRO
 -- ============================================================
 CREATE VIEW vw_DoanhThu AS
 SELECT
@@ -1149,12 +1056,7 @@ GO
 
 PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 31 (gom 3 bang join: role_permissions, user_roles, Post_Tags)';
+PRINT ' Tong so bang  : 33 (gom 2 bang join: role_permissions, user_roles)';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
-PRINT ' File nay thay the hoan toan cho:';
-PRINT '   - migration__voucher_indexes.sql';
-PRINT '   - migration__saved_cart_items.sql';
-PRINT '   - migration__add_gialucthem.sql';
 PRINT '====================================================';
-GO

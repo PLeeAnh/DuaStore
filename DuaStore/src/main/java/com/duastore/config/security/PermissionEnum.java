@@ -19,6 +19,7 @@ public final class PermissionEnum {
     public static final String ORDER_UPDATE = "ORDER_UPDATE";
 
     // USER
+    public static final String USER_CREATE = "USER_CREATE";
     public static final String USER_READ = "USER_READ";
     public static final String USER_UPDATE = "USER_UPDATE";
 
@@ -45,6 +46,12 @@ public final class PermissionEnum {
     public static final String POST_READ = "POST_READ";
     public static final String POST_UPDATE = "POST_UPDATE";
     public static final String POST_DELETE = "POST_DELETE";
+
+    // POST_CATEGORY
+    public static final String POST_CATEGORY_CREATE = "POST_CATEGORY_CREATE";
+    public static final String POST_CATEGORY_READ = "POST_CATEGORY_READ";
+    public static final String POST_CATEGORY_UPDATE = "POST_CATEGORY_UPDATE";
+    public static final String POST_CATEGORY_DELETE = "POST_CATEGORY_DELETE";
 
     // VARIANT
     public static final String VARIANT_CREATE = "VARIANT_CREATE";
@@ -116,4 +123,21 @@ public final class PermissionEnum {
     public static final String REFUND_READ = "REFUND_READ";
     public static final String REFUND_UPDATE = "REFUND_UPDATE";
     public static final String REFUND_APPROVE = "REFUND_APPROVE";
+
+    // FOOTER_LINK
+    public static final String FOOTER_LINK_READ = "FOOTER_LINK_READ";
+    public static final String FOOTER_LINK_CREATE = "FOOTER_LINK_CREATE";
+    public static final String FOOTER_LINK_UPDATE = "FOOTER_LINK_UPDATE";
+    public static final String FOOTER_LINK_DELETE = "FOOTER_LINK_DELETE";
+
+    // PRICE_HISTORY
+    public static final String PRICE_HISTORY_READ = "PRICE_HISTORY_READ";
+
+    // LOYALTY
+    public static final String LOYALTY_READ = "LOYALTY_READ";
+    public static final String LOYALTY_UPDATE = "LOYALTY_UPDATE";
+
+    // ALERT
+    public static final String ALERT_READ = "ALERT_READ";
+    public static final String ALERT_UPDATE = "ALERT_UPDATE";
 }

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
@@ -72,6 +73,23 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             session.setAttribute("userEmailMarketing", user.getEmailMarketing());
             session.setAttribute("userCreatedAt", user.getNgayTao());
             session.setAttribute("hasGoogleLinked", userAuthProviderRepository.existsByUserIdAndProvider(user.getId(), "GOOGLE"));
+
+            boolean isAdmin = user.getRoles().stream()
+                    .anyMatch(r -> Set.of("ADMIN", "SUPER_ADMIN").contains(r.getName()));
+            Boolean twoFactorEnabled = user.getTwoFactorEnabled();
+            if (isAdmin && Boolean.TRUE.equals(twoFactorEnabled)) {
+                session.setAttribute("2faUserId", user.getId());
+                session.setAttribute("2faSecret", user.getTwoFactorSecret());
+                session.setAttribute("2faVerified", false);
+            }
+        }
+
+        Boolean twoFactorVerified = (Boolean) session.getAttribute("2faVerified");
+        boolean needs2fa = session.getAttribute("2faUserId") != null
+                && !Boolean.TRUE.equals(twoFactorVerified);
+        if (needs2fa) {
+            response.sendRedirect(request.getContextPath() + "/admin/2fa/challenge");
+            return;
         }
 
         @SuppressWarnings("unchecked")
@@ -79,6 +97,11 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         if (guestCart != null && !guestCart.isEmpty() && user != null) {
             cartService.mergeGuestCart(user.getId(), guestCart);
             session.removeAttribute("guestCart");
+        }
+
+        if (authentication.getPrincipal() instanceof OAuth2User) {
+            response.sendRedirect(request.getContextPath() + "/oauth2/success");
+            return;
         }
 
         super.onAuthenticationSuccess(request, response, authentication);

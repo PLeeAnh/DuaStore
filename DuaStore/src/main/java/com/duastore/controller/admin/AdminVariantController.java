@@ -1,9 +1,11 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.ProductVariantFormDTO;
 import com.duastore.repository.ProductRepository;
 import com.duastore.service.admin.AdminVariantService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,16 +13,22 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/admin/bien-the")
 public class AdminVariantController {
 
     private final AdminVariantService variantService;
     private final ProductRepository productRepository;
+    private final SecurityUtil securityUtil;
 
-    public AdminVariantController(AdminVariantService variantService, ProductRepository productRepository) {
+    public AdminVariantController(AdminVariantService variantService, ProductRepository productRepository,
+                                  SecurityUtil securityUtil) {
         this.variantService = variantService;
         this.productRepository = productRepository;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping("/them-moi/{productId}")
@@ -109,5 +117,29 @@ public class AdminVariantController {
         variantService.delete(id);
         ra.addFlashAttribute("successMsg", "Đã xóa biến thể");
         return "redirect:/admin/san-pham/chi-tiet/" + productId;
+    }
+
+    @GetMapping("/bulk-edit/{productId}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
+    public String bulkEditForm(@PathVariable Integer productId, Model model, RedirectAttributes ra) {
+        var p = productRepository.findById(productId).orElse(null);
+        if (p == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy sản phẩm");
+            return "redirect:/admin/san-pham";
+        }
+        model.addAttribute("title", "san-pham");
+        model.addAttribute("productId", productId);
+        model.addAttribute("productName", p.getTenSanPham());
+        model.addAttribute("variants", variantService.findByProductId(productId));
+        return "view/admin/product/variant-bulk-edit";
+    }
+
+    @PostMapping("/api/bulk-save")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
+    public ResponseEntity<Map<String, Object>> bulkSave(@RequestBody List<Map<String, Object>> variants) {
+        Integer adminId = securityUtil.getCurrentUserId();
+        variantService.bulkUpdate(variants, adminId);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }

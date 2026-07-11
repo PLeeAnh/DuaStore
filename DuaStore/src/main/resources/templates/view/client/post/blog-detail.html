@@ -40,12 +40,8 @@
                             </span>
                         </div>
 
-                        <div th:if="${not #sets.isEmpty(tagNames)}" class="mb-3 d-flex flex-wrap gap-1">
-                            <span th:each="tag : ${tagNames}" class="badge bg-light text-dark border me-1" th:text="${tag}"></span>
-                        </div>
-
                         <div th:if="${post.hinhAnh != null}" class="mb-4">
-                            <img th:src="@{${post.hinhAnh}}" alt=""
+                            <img th:src="@{${post.hinhAnh}}" alt="" loading="lazy"
                                  class="w-100 rounded"
                                  style="max-height:400px;object-fit:cover;" />
                         </div>

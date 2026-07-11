@@ -30,63 +30,14 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    /* ═══ MOBILE NAV TOGGLE ═══ */
-    var toggle = document.getElementById('dsNavToggle');
-    var panel = document.getElementById('dsNavPanel');
-    var overlay = document.getElementById('dsNavOverlay');
 
-    function openNav() {
-        panel.classList.add('open');
-        overlay.classList.add('open');
-        toggle.classList.add('is-open');
-        toggle.setAttribute('aria-label', 'Đóng menu');
-        document.body.style.overflow = 'hidden';
-    }
-    function closeNav() {
-        panel.classList.remove('open');
-        overlay.classList.remove('open');
-        toggle.classList.remove('is-open');
-        toggle.setAttribute('aria-label', 'Mở menu');
-        document.body.style.overflow = '';
-        document.querySelectorAll('.ds-sub-menu.open').forEach(function (el) {
-            el.classList.remove('open');
-        });
-        document.querySelectorAll('.ds-chevron.rotated').forEach(function (el) {
-            el.classList.remove('rotated');
-        });
-    }
-    if (toggle && panel) {
-        toggle.addEventListener('click', function () {
-            panel.classList.contains('open') ? closeNav() : openNav();
-        });
-    }
-    if (overlay)
-        overlay.addEventListener('click', closeNav);
-
-    document.querySelectorAll('.ds-sub-toggle').forEach(function (btn) {
-        var menu = btn.nextElementSibling;
-        if (menu) {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                menu.classList.toggle('open');
-                var ch = btn.querySelector('.ds-chevron');
-                if (ch)
-                    ch.classList.toggle('rotated');
-            });
-        }
-    });
-    document.querySelectorAll('.ds-nav-panel .ds-nav-link:not(.ds-nav-no-close), .ds-nav-panel .ds-sub-link').forEach(function (link) {
-        link.addEventListener('click', function () {
-            if (!link.classList.contains('ds-sub-toggle'))
-                setTimeout(closeNav, 200);
-        });
-    });
 
     /* ═══ SWIPERS ═══ */
     if (typeof Swiper !== 'undefined') {
         if (document.querySelector('.hero-banner-swiper')) {
             new Swiper('.hero-banner-swiper', {
                 loop: true,
+                slidesPerView: 1,
                 autoplay: {delay: 4000, disableOnInteraction: false},
                 pagination: {el: '.hero-banner-swiper .swiper-pagination', clickable: true},
                 navigation: {nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev'}
@@ -236,6 +187,23 @@ document.addEventListener('DOMContentLoaded', function () {
         plus.disabled = (qty >= maxStock);
     });
 
+    /* ── Sync +/- buttons while typing qty ── */
+    document.addEventListener('input', function (e) {
+        const el = e.target.closest('.ds-qty-val');
+        if (!el || el.closest('#cart-items-container'))
+            return;
+        const card = getCard(el);
+        if (!card)
+            return;
+        const activeChip = getActiveVariant(card);
+        const maxStock = activeChip ? parseInt(activeChip.getAttribute('data-stock')) || 99 : 99;
+        let val = parseInt(el.value) || 1;
+        const minus = card.querySelector('.ds-qty-minus');
+        const plus = card.querySelector('.ds-qty-plus');
+        if (minus) minus.disabled = (val <= 1);
+        if (plus) plus.disabled = (val >= maxStock);
+    });
+
     /* ── Validate manual qty input on product cards ── */
     document.addEventListener('change', function (e) {
         const el = e.target.closest('.ds-qty-val');
@@ -331,9 +299,9 @@ function copyPromoCode(btn) {
     if (!code)
         return;
     navigator.clipboard.writeText(code).then(() => {
-        alert('Đã sao chép mã: ' + code);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã sao chép mã: ' + code); }
     }).catch(() => {
-        alert('Sao chép thất bại, vui lòng tự copy mã: ' + code);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Sao chép thất bại, vui lòng tự copy mã: ' + code); }
     });
 }
 

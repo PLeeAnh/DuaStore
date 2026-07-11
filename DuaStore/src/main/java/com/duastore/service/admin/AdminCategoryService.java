@@ -3,6 +3,7 @@ package com.duastore.service.admin;
 import com.duastore.dto.CategoryDTO;
 import com.duastore.dto.TreeNodeDto;
 import com.duastore.model.Category;
+import com.duastore.model.Product;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductRepository;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,10 +57,67 @@ public class AdminCategoryService {
     }
 
     public List<Category> findAvailableParents(Integer currentId) {
+        List<Category> excludeIds = new ArrayList<>();
+        if (currentId != null) {
+            excludeIds.addAll(getAllDescendantIds(currentId));
+            excludeIds.add(findById(currentId));
+        }
+        List<Integer> exclude = excludeIds.stream()
+                .filter(Objects::nonNull)
+                .map(Category::getId)
+                .toList();
         return findAll().stream()
                 .filter(Category::isActive)
-                .filter(c -> currentId == null || !c.getId().equals(currentId))
+                .filter(c -> !exclude.contains(c.getId()))
                 .toList();
+    }
+
+    public List<TreeNodeDto> findAvailableParentTree(Integer currentId) {
+        List<Category> excludeIds = new ArrayList<>();
+        if (currentId != null) {
+            excludeIds.addAll(getAllDescendantIds(currentId));
+            excludeIds.add(findById(currentId));
+        }
+        Set<Integer> exclude = excludeIds.stream()
+                .filter(Objects::nonNull)
+                .map(Category::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        List<Category> roots = categoryRepository
+                .findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
+        List<TreeNodeDto> result = new ArrayList<>();
+        buildAvailableTree(roots, 0, exclude, result);
+        return result;
+    }
+
+    private void buildAvailableTree(List<Category> nodes, int level, Set<Integer> exclude, List<TreeNodeDto> result) {
+        for (Category cat : nodes) {
+            if (exclude.contains(cat.getId())) {
+                continue;
+            }
+            TreeNodeDto dto = new TreeNodeDto();
+            dto.setId(cat.getId());
+            dto.setTenDanhMuc(cat.getTenDanhMuc());
+            dto.setImageUrl(cat.getImageUrl());
+            dto.setActive(cat.isActive());
+            dto.setThuTuHienThi(cat.getThuTuHienThi());
+            dto.setHasChildren(!cat.getChildren().isEmpty());
+            dto.setLevel(level);
+            result.add(dto);
+            if (!cat.getChildren().isEmpty()) {
+                buildAvailableTree(cat.getChildren(), level + 1, exclude, result);
+            }
+        }
+    }
+
+    private List<Category> getAllDescendantIds(Integer parentId) {
+        List<Category> descendants = new ArrayList<>();
+        List<Category> children = categoryRepository
+                .findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(parentId);
+        for (Category child : children) {
+            descendants.add(child);
+            descendants.addAll(getAllDescendantIds(child.getId()));
+        }
+        return descendants;
     }
 
     public Category findById(Integer id) {
@@ -103,13 +162,26 @@ public class AdminCategoryService {
         category.setActive(dto.isActive());
         category.setImageUrl(dto.getImageUrl());
 
+        // Set parent — validate to prevent circular reference
         if (dto.getParentId() != null) {
-            category.setParent(categoryRepository.findById(dto.getParentId()).orElse(null));
+            // Don't allow setting self as parent
+            if (dto.getId() != null && dto.getParentId().equals(dto.getId())) {
+                category.setParent(null);
+            } else {
+                Category newParent = categoryRepository.findById(dto.getParentId()).orElse(null);
+                // Check that newParent is not a descendant of this category
+                if (dto.getId() != null && newParent != null
+                        && getAllDescendantIds(dto.getId()).contains(newParent)) {
+                    category.setParent(null);
+                } else {
+                    category.setParent(newParent);
+                }
+            }
         } else {
             category.setParent(null);
         }
 
-        return categoryRepository.save(category);
+        return categoryRepository.saveAndFlush(category);
     }
 
     @Transactional
@@ -135,6 +207,11 @@ public class AdminCategoryService {
     @Transactional(readOnly = true)
     public List<Category> findChildrenByParentId(Integer parentId) {
         return categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(parentId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Product> findProductsByCategory(Integer categoryId) {
+        return productRepository.findByDanhMucIdAndIsActiveTrue(categoryId);
     }
 
     @Transactional(readOnly = true)

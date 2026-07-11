@@ -9,6 +9,7 @@ import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.LoyaltyPointsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +49,7 @@ public class AdminOrderService {
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
     private final OrderNoteService orderNoteService;
+    private final LoyaltyPointsService loyaltyPointsService;
 
     public AdminOrderService(OrderRepository orderRepository,
             AdminLogService adminLogService,
@@ -55,7 +57,8 @@ public class AdminOrderService {
             OrderItemRepository orderItemRepository,
             ProductVariantRepository variantRepository,
             OrderStatusLogService orderStatusLogService,
-            OrderNoteService orderNoteService) {
+            OrderNoteService orderNoteService,
+            LoyaltyPointsService loyaltyPointsService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
@@ -63,6 +66,7 @@ public class AdminOrderService {
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
         this.orderNoteService = orderNoteService;
+        this.loyaltyPointsService = loyaltyPointsService;
     }
 
     @Transactional
@@ -163,13 +167,15 @@ public class AdminOrderService {
                 }
                 int oldStock = variant.getSoLuongTon();
                 int qty = item.getSoLuong();
-                variant.setSoLuongTon(oldStock - qty);
-                variantRepository.save(variant);
+                int affected = variantRepository.decrementStock(variant.getId(), qty);
+                if (affected == 0) {
+                    return "Không thể xác nhận: \"" + item.getTenSanPham() + "\" không đủ hàng trong kho (còn " + oldStock + ", cần " + qty + ")";
+                }
                 totalSubtracted += qty;
                 if (detail.length() > 0) {
                     detail.append("; ");
                 }
-                detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(variant.getSoLuongTon());
+                detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(oldStock - qty);
             }
             return totalSubtracted > 0 ? "Đã trừ " + totalSubtracted + " sản phẩm khỏi tồn kho. " + detail : null;
         }
@@ -202,13 +208,22 @@ public class AdminOrderService {
         if (error != null) {
             throw new IllegalArgumentException(error);
         }
-        if ("DA_HUY".equals(trangThaiDon)) {
-            return deleteOrderWithLog(id, oldStatus, admin, request);
-        }
-
         Order order = orderRepository.findById(id).orElse(null);
         if (order == null) {
             throw new RuntimeException("Không tìm thấy đơn hàng");
+        }
+
+        if ("DA_HUY".equals(trangThaiDon)) {
+            String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
+            order.setTrangThaiDon("DA_HUY");
+            orderRepository.save(order);
+            orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, "DA_HUY",
+                    "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""));
+            adminLogService.ghiLogDonHang(admin, id, "HUY_DON_HANG",
+                    oldStatus, "DA_HUY",
+                    "Hủy đơn hàng (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""),
+                    request);
+            return stockMsg;
         }
 
         // Auto-set payment to DA_THANH_TOAN when completing unpaid order
@@ -222,6 +237,10 @@ public class AdminOrderService {
 
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
+
+        if ("DA_HOAN_THANH".equals(trangThaiDon) && order.getUser() != null) {
+            loyaltyPointsService.earnPoints(order.getUser().getId(), id, order.getTongThanhToan());
+        }
 
         String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, stockMsg);

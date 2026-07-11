@@ -124,7 +124,7 @@
                                     <h6 class="fw-bold mb-2 text-muted small"><i class="bi bi-bookmark me-1"></i>Đã lưu để mua sau (<span th:text="${savedCount}"></span>)</h6>
                                     <div th:each="item : ${savedItems}" class="d-flex align-items-center gap-3 py-2 border-bottom" th:id="'saved-item-' + ${item.id}">
                                         <div style="width:50px;flex-shrink:0;">
-                                            <img th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}" th:alt="${item.tenSanPham}" style="width:100%;border-radius:6px;" />
+                                            <img th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}" th:alt="${item.tenSanPham}" style="width:100%;border-radius:6px;" loading="lazy" />
                                         </div>
                                         <div class="flex-grow-1 min-w-0">
                                             <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-dark fw-semibold text-decoration-none" style="font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;" th:text="${item.tenSanPham}"></a>
@@ -152,7 +152,7 @@
                                         <div th:each="p : ${suggestions}" class="col-6 col-md-3">
                                             <a th:href="@{/san-pham/{id}(id=${p.id})}" class="text-decoration-none">
                                                 <div class="ds-suggest-card">
-                                                    <img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" />
+<img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" />
                                                     <div class="mt-2 text-dark fw-semibold" style="font-size:0.85rem;" th:text="${#strings.abbreviate(p.tenSanPham, 30)}"></div>
                                                 </div>
                                             </a>
@@ -237,7 +237,7 @@
                 if (newQty < 1)
                     return;
 
-                var max = parseInt(input.getAttribute('data-max')) || 99;
+                var max = parseInt(input.getAttribute('data-stock')) || 99;
                 if (newQty > max) {
                     DuaStore.toast.error('Chỉ còn ' + max + ' sản phẩm trong kho');
                     return;
@@ -305,7 +305,7 @@
                 if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast)
                     return;
 
-                var max = parseInt(inputEl.getAttribute('max')) || 99;
+                var max = parseInt(inputEl.getAttribute('data-stock')) || 99;
                 var newQty = parseInt(inputEl.value);
                 if (isNaN(newQty) || newQty < 1) {
                     newQty = 1;
@@ -509,7 +509,6 @@
             }
 
             function checkPromoHint(currentTotal) {
-                fetch('/checkout/api/qr-info?amount=' + currentTotal).catch(function () {});
                 var hint = document.getElementById('promoHint');
                 var text = document.getElementById('promoHintText');
                 if (!hint || !text)

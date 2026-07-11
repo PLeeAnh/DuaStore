@@ -40,6 +40,11 @@ public class AuthController {
         this.verifyCodeService = verifyCodeService;
     }
 
+    @GetMapping("/oauth2/success")
+    public String oauth2Success() {
+        return "view/auth/oauth2-success";
+    }
+
     @GetMapping("/dang-nhap")
     public String login(Model model) {
         model.addAttribute("title", "Đăng nhập");
@@ -91,6 +96,7 @@ public class AuthController {
         user.setRoles(Set.of(userRole));
         user.setIsActive(true);
         userRepository.save(user);
+        verifyCodeService.delete(req.getEmail());
 
         ra.addFlashAttribute("successMsg", "Đăng ký thành công! Vui lòng đăng nhập.");
         return "redirect:/dang-nhap";
@@ -108,8 +114,8 @@ public class AuthController {
 
         @NotBlank(message = "Mật khẩu không được để trống")
         @Size(min = 8, message = "Mật khẩu tối thiểu 8 ký tự")
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).+$",
-                message = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt")
+        @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).{8,}$",
+                message = "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ và số")
         private String password;
 
         private String confirmPassword;

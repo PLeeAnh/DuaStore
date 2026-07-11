@@ -12,4 +12,6 @@ public interface SiteSettingRepository extends JpaRepository<SiteSetting, Intege
     Optional<SiteSetting> findBySettingKey(String settingKey);
 
     List<SiteSetting> findBySettingGroup(String settingGroup);
+
+    List<SiteSetting> findBySettingKeyStartingWith(String prefix);
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,6 +16,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 
 @Configuration
 @EnableWebSecurity
@@ -81,10 +84,48 @@ public class SecurityConfig {
                 .authenticationEntryPoint(authenticationEntryPoint())
                 )
                 .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/auth/**", "/admin/thong-bao/api/**", "/api/thong-bao/**", "/api/cart/**")
+                .ignoringRequestMatchers(
+                        "/api/auth/send-code",
+                        "/api/auth/verify-code",
+                        "/admin/thong-bao/api/don-hang-moi",
+                        "/admin/thong-bao/api/lien-he-moi",
+                        "/api/thong-bao/chua-doc",
+                        "/api/cart/them",
+                        "/api/cart/cap-nhat",
+                        "/api/cart/xoa",
+                        "/admin/api/don-hang/api/{id}/cap-nhat-trang-thai",
+                        "/admin/api/don-hang/api/batch-cap-nhat-trang-thai",
+                        "/admin/api/don-hang/api/{id}/cap-nhat-ma-van-don"
+                ));
+
+        http.headers(headers -> headers
+                .contentTypeOptions(Customizer.withDefaults())
+                .frameOptions(frame -> frame.deny())
+                .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
+                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://api.ghn.vn https://cdn.jsdelivr.net; frame-src 'self' https://www.google.com;"))
                 );
 
+        http.addFilterBefore(rateLimitingFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(twoFactorAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
+    }
+
+    @Bean
+    public RateLimitingFilter rateLimitingFilter() {
+        return new RateLimitingFilter();
+    }
+
+    @Bean
+    public TwoFactorAuthFilter twoFactorAuthFilter() {
+        return new TwoFactorAuthFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean<RateLimitingFilter> rateLimitingRegistration(RateLimitingFilter filter) {
+        FilterRegistrationBean<RateLimitingFilter> reg = new FilterRegistrationBean<>(filter);
+        reg.setEnabled(false);
+        return reg;
     }
 
     @Bean
@@ -100,7 +141,7 @@ public class SecurityConfig {
                     AuthenticationException authException) throws IOException {
                 if (request.getRequestURI().startsWith("/api/")) {
                     response.setContentType("application/json;charset=UTF-8");
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập\"}");
                 } else {
                     response.sendRedirect(request.getContextPath() + "/dang-nhap");

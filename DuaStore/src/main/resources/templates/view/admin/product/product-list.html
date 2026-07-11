@@ -141,11 +141,24 @@
             </div>
         </div>
 
+        <!-- ═════ BULK ACTION BAR ═════ -->
+        <div id="bulkActionBar" class="adm-bulk-bar" style="display:none">
+            <span class="fw-semibold" id="bulkSelectedCount">0</span> sản phẩm được chọn
+            <button type="button" class="btn btn-danger btn-sm ms-3" onclick="bulkDelete()">
+                <i class="bi bi-trash me-1"></i>Xoá đã chọn
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="clearBulkSelect()">
+                <i class="bi bi-x me-1"></i>Bỏ chọn
+            </button>
+        </div>
+
         <!-- ═════ TABLE ═════ -->
         <div class="adm-table-wrap">
+            <form id="bulkForm" th:action="@{/admin/san-pham/xoa-hang-loat}" method="post">
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
+                        <th style="width:36px"><input type="checkbox" id="checkAll" onchange="toggleAllCheckboxes()"></th>
                         <th>SKU</th>
                         <th class="text-center" style="width:76px">Ảnh</th>
                         <th>Tên sản phẩm</th>
@@ -157,6 +170,7 @@
                 </thead>
                 <tbody>
                     <tr th:each="p : ${products}">
+                        <td><input type="checkbox" name="ids" th:value="${p.id}" class="bulk-check" onchange="updateBulkBar()"></td>
                         <td class="text-muted small">#<span th:text="${p.id}">1</span></td>
                         <td class="text-center">
                             <img th:if="${p.hinhAnhChinh}" th:src="@{${p.hinhAnhChinh}}" alt="" class="adm-thumb" />
@@ -184,6 +198,7 @@
                                 <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
                                     <li><a class="dropdown-item" th:href="@{/admin/san-pham/chi-tiet/{id}(id=${p.id})}"><i class="bi bi-eye"></i>Chi tiết</a></li>
                                     <li><a class="dropdown-item" th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}"><i class="bi bi-pencil"></i>Sửa</a></li>
+                                    <li><a class="dropdown-item" th:href="@{/admin/bien-the/bulk-edit/{id}(id=${p.id})}"><i class="bi bi-pencil-square"></i>Sửa hàng loạt</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form th:action="@{/admin/san-pham/xoa/{id}(id=${p.id})}" method="post" class="d-block">
@@ -195,7 +210,7 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(products)}">
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="8" class="text-center py-5">
                             <div class="adm-empty">
                                 <i class="bi bi-box-seam adm-empty-icon"></i>
                                 <div class="adm-empty-title">Chưa có sản phẩm</div>
@@ -205,8 +220,14 @@
                     </tr>
                 </tbody>
             </table>
+            </form>
         </div>
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
+
+    <th:block layout:fragment="extra-script">
+    <script th:src="@{/js/admin-bulk.js}"></script>
+    </th:block>
+
 </body>
 </html>

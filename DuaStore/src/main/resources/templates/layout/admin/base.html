@@ -19,9 +19,30 @@
           href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:href="@{/css/admin.css}"/>
     <link rel="stylesheet" th:href="@{/css/admin-v2.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin-base.css}"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.bootstrap5.min.css"/>
 
-    <th:block layout:fragment="extra-head"></th:block>
+    <th:block layout:fragment="extra-head">
+        <style>
+            .adm-sidebar-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 160;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .3s ease, visibility .3s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .adm-sidebar-backdrop.show {
+                opacity: 1;
+                visibility: visible;
+            }
+        </style>
+    </th:block>
 </head>
 <body class="adm-body">
 
@@ -63,7 +84,7 @@
                 <span>Phân tích</span>
             </a>
 
-            <div class="adm-nav-section">Catalogue</div>
+            <div class="adm-nav-section">Quản lý</div>
             <a class="adm-nav-link" th:href="@{/admin/san-pham}"
                th:if="${userPermissions.contains('PRODUCT_READ')}"
                th:classappend="${title == 'san-pham' ? ' active' : ''}">
@@ -76,8 +97,6 @@
                 <i class="bi bi-grid-3x3-gap"></i>
                 <span>Danh mục</span>
             </a>
-
-            <div class="adm-nav-section">Kinh doanh</div>
             <a class="adm-nav-link" th:href="@{/admin/don-hang}"
                th:if="${userPermissions.contains('ORDER_READ') or userPermissions.contains('REFUND_READ')}"
                th:classappend="${title == 'don-hang' or title == 'hoan-tien' ? ' active' : ''}">
@@ -98,76 +117,105 @@
                 <span>Khuyến mãi</span>
             </a>
 
-            <div class="adm-nav-section">Nội dung</div>
-            <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
-               th:if="${userPermissions.contains('POST_READ')}"
-               th:classappend="${title == 'bai-viet' ? ' active' : ''}">
-                <i class="bi bi-newspaper"></i>
-                <span>Bài viết</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/thong-bao}"
-               th:if="${userPermissions.contains('NOTIFICATION_READ')}"
-               th:classappend="${title == 'thong-bao' ? ' active' : ''}">
-                <i class="bi bi-megaphone"></i>
-                <span>Thông báo</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/danh-gia}"
-               th:if="${userPermissions.contains('REVIEW_READ')}"
-               th:classappend="${title == 'danh-gia' ? ' active' : ''}">
-                <i class="bi bi-star"></i>
-                <span>Đánh giá</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/homepage}"
-               th:if="${userPermissions.contains('HOMEPAGE_READ')}"
-               th:classappend="${title == 'homepage' ? ' active' : ''}">
-                <i class="bi bi-house-gear"></i>
-                <span>Homepage</span>
-            </a>
-            <div class="adm-nav-section">Cấu hình</div>
-            <a class="adm-nav-link" th:href="@{/admin/cua-hang}"
-               th:if="${userPermissions.contains('STORE_READ')}"
-               th:classappend="${title == 'cua-hang' ? ' active' : ''}">
-                <i class="bi bi-geo-alt"></i>
-                <span>Cửa hàng</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/giao-dien}"
-               th:if="${userPermissions.contains('APPEARANCE_READ')}"
-               th:classappend="${title == 'giao-dien' ? ' active' : ''}">
-                <i class="bi bi-palette"></i>
-                <span>Giao diện</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/email-smtp}"
-               th:if="${userPermissions.contains('EMAIL_SETTING_READ')}"
-               th:classappend="${title == 'email-smtp' ? ' active' : ''}">
-                <i class="bi bi-envelope"></i>
-                <span>Email/SMTP</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/thanh-toan}"
-               th:if="${userPermissions.contains('PAYMENT_SETTING_READ')}"
-               th:classappend="${title == 'thanh-toan' ? ' active' : ''}">
-                <i class="bi bi-credit-card"></i>
-                <span>Thanh toán</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/van-chuyen}"
-               th:if="${userPermissions.contains('SHIPPING_SETTING_READ')}"
-               th:classappend="${title == 'van-chuyen' ? ' active' : ''}">
-                <i class="bi bi-truck"></i>
-                <span>Vận chuyển</span>
-            </a>
+            <!-- Nội dung (collapsible) -->
+            <div class="adm-nav-section" style="cursor:pointer" onclick="toggleNavSub('navNoiDung', this)">
+                <span>Nội dung</span>
+                <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
+            </div>
+            <div id="navNoiDung" class="adm-nav-sub">
+                <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
+                   th:if="${userPermissions.contains('POST_READ')}"
+                   th:classappend="${title == 'bai-viet' ? ' active' : ''}">
+                    <i class="bi bi-newspaper"></i>
+                    <span>Bài viết</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/thong-bao}"
+                   th:if="${userPermissions.contains('NOTIFICATION_READ')}"
+                   th:classappend="${title == 'thong-bao' ? ' active' : ''}">
+                    <i class="bi bi-megaphone"></i>
+                    <span>Thông báo</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/danh-gia}"
+                   th:if="${userPermissions.contains('REVIEW_READ')}"
+                   th:classappend="${title == 'danh-gia' ? ' active' : ''}">
+                    <i class="bi bi-star"></i>
+                    <span>Đánh giá</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/banner}"
+                   th:if="${userPermissions.contains('BANNER_READ')}"
+                   th:classappend="${title == 'banner' ? ' active' : ''}">
+                    <i class="bi bi-images"></i>
+                    <span>Banner</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/footer-links}"
+                   th:if="${userPermissions.contains('FOOTER_LINK_READ')}"
+                   th:classappend="${title == 'footer-links' ? ' active' : ''}">
+                    <i class="bi bi-link-45deg"></i>
+                    <span>Liên kết chân trang</span>
+                </a>
+            </div>
 
-            <div class="adm-nav-section">Hệ thống</div>
-            <a class="adm-nav-link" th:href="@{/admin/nguoi-dung}"
-               th:if="${userPermissions.contains('USER_READ') or userPermissions.contains('ROLE_READ')}"
-               th:classappend="${title == 'nguoi-dung' or title == 'vai-tro' ? ' active' : ''}">
-                <i class="bi bi-people"></i>
-                <span>Người dùng</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/nhat-ky}"
-               th:if="${userPermissions.contains('AUDIT_LOG_READ')}"
-               th:classappend="${title == 'nhat-ky' ? ' active' : ''}">
-                <i class="bi bi-clock-history"></i>
-                <span>Nhật ký</span>
-            </a>
+            <!-- Cài đặt (collapsible) -->
+            <div class="adm-nav-section" style="cursor:pointer" onclick="toggleNavSub('navCaiDat', this)">
+                <span>Cài đặt</span>
+                <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
+            </div>
+            <div id="navCaiDat" class="adm-nav-sub">
+                <a class="adm-nav-link" th:href="@{/admin/cua-hang}"
+                   th:if="${userPermissions.contains('STORE_READ')}"
+                   th:classappend="${title == 'cua-hang' ? ' active' : ''}">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>Cửa hàng</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/giao-dien}"
+                   th:if="${userPermissions.contains('APPEARANCE_READ')}"
+                   th:classappend="${title == 'giao-dien' ? ' active' : ''}">
+                    <i class="bi bi-palette"></i>
+                    <span>Giao diện</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/email-smtp}"
+                   th:if="${userPermissions.contains('EMAIL_SETTING_READ')}"
+                   th:classappend="${title == 'email-smtp' ? ' active' : ''}">
+                    <i class="bi bi-envelope"></i>
+                    <span>Email/SMTP</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/thanh-toan}"
+                   th:if="${userPermissions.contains('PAYMENT_SETTING_READ')}"
+                   th:classappend="${title == 'thanh-toan' ? ' active' : ''}">
+                    <i class="bi bi-credit-card"></i>
+                    <span>Thanh toán</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/van-chuyen}"
+                   th:if="${userPermissions.contains('SHIPPING_SETTING_READ')}"
+                   th:classappend="${title == 'van-chuyen' ? ' active' : ''}">
+                    <i class="bi bi-truck"></i>
+                    <span>Vận chuyển</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/dia-chi}"
+                   th:if="${userPermissions.contains('STORE_READ')}"
+                   th:classappend="${title == 'dia-chi' ? ' active' : ''}">
+                    <i class="bi bi-map"></i>
+                    <span>Địa chỉ</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/nguoi-dung}"
+                   th:if="${userPermissions.contains('USER_READ') or userPermissions.contains('ROLE_READ')}"
+                   th:classappend="${title == 'nguoi-dung' or title == 'vai-tro' ? ' active' : ''}">
+                    <i class="bi bi-people"></i>
+                    <span>Người dùng</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/nhat-ky}"
+                   th:if="${userPermissions.contains('AUDIT_LOG_READ')}"
+                   th:classappend="${title == 'nhat-ky' ? ' active' : ''}">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Nhật ký</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/lich-su-gia}"
+                   th:if="${userPermissions.contains('PRICE_HISTORY_READ')}"
+                   th:classappend="${title == 'lich-su-gia' ? ' active' : ''}">
+                    <i class="bi bi-currency-exchange"></i>
+                    <span>Lịch sử giá</span>
+                </a>
+            </div>
 
         </nav>
 
@@ -180,6 +228,9 @@
         </div>
 
     </aside>
+
+    <!-- Sidebar backdrop for mobile overlay -->
+    <div class="adm-sidebar-backdrop" id="admSidebarBackdrop"></div>
 
     <!-- ════════════════════════════════════════════════
          MAIN AREA
@@ -274,6 +325,7 @@
                     <div class="adm-profile-dropdown" id="admProfileDropdown">
                         <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminProfileModal"><i class="bi bi-person"></i> Hồ sơ</a>
                         <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminChangePasswordModal"><i class="bi bi-key"></i> Đổi mật khẩu</a>
+                        <a class="adm-profile-link" th:href="@{/admin/2fa/setup}"><i class="bi bi-shield-lock"></i> Cài đặt 2FA</a>
                         <div class="adm-profile-divider"></div>
                         <form th:action="@{/dang-xuat}" method="post" class="d-block">
                             <button type="submit" class="adm-profile-link text-danger border-0 bg-transparent w-100 text-start d-flex align-items-center gap-2">
@@ -364,11 +416,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Mật khẩu mới</label>
-                        <input type="password" name="newPassword" class="form-control" required minlength="6"/>
+                        <input type="password" name="newPassword" class="form-control" required minlength="8"/>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Xác nhận mật khẩu</label>
-                        <input type="password" name="confirmPassword" class="form-control" required minlength="6"/>
+                        <input type="password" name="confirmPassword" class="form-control" required minlength="8"/>
                     </div>
                 </div>
                 <div class="modal-footer justify-content-end">
@@ -414,58 +466,68 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2/dist/js/tom-select.complete.min.js"></script>
 <script th:src="@{/js/admin.js}"></script>
+<script th:src="@{/js/admin-base.js}"></script>
 <th:block layout:fragment="extra-script"></th:block>
 
-<style>
-.notif-item:hover { background: #f5f5f5; }
-.notif-icon {
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; flex-shrink: 0;
-}
-.notif-text { font-size: 0.85rem; color: #333; line-height: 1.3; }
-.notif-link { font-size: 0.78rem; color: #0d6efd; }
-.notif-time { font-size: 0.72rem; color: #999; }
-.custom-popup { display: none; }
-.cursor-pointer { cursor: pointer; }
-</style>
 <script>
-function toggleStaffNotifPopup() {
-    var popup = document.getElementById('staffNotifPopup');
-    if (!popup) return;
-    var isVisible = popup.style.display === 'block';
-    popup.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible) {
-        var badge = document.getElementById('staffNotifBadge');
-        if (badge && !badge.classList.contains('d-none')) {
-            var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
-            var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
-            var headers = { 'Content-Type': 'application/json' };
-            if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
-            fetch('/admin/thong-bao/api/doc-tat-ca', { method: 'POST', headers: headers })
-                .then(function(r) { return r.text(); })
-                .then(function() { badge.classList.add('d-none'); })
-                .catch(function() { badge.classList.add('d-none'); });
-        }
+(function() {
+    var sidebar = document.querySelector('.adm-sidebar');
+    var backdrop = document.getElementById('admSidebarBackdrop');
+    var toggle = document.getElementById('admNavToggle');
+    if (!sidebar || !backdrop || !toggle) return;
+
+    function openSidebar() {
+        sidebar.classList.add('adm-sidebar-mobile-open');
+        backdrop.classList.add('show');
+        document.body.style.overflow = 'hidden';
     }
-}
-function markStaffNotifRead(id) {
-    var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
-    var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
-    var headers = { 'Content-Type': 'application/json' };
-    if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
-    fetch('/admin/thong-bao/api/doc/' + id, { method: 'POST', headers: headers })
-        .catch(function() {});
-}
-document.addEventListener('click', function(e) {
-    var popup = document.getElementById('staffNotifPopup');
-    var btn = document.getElementById('btnStaffNotifToggle');
-    if (popup && btn) {
-        if (!popup.contains(e.target) && !btn.contains(e.target)) {
-            popup.style.display = 'none';
-        }
+
+    function closeSidebar() {
+        sidebar.classList.remove('adm-sidebar-mobile-open');
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
     }
-});
+
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (sidebar.classList.contains('adm-sidebar-mobile-open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('adm-sidebar-mobile-open')) {
+            closeSidebar();
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 992) {
+            closeSidebar();
+        }
+    });
+})();
+
+(function() {
+    // Poll for new notifications every 30 seconds
+    const badge = document.getElementById('staffNotifBadge');
+    if (badge) {
+        setInterval(function() {
+            fetch('/admin/thong-bao/api/count')
+                .then(r => r.text())
+                .then(count => {
+                    const num = parseInt(count) || 0;
+                    badge.textContent = num;
+                    badge.classList.toggle('d-none', num === 0);
+                })
+                .catch(() => {});
+        }, 30000);
+    }
+})();
 </script>
 
 </body>

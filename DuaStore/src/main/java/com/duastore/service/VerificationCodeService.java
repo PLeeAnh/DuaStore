@@ -31,7 +31,6 @@ public class VerificationCodeService {
         if (!entry.code().equals(code)) {
             return false;
         }
-        codes.remove(email);
         return true;
     }
 

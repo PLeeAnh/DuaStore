@@ -35,6 +35,10 @@ public class AdminAppearanceController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).APPEARANCE_UPDATE)")
     public String save(@RequestParam MultiValueMap<String, String> params, RedirectAttributes ra) {
         try {
+            // If saving footer columns, delete stale entries first so removed columns don't persist
+            if (params.containsKey("_footer_form")) {
+                siteSettingService.deleteByPrefix("footer_col_");
+            }
             siteSettingService.saveGroupFromParams(params, GROUP);
             ra.addFlashAttribute("successMsg", "Cập nhật giao diện thành công");
         } catch (Exception e) {

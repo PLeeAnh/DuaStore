@@ -1,7 +1,6 @@
 /* =====================================================
    GLOBAL: prevent dropdown clipping
    ===================================================== */
-.dropdown-menu,
 .ds-combo-panel {
     position: fixed !important;
     z-index: 9999 !important;
@@ -38,9 +37,9 @@
     --font-logo   : 'Dancing Script', cursive;
     --ds-card-bg  : #ffffff;
 
-    --ds-red       : #2563eb;
+    --ds-red       : #2563EB;
     --ds-red-light : #DBEAFE;
-    --ds-red-dark  : #1d4ed8;
+    --ds-red-dark  : #1D4ED8;
 }
 
 /* ── Bootstrap Overrides (theme: blue) ── */
@@ -195,124 +194,13 @@ a {
     opacity: .75;
 }
 
-/* Hamburger toggle */
-.ds-nav-toggle {
-    background: transparent;
-    border: 1px solid var(--ds-border);
-    color: var(--ds-gray-600);
-    width: 40px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: .95rem;
-    cursor: pointer;
-    padding: 0;
-    border-radius: 8px;
-    transition: background .15s, border-color .15s;
-    order: -1;
-}
-.ds-nav-toggle:hover {
-    background: var(--ds-gray-100);
-    border-color: var(--ds-gray-400);
-}
-.ds-toggle-text {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-weight: 700;
+
     line-height: 1;
     user-select: none;
 }
 
 
-/* Side panel — mobile nav overlay */
-.ds-nav-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,.5);
-    z-index: 1100;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity .3s, visibility .3s;
-}
-.ds-nav-overlay.open {
-    opacity: 1;
-    visibility: visible;
-}
-
-.ds-nav-panel {
-    position: fixed;
-    top: 0;
-    left: -280px;
-    width: 260px;
-    height: 100vh;
-    background: var(--ds-white);
-    z-index: 1200;
-    overflow-y: auto;
-    transition: left .3s ease;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-}
-.ds-nav-panel.open {
-    left: 0;
-}
-
-.ds-nav-panel-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--ds-border);
-}
-.ds-logo-panel {
-    font-family: var(--font-logo);
-    font-size: 1.5rem;
-    color: var(--ds-gray-900);
-    text-decoration: none;
-    line-height: 1;
-}
-.ds-logo-panel:hover {
-    color: var(--ds-gray-900);
-    opacity: .75;
-}
-
-.ds-nav-panel .ds-nav-list {
-    list-style: none;
-    margin: 0;
-    padding: 8px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
-.ds-nav-item {
-    padding: 0 12px;
-}
-.ds-nav-item .ds-nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 10px;
-    border-radius: 8px;
-    color: var(--ds-gray-600);
-    text-decoration: none;
-    font-size: .9rem;
-    font-weight: 500;
-    transition: background .15s, color .15s;
-}
-.ds-nav-item .ds-nav-link:hover {
-    background: var(--ds-gray-100);
-    color: var(--ds-gray-900);
-}
-.ds-nav-item .ds-nav-link i {
-    font-size: 1.1rem;
-    width: 20px;
-    text-align: center;
-}
-
-/* Sub menu trong panel */
+/* Sub menu (desktop dropdown) */
 .ds-sub-menu {
     display: none;
     padding: 0 0 4px 42px;
@@ -348,38 +236,6 @@ a {
     color: var(--ds-gray-400);
 }
 
-.ds-nav-panel-footer {
-    margin-top: auto;
-    padding: 12px 12px 20px;
-    border-top: 1px solid var(--ds-border);
-}
-.ds-nav-panel-footer .ds-nav-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 10px;
-    border-radius: 8px;
-    color: var(--ds-gray-600);
-    text-decoration: none;
-    font-size: .9rem;
-    font-weight: 500;
-    transition: background .15s;
-}
-.ds-nav-panel-footer .ds-nav-link:hover {
-    background: var(--ds-gray-100);
-}
-.ds-nav-panel-footer .ds-nav-link i {
-    font-size: 1.1rem;
-    width: 20px;
-    text-align: center;
-}
-.ds-nav-panel-footer .ds-nav-logout {
-    color: var(--ds-red) !important;
-}
-.ds-nav-panel-footer .ds-nav-logout:hover {
-    background: rgba(37,99,235,.12) !important;
-}
-
 /* Desktop nav links — ẩn trên mobile, hiện trên desktop */
 .ds-nav-list-desktop {
     list-style: none;
@@ -390,38 +246,7 @@ a {
     gap: 4px;
 }
 
-/* Auth buttons trong panel */
-.ds-nav-auth {
-    padding: 0 2px;
-}
-.ds-nav-panel-footer .ds-btn-fill {
-    color: var(--ds-gray-900) !important;
-}
 
-/* Mobile profile in panel (logged in) */
-.ds-panel-profile {
-    padding: 4px 2px;
-}
-.ds-panel-profile-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    margin-bottom: 4px;
-}
-.ds-panel-profile-header .ds-profile-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: .85rem;
-}
-.ds-panel-profile-name {
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--ds-gray-900);
-}
-.ds-panel-profile-email {
-    font-size: .72rem;
-    color: var(--ds-gray-400);
 }
 
 .ds-nav-link-desktop {
@@ -647,7 +472,60 @@ a {
 .ds-search-inline-input:focus {
     width: 180px;
 }
-
+/* Search suggestions dropdown */
+.ds-search-wrap {
+    position: relative;
+}
+.ds-search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--ds-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.12);
+    z-index: 9999;
+    max-height: 360px;
+    overflow-y: auto;
+}
+.ds-suggest-header {
+    padding: 8px 14px 4px;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--ds-gray-500);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.ds-suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    text-decoration: none;
+    color: var(--ds-gray-800);
+    transition: background .12s;
+}
+.ds-suggest-item:hover {
+    background: var(--ds-gray-100);
+}
+.ds-suggest-img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: var(--ds-gray-100);
+}
+.ds-suggest-name {
+    font-size: .82rem;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
 
 /* =====================================================
    06. HERO
@@ -1538,6 +1416,11 @@ a {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    cursor: pointer;
+}
+.ds-product-grid-v2 .ds-product-card {
+    background: transparent;
+    border: none;
 }
 .ds-product-card:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,.08);
@@ -1579,6 +1462,56 @@ a {
     flex-direction: column;
     flex: 1;
     gap: 3px;
+}
+
+/* ── Price row (Steam-style discount badge) ── */
+.ds-card-price {
+    display: inline-flex;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 2px;
+    margin-top: auto;
+    margin-left: auto;
+}
+.ds-card-price-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    font-weight: 800;
+    font-size: .78rem;
+    background: #1e3a5f;
+    color: #fff;
+    flex-shrink: 0;
+}
+.ds-card-price-values {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #DBEAFE;
+    font-weight: 700;
+}
+.ds-card-price-old {
+    font-size: .7rem;
+    color: #94a3b8;
+    text-decoration: line-through;
+    white-space: nowrap;
+}
+.ds-card-price-current {
+    font-size: .85rem;
+    color: #2563EB;
+    white-space: nowrap;
+}
+.ds-card-price-oos .ds-card-price-badge {
+    background: #999;
+    color: #fff;
+}
+.ds-card-price-oos .ds-card-price-values {
+    background: #2a2a2a;
+}
+.ds-product-card.oos .ds-card-price-current {
+    color: #999;
 }
 
 /* ── Product name ── */
@@ -1835,6 +1768,13 @@ a {
     outline: none;
     padding: 2px 0;
     color: var(--ds-gray-900);
+    transition: width .15s;
+}
+.ds-qty-val:focus {
+    width: 48px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px var(--ds-primary);
 }
 
 /* ── Add-to-cart button (SVG wave + cart design) ── */
@@ -1917,7 +1857,6 @@ a {
 .ds-product-card.oos .ds-product-image-wrap img {
     filter: none;
 }
-.ds-product-card.oos .ds-price-btn,
 .ds-product-card.oos .ds-qty-btn {
     cursor: not-allowed;
     opacity: .5;
@@ -2515,20 +2454,14 @@ a {
 /* =====================================================
    20. RESPONSIVE
 ===================================================== */
-/* Desktop: hiện horizontal nav, ẩn mobile panel */
+/* Desktop nav */
 @media (min-width: 992px) {
-    .ds-nav-toggle,
-    .ds-nav-overlay,
-    .ds-nav-panel {
-        display: none !important;
-    }
-
     .ds-nav-list-desktop {
         display: flex;
     }
 }
 
-/* Mobile: ẩn các element desktop, dùng side panel */
+/* Mobile */
 @media (max-width: 991px) {
     .hero-slide {
         min-height: 60vh;
@@ -2622,6 +2555,95 @@ a {
     .ds-float-zalo {
         bottom: 4.5rem;
     }
+
+    /* ── Homepage mobile ── */
+    .ds-section-header .ds-section-title-sm {
+        font-size: .95rem;
+    }
+    .ds-link-more {
+        font-size: .8rem;
+    }
+    .ds-slider-arrow {
+        width: 28px;
+        height: 28px;
+        font-size: .7rem;
+        background: rgba(255,255,255,.9);
+        box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    .ds-mini-card {
+        min-width: 130px;
+    }
+    .ds-mini-card-name {
+        font-size: .75rem;
+    }
+    .ds-mini-card-body {
+        padding: .35rem .5rem;
+    }
+    .ds-browse-wrap {
+        grid-template-columns: 1fr;
+    }
+    .ds-browse-preview {
+        order: -1;
+        display: none;
+    }
+    .ds-browse-row {
+        padding: .5rem .65rem;
+    }
+    .ds-browse-row-name {
+        font-size: .8rem;
+    }
+    .ds-browse-row-img {
+        width: 36px;
+        height: 36px;
+    }
+    .ds-browse-tab {
+        font-size: .78rem;
+        padding: .35rem .7rem;
+    }
+    .ds-home-content {
+        padding: 0 .75rem;
+    }
+    .ds-section-card {
+        padding: 1rem .75rem;
+    }
+    .ds-card-hover-preview {
+        display: none !important;
+    }
+    .ds-section-header {
+        flex-wrap: wrap;
+    }
+    .ds-hero-v2-banner {
+        border-radius: 10px;
+    }
+    .ds-hero-v2-banner img {
+        aspect-ratio: 7 / 3;
+        max-height: 180px;
+    }
+    .hero-banner-swiper {
+        border-radius: 10px;
+    }
+    .hero-banner-swiper .swiper-slide img {
+        border-radius: 10px;
+    }
+    .hero-banner-swiper .swiper-button-next,
+    .hero-banner-swiper .swiper-button-prev {
+        width: 28px;
+        height: 28px;
+        background: rgba(0,0,0,.4);
+        border-radius: 50%;
+        color: #fff;
+    }
+    .hero-banner-swiper .swiper-button-next::after,
+    .hero-banner-swiper .swiper-button-prev::after {
+        font-size: .7rem;
+    }
+    .hero-banner-swiper .swiper-pagination-bullet {
+        width: 6px;
+        height: 6px;
+    }
+    .ds-hero-v2 {
+        margin: 8px 12px 0;
+    }
 }
 /* Touch devices: luôn hiện qty + card-actions (không hover) */
 @media (hover: none) and (pointer: coarse) {
@@ -2705,6 +2727,26 @@ a {
     letter-spacing: 2px;
     unicode-bidi: bidi-override;
     direction: rtl;
+}
+
+.star-rating-input {
+    display: flex;
+    gap: 4px;
+    direction: ltr;
+}
+.star-rating-input .star {
+    font-size: 2rem;
+    color: #ddd;
+    cursor: pointer;
+    transition: color .15s, transform .15s;
+    user-select: none;
+    line-height: 1;
+}
+.star-rating-input .star:hover {
+    transform: scale(1.15);
+}
+.star-rating-input .star.active {
+    color: #f59e0b;
 }
 
 .review-item {
@@ -3147,7 +3189,7 @@ a {
 /* ── Sticky tabs ── */
 .sticky-tabs {
     position: sticky;
-    top: 72px;
+    top: 0;
     z-index: 20;
     background: #fff;
     padding-top: 0;
@@ -4669,7 +4711,7 @@ a {
 ===================================================== */
 /* ===== BANNER SLIDER (flush với background) ===== */
 .ds-hero-v2 {
-    margin: 24px 0 0;
+    margin: 16px 0 0;
     width: 100%;
 }
 .ds-hero-v2-inner {
@@ -4681,12 +4723,12 @@ a {
     display: block;
     text-decoration: none;
     overflow: hidden;
-    border-radius: 24px;
+    border-radius: 16px;
 }
 .ds-hero-v2-banner img {
     display: block;
     width: 100%;
-    aspect-ratio: 21 / 9;
+    aspect-ratio: 21 / 10;
     object-fit: cover;
 }
 
@@ -4853,8 +4895,8 @@ a {
     right: -4px;
 }
 @media (max-width: 576px) {
-    .ds-slider-arrow {
-        display: none;
+    .ds-cat-tile {
+        flex: 0 0 calc(50% - 10px);
     }
 }
 .ds-slider-viewport {
@@ -5384,6 +5426,19 @@ a {
     padding: 2px 8px;
     border-radius: 100px;
 }
+.ds-browse-preview-link {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ds-primary);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: 0 14px 8px;
+}
+.ds-browse-preview-link:hover {
+    gap: .5rem;
+}
 .ds-browse-preview-images {
     display: flex;
     gap: 4px;
@@ -5532,27 +5587,53 @@ a {
 }
 @media (max-width: 1399px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 6), 1fr);
     }
 }
 @media (max-width: 1199px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 5), 1fr);
     }
 }
 @media (max-width: 991px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 4), 1fr);
     }
 }
 @media (max-width: 767px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 2), 1fr);
     }
 }
 @media (max-width: 576px) {
+    .ds-pl-v2-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: .3rem;
+        padding-bottom: .3rem;
+        scrollbar-width: none;
+    }
+    .ds-pl-v2-bar::-webkit-scrollbar { display: none; }
+    .ds-pl-v2-bar .btn-filter {
+        font-size: .72rem;
+        padding: .35rem .65rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .ds-pl-v2-bar .btn-filter .bi-chevron-down {
+        display: none;
+    }
+    .ds-pl-v2-bar .btn-filter i {
+        font-size: .8rem;
+    }
+    .ds-pl-v2-bar .dropdown-menu {
+        min-width: 150px;
+    }
+    .ds-pl-info {
+        font-size: .75rem;
+    }
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 2), 1fr);
         gap: .4rem;
     }
 }
@@ -5777,6 +5858,9 @@ a {
     width:100%;
     border-radius:16px;
     overflow:hidden;
+}
+.hero-banner-swiper .swiper-slide {
+    width: 100%;
 }
 .hero-banner-swiper .swiper-slide a {
     display:block;
@@ -6185,4 +6269,30 @@ body.ds-checkout-page #main-content {
 }
 .adm-pagination-nav-btn.disabled {
     opacity: .35; pointer-events: none;
+}
+
+/* ── Mobile font-size boost for 40+ readability ── */
+@media (max-width: 767.98px) {
+    body, p, span, div, li, a, label, input, select, textarea,
+    .btn, .table td, .table th, .form-control, .form-label,
+    .dropdown-item, .nav-link, .breadcrumb-item,
+    .product-name, .product-price, .product-description,
+    .cart-item-title, .cart-item-price, .cart-item-quantity,
+    .checkout-summary, .checkout-item,
+    .order-detail, .order-status,
+    .ds-section-title, .ds-card-text,
+    .toast-body, .popover-body,
+    .modal-body, .modal-header, .modal-footer,
+    .list-group-item, .alert,
+    .footer-text, .footer-link {
+        font-size: 16px !important;
+    }
+    h1, .h1 { font-size: 1.75rem !important; }
+    h2, .h2 { font-size: 1.5rem !important; }
+    h3, .h3 { font-size: 1.35rem !important; }
+    h4, .h4 { font-size: 1.2rem !important; }
+    h5, .h5 { font-size: 1.1rem !important; }
+    h6, .h6 { font-size: 1rem !important; }
+    .badge, .tag, .label { font-size: .85rem !important; }
+    small, .small, .text-muted { font-size: .85rem !important; }
 }

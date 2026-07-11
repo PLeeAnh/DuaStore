@@ -54,6 +54,9 @@ public class AdminDashboardController {
 
         model.addAttribute("dailyRevenue", dashboardService.getDailyRevenueLast7Days());
         model.addAttribute("topProducts", dashboardService.getTopSellingProducts(5));
+        model.addAttribute("lowStockCount", dashboardService.getLowStockCount());
+        model.addAttribute("lowStockProducts", dashboardService.getLowStockProducts(8));
+        model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
 
         // Enhanced dashboard data
         model.addAttribute("statComparison", dashboardService.getStatComparison());
@@ -61,6 +64,9 @@ public class AdminDashboardController {
         model.addAttribute("paymentMethodDistribution", dashboardService.getPaymentMethodDistribution());
         model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
         model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
+        model.addAttribute("monthlyRevenueData", dashboardService.getMonthlyRevenueLast12Months());
+        model.addAttribute("topProducts7Days", dashboardService.getTopSellingProductsLast7Days(5));
+        model.addAttribute("cancelRefundRate", dashboardService.getCancelRefundRate());
 
         return "view/admin/dashboard";
     }

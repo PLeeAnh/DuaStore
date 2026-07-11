@@ -1,10 +1,12 @@
 package com.duastore.service.admin;
 
 import com.duastore.model.Order;
+import com.duastore.model.Product;
 import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.util.PriceUtils;
@@ -18,6 +20,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -35,19 +38,22 @@ public class AdminDashboardService {
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final OrderItemRepository orderItemRepository;
     private final PromotionRepository promotionRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     public AdminDashboardService(ProductRepository productRepository,
             OrderRepository orderRepository,
             UserRepository userRepository,
             OrderAssignmentRepository orderAssignmentRepository,
             OrderItemRepository orderItemRepository,
-            PromotionRepository promotionRepository) {
+            PromotionRepository promotionRepository,
+            ProductVariantRepository productVariantRepository) {
         this.productRepository = productRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.orderAssignmentRepository = orderAssignmentRepository;
         this.orderItemRepository = orderItemRepository;
         this.promotionRepository = promotionRepository;
+        this.productVariantRepository = productVariantRepository;
     }
 
     public long getTotalProducts() {
@@ -112,9 +118,7 @@ public class AdminDashboardService {
     }
 
     private String formatVND(BigDecimal amount) {
-        if (amount == null) {
-            return "0₫";
-        }
+        if (amount == null) return "0₫";
         long value = amount.longValue();
         if (value >= 1_000_000) {
             return String.format("%,d", value / 1_000_000) + "," + String.format("%03d", value % 1_000_000 / 1_000) + " triệu₫";
@@ -320,6 +324,99 @@ public class AdminDashboardService {
                 .multiply(BigDecimal.valueOf(100))
                 .divide(previous, 1, RoundingMode.HALF_UP);
         return (growth.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "") + growth + "%";
+    }
+
+    private static final int LOW_STOCK_THRESHOLD = 20;
+
+    public long getLowStockCount() {
+        return productVariantRepository.countLowStockProducts(LOW_STOCK_THRESHOLD);
+    }
+
+    public List<Map<String, Object>> getLowStockProducts(int limit) {
+        List<Object[]> rows = productVariantRepository.findLowStockProductIds(LOW_STOCK_THRESHOLD);
+        List<Integer> ids = rows.stream().map(r -> (Integer) r[0]).collect(Collectors.toList());
+        if (ids.isEmpty()) return List.of();
+        Map<Integer, Long> stockMap = new HashMap<>();
+        for (Object[] r : rows) {
+            stockMap.put((Integer) r[0], (Long) r[1]);
+        }
+        List<Product> products = productRepository.findAllById(ids);
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (Product p : products) {
+            if (!p.isActive() || !stockMap.containsKey(p.getId())) continue;
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("productId", p.getId());
+            m.put("tenSanPham", p.getTenSanPham());
+            m.put("hinhAnh", p.getHinhAnhChinh());
+            m.put("totalStock", stockMap.get(p.getId()));
+            resultList.add(m);
+        }
+        resultList.sort((a, b) -> Long.compare((Long) a.get("totalStock"), (Long) b.get("totalStock")));
+        return resultList.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    public long getUrgentOrderCount() {
+        LocalDateTime threshold = LocalDateTime.now().minusHours(48);
+        return orderRepository.countByTrangThaiDonAndNgayDatBefore("CHO_XAC_NHAN", threshold);
+    }
+
+    public List<Map<String, Object>> getMonthlyRevenueLast12Months() {
+        List<Map<String, Object>> result = new ArrayList<>();
+        LocalDate now = LocalDate.now();
+        for (int i = 11; i >= 0; i--) {
+            java.time.YearMonth ym = java.time.YearMonth.from(now.minusMonths(i));
+            LocalDateTime start = ym.atDay(1).atStartOfDay();
+            LocalDateTime end = ym.atEndOfMonth().atTime(LocalTime.MAX);
+            BigDecimal rev = orderRepository.sumTongThanhToanByTrangThaiDonAndNgayDatBetween(start, end);
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("month", ym.getMonthValue());
+            row.put("year", ym.getYear());
+            row.put("label", "T" + ym.getMonthValue() + "/" + String.valueOf(ym.getYear()).substring(2));
+            row.put("revenue", rev != null ? rev : BigDecimal.ZERO);
+            result.add(row);
+        }
+        return result;
+    }
+
+    public List<Map<String, Object>> getTopSellingProductsLast7Days(int limit) {
+        LocalDateTime since = LocalDateTime.now().minusDays(7);
+        List<Order> orders = orderRepository.findCompletedOrdersSince(
+                List.of("DA_GIAO", "DA_HOAN_THANH"), since);
+        Map<Integer, Map<String, Object>> productMap = new LinkedHashMap<>();
+        for (Order o : orders) {
+            var items = orderItemRepository.findByOrderId(o.getId());
+            for (var item : items) {
+                if (item.getProductId() == null) continue;
+                productMap.computeIfAbsent(item.getProductId(), k -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("productId", item.getProductId());
+                    m.put("tenSanPham", item.getTenSanPham());
+                    m.put("hinhAnh", item.getHinhAnhSP());
+                    m.put("totalSold", 0);
+                    return m;
+                });
+                productMap.get(item.getProductId()).merge("totalSold", item.getSoLuong(),
+                        (a, b) -> (Integer) a + (Integer) b);
+            }
+        }
+        return productMap.values().stream()
+                .sorted((a, b) -> Integer.compare((Integer) b.get("totalSold"), (Integer) a.get("totalSold")))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, Object> getCancelRefundRate() {
+        long total = orderRepository.count();
+        long cancelled = orderRepository.countByTrangThaiDon("DA_HUY");
+        long refunded = orderRepository.countByTrangThaiDon("DA_HOAN_TIEN");
+        long bad = cancelled + refunded;
+        String rate = total > 0 ? String.format("%.1f%%", (bad * 100.0 / total)) : "0%";
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("total", total);
+        m.put("cancelled", cancelled);
+        m.put("refunded", refunded);
+        m.put("rate", rate);
+        return m;
     }
 
     private String calcChange(long current, long previous) {

@@ -44,8 +44,9 @@
                             <th class="text-end">Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr th:each="banner : ${banners}">
+                    <tbody class="sortable-banners">
+                        <tr th:each="banner : ${banners}" th:data-id="${banner.id}">
+                            <td class="drag-handle"><i class="bi bi-grip-vertical"></i></td>
                             <td><span class="badge text-bg-light" th:text="${banner.displayOrder}">0</span></td>
                             <td>
                                 <img th:src="@{${banner.imageUrl}}" th:alt="${banner.title}"
@@ -99,7 +100,7 @@
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(banners)}">
-                            <td colspan="7" class="text-center text-muted py-5">
+                            <td colspan="8" class="text-center text-muted py-5">
                                 <i class="bi bi-images fs-2 d-block mb-2"></i>
                                 Chưa có banner. Trang chủ vẫn hoạt động bình thường.
                             </td>
@@ -109,5 +110,47 @@
             </div>
         </div>
     </div>
+
+    <th:block layout:fragment="extra-script">
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const tbody = document.querySelector('.sortable-banners');
+                if (!tbody) return;
+
+                new Sortable(tbody, {
+                    handle: '.drag-handle',
+                    animation: 200,
+                    onEnd: function () {
+                        const ids = Array.from(tbody.querySelectorAll('tr[data-id]'))
+                                .map(function (tr) { return parseInt(tr.getAttribute('data-id'), 10); });
+
+                        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+                        fetch('/admin/banner/api/reorder', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                [csrfHeader]: csrfToken
+                            },
+                            body: JSON.stringify({ order: ids })
+                        })
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            if (data.success) {
+                                DuaStore.toast.success('Đã sắp xếp lại banner');
+                            } else {
+                                DuaStore.toast.error(data.message || 'Sắp xếp thất bại');
+                            }
+                        })
+                        .catch(function () {
+                            DuaStore.toast.error('Lỗi kết nối');
+                        });
+                    }
+                });
+            });
+        </script>
+    </th:block>
 </body>
 </html>

@@ -165,52 +165,7 @@
     </div>
 
     <th:block layout:fragment="extra-script">
-        <script>
-            (function () {
-                // ── Card click: data-href ──
-                document.getElementById('imageGrid').addEventListener('click', function (e) {
-                    const card = e.target.closest('[data-href]');
-                    if (!card)
-                        return;
-                    if (e.target.closest('a, button, .dropdown, .adm-image-action, .adm-kebab-btn, label, input, select, textarea'))
-                        return;
-                    window.location.href = card.getAttribute('data-href');
-                });
-
-                // ── KPI click → filter ──
-                const kpiFilter = document.querySelector('[data-filter]');
-                if (kpiFilter) {
-                    kpiFilter.addEventListener('click', function () {
-                        const filter = this.getAttribute('data-filter');
-                        const radio = document.querySelector('input[name=imageFilter][value="' + filter + '"]');
-                        if (radio) {
-                            radio.checked = true;
-                            radio.dispatchEvent(new Event('change'));
-                        }
-                    });
-                }
-
-                // ── Filter pills ──
-                document.querySelectorAll('input[name=imageFilter]').forEach(function (r) {
-                    r.addEventListener('change', function () {
-                        const value = this.value;
-                        document.querySelectorAll('[data-image-count]').forEach(function (card) {
-                            const count = parseInt(card.getAttribute('data-image-count'), 10);
-                            if (value === 'all')
-                                card.style.display = '';
-                            else if (value === 'has')
-                                card.style.display = count > 0 ? '' : 'none';
-                            else if (value === 'missing')
-                                card.style.display = count === 0 ? '' : 'none';
-                        });
-                        document.querySelectorAll('input[name=imageFilter] + .adm-tab').forEach(function (l) {
-                            l.classList.remove('active');
-                        });
-                        this.nextElementSibling.classList.add('active');
-                    });
-                });
-            })();
-        </script>
+        <script th:src="@{/js/admin-product.js}"></script>
     </th:block>
 </body>
 </html>

@@ -12,7 +12,8 @@ public final class OrderStatusUtil {
             "DANG_GIAO", "Đang giao",
             "DA_GIAO", "Đã giao",
             "DA_HOAN_THANH", "Hoàn thành",
-            "DA_HUY", "Đã hủy"
+            "DA_HUY", "Đã hủy",
+            "DA_HOAN_TIEN", "Đã hoàn tiền"
     );
 
     private static final List<String> ORDERED_STATUSES = List.of(

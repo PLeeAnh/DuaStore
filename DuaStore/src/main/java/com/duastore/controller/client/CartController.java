@@ -10,6 +10,7 @@ import com.duastore.service.client.CartService;
 import com.duastore.service.client.SavedCartService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -140,55 +141,6 @@ public class CartController {
         return cart;
     }
 
-    @PostMapping("/api/cart/add")
-    @ResponseBody
-    public Map<String, Object> add(@RequestBody Map<String, Integer> body, HttpSession session) {
-        Integer userId = currentUserId();
-        Integer variantId = body.get("variantId");
-        if (variantId == null && body.get("productId") != null) {
-            variantId = variantRepository.findByProductIdAndIsDefaultTrue(body.get("productId"))
-                    .or(() -> variantRepository.findByProductIdAndIsActiveTrue(body.get("productId")).stream().findFirst())
-                    .map(v -> v.getId())
-                    .orElse(null);
-        }
-        Integer quantity = body.get("soLuong") != null ? body.get("soLuong") : body.get("quantity");
-
-        if (userId == null) {
-            // Guest cart — store in session
-            if (variantId == null) {
-                return failResponse("Vui lòng chọn biến thể sản phẩm");
-            }
-            ProductVariant variant = variantRepository.findById(variantId).orElse(null);
-            if (variant == null || !variant.isActive()) {
-                return failResponse("Sản phẩm không tồn tại");
-            }
-            Map<Integer, Integer> guestCart = getGuestCart(session);
-            int qty = Math.min(Math.max(quantity != null ? quantity : 1, 1), 99);
-            qty = Math.min(qty, variant.getSoLuongTon());
-            guestCart.merge(variantId, qty, Integer::sum);
-            int count = guestCart.values().stream().mapToInt(Integer::intValue).sum();
-            return Map.of("success", true, "message", "OK", "cartCount", count);
-        }
-
-        CartService.CartResult result = cartService.add(userId, variantId, quantity);
-        return response(result);
-    }
-
-    @GetMapping("/api/cart/count")
-    @ResponseBody
-    public Map<String, Object> count(HttpSession session) {
-        Map<String, Object> data = new HashMap<>();
-        Integer userId = currentUserId();
-        if (userId == null) {
-            Map<Integer, Integer> guestCart = getGuestCart(session);
-            int count = guestCart.values().stream().mapToInt(Integer::intValue).sum();
-            data.put("cartCount", count);
-        } else {
-            data.put("cartCount", cartService.count(userId));
-        }
-        return data;
-    }
-
     @PostMapping("/api/cart/save-for-later")
     @ResponseBody
     public Map<String, Object> saveForLater(@RequestBody Map<String, Integer> body, HttpSession session) {
@@ -262,6 +214,21 @@ public class CartController {
         data.put("success", false);
         data.put("message", message);
         return data;
+    }
+
+    @PostMapping("/gio-hang/mua-lai/{orderId}")
+    public String reorder(@PathVariable Integer orderId, RedirectAttributes ra) {
+        Integer userId = currentUserId();
+        if (userId == null) {
+            return "redirect:/dang-nhap";
+        }
+        try {
+            cartService.reorder(userId, orderId);
+            ra.addFlashAttribute("successMsg", "Đã thêm sản phẩm vào giỏ hàng");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/gio-hang";
     }
 
     private Integer currentUserId() {

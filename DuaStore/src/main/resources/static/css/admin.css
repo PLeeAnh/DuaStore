@@ -7,15 +7,15 @@
     --ef-bg: #F5F5F0;
     --ef-surface: #FFFFFF;
     --ef-surface-hover: #F0EFE8;
-    --ef-primary: #D4A800;
-    --ef-primary-dim: #B89200;
-    --ef-primary-glow: 0 0 15px rgba(212, 168, 0, 0.08);
-    --ef-primary-glow-hover: 0 0 20px rgba(212, 168, 0, 0.15);
+    --ef-primary: #2563EB;
+    --ef-primary-dim: #1D4ED8;
+    --ef-primary-glow: 0 0 15px rgba(37, 99, 235, 0.08);
+    --ef-primary-glow-hover: 0 0 20px rgba(37, 99, 235, 0.15);
     --ef-border: #E0E0D8;
     --ef-text: #1A1A1A;
     --ef-text-muted: #888888;
     --ef-blue: #2563EB;
-    --ef-red: #2563eb;
+    --ef-red: #2563EB;
     --ef-green: #16A34A;
     --adm-sidebar-bg: #FFFFFF;
     --adm-sidebar-hover: rgba(13, 110, 253, 0.08);
@@ -357,6 +357,10 @@ body.adm-body {
     border: 1px solid var(--ef-border);
     box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
     transition: border-color .2s, box-shadow .2s;
+}
+
+.row.g-3.mb-4 > [class*="col-"] > .adm-stat {
+    height: 100%;
 }
 
 .adm-stat:hover {

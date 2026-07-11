@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Thông tin danh mục bài viết</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/danh-muc-bai-viet}">Danh mục bài viết</a></li>
+        <li class="breadcrumb-item active" th:text="${category.id == null ? 'Thêm mới' : 'Chỉnh sửa'}"></li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-page-header">
+            <h4>
+                <i class="bi bi-folder me-2"></i>
+                <span th:text="${category.id == null ? 'Thêm danh mục bài viết' : 'Chỉnh sửa danh mục bài viết'}"></span>
+            </h4>
+        </div>
+
+        <div class="adm-form-wrap">
+            <form th:action="@{${formAction}}" th:object="${category}" method="post" data-dirty-bar class="row g-3">
+                <input type="hidden" th:field="*{id}"/>
+
+                <div th:if="${#fields.hasGlobalErrors()}" class="col-12">
+                    <div class="alert alert-danger mb-0" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label">Tên danh mục <span class="text-danger">*</span></label>
+                    <input type="text" th:field="*{tenDanhMuc}" class="form-control" maxlength="200" required
+                           placeholder="Ví dụ: Hướng dẫn, Xu hướng, Mẹo hay..."/>
+                    <div th:errors="*{tenDanhMuc}" class="text-danger small"></div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Thứ tự hiển thị</label>
+                    <input type="number" th:field="*{thuTu}" class="form-control" min="0" max="100000"/>
+                    <div th:errors="*{thuTu}" class="text-danger small"></div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Slug</label>
+                    <input type="text" th:field="*{slug}" class="form-control" maxlength="300"
+                           placeholder="Để trống hệ thống tự tạo từ tên danh mục"/>
+                    <div th:errors="*{slug}" class="text-danger small"></div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Mô tả</label>
+                    <textarea th:field="*{moTa}" class="form-control" rows="3" maxlength="500"
+                              placeholder="Mô tả ngắn về danh mục"></textarea>
+                    <div th:errors="*{moTa}" class="text-danger small"></div>
+                </div>
+
+                <div class="col-12 pt-2">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu danh mục</button>
+                    <a th:href="@{/admin/danh-muc-bai-viet}" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

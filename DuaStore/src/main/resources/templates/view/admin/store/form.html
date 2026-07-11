@@ -109,28 +109,28 @@
                         <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-images me-1"></i>Ảnh cửa hàng</h6>
                     </div>
                     <div class="col-12">
-                        <div class="d-flex flex-wrap gap-3" id="storeImagesPreview">
+                        <div class="gallery-upload-zone" id="storeImagesZone" style="cursor:pointer">
+                            <input type="file" accept="image/*" multiple hidden id="storeImagesFile" />
+                            <div class="gallery-upload-content">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                <p>Click để thêm ảnh vào bộ sưu tập</p>
+                                <small class="text-muted">Hỗ trợ JPG, PNG, WEBP</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="store_images" id="storeImagesInput"
+                               th:value="${settings.get('store_images')}" />
+                        <div id="storeGalleryGrid" class="adm-gallery-grid mt-3">
                             <th:block th:if="${settings.get('store_images') != null and settings.get('store_images') != ''}">
                                 <th:block th:each="img : ${#strings.listSplit(settings.get('store_images'), ',')}">
-                                    <div class="position-relative store-img-item" th:data-url="${#strings.trim(img)}">
-                                        <img th:src="${#strings.trim(img)}" alt="Ảnh cửa hàng"
-                                             style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />
-                                        <button type="button" class="btn btn-sm position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center store-img-remove"
-                                                style="width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:.7rem;line-height:1"
-                                                title="Xóa ảnh"><i class="bi bi-x"></i></button>
+                                    <div class="adm-gallery-item store-img-item" th:data-url="${#strings.trim(img)}">
+                                        <img th:src="${#strings.trim(img)}" alt="Ảnh cửa hàng" />
+                                        <div class="adm-gallery-action">
+                                            <button type="button" class="btn btn-sm btn-danger btn-icon store-img-remove" style="width:28px;height:28px;font-size:12px"><i class="bi bi-trash"></i></button>
+                                        </div>
                                     </div>
                                 </th:block>
                             </th:block>
                         </div>
-                        <input type="hidden" name="store_images" id="storeImagesInput"
-                               th:value="${settings.get('store_images')}" />
-                        <label class="btn btn-outline-primary btn-sm mt-2" style="cursor:pointer">
-                            <i class="bi bi-plus-lg me-1"></i>Thêm ảnh
-                            <input type="file" accept="image/*" multiple style="display:none" id="storeImagesFile" />
-                        </label>
-                    </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
                     </div>
                 </form>
             </div>
@@ -160,72 +160,8 @@
                     if (!bhData[day]) bhData[day] = {open:false, allDay:false, slots:[]};
                 }
 
-                function formatTimeDisplay(raw) {
-                    if (!raw) return '';
-                    var digits = raw.replace(/[^0-9ap]/gi, '');
-                    if (!digits) return '';
-                    var h = '', m = '', ap = '';
-                    if (digits.length >= 1) h = digits.substring(0, 2);
-                    if (digits.length >= 3) m = digits.substring(2, 4);
-                    if (digits.length >= 5) ap = digits.substring(4, 5).toLowerCase();
-                    var hNum = parseInt(h, 10);
-                    if (!isNaN(hNum)) {
-                        if (hNum > 23) hNum = 23;
-                        h = String(hNum).padStart(2, '0');
-                    }
-                    var mNum = parseInt(m, 10);
-                    if (!isNaN(mNum)) {
-                        if (mNum > 59) mNum = 59;
-                        m = String(mNum).padStart(2, '0');
-                    }
-                    var result = h;
-                    if (m) result += ':' + m;
-                    if (ap === 'a') result += ' AM';
-                    else if (ap === 'p') result += ' PM';
-                    return result;
-                }
-
-                function parseTimeForStorage(display) {
-                    if (!display) return '';
-                    var match = display.match(/(\d{1,2}):?(\d{2})?\s*(AM|PM|am|pm)?/i);
-                    if (!match) return display;
-                    var h = match[1].padStart(2, '0');
-                    var m = match[2] || '00';
-                    var ap = match[3] ? match[3].toUpperCase() : '';
-                    return h + ':' + m + (ap ? ' ' + ap : '');
-                }
-
                 function initTimeInputs() {
-                    document.querySelectorAll('.time-input').forEach(function(input) {
-                        input.removeEventListener('focus', onTimeFocus);
-                        input.removeEventListener('blur', onTimeBlur);
-                        input.addEventListener('focus', onTimeFocus);
-                        input.addEventListener('blur', onTimeBlur);
-                    });
                 }
-
-                function onTimeFocus(e) {
-                    var v = e.target.value;
-                    e.target.dataset.raw = v.replace(/[^0-9ap]/gi, '');
-                }
-
-                function onTimeBlur(e) {
-                    var input = e.target;
-                    var raw = (input.dataset.raw || '').replace(/[^0-9ap]/gi, '');
-                    input.value = formatTimeDisplay(raw);
-                }
-
-                document.addEventListener('input', function(e) {
-                    if (!e.target.classList.contains('time-input')) return;
-                    var input = e.target;
-                    var pos = input.selectionStart;
-                    var oldLen = input.value.length;
-                    var raw = input.value.replace(/[^0-9ap]/gi, '');
-                    var formatted = formatTimeDisplay(raw);
-                    input.value = formatted;
-                    var diff = formatted.length - oldLen;
-                    input.setSelectionRange(pos + diff, pos + diff);
-                });
 
                 function renderButtons() {
                     dayBtns.querySelectorAll('.bh-day-btn').forEach(function(btn) {
@@ -275,18 +211,16 @@
                         bhSlots.style.display = '';
                         bhAddSlot.style.display = '';
                         (data.slots || []).forEach(function(slot, idx) {
-                            var openVal = formatTimeDisplay(slot.open || '');
-                            var closeVal = formatTimeDisplay(slot.close || '');
                             var row = document.createElement('div');
                             row.className = 'd-flex align-items-center gap-3 mb-2';
                             row.innerHTML =
                                 '<div style="flex:1">' +
                                     '<label class="small text-muted">Giờ mở cửa</label>' +
-                                    '<input type="text" class="form-control form-control-sm bh-slot-open time-input" data-idx="' + idx + '" value="' + openVal + '" placeholder="HH:MM" maxlength="8" autocomplete="off" />' +
+                                    '<input type="time" class="form-control form-control-sm bh-slot-open time-input" data-idx="' + idx + '" value="' + (slot.open||'') + '" step="60" />' +
                                 '</div>' +
                                 '<div style="flex:1">' +
                                     '<label class="small text-muted">Giờ đóng cửa</label>' +
-                                    '<input type="text" class="form-control form-control-sm bh-slot-close time-input" data-idx="' + idx + '" value="' + closeVal + '" placeholder="HH:MM" maxlength="8" autocomplete="off" />' +
+                                    '<input type="time" class="form-control form-control-sm bh-slot-close time-input" data-idx="' + idx + '" value="' + (slot.close||'') + '" step="60" />' +
                                 '</div>' +
                                 '<button type="button" class="btn btn-sm mt-3 bh-slot-remove" data-idx="' + idx + '" style="color:#dc3545;border:none;font-size:1.1rem" title="Xóa"><i class="bi bi-x-lg"></i></button>';
                             bhSlots.appendChild(row);
@@ -399,13 +333,6 @@
 
                 function saveBH() {
                     var toSave = JSON.parse(JSON.stringify(bhData));
-                    Object.keys(toSave).forEach(function(d) {
-                        if (toSave[d].slots) {
-                            toSave[d].slots = toSave[d].slots.map(function(s) {
-                                return { open: parseTimeForStorage(s.open), close: parseTimeForStorage(s.close) };
-                            });
-                        }
-                    });
                     bhInput.value = JSON.stringify(toSave);
                 }
 
@@ -419,23 +346,24 @@
                 renderSlots();
 
                 var storeImagesInput = document.getElementById('storeImagesInput');
-                var preview = document.getElementById('storeImagesPreview');
+                var galleryGrid = document.getElementById('storeGalleryGrid');
 
-                function refreshPreview() {
+                function refreshGallery() {
                     var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
-                    preview.innerHTML = '';
+                    galleryGrid.innerHTML = '';
                     urls.forEach(function(url) {
                         var div = document.createElement('div');
-                        div.className = 'position-relative store-img-item';
+                        div.className = 'adm-gallery-item store-img-item';
                         div.dataset.url = url;
-                        div.innerHTML = '<img src="' + url + '" alt="Ảnh cửa hàng" style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6" />' +
-                            '<button type="button" class="btn btn-sm position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center store-img-remove" ' +
-                            'style="width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:.7rem;line-height:1" title="Xóa ảnh"><i class="bi bi-x"></i></button>';
-                        preview.appendChild(div);
+                        div.innerHTML = '<img src="' + url + '" alt="Ảnh cửa hàng" />' +
+                            '<div class="adm-gallery-action">' +
+                                '<button type="button" class="btn btn-sm btn-danger btn-icon store-img-remove" style="width:28px;height:28px;font-size:12px"><i class="bi bi-trash"></i></button>' +
+                            '</div>';
+                        galleryGrid.appendChild(div);
                     });
                 }
 
-                preview.addEventListener('click', function(e) {
+                galleryGrid.addEventListener('click', function(e) {
                     var btn = e.target.closest('.store-img-remove');
                     if (!btn) return;
                     var item = btn.closest('.store-img-item');
@@ -444,7 +372,11 @@
                     var urls = storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean);
                     urls = urls.filter(function(u){ return u !== url });
                     storeImagesInput.value = urls.join(',');
-                    refreshPreview();
+                    refreshGallery();
+                });
+
+                document.getElementById('storeImagesZone').addEventListener('click', function() {
+                    document.getElementById('storeImagesFile').click();
                 });
 
                 document.getElementById('storeImagesFile').addEventListener('change', function() {
@@ -455,7 +387,7 @@
                     files.forEach(function(file) {
                         var fd = new FormData();
                         fd.append('file', file);
-                        fetch('/admin/upload', { method: 'POST', body: fd })
+                        fetch('/admin/cua-hang/upload', { method: 'POST', body: fd })
                             .then(function(r){ return r.json(); })
                             .then(function(data){
                                 if (data.url) uploaded.push(data.url);
@@ -464,7 +396,7 @@
                                     var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
                                     urls = urls.concat(uploaded);
                                     storeImagesInput.value = urls.join(',');
-                                    refreshPreview();
+                                    refreshGallery();
                                 }
                             })
                             .catch(function(){
@@ -473,7 +405,7 @@
                                     var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
                                     urls = urls.concat(uploaded);
                                     storeImagesInput.value = urls.join(',');
-                                    refreshPreview();
+                                    refreshGallery();
                                 }
                             });
                     });
