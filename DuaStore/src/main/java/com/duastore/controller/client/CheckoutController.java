@@ -177,6 +177,7 @@ public class CheckoutController {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
             BigDecimal fee = shippingFeeService.calculateFee(address, method);
             res.put("fee", fee);
+            res.put("deliveryDays", shippingFeeService.getDeliveryDays(method));
             res.put("success", true);
         } catch (RuntimeException e) {
             res.put("success", false);
@@ -199,7 +200,8 @@ public class CheckoutController {
         try {
             Order order = orderService.processCheckout(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
-                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
+                    req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0
             );
 
             try {
@@ -302,6 +304,16 @@ public class CheckoutController {
         model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
         model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
+        model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
+        List<Promotion> activePromotions = getActivePromotions();
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        model.addAttribute("bestPromo", bestPromo);
+        Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
+        Map<String, Boolean> paymentMethods = new HashMap<>();
+        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
+        paymentMethods.put("vnpay", true);
+        model.addAttribute("paymentMethods", paymentMethods);
     }
 
     private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {

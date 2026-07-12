@@ -52,6 +52,13 @@ public class AddressController {
                 res.put("message", "Số nhà, đường không được nhập tên tỉnh/quận/phường");
                 return ResponseEntity.ok(res);
             }
+            Integer existingId = address.getId() != null ? address.getId() : 0;
+            if (addressRepository.countByUserIdAndTenNguoiNhanAndSoDienThoaiAndTinhThanhAndQuanHuyenAndPhuongXaAndDiaChiCuTheAndIdNot(
+                    userId, address.getTenNguoiNhan(), address.getSoDienThoai(), address.getTinhThanh(), address.getQuanHuyen(), address.getPhuongXa(), address.getDiaChiCuThe(), existingId) > 0) {
+                res.put("success", false);
+                res.put("message", "Địa chỉ này đã tồn tại");
+                return ResponseEntity.ok(res);
+            }
             if (Boolean.TRUE.equals(address.getIsDefault())) {
                 addressRepository.clearDefaultAddressByUserId(userId);
             }

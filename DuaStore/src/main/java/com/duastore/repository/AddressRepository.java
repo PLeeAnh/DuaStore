@@ -14,6 +14,9 @@ public interface AddressRepository extends JpaRepository<Address, Integer> {
 
     long countByUserId(Integer userId);
 
+    long countByUserIdAndTenNguoiNhanAndSoDienThoaiAndTinhThanhAndQuanHuyenAndPhuongXaAndDiaChiCuTheAndIdNot(
+            Integer userId, String tenNguoiNhan, String soDienThoai, String tinhThanh, String quanHuyen, String phuongXa, String diaChiCuThe, Integer id);
+
     @Query("SELECT DISTINCT a.tinhThanh FROM Address a WHERE a.tinhThanh IS NOT NULL AND a.tinhThanh <> '' ORDER BY a.tinhThanh")
     List<String> findAllDistinctCities();
 

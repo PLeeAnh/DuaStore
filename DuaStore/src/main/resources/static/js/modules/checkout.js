@@ -190,25 +190,31 @@ function modalSetFromNominatim(tinhThanh, quanHuyen, phuongXa, diaChi) {
 }
 
 function initCheckoutMap() {
-    if (window.checkoutMap) return;
-    var mapEl = document.getElementById('checkoutGoogleMap');
+    if (window.checkoutMap && typeof window.checkoutMap.setView === 'function') return;
+    var mapEl = document.getElementById('checkoutMap');
     if (!mapEl) return;
-    var lat = window.storeLat || 20.8565;
-    var lng = window.storeLng || 106.6756;
-    window.checkoutMap = L.map(mapEl, { center: [lat, lng], zoom: 13, zoomControl: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(window.checkoutMap);
-    window.checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(window.checkoutMap);
-    window.checkoutMarker.on('dragend', function () {
-        var p = window.checkoutMarker.getLatLng();
-        document.getElementById('modalLatitude').value = p.lat.toFixed(6);
-        document.getElementById('modalLongitude').value = p.lng.toFixed(6);
-    });
-    window.checkoutMap.on('click', function (e) {
-        window.checkoutMarker.setLatLng(e.latlng);
-        document.getElementById('modalLatitude').value = e.latlng.lat.toFixed(6);
-        document.getElementById('modalLongitude').value = e.latlng.lng.toFixed(6);
-    });
-    setTimeout(function () { window.checkoutMap.invalidateSize(); }, 200);
+    try {
+        var lat = window.storeLat || 20.8565;
+        var lng = window.storeLng || 106.6756;
+        window.checkoutMap = L.map(mapEl, { center: [lat, lng], zoom: 13, zoomControl: true });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(window.checkoutMap);
+        window.checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(window.checkoutMap);
+        window.checkoutMarker.on('dragend', function () {
+            var p = window.checkoutMarker.getLatLng();
+            document.getElementById('modalLatitude').value = p.lat.toFixed(6);
+            document.getElementById('modalLongitude').value = p.lng.toFixed(6);
+        });
+        window.checkoutMap.on('click', function (e) {
+            window.checkoutMarker.setLatLng(e.latlng);
+            document.getElementById('modalLatitude').value = e.latlng.lat.toFixed(6);
+            document.getElementById('modalLongitude').value = e.latlng.lng.toFixed(6);
+        });
+        setTimeout(function () { if (window.checkoutMap) window.checkoutMap.invalidateSize(); }, 200);
+        setTimeout(function () { if (window.checkoutMap) window.checkoutMap.invalidateSize(); }, 500);
+    } catch (e) {
+        console.warn('Leaflet init failed:', e);
+        window.checkoutMap = null;
+    }
 }
 
 function reverseGeocodeForModal(lat, lng) {
@@ -258,11 +264,11 @@ function showAddressForm() {
     document.getElementById('modalLongitude').value = '';
     document.getElementById('modalIsDefault').checked = false;
     document.getElementById('modalMapStatus').textContent = '';
-    if (window.checkoutMap) {
+    if (window.checkoutMap && typeof window.checkoutMap.setView === 'function') {
         var lat = window.storeLat || 20.8565;
         var lng = window.storeLng || 106.6756;
-        checkoutMap.setView([lat, lng], 13);
-        if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+        window.checkoutMap.setView([lat, lng], 13);
+        if (window.checkoutMarker && typeof window.checkoutMarker.setLatLng === 'function') window.checkoutMarker.setLatLng([lat, lng]);
     }
     loadModalProvinces();
 }
@@ -311,8 +317,8 @@ function editAddress(id) {
         document.getElementById('modalLongitude').value = lng || '';
         document.getElementById('modalIsDefault').checked = !!data.isDefault;
         if (lat && lng && window.checkoutMap) {
-            checkoutMap.setView([lat, lng], 16);
-            if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+            window.checkoutMap.setView([lat, lng], 16);
+            if (window.checkoutMarker) window.checkoutMarker.setLatLng([lat, lng]);
         }
 
         provincesPromise.then(function (provinces) {
@@ -348,8 +354,8 @@ function modalSearchMap() {
                 var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
                 document.getElementById('modalLatitude').value = lat;
                 document.getElementById('modalLongitude').value = lng;
-                if (window.checkoutMap) { checkoutMap.setView([lat, lng], 16); }
-                if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+                if (window.checkoutMap) { window.checkoutMap.setView([lat, lng], 16); }
+                if (window.checkoutMarker) window.checkoutMarker.setLatLng([lat, lng]);
                 var comps = r.address || {};
                 var city = comps.city || comps.town || comps.county || comps.state_district || '';
                 var district = comps.district || '';
@@ -374,8 +380,8 @@ function modalGetMyLocation() {
         var lng = pos.coords.longitude;
         document.getElementById('modalLatitude').value = lat;
         document.getElementById('modalLongitude').value = lng;
-        if (window.checkoutMap) { checkoutMap.setView([lat, lng], 16); }
-        if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+        if (window.checkoutMap && typeof window.checkoutMap.setView === 'function') { window.checkoutMap.setView([lat, lng], 16); }
+        if (window.checkoutMarker && typeof window.checkoutMarker.setLatLng === 'function') window.checkoutMarker.setLatLng([lat, lng]);
         reverseGeocodeForModal(lat, lng);
     }, function () {
         document.getElementById('modalMapStatus').textContent = 'Không thể lấy vị trí. Kiểm tra quyền GPS.';
@@ -387,11 +393,11 @@ function modalClearMap() {
     document.getElementById('modalLatitude').value = '';
     document.getElementById('modalLongitude').value = '';
     document.getElementById('modalMapStatus').textContent = '';
-    if (window.checkoutMap) {
+    if (window.checkoutMap && typeof window.checkoutMap.setView === 'function') {
         var lat = window.storeLat || 20.8565;
         var lng = window.storeLng || 106.6756;
-        checkoutMap.setView([lat, lng], 13);
-        if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+        window.checkoutMap.setView([lat, lng], 13);
+        if (window.checkoutMarker && typeof window.checkoutMarker.setLatLng === 'function') window.checkoutMarker.setLatLng([lat, lng]);
     }
 }
 
@@ -408,7 +414,7 @@ function parseAndFillModalAddress(q) {
             );
 }
 
-function saveAddressFromModal() {
+async function saveAddressFromModal() {
     var ten = document.getElementById('modalTenNguoiNhan').value.trim();
     var sdt = document.getElementById('modalSoDienThoai').value.trim();
     var dc = document.getElementById('modalDiaChiCuTheText').value.trim();
@@ -471,6 +477,28 @@ function saveAddressFromModal() {
             DuaStore.toast.warning('Số nhà, đường không được nhập tên phường/xã');
             return;
         }
+    }
+
+    /* ── Validate geocoded location matches selected combo ── */
+    var lat = document.getElementById('modalLatitude').value;
+    var lng = document.getElementById('modalLongitude').value;
+    if (lat && lng) {
+        var geoUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1&accept-language=vi';
+        try {
+            var geoResp = await fetch(geoUrl, { headers: { 'User-Agent': 'DuaStore/1.0' } });
+            if (geoResp.ok) {
+                var geoData = await geoResp.json();
+                if (geoData && !geoData.error) {
+                    var geoProvince = (geoData.address && (geoData.address.state || geoData.address.city || geoData.address.county || '')) || '';
+                    var selectedProvince = document.getElementById('modalTinhThanh').value || '';
+                    if (geoProvince && selectedProvince && geoProvince.toLowerCase().indexOf(selectedProvince.toLowerCase().replace('thành phố ', '').replace('tỉnh ', '')) === -1
+                            && selectedProvince.toLowerCase().indexOf(geoProvince.toLowerCase().replace('thành phố ', '').replace('tỉnh ', '')) === -1) {
+                        var confirmed = await DuaStore.confirm('Địa chỉ trên bản đồ thuộc "' + geoProvince + '" nhưng bạn đang chọn "' + selectedProvince + '". Vẫn lưu?');
+                        if (!confirmed) return;
+                    }
+                }
+            }
+        } catch (_) {}
     }
 
     var formData = new URLSearchParams();
@@ -545,24 +573,28 @@ function updateShipFee() {
         DuaStore.api.get('/checkout/shipping-fee?addressId=' + addrId + '&method=' + m)
                 .then(function (result) {
                     if (result.ok && result.data.success)
-                        cb(result.data.fee);
+                        cb(result.data.fee, result.data.deliveryDays);
                 });
     }
-    fetchFee(method, function (fee) {
+    fetchFee(method, function (fee, deliveryDays) {
         document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + '₫';
+        var today = new Date();
+        var minDate = new Date(today); minDate.setDate(today.getDate() + (deliveryDays || 7));
+        var maxDate = new Date(today); maxDate.setDate(today.getDate() + (deliveryDays || 7) + 2);
+        var el = document.getElementById('estimatedDeliveryEl');
+        if (el) el.textContent =  minDate.toLocaleDateString('vi-VN') + ' – ' + maxDate.toLocaleDateString('vi-VN');
         updateTotal();
     });
-    fetchFee('SHIP', function (fee) {
-        var el = document.getElementById('shipTTPrice');
-        if (el) el.textContent = fee.toLocaleString('vi-VN') + 'đ';
+    fetchFee('EXPRESS', function (fee) {
+        var el = document.getElementById('shipExpressPrice');
+        if (el) el.textContent = fee.toLocaleString('vi-VN') + '₫';
     });
-}
-
-function updateTotal() {
-    var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
-    var fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
-    var total = subtotal + fee - window.appliedDiscount;
-    document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '₫';
+    fetchFee('SHIP', function (fee) {
+        var el = document.getElementById('shipSafePrice');
+        if (el) el.textContent = fee.toLocaleString('vi-VN') + '₫';
+        var ttEl = document.getElementById('shipTTPrice');
+        if (ttEl) ttEl.textContent = fee.toLocaleString('vi-VN') + 'đ';
+    });
 }
 
 /* ═══ DOM READY ═══ */
@@ -604,8 +636,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 var lat = parseFloat(r.lat), lng = parseFloat(r.lon);
                                 document.getElementById('modalLatitude').value = lat;
                                 document.getElementById('modalLongitude').value = lng;
-                                if (window.checkoutMap) { checkoutMap.setView([lat, lng], 16); }
-                                if (window.checkoutMarker) checkoutMarker.setLatLng([lat, lng]);
+                                if (window.checkoutMap) { window.checkoutMap.setView([lat, lng], 16); }
+                                if (window.checkoutMarker) window.checkoutMarker.setLatLng([lat, lng]);
                                 var comps = r.address || {};
                                 var city = comps.city || comps.town || comps.county || comps.state_district || '';
                                 var district = comps.district || '';
@@ -789,17 +821,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     document.querySelectorAll('input[name="phuongThucTT"]').forEach(function (el) {
         el.addEventListener('change', function () {
-            document.getElementById('ckInfo').style.display = el.value === 'CHUYEN_KHOAN' && el.checked ? 'block' : 'none';
+            var ckInfoEl = document.getElementById('ckInfo'); if (ckInfoEl) ckInfoEl.style.display = el.value === 'CHUYEN_KHOAN' && el.checked ? 'block' : 'none';
         });
     });
-    /* ── Click address card in checkout → set default ── */
+    /* ── Click address card in checkout → select radio + update fee ── */
     document.querySelector('.ds-address-card-list')?.addEventListener('click', function (e) {
         var card = e.target.closest('.ds-address-card');
         if (!card) return;
         if (e.target.closest('.ds-address-card-actions') || e.target.closest('.ds-kebab-btn')) return;
-        var id = card.querySelector('input[name="addressId"]')?.value;
-        if (!id) return;
-        setDefaultAddress(id);
+        var radio = card.querySelector('input[name="addressId"]');
+        if (!radio) return;
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
     });
 
     document.querySelectorAll('input[name="addressId"]').forEach(function (el) {
@@ -818,7 +851,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var addrModal = document.getElementById('addressModal');
     if (addrModal) {
         addrModal.addEventListener('shown.bs.modal', function () {
-            if (window.checkoutMap) setTimeout(function() { window.checkoutMap.invalidateSize(); }, 150);
+            if (window.checkoutMap && typeof window.checkoutMap.invalidateSize === 'function') setTimeout(function() { window.checkoutMap.invalidateSize(); }, 150);
         });
     }
 
@@ -829,17 +862,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.closest('.ds-address-card-actions') || e.target.closest('.ds-kebab-btn')) return;
         var id = cardBody.getAttribute('data-id');
         if (!id) return;
-        setDefaultAddress(id);
         var radio = document.querySelector('input[name="addressId"][value="' + id + '"]');
         if (radio) {
             radio.checked = true;
             radio.dispatchEvent(new Event('change'));
         }
-        document.querySelectorAll('#addressModalList .ds-address-card').forEach(function (c) {
-            c.classList.remove('is-selected');
-        });
-        var card = cardBody.closest('.ds-address-card');
-        if (card) card.classList.add('is-selected');
+        closeAddressModal();
     });
 
 });

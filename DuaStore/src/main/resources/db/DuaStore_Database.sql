@@ -615,10 +615,20 @@ GO
     alter table UserVouchers 
        add constraint UKg1q4hrfehhwey62vcyt9tj3ge unique (userId, promotionId);
 
-    alter table Wishlists 
+    alter table Wishlists
        add constraint UKnyiaslokuixrb7h9fpmo6j4nc unique (userId, productId);
 
-    alter table admin_action_logs 
+    alter table CustomerNotes
+       add constraint FK_CustomerNotes_userId
+       foreign key (userId)
+       references users;
+
+    alter table CustomerTags
+       add constraint FK_CustomerTags_userId
+       foreign key (userId)
+       references users;
+
+    alter table admin_action_logs
        add constraint FKb2noouv518ekq5ffcxosgdj4g 
        foreign key (adminId) 
        references users;
@@ -733,10 +743,40 @@ GO
        foreign key (promotionId) 
        references Promotions;
 
-    alter table Wishlists 
-       add constraint FKl8me5k171y8fskc8x4r5ht3nc 
-       foreign key (productId) 
+    alter table Wishlists
+       add constraint FKl8me5k171y8fskc8x4r5ht3nc
+       foreign key (productId)
        references Products;
+
+    alter table user_auth_providers
+       add constraint FK_user_auth_providers_userId
+       foreign key (userId)
+       references users;
+
+    alter table PriceHistory
+       add constraint FK_PriceHistory_variantId
+       foreign key (variantId)
+       references ProductVariants;
+
+    alter table PriceHistory
+       add constraint FK_PriceHistory_productId
+       foreign key (productId)
+       references Products;
+
+    alter table PriceHistory
+       add constraint FK_PriceHistory_nguoiThayDoiId
+       foreign key (nguoiThayDoiId)
+       references users;
+
+    alter table LoyaltyTransactions
+       add constraint FK_LoyaltyTransactions_userId
+       foreign key (userId)
+       references users;
+
+    alter table ReviewImages
+       add constraint FK_ReviewImages_reviewId
+       foreign key (reviewId)
+       references Reviews;
 GO
 
 -- ============================================================
