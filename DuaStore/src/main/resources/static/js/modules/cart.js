@@ -41,10 +41,8 @@ function togglePopup(popupId, markAsViewed) {
                     saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
                 }
             } else if (popupId === 'cart-popup') {
-                var cBadge = document.getElementById('cartBadge');
-                if (cBadge) cBadge.classList.add('d-none');
-                if (typeof saveViewedCount === 'function' && typeof getBadgeCount === 'function') {
-                    saveViewedCount('ds_viewedCartCount', getBadgeCount('cartBadge'));
+                if (typeof updateCartBadge === 'function' && typeof getBadgeCount === 'function') {
+                    updateCartBadge(getBadgeCount('cartBadge'));
                 }
             }
         }

@@ -189,16 +189,14 @@ function setPopupBadge(badgeId, count, visible) {
 
 document.addEventListener('DOMContentLoaded', function() {
         var cartCount = getBadgeCount('cartBadge');
-        var viewedCart = getViewedCount('ds_viewedCartCount');
-        setPopupBadge('cartBadge', cartCount, cartCount > 0 && cartCount !== viewedCart);
+        setPopupBadge('cartBadge', cartCount, cartCount > 0);
 
         var wishCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
         var viewedWish = getViewedCount('ds_viewedWishCount');
         setPopupBadge('wishlistBadge', wishCount, wishCount > 0 && wishCount !== viewedWish);
 
         var notifCount = getBadgeCount('notifBadge');
-        var viewedNotif = getViewedCount('ds_viewedNotifCount');
-        setPopupBadge('notifBadge', notifCount, notifCount > 0 && notifCount !== viewedNotif);
+        setPopupBadge('notifBadge', notifCount, notifCount > 0);
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
@@ -216,9 +214,7 @@ if (popupId === 'wishlist-popup') {
                 if (wBadge) wBadge.classList.add('d-none');
                 saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
         } else if (popupId === 'cart-popup') {
-        var cBadge = document.getElementById('cartBadge');
-                if (cBadge) cBadge.classList.add('d-none');
-                saveViewedCount('ds_viewedCartCount', getBadgeCount('cartBadge'));
+                setPopupBadge('cartBadge', getBadgeCount('cartBadge'), getBadgeCount('cartBadge') > 0);
         }
 }
 }
@@ -385,12 +381,6 @@ container.innerHTML = `
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
         togglePopup('notif-popup');
-        var popup = document.getElementById('notif-popup');
-        if (popup && popup.style.display === 'block') {
-        var nBadge = document.getElementById('notifBadge');
-                if (nBadge) nBadge.classList.add('d-none');
-                saveViewedCount('ds_viewedNotifCount', getBadgeCount('notifBadge'));
-        }
 }
 function markNotifRead(id) {
         fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
@@ -424,8 +414,7 @@ function pollNotifications() {
                 if (badge) {
         var count = data.count || 0;
                 badge.textContent = count > 99 ? '99+' : String(count);
-                var viewedCount = getViewedCount('ds_viewedNotifCount');
-                if (count > 0 && count !== viewedCount) {
+                if (count > 0) {
         badge.classList.remove('d-none');
                 } else {
         badge.classList.add('d-none');
