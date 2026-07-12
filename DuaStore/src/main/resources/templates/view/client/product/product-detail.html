@@ -720,8 +720,10 @@
                     if (!data)
                         return;
                     if (data.success) {
+                        if (typeof markCartBadgeUnread === 'function')
+                            markCartBadgeUnread();
                         if (typeof updateCartBadge === 'function')
-                            updateCartBadge(data.cartCount);
+                            updateCartBadge(data.cartCount, true);
                         addCartPopupItemFromDetail(productId, variantId, qty, productName, validImgSrc, variantName, rawPrice, selectedStock);
                         if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
                             DuaStore.toast.success('Đã thêm vào giỏ hàng');

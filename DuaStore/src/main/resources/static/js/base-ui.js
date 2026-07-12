@@ -180,6 +180,16 @@ function saveViewedCount(key, count) {
         localStorage.setItem(key, String(count));
 }
 
+function markCartBadgeUnread() {
+        try { localStorage.removeItem('ds_viewedCartCount'); } catch (e) {}
+}
+
+function markCartBadgeViewed() {
+        var count = getBadgeCount('cartBadge');
+        saveViewedCount('ds_viewedCartCount', count);
+        setPopupBadge('cartBadge', count, false);
+}
+
 function setPopupBadge(badgeId, count, visible) {
         var badge = document.getElementById(badgeId);
         if (!badge) return;
@@ -189,7 +199,8 @@ function setPopupBadge(badgeId, count, visible) {
 
 document.addEventListener('DOMContentLoaded', function() {
         var cartCount = getBadgeCount('cartBadge');
-        setPopupBadge('cartBadge', cartCount, cartCount > 0);
+        var viewedCart = getViewedCount('ds_viewedCartCount');
+        setPopupBadge('cartBadge', cartCount, cartCount > 0 && cartCount !== viewedCart);
 
         var wishCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
         var viewedWish = getViewedCount('ds_viewedWishCount');
@@ -214,7 +225,7 @@ if (popupId === 'wishlist-popup') {
                 if (wBadge) wBadge.classList.add('d-none');
                 saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
         } else if (popupId === 'cart-popup') {
-                setPopupBadge('cartBadge', getBadgeCount('cartBadge'), getBadgeCount('cartBadge') > 0);
+                markCartBadgeViewed();
         }
 }
 }
@@ -275,13 +286,7 @@ method: 'POST',
                 return;
                 }
 
-        const items = document.querySelectorAll('#cart-items-container .popup-item');
-                let totalQty = 0;
-                items.forEach(item => {
-                const inp = item.querySelector('input[id^="popup-qty-"]');
-                        totalQty += inp ? parseInt(inp.value) || 1 : 1;
-                });
-                if (typeof updateCartBadge === 'function') updateCartBadge(totalQty);
+                if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
                 })
         .catch(err => {
         console.error('Lỗi đồng bộ giỏ hàng:', err);
