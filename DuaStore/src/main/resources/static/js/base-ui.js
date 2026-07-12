@@ -179,6 +179,16 @@ function saveViewedCount(key, count) {
         localStorage.setItem(key, String(count));
 }
 
+function markCartBadgeUnread() {
+        try { localStorage.removeItem('ds_viewedCartCount'); } catch (e) {}
+}
+
+function markCartBadgeViewed() {
+        var count = getBadgeCount('cartBadge');
+        saveViewedCount('ds_viewedCartCount', count);
+        setPopupBadge('cartBadge', count, false);
+}
+
 function setPopupBadge(badgeId, count, visible) {
         var badge = document.getElementById(badgeId);
         if (!badge) return;
@@ -196,8 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setPopupBadge('wishlistBadge', wishCount, wishCount > 0 && wishCount !== viewedWish);
 
         var notifCount = getBadgeCount('notifBadge');
-        var viewedNotif = getViewedCount('ds_viewedNotifCount');
-        setPopupBadge('notifBadge', notifCount, notifCount > 0 && notifCount !== viewedNotif);
+        setPopupBadge('notifBadge', notifCount, notifCount > 0);
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
@@ -215,9 +224,7 @@ if (popupId === 'wishlist-popup') {
                 if (wBadge) wBadge.classList.add('d-none');
                 saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
         } else if (popupId === 'cart-popup') {
-        var cBadge = document.getElementById('cartBadge');
-                if (cBadge) cBadge.classList.add('d-none');
-                saveViewedCount('ds_viewedCartCount', getBadgeCount('cartBadge'));
+                markCartBadgeViewed();
         }
 }
 }
@@ -278,13 +285,7 @@ method: 'POST',
                 return;
                 }
 
-        const items = document.querySelectorAll('#cart-items-container .popup-item');
-                let totalQty = 0;
-                items.forEach(item => {
-                const inp = item.querySelector('input[id^="popup-qty-"]');
-                        totalQty += inp ? parseInt(inp.value) || 1 : 1;
-                });
-                if (typeof updateCartBadge === 'function') updateCartBadge(totalQty);
+                if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
                 })
         .catch(err => {
         console.error('Lỗi đồng bộ giỏ hàng:', err);
@@ -384,12 +385,6 @@ container.innerHTML = `
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
         togglePopup('notif-popup');
-        var popup = document.getElementById('notif-popup');
-        if (popup && popup.style.display === 'block') {
-        var nBadge = document.getElementById('notifBadge');
-                if (nBadge) nBadge.classList.add('d-none');
-                saveViewedCount('ds_viewedNotifCount', getBadgeCount('notifBadge'));
-        }
 }
 function markNotifRead(id) {
         fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
@@ -423,8 +418,7 @@ function pollNotifications() {
                 if (badge) {
         var count = data.count || 0;
                 badge.textContent = count > 99 ? '99+' : String(count);
-                var viewedCount = getViewedCount('ds_viewedNotifCount');
-                if (count > 0 && count !== viewedCount) {
+                if (count > 0) {
         badge.classList.remove('d-none');
                 } else {
         badge.classList.add('d-none');
