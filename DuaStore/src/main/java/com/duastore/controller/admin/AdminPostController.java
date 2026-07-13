@@ -6,6 +6,7 @@ import com.duastore.model.User;
 import com.duastore.repository.PostCategoryRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.config.security.SecurityUtil;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminPostService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -28,15 +29,18 @@ public class AdminPostController {
     private final UserRepository userRepository;
     private final SecurityUtil securityUtil;
     private final PostCategoryRepository postCategoryRepository;
+    private final NotificationHelper notificationHelper;
 
     public AdminPostController(AdminPostService adminPostService,
             UserRepository userRepository,
             SecurityUtil securityUtil,
-            PostCategoryRepository postCategoryRepository) {
+            PostCategoryRepository postCategoryRepository,
+            NotificationHelper notificationHelper) {
         this.adminPostService = adminPostService;
         this.userRepository = userRepository;
         this.securityUtil = securityUtil;
         this.postCategoryRepository = postCategoryRepository;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping
@@ -98,7 +102,21 @@ public class AdminPostController {
             return "view/admin/post/post-form";
         }
         try {
-            adminPostService.save(dto);
+            Post saved = adminPostService.save(dto);
+            if ("XUAT_BAN".equals(saved.getTrangThai())) {
+                notificationHelper.notifyAll(
+                        "Bai viet moi: " + saved.getTieuDe(),
+                        null, null,
+                        "/bai-viet/" + saved.getSlug(),
+                        "Doc ngay"
+                );
+                notificationHelper.notifyStaff(
+                        "Bai viet moi da xuat ban: " + saved.getTieuDe(),
+                        null, null,
+                        "/admin/bai-viet",
+                        "Xem bai viet"
+                );
+            }
             ra.addFlashAttribute("successMsg", "Thêm bài viết thành công");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());

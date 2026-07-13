@@ -1,9 +1,12 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.Promotion;
+import com.duastore.model.User;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.CategoryRepository;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminPromotionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -27,15 +30,21 @@ public class AdminPromotionController {
     private final PromotionRepository promotionRepository;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final NotificationHelper notificationHelper;
+    private final SecurityUtil securityUtil;
 
     public AdminPromotionController(AdminPromotionService adminPromotionService,
             PromotionRepository promotionRepository,
             ProductRepository productRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository,
+            NotificationHelper notificationHelper,
+            SecurityUtil securityUtil) {
         this.adminPromotionService = adminPromotionService;
         this.promotionRepository = promotionRepository;
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.notificationHelper = notificationHelper;
+        this.securityUtil = securityUtil;
     }
 
     @ModelAttribute
@@ -139,7 +148,19 @@ public class AdminPromotionController {
             return "view/admin/promotion/promotion-form";
         }
         try {
-            adminPromotionService.savePromotion(promotion);
+            Promotion saved = adminPromotionService.savePromotion(promotion);
+            notificationHelper.notifyAll(
+                    "🔥 Khuyến mãi mới: " + saved.getTenChuongTrinh() + " — giảm " + formatDiscount(saved),
+                    "PROMOTION", saved.getId(),
+                    "/khuyen-mai",
+                    "Xem khuyến mãi"
+            );
+            notificationHelper.notifyStaff(
+                    "Admin " + getCurrentAdminName() + " đã tạo khuyến mãi: " + saved.getTenChuongTrinh(),
+                    "PROMOTION", saved.getId(),
+                    "/admin/khuyen-mai",
+                    "Xem khuyến mãi"
+            );
             ra.addFlashAttribute("successMsg", "Thêm khuyến mãi thành công");
         } catch (Exception e) {
             model.addAttribute("title", "khuyen-mai");
@@ -222,5 +243,21 @@ public class AdminPromotionController {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/khuyen-mai";
+    }
+    private String formatDiscount(Promotion promotion) {
+        if ("PERCENT".equalsIgnoreCase(promotion.getLoaiGiam())
+                || "PHAN_TRAM".equalsIgnoreCase(promotion.getLoaiGiam())) {
+            return promotion.getGiaTriGiam().stripTrailingZeros().toPlainString() + "%";
+        }
+        return promotion.getGiaTriGiam().stripTrailingZeros().toPlainString() + " VND";
+    }
+
+    private String getCurrentAdminName() {
+        try {
+            User admin = securityUtil.getCurrentUser();
+            return admin != null ? admin.getHoTen() : "";
+        } catch (Exception e) {
+            return "";
+        }
     }
 }
