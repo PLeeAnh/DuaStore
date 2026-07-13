@@ -83,7 +83,7 @@
                 <div class="position-relative d-inline-block ds-wishlist-wrap">
     <button class="ds-icon-btn" id="btn-wishlist-toggle" onclick="togglePopup('wishlist-popup', true)" title="Danh sách yêu thích" aria-label="Yêu thích">
         <i class="bi bi-heart"></i>
-        <span id="wishlistBadge" class="ds-wishlist-badge"
+        <span id="wishlistBadge" class="ds-wishlist-badge d-none"
       th:text="${#lists.size(myWishlist)}"
       th:classappend="${#lists.isEmpty(myWishlist)} ? ' d-none' : ''">0</span>
     </button>

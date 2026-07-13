@@ -2,7 +2,10 @@ package com.duastore.controller.admin;
 
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.ProductVariantFormDTO;
+import com.duastore.model.ProductVariant;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.WishlistRepository;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminVariantService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.List;
 import java.util.Map;
 
@@ -22,14 +30,23 @@ public class AdminVariantController {
 
     private final AdminVariantService variantService;
     private final ProductRepository productRepository;
-    private final SecurityUtil securityUtil;
+    private final WishlistRepository wishlistRepository;
+    private final NotificationHelper notificationHelper;
 
-    public AdminVariantController(AdminVariantService variantService, ProductRepository productRepository,
-                                  SecurityUtil securityUtil) {
+    private final SecurityUtil securityUtil;
+  
+    public AdminVariantController(AdminVariantService variantService,
+            ProductRepository productRepository,
+            WishlistRepository wishlistRepository,
+            NotificationHelper notificationHelper,
+            SecurityUtil securityUtil) {
         this.variantService = variantService;
         this.productRepository = productRepository;
+        this.wishlistRepository = wishlistRepository;
+        this.notificationHelper = notificationHelper;
         this.securityUtil = securityUtil;
     }
+  
 
     @GetMapping("/them-moi/{productId}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_CREATE)")
@@ -100,7 +117,11 @@ public class AdminVariantController {
             return "view/admin/productvariant/variant-form";
         }
         dto.setId(id);
+        ProductVariant oldVariant = variantService.findById(id);
+        Integer oldStock = oldVariant != null ? oldVariant.getSoLuongTon() : 0;
+        BigDecimal oldPrice = oldVariant != null ? effectivePrice(oldVariant) : null;
         var saved = variantService.save(dto);
+        notifyVariantChanges(saved, oldStock, oldPrice);
         ra.addFlashAttribute("successMsg", "Cập nhật biến thể thành công");
         return "redirect:/admin/san-pham/chi-tiet/" + dto.getProductId();
     }
@@ -119,6 +140,60 @@ public class AdminVariantController {
         return "redirect:/admin/san-pham/chi-tiet/" + productId;
     }
 
+    private void notifyVariantChanges(ProductVariant variant, Integer oldStock, BigDecimal oldPrice) {
+        if (variant == null) {
+            return;
+        }
+        String productName = productRepository.findById(variant.getProductId())
+                .map(p -> p.getTenSanPham())
+                .orElse("Sản phẩm #" + variant.getProductId());
+        Integer newStock = variant.getSoLuongTon() != null ? variant.getSoLuongTon() : 0;
+        if (oldStock != null && oldStock > 0 && newStock == 0) {
+            notificationHelper.notifyStaff(
+                    "Sản phẩm " + productName + " vừa hết hàng!",
+                    "PRODUCT", variant.getProductId(),
+                    "/admin/san-pham/sua/" + variant.getProductId(),
+                    "Xem sản phẩm"
+            );
+        }
+
+        boolean backInStock = oldStock == null || (oldStock <= 0 && newStock > 0);
+        Optional<BigDecimal> droppedPrice = Optional.empty();
+        BigDecimal newPrice = effectivePrice(variant);
+        if (oldPrice != null && newPrice.compareTo(oldPrice) < 0) {
+            droppedPrice = Optional.of(newPrice);
+        }
+        if (!backInStock && droppedPrice.isEmpty()) {
+            return;
+        }
+
+        List<Integer> userIds = wishlistRepository.findUserIdsByProductId(variant.getProductId());
+        for (Integer userId : userIds) {
+            if (backInStock) {
+                notificationHelper.notifyAll(
+                        "Sản phẩm " + productName + " đã có hàng trở lại",
+                        "PRODUCT", variant.getProductId(),
+                        "/san-pham/" + variant.getProductId(),
+                        "Xem ngay",
+                        userId
+                );
+            }
+            droppedPrice.ifPresent(price -> notificationHelper.notifyAll(
+                    "Sản phẩm " + productName + " đã giảm giá còn " + formatCurrency(price),
+                    "PRODUCT", variant.getProductId(),
+                    "/san-pham/" + variant.getProductId(),
+                    "Xem ngay",
+                    userId
+            ));
+        }
+    }
+
+    private BigDecimal effectivePrice(ProductVariant variant) {
+        return variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : variant.getGiaGoc();
+    }
+
+    private String formatCurrency(BigDecimal price) {
+        return NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(price);
     @GetMapping("/bulk-edit/{productId}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
     public String bulkEditForm(@PathVariable Integer productId, Model model, RedirectAttributes ra) {

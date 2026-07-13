@@ -5,6 +5,7 @@ import com.duastore.model.Review;
 import com.duastore.model.User;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminReviewService;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,13 +24,16 @@ public class AdminReviewController {
     private final AdminReviewService adminReviewService;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final NotificationHelper notificationHelper;
 
     public AdminReviewController(AdminReviewService adminReviewService,
             ProductRepository productRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationHelper notificationHelper) {
         this.adminReviewService = adminReviewService;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping
@@ -65,6 +69,8 @@ public class AdminReviewController {
     public String approve(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             adminReviewService.approveReview(id);
+            Review review = adminReviewService.getReviewById(id);
+            notifyReviewAuthor(review, true);
             ra.addFlashAttribute("successMsg", "Đã duyệt đánh giá");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -77,6 +83,8 @@ public class AdminReviewController {
     public String reject(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             adminReviewService.rejectReview(id);
+            Review review = adminReviewService.getReviewById(id);
+            notifyReviewAuthor(review, false);
             ra.addFlashAttribute("successMsg", "Đã ẩn đánh giá");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -94,5 +102,24 @@ public class AdminReviewController {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/danh-gia";
+    }
+    private void notifyReviewAuthor(Review review, boolean approved) {
+        String productName = productRepository.findById(review.getProductId())
+                .map(Product::getTenSanPham)
+                .orElse("san pham #" + review.getProductId());
+        String action = approved ? "da duoc duyet" : "da bi an";
+        notificationHelper.notifyAll(
+                "Danh gia cua ban cho san pham " + productName + " " + action,
+                "PRODUCT", review.getProductId(),
+                "/san-pham/" + review.getProductId(),
+                "Xem san pham",
+                review.getUserId()
+        );
+        notificationHelper.notifyStaff(
+                "Danh gia cho san pham " + productName + " " + action,
+                "PRODUCT", review.getProductId(),
+                "/admin/danh-gia",
+                "Xem danh gia"
+        );
     }
 }
