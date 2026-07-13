@@ -1,5 +1,6 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.ProductVariantFormDTO;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.ProductRepository;
@@ -7,6 +8,7 @@ import com.duastore.repository.WishlistRepository;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminVariantService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +21,8 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/bien-the")
@@ -29,15 +33,20 @@ public class AdminVariantController {
     private final WishlistRepository wishlistRepository;
     private final NotificationHelper notificationHelper;
 
+    private final SecurityUtil securityUtil;
+  
     public AdminVariantController(AdminVariantService variantService,
             ProductRepository productRepository,
             WishlistRepository wishlistRepository,
-            NotificationHelper notificationHelper) {
+            NotificationHelper notificationHelper,
+            SecurityUtil securityUtil) {
         this.variantService = variantService;
         this.productRepository = productRepository;
         this.wishlistRepository = wishlistRepository;
         this.notificationHelper = notificationHelper;
+        this.securityUtil = securityUtil;
     }
+  
 
     @GetMapping("/them-moi/{productId}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_CREATE)")
@@ -185,5 +194,27 @@ public class AdminVariantController {
 
     private String formatCurrency(BigDecimal price) {
         return NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(price);
+    @GetMapping("/bulk-edit/{productId}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
+    public String bulkEditForm(@PathVariable Integer productId, Model model, RedirectAttributes ra) {
+        var p = productRepository.findById(productId).orElse(null);
+        if (p == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy sản phẩm");
+            return "redirect:/admin/san-pham";
+        }
+        model.addAttribute("title", "san-pham");
+        model.addAttribute("productId", productId);
+        model.addAttribute("productName", p.getTenSanPham());
+        model.addAttribute("variants", variantService.findByProductId(productId));
+        return "view/admin/product/variant-bulk-edit";
+    }
+
+    @PostMapping("/api/bulk-save")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
+    public ResponseEntity<Map<String, Object>> bulkSave(@RequestBody List<Map<String, Object>> variants) {
+        Integer adminId = securityUtil.getCurrentUserId();
+        variantService.bulkUpdate(variants, adminId);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }

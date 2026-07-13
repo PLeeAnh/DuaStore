@@ -106,6 +106,16 @@ public class BannerService {
         return bannerRepository.save(banner);
     }
 
+    @CacheEvict(value = "activeBanners", allEntries = true)
+    public void reorder(List<Integer> bannerIds) {
+        for (int i = 0; i < bannerIds.size(); i++) {
+            Banner banner = getById(bannerIds.get(i));
+            banner.setDisplayOrder(i);
+            bannerRepository.save(banner);
+        }
+        bannerRepository.flush();
+    }
+
     private String trimToNull(String value) {
         if (value == null || value.isBlank()) {
             return null;

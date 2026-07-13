@@ -88,6 +88,7 @@ public class AdminPromotionController {
         model.addAttribute("totalPromotions", promotionRepository.count());
         model.addAttribute("activePromotionsCount", promotionRepository.countByIsActiveTrue());
         model.addAttribute("inactivePromotionsCount", promotionRepository.countByIsActiveFalse());
+        model.addAttribute("usageCounts", adminPromotionService.getUsageCounts());
         return "view/admin/promotion/promotion-list";
     }
 

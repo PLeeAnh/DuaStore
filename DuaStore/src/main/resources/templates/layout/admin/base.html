@@ -22,7 +22,27 @@
     <link rel="stylesheet" th:href="@{/css/admin-base.css}"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.bootstrap5.min.css"/>
 
-    <th:block layout:fragment="extra-head"></th:block>
+    <th:block layout:fragment="extra-head">
+        <style>
+            .adm-sidebar-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 160;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .3s ease, visibility .3s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .adm-sidebar-backdrop.show {
+                opacity: 1;
+                visibility: visible;
+            }
+        </style>
+    </th:block>
 </head>
 <body class="adm-body">
 
@@ -127,6 +147,12 @@
                     <i class="bi bi-images"></i>
                     <span>Banner</span>
                 </a>
+                <a class="adm-nav-link" th:href="@{/admin/footer-links}"
+                   th:if="${userPermissions.contains('FOOTER_LINK_READ')}"
+                   th:classappend="${title == 'footer-links' ? ' active' : ''}">
+                    <i class="bi bi-link-45deg"></i>
+                    <span>Liên kết chân trang</span>
+                </a>
             </div>
 
             <!-- Cài đặt (collapsible) -->
@@ -167,7 +193,7 @@
                 </a>
                 <a class="adm-nav-link" th:href="@{/admin/dia-chi}"
                    th:if="${userPermissions.contains('STORE_READ')}"
-                   th:classappend="${title == 'dia-chi-cua-hang' ? ' active' : ''}">
+                   th:classappend="${title == 'dia-chi' ? ' active' : ''}">
                     <i class="bi bi-map"></i>
                     <span>Địa chỉ</span>
                 </a>
@@ -183,6 +209,12 @@
                     <i class="bi bi-clock-history"></i>
                     <span>Nhật ký</span>
                 </a>
+                <a class="adm-nav-link" th:href="@{/admin/lich-su-gia}"
+                   th:if="${userPermissions.contains('PRICE_HISTORY_READ')}"
+                   th:classappend="${title == 'lich-su-gia' ? ' active' : ''}">
+                    <i class="bi bi-currency-exchange"></i>
+                    <span>Lịch sử giá</span>
+                </a>
             </div>
 
         </nav>
@@ -196,6 +228,9 @@
         </div>
 
     </aside>
+
+    <!-- Sidebar backdrop for mobile overlay -->
+    <div class="adm-sidebar-backdrop" id="admSidebarBackdrop"></div>
 
     <!-- ════════════════════════════════════════════════
          MAIN AREA
@@ -290,6 +325,7 @@
                     <div class="adm-profile-dropdown" id="admProfileDropdown">
                         <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminProfileModal"><i class="bi bi-person"></i> Hồ sơ</a>
                         <a class="adm-profile-link" href="#" data-bs-toggle="modal" data-bs-target="#adminChangePasswordModal"><i class="bi bi-key"></i> Đổi mật khẩu</a>
+                        <a class="adm-profile-link" th:href="@{/admin/2fa/setup}"><i class="bi bi-shield-lock"></i> Cài đặt 2FA</a>
                         <div class="adm-profile-divider"></div>
                         <form th:action="@{/dang-xuat}" method="post" class="d-block">
                             <button type="submit" class="adm-profile-link text-danger border-0 bg-transparent w-100 text-start d-flex align-items-center gap-2">
@@ -380,11 +416,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Mật khẩu mới</label>
-                        <input type="password" name="newPassword" class="form-control" required minlength="6"/>
+                        <input type="password" name="newPassword" class="form-control" required minlength="8"/>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Xác nhận mật khẩu</label>
-                        <input type="password" name="confirmPassword" class="form-control" required minlength="6"/>
+                        <input type="password" name="confirmPassword" class="form-control" required minlength="8"/>
                     </div>
                 </div>
                 <div class="modal-footer justify-content-end">
@@ -432,6 +468,67 @@
 <script th:src="@{/js/admin.js}"></script>
 <script th:src="@{/js/admin-base.js}"></script>
 <th:block layout:fragment="extra-script"></th:block>
+
+<script>
+(function() {
+    var sidebar = document.querySelector('.adm-sidebar');
+    var backdrop = document.getElementById('admSidebarBackdrop');
+    var toggle = document.getElementById('admNavToggle');
+    if (!sidebar || !backdrop || !toggle) return;
+
+    function openSidebar() {
+        sidebar.classList.add('adm-sidebar-mobile-open');
+        backdrop.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('adm-sidebar-mobile-open');
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (sidebar.classList.contains('adm-sidebar-mobile-open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('adm-sidebar-mobile-open')) {
+            closeSidebar();
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 992) {
+            closeSidebar();
+        }
+    });
+})();
+
+(function() {
+    // Poll for new notifications every 30 seconds
+    const badge = document.getElementById('staffNotifBadge');
+    if (badge) {
+        setInterval(function() {
+            fetch('/admin/thong-bao/api/count')
+                .then(r => r.text())
+                .then(count => {
+                    const num = parseInt(count) || 0;
+                    badge.textContent = num;
+                    badge.classList.toggle('d-none', num === 0);
+                })
+                .catch(() => {});
+        }, 30000);
+    }
+})();
+</script>
 
 </body>
 </html>

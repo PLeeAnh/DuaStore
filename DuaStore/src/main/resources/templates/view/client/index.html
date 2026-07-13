@@ -13,9 +13,9 @@
                         <div class="swiper-wrapper">
                             <div th:each="banner : ${banners}" class="swiper-slide">
                                 <a th:href="${banner.linkUrl != null ? banner.linkUrl : '#'}" class="ds-hero-v2-banner">
-                                    <img th:src="${banner.imageUrl}"
-                                         onerror="this.src='/images/no-image.png'"
-                                         th:alt="${banner.title}">
+<img th:src="${banner.imageUrl}"
+                                                     onerror="this.src='/images/no-image.png'"
+                                                     th:alt="${banner.title}" loading="lazy">
                                 </a>
                             </div>
                         </div>
@@ -41,7 +41,7 @@
                             <div class="ds-slider-track">
                                 <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
                                     <div class="ds-cat-tile-img">
-                                        <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}">
+                                        <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy">
                                     </div>
                                     <div class="ds-cat-tile-overlay">
                                         <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Category</span>
@@ -63,21 +63,19 @@
                                  th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                  v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
                                  fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
-                                 th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''">
+                                 th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''"
+                                 th:onclick="|window.location.href='/san-pham/${p.id}'|">
 
                                 <button th:classappend="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
-                                        th:onclick="|toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
+                                        th:onclick="|event.stopPropagation(); toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
                                     <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
                                 </button>
 
                                 <div class="ds-product-image-wrap">
                                     <a th:href="@{'/san-pham/' + ${p.id}}">
-                                        <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
-                                        <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
-                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-                                              th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai == null and bestPercentagePromo != null}"
-                                              th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
+<img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt="" loading="lazy"/>
+<img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" alt="" loading="lazy"/>
+                                         <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
                                         <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                         <div class="ds-flash-timer" th:if="${fs != null}"
                                              th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
@@ -90,8 +88,8 @@
 
                                 <!-- Steam-style hover preview -->
                                 <div class="ds-card-hover-preview">
-                                    <div class="ds-card-hover-thumb" th:if="${p.hinhAnhChinh != null}">
-                                        <img th:src="@{${p.hinhAnhChinh}}" alt=""/>
+                                    <div class="ds-card-hover-thumb" th:if="${p.hinhAnhChinh != null or (v != null and v.hinhAnh != null)}">
+                                        <img th:src="@{${p.hinhAnhChinh != null ? p.hinhAnhChinh : v.hinhAnh}}" alt="" loading="lazy"/>
                                     </div>
                                     <div class="ds-card-hover-body">
                                         <div class="ds-card-hover-name" th:text="${p.tenSanPham}">Tên sản phẩm</div>
@@ -109,16 +107,18 @@
                                 </div>
 
                                 <div class="ds-card-body">
-                                    <a th:href="@{'/san-pham/' + ${p.id}}" class="ds-product-name"
-                                       th:text="${p.tenSanPham}">Tên sản phẩm</a>
-
-                                    <span class="ds-card-price"
-                                          th:classappend="${v != null and v.soLuongTon > 0} ? '' : 'd-none'">
-                                        <strong th:if="${v != null}"
-                                                th:text="${#numbers.formatInteger(promoPriceMap.get(p.id) != null ? promoPriceMap.get(p.id) : (v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc), 0, 'POINT')} + '₫'">250.000₫</strong>
-                                        <strong th:unless="${v != null}">Liên hệ</strong>
-                                    </span>
-                                    <span class="ds-badge-oos-btn" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
+                                    <div class="ds-card-price">
+                                        <span class="ds-card-price-badge"
+                                              th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                              th:text="|-${bestDiscountMap.get(p.id)}%|">-15%</span>
+                                        <div class="ds-card-price-values">
+                                            <span class="ds-card-price-old"
+                                                  th:if="${v != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                                  th:text="${#numbers.formatInteger(v.giaGoc, 0, 'POINT')} + '₫'">15.000₫</span>
+                                            <span class="ds-card-price-current"
+                                                  th:text="${#numbers.formatInteger(promoPriceMap.get(p.id) != null ? promoPriceMap.get(p.id) : (v != null and v.giaKhuyenMai != null ? v.giaKhuyenMai : (v != null ? v.giaGoc : 0)), 0, 'POINT')} + '₫'">12.750₫</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -141,9 +141,9 @@
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
-                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                                    </div>
-                                    <div class="ds-mini-card-body">
+<img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+                                     </div>
+                                     <div class="ds-mini-card-body">
                                         <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
                                         <span class="ds-mini-card-price" th:if="${v != null}"
                                               th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
@@ -171,9 +171,9 @@
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
-                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                                    </div>
-                                    <div class="ds-mini-card-body">
+<img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+                                     </div>
+                                     <div class="ds-mini-card-body">
                                         <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
                                         <span class="ds-mini-card-price" th:if="${v != null}"
                                               th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
@@ -221,7 +221,7 @@
                                      th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
                                      th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
                                      th:data-gallery="${#strings.listJoin(browseGalleryMap.get(p.id) ?: java.util.Collections.emptyList(), ',')}">
-                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                     <div class="ds-browse-row-info">
                                         <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
                                         <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
@@ -250,9 +250,9 @@
                         <!-- Cột phải: preview panel (Steam-style) -->
                         <div class="ds-browse-preview" id="browsePreview">
                             <div class="ds-browse-preview-thumb" id="browsePreviewThumb">
-                                <img th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
-                            </div>
-                            <div class="ds-browse-preview-header">
+<img th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+                             </div>
+                             <div class="ds-browse-preview-header">
                                 <h4 class="ds-browse-preview-name" id="browsePreviewName" th:text="${browseProducts[0].tenSanPham}">Tên sản phẩm</h4>
                                 <div class="ds-browse-preview-rating" id="browsePreviewRating">
                                     <i class="bi bi-star-fill"></i>
@@ -268,10 +268,10 @@
                             <a class="ds-browse-preview-link" id="browsePreviewLink" th:href="'/san-pham/' + ${browseProducts[0].id}">Xem chi tiết <i class="bi bi-arrow-right"></i></a>
                             <div class="ds-browse-preview-images" id="browsePreviewImages">
                                 <th:block th:each="img, imgIter : ${browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()}">
-                                    <img class="ds-browse-preview-img" th:src="${img}" alt="" th:if="${imgIter.index < 6}"/>
+                                    <img class="ds-browse-preview-img" th:src="${img}" alt="" loading="lazy" th:if="${imgIter.index < 6}"/>
                                 </th:block>
                                 <th:block th:if="${(browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()).isEmpty()}">
-                                    <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt=""/>
+                                    <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                 </th:block>
                             </div>
                         </div>
@@ -453,9 +453,15 @@
                             return;
                         var gap = 20;
                         var iw = items[0].offsetWidth;
-                        var perPage = iw ? Math.max(1, Math.floor((vw + gap) / (iw + gap))) : 1;
-                        var maxPerPage = parseInt(el.dataset.itemsPerPage) || 0;
-                        if (maxPerPage > 0 && perPage > maxPerPage) perPage = maxPerPage;
+                        var targetPerPage = parseInt(el.dataset.itemsPerPage) || 0;
+                        var perPage;
+                        if (targetPerPage > 0) {
+                            perPage = targetPerPage;
+                        } else if (iw) {
+                            perPage = Math.max(1, Math.floor((vw + gap) / (iw + gap)));
+                        } else {
+                            perPage = 1;
+                        }
                         var basis = 'calc((100% - ' + (gap * (perPage - 1)) + 'px) / ' + perPage + ')';
                         for (var k = 0; k < items.length; k++) {
                             items[k].style.flex = '0 0 ' + basis;

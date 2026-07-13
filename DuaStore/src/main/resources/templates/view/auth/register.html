@@ -65,7 +65,7 @@
                             <div class="col-6">
                                 <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
                                 <input type="password" th:field="*{password}" class="form-control"
-                                       placeholder="Tối thiểu 6 ký tự" minlength="6"
+                                       placeholder="Tối thiểu 8 ký tự" minlength="8"
                                        th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"/>
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}"
                                      th:errors="*{password}"></div>
@@ -101,7 +101,7 @@
             function sendCode() {
                 var email = document.getElementById('regEmail').value.trim();
                 if (!email || !email.includes('@')) {
-                    alert('Email không hợp lệ');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.warning('Email không hợp lệ'); }
                     return;
                 }
                 var btn = document.getElementById('sendCodeBtn');
@@ -122,7 +122,6 @@
                                 var statusTxt = 'Mã đã gửi đến email của bạn';
                                 if (data.dev_code) {
                                     statusTxt += ' (dev: ' + data.dev_code + ')';
-                                    console.log('OTP:', data.dev_code);
                                 }
                                 document.getElementById('codeStatus').textContent = statusTxt;
                                 btn.textContent = 'Gửi lại';

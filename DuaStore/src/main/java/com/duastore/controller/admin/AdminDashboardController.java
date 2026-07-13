@@ -64,6 +64,9 @@ public class AdminDashboardController {
         model.addAttribute("paymentMethodDistribution", dashboardService.getPaymentMethodDistribution());
         model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
         model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
+        model.addAttribute("monthlyRevenueData", dashboardService.getMonthlyRevenueLast12Months());
+        model.addAttribute("topProducts7Days", dashboardService.getTopSellingProductsLast7Days(5));
+        model.addAttribute("cancelRefundRate", dashboardService.getCancelRefundRate());
 
         return "view/admin/dashboard";
     }

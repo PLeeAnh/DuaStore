@@ -134,14 +134,22 @@ document.addEventListener('DOMContentLoaded', function () {
     function doFilter() {
         var keyword = document.getElementById('searchKeyword').value;
         var status = document.getElementById('filterStatus').value;
+        var city = document.getElementById('filterCity').value;
+        var spendingTier = document.getElementById('filterSpendingTier').value;
         var params = new URLSearchParams();
         if (keyword)
             params.set('keyword', keyword);
         if (status)
             params.set('status', status);
+        if (city)
+            params.set('city', city);
+        if (spendingTier)
+            params.set('spendingTier', spendingTier);
         window.location.href = '/admin/khach-hang?' + params.toString();
     }
     document.getElementById('filterStatus').addEventListener('change', doFilter);
+    document.getElementById('filterCity').addEventListener('change', doFilter);
+    document.getElementById('filterSpendingTier').addEventListener('change', doFilter);
     var searchTimer;
     document.getElementById('searchKeyword').addEventListener('input', function () {
         clearTimeout(searchTimer);

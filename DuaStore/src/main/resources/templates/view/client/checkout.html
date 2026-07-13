@@ -6,6 +6,10 @@
     <head>
         <title>Thanh toán — DuaStore</title>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            #promoModal .promo-item.promo-selected { outline: 2px solid var(--ds-primary, #2563EB); outline-offset: -2px; border-radius: 8px; }
+            #promoModal .promo-item.promo-selected > div:last-child { background: #f0f6ff; }
+        </style>
     </head>
     <body>
         <div layout:fragment="content">
@@ -95,18 +99,18 @@
                                     <div class="card-body p-4">
                                         <h5 class="ds-checkout-section-title"><i class="bi bi-credit-card me-2"></i>Phương thức thanh toán</h5>
                                         <div class="ds-checkout-radio-group">
-                                            <div class="ds-checkout-radio">
-                                                <input type="radio" name="phuongThucTT" id="ttCOD" value="COD" checked required />
+                                            <div class="ds-checkout-radio" th:if="${paymentMethods.cod}">
+                                                <input type="radio" name="phuongThucTT" id="ttCOD" value="COD" th:checked="${paymentMethods.cod}" required />
                                                 <label for="ttCOD">Thanh toán khi nhận hàng (COD)</label>
                                             </div>
-                                            <div class="ds-checkout-radio">
+                                            <div class="ds-checkout-radio" th:if="${paymentMethods.bank}">
                                                 <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
                                                 <label for="ttCK">Chuyển khoản ngân hàng</label>
                                                 <div class="ds-checkout-radio-info" id="ckInfo">
                                                     <i class="bi bi-info-circle"></i> Quét mã QR thanh toán sau khi đặt hàng
                                                 </div>
                                             </div>
-                                            <div class="ds-checkout-radio">
+                                            <div class="ds-checkout-radio" th:if="${paymentMethods.vnpay}">
                                                 <input type="radio" name="phuongThucTT" id="ttVNPAY" value="VNPAY" />
                                                 <label for="ttVNPAY">VNPay</label>
                                                 <div class="ds-checkout-radio-info">
@@ -155,7 +159,7 @@
                                 <div class="card-body">
                                     <h6 class="fw-bold mb-3">Tóm tắt đơn hàng</h6>
                                     <div th:each="item : ${cartItems}" class="d-flex gap-2 mb-2">
-                                        <img th:src="@{${item.hinhAnh}}" alt="" class="rounded" style="width:50px;height:50px;object-fit:cover" />
+                                        <img th:src="@{${item.hinhAnh}}" alt="" class="rounded" style="width:50px;height:50px;object-fit:cover" loading="lazy" />
                                         <div class="flex-grow-1 small">
                                             <div class="text-truncate" th:text="${item.tenSanPham}"></div>
                                             <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger" style="font-size:.6rem">Flash Sale</span>
@@ -184,10 +188,31 @@
                                         <span>Phí vận chuyển</span>
                                         <span th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'" id="shipFeeDisplay"></span>
                                     </div>
+                                    <div class="small text-muted mb-2" style="font-size:.75rem;">
+                                        <i class="bi bi-truck me-1"></i>Dự kiến giao hàng: <strong id="estimatedDeliveryEl" th:text="${estimatedDeliveryDate != null ? estimatedDeliveryDate : '3-7 ngày làm việc'}">3-7 ngày làm việc</strong>
+                                    </div>
                                     <div class="d-flex justify-content-between small mb-1">
                                         <span>Giảm giá</span>
                                         <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 'POINT', 0, 'POINT') + '₫' : '0₫'}" id="discountDisplay"
                                               th:classappend="${tienGiam != null and tienGiam > 0} ? 'text-danger' : ''"></span>
+                                    </div>
+                                    <div th:if="${loyaltyBalance != null and loyaltyBalance > 0}" class="mb-2">
+                                        <div class="d-flex align-items-center justify-content-between small">
+                                            <span><i class="bi bi-star-fill text-primary me-1"></i>Điểm tích lũy</span>
+                                            <span class="text-primary fw-semibold" th:text="${loyaltyBalance} + ' điểm'"></span>
+                                        </div>
+                                        <div class="input-group input-group-sm mt-1">
+                                             <input type="number" class="form-control form-control-sm" id="pointsToRedeem"
+                                                    name="pointsToRedeem" min="0" th:attr="max=${loyaltyBalance}" value="0"
+                                                    placeholder="0" onchange="updatePointsDiscount()" />
+                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="useMaxPoints()">
+                                                <small>Dùng tất cả</small>
+                                            </button>
+                                        </div>
+                                        <div class="d-flex justify-content-between small text-muted mt-1">
+                                            <span th:text="${loyaltyRedeemRate != null ? '100 điểm = ' + #numbers.formatDecimal(loyaltyRedeemRate * 100, 0, 'POINT', 0, 'POINT') + '₫' : ''}"></span>
+                                            <span id="pointsDiscountDisplay">Giảm 0₫</span>
+                                        </div>
                                     </div>
                                     <hr />
                                     <div class="d-flex justify-content-between fw-bold mb-3">
@@ -304,7 +329,7 @@
                                                  style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;border-radius:10px;"></div>
                                         </div>
                                         <div id="modalMapContainer" style="border-radius:8px;overflow:hidden;">
-                                            <div id="checkoutGoogleMap" style="width:100%;height:220px;border-radius:8px;"></div>
+                                            <div id="checkoutMap" style="width:100%;height:220px;border-radius:8px;"></div>
                                         </div>
                                         <div class="d-flex gap-2 mt-1">
                                             <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalGetMyLocation()">
@@ -460,10 +485,11 @@
 
                 <th:block layout:fragment="extra-script">
                     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-                    <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
-                    <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
+<span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
+<span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
+<span id="rawRedeemRate" style="display:none" th:text="${loyaltyRedeemRate}"></span>
                     <script>
-                        window.appliedDiscount = 0;
+                        window.appliedDiscount = parseInt(document.getElementById('discountDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
 
                         function copyCode(btn) {
                             var code = btn.getAttribute('data-code');
@@ -471,7 +497,7 @@
                                 return;
                             if (navigator.clipboard) {
                                 navigator.clipboard.writeText(code).then(function () {
-                                    showToast('Đã copy mã: ' + code);
+                                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã copy mã: ' + code); }
                                 });
                             } else {
                                 var ta = document.createElement('textarea');
@@ -480,7 +506,7 @@
                                 ta.select();
                                 document.execCommand('copy');
                                 document.body.removeChild(ta);
-                                showToast('Đã copy mã: ' + code);
+                                if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã copy mã: ' + code); }
                             }
                         }
 
@@ -499,6 +525,12 @@
                         }
                         function selectPromo(el) {
                             var code = el.getAttribute('data-code');
+                            document.querySelectorAll('#promoModal .promo-item').forEach(function (p) {
+                                p.classList.remove('promo-selected');
+                                p.style.borderColor = '';
+                            });
+                            el.classList.add('promo-selected');
+                            el.style.borderColor = 'var(--ds-primary)';
                             applyPromoCode(code);
                         }
                         function copyCheckoutPromo() {
@@ -507,9 +539,9 @@
                             if (!code || code === 'Chọn hoặc nhập mã giảm giá')
                                 return;
                             navigator.clipboard.writeText(code).then(function () {
-                                showToast('Đã sao chép mã: ' + code);
+                                if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã sao chép mã: ' + code); }
                             }).catch(function () {
-                                showToast('Sao chép thất bại');
+                                if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Sao chép thất bại'); }
                             });
                         }
                         function applyVoucherInput() {
@@ -570,11 +602,30 @@
                             });
                         }
 
+                        function updatePointsDiscount() {
+                            var input = document.getElementById('pointsToRedeem');
+                            var points = parseInt(input.value) || 0;
+                            var maxPoints = parseInt(input.getAttribute('max')) || 0;
+                            if (points > maxPoints) { points = maxPoints; input.value = points; }
+                            if (points < 0) { points = 0; input.value = 0; }
+                            var rate = parseInt(document.getElementById('rawRedeemRate').textContent) || 100;
+                            var discount = points * rate;
+                            window.pointsDiscount = discount;
+                            document.getElementById('pointsDiscountDisplay').textContent = 'Giảm ' + discount.toLocaleString('vi-VN') + '₫';
+                            updateTotal();
+                        }
+
+                        function useMaxPoints() {
+                            var input = document.getElementById('pointsToRedeem');
+                            input.value = input.getAttribute('max');
+                            updatePointsDiscount();
+                        }
+
                         function updateTotal() {
-                            var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
+                            var subtotal = parseInt(document.getElementById('rawSubtotal').textContent.replace(/[^0-9]/g, '')) || 0;
                             var fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
-                            var total = subtotal + fee - window.appliedDiscount;
-                            document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + 'đ';
+                            var total = subtotal + fee - (window.appliedDiscount || 0) - (window.pointsDiscount || 0);
+                            document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '₫';
                         }
 
                         function initPromoTimers() {
@@ -592,6 +643,7 @@
                         document.addEventListener('DOMContentLoaded', function () {
                             initPromoTimers();
                             window.appliedDiscount = parseInt(document.getElementById('rawDiscount').textContent) || 0;
+                            window.pointsDiscount = 0;
                             if (window.appliedDiscount > 0) {
                                 document.getElementById('checkoutCopyPromo').style.display = '';
                             }
@@ -613,7 +665,7 @@
                             });
                         });
                     </script>
-                    <script th:inline="javascript">
+                    <script>
                         window.storeLat = [[${storeLat}]];
                         window.storeLng = [[${storeLng}]];
                     </script>

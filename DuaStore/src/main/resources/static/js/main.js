@@ -187,6 +187,23 @@ document.addEventListener('DOMContentLoaded', function () {
         plus.disabled = (qty >= maxStock);
     });
 
+    /* ── Sync +/- buttons while typing qty ── */
+    document.addEventListener('input', function (e) {
+        const el = e.target.closest('.ds-qty-val');
+        if (!el || el.closest('#cart-items-container'))
+            return;
+        const card = getCard(el);
+        if (!card)
+            return;
+        const activeChip = getActiveVariant(card);
+        const maxStock = activeChip ? parseInt(activeChip.getAttribute('data-stock')) || 99 : 99;
+        let val = parseInt(el.value) || 1;
+        const minus = card.querySelector('.ds-qty-minus');
+        const plus = card.querySelector('.ds-qty-plus');
+        if (minus) minus.disabled = (val <= 1);
+        if (plus) plus.disabled = (val >= maxStock);
+    });
+
     /* ── Validate manual qty input on product cards ── */
     document.addEventListener('change', function (e) {
         const el = e.target.closest('.ds-qty-val');
@@ -282,9 +299,9 @@ function copyPromoCode(btn) {
     if (!code)
         return;
     navigator.clipboard.writeText(code).then(() => {
-        alert('Đã sao chép mã: ' + code);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã sao chép mã: ' + code); }
     }).catch(() => {
-        alert('Sao chép thất bại, vui lòng tự copy mã: ' + code);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Sao chép thất bại, vui lòng tự copy mã: ' + code); }
     });
 }
 

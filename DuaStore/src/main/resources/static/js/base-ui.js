@@ -105,7 +105,6 @@ var orig = this.textContent;
 if (data.dev_code) {
         var statusEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-status') || document.getElementById('codeStatus');
         if (statusEl) { statusEl.textContent = 'Mã: ' + data.dev_code; statusEl.style.display = ''; }
-        console.log('OTP:', data.dev_code);
         }
         if (data.success) {
 btn.textContent = 'Đã gửi';
@@ -430,6 +429,15 @@ function pollNotifications() {
 }
 
 setInterval(pollNotifications, 15000);
+
+/* ── Prevent stuck modal-backdrop ── */
+document.addEventListener('hidden.bs.modal', function() {
+    if (document.querySelectorAll('.modal.show').length === 0) {
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('padding-right');
+    }
+});
 
 /* ── Dirty Save Bar ── */
 function initDirtyBar() {
@@ -780,7 +788,7 @@ function saveSettingsPassword() {
         var confirmP = document.getElementById('sConfirmPassword').value;
         var errDiv = document.getElementById('settingsPassError');
         if (!oldP || !newP || !confirmP) { errDiv.textContent = 'Vui lòng nhập đầy đủ'; errDiv.classList.remove('d-none'); return; }
-if (newP.length < 6) { errDiv.textContent = 'Mật khẩu mới tối thiểu 6 ký tự'; errDiv.classList.remove('d-none'); return; }
+if (newP.length < 8) { errDiv.textContent = 'Mật khẩu mới tối thiểu 8 ký tự'; errDiv.classList.remove('d-none'); return; }
 if (newP !== confirmP) { errDiv.textContent = 'Mật khẩu mới không khớp'; errDiv.classList.remove('d-none'); return; }
 var fd = new FormData();
         fd.append('oldPassword', oldP);

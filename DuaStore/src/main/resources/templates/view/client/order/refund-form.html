@@ -33,16 +33,51 @@
 
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Phương thức nhận tiền <span class="text-danger">*</span></label>
-                                <select name="phuongThucHoan" class="form-select" required>
+                                <select name="phuongThucHoan" class="form-select" required id="refundMethod" onchange="toggleBankFields()">
                                     <option value="CHUYEN_KHOAN">Chuyển khoản ngân hàng</option>
                                     <option value="TIEN_MAT">Tiền mặt</option>
                                 </select>
                             </div>
 
+                            <div id="bankFields" class="mb-3">
+                                <label class="form-label fw-semibold">Thông tin tài khoản ngân hàng <span class="text-danger">*</span></label>
+                                <input type="text" name="tenNganHang" class="form-control mb-2" placeholder="Tên ngân hàng (VD: Techcombank)" />
+                                <input type="text" name="soTaiKhoan" class="form-control mb-2" placeholder="Số tài khoản" />
+                                <input type="text" name="chuTaiKhoan" class="form-control" placeholder="Chủ tài khoản" />
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label fw-semibold">Ảnh minh chứng (tùy chọn)</label>
-                                <input type="file" name="anhMinhChung" class="form-control" accept="image/*"/>
+                                <input type="file" name="anhMinhChung" class="form-control" accept="image/*" id="refundImageInput" onchange="previewRefundImage(this)"/>
+                                <div id="refundImagePreview" class="mt-2 d-none">
+                                    <img class="rounded border" style="max-width:200px;max-height:200px;object-fit:cover;" alt="Xem trước"/>
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="clearRefundImage()">Xóa ảnh</button>
+                                </div>
                             </div>
+
+                            <script>
+                            function toggleBankFields() {
+                                var method = document.getElementById('refundMethod').value;
+                                var bankFields = document.getElementById('bankFields');
+                                bankFields.style.display = method === 'CHUYEN_KHOAN' ? 'block' : 'none';
+                                bankFields.querySelectorAll('input').forEach(function(inp) { inp.required = method === 'CHUYEN_KHOAN'; });
+                            }
+                            toggleBankFields();
+
+                            function previewRefundImage(input) {
+                                var preview = document.getElementById('refundImagePreview');
+                                var img = preview.querySelector('img');
+                                if (input.files && input.files[0]) {
+                                    var reader = new FileReader();
+                                    reader.onload = function(e) { img.src = e.target.result; preview.classList.remove('d-none'); };
+                                    reader.readAsDataURL(input.files[0]);
+                                }
+                            }
+                            function clearRefundImage() {
+                                document.getElementById('refundImageInput').value = '';
+                                document.getElementById('refundImagePreview').classList.add('d-none');
+                            }
+                            </script>
 
                             <button type="submit" class="btn btn-danger w-100 fw-semibold py-2">Gửi yêu cầu</button>
                         </form>

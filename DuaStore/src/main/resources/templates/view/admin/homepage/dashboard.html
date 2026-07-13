@@ -5,6 +5,30 @@
       layout:decorate="~{layout/admin/base}">
     <head>
         <title>Quản lý Homepage</title>
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+        <style>
+            .hp-section-card {
+                cursor: grab;
+                transition: box-shadow .2s, transform .2s;
+            }
+            .hp-section-card:active {
+                cursor: grabbing;
+            }
+            .hp-section-card.sortable-chosen {
+                opacity: .7;
+                transform: scale(1.02);
+            }
+            .hp-section-card.sortable-ghost {
+                opacity: .3;
+            }
+            .hp-section-card .drag-handle {
+                cursor: grab;
+                color: #adb5bd;
+            }
+            .hp-section-card .drag-handle:active {
+                cursor: grabbing;
+            }
+        </style>
     </head>
     <body>
     <th:block layout:fragment="breadcrumb">
@@ -20,162 +44,166 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h4>Quản lý nội dung trang chủ</h4>
-                            <div class="adm-detail-meta">Quản lý các khu vực hiển thị trên trang chủ DuaStore</div>
+                            <div class="adm-detail-meta">Kéo thả để sắp xếp thứ tự các khu vực hiển thị trên trang chủ</div>
                         </div>
+                        <button class="btn btn-primary" id="btnSaveOrder" onclick="saveSectionOrder()">
+                            <i class="bi bi-floppy me-1"></i>Lưu thứ tự
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row g-3">
-            <!-- Slider -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-sliders fs-1 text-primary"></i>
-                        </div>
-                        <h6 class="card-title">Slider</h6>
-                        <p class="text-muted small mb-3">Banner slider hiển thị đầu trang chủ</p>
-                        <a href="/admin/banner" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
+        <div id="homepageSectionList" class="row g-3"></div>
 
-            <!-- Banner -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-images fs-1 text-success"></i>
-                        </div>
-                        <h6 class="card-title">Banner</h6>
-                        <p class="text-muted small mb-3">Banner quảng cáo trang chủ</p>
-                        <span class="status-pill status-ACTIVE" th:text="${bannerCount + ' banner'}">0 banner</span>
-                        <a href="/admin/banner" class="btn btn-sm btn-outline-success ms-2">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sản phẩm nổi bật -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-star fs-1 text-warning"></i>
-                        </div>
-                        <h6 class="card-title">Sản phẩm nổi bật</h6>
-                        <p class="text-muted small mb-3">Sản phẩm được hiển thị nổi bật trên trang chủ</p>
-                        <span class="status-pill status-SAN_SANG" th:text="${productCount + ' sản phẩm'}">0 sản phẩm</span>
-                        <a href="/admin/san-pham" class="btn btn-sm btn-outline-warning ms-2">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Danh mục nổi bật -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-grid-3x3-gap fs-1 text-info"></i>
-                        </div>
-                        <h6 class="card-title">Danh mục nổi bật</h6>
-                        <p class="text-muted small mb-3">Danh mục hiển thị trên trang chủ</p>
-                        <span class="status-pill status-ACTIVE" th:text="${categoryCount + ' danh mục'}">0 danh mục</span>
-                        <a href="/admin/danh-muc" class="btn btn-sm btn-outline-info ms-2">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Flash Sale -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-lightning fs-1 text-danger"></i>
-                        </div>
-                        <h6 class="card-title">Flash Sale</h6>
-                        <p class="text-muted small mb-3">Chương trình flash sale có giới hạn thời gian</p>
-                        <a href="/admin/khuyen-mai" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Voucher nổi bật -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-ticket-perforated fs-1 text-success"></i>
-                        </div>
-                        <h6 class="card-title">Voucher nổi bật</h6>
-                        <p class="text-muted small mb-3">Mã giảm giá hiển thị trên trang chủ</p>
-                        <a href="/admin/khuyen-mai" class="btn btn-sm btn-outline-success">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bộ sưu tập -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-collection fs-1 text-secondary"></i>
-                        </div>
-                        <h6 class="card-title">Bộ sưu tập</h6>
-                        <p class="text-muted small mb-3">Bộ sưu tập sản phẩm đặc biệt</p>
-                        <a href="/admin/san-pham" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Blog nổi bật -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-newspaper fs-1 text-primary"></i>
-                        </div>
-                        <h6 class="card-title">Blog nổi bật</h6>
-                        <p class="text-muted small mb-3">Bài viết nổi bật hiển thị trên trang chủ</p>
-                        <span class="status-pill status-XUAT_BAN" th:text="${postCount + ' bài viết'}">0 bài viết</span>
-                        <a href="/admin/bai-viet" class="btn btn-sm btn-outline-primary ms-2">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Popup -->
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center py-4">
-                        <div class="mb-3">
-                            <i class="bi bi-phone fs-1 text-dark"></i>
-                        </div>
-                        <h6 class="card-title">Popup</h6>
-                        <p class="text-muted small mb-3">Thông báo popup khi người dùng truy cập trang</p>
-                        <a href="/admin/thong-bao" class="btn btn-sm btn-outline-dark">
-                            <i class="bi bi-gear me-1"></i>Quản lý
-                        </a>
-                    </div>
-                </div>
+        <div class="text-center mt-3" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
             </div>
         </div>
     </div>
+
+    <th:block layout:fragment="extra-script">
+        <script>
+            var sectionList = [];
+            var sectionConfig = {
+                'slider':     { icon: 'bi-sliders',       color: 'primary',   label: 'Slider',        desc: 'Banner slider hiển thị đầu trang chủ' },
+                'banner':     { icon: 'bi-images',        color: 'success',   label: 'Banner',        desc: 'Banner quảng cáo trang chủ' },
+                'featured-products': { icon: 'bi-star',   color: 'warning',   label: 'Sản phẩm nổi bật', desc: 'Sản phẩm được hiển thị nổi bật' },
+                'categories': { icon: 'bi-grid-3x3-gap',  color: 'info',      label: 'Danh mục nổi bật', desc: 'Danh mục hiển thị trên trang chủ' },
+                'flash-sale': { icon: 'bi-lightning',     color: 'danger',    label: 'Flash Sale',    desc: 'Chương trình flash sale' },
+                'vouchers':   { icon: 'bi-ticket-perforated', color: 'success', label: 'Voucher nổi bật', desc: 'Mã giảm giá hiển thị trên trang chủ' },
+                'collection': { icon: 'bi-collection',    color: 'secondary', label: 'Bộ sưu tập',    desc: 'Bộ sưu tập sản phẩm đặc biệt' },
+                'blog':       { icon: 'bi-newspaper',     color: 'primary',   label: 'Blog nổi bật',  desc: 'Bài viết nổi bật hiển thị trên trang chủ' },
+                'popup':      { icon: 'bi-phone',         color: 'dark',      label: 'Popup',         desc: 'Thông báo popup khi truy cập trang' }
+            };
+            var sectionLinks = {
+                'slider':     '/admin/banner',
+                'banner':     '/admin/banner',
+                'featured-products': '/admin/san-pham',
+                'categories': '/admin/danh-muc',
+                'flash-sale': '/admin/khuyen-mai',
+                'vouchers':   '/admin/khuyen-mai',
+                'collection': '/admin/san-pham',
+                'blog':       '/admin/bai-viet',
+                'popup':      '/admin/thong-bao'
+            };
+
+            function renderSections(sections) {
+                var container = document.getElementById('homepageSectionList');
+                container.innerHTML = '';
+                sections.forEach(function(s, idx) {
+                    var cfg = sectionConfig[s.id] || { icon: 'bi-question', color: 'secondary', label: s.id, desc: '' };
+                    var link = sectionLinks[s.id] || '#';
+                    var col = document.createElement('div');
+                    col.className = 'col-md-4 hp-section-card';
+                    col.dataset.id = s.id;
+                    col.innerHTML =
+                        '<div class="card h-100 border-0 shadow-sm">' +
+                            '<div class="card-body text-center py-4">' +
+                                '<div class="mb-3 position-relative">' +
+                                    '<i class="bi ' + cfg.icon + ' fs-1 text-' + cfg.color + '"></i>' +
+                                    '<span class="drag-handle position-absolute top-0 start-0"><i class="bi bi-grip-vertical fs-5"></i></span>' +
+                                '</div>' +
+                                '<h6 class="card-title">' + cfg.label + '</h6>' +
+                                '<p class="text-muted small mb-3">' + cfg.desc + '</p>' +
+                                '<div class="d-flex justify-content-center gap-2">' +
+                                    '<a href="' + link + '" class="btn btn-sm btn-outline-' + cfg.color + '"><i class="bi bi-gear me-1"></i>Quản lý</a>' +
+                                    '<div class="form-check form-switch d-inline-flex align-items-center ms-2">' +
+                                        '<input class="form-check-input" type="checkbox" role="switch" ' + (s.enabled !== false ? 'checked' : '') + ' onchange="toggleSection(\'' + s.id + '\', this.checked)">' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                    container.appendChild(col);
+                });
+                document.getElementById('loadingSpinner').style.display = 'none';
+
+                new Sortable(container, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    dragClass: 'sortable-drag',
+                    onEnd: function() {
+                        updateSectionOrder();
+                    }
+                });
+            }
+
+            function updateSectionOrder() {
+                var items = document.querySelectorAll('#homepageSectionList > .hp-section-card');
+                sectionList = [];
+                items.forEach(function(el) {
+                    var id = el.dataset.id;
+                    var cb = el.querySelector('input[type="checkbox"]');
+                    sectionList.push({ id: id, enabled: cb ? cb.checked : true });
+                });
+            }
+
+            function toggleSection(id, checked) {
+                var found = sectionList.find(function(s) { return s.id === id; });
+                if (found) found.enabled = checked;
+            }
+
+            function saveSectionOrder() {
+                updateSectionOrder();
+                var btn = document.getElementById('btnSaveOrder');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
+
+                var csrf = document.querySelector('meta[name="_csrf"]');
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+                var headers = { 'Content-Type': 'application/json' };
+                if (csrf && csrfHeader) {
+                    headers[csrfHeader.content] = csrf.content;
+                }
+
+                fetch('/admin/api/homepage-layout', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(sectionList)
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.success) {
+                        showToast('Đã lưu thứ tự các section.', 'success');
+                    } else {
+                        showToast('Lưu thất bại.', 'error');
+                    }
+                }).catch(function() {
+                    showToast('Lỗi kết nối.', 'error');
+                }).finally(function() {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-floppy me-1"></i>Lưu thứ tự';
+                });
+            }
+
+            function showToast(msg, type) {
+                var container = document.getElementById('toastContainer');
+                if (!container) return;
+                var bg = type === 'success' ? 'bg-success' : 'bg-danger';
+                var icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle';
+                var t = document.createElement('div');
+                t.className = 'toast align-items-center text-white border-0 ' + bg;
+                t.role = 'alert';
+                t.innerHTML = '<div class="d-flex"><div class="toast-body"><i class="bi ' + icon + ' me-1"></i>' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+                container.appendChild(t);
+                var bsToast = new bootstrap.Toast(t);
+                bsToast.show();
+                setTimeout(function() { t.remove(); }, 4000);
+            }
+
+            // Load
+            fetch('/admin/api/homepage-layout', {
+                headers: { 'Accept': 'application/json' }
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (Array.isArray(data)) {
+                    renderSections(data);
+                    sectionList = JSON.parse(JSON.stringify(data));
+                }
+            }).catch(function() {
+                document.getElementById('loadingSpinner').style.display = 'none';
+            });
+        </script>
+    </th:block>
 </body>
 </html>

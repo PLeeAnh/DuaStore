@@ -1,7 +1,6 @@
 /* =====================================================
    GLOBAL: prevent dropdown clipping
    ===================================================== */
-.dropdown-menu,
 .ds-combo-panel {
     position: fixed !important;
     z-index: 9999 !important;
@@ -38,9 +37,9 @@
     --font-logo   : 'Dancing Script', cursive;
     --ds-card-bg  : #ffffff;
 
-    --ds-red       : #2563eb;
+    --ds-red       : #2563EB;
     --ds-red-light : #DBEAFE;
-    --ds-red-dark  : #1d4ed8;
+    --ds-red-dark  : #1D4ED8;
 }
 
 /* ── Bootstrap Overrides (theme: blue) ── */
@@ -473,7 +472,60 @@ a {
 .ds-search-inline-input:focus {
     width: 180px;
 }
-
+/* Search suggestions dropdown */
+.ds-search-wrap {
+    position: relative;
+}
+.ds-search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--ds-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.12);
+    z-index: 9999;
+    max-height: 360px;
+    overflow-y: auto;
+}
+.ds-suggest-header {
+    padding: 8px 14px 4px;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--ds-gray-500);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.ds-suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    text-decoration: none;
+    color: var(--ds-gray-800);
+    transition: background .12s;
+}
+.ds-suggest-item:hover {
+    background: var(--ds-gray-100);
+}
+.ds-suggest-img {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: var(--ds-gray-100);
+}
+.ds-suggest-name {
+    font-size: .82rem;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
 
 /* =====================================================
    06. HERO
@@ -1364,6 +1416,11 @@ a {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    cursor: pointer;
+}
+.ds-product-grid-v2 .ds-product-card {
+    background: transparent;
+    border: none;
 }
 .ds-product-card:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,.08);
@@ -1405,6 +1462,56 @@ a {
     flex-direction: column;
     flex: 1;
     gap: 3px;
+}
+
+/* ── Price row (Steam-style discount badge) ── */
+.ds-card-price {
+    display: inline-flex;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 2px;
+    margin-top: auto;
+    margin-left: auto;
+}
+.ds-card-price-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    font-weight: 800;
+    font-size: .78rem;
+    background: #1e3a5f;
+    color: #fff;
+    flex-shrink: 0;
+}
+.ds-card-price-values {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    background: #DBEAFE;
+    font-weight: 700;
+}
+.ds-card-price-old {
+    font-size: .7rem;
+    color: #94a3b8;
+    text-decoration: line-through;
+    white-space: nowrap;
+}
+.ds-card-price-current {
+    font-size: .85rem;
+    color: #2563EB;
+    white-space: nowrap;
+}
+.ds-card-price-oos .ds-card-price-badge {
+    background: #999;
+    color: #fff;
+}
+.ds-card-price-oos .ds-card-price-values {
+    background: #2a2a2a;
+}
+.ds-product-card.oos .ds-card-price-current {
+    color: #999;
 }
 
 /* ── Product name ── */
@@ -1661,6 +1768,13 @@ a {
     outline: none;
     padding: 2px 0;
     color: var(--ds-gray-900);
+    transition: width .15s;
+}
+.ds-qty-val:focus {
+    width: 48px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px var(--ds-primary);
 }
 
 /* ── Add-to-cart button (SVG wave + cart design) ── */
@@ -1736,20 +1850,6 @@ a {
     color: #22c55e;
 }
 
-.ds-card-price {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 4px 10px;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--ds-primary, #2563eb);
-    letter-spacing: -.02em;
-    min-height: 46px;
-    margin-top: auto;
-}
-
 /* ── Out of Stock ── */
 .ds-product-card.oos {
     opacity: 1;
@@ -1757,14 +1857,10 @@ a {
 .ds-product-card.oos .ds-product-image-wrap img {
     filter: none;
 }
-.ds-product-card.oos .ds-price-btn,
 .ds-product-card.oos .ds-qty-btn {
     cursor: not-allowed;
     opacity: .5;
     pointer-events: none;
-}
-.ds-product-card.oos .ds-card-price {
-    display: none;
 }
 
 /* ── Hover preview (soft blue theme) ── */
@@ -3093,7 +3189,7 @@ a {
 /* ── Sticky tabs ── */
 .sticky-tabs {
     position: sticky;
-    top: 72px;
+    top: 0;
     z-index: 20;
     background: #fff;
     padding-top: 0;
@@ -5491,22 +5587,22 @@ a {
 }
 @media (max-width: 1399px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 6), 1fr);
     }
 }
 @media (max-width: 1199px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 5), 1fr);
     }
 }
 @media (max-width: 991px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 4), 1fr);
     }
 }
 @media (max-width: 767px) {
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 2), 1fr);
     }
 }
 @media (max-width: 576px) {
@@ -5537,7 +5633,7 @@ a {
         font-size: .75rem;
     }
     .ds-product-grid-v2 {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(min(var(--cols, 7), 2), 1fr);
         gap: .4rem;
     }
 }

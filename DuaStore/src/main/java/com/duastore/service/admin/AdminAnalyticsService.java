@@ -1,5 +1,6 @@
 package com.duastore.service.admin;
 
+import com.duastore.model.Category;
 import com.duastore.model.Order;
 import com.duastore.model.ProductVariant;
 import com.duastore.model.VoucherStatus;
@@ -28,6 +29,7 @@ public class AdminAnalyticsService {
     private final UserRepository userRepository;
     private final PromotionRepository promotionRepository;
     private final UserVoucherRepository userVoucherRepository;
+    private final CategoryRepository categoryRepository;
 
     public AdminAnalyticsService(OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
@@ -35,7 +37,8 @@ public class AdminAnalyticsService {
             ProductVariantRepository productVariantRepository,
             UserRepository userRepository,
             PromotionRepository promotionRepository,
-            UserVoucherRepository userVoucherRepository) {
+            UserVoucherRepository userVoucherRepository,
+            CategoryRepository categoryRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
@@ -43,6 +46,7 @@ public class AdminAnalyticsService {
         this.userRepository = userRepository;
         this.promotionRepository = promotionRepository;
         this.userVoucherRepository = userVoucherRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     // ==================== REVENUE ====================
@@ -109,7 +113,10 @@ public class AdminAnalyticsService {
                 .limit(10)
                 .forEach(e -> {
                     Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("name", "Danh mục #" + e.getKey());
+                    String name = categoryRepository.findById(e.getKey())
+                            .map(Category::getTenDanhMuc)
+                            .orElse("Danh mục #" + e.getKey());
+                    row.put("name", name);
                     row.put("revenue", e.getValue());
                     result.add(row);
                 });

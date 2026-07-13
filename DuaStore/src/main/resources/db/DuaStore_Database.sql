@@ -7,13 +7,9 @@
  Ban cu (viet tay) bi LECH voi @Entity trong code -> Hibernate "ddl-auto=validate"
  bao loi khong khoi dong duoc app. Cac loi da sua trong ban nay:
 
-  1. THIEU BANG "RefundRequests" (entity RefundRequest.java) -> da them day du.
-  2. Toan bo cot kieu chuoi (ten, dia chi, ghi chu...) dang la NVARCHAR nhung
-     entity KHONG khai bao Unicode -> Hibernate doi VARCHAR. Da doi tat ca ve
-     VARCHAR de khop 100% voi entity (con cac cot that su can Unicode/text dai
-     nhu mo ta san pham, noi dung bai viet, ly do hoan tien... entity dung
-     @Lob/columnDefinition nen van la NVARCHAR(MAX), giu nguyen).
-  3. 3 bang "linked_accounts", "user_settings", "user_auth_providers" dat sai
+   1. THIEU BANG "RefundRequests" (entity RefundRequest.java) -> da them day du.
+   2. Toan bo cot kieu chuoi da dung NVARCHAR de ho tro tieng Viet co dau day du.
+   3. 3 bang "linked_accounts", "user_settings", "user_auth_providers" dat sai
      ten cot kieu snake_case (user_id, created_at, setting_key...) trong khi
      entity dung PhysicalNamingStrategyStandardImpl (khong tu convert) nen cot
      that su phai la camelCase (userId, createdAt, settingKey...). Da sua.
@@ -62,6 +58,12 @@ DROP TABLE IF EXISTS order_notes;
 DROP TABLE IF EXISTS order_assignments;
 DROP TABLE IF EXISTS Notifications;
 DROP TABLE IF EXISTS UserVouchers;
+DROP TABLE IF EXISTS ReviewImages;
+DROP TABLE IF EXISTS LoyaltyTransactions;
+DROP TABLE IF EXISTS footer_links;
+DROP TABLE IF EXISTS PriceHistory;
+DROP TABLE IF EXISTS CustomerTags;
+DROP TABLE IF EXISTS CustomerNotes;
 DROP TABLE IF EXISTS Wishlists;
 DROP TABLE IF EXISTS Posts;
 DROP TABLE IF EXISTS PostCategories;
@@ -100,13 +102,13 @@ GO
         latitude float(53),
         longitude float(53),
         userId int not null,
-        soDienThoai varchar(15) not null,
-        ghnWardCode varchar(20),
-        phuongXa varchar(100) not null,
-        quanHuyen varchar(100) not null,
-        tenNguoiNhan varchar(100) not null,
-        tinhThanh varchar(100) not null,
-        diaChiCuThe varchar(200) not null,
+        soDienThoai nvarchar(15) not null,
+        ghnWardCode nvarchar(20),
+        phuongXa nvarchar(100) not null,
+        quanHuyen nvarchar(100) not null,
+        tenNguoiNhan nvarchar(100) not null,
+        tinhThanh nvarchar(100) not null,
+        diaChiCuThe nvarchar(200) not null,
         primary key (id)
     );
 
@@ -115,9 +117,9 @@ GO
         entityId int not null,
         id int identity not null,
         ngayTao datetime2(7) not null,
-        hanhDong varchar(50) not null,
-        ipAddress varchar(50),
-        loaiEntity varchar(50) not null,
+        hanhDong nvarchar(50) not null,
+        ipAddress nvarchar(50),
+        loaiEntity nvarchar(50) not null,
         giaTriCu nvarchar(max),
         giaTriMoi nvarchar(max),
         moTa nvarchar(max),
@@ -132,10 +134,10 @@ GO
         end_date datetime2(7),
         start_date datetime2(7),
         updated_at datetime2(7) not null,
-        title varchar(200) not null,
-        description varchar(500),
-        image_url varchar(500) not null,
-        link_url varchar(1000),
+        title nvarchar(200) not null,
+        description nvarchar(500),
+        image_url nvarchar(500) not null,
+        link_url nvarchar(1000),
         primary key (id)
     );
 
@@ -157,9 +159,9 @@ GO
         thuTuHienThi int default 0,
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7),
-        imageUrl varchar(500),
-        moTa varchar(255),
-        tenDanhMuc varchar(255) not null,
+        imageUrl nvarchar(500),
+        moTa nvarchar(255),
+        tenDanhMuc nvarchar(255) not null,
         primary key (id)
     );
 
@@ -189,11 +191,11 @@ GO
         linkId int,
         userId int,
         createdAt datetime2(7) not null,
-        linkType varchar(20),
-        targetRole varchar(20),
-        linkUrl varchar(500),
+        linkType nvarchar(20),
+        targetRole nvarchar(20),
+        linkUrl nvarchar(500),
         content NVARCHAR(MAX) not null,
-        linkLabel varchar(255),
+        linkLabel nvarchar(255),
         primary key (id)
     );
 
@@ -202,7 +204,7 @@ GO
         id int identity not null,
         orderId int not null,
         ngayPhan datetime2(7) not null,
-        trangThai varchar(20),
+        trangThai nvarchar(20),
         primary key (id)
     );
 
@@ -214,10 +216,10 @@ GO
         soLuong int not null,
         thanhTien numeric(12,0) not null,
         variantId int,
-        loaiGia varchar(20),
-        tenBienThe varchar(150),
-        tenSanPham varchar(200) not null,
-        hinhAnhSP varchar(255),
+        loaiGia nvarchar(20),
+        tenBienThe nvarchar(150),
+        tenSanPham nvarchar(200) not null,
+        hinhAnhSP nvarchar(255),
         primary key (id)
     );
 
@@ -226,8 +228,8 @@ GO
         id int identity not null,
         order_id int not null,
         ngayTao datetime2(7) not null,
-        tag varchar(50),
-        noiDung varchar(1000) not null,
+        tag nvarchar(50),
+        noiDung nvarchar(1000) not null,
         primary key (id)
     );
 
@@ -236,10 +238,10 @@ GO
         nguoi_thuc_hien_id int,
         order_id int not null,
         thoi_gian datetime2(7) not null,
-        loai_su_kien varchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
-        trang_thai_cu varchar(50),
-        trang_thai_moi varchar(50),
-        ghiChu varchar(500),
+        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
+        trang_thai_cu nvarchar(50),
+        trang_thai_moi nvarchar(50),
+        ghiChu nvarchar(500),
         primary key (id)
     );
 
@@ -254,25 +256,25 @@ GO
         userId int not null,
         ngayCapNhat datetime2(7),
         ngayDat datetime2(7) not null,
-        snapSoDienThoai varchar(15) not null,
-        maDon varchar(20) not null,
-        phuongThucGiaoHang varchar(20) default 'SHIP' not null,
-        phuongThucTT varchar(20) not null,
-        trangThaiDon varchar(20) default 'CHO_XAC_NHAN' not null,
-        trangThaiTT varchar(25) default 'CHUA_THANH_TOAN' not null,
-        maVanDon varchar(50),
-        snapTenNguoiNhan varchar(100) not null,
-        ghiChu varchar(500),
-        snapDiaChi varchar(500) not null,
+        snapSoDienThoai nvarchar(15) not null,
+        maDon nvarchar(20) not null,
+        phuongThucGiaoHang nvarchar(20) default 'SHIP' not null,
+        phuongThucTT nvarchar(20) not null,
+        trangThaiDon nvarchar(20) default 'CHO_XAC_NHAN' not null,
+        trangThaiTT nvarchar(25) default 'CHUA_THANH_TOAN' not null,
+        maVanDon nvarchar(50),
+        snapTenNguoiNhan nvarchar(100) not null,
+        ghiChu nvarchar(500),
+        snapDiaChi nvarchar(500) not null,
         primary key (id)
     );
 
     create table permissions (
         id int identity not null,
         ngayTao datetime2(7) not null,
-        action varchar(50) not null,
-        module varchar(50) not null,
-        moTa varchar(200),
+        action nvarchar(50) not null,
+        module nvarchar(50) not null,
+        moTa nvarchar(200),
         primary key (id)
     );
 
@@ -280,9 +282,9 @@ GO
         id int identity not null,
         thuTu int default 0,
         ngayTao datetime2(7) not null,
-        tenDanhMuc varchar(200) not null,
-        slug varchar(300),
-        moTa varchar(500),
+        tenDanhMuc nvarchar(200) not null,
+        slug nvarchar(300),
+        moTa nvarchar(500),
         primary key (id)
     );
 
@@ -295,12 +297,12 @@ GO
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7) not null,
         ngayXuatBan datetime2(7),
-        trangThai varchar(15) default 'NHAP' not null,
-        tieuDe varchar(300) not null,
-        metaDescription varchar(500),
-        slug varchar(500),
-        tomTat varchar(500),
-        hinhAnh varchar(255),
+        trangThai nvarchar(15) default 'NHAP' not null,
+        tieuDe nvarchar(300) not null,
+        metaDescription nvarchar(500),
+        slug nvarchar(500),
+        tomTat nvarchar(500),
+        hinhAnh nvarchar(255),
         noiDung NVARCHAR(MAX),
         primary key (id)
     );
@@ -311,7 +313,7 @@ GO
         productId int not null,
         sortOrder int default 0,
         createdAt datetime2(7),
-        imageUrl varchar(255) not null,
+        imageUrl nvarchar(255) not null,
         primary key (id)
     );
 
@@ -324,16 +326,16 @@ GO
         ngayPhatHanh date,
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7),
-        chatLieu varchar(255),
-        hinhAnhChinh varchar(255),
-        hinhDang varchar(255),
-        kinhLoai varchar(255),
+        chatLieu nvarchar(255),
+        hinhAnhChinh nvarchar(255),
+        hinhDang nvarchar(255),
+        kinhLoai nvarchar(255),
         moTa NVARCHAR(MAX),
-        mucDichSuDung varchar(255),
-        tenSanPham varchar(255) not null,
-        thuongHieu varchar(255),
-        trangThaiSanPham varchar(255) default 'DANG_BAN' not null,
-        xuatXu varchar(255),
+        mucDichSuDung nvarchar(255),
+        tenSanPham nvarchar(255) not null,
+        thuongHieu nvarchar(255),
+        trangThaiSanPham nvarchar(255) default 'DANG_BAN' not null,
+        xuatXu nvarchar(255),
         primary key (id)
     );
 
@@ -346,8 +348,8 @@ GO
         isDefault bit default 0 not null,
         productId int not null,
         soLuongTon int default 0 not null,
-        hinhAnh varchar(255),
-        tenBienThe varchar(255) not null,
+        hinhAnh nvarchar(255),
+        tenBienThe nvarchar(255) not null,
         primary key (id)
     );
 
@@ -368,12 +370,12 @@ GO
         usedBudget numeric(12,0) default 0,
         denNgay datetime2(7) not null,
         tuNgay datetime2(7) not null,
-        loaiGiam varchar(15) not null,
-        targetType varchar(20),
-        voucherType varchar(20) check ((voucherType in ('VOUCHER','FREESHIP','MEMBER','BIRTHDAY'))) default 'VOUCHER',
-        maCode varchar(50) not null,
-        tenChuongTrinh varchar(200) not null,
-        targetIds varchar(500),
+        loaiGiam nvarchar(15) not null,
+        targetType nvarchar(20),
+        voucherType nvarchar(20) check ((voucherType in ('VOUCHER','FREESHIP','MEMBER','BIRTHDAY'))) default 'VOUCHER',
+        maCode nvarchar(50) not null,
+        tenChuongTrinh nvarchar(200) not null,
+        targetIds nvarchar(500),
         primary key (id)
     );
 
@@ -385,11 +387,11 @@ GO
         userId int not null,
         ngayXuLy datetime2(7),
         ngayYeuCau datetime2(7) not null,
-        lydo varchar(2000) not null,
-        anhMinhChung varchar(255),
-        ghiChuXuLy varchar(255),
-        phuongThucHoan varchar(255),
-        trangThai varchar(255) not null,
+        lydo nvarchar(2000) not null,
+        anhMinhChung nvarchar(255),
+        ghiChuXuLy nvarchar(255),
+        phuongThucHoan nvarchar(255),
+        trangThai nvarchar(255) not null,
         primary key (id)
     );
 
@@ -400,8 +402,8 @@ GO
         productId int not null,
         userId int not null,
         ngayTao datetime2(7) not null,
-        hinhAnh varchar(500),
-        binhLuan varchar(1000),
+        hinhAnh nvarchar(500),
+        binhLuan nvarchar(1000),
         primary key (id)
     );
 
@@ -415,8 +417,8 @@ GO
         id int identity not null,
         isActive bit default 1 not null,
         ngayTao datetime2(7) not null,
-        name varchar(50) not null,
-        moTa varchar(200),
+        name nvarchar(50) not null,
+        moTa nvarchar(200),
         primary key (id)
     );
 
@@ -435,8 +437,8 @@ GO
         id int identity not null,
         createdAt datetime2(7),
         updatedAt datetime2(7),
-        settingGroup varchar(50),
-        settingKey varchar(100) not null,
+        settingGroup nvarchar(50),
+        settingKey nvarchar(100) not null,
         settingValue NVARCHAR(MAX),
         primary key (id)
     );
@@ -449,14 +451,14 @@ GO
         longitude float(53),
         createdAt datetime2(7),
         updatedAt datetime2(7),
-        soDienThoai varchar(20),
-        email varchar(100),
-        phuongXa varchar(100),
-        quanHuyen varchar(100),
-        soNha varchar(100),
-        tinhThanh varchar(100),
-        duong varchar(200),
-        tenCuaHang varchar(200) not null,
+        soDienThoai nvarchar(20),
+        email nvarchar(100),
+        phuongXa nvarchar(100),
+        quanHuyen nvarchar(100),
+        soNha nvarchar(100),
+        tinhThanh nvarchar(100),
+        duong nvarchar(200),
+        tenCuaHang nvarchar(200) not null,
         primary key (id)
     );
 
@@ -464,8 +466,8 @@ GO
         id int identity not null,
         userId int not null,
         linkedAt datetime2(7) not null,
-        provider varchar(20) not null,
-        provider_sub varchar(255),
+        provider nvarchar(20) not null,
+        provider_sub nvarchar(255),
         primary key (id)
     );
 
@@ -477,8 +479,8 @@ GO
 
     create table user_settings (
         userId int not null,
-        settingKey varchar(50) not null,
-        settingValue varchar(500),
+        settingKey nvarchar(50) not null,
+        settingValue nvarchar(500),
         primary key (userId, settingKey)
     );
 
@@ -491,15 +493,15 @@ GO
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7) not null,
         resetTokenExpiry datetime2(7),
-        soDienThoai varchar(15),
-        status varchar(20),
-        username varchar(50) not null,
-        email varchar(100) not null,
-        hoTen varchar(100) not null,
-        nickname varchar(100),
-        avatar varchar(255),
-        password varchar(255) not null,
-        resetToken varchar(255),
+        soDienThoai nvarchar(15),
+        status nvarchar(20),
+        username nvarchar(50) not null,
+        email nvarchar(100) not null,
+        hoTen nvarchar(100) not null,
+        nickname nvarchar(100),
+        avatar nvarchar(255),
+        password nvarchar(255) not null,
+        resetToken nvarchar(255),
         primary key (id)
     );
 
@@ -512,8 +514,8 @@ GO
         expiredAt datetime2(7),
         savedAt datetime2(7) not null,
         usedAt datetime2(7),
-        status varchar(15) default 'AVAILABLE' not null check ((status in ('AVAILABLE','USED','EXPIRED'))),
-        voucherCode varchar(50),
+        status nvarchar(15) default 'AVAILABLE' not null check ((status in ('AVAILABLE','USED','EXPIRED'))),
+        voucherCode nvarchar(50),
         primary key (id)
     );
 
@@ -522,6 +524,69 @@ GO
         productId int not null,
         userId int not null,
         ngayThem datetime2(7),
+        primary key (id)
+    );
+
+    create table CustomerNotes (
+        id int identity not null,
+        userId int not null,
+        content nvarchar(max) not null,
+        createdBy nvarchar(100) not null,
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table CustomerTags (
+        id int identity not null,
+        userId int not null,
+        tag nvarchar(50) not null,
+        createdAt datetime2(7) not null,
+        primary key (id),
+        constraint UK_CustomerTags unique (userId, tag)
+    );
+
+    create table PriceHistory (
+        id int identity not null,
+        variantId int,
+        variantName nvarchar(255),
+        productId int,
+        productName nvarchar(255),
+        giaCu numeric(18,2),
+        giaMoi numeric(18,2),
+        nguoiThayDoiId int,
+        ngayThayDoi datetime2(7) not null,
+        nguon nvarchar(255),
+        primary key (id)
+    );
+
+    create table footer_links (
+        id int identity not null,
+        title nvarchar(200) not null,
+        url nvarchar(500) not null,
+        display_order int not null,
+        is_active bit not null,
+        column_index int not null,
+        created_at datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table LoyaltyTransactions (
+        id int identity not null,
+        userId int not null,
+        points int not null,
+        balance int not null,
+        type nvarchar(20) not null,
+        referenceId int,
+        note nvarchar(500),
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table ReviewImages (
+        id int identity not null,
+        reviewId int not null,
+        imageUrl nvarchar(500) not null,
+        sortOrder int not null,
         primary key (id)
     );
 GO
@@ -550,10 +615,20 @@ GO
     alter table UserVouchers 
        add constraint UKg1q4hrfehhwey62vcyt9tj3ge unique (userId, promotionId);
 
-    alter table Wishlists 
+    alter table Wishlists
        add constraint UKnyiaslokuixrb7h9fpmo6j4nc unique (userId, productId);
 
-    alter table admin_action_logs 
+    alter table CustomerNotes
+       add constraint FK_CustomerNotes_userId
+       foreign key (userId)
+       references users;
+
+    alter table CustomerTags
+       add constraint FK_CustomerTags_userId
+       foreign key (userId)
+       references users;
+
+    alter table admin_action_logs
        add constraint FKb2noouv518ekq5ffcxosgdj4g 
        foreign key (adminId) 
        references users;
@@ -668,10 +743,40 @@ GO
        foreign key (promotionId) 
        references Promotions;
 
-    alter table Wishlists 
-       add constraint FKl8me5k171y8fskc8x4r5ht3nc 
-       foreign key (productId) 
+    alter table Wishlists
+       add constraint FKl8me5k171y8fskc8x4r5ht3nc
+       foreign key (productId)
        references Products;
+
+    alter table user_auth_providers
+       add constraint FK_user_auth_providers_userId
+       foreign key (userId)
+       references users;
+
+    alter table PriceHistory
+       add constraint FK_PriceHistory_variantId
+       foreign key (variantId)
+       references ProductVariants;
+
+    alter table PriceHistory
+       add constraint FK_PriceHistory_productId
+       foreign key (productId)
+       references Products;
+
+    alter table PriceHistory
+       add constraint FK_PriceHistory_nguoiThayDoiId
+       foreign key (nguoiThayDoiId)
+       references users;
+
+    alter table LoyaltyTransactions
+       add constraint FK_LoyaltyTransactions_userId
+       foreign key (userId)
+       references users;
+
+    alter table ReviewImages
+       add constraint FK_ReviewImages_reviewId
+       foreign key (reviewId)
+       references Reviews;
 GO
 
 -- ============================================================

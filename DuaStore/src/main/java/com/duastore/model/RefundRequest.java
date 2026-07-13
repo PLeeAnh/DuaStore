@@ -38,6 +38,15 @@ public class RefundRequest {
     @Column(name = "phuongThucHoan")
     private String phuongThucHoan;
 
+    @Column(name = "tenNganHang")
+    private String tenNganHang;
+
+    @Column(name = "soTaiKhoan")
+    private String soTaiKhoan;
+
+    @Column(name = "chuTaiKhoan")
+    private String chuTaiKhoan;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime ngayYeuCau;
 

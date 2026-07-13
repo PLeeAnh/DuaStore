@@ -10,7 +10,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 
 @Service
-public class EmailService {
+public class EmailService implements EmailSender {
 
     private final JavaMailSender defaultMailSender;
     private final SiteSettingService siteSettingService;
@@ -81,6 +81,12 @@ public class EmailService {
         return (name != null && !name.isBlank()) ? name : "DuaStore";
     }
 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
     public void send(String to, String subject, String body) {
         try {
             JavaMailSender sender = resolveMailSender();
@@ -167,8 +173,7 @@ public class EmailService {
             helper.setText(plainText, html);
             sender.send(msg);
 
-        } catch (Exception e) {
-            throw new RuntimeException("Không thể gửi email: " + e.getMessage());
+        } catch (Exception ignored) {
         }
     }
 

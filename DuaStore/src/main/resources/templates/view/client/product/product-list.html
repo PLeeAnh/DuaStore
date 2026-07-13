@@ -20,12 +20,32 @@
                     </ol>
                 </nav>
 
-                <div class="ds-pl-v2-bar">
+                <!-- Mobile filter toggle button -->
+                <div class="d-lg-none mb-2">
+                    <button class="btn-filter w-100" type="button" onclick="toggleMobileFilters()">
+                        <i class="bi bi-funnel"></i> Bộ lọc
+                        <span id="dsActiveFilterCount" class="badge bg-danger ms-1" style="display:none;">0</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </button>
+                </div>
+
+                <div class="ds-pl-v2-bar" id="dsFilterBar">
+                    <!-- Filter count badge -->
+                    <th:block th:with="
+                        hasAnyFilter=${danhMuc != null or chatLieu != null or dungTich != null or priceRange != null or (keyword != null and !keyword.isEmpty())},
+                        filterCount=${(danhMuc != null ? 1 : 0) + (chatLieu != null ? 1 : 0) + (dungTich != null ? 1 : 0) + (priceRange != null ? 1 : 0) + (keyword != null and !keyword.isEmpty() ? 1 : 0)}">
+                    <span id="dsFilterCountData" th:attr="data-count=${filterCount}" style="display:none"></span>
+
+                    <a th:if="${hasAnyFilter}" th:href="@{/san-pham}" class="btn-filter btn-filter-clear">
+                        <i class="bi bi-x-circle"></i> Xoá tất cả
+                    </a>
+
                     <div class="dropdown">
                         <button class="btn-filter dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-grid"></i>
                             <span th:if="${selectedCategory == null}">Danh mục</span>
                             <span th:if="${selectedCategory != null}" th:text="${selectedCategory.tenDanhMuc}">Cat</span>
+                            <span class="ds-filter-badge" th:if="${danhMuc != null}">1</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
                         <ul class="dropdown-menu">
@@ -38,6 +58,7 @@
                             <i class="bi bi-droplet"></i>
                             <span th:if="${chatLieu == null}">Chất liệu</span>
                             <span th:if="${chatLieu != null}" th:text="${chatLieu}">Mat</span>
+                            <span class="ds-filter-badge" th:if="${chatLieu != null}">1</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
                         <ul class="dropdown-menu">
@@ -50,6 +71,7 @@
                             <i class="bi bi-box"></i>
                             <span th:if="${dungTich == null}">Dung tích</span>
                             <span th:if="${dungTich != null}" th:text="${dungTich} + 'ml'">50ml</span>
+                            <span class="ds-filter-badge" th:if="${dungTich != null}">1</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
                         <ul class="dropdown-menu">
@@ -62,6 +84,7 @@
                             <i class="bi bi-tag"></i>
                             <span th:if="${priceRange == null}">Khoảng giá</span>
                             <span th:if="${priceRange != null}">Đã chọn</span>
+                            <span class="ds-filter-badge" th:if="${priceRange != null}">1</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
                         <ul class="dropdown-menu">
@@ -71,20 +94,43 @@
                             <li><a class="dropdown-item" th:classappend="${priceRange == 'r200_500'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange='r200_500', sortBy=${sortBy})}">200K - 500K</a></li>
                             <li><a class="dropdown-item" th:classappend="${priceRange == 'r500_1000'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange='r500_1000', sortBy=${sortBy})}">500K - 1M</a></li>
                             <li><a class="dropdown-item" th:classappend="${priceRange == 'gt1000'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange='gt1000', sortBy=${sortBy})}">Trên 1M</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <div class="px-3 py-2">
+                                    <div class="small text-muted mb-1">Hoặc nhập khoảng giá</div>
+                                    <form th:action="@{/san-pham}" method="get" class="d-flex gap-1">
+                                        <input type="hidden" name="danhMuc" th:value="${danhMuc}"/>
+                                        <input type="hidden" name="keyword" th:value="${keyword}"/>
+                                        <input type="hidden" name="chatLieu" th:value="${chatLieu}"/>
+                                        <input type="hidden" name="dungTich" th:value="${dungTich}"/>
+                                        <input type="hidden" name="sortBy" th:value="${sortBy}"/>
+                                        <input type="number" name="priceFrom" class="form-control form-control-sm" placeholder="Từ" min="0" style="width:80px"/>
+                                        <span class="align-self-center">—</span>
+                                        <input type="number" name="priceTo" class="form-control form-control-sm" placeholder="Đến" min="0" style="width:80px"/>
+                                        <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-check"></i></button>
+                                    </form>
+                                </div>
+                            </li>
                         </ul>
                     </div>
                     <div class="dropdown ms-auto">
                         <button class="btn-filter dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-arrow-up-short"></i>
-                            <span th:text="${sortBy == 'newest'} ? 'Mới nhất' : (${sortBy == 'name_asc'} ? 'Tên A-Z' : (${sortBy == 'name_desc'} ? 'Tên Z-A' : 'Sắp xếp'))">Mới nhất</span>
+                            <span th:text="${sortBy == 'newest'} ? 'Mới nhất' : (${sortBy == 'price_asc'} ? 'Giá: Thấp→Cao' : (${sortBy == 'price_desc'} ? 'Giá: Cao→Thấp' : (${sortBy == 'name_asc'} ? 'Tên A-Z' : (${sortBy == 'name_desc'} ? 'Tên Z-A' : (${sortBy == 'best_selling'} ? 'Bán chạy' : (${sortBy == 'top_rated'} ? 'Đánh giá cao' : 'Sắp xếp'))))))">Mới nhất</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item dropdown-item-sort" th:classappend="${sortBy == 'newest'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange=${priceRange}, sortBy='newest')}">Mới nhất</a></li>
+                            <li><a class="dropdown-item dropdown-item-sort" th:classappend="${sortBy == 'best_selling'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange=${priceRange}, sortBy='best_selling')}">Bán chạy</a></li>
+                            <li><a class="dropdown-item dropdown-item-sort" th:classappend="${sortBy == 'top_rated'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange=${priceRange}, sortBy='top_rated')}">Đánh giá cao</a></li>
+                            <li><a class="dropdown-item dropdown-item-sort" th:classappend="${sortBy == 'price_asc'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange=${priceRange}, sortBy='price_asc')}">Giá: Thấp → Cao</a></li>
+                            <li><a class="dropdown-item dropdown-item-sort" th:classappend="${sortBy == 'price_desc'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange=${priceRange}, sortBy='price_desc')}">Giá: Cao → Thấp</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item dropdown-item-sort" th:classappend="${sortBy == 'name_asc'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange=${priceRange}, sortBy='name_asc')}">Tên A-Z</a></li>
                             <li><a class="dropdown-item dropdown-item-sort" th:classappend="${sortBy == 'name_desc'} ? 'active' : ''" th:href="@{/san-pham(danhMuc=${danhMuc}, keyword=${keyword}, chatLieu=${chatLieu}, dungTich=${dungTich}, priceRange=${priceRange}, sortBy='name_desc')}">Tên Z-A</a></li>
                         </ul>
                     </div>
+                    </th:block>
                 </div>
 
                 <div class="ds-pl-info">
@@ -118,8 +164,9 @@
 
                                 <div class="ds-product-image-wrap">
                                     <a th:href="@{/san-pham/{id}(id=${p.id})}">
-                                        <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt=""/>
-                                        <i th:if="${p.hinhAnhChinh == null}" class="bi bi-box-seam"></i>
+                                        <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt="" loading="lazy"/>
+                                        <img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" alt="" loading="lazy"/>
+                                        <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
                                         <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
                                               th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
                                         <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai == null and bestPercentagePromo != null}"
@@ -249,5 +296,22 @@
         </div>
 
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var countEl = document.getElementById('dsFilterCountData');
+            if (countEl) {
+                var count = parseInt(countEl.dataset.count) || 0;
+                var badge = document.getElementById('dsActiveFilterCount');
+                if (badge) {
+                    if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+                    else { badge.style.display = 'none'; }
+                }
+            }
+        });
+        function toggleMobileFilters() {
+            var bar = document.getElementById('dsFilterBar');
+            if (bar) bar.classList.toggle('ds-filter-bar-open');
+        }
+    </script>
     </body>
 </html>

@@ -5,5 +5,6 @@ public enum OrderEventType {
     ASSIGN_ADMIN,
     STATUS_CHANGE,
     CANCEL_ORDER,
-    PAYMENT_CONFIRMED
+    PAYMENT_CONFIRMED,
+    REFUND_ORDER
 }

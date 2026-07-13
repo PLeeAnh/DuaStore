@@ -23,7 +23,7 @@
                             <div class="ds-product-card">
                                 <div class="ds-product-image-wrap">
                                     <a th:href="@{'/san-pham/' + ${item.productId}}">
-                                        <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" alt=""
+                                        <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" alt="" loading="lazy"
                                              onerror="this.src='/images/no-image.png'" />
                                         <i th:if="${item.hinhAnh == null}" class="bi bi-box-seam"></i>
                                         <span class="ds-badge-sale" th:if="${item.giaGoc != null and item.giaBan != null and item.giaGoc.compareTo(item.giaBan) > 0}"

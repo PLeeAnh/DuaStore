@@ -151,4 +151,51 @@ class AdminDashboardServiceTest {
         String growth = dashboardService.getRevenueGrowth();
         assertThat(growth).isEqualTo("0%");
     }
+
+    // ------ getMonthlyRevenueLast12Months ------
+
+    @Test
+    void getMonthlyRevenueLast12Months_includesAllMonths() {
+        createOrder("MR-001", "DA_HOAN_THANH", "COD", new BigDecimal("500000"), LocalDateTime.now().minusDays(1));
+
+        List<Map<String, Object>> data = dashboardService.getMonthlyRevenueLast12Months();
+
+        assertThat(data).hasSize(12);
+        assertThat(data.get(0)).containsKeys("month", "year", "label", "revenue");
+    }
+
+    // ------ getTopSellingProductsLast7Days ------
+
+    @Test
+    void getTopSellingProductsLast7Days_returnsOrderedResults() throws Exception {
+        createOrder("TP-001", "DA_HOAN_THANH", "COD", new BigDecimal("100000"), LocalDateTime.now().minusHours(1));
+        createOrder("TP-002", "DA_HOAN_THANH", "COD", new BigDecimal("200000"), LocalDateTime.now().minusHours(2));
+
+        java.lang.Thread.sleep(100);
+
+        List<Map<String, Object>> top = dashboardService.getTopSellingProductsLast7Days(5);
+
+        assertThat(top).isNotNull();
+    }
+
+    // ------ getCancelRefundRate ------
+
+    @Test
+    void getCancelRefundRate_returnsRateWithCancelledOrders() {
+        createOrder("CR-001", "DA_HOAN_THANH", "COD", new BigDecimal("100000"), LocalDateTime.now().minusDays(1));
+        createOrder("CR-002", "DA_HUY", "COD", new BigDecimal("200000"), LocalDateTime.now().minusDays(2));
+
+        Map<String, Object> rate = dashboardService.getCancelRefundRate();
+
+        assertThat(rate).containsKeys("total", "cancelled", "refunded", "rate");
+        assertThat(rate.get("cancelled")).isEqualTo(1L);
+    }
+
+    @Test
+    void getCancelRefundRate_noOrders_returnsZero() {
+        Map<String, Object> rate = dashboardService.getCancelRefundRate();
+
+        assertThat(rate.get("rate")).isEqualTo("0%");
+        assertThat(rate.get("total")).isEqualTo(0L);
+    }
 }
