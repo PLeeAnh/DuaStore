@@ -220,7 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
             opts.createOnBlur = true;
         }
         if (el.hasAttribute('data-autosubmit')) {
+            el._tsInit = true;
             opts.onChange = function () {
+                if (el._tsInit) { el._tsInit = false; return; }
                 var form = el.closest('form');
                 if (form) {
                     form.submit();
@@ -340,4 +342,279 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ── expose reinit for AJAX navigation ──
+    window.__reinitAdminComponents = function () {
+        /* Toast */
+        document.querySelectorAll('[data-toast-msg]').forEach(function (el) {
+            var msg = el.getAttribute('data-toast-msg');
+            var type = el.getAttribute('data-toast-type') || 'success';
+            var icons = {success: 'bi-check-circle-fill text-success', error: 'bi-x-circle-fill text-danger', warning: 'bi-exclamation-triangle-fill text-warning'};
+            var titles = {success: 'Thành công', error: 'Lỗi', warning: 'Cảnh báo'};
+            var toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+            var tc = document.getElementById('toastContainer');
+            if (tc) {
+                tc.insertAdjacentHTML('beforeend',
+                    '<div id="' + toastId + '" class="toast" role="alert" data-bs-delay="4000">' +
+                    '<div class="toast-header">' +
+                    '<i class="bi ' + (icons[type] || icons.success) + ' me-2"></i>' +
+                    '<strong class="me-auto">' + (titles[type] || titles.success) + '</strong>' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
+                    '</div>' +
+                    '<div class="toast-body">' + msg + '</div>' +
+                    '</div>');
+                var toastEl = document.getElementById(toastId);
+                if (toastEl) {
+                    var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+                    toast.show();
+                    toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
+                }
+            }
+            el.remove();
+        });
+
+        /* Confirm modal — re-bind [data-confirm] */
+        var cmEl = document.getElementById('confirmModal');
+        if (cmEl) {
+            window.__confirmForm = null;
+            document.querySelectorAll('[data-confirm]').forEach(function (btn) {
+                btn.onclick = function (e) {
+                    e.preventDefault();
+                    window.__confirmForm = btn.closest('form');
+                    document.getElementById('confirmModalMessage').textContent = btn.getAttribute('data-confirm');
+                    if (window.__confirmModal) {
+                        window.__confirmModal.show();
+                    } else {
+                        window.__confirmModal = new bootstrap.Modal(cmEl);
+                        window.__confirmModal.show();
+                    }
+                };
+            });
+            document.getElementById('confirmModalConfirm').onclick = function () {
+                if (window.__confirmForm) { window.__confirmForm.submit(); window.__confirmForm = null; }
+                if (window.__confirmModal) window.__confirmModal.hide();
+            };
+        }
+
+        /* Auto-submit */
+        document.querySelectorAll('[data-autosubmit]').forEach(function (input) {
+            if (input._reinitBound) return;
+            input._reinitBound = true;
+            var delay = parseInt(input.getAttribute('data-autosubmit'), 10) || 300;
+            var timer;
+            input.addEventListener('input', function () {
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    var form = input.closest('form');
+                    if (form) form.submit();
+                }, delay);
+            });
+        });
+
+        /* TomSelect */
+        document.querySelectorAll('.searchable-select').forEach(function (el) {
+            if (el.tagName !== 'SELECT' || el.tomselect) return;
+            var opts = {
+                placeholder: el.getAttribute('placeholder') || 'Tìm kiếm...',
+                maxOptions: null,
+            };
+            if (el.hasAttribute('data-create')) { opts.create = true; opts.createOnBlur = true; }
+            if (el.hasAttribute('data-autosubmit')) {
+                el._tsInit = true;
+                opts.onChange = function () {
+                    if (el._tsInit) { el._tsInit = false; return; }
+                    var form = el.closest('form');
+                    if (form) form.submit();
+                    else el.dispatchEvent(new Event('change', {bubbles: true}));
+                };
+            }
+            new TomSelect(el, opts);
+        });
+
+        /* Dirty bar (simple: rebind change listeners on [data-dirty-bar] forms) */
+        var dsBar = document.getElementById('dsSaveBar');
+        if (dsBar) {
+            document.querySelectorAll('form[data-dirty-bar]').forEach(function (f) {
+                if (f._dsRebound) return;
+                f._dsRebound = true;
+                f._cleanData = new FormData(f);
+                f._dirty = false;
+                function getFD(f) { return new FormData(f); }
+                function updBar(dirty, f) {
+                    if (dirty) {
+                        window.__activeForm = f;
+                        dsBar.style.display = 'flex';
+                        requestAnimationFrame(function () { dsBar.classList.add('show'); });
+                    } else {
+                        dsBar.classList.remove('show');
+                        window.__activeForm = null;
+                        setTimeout(function () { dsBar.style.display = 'none'; }, 300);
+                    }
+                }
+                function chkDirty(f) {
+                    var cur = getFD(f);
+                    var dirty = false;
+                    var keys = new Set();
+                    for (var pair of f._cleanData.entries()) keys.add(pair[0]);
+                    for (var pair of cur.entries()) keys.add(pair[0]);
+                    keys.forEach(function (k) {
+                        var v1 = f._cleanData.getAll(k).sort().join(',');
+                        var v2 = cur.getAll(k).sort().join(',');
+                        if (v1 !== v2) dirty = true;
+                    });
+                    if (dirty !== f._dirty) { f._dirty = dirty; updBar(dirty, f); }
+                }
+                f.addEventListener('input', function () { chkDirty(f); });
+                f.addEventListener('change', function () { chkDirty(f); });
+            });
+            document.getElementById('dsSaveBarReset').onclick = function () {
+                if (window.__activeForm) {
+                    window.__activeForm.reset();
+                    setTimeout(function () {
+                        window.__activeForm._cleanData = new FormData(window.__activeForm);
+                        window.__activeForm._dirty = false;
+                        updBar(false, window.__activeForm);
+                    }, 50);
+                }
+            };
+            document.getElementById('dsSaveBarSave').onclick = function () {
+                if (window.__activeForm) window.__activeForm.requestSubmit();
+            };
+        }
+    };
 });
+
+/* ══════════════════════════════════════════════════════════════
+   AJAX Navigation — sidebar clicks load main content only
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+    var sidebar = document.querySelector('.adm-sidebar');
+    var contentArea = document.querySelector('.adm-content');
+    if (!sidebar || !contentArea) return;
+
+    function execScripts(container) {
+        container.querySelectorAll('script').forEach(function (old) {
+            var s = document.createElement('script');
+            for (var i = 0; i < old.attributes.length; i++) {
+                s.setAttribute(old.attributes[i].name, old.attributes[i].value);
+            }
+            s.textContent = old.textContent;
+            old.parentNode.replaceChild(s, old);
+        });
+    }
+
+    function getExtraElements(doc) {
+        var body = doc.body;
+        var extra = [];
+        var foundCommon = false;
+        for (var i = 0; i < body.children.length; i++) {
+            var child = body.children[i];
+            if (child.tagName === 'SCRIPT' && child.getAttribute('src')) {
+                var src = child.getAttribute('src');
+                if (src.indexOf('admin-base.js') !== -1 || src.indexOf('admin.js') !== -1) {
+                    foundCommon = true;
+                    continue;
+                }
+            }
+            if (foundCommon) {
+                var cls = child.className || '';
+                var id = child.id || '';
+                if (cls.indexOf('adm-footer') !== -1 || id === 'toastContainer' || id === 'dsSaveBar' || id === 'confirmModal' || id === 'adminProfileModal' || id === 'adminChangePasswordModal') continue;
+                extra.push(child);
+            }
+        }
+        return extra;
+    }
+
+    function loadAdminPage(url, clickedLink) {
+        contentArea.style.opacity = '0.4';
+        contentArea.style.pointerEvents = 'none';
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+
+                // Replace main content
+                var newContent = doc.querySelector('.adm-content');
+                if (newContent) contentArea.innerHTML = newContent.innerHTML;
+
+                // Replace breadcrumb
+                var bc = doc.querySelector('.breadcrumb');
+                var curBc = document.querySelector('.breadcrumb');
+                if (bc && curBc) curBc.innerHTML = bc.innerHTML;
+
+                // Update title
+                document.title = doc.title;
+
+                // Update sidebar active state
+                var links = sidebar.querySelectorAll('.adm-nav-link');
+                for (var j = 0; j < links.length; j++) links[j].classList.remove('active');
+                if (clickedLink) {
+                    clickedLink.classList.add('active');
+                    // Auto-expand parent sub-menu if collapsed
+                    var parentSub = clickedLink.closest('.adm-nav-sub');
+                    if (parentSub && !parentSub.classList.contains('open')) {
+                        parentSub.classList.add('open');
+                        var prevHeader = parentSub.previousElementSibling;
+                        if (prevHeader && prevHeader.classList.contains('adm-nav-section')) {
+                            prevHeader.classList.add('open');
+                        }
+                    }
+                }
+
+                // Push URL to history
+                history.pushState({ url: url }, '', url);
+
+                // Remove old extra content, add new extra content
+                document.querySelectorAll('[data-ajax-extra]').forEach(function (el) { el.remove(); });
+                var extraEls = getExtraElements(doc);
+                for (var k = 0; k < extraEls.length; k++) {
+                    var clone = extraEls[k].cloneNode(true);
+                    clone.setAttribute('data-ajax-extra', 'true');
+                    document.body.appendChild(clone);
+                }
+
+                // Execute scripts in content area
+                execScripts(contentArea);
+
+                // Execute scripts in new extra content
+                document.querySelectorAll('[data-ajax-extra] script').forEach(function (old) {
+                    var s = document.createElement('script');
+                    for (var i = 0; i < old.attributes.length; i++) {
+                        s.setAttribute(old.attributes[i].name, old.attributes[i].value);
+                    }
+                    s.textContent = old.textContent;
+                    old.parentNode.replaceChild(s, old);
+                });
+
+                // Re-init admin components
+                if (window.__reinitAdminComponents) window.__reinitAdminComponents();
+
+                contentArea.style.opacity = '';
+                contentArea.style.pointerEvents = '';
+            })
+            .catch(function (err) {
+                console.warn('AJAX load failed, falling back to full navigation:', err);
+                window.location.href = url;
+            });
+    }
+
+    sidebar.addEventListener('click', function (e) {
+        var link = e.target.closest('a.adm-nav-link');
+        if (!link) return;
+        var href = link.getAttribute('href');
+        if (!href || href === '#' || href === '' || href.indexOf('http') === 0) return;
+        // Only intercept links starting with /admin (excludes "Về trang chủ" → /)
+        if (href.indexOf('/admin') !== 0) return;
+        // Allow ctrl/meta/middle-click for new tab
+        if (e.ctrlKey || e.metaKey || e.button === 1) return;
+        e.preventDefault();
+        loadAdminPage(href, link);
+    });
+
+    window.addEventListener('popstate', function (e) {
+        if (e.state && e.state.url) {
+            window.location.href = e.state.url;
+        }
+    });
+})();

@@ -108,7 +108,7 @@ window.DuaStore.toast = window.DuaStore.toast || {};
             '    <div class="modal-body pt-2 pb-3">' +
             '      <p class="mb-0 small" id="duastoreConfirmMessage"></p>' +
             '    </div>' +
-            '    <div class="modal-footer border-0 pt-0 d-flex gap-2">' +
+            '    <div class="modal-footer border-0 pt-0 d-flex gap-2 justify-content-center">' +
             '      <button type="button" class="ds-btn ds-btn-outline ds-btn-sm flex-fill" id="duastoreConfirmCancel">Huỷ</button>' +
             '      <button type="button" class="ds-btn ds-btn-fill ds-btn-sm flex-fill" id="duastoreConfirmOk">Đồng ý</button>' +
             '    </div>' +

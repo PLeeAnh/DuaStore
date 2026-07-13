@@ -46,6 +46,14 @@
                             <label class="form-check-label" for="paymentBank">Chuyển khoản ngân hàng</label>
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="payment_vnpay" value="0" />
+                            <input class="form-check-input" type="checkbox" name="payment_vnpay" value="1"
+                                   id="paymentVnpay" th:checked="${settings.get('payment_vnpay') == '1'}" />
+                            <label class="form-check-label" for="paymentVnpay">VNPay</label>
+                        </div>
+                    </div>
                     <div class="col-12">
                         <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-bank me-1"></i>Thông tin tài khoản ngân hàng</h6>
                     </div>

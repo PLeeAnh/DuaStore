@@ -22,9 +22,14 @@
                     <i class="bi bi-people"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <div>
-                        <h4>Người dùng</h4>
-                        <div class="adm-detail-meta">Quản lý tất cả người dùng trong hệ thống.</div>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Người dùng</h4>
+                            <div class="adm-detail-meta">Quản lý tất cả người dùng trong hệ thống.</div>
+                        </div>
+                        <a th:href="@{/admin/nguoi-dung/tao-moi}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>Tạo mới
+                        </a>
                     </div>
                 </div>
             </div>
@@ -39,18 +44,64 @@
             </a>
         </div>
 
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
+                            <div class="adm-stat-label">Tổng người dùng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
+                            <i class="bi bi-shield-fill"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${superAdminCount}">0</div>
+                            <div class="adm-stat-label">SUPER_ADMIN</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#F3E8FF;color:#9333EA">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${adminCount}">0</div>
+                            <div class="adm-stat-label">ADMIN</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${userCount}">0</div>
+                            <div class="adm-stat-label">USER</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="adm-table-wrap">
             <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
-                <div class="d-flex gap-3 text-muted small">
-                    <span>Tổng: <strong th:text="${totalItems}">0</strong></span>
-                    <span>SUPER_ADMIN: <strong th:text="${superAdminCount}">0</strong></span>
-                    <span>ADMIN: <strong th:text="${adminCount}">0</strong></span>
-                    <span>USER: <strong th:text="${userCount}">0</strong></span>
-                </div>
                 <div class="d-flex align-items-center gap-2">
-                    <a th:href="@{/admin/nguoi-dung/tao-moi}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus-lg me-1"></i>Tạo mới
-                    </a>
                     <form class="d-flex align-items-center gap-2" method="get">
                         <select name="role" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
                             <option value="">Tất cả</option>
@@ -84,7 +135,7 @@
                         <td>
                             <span th:each="role : ${u.roles}">
                                 <span th:if="${role.name == 'SUPER_ADMIN'}" class="status-pill status-SUPER_ADMIN me-1">SUPER_ADMIN</span>
-                                <span th:if="${role.name == 'ADMIN'}" class="badge bg-warning me-1">Admin</span>
+                                <span th:if="${role.name == 'ADMIN'}" class="status-pill status-ADMIN me-1">Admin</span>
                                 <span th:if="${role.name == 'USER'}" class="status-pill status-USER me-1">Khách hàng</span>
                                 <span th:unless="${role.name == 'SUPER_ADMIN' or role.name == 'ADMIN' or role.name == 'USER'}" class="badge bg-info me-1" th:text="${role.name}">ROLE</span>
                             </span>

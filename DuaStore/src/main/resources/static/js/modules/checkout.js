@@ -9,6 +9,7 @@ var modalProvinces = [];
 var modalDistricts = [];
 var modalWards = [];
 var editingAddressId = null;
+var modalProvincePromise = null;
 
 function loadModalProvinces() {
     return fetch('/api/location/provinces').then(function (r) {
@@ -145,26 +146,50 @@ document.addEventListener('keydown', function (e) {
         closeCombo(openComboId);
 });
 
+function stripLocPrefix(name) {
+    return name.toLowerCase().replace(/^(thành phố|tỉnh|quận|huyện|phường|xã|thị trấn|thị xã)\s+/g, '').trim();
+}
+
 function fuzzyFindLocation(list, rawName) {
     if (!rawName)
         return null;
-    var needle = rawName.toLowerCase().trim();
+    var needle = rawName.toLowerCase().trim().normalize('NFC');
+    var needleStripped = stripLocPrefix(needle);
     return list.find(function (x) {
-        return x.name.toLowerCase() === needle;
+        return x.name.toLowerCase().normalize('NFC') === needle;
     })
             || list.find(function (x) {
-                return x.name.toLowerCase().indexOf(needle) !== -1 || needle.indexOf(x.name.toLowerCase()) !== -1;
+                return stripLocPrefix(x.name.toLowerCase().normalize('NFC')) === needleStripped;
+            })
+            || list.find(function (x) {
+                var xn = x.name.toLowerCase().normalize('NFC');
+                return xn.indexOf(needle) !== -1 || needle.indexOf(xn) !== -1;
+            })
+            || list.find(function (x) {
+                var xn = stripLocPrefix(x.name.toLowerCase().normalize('NFC'));
+                return xn.indexOf(needleStripped) !== -1 || needleStripped.indexOf(xn) !== -1;
             })
             || null;
 }
 
-function modalSetFromNominatim(tinhThanh, quanHuyen, phuongXa, diaChi) {
+function modalSetFromNominatim(tinhThanh, quanHuyen, phuongXa, diaChi, displayName) {
     document.getElementById('modalDiaChiCuTheText').value = diaChi || '';
-    if (!tinhThanh)
+    if (!tinhThanh && !displayName)
         return;
+    if (!modalProvinces.length) {
+        document.getElementById('modalMapStatus').textContent += ' (chưa tải được danh sách tỉnh/thành, vui lòng chọn thủ công)';
+        return;
+    }
     var found = fuzzyFindLocation(modalProvinces, tinhThanh);
+    if (!found && displayName) {
+        var parts = displayName.split(/[,，]/).map(function(s) { return s.trim().normalize('NFC'); });
+        for (var i = parts.length - 1; i >= 0; i--) {
+            var fp = fuzzyFindLocation(modalProvinces, parts[i]);
+            if (fp) { found = fp; break; }
+        }
+    }
     if (!found) {
-        document.getElementById('modalMapStatus').textContent += ' (không khớp được tỉnh/thành, vui lòng chọn thủ công)';
+        document.getElementById('modalMapStatus').textContent += ' (không khớp được "' + (tinhThanh || displayName || '') + '", vui lòng chọn thủ công)';
         return;
     }
     setComboValue('modalTinhThanhCombo', found.code, found.name);
@@ -224,12 +249,34 @@ function reverseGeocodeForModal(lat, lng) {
         .then(function (data) {
             if (!data || data.error) return;
             var comps = data.address || {};
-            var city = comps.city || comps.town || comps.county || comps.state_district || '';
-            var district = comps.district || '';
-            var ward = comps.suburb || comps.neighbourhood || comps.village || '';
-            var street = comps.road || comps.path || '';
+            var city = comps.state || comps.region || comps.state_district || '';
+            if (!city) {
+                for (var k in comps) {
+                    if (typeof comps[k] === 'string' && /^(thành phố|tỉnh)\s/i.test(comps[k].normalize('NFC'))) { city = comps[k]; break; }
+                }
+            }
+            if (!city && data.display_name) {
+                var parts = data.display_name.split(/[,，]/).map(function(s) { return s.trim().normalize('NFC'); });
+                for (var i = parts.length - 1; i >= 0; i--) {
+                    var p = parts[i].toLowerCase().normalize('NFC');
+                    if (p.indexOf('thành phố'.normalize('NFC')) === 0 || p.indexOf('tỉnh'.normalize('NFC')) === 0) { city = parts[i]; break; }
+                }
+            }
+            if (!city) city = comps.city || comps.town || '';
+            var district = comps.county || comps.district || comps.city_district || '';
+            var ward = comps.suburb || comps.neighbourhood || comps.quarter || comps.village || comps.hamlet || comps.town || comps.city_district || '';
+            if (!ward && comps.city && /^(phường|xã|thị trấn)\s/i.test(comps.city)) {
+                ward = comps.city;
+            }
+            var districtFallback = (comps.city && /^(phường|xã|thị trấn|thị xã)\s/i.test(comps.city))
+                ? comps.city.replace(/^(phường|xã|thị trấn|thị xã)\s+/i, '').trim() : '';
+            if (!district) district = districtFallback;
+            var street = comps.house_number ? comps.house_number + ' ' : '';
+            street += comps.road || comps.path || comps.pedestrian || comps.residential || comps.quarter || comps.neighbourhood || comps.suburb || comps.hamlet || comps.village || comps.town || '';
+            street = street.trim();
             document.getElementById('modalDiaChiCuTheText').value = street;
-            modalSetFromNominatim(city, district, ward, street);
+            var setAddr = function () { modalSetFromNominatim(city, district, ward, street, data.display_name || ''); };
+            if (modalProvincePromise) { modalProvincePromise.then(setAddr); } else { setAddr(); }
             document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + (data.display_name || '');
         });
 }
@@ -270,7 +317,7 @@ function showAddressForm() {
         window.checkoutMap.setView([lat, lng], 13);
         if (window.checkoutMarker && typeof window.checkoutMarker.setLatLng === 'function') window.checkoutMarker.setLatLng([lat, lng]);
     }
-    loadModalProvinces();
+    modalProvincePromise = loadModalProvinces();
 }
 
 function showAddressList() {
@@ -357,11 +404,33 @@ function modalSearchMap() {
                 if (window.checkoutMap) { window.checkoutMap.setView([lat, lng], 16); }
                 if (window.checkoutMarker) window.checkoutMarker.setLatLng([lat, lng]);
                 var comps = r.address || {};
-                var city = comps.city || comps.town || comps.county || comps.state_district || '';
-                var district = comps.district || '';
-                var ward = comps.suburb || comps.neighbourhood || comps.village || '';
-                var street = comps.road || comps.path || '';
-                modalSetFromNominatim(city, district, ward, street);
+                var city = comps.state || comps.region || comps.state_district || '';
+                if (!city) {
+                    for (var k in comps) {
+                        if (typeof comps[k] === 'string' && /^(thành phố|tỉnh)\s/i.test(comps[k].normalize('NFC'))) { city = comps[k]; break; }
+                    }
+                }
+                if (!city && r.display_name) {
+                    var parts = r.display_name.split(/[,，]/).map(function(s) { return s.trim().normalize('NFC'); });
+                    for (var i = parts.length - 1; i >= 0; i--) {
+                        var p = parts[i].toLowerCase().normalize('NFC');
+                        if (p.indexOf('thành phố'.normalize('NFC')) === 0 || p.indexOf('tỉnh'.normalize('NFC')) === 0) { city = parts[i]; break; }
+                    }
+                }
+                if (!city) city = comps.city || comps.town || '';
+                var district = comps.county || comps.district || comps.city_district || '';
+                var ward = comps.suburb || comps.neighbourhood || comps.quarter || comps.village || comps.hamlet || comps.town || comps.city_district || '';
+                if (!ward && comps.city && /^(phường|xã|thị trấn)\s/i.test(comps.city)) {
+                    ward = comps.city;
+                }
+                var districtFallback = (comps.city && /^(phường|xã|thị trấn|thị xã)\s/i.test(comps.city))
+                    ? comps.city.replace(/^(phường|xã|thị trấn|thị xã)\s+/i, '').trim() : '';
+                if (!district) district = districtFallback;
+                var street = comps.house_number ? comps.house_number + ' ' : '';
+                street += comps.road || comps.path || comps.pedestrian || comps.residential || comps.quarter || comps.neighbourhood || comps.suburb || comps.hamlet || comps.village || comps.town || '';
+                street = street.trim();
+                var setAddr = function () { modalSetFromNominatim(city, district, ward, street, r.display_name || ''); };
+                if (modalProvincePromise) { modalProvincePromise.then(setAddr); } else { setAddr(); }
                 document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + (r.display_name || '');
             } else {
                 document.getElementById('modalMapStatus').textContent = 'Không tìm thấy địa chỉ';

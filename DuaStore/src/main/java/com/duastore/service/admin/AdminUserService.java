@@ -167,9 +167,9 @@ public class AdminUserService {
                 ? new HashSet<>()
                 : new HashSet<>(roleRepository.findAllById(roleIds));
 
-        validateRoleAssignment(user, roles, currentAdmin);
-
         user.setRoles(roles);
+
+        validateRoleAssignment(user, roles, currentAdmin);
 
         return userRepository.save(user);
     }

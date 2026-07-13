@@ -11,6 +11,7 @@ import com.duastore.service.ShippingFeeService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.util.PriceUtils;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -498,8 +499,13 @@ public class OrderService {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
         dto.setMaDon(order.getMaDon());
-        dto.setUserId(order.getUser().getId());
-        dto.setUserEmail(order.getUser().getEmail());
+        try {
+            dto.setUserId(order.getUser().getId());
+            dto.setUserEmail(order.getUser().getEmail());
+        } catch (ObjectNotFoundException e) {
+            dto.setUserId(null);
+            dto.setUserEmail("Người dùng đã xoá");
+        }
         dto.setTenNguoiNhan(order.getSnapTenNguoiNhan());
         dto.setSoDienThoai(order.getSnapSoDienThoai());
         dto.setDiaChi(order.getSnapDiaChi());

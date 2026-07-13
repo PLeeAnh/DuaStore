@@ -1883,7 +1883,7 @@ body.adm-body {
 }
 .ts-wrapper .ts-control {
     background: var(--card);
-    border: 2px solid var(--border) !important;
+    border: 2px solid color-mix(in srgb, var(--border) 80%, #000 20%) !important;
     border-radius: 12px;
     padding: .35rem 1rem .35rem .75rem;
     min-height: 40px;
