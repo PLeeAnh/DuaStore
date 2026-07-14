@@ -194,6 +194,8 @@ public class AdminVariantController {
 
     private String formatCurrency(BigDecimal price) {
         return NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(price);
+    }
+
     @GetMapping("/bulk-edit/{productId}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
     public String bulkEditForm(@PathVariable Integer productId, Model model, RedirectAttributes ra) {

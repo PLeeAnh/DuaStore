@@ -124,8 +124,13 @@ public class OrderService {
         for (CartItem ci : cartItems) {
             Product product = ci.getProduct();
             ProductVariant variant = ci.getVariant();
-            PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashSaleMap.get(product.getId()));
-            BigDecimal donGia = priced.finalPrice();
+            BigDecimal donGia = ci.getGiaLucThem();
+            String loaiGia = "THUONG";
+            if (donGia == null) {
+                PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashSaleMap.get(product.getId()));
+                donGia = priced.finalPrice();
+                loaiGia = priced.source().name();
+            }
             BigDecimal thanhTien = donGia.multiply(BigDecimal.valueOf(ci.getSoLuong()));
             tienHang = tienHang.add(thanhTien);
 
@@ -139,7 +144,7 @@ public class OrderService {
             item.setDonGia(donGia);
             item.setSoLuong(ci.getSoLuong());
             item.setThanhTien(thanhTien);
-            item.setLoaiGia(priced.source().name());
+            item.setLoaiGia(loaiGia);
             order.getOrderItems().add(item);
         }
         order.setTienHang(tienHang);
@@ -213,11 +218,7 @@ public class OrderService {
         }
         order.setGhiChu(ghiChu);
 
-        order = orderRepository.save(order);
-
-        orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
-
-        // Lock flash sale + decrement stock
+        // Lock flash sale + decrement stock FIRST (before saving order)
         for (CartItem ci : cartItems) {
             if (ci.getVariant() == null) {
                 continue;
@@ -252,6 +253,10 @@ public class OrderService {
                         + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
             }
         }
+
+        order = orderRepository.save(order);
+
+        orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
 
         cartItemRepository.deleteAll(cartItems);
 

@@ -154,6 +154,7 @@
 
         <!-- ═════ TABLE ═════ -->
         <div class="adm-table-wrap">
+            <div class="table-responsive">
             <form id="bulkForm" th:action="@{/admin/san-pham/xoa-hang-loat}" method="post">
             <table class="table align-middle mb-0">
                 <thead>
@@ -221,6 +222,7 @@
                 </tbody>
             </table>
             </form>
+            </div>
         </div>
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>

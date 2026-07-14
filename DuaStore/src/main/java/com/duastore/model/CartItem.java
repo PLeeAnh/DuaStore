@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 @ToString(exclude = {"product", "variant", "user"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@Table(name = "CartItems")
+@Table(name = "CartItems", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"userId", "variantId"})
+})
 public class CartItem {
 
     @Id
@@ -45,7 +47,7 @@ public class CartItem {
     private ProductVariant variant;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", insertable = false, updatable = false)
+    @JoinColumn(name = "userId", insertable = false, updatable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private User user;
 
     @PrePersist

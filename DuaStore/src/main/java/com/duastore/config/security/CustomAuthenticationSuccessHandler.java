@@ -79,7 +79,6 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             Boolean twoFactorEnabled = user.getTwoFactorEnabled();
             if (isAdmin && Boolean.TRUE.equals(twoFactorEnabled)) {
                 session.setAttribute("2faUserId", user.getId());
-                session.setAttribute("2faSecret", user.getTwoFactorSecret());
                 session.setAttribute("2faVerified", false);
             }
         }

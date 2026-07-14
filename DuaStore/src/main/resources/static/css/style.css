@@ -37,9 +37,9 @@
     --font-logo   : 'Dancing Script', cursive;
     --ds-card-bg  : #ffffff;
 
-    --ds-red       : #2563EB;
-    --ds-red-light : #DBEAFE;
-    --ds-red-dark  : #1D4ED8;
+    --ds-red       : #EF4444;
+    --ds-red-light : #FEE2E2;
+    --ds-red-dark  : #B91C1C;
 }
 
 /* ── Bootstrap Overrides (theme: blue) ── */

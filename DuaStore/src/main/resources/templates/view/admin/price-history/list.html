@@ -23,6 +23,7 @@
             </div>
         </div>
         <div class="adm-table-wrap">
+            <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
@@ -59,6 +60,7 @@
                 </tr>
                 </tbody>
             </table>
+            </div>
         </div>
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>

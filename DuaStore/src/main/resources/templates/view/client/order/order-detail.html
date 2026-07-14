@@ -73,7 +73,7 @@
                         <div class="ds-card-body">
                             <h6 class="fw-bold mb-3">Sản phẩm</h6>
                             <div th:each="item : ${items}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
-                                <img th:src="@{${item.hinhAnhSP}}" alt="" class="rounded" style="width:70px;height:70px;object-fit:cover" loading="lazy" />
+                                <img th:src="@{${item.hinhAnhSP}}" th:alt="${item.tenSanPham}" class="rounded" style="width:70px;height:70px;object-fit:cover" loading="lazy" onerror="this.src='/images/no-image.png'" />
                                 <div class="flex-grow-1">
                                     <div class="fw-semibold" th:text="${item.tenSanPham}"></div>
                                     <span th:if="${item.loaiGia == 'FLASH_SALE'}" class="badge bg-danger" style="font-size:.6rem">Flash Sale</span>

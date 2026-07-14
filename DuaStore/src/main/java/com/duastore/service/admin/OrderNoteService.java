@@ -23,7 +23,7 @@ public class OrderNoteService {
         OrderNote note = new OrderNote();
         note.setOrder(order);
         note.setAdmin(admin);
-        note.setNoiDung(noiDung);
+        note.setNoiDung(com.duastore.util.HtmlSanitizer.sanitize(noiDung));
         note.setTag(tag);
         return repository.save(note);
     }

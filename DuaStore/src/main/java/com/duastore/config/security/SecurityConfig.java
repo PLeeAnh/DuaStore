@@ -44,7 +44,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                .requestMatchers("/api/wishlist/**", "/api/cart/**").authenticated()
+                .requestMatchers("/api/wishlist/**", "/api/cart/**", "/address/api/**", "/api/vi-voucher/**", "/api/thong-bao/**", "/api/coupon/**").authenticated()
+                .requestMatchers("/checkout/vnpay/**").permitAll()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()
                 .anyRequest().permitAll()
                 )
@@ -90,12 +91,22 @@ public class SecurityConfig {
                         "/admin/thong-bao/api/don-hang-moi",
                         "/admin/thong-bao/api/lien-he-moi",
                         "/api/thong-bao/chua-doc",
-                        "/api/cart/them",
-                        "/api/cart/cap-nhat",
-                        "/api/cart/xoa",
-                        "/admin/api/don-hang/api/{id}/cap-nhat-trang-thai",
-                        "/admin/api/don-hang/api/batch-cap-nhat-trang-thai",
-                        "/admin/api/don-hang/api/{id}/cap-nhat-ma-van-don"
+                        "/api/cart/add-popup",
+                        "/api/cart/remove-item",
+                        "/api/cart/update",
+                        "/api/wishlist/toggle",
+                        "/api/vi-voucher/luu/{promotionId}",
+                        "/api/vi-voucher/xoa/{voucherId}",
+                        "/api/thong-bao/doc/{id}",
+                        "/api/thong-bao/doc-tat-ca",
+                        "/api/coupon/validate",
+                        "/checkout/api/create",
+                        "/checkout/ap-dung-ma",
+                        "/checkout/chuyen-khoan/{id}/xac-nhan",
+                        "/checkout/vnpay/ipn",
+                        "/admin/don-hang/api/{id}/cap-nhat-trang-thai",
+                        "/admin/don-hang/api/batch-cap-nhat-trang-thai",
+                        "/admin/don-hang/api/{id}/cap-nhat-ma-van-don"
                 ));
 
         http.headers(headers -> headers
@@ -134,21 +145,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        return new AuthenticationEntryPoint() {
-            @Override
-            public void commence(HttpServletRequest request, HttpServletResponse response,
-                    AuthenticationException authException) throws IOException {
-                if (request.getRequestURI().startsWith("/api/")) {
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập\"}");
-                } else {
-                    response.sendRedirect(request.getContextPath() + "/dang-nhap");
-                }
+            public AuthenticationEntryPoint authenticationEntryPoint() {
+                return new AuthenticationEntryPoint() {
+                    @Override
+                    public void commence(HttpServletRequest request, HttpServletResponse response,
+                            AuthenticationException authException) throws IOException {
+                        String uri = request.getRequestURI();
+                        if (uri.startsWith("/api/") || uri.startsWith("/address/api/")) {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("{\"success\":false,\"message\":\"Vui lòng đăng nhập\"}");
+                        } else {
+                            response.sendRedirect(request.getContextPath() + "/dang-nhap");
+                        }
+                    }
+                };
             }
-        };
-    }
 
     @Bean
     public RememberMeServices rememberMeServices() {

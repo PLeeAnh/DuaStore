@@ -111,6 +111,7 @@
                     </form>
                 </div>
             </div>
+            <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
@@ -162,6 +163,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />

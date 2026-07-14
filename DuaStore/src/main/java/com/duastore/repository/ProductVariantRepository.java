@@ -38,11 +38,11 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Query("SELECT v FROM ProductVariant v WHERE v.id = :id")
     Optional<ProductVariant> findByIdWithLock(@Param("id") Integer id);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon - :qty WHERE v.id = :id AND v.soLuongTon >= :qty")
     int decrementStock(@Param("id") Integer id, @Param("qty") Integer qty);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon + :qty WHERE v.id = :id")
     void incrementStock(@Param("id") Integer id, @Param("qty") Integer qty);
 
