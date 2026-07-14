@@ -44,13 +44,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.isActive = true")
     long countActiveByRoleName(@Param("role") String role);
 
-    @Query("SELECT COUNT(u) FROM User u WHERE (:role IS NULL OR :role MEMBER OF u.roles) AND u.isActive = :isActive")
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.isActive = :isActive")
     long countByRoleAndIsActive(@Param("role") String role, @Param("isActive") boolean isActive);
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.ngayTao BETWEEN :start AND :end")
     long countByNgayTaoBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    @Query("SELECT COUNT(u) FROM User u WHERE (:role IS NULL OR :role MEMBER OF u.roles) AND u.ngayTao BETWEEN :start AND :end")
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.ngayTao BETWEEN :start AND :end")
     long countByRoleAndNgayTaoBetween(@Param("role") String role, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query(value = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles WHERE "

@@ -139,7 +139,7 @@
                                 <div class="popup-item-info flex-grow-1 min-w-0">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold text-decoration-none" style="max-width: 150px; font-size: 0.9rem;">Tên SP</a>
-                                        <span class="text-danger fw-semibold popup-item-price flex-shrink-0 ms-2"
+                                        <span class="text-primary fw-semibold popup-item-price flex-shrink-0 ms-2"
                                               th:id="'popup-price-' + ${uid}"
                                               th:data-price="${item.giaBan}"
                                               style="font-size: 0.85rem;"
@@ -165,7 +165,7 @@
                         </div>
                         
                         <div class="mt-2 pt-2" th:unless="${#lists.isEmpty(myCart)}">
-    <a th:href="@{/gio-hang}" class="btn btn-danger w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
+    <a th:href="@{/gio-hang}" class="btn btn-primary w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
 </div>
                     </div>
                 </div>

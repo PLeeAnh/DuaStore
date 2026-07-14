@@ -68,6 +68,68 @@
         </div>
     </form>
 
+        <!-- Admin Copilot -->
+        <div class="adm-card p-3 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2" style="cursor:pointer" onclick="toggleCopilot()">
+                <i class="bi bi-robot" style="font-size:1.1rem;color:var(--ef-primary)"></i>
+                <strong style="font-size:.9rem">Admin Copilot</strong>
+                <i class="bi bi-chevron-down ms-auto" id="copilotArrow" style="font-size:.8rem;transition:transform .2s"></i>
+            </div>
+            <div id="copilotBody">
+                <div class="d-flex gap-2">
+                    <input type="text" id="copilotQuery" class="form-control form-control-sm"
+                           placeholder='VD: "so doanh thu tuần này với tuần trước" hoặc "top 5 sản phẩm bán chạy"'
+                           onkeydown="if(event.key==='Enter') askCopilot()">
+                    <button class="btn btn-primary btn-sm" onclick="askCopilot()" id="copilotBtn">
+                        <i class="bi bi-send me-1"></i>Hỏi
+                    </button>
+                </div>
+                <div id="copilotAnswer" class="mt-2 p-2 rounded" style="display:none;background:var(--ef-bg);font-size:.85rem;white-space:pre-line;line-height:1.6"></div>
+                <div id="copilotError" class="mt-2 small text-danger" style="display:none"></div>
+            </div>
+        </div>
+        <script>
+        let copilotOpen = true;
+        function toggleCopilot() {
+            copilotOpen = !copilotOpen;
+            document.getElementById('copilotBody').style.display = copilotOpen ? 'block' : 'none';
+            document.getElementById('copilotArrow').style.transform = copilotOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+        }
+        function askCopilot() {
+            const q = document.getElementById('copilotQuery').value.trim();
+            if (!q) return;
+            const btn = document.getElementById('copilotBtn');
+            const answerDiv = document.getElementById('copilotAnswer');
+            const errorDiv = document.getElementById('copilotError');
+            answerDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang trả lời...';
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+            const headers = {'Content-Type': 'application/json'};
+            if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+            fetch('/admin/phan-tich/api/copilot', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({query: q})
+            })
+            .then(r => r.json())
+            .then(data => {
+                answerDiv.textContent = data.answer;
+                answerDiv.style.display = 'block';
+            })
+            .catch(e => {
+                errorDiv.textContent = 'Lỗi kết nối, vui lòng thử lại.';
+                errorDiv.style.display = 'block';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send me-1"></i>Hỏi';
+            });
+        }
+        </script>
+
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" id="analyticsTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -434,6 +496,49 @@
                             </tr>
                             <tr th:if="${#lists.isEmpty(topSellingProducts)}">
                                 <td colspan="4" class="text-center text-muted py-3">Chưa có dữ liệu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="adm-card mt-3">
+                    <div class="px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
+                        <strong style="font-size:.875rem"><i class="bi bi-graph-up-arrow me-1"></i>Dự đoán biến thể cần nhập hàng</strong>
+                        <span class="badge bg-info ms-2">30 ngày gần nhất</span>
+                    </div>
+                    <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Biến thể</th>
+                                <th>Sản phẩm</th>
+                                <th>Đã bán</th>
+                                <th>Tồn kho</th>
+                                <th>Bán/ngày</th>
+                                <th>Ngày hết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p, iter : ${restockPredictions}">
+                                <td th:text="${iter.index + 1}"></td>
+                                <td th:text="${p.variantName}"></td>
+                                <td>
+                                    <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${p.productId})}" class="text-decoration-none" th:text="${p.productName}"></a>
+                                </td>
+                                <td><span class="badge bg-danger" th:text="${p.sold}">0</span></td>
+                                <td>
+                                    <span th:if="${p.stock < 10}" class="badge bg-warning text-dark" th:text="${p.stock}">0</span>
+                                    <span th:unless="${p.stock < 10}" th:text="${p.stock}">0</span>
+                                </td>
+                                <td th:text="${p.salesPerDay}">0</td>
+                                <td>
+                                    <span th:if="${p.daysUntilEmpty < 30}" class="text-danger fw-semibold" th:text="${p.daysUntilEmpty} + ' ngày'"></span>
+                                    <span th:unless="${p.daysUntilEmpty < 30}" class="text-muted" th:text="'&gt; 30 ngày'"></span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(restockPredictions)}">
+                                <td colspan="7" class="text-center text-muted py-3">Chưa có dữ liệu</td>
                             </tr>
                         </tbody>
                     </table>

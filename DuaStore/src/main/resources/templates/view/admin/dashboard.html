@@ -29,7 +29,7 @@
         </div>
 
         <!-- ═════ CẢNH BÁO ═════ -->
-        <div class="row g-3 mb-4" th:if="${urgentOrderCount > 0 or lowStockCount > 0}">
+        <div class="row g-3 mb-4" th:if="${urgentOrderCount > 0 or smartAlertCount > 0}">
             <div class="col-12">
                 <div class="adm-card p-3" style="border-left:4px solid #dc3545;background:#fff5f5;">
                     <div class="d-flex align-items-center gap-3 flex-wrap">
@@ -38,8 +38,8 @@
                         <a th:href="@{/admin/don-hang}" class="text-decoration-none" th:if="${urgentOrderCount > 0}">
                             <span class="badge bg-danger fs-6 me-2" th:text="${urgentOrderCount}"></span> đơn chờ xác nhận trên 48h
                         </a>
-                        <a th:href="@{/admin/san-pham}" class="text-decoration-none" th:if="${lowStockCount > 0}">
-                            <span class="badge bg-warning text-dark fs-6 me-2" th:text="${lowStockCount}"></span> sản phẩm sắp hết hàng
+                        <a th:href="@{/admin/phan-tich?period=this-month#products}" class="text-decoration-none" th:if="${smartAlertCount > 0}">
+                            <span class="badge bg-warning text-dark fs-6 me-2" th:text="${smartAlertCount}"></span> biến thể cần nhập hàng
                         </a>
                     </div>
                 </div>
@@ -179,18 +179,29 @@
                     <p th:if="${#lists.isEmpty(topProducts)}" class="text-muted small mb-0">Chưa có dữ liệu</p>
                 </div>
 
-                <!-- ═════ TỒN KHO THẤP ═════ -->
-                <div class="adm-table-wrap p-3 mt-3" th:if="${not #lists.isEmpty(lowStockProducts)}">
+                <!-- ═════ DỰ BÁO TỒN KHO THÔNG MINH ═════ -->
+                <div class="adm-table-wrap p-3 mt-3" th:if="${not #lists.isEmpty(smartAlerts)}">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="mb-0 fw-bold text-warning"><i class="bi bi-exclamation-triangle me-2"></i>Sắp hết hàng</h6>
-                        <a th:href="@{/admin/san-pham}" class="small">Xem tất cả</a>
+                        <h6 class="mb-0 fw-bold text-warning"><i class="bi bi-graph-up-arrow me-2"></i>Dự báo tồn kho thông minh</h6>
+                        <a th:href="@{/admin/phan-tich?period=this-month#products}" class="small">Chi tiết</a>
                     </div>
                     <div class="d-flex flex-column gap-2">
-                        <div th:each="ls : ${lowStockProducts}" class="d-flex align-items-center gap-2">
-                            <img th:if="${ls.hinhAnh != null}" th:src="@{${ls.hinhAnh}}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:4px;" />
-                            <img th:unless="${ls.hinhAnh != null}" src="https://placehold.co/36x36/e9ecef/999?text=N/A" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:4px;" />
-                            <a th:href="@{/admin/san-pham/sua/{id}(id=${ls.productId})}" class="flex-grow-1 text-decoration-none" style="font-size:.85rem" th:text="${ls.tenSanPham}">Product</a>
-                            <span class="badge bg-warning text-dark" th:text="${ls.totalStock + ' còn'}">0</span>
+                        <div th:each="s : ${smartAlerts}" class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--ef-bg)">
+                            <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0"
+                                 th:classappend="${s.daysUntilEmpty < 7} ? 'bg-danger' : (${s.daysUntilEmpty < 14} ? 'bg-warning' : 'bg-info')"></div>
+                            <div class="flex-grow-1">
+                                <div style="font-size:.82rem">
+                                    <span class="fw-semibold" th:text="${s.variantName}">Variant</span>
+                                    <span class="text-muted" th:text="'· ' + ${s.productName}"></span>
+                                </div>
+                                <div style="font-size:.75rem;color:var(--ef-text-muted)">
+                                    Tồn: <span th:text="${s.stock}">0</span>
+                                    · Bán: <span th:text="${s.sold}">0</span>/30d
+                                    · <span th:if="${s.daysUntilEmpty < 30}" class="fw-semibold text-danger" th:text="${s.daysUntilEmpty + ' ngày'}">0</span>
+                                    <span th:unless="${s.daysUntilEmpty < 30}" th:text="'&gt; 30 ngày'"></span>
+                                </div>
+                            </div>
+                            <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${s.productId})}" class="btn btn-sm btn-outline-primary" style="font-size:.75rem">Nhập</a>
                         </div>
                     </div>
                 </div>

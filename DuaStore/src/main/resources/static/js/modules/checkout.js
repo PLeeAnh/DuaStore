@@ -558,7 +558,7 @@ async function saveAddressFromModal() {
             if (geoResp.ok) {
                 var geoData = await geoResp.json();
                 if (geoData && !geoData.error) {
-                    var geoProvince = (geoData.address && (geoData.address.state || geoData.address.city || geoData.address.county || '')) || '';
+                    var geoProvince = (geoData.address && (geoData.address.state || geoData.address.city || '')) || '';
                     var selectedProvince = document.getElementById('modalTinhThanh').value || '';
                     if (geoProvince && selectedProvince && geoProvince.toLowerCase().indexOf(selectedProvince.toLowerCase().replace('thành phố ', '').replace('tỉnh ', '')) === -1
                             && selectedProvince.toLowerCase().indexOf(geoProvince.toLowerCase().replace('thành phố ', '').replace('tỉnh ', '')) === -1) {

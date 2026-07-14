@@ -37,12 +37,12 @@
     --font-logo   : 'Dancing Script', cursive;
     --ds-card-bg  : #ffffff;
 
-    --ds-red       : #EF4444;
-    --ds-red-light : #FEE2E2;
-    --ds-red-dark  : #B91C1C;
+    --ds-red       : #1D4ED8;
+    --ds-red-light : #DBEAFE;
+    --ds-red-dark  : #1E3A8A;
 }
 
-/* ── Bootstrap Overrides (theme: blue) ── */
+/* ── Bootstrap Overrides (theme: navy blue) ── */
 .text-danger {
     color: var(--ds-red) !important;
 }
@@ -3319,17 +3319,17 @@ a {
 .related-card .card-price {
     font-size: .88rem;
     font-weight: 700;
-    color: var(--ds-red);
+    color: #1D4ED8;
     margin-bottom: 10px;
 }
 .btn-related {
     display: block;
     width: 100%;
     padding: .45rem 0;
-    border: 1.5px solid #111827;
+    border: 1.5px solid #1D4ED8;
     border-radius: 9999px;
     background: transparent;
-    color: #111827;
+    color: #1D4ED8;
     font-size: .75rem;
     font-weight: 600;
     text-align: center;
@@ -3338,7 +3338,7 @@ a {
     text-decoration: none;
 }
 .btn-related:hover {
-    background: #111827;
+    background: #1D4ED8;
     color: #fff;
 }
 
@@ -3361,6 +3361,14 @@ a {
         font-size: .78rem;
         padding: .38rem 1rem;
     }
+}
+
+/* ── Section Card (blog, content sections) ── */
+.ds-section-card {
+    background: var(--ds-card-bg);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-r-lg);
+    padding: 1.5rem;
 }
 
 /* =====================================================
