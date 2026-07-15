@@ -60,6 +60,8 @@ public class ProductController {
     private final PricingService pricingService;
     private final OrderItemRepository orderItemRepository;
     private final NotificationHelper notificationHelper;
+    private final com.duastore.repository.ProductViewRepository productViewRepository;
+    private final com.duastore.service.ActivityAnalyticsService activityAnalyticsService;
 
     @Value("${app.url}")
     private String appUrl;
@@ -88,7 +90,9 @@ public class ProductController {
             FileUploadService fileUploadService,
             PricingService pricingService,
             OrderItemRepository orderItemRepository,
-            NotificationHelper notificationHelper) {
+            NotificationHelper notificationHelper,
+            com.duastore.repository.ProductViewRepository productViewRepository,
+            com.duastore.service.ActivityAnalyticsService activityAnalyticsService) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -102,6 +106,8 @@ public class ProductController {
         this.pricingService = pricingService;
         this.orderItemRepository = orderItemRepository;
         this.notificationHelper = notificationHelper;
+        this.productViewRepository = productViewRepository;
+        this.activityAnalyticsService = activityAnalyticsService;
     }
 
     @GetMapping("/san-pham")
@@ -307,6 +313,16 @@ public class ProductController {
         model.addAttribute("title", product.getTenSanPham());
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
+
+        Integer uid = securityUtil.getCurrentUserId();
+        if (uid != null) {
+            com.duastore.model.ProductView pv = new com.duastore.model.ProductView();
+            pv.setUserId(uid);
+            pv.setProductId(id);
+            productViewRepository.save(pv);
+            activityAnalyticsService.logActivity(uid, "PRODUCT_VIEW",
+                    "Xem sản phẩm: " + product.getTenSanPham(), null);
+        }
 
         // Flash sale for this product
         FlashSale flashSale = null;
