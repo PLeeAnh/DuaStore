@@ -8,6 +8,7 @@ import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.SavedCartService;
+import com.duastore.service.RecommendationService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -28,15 +29,18 @@ public class CartController {
     private final ProductVariantRepository variantRepository;
     private final ProductRepository productRepository;
     private final SecurityUtil securityUtil;
+    private final RecommendationService recommendationService;
 
     public CartController(CartService cartService, SavedCartService savedCartService,
             ProductVariantRepository variantRepository,
-            ProductRepository productRepository, SecurityUtil securityUtil) {
+            ProductRepository productRepository, SecurityUtil securityUtil,
+            RecommendationService recommendationService) {
         this.cartService = cartService;
         this.savedCartService = savedCartService;
         this.variantRepository = variantRepository;
         this.productRepository = productRepository;
         this.securityUtil = securityUtil;
+        this.recommendationService = recommendationService;
     }
 
     @SuppressWarnings("unchecked")
@@ -100,7 +104,7 @@ public class CartController {
         model.addAttribute("savedItems", savedCartService.getSavedItems(userId));
         model.addAttribute("savedCount", savedCartService.count(userId));
 
-        List<Product> suggestions = cartService.getSuggestions(userId, 8);
+        List<Product> suggestions = recommendationService.getPersonalizedSuggestions(userId, 8);
         model.addAttribute("suggestions", suggestions);
 
         model.addAttribute("stockWarnings", cartService.getStockWarnings(userId));

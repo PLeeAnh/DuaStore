@@ -24,4 +24,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
 
     @Query("SELECT c FROM CartItem c WHERE c.ngayThem < :cutoff")
     List<CartItem> findOldItems(@Param("cutoff") LocalDateTime cutoff);
+
+    @Query("SELECT c.productId FROM CartItem c WHERE c.userId = :userId")
+    List<Integer> findProductIdsByUserId(@Param("userId") Integer userId);
 }

@@ -18,11 +18,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/admin/bien-the")
@@ -73,6 +75,7 @@ public class AdminVariantController {
             return "view/admin/productvariant/variant-form";
         }
         var saved = variantService.save(dto);
+        notifyVariantAfterCreate(saved);
         ra.addFlashAttribute("successMsg", "Thêm biến thể thành công");
         return "redirect:/admin/san-pham/chi-tiet/" + saved.getProductId();
     }
@@ -146,6 +149,28 @@ public class AdminVariantController {
         variantService.delete(id);
         ra.addFlashAttribute("successMsg", "Đã xóa biến thể");
         return "redirect:/admin/san-pham/chi-tiet/" + productId;
+    }
+
+    private void notifyVariantAfterCreate(ProductVariant saved) {
+        if (saved == null || saved.getSoLuongTon() == null || saved.getSoLuongTon() <= 0) return;
+        List<ProductVariant> allVariants = variantService.findByProductId(saved.getProductId());
+        boolean wasAllZero = allVariants.stream()
+                .filter(v -> !v.getId().equals(saved.getId()))
+                .allMatch(v -> v.getSoLuongTon() == null || v.getSoLuongTon() <= 0);
+        if (!wasAllZero) return;
+        String productName = productRepository.findById(saved.getProductId())
+                .map(p -> p.getTenSanPham())
+                .orElse("Sản phẩm #" + saved.getProductId());
+        List<Integer> userIds = wishlistRepository.findUserIdsByProductId(saved.getProductId());
+        for (Integer userId : userIds) {
+            notificationHelper.notifyAll(
+                    "Sản phẩm " + productName + " đã có hàng trở lại",
+                    "PRODUCT", saved.getProductId(),
+                    "/san-pham/" + saved.getProductId(),
+                    "Xem ngay",
+                    userId
+            );
+        }
     }
 
     private void notifyVariantChanges(ProductVariant variant, Integer oldStock, BigDecimal oldPrice) {
@@ -223,8 +248,111 @@ public class AdminVariantController {
     @ResponseBody
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
     public ResponseEntity<Map<String, Object>> bulkSave(@RequestBody List<Map<String, Object>> variants) {
+        Map<Integer, Integer> oldStocks = new HashMap<>();
+        Map<Integer, BigDecimal> oldPrices = new HashMap<>();
+
+        for (Map<String, Object> entry : variants) {
+            Integer id = toInteger(entry.get("id"));
+            if (id == null) {
+                continue;
+            }
+            ProductVariant oldVariant = variantService.findById(id);
+            if (oldVariant != null) {
+                oldStocks.put(id, oldVariant.getSoLuongTon());
+                oldPrices.put(id, effectivePrice(oldVariant));
+            }
+        }
+
         Integer adminId = securityUtil.getCurrentUserId();
         variantService.bulkUpdate(variants, adminId);
+        notifyBulkVariantChanges(oldStocks, oldPrices);
         return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    private void notifyBulkVariantChanges(Map<Integer, Integer> oldStocks, Map<Integer, BigDecimal> oldPrices) {
+        Set<Integer> restockedProductIds = new HashSet<>();
+        Map<Integer, BigDecimal> droppedPrices = new HashMap<>();
+
+        for (Integer variantId : oldStocks.keySet()) {
+            ProductVariant variant = variantService.findById(variantId);
+            if (variant == null) {
+                continue;
+            }
+
+            Integer oldStock = oldStocks.getOrDefault(variantId, 0);
+            Integer newStock = variant.getSoLuongTon() != null ? variant.getSoLuongTon() : 0;
+            if (oldStock != null && oldStock > 0 && newStock == 0) {
+                String productName = productName(variant.getProductId());
+                notificationHelper.notifyStaff(
+                        "Sản phẩm " + productName + " vừa hết hàng!",
+                        "PRODUCT", variant.getProductId(),
+                        "/admin/san-pham/sua/" + variant.getProductId(),
+                        "Xem sản phẩm"
+                );
+            }
+            if (oldStock != null && oldStock <= 0 && newStock > 0) {
+                restockedProductIds.add(variant.getProductId());
+            }
+
+            BigDecimal oldPrice = oldPrices.get(variantId);
+            BigDecimal newPrice = effectivePrice(variant);
+            if (oldPrice != null && newPrice != null && newPrice.compareTo(oldPrice) < 0) {
+                droppedPrices.merge(variant.getProductId(), newPrice, BigDecimal::min);
+            }
+        }
+
+        for (Integer productId : restockedProductIds) {
+            notifyWishlistUsersBackInStock(productId);
+        }
+        for (Map.Entry<Integer, BigDecimal> entry : droppedPrices.entrySet()) {
+            notifyWishlistUsersPriceDropped(entry.getKey(), entry.getValue());
+        }
+    }
+
+    private void notifyWishlistUsersBackInStock(Integer productId) {
+        String productName = productName(productId);
+        List<Integer> userIds = wishlistRepository.findUserIdsByProductId(productId);
+        for (Integer userId : userIds) {
+            notificationHelper.notifyAll(
+                    "Sản phẩm " + productName + " đã có hàng trở lại",
+                    "PRODUCT", productId,
+                    "/san-pham/" + productId,
+                    "Xem ngay",
+                    userId
+            );
+        }
+    }
+
+    private void notifyWishlistUsersPriceDropped(Integer productId, BigDecimal price) {
+        String productName = productName(productId);
+        List<Integer> userIds = wishlistRepository.findUserIdsByProductId(productId);
+        for (Integer userId : userIds) {
+            notificationHelper.notifyAll(
+                    "Sản phẩm " + productName + " đã giảm giá còn " + formatCurrency(price),
+                    "PRODUCT", productId,
+                    "/san-pham/" + productId,
+                    "Xem ngay",
+                    userId
+            );
+        }
+    }
+
+    private String productName(Integer productId) {
+        return productRepository.findById(productId)
+                .map(p -> p.getTenSanPham())
+                .orElse("Sản phẩm #" + productId);
+    }
+
+    private Integer toInteger(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+        if (value instanceof String text && !text.isBlank()) {
+            try {
+                return Integer.parseInt(text);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
     }
 }
