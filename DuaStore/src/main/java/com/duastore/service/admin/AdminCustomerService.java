@@ -39,20 +39,22 @@ public class AdminCustomerService {
         this.loyaltyTransactionRepository = loyaltyTransactionRepository;
     }
 
+    private static final String ROLE_USER = "USER";
+
     public Page<User> searchCustomers(String keyword, String status, String city,
             String spendingTier, Pageable pageable) {
         if (city != null && !city.isBlank()) {
-            return userRepository.searchByKeywordStatusAndCity(keyword, status, city, pageable);
+            return userRepository.searchByKeywordStatusAndCity(keyword, status, city, ROLE_USER, pageable);
         }
         if (spendingTier != null && !spendingTier.isBlank()) {
-            return userRepository.searchByKeywordStatusAndSpending(keyword, status, spendingTier, pageable);
+            return userRepository.searchByKeywordStatusAndSpending(keyword, status, spendingTier, ROLE_USER, pageable);
         }
         boolean searching = (keyword != null && !keyword.isBlank())
                 || (status != null && !status.isBlank());
         if (searching) {
-            return userRepository.searchByKeywordAndStatus(keyword, status, pageable);
+            return userRepository.searchByKeywordAndStatus(keyword, status, ROLE_USER, pageable);
         }
-        return userRepository.findAllBy(pageable);
+        return userRepository.findByRole(ROLE_USER, pageable);
     }
 
     public Map<Integer, Long> getOrderCountMap(List<Integer> userIds) {

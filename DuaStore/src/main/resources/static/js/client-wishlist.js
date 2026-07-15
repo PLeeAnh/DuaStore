@@ -24,8 +24,10 @@ function addToCartFromWishlist(productId) {
         }
         var data = result.data;
         if (data.success) {
+            if (typeof markCartBadgeUnread === 'function')
+                markCartBadgeUnread();
             if (typeof updateCartBadge === 'function')
-                updateCartBadge(data.cartCount);
+                updateCartBadge(data.cartCount, true);
             DuaStore.toast.success('\u0110\xe3 th\xeam v\xe0o gi\u1ecf h\xe0ng');
         } else {
             DuaStore.toast.error(data.message || 'Kh\xf4ng th\u1ec3 th\xeam v\xe0o gi\u1ecf');

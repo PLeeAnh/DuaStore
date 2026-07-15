@@ -72,7 +72,7 @@ public class ProductService {
     public List<Product> searchSuggestions(String keyword, int limit) {
         if (keyword == null || keyword.trim().isEmpty()) return List.of();
         Pageable pageable = PageRequest.of(0, limit);
-        return productRepository.findTopByKeyword(keyword.trim(), pageable);
+        return productRepository.findTopByKeyword(expandKeyword(keyword.trim()), pageable);
     }
 
     public Page<Product> findByCategoriesPaged(List<Integer> danhMucIds, int page, int size) {
@@ -87,23 +87,24 @@ public class ProductService {
         BigDecimal[] price = parsePriceRange(priceRange);
         BigDecimal minPrice = price != null ? price[0] : null;
         BigDecimal maxPrice = price != null ? price[1] : null;
+        String expanded = expandKeyword(keyword);
         Pageable pageable = buildPageable(sortBy, page, size);
 
         if ("price_asc".equals(sortBy)) {
-            return productRepository.filterPagedPriceAsc(keyword, danhMucId, minPrice, maxPrice, dungTich, chatLieu, pageable);
+            return productRepository.filterPagedPriceAsc(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, pageable);
         }
         if ("price_desc".equals(sortBy)) {
-            return productRepository.filterPagedPriceDesc(keyword, danhMucId, minPrice, maxPrice, dungTich, chatLieu, pageable);
+            return productRepository.filterPagedPriceDesc(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, pageable);
         }
         if ("top_rated".equals(sortBy)) {
-            Page<Integer> idPage = productRepository.findIdsFilteredTopRated(keyword, danhMucId, chatLieu, pageable);
+            Page<Integer> idPage = productRepository.findIdsFilteredTopRated(expanded, danhMucId, chatLieu, pageable);
             if (idPage.isEmpty()) return Page.empty(pageable);
             List<Product> ordered = productRepository.findAllById(idPage.getContent());
             Map<Integer, Product> productMap = ordered.stream().collect(Collectors.toMap(Product::getId, p -> p));
             List<Product> sorted = idPage.getContent().stream().map(productMap::get).filter(Objects::nonNull).toList();
             return new PageImpl<>(sorted, pageable, idPage.getTotalElements());
         }
-        return productRepository.filterPaged(keyword, danhMucId, minPrice, maxPrice, dungTich, chatLieu, pageable);
+        return productRepository.filterPaged(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, pageable);
     }
 
     public Page<Product> filterPagedBestSelling(String keyword, Integer danhMucId,
@@ -112,12 +113,13 @@ public class ProductService {
         BigDecimal[] price = parsePriceRange(priceRange);
         BigDecimal minPrice = price != null ? price[0] : null;
         BigDecimal maxPrice = price != null ? price[1] : null;
+        String expanded = expandKeyword(keyword);
         List<Object[]> topRows = orderItemRepository.findTopSellingProductIds(PageRequest.of(0, 500));
         List<Integer> topIds = topRows.stream().map(r -> (Integer) r[0]).toList();
         if (topIds.isEmpty()) {
-            return productRepository.filterPaged(keyword, danhMucId, minPrice, maxPrice, dungTich, chatLieu, PageRequest.of(page, size));
+            return productRepository.filterPaged(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, PageRequest.of(page, size));
         }
-        List<Product> allMatching = productRepository.filterPaged(keyword, danhMucId, minPrice, maxPrice, dungTich, chatLieu, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+        List<Product> allMatching = productRepository.filterPaged(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
         Set<Integer> matchingIds = allMatching.stream().map(Product::getId).collect(Collectors.toSet());
         List<Product> sorted = topIds.stream()
                 .filter(matchingIds::contains)
@@ -173,6 +175,22 @@ public class ProductService {
     public String encodePriceRange(BigDecimal from, BigDecimal to) {
         if (from == null && to == null) return null;
         return "custom_" + (from != null ? from.toBigInteger().toString() : "") + "_" + (to != null ? to.toBigInteger().toString() : "");
+    }
+
+    private String expandKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) return null;
+        String[] stopwords = {"cho", "của", "và", "với", "các", "những", "có", "được", "một", "ra",
+                "vào", "trên", "dưới", "trong", "ngoài", "ở", "tại", "bằng", "loại", "kiểu"};
+        Set<String> stop = new HashSet<>(Arrays.asList(stopwords));
+        String[] words = keyword.toLowerCase().trim().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String w : words) {
+            if (!stop.contains(w)) {
+                if (sb.length() > 0) sb.append(' ');
+                sb.append(w);
+            }
+        }
+        return sb.length() > 0 ? sb.toString() : keyword;
     }
 
     private Pageable buildPageable(String sortBy, int page, int size) {

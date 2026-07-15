@@ -138,11 +138,12 @@
     </div>
 
     <th:block layout:fragment="extra-script">
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            (function() {
                 var bhInput = document.getElementById('businessHoursInput');
+                if (!bhInput) return;
                 var bhData = {};
                 try { bhData = JSON.parse(bhInput.value || '{}'); } catch(e) { bhData = {}; }
 
@@ -412,8 +413,14 @@
                     this.value = '';
                 });
 
-                initLeafletMap();
-            });
+                (function waitLeaflet() {
+                    if (typeof L !== 'undefined') {
+                        initLeafletMap();
+                        return;
+                    }
+                    setTimeout(waitLeaflet, 100);
+                })();
+            })();
 
             function initLeafletMap() {
                 var latInput = document.getElementById('storeLatitude');

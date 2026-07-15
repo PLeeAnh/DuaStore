@@ -360,7 +360,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">Cột 1</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.footer-col').remove()">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="if(!confirm('Bạn có chắc chắn muốn xóa cột này?')) return;this.closest('.footer-col').remove()">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -381,7 +381,7 @@ Liên hệ | lien-he</textarea>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">Cột 2</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.footer-col').remove()">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="if(!confirm('Bạn có chắc chắn muốn xóa cột này?')) return;this.closest('.footer-col').remove()">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -403,7 +403,7 @@ Chính sách vận chuyển</textarea>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">Cột 3</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.footer-col').remove()">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="if(!confirm('Bạn có chắc chắn muốn xóa cột này?')) return;this.closest('.footer-col').remove()">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -612,6 +612,7 @@ Email: ...</textarea>
                                         });
                                     }
                                     function removeMenuItem(btn) {
+                                        if (!confirm('Bạn có chắc chắn muốn xóa mục menu này?')) return;
                                         var row = btn.closest('tr');
                                         if (document.querySelectorAll('.menu-sortable tr').length <= 1)
                                             return;
@@ -824,6 +825,7 @@ Email: ...</textarea>
                                     }
 
                                     function removeHomepageSection(el) {
+                                        if (!confirm('Bạn có chắc chắn muốn xóa section này?')) return;
                                         var section = el.closest('.hp-section');
                                         if (document.querySelectorAll('#homepageSections .hp-section').length <= 1)
                                             return;

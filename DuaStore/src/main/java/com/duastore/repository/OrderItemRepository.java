@@ -28,4 +28,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
 
     @Query("SELECT COALESCE(SUM(oi.soLuong), 0) FROM OrderItem oi WHERE oi.productId = :productId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
     long sumSoldQuantityByProductId(@Param("productId") Integer productId);
+
+    @Query("SELECT oi.variantId, SUM(oi.soLuong) FROM OrderItem oi "
+            + "WHERE oi.variantId IS NOT NULL "
+            + "AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH') "
+            + "AND oi.order.ngayDat BETWEEN :start AND :end "
+            + "GROUP BY oi.variantId")
+    List<Object[]> sumSoldByVariantInRange(@Param("start") java.time.LocalDateTime start,
+            @Param("end") java.time.LocalDateTime end);
 }

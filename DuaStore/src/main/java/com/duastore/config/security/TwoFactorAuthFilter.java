@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Set;
 
 public class TwoFactorAuthFilter extends OncePerRequestFilter {
@@ -22,6 +23,8 @@ public class TwoFactorAuthFilter extends OncePerRequestFilter {
             "/js/",
             "/images/"
     );
+
+    private static final long TWOFA_TIMEOUT_MINUTES = 60;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -49,6 +52,18 @@ public class TwoFactorAuthFilter extends OncePerRequestFilter {
                 if (userId != null && !Boolean.TRUE.equals(verified)) {
                     response.sendRedirect(request.getContextPath() + "/admin/2fa/challenge");
                     return;
+                }
+                if (Boolean.TRUE.equals(verified)) {
+                    String verifiedAtStr = (String) session.getAttribute("2faVerifiedAt");
+                    if (verifiedAtStr != null) {
+                        Instant verifiedAt = Instant.parse(verifiedAtStr);
+                        if (Instant.now().isAfter(verifiedAt.plusSeconds(TWOFA_TIMEOUT_MINUTES * 60))) {
+                            session.removeAttribute("2faVerified");
+                            session.removeAttribute("2faVerifiedAt");
+                            response.sendRedirect(request.getContextPath() + "/admin/2fa/challenge");
+                            return;
+                        }
+                    }
                 }
             }
         }

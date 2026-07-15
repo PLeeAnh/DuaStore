@@ -9,11 +9,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 public class NotificationController {
@@ -37,9 +32,9 @@ public class NotificationController {
         return "view/client/notification/notification-list";
     }
 
-    @GetMapping("/api/thong-bao")
+    @GetMapping(value = "/api/thong-bao", produces = "application/json")
     @ResponseBody
-    public Map<String, Object> getNotifs(HttpSession session) {
+    public Map<String, Object> getNotificationsJson(HttpSession session) {
         Map<String, Object> res = new HashMap<>();
         try {
             Integer userId = securityUtil.getCurrentUserId();
@@ -104,42 +99,5 @@ public class NotificationController {
         } catch (Exception ignored) {
         }
         return "ok";
-    }
-
-    @GetMapping(value = "/api/thong-bao", produces = "application/json")
-    @ResponseBody
-    public Map<String, Object> getNotificationsJson(HttpSession session) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        Integer userId = securityUtil.getCurrentUserId();
-        if (userId == null) {
-            result.put("count", 0);
-            result.put("notifications", java.util.List.of());
-            return result;
-        }
-        @SuppressWarnings("unchecked")
-        Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
-        final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : new HashSet<>();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm, dd/MM");
-
-        List<Map<String, String>> notifList = new ArrayList<>();
-        List<Notification> all = notificationRepository.findCustomerNotifications(userId);
-        for (Notification n : all) {
-            if (readIds.contains(n.getId())) continue;
-            notifList.add(buildNotifMap(n, fmt));
-        }
-        result.put("count", notifList.size());
-        result.put("notifications", notifList);
-        return result;
-    }
-
-    private Map<String, String> buildNotifMap(Notification n, DateTimeFormatter fmt) {
-        Map<String, String> m = new LinkedHashMap<>();
-        m.put("id", String.valueOf(n.getId()));
-        m.put("content", n.getContent());
-        m.put("linkType", n.getLinkType() != null ? n.getLinkType() : "");
-        m.put("linkUrl", n.getLinkUrl() != null ? n.getLinkUrl() : "");
-        m.put("linkLabel", n.getLinkLabel() != null ? n.getLinkLabel() : "");
-        m.put("time", n.getCreatedAt() != null ? n.getCreatedAt().format(fmt) : "");
-        return m;
     }
 }

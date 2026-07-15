@@ -2,6 +2,7 @@ package com.duastore.controller.admin;
 
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.RefundRequest;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.RefundService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -15,10 +16,13 @@ public class AdminRefundController {
 
     private final RefundService refundService;
     private final SecurityUtil securityUtil;
+    private final NotificationHelper notificationHelper;
 
-    public AdminRefundController(RefundService refundService, SecurityUtil securityUtil) {
+    public AdminRefundController(RefundService refundService, SecurityUtil securityUtil,
+            NotificationHelper notificationHelper) {
         this.refundService = refundService;
         this.securityUtil = securityUtil;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping
@@ -45,7 +49,8 @@ public class AdminRefundController {
             RedirectAttributes ra) {
         try {
             Integer adminId = securityUtil.getCurrentUserId();
-            refundService.approve(id, adminId, ghiChu);
+            RefundRequest refund = refundService.approve(id, adminId, ghiChu);
+            notifyRefundResult(refund, true);
             ra.addFlashAttribute("successMsg", "Đã duyệt yêu cầu hoàn tiền");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -60,11 +65,28 @@ public class AdminRefundController {
             RedirectAttributes ra) {
         try {
             Integer adminId = securityUtil.getCurrentUserId();
-            refundService.reject(id, adminId, ghiChu);
+            RefundRequest refund = refundService.reject(id, adminId, ghiChu);
+            notifyRefundResult(refund, false);
             ra.addFlashAttribute("successMsg", "Đã từ chối yêu cầu hoàn tiền");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/hoan-tien/detail/" + id;
+    }
+    private void notifyRefundResult(RefundRequest refund, boolean approved) {
+        String resultText = approved ? "da duoc duyet" : "da bi tu choi";
+        notificationHelper.notifyAll(
+                "Don " + refund.getOrderId() + ": yeu cau hoan tien " + resultText,
+                "ORDER", refund.getOrderId(),
+                "/tai-khoan/don-hang/" + refund.getOrderId(),
+                "Xem don hang",
+                refund.getUserId()
+        );
+        notificationHelper.notifyStaff(
+                "Yeu cau hoan tien don " + refund.getOrderId() + " " + resultText,
+                "ORDER", refund.getOrderId(),
+                "/admin/hoan-tien/detail/" + refund.getId(),
+                "Xem yeu cau"
+        );
     }
 }

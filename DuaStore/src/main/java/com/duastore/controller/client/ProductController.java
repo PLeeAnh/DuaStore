@@ -20,7 +20,9 @@ import com.duastore.service.client.ProductService;
 import com.duastore.service.client.ReviewService;
 import com.duastore.service.client.WishlistService;
 import com.duastore.service.FileUploadService;
+import com.duastore.service.NotificationHelper;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,10 @@ public class ProductController {
     private final FileUploadService fileUploadService;
     private final PricingService pricingService;
     private final OrderItemRepository orderItemRepository;
+    private final NotificationHelper notificationHelper;
+
+    @Value("${app.url}")
+    private String appUrl;
 
     private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
         List<Category> path = new ArrayList<>();
@@ -81,7 +87,8 @@ public class ProductController {
             SecurityUtil securityUtil,
             FileUploadService fileUploadService,
             PricingService pricingService,
-            OrderItemRepository orderItemRepository) {
+            OrderItemRepository orderItemRepository,
+            NotificationHelper notificationHelper) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -94,6 +101,7 @@ public class ProductController {
         this.fileUploadService = fileUploadService;
         this.pricingService = pricingService;
         this.orderItemRepository = orderItemRepository;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping("/san-pham")
@@ -510,7 +518,7 @@ public class ProductController {
         }
 
         // Page URL for social sharing
-        model.addAttribute("pageUrl", "https://duastore.vn/san-pham/" + id);
+        model.addAttribute("pageUrl", appUrl + "/san-pham/" + id);
 
         return "view/client/product/product-detail";
     }
@@ -586,7 +594,17 @@ public class ProductController {
             }
         }
         try {
+            reviewService.createReview(userId, request, hinhAnhUrls);
+            
             reviewService.createReview(userId, request, hinhAnhUrls.isEmpty() ? null : hinhAnhUrls);
+            Product product = productService.findById(id);
+            String productName = product != null ? product.getTenSanPham() : "san pham #" + id;
+            notificationHelper.notifyStaff(
+                    "Co danh gia moi cho san pham " + productName + " can duyet",
+                    "PRODUCT", id,
+                    "/admin/danh-gia",
+                    "Duyet danh gia"
+            );
             if (isAjax) return java.util.Map.of("success", true, "message", "Cam on ban da danh gia!");
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {

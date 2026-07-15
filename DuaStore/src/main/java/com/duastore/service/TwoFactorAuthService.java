@@ -5,8 +5,14 @@ import com.duastore.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.time.Instant;
@@ -52,8 +58,15 @@ public class TwoFactorAuthService {
     }
 
     private String generateQRCodeSvg(String data) {
-        String encoded = Base64.getEncoder().encodeToString(data.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        return "data:image/svg+xml;base64," + encoded;
+        try {
+            QRCodeWriter writer = new QRCodeWriter();
+            BitMatrix matrix = writer.encode(data, BarcodeFormat.QR_CODE, 250, 250);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream(matrix, "PNG", os);
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(os.toByteArray());
+        } catch (WriterException | java.io.IOException e) {
+            return "data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(data.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 
     public boolean verify(String secret, int code) {
@@ -103,5 +116,11 @@ public class TwoFactorAuthService {
         return userRepository.findById(userId)
                 .map(User::getTwoFactorEnabled)
                 .orElse(false);
+    }
+
+    public String getSecret(Integer userId) {
+        return userRepository.findById(userId)
+                .map(User::getTwoFactorSecret)
+                .orElse(null);
     }
 }

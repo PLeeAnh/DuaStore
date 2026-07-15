@@ -66,6 +66,7 @@ public class Product {
     }
 
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    @SQLRestriction("isActive = 1")
     private List<ProductVariant> variants;
 
     @OneToMany(fetch = FetchType.LAZY)

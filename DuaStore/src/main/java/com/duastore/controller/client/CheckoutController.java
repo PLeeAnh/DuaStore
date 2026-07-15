@@ -153,17 +153,34 @@ public class CheckoutController {
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
         model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
 
+        // Estimated delivery date
+        model.addAttribute("estimatedDeliveryDate", java.time.LocalDate.now().plusDays(5).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " – " + java.time.LocalDate.now().plusDays(10).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+
         // Load payment method toggles from DB
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
         paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
         paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
-        paymentMethods.put("vnpay", true); // VNPAY is always available (configured via properties)
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
         model.addAttribute("paymentMethods", paymentMethods);
 
-        // Estimated delivery date
-        model.addAttribute("estimatedDeliveryDate", java.time.LocalDate.now().plusDays(5).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " – " + java.time.LocalDate.now().plusDays(10).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        // Set default payment method based on available methods
+        if (!paymentMethods.get("cod") && paymentMethods.get("vnpay")) {
+            model.addAttribute("defaultPaymentMethod", "VNPAY");
+        } else if (!paymentMethods.get("cod") && paymentMethods.get("bank")) {
+            model.addAttribute("defaultPaymentMethod", "CHUYEN_KHOAN");
+        } else {
+            model.addAttribute("defaultPaymentMethod", "COD");
+        }
         return "view/client/checkout";
+    }
+
+    private void addPaymentMethodsToModel(Model model, Map<String, String> paymentSettings) {
+        Map<String, Boolean> paymentMethods = new HashMap<>();
+        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        model.addAttribute("paymentMethods", paymentMethods);
     }
 
     @GetMapping("/shipping-fee")
@@ -177,6 +194,7 @@ public class CheckoutController {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
             BigDecimal fee = shippingFeeService.calculateFee(address, method);
             res.put("fee", fee);
+            res.put("deliveryDays", shippingFeeService.getDeliveryDays(method));
             res.put("success", true);
         } catch (RuntimeException e) {
             res.put("success", false);
@@ -199,7 +217,8 @@ public class CheckoutController {
         try {
             Order order = orderService.processCheckout(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
-                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
+                    req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0
             );
 
             try {
@@ -302,6 +321,16 @@ public class CheckoutController {
         model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
         model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
+        model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
+        List<Promotion> activePromotions = getActivePromotions();
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        model.addAttribute("bestPromo", bestPromo);
+        Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
+        Map<String, Boolean> paymentMethods = new HashMap<>();
+        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        model.addAttribute("paymentMethods", paymentMethods);
     }
 
     private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
