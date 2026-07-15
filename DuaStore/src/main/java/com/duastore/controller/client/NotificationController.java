@@ -85,6 +85,16 @@ public class NotificationController {
         return "ok";
     }
 
+    @PostMapping("/api/thong-bao/xoa/{id}")
+    @ResponseBody
+    public String deleteNotif(@PathVariable Integer id) {
+        notificationRepository.findById(id).ifPresent(n -> {
+            n.setIsActive(false);
+            notificationRepository.save(n);
+        });
+        return "ok";
+    }
+
     @PostMapping("/api/thong-bao/doc-tat-ca")
     @ResponseBody
     public String markAllRead(HttpSession session) {
