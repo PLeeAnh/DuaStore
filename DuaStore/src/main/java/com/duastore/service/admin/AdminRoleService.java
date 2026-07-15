@@ -55,7 +55,7 @@ public class AdminRoleService {
             throw new IllegalArgumentException("Không thể đổi tên vai trò SUPER_ADMIN");
         }
         role.setName(name);
-        role.setMoTa(moTa);
+        role.setMoTa(com.duastore.util.HtmlSanitizer.sanitize(moTa));
         if (isActive != null) {
             role.setIsActive(isActive);
         }

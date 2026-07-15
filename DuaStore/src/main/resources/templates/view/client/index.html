@@ -41,7 +41,7 @@
                             <div class="ds-slider-track">
                                 <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
                                     <div class="ds-cat-tile-img">
-                                        <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy">
+                                        <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'">
                                     </div>
                                     <div class="ds-cat-tile-overlay">
                                         <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Category</span>
@@ -73,8 +73,8 @@
 
                                 <div class="ds-product-image-wrap">
                                     <a th:href="@{'/san-pham/' + ${p.id}}">
-<img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" alt="" loading="lazy"/>
-<img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" alt="" loading="lazy"/>
+<img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+<img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                          <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
                                         <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                         <div class="ds-flash-timer" th:if="${fs != null}"
@@ -221,7 +221,7 @@
                                      th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
                                      th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
                                      th:data-gallery="${#strings.listJoin(browseGalleryMap.get(p.id) ?: java.util.Collections.emptyList(), ',')}">
-                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                     <div class="ds-browse-row-info">
                                         <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
                                         <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
@@ -250,7 +250,7 @@
                         <!-- Cột phải: preview panel (Steam-style) -->
                         <div class="ds-browse-preview" id="browsePreview">
                             <div class="ds-browse-preview-thumb" id="browsePreviewThumb">
-<img th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+<img th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${browseProducts[0].tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                              </div>
                              <div class="ds-browse-preview-header">
                                 <h4 class="ds-browse-preview-name" id="browsePreviewName" th:text="${browseProducts[0].tenSanPham}">Tên sản phẩm</h4>
@@ -268,10 +268,10 @@
                             <a class="ds-browse-preview-link" id="browsePreviewLink" th:href="'/san-pham/' + ${browseProducts[0].id}">Xem chi tiết <i class="bi bi-arrow-right"></i></a>
                             <div class="ds-browse-preview-images" id="browsePreviewImages">
                                 <th:block th:each="img, imgIter : ${browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()}">
-                                    <img class="ds-browse-preview-img" th:src="${img}" alt="" loading="lazy" th:if="${imgIter.index < 6}"/>
+                                     <img class="ds-browse-preview-img" th:src="${img}" th:alt="${browseProducts[0].tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'" th:if="${imgIter.index < 6}"/>
                                 </th:block>
                                 <th:block th:if="${(browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()).isEmpty()}">
-                                    <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+                                    <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${browseProducts[0].tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                 </th:block>
                             </div>
                         </div>

@@ -46,7 +46,7 @@
                                                  class="gallery-thumb" th:classappend="${iter.first} ? 'active' : ''"
                                                  th:data-img="${img}"
                                                  onclick="galleryClick(this)">
-                                                <img th:src="@{${img}}" alt="" loading="lazy" />
+                                                <img th:src="@{${img}}" th:alt="${product.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'" />
                                             </div>
                                         </div>
                                     </div>

@@ -120,6 +120,14 @@ public class AdminVariantController {
         ProductVariant oldVariant = variantService.findById(id);
         Integer oldStock = oldVariant != null ? oldVariant.getSoLuongTon() : 0;
         BigDecimal oldPrice = oldVariant != null ? effectivePrice(oldVariant) : null;
+        if (oldVariant != null && dto.getGiaGoc() != null && oldVariant.getGiaGoc() != null) {
+            BigDecimal diff = dto.getGiaGoc().subtract(oldVariant.getGiaGoc()).abs();
+            BigDecimal pct = diff.multiply(new BigDecimal("100")).divide(oldVariant.getGiaGoc(), 2, java.math.RoundingMode.HALF_UP);
+            if (pct.compareTo(new BigDecimal("30")) > 0) {
+                ra.addFlashAttribute("warningMsg", "Giá thay đổi " + pct.stripTrailingZeros().toPlainString()
+                        + "% so với giá cũ (" + formatCurrency(oldVariant.getGiaGoc()) + "). Bạn có chắc muốn thay đổi?");
+            }
+        }
         var saved = variantService.save(dto);
         notifyVariantChanges(saved, oldStock, oldPrice);
         ra.addFlashAttribute("successMsg", "Cập nhật biến thể thành công");
@@ -194,6 +202,8 @@ public class AdminVariantController {
 
     private String formatCurrency(BigDecimal price) {
         return NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(price);
+    }
+
     @GetMapping("/bulk-edit/{productId}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
     public String bulkEditForm(@PathVariable Integer productId, Model model, RedirectAttributes ra) {

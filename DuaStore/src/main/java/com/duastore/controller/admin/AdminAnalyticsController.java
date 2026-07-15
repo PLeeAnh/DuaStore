@@ -1,12 +1,14 @@
 package com.duastore.controller.admin;
 
 import com.duastore.service.admin.AdminAnalyticsService;
+import com.duastore.service.admin.AdminVariantPredictionService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -18,9 +20,12 @@ import java.time.temporal.TemporalAdjusters;
 public class AdminAnalyticsController {
 
     private final AdminAnalyticsService analyticsService;
+    private final AdminVariantPredictionService predictionService;
 
-    public AdminAnalyticsController(AdminAnalyticsService analyticsService) {
+    public AdminAnalyticsController(AdminAnalyticsService analyticsService,
+                                     AdminVariantPredictionService predictionService) {
         this.analyticsService = analyticsService;
+        this.predictionService = predictionService;
     }
 
     @GetMapping
@@ -112,6 +117,7 @@ public class AdminAnalyticsController {
         model.addAttribute("lowStockProducts", analyticsService.getLowStockProducts());
         model.addAttribute("totalStock", analyticsService.getTotalStock());
         model.addAttribute("totalProducts", analyticsService.getTotalProducts());
+        model.addAttribute("restockPredictions", predictionService.getRestockRecommendations(30, 20));
 
         // Promotions tab
         model.addAttribute("activePromotions", analyticsService.getActivePromotions());

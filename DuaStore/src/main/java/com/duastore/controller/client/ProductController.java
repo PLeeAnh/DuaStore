@@ -22,6 +22,7 @@ import com.duastore.service.client.WishlistService;
 import com.duastore.service.FileUploadService;
 import com.duastore.service.NotificationHelper;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,9 @@ public class ProductController {
     private final PricingService pricingService;
     private final OrderItemRepository orderItemRepository;
     private final NotificationHelper notificationHelper;
+
+    @Value("${app.url}")
+    private String appUrl;
 
     private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
         List<Category> path = new ArrayList<>();
@@ -514,7 +518,7 @@ public class ProductController {
         }
 
         // Page URL for social sharing
-        model.addAttribute("pageUrl", "https://duastore.vn/san-pham/" + id);
+        model.addAttribute("pageUrl", appUrl + "/san-pham/" + id);
 
         return "view/client/product/product-detail";
     }

@@ -157,7 +157,7 @@ public class AdminCategoryService {
                 : categoryRepository.findById(dto.getId()).orElse(new Category());
 
         category.setTenDanhMuc(dto.getTenDanhMuc());
-        category.setMoTa(dto.getMoTa());
+        category.setMoTa(com.duastore.util.HtmlSanitizer.sanitize(dto.getMoTa()));
         category.setThuTuHienThi(dto.getThuTuHienThi() == null ? 0 : dto.getThuTuHienThi());
         category.setActive(dto.isActive());
         category.setImageUrl(dto.getImageUrl());
@@ -200,6 +200,17 @@ public class AdminCategoryService {
             return false;
         }
         category.setActive(false);
+        if (category.getChildren() != null) {
+            category.getChildren().forEach(c -> {
+                c.setActive(false);
+                categoryRepository.save(c);
+            });
+        }
+        List<Product> products = productRepository.findByDanhMucIdAndIsActiveTrue(id);
+        products.forEach(p -> {
+            p.setActive(false);
+            productRepository.save(p);
+        });
         categoryRepository.save(category);
         return true;
     }

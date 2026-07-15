@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -88,6 +90,15 @@ public class AdminCustomersController {
         model.addAttribute("spendingTier", spendingTier);
         model.addAttribute("cities", adminCustomerService.getAllDistinctCities());
         model.addAttribute("searching", keyword != null || status != null || city != null || spendingTier != null);
+
+        // Stats for cards (only count users with role USER)
+        long activeCount = userRepository.countByRoleAndIsActive("USER", true);
+        long lockedCount = userRepository.countByRoleAndIsActive("USER", false);
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).with(LocalTime.MIN);
+        long newThisMonth = userRepository.countByRoleAndNgayTaoBetween("USER", startOfMonth, LocalDateTime.now());
+        model.addAttribute("activeCount", activeCount);
+        model.addAttribute("lockedCount", lockedCount);
+        model.addAttribute("newThisMonth", newThisMonth);
 
         return "view/admin/customer/list";
     }
@@ -193,6 +204,20 @@ public class AdminCustomersController {
         result.put("id", ct.getId());
         result.put("tag", ct.getTag());
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/toggle-status")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_UPDATE)")
+    public String toggleStatus(@RequestParam Integer id, RedirectAttributes ra) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy khách hàng");
+            return "redirect:/admin/khach-hang";
+        }
+        user.setIsActive(!user.getIsActive());
+        userRepository.save(user);
+        ra.addFlashAttribute("successMsg", user.getIsActive() ? "Đã kích hoạt khách hàng" : "Đã khóa khách hàng");
+        return "redirect:/admin/khach-hang";
     }
 
     @DeleteMapping("/{id}/api/tags/{tagId}")

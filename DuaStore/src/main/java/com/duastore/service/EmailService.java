@@ -1,5 +1,7 @@
 package com.duastore.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -12,6 +14,7 @@ import java.util.Properties;
 @Service
 public class EmailService implements EmailSender {
 
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender defaultMailSender;
     private final SiteSettingService siteSettingService;
 
@@ -97,7 +100,8 @@ public class EmailService implements EmailSender {
             helper.setSubject(subject);
             helper.setText(body, true);
             sender.send(msg);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 
@@ -173,7 +177,8 @@ public class EmailService implements EmailSender {
             helper.setText(plainText, html);
             sender.send(msg);
 
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -244,7 +249,8 @@ public class EmailService implements EmailSender {
 
             helper.setText(html, true);
             sender.send(msg);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to send order confirmation email to {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -264,7 +270,8 @@ public class EmailService implements EmailSender {
                 </div>
                 """, true);
             sender.send(msg);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
         }
     }
 }

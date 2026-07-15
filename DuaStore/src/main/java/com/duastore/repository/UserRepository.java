@@ -44,23 +44,32 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.isActive = true")
     long countActiveByRoleName(@Param("role") String role);
 
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.isActive = :isActive")
+    long countByRoleAndIsActive(@Param("role") String role, @Param("isActive") boolean isActive);
+
     @Query("SELECT COUNT(u) FROM User u WHERE u.ngayTao BETWEEN :start AND :end")
     long countByNgayTaoBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.ngayTao BETWEEN :start AND :end")
+    long countByRoleAndNgayTaoBetween(@Param("role") String role, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query(value = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles WHERE "
             + "(:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
-            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false))",
+            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
+            + "AND (:role IS NULL OR :role MEMBER OF u.roles)",
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u WHERE "
             + "(:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
-            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false))")
+            + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
+            + "AND (:role IS NULL OR :role MEMBER OF u.roles)")
     Page<User> searchByKeywordAndStatus(@Param("keyword") String keyword,
             @Param("status") String status,
+            @Param("role") String role,
             Pageable pageable);
 
     @Query(value = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles "
@@ -69,17 +78,20 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
             + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
-            + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city))",
+            + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city)) "
+            + "AND (:role IS NULL OR :role MEMBER OF u.roles)",
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u "
             + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
             + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
-            + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city))")
+            + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city)) "
+            + "AND (:role IS NULL OR :role MEMBER OF u.roles)")
     Page<User> searchByKeywordStatusAndCity(@Param("keyword") String keyword,
             @Param("status") String status,
             @Param("city") String city,
+            @Param("role") String role,
             Pageable pageable);
 
     @Query(value = "SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles "
@@ -94,7 +106,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "(SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) BETWEEN 2000000 AND 9999999)) "
             + "OR (:spendingTier = 'new' AND (u.id NOT IN "
             + "(SELECT DISTINCT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH')) "
-            + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000))))",
+            + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000)))) "
+            + "AND (:role IS NULL OR :role MEMBER OF u.roles)",
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u "
             + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
@@ -107,10 +120,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "(SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) BETWEEN 2000000 AND 9999999)) "
             + "OR (:spendingTier = 'new' AND (u.id NOT IN "
             + "(SELECT DISTINCT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH')) "
-            + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000))))")
+            + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000)))) "
+            + "AND (:role IS NULL OR :role MEMBER OF u.roles)")
     Page<User> searchByKeywordStatusAndSpending(@Param("keyword") String keyword,
             @Param("status") String status,
             @Param("spendingTier") String spendingTier,
+            @Param("role") String role,
             Pageable pageable);
 
     @Query("SELECT u.id, u.hoTen, COUNT(o) as orderCount, COALESCE(SUM(o.tongThanhToan), 0) as totalSpent "

@@ -68,6 +68,7 @@
             <div class="col-md-6">
                 <div class="adm-card h-100">
                     <h6><i class="bi bi-person-badge me-2"></i>Hồ sơ khách hàng</h6>
+                    <div class="table-responsive">
                     <table class="table table-sm table-borderless mb-0">
                         <tr><td class="text-muted ps-0" style="width:100px">ID</td><td><span class="badge text-bg-light" th:text="${customer.id}"></span></td></tr>
                         <tr><td class="text-muted ps-0">Họ tên</td><td class="fw-semibold" th:text="${customer.hoTen}"></td></tr>
@@ -84,6 +85,7 @@
                         <tr><td class="text-muted ps-0">Đơn cuối</td><td th:text="${lastOrderDate != null ? #temporals.format(lastOrderDate, 'HH:mm dd/MM/yyyy') : 'Chưa có'}"></td></tr>
                         <tr><td class="text-muted ps-0">Sản phẩm YT</td><td th:text="${topProduct}"></td></tr>
                     </table>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
@@ -286,6 +288,7 @@
                     <i class="bi bi-star fs-3 d-block mb-2"></i>Chưa có giao dịch điểm tích lũy
                 </div>
                 <div th:if="${not #lists.isEmpty(loyaltyHistory)}" style="max-height:500px;overflow-y:auto">
+                    <div class="table-responsive">
                     <table class="table table-sm table-borderless mb-0">
                         <thead>
                             <tr class="small text-muted">
@@ -312,6 +315,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 

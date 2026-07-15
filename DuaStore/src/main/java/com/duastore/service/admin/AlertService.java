@@ -9,6 +9,7 @@ import com.duastore.service.EmailService;
 import com.duastore.service.NotificationHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,9 @@ public class AlertService {
     private final UserRepository userRepository;
     private final NotificationHelper notificationHelper;
     private final EmailService emailService;
+
+    @Value("${app.url}")
+    private String appUrl;
 
     public AlertService(ProductRepository productRepository,
             ProductVariantRepository variantRepository,
@@ -124,7 +128,7 @@ public class AlertService {
                     + "<p>Xin chào <strong>" + u.getHoTen() + "</strong>,</p>"
                     + "<p>Chúng tôi thấy bạn vẫn còn những sản phẩm sau trong giỏ hàng:</p>"
                     + "<p style='background:#f5f5f5;padding:12px;border-radius:8px;'>" + itemSummary + "</p>"
-                    + "<p><a href='" + "http://localhost:8080/gio-hang' "
+                    + "<p><a href='" + appUrl + "/gio-hang' "
                     + "style='background:#e53935;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;'>"
                     + "Đến giỏ hàng</a></p>"
                     + "<p style='color:#9e9e9e;font-size:12px;'>DuaStore - Đồ Thủy Tinh Cao Cấp</p>"

@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <link rel="icon" type="image/png" th:href="@{/images/favicon.png}"/>
+    <link rel="apple-touch-icon" th:href="@{/images/favicon.png}"/>
+    <meta name="description" content="DuaStore - Đồ Thủy Tinh Cao Cấp. Chuyên cung cấp các sản phẩm thủy tinh chất lượng cao."/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;display=swap"/>
@@ -30,7 +33,7 @@
     <script defer th:src="@{/js/modules/wishlist.js(v=1)}"></script>
     <script defer th:src="@{/js/modules/cart.js(v=5)}"></script>
     <script defer th:src="@{/js/modules/promotion.js(v=1)}"></script>
-    <script defer th:src="@{/js/modules/checkout.js(v=2)}"></script>
+    <script defer th:src="@{/js/modules/checkout.js(v=8)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
     <style th:if="${customCss}" th:utext="${customCss}"></style>
     <style>
@@ -136,7 +139,7 @@
                                 <div class="popup-item-info flex-grow-1 min-w-0">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}" class="text-truncate d-block text-dark fw-semibold text-decoration-none" style="max-width: 150px; font-size: 0.9rem;">Tên SP</a>
-                                        <span class="text-danger fw-semibold popup-item-price flex-shrink-0 ms-2"
+                                        <span class="text-primary fw-semibold popup-item-price flex-shrink-0 ms-2"
                                               th:id="'popup-price-' + ${uid}"
                                               th:data-price="${item.giaBan}"
                                               style="font-size: 0.85rem;"
@@ -162,7 +165,7 @@
                         </div>
                         
                         <div class="mt-2 pt-2" th:unless="${#lists.isEmpty(myCart)}">
-    <a th:href="@{/gio-hang}" class="btn btn-danger w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
+    <a th:href="@{/gio-hang}" class="btn btn-primary w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
 </div>
                     </div>
                 </div>
@@ -1037,6 +1040,13 @@ if (searchInput && searchBox) {
         <button type="button" class="btn btn-primary btn-sm" id="dsSaveBarSave"><i class="bi bi-floppy me-1"></i>Lưu</button>
     </div>
 </div>
+
+<script>
+document.addEventListener('submit', function(e) {
+    var btn = e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...'; }
+});
+</script>
 
 <th:block layout:fragment="extra-script"></th:block>
 

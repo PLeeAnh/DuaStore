@@ -99,9 +99,13 @@ public class AdminTwoFactorController {
                                   HttpSession session,
                                   RedirectAttributes ra) {
         Integer userId = (Integer) session.getAttribute("2faUserId");
-        String secret = (String) session.getAttribute("2faSecret");
 
-        if (userId == null || secret == null) {
+        if (userId == null) {
+            return "redirect:/dang-nhap";
+        }
+
+        String secret = twoFactorAuthService.getSecret(userId);
+        if (secret == null) {
             return "redirect:/dang-nhap";
         }
 
@@ -111,8 +115,8 @@ public class AdminTwoFactorController {
         }
 
         session.setAttribute("2faVerified", true);
+        session.setAttribute("2faVerifiedAt", java.time.Instant.now().toString());
         session.removeAttribute("2faUserId");
-        session.removeAttribute("2faSecret");
         return "redirect:/admin";
     }
 }

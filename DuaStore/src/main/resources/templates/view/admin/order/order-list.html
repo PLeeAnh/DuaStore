@@ -145,6 +145,7 @@
         </div>
 
         <div class="adm-table-wrap">
+            <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-0">
                 <thead>
                     <tr>
@@ -202,6 +203,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
@@ -238,6 +240,7 @@
             }
 
             function batchUpdateStatus() {
+                if (!confirm('Xác nhận cập nhật trạng thái hàng loạt?')) return;
                 var checked = document.querySelectorAll('.order-checkbox:checked');
                 var status = document.getElementById('batchStatus').value;
                 if (checked.length === 0) {

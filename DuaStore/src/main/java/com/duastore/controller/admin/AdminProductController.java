@@ -15,6 +15,7 @@ import com.duastore.repository.WishlistRepository;
 import com.duastore.service.FileUploadService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminProductService;
+import com.duastore.service.admin.AutoDescriptionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -47,6 +48,7 @@ public class AdminProductController {
     private final FileUploadService fileUploadService;
     private final NotificationHelper notificationHelper;
     private final SecurityUtil securityUtil;
+    private final AutoDescriptionService autoDescriptionService;
 
     public AdminProductController(AdminProductService productService,
             CategoryRepository categoryRepository,
@@ -56,7 +58,8 @@ public class AdminProductController {
             WishlistRepository wishlistRepository,
             FileUploadService fileUploadService,
             NotificationHelper notificationHelper,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil,
+            AutoDescriptionService autoDescriptionService) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
@@ -66,6 +69,7 @@ public class AdminProductController {
         this.fileUploadService = fileUploadService;
         this.notificationHelper = notificationHelper;
         this.securityUtil = securityUtil;
+        this.autoDescriptionService = autoDescriptionService;
     }
 
     @GetMapping
@@ -425,6 +429,14 @@ public class AdminProductController {
         p.setHinhAnhChinh(null);
         productRepository.save(p);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/tu-dong-mo-ta")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_CREATE) or @sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_UPDATE)")
+    public ResponseEntity<Map<String, String>> autoDescription(@RequestBody Map<String, String> params) {
+        String description = autoDescriptionService.generate(params);
+        return ResponseEntity.ok(Map.of("description", description));
     }
 
     private void addComboLists(Model model) {

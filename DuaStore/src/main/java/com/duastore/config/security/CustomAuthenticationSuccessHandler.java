@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +80,6 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             Boolean twoFactorEnabled = user.getTwoFactorEnabled();
             if (isAdmin && Boolean.TRUE.equals(twoFactorEnabled)) {
                 session.setAttribute("2faUserId", user.getId());
-                session.setAttribute("2faSecret", user.getTwoFactorSecret());
                 session.setAttribute("2faVerified", false);
             }
         }
@@ -102,6 +102,15 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         if (authentication.getPrincipal() instanceof OAuth2User) {
             response.sendRedirect(request.getContextPath() + "/oauth2/success");
             return;
+        }
+
+        SavedRequest savedRequest = (SavedRequest) session.getAttribute("SPRING_SECURITY_SAVED_REQUEST");
+        if (savedRequest != null) {
+            String savedUri = savedRequest.getRedirectUrl();
+            String ctx = request.getContextPath();
+            if (savedUri != null && (savedUri.contains(ctx + "/api/") || savedUri.contains(ctx + "/address/api/"))) {
+                session.removeAttribute("SPRING_SECURITY_SAVED_REQUEST");
+            }
         }
 
         super.onAuthenticationSuccess(request, response, authentication);

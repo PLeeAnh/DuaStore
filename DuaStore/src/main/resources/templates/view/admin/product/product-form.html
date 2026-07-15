@@ -120,10 +120,16 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">Mô tả sản phẩm</label>
-                                    <textarea th:field="*{moTa}" class="form-control" rows="5" style="min-height:120px"></textarea>
-                                </div>
+                <div class="col-12">
+                    <label class="form-label">Mô tả sản phẩm</label>
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="generateDescription()">
+                            <i class="bi bi-magic me-1"></i>Tự động viết mô tả
+                        </button>
+                        <span id="descStatus" class="small text-muted align-self-center" style="display:none"></span>
+                    </div>
+                    <textarea th:field="*{moTa}" class="form-control" rows="5" style="min-height:120px"></textarea>
+                </div>
                                 <div class="col-12">
                                     <label class="form-label">Trạng thái</label>
                                     <div class="d-flex flex-wrap gap-2">
@@ -411,6 +417,39 @@
                                 e.formData.set('hinhAnhFile', mainImageFile);
                         });
                     })();
+
+                    function generateDescription() {
+                        const fields = ['tenSanPham', 'danhMucId', 'thuongHieu', 'chatLieu', 'xuatXu', 'kinhLoai', 'mucDichSuDung', 'dungTich'];
+                        const params = {};
+                        fields.forEach(f => {
+                            const el = document.querySelector('[name="' + f + '"]');
+                            if (el) params[f] = el.value;
+                        });
+                        const ta = document.querySelector('[name="moTa"]');
+                        if (!ta) return;
+                        const btn = document.querySelector('button[onclick="generateDescription()"]');
+                        const status = document.getElementById('descStatus');
+                        btn.disabled = true;
+                        status.style.display = '';
+                        status.textContent = 'Đang tạo...';
+                        fetch('/admin/san-pham/api/tu-dong-mo-ta', {
+                            method: 'POST',
+                            headers: Object.assign({'Content-Type': 'application/json'}, getCsrfHeaders()),
+                            body: JSON.stringify(params)
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            ta.value = data.description;
+                            status.textContent = '✅ Đã tạo mô tả tự động';
+                        })
+                        .catch(() => {
+                            status.textContent = '❌ Lỗi, vui lòng thử lại';
+                        })
+                        .finally(() => {
+                            btn.disabled = false;
+                            setTimeout(() => { status.style.display = 'none'; }, 3000);
+                        });
+                    }
                 </script>
             </th:block>
             </body>

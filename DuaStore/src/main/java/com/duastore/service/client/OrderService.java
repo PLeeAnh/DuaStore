@@ -11,6 +11,7 @@ import com.duastore.service.ShippingFeeService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.util.PriceUtils;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -123,8 +124,13 @@ public class OrderService {
         for (CartItem ci : cartItems) {
             Product product = ci.getProduct();
             ProductVariant variant = ci.getVariant();
-            PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashSaleMap.get(product.getId()));
-            BigDecimal donGia = priced.finalPrice();
+            BigDecimal donGia = ci.getGiaLucThem();
+            String loaiGia = "THUONG";
+            if (donGia == null) {
+                PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashSaleMap.get(product.getId()));
+                donGia = priced.finalPrice();
+                loaiGia = priced.source().name();
+            }
             BigDecimal thanhTien = donGia.multiply(BigDecimal.valueOf(ci.getSoLuong()));
             tienHang = tienHang.add(thanhTien);
 
@@ -138,7 +144,7 @@ public class OrderService {
             item.setDonGia(donGia);
             item.setSoLuong(ci.getSoLuong());
             item.setThanhTien(thanhTien);
-            item.setLoaiGia(priced.source().name());
+            item.setLoaiGia(loaiGia);
             order.getOrderItems().add(item);
         }
         order.setTienHang(tienHang);
@@ -212,11 +218,7 @@ public class OrderService {
         }
         order.setGhiChu(ghiChu);
 
-        order = orderRepository.save(order);
-
-        orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
-
-        // Lock flash sale + decrement stock
+        // Lock flash sale + decrement stock FIRST (before saving order)
         for (CartItem ci : cartItems) {
             if (ci.getVariant() == null) {
                 continue;
@@ -251,6 +253,10 @@ public class OrderService {
                         + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
             }
         }
+
+        order = orderRepository.save(order);
+
+        orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
 
         cartItemRepository.deleteAll(cartItems);
 
@@ -498,8 +504,13 @@ public class OrderService {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
         dto.setMaDon(order.getMaDon());
-        dto.setUserId(order.getUser().getId());
-        dto.setUserEmail(order.getUser().getEmail());
+        try {
+            dto.setUserId(order.getUser().getId());
+            dto.setUserEmail(order.getUser().getEmail());
+        } catch (ObjectNotFoundException e) {
+            dto.setUserId(null);
+            dto.setUserEmail("Người dùng đã xoá");
+        }
         dto.setTenNguoiNhan(order.getSnapTenNguoiNhan());
         dto.setSoDienThoai(order.getSnapSoDienThoai());
         dto.setDiaChi(order.getSnapDiaChi());
