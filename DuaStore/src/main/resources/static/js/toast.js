@@ -83,3 +83,57 @@ window.DuaStore.toast = window.DuaStore.toast || {};
         show('info', msg, d);
     };
 })();
+
+/* ── DuaStore.confirm — Promise-based Bootstrap modal ── */
+(function () {
+    var confirmEl = null;
+    var bsModal = null;
+    var pendingReject = null;
+    var pendingResolve = null;
+
+    function createConfirmEl() {
+        if (confirmEl) return;
+        confirmEl = document.createElement('div');
+        confirmEl.className = 'modal fade';
+        confirmEl.setAttribute('tabindex', '-1');
+        confirmEl.setAttribute('aria-hidden', 'true');
+        confirmEl.style.zIndex = '1056';
+        confirmEl.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered modal-sm">' +
+            '  <div class="modal-content border-0 shadow-sm" style="border-radius:12px;">' +
+            '    <div class="modal-header border-0 pb-0">' +
+            '      <h6 class="modal-title fw-bold" id="duastoreConfirmTitle">Xác nhận</h6>' +
+            '      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>' +
+            '    </div>' +
+            '    <div class="modal-body pt-2 pb-3">' +
+            '      <p class="mb-0 small" id="duastoreConfirmMessage"></p>' +
+            '    </div>' +
+            '    <div class="modal-footer border-0 pt-0 d-flex gap-2 justify-content-center">' +
+            '      <button type="button" class="ds-btn ds-btn-outline ds-btn-sm flex-fill" id="duastoreConfirmCancel">Huỷ</button>' +
+            '      <button type="button" class="ds-btn ds-btn-fill ds-btn-sm flex-fill" id="duastoreConfirmOk">Đồng ý</button>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>';
+        document.body.appendChild(confirmEl);
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            bsModal = new bootstrap.Modal(confirmEl, { backdrop: 'static', keyboard: false });
+        }
+        function cleanup(result) {
+            if (pendingResolve) { pendingResolve(result); pendingResolve = null; }
+            if (bsModal) bsModal.hide();
+            if (confirmEl && confirmEl.parentNode) document.body.removeChild(confirmEl);
+            confirmEl = null;
+            bsModal = null;
+        }
+        confirmEl.addEventListener('hidden.bs.modal', function () { cleanup(false); });
+        document.getElementById('duastoreConfirmCancel').addEventListener('click', function () { cleanup(false); });
+        document.getElementById('duastoreConfirmOk').addEventListener('click', function () { cleanup(true); });
+    }
+
+    window.DuaStore.confirm = function (message) {
+        createConfirmEl();
+        document.getElementById('duastoreConfirmMessage').textContent = message;
+        if (bsModal) bsModal.show();
+        return new Promise(function (resolve) { pendingResolve = resolve; });
+    };
+})();

@@ -197,6 +197,9 @@ public class AdminProductService {
         Product p = productRepository.findById(id).orElse(null);
         if (p != null) {
             p.setActive(false);
+            if (p.getVariants() != null) {
+                p.getVariants().forEach(v -> v.setActive(false));
+            }
             productRepository.save(p);
         }
     }

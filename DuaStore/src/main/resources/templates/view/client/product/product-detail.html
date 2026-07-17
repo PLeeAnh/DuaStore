@@ -46,7 +46,7 @@
                                                  class="gallery-thumb" th:classappend="${iter.first} ? 'active' : ''"
                                                  th:data-img="${img}"
                                                  onclick="galleryClick(this)">
-                                                <img th:src="@{${img}}" alt="" loading="lazy" />
+                                                <img th:src="@{${img}}" th:alt="${product.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'" />
                                             </div>
                                         </div>
                                     </div>
@@ -107,7 +107,7 @@
                                         <i class="bi bi-lightning-charge-fill me-1"></i>FLASH SALE
                                     </span>
                                     <span class="small text-danger fw-semibold">
-                                        Giảm <span th:text="${#numbers.formatDecimal(flashSale.giaTriGiam, 0, 0)}">99</span>% – Còn <span th:text="${flashSale.soLuongToiDa - flashSale.soLuongDaBan}">0</span> suất
+                                        Giảm <span th:text="${#numbers.formatDecimal(flashSale.giaTriGiam, 0, 'POINT', 0, 'POINT')}">99</span>% – Còn <span th:text="${flashSale.soLuongToiDa - flashSale.soLuongDaBan}">0</span> suất
                                     </span>
                                     <div class="ds-flash-timer" th:data-end="${#strings.concat(#temporals.format(flashSale.ngayKetThuc, 'yyyy-MM-dd'), 'T', #temporals.format(flashSale.ngayKetThuc, 'HH:mm:ss'))}"
                                          style="position:static;display:inline-flex;font-size:.75rem;padding:2px 10px;">
@@ -117,37 +117,37 @@
                                 </div>
                                 <span id="productPrice" class="fw-bold" style="font-size:1.85rem;color:#2563eb;letter-spacing:-.02em">
                                     <th:block th:if="${flashSale != null and minPrice != null and maxPrice != null}">
-                                        <th:block th:if="${minPrice == maxPrice}"
-                                                  th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 0)} + '₫'">12.750₫</th:block>
+                                    <th:block th:if="${minPrice == maxPrice}"
+                                                   th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
                                         <th:block th:unless="${minPrice == maxPrice}">
-                                            <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 0)}">12.750</span>₫
+                                            <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')}">12.750</span>₫
                                         </th:block>
                                         <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">
-                                            <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 0)} + '₫'">15.000₫</th:block>
+                                            <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
                                             <th:block th:unless="${minPrice == maxPrice}">
-                                                <span th:text="${#numbers.formatDecimal(minPrice, 0, 0)}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 0)}">45.000</span>₫
+                                                <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
                                             </th:block>
                                         </span>
-                                        <span class="badge ms-2" style="background:#2563EB;font-size:.75rem;vertical-align:middle;" th:text="'-' + ${#numbers.formatDecimal(flashSale.giaTriGiam, 0, 0)} + '%'">-99%</span>
+                                        <span class="badge ms-2" style="background:#2563EB;font-size:.75rem;vertical-align:middle;" th:text="'-' + ${#numbers.formatDecimal(flashSale.giaTriGiam, 0, 'POINT', 0, 'POINT')} + '%'">-99%</span>
                                     </th:block>
                                     <th:block th:if="${flashSale == null and bestPercentagePromo != null and minPrice != null and maxPrice != null}">
                                         <th:block th:if="${minPrice == maxPrice}"
-                                                  th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 0)} + '₫'">12.750₫</th:block>
+                                                   th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
                                         <th:block th:unless="${minPrice == maxPrice}">
-                                            <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 0)}">12.750</span>₫
+                                            <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')}">12.750</span>₫
                                         </th:block>
                                         <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">
-                                            <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 0)} + '₫'">15.000₫</th:block>
+                                            <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
                                             <th:block th:unless="${minPrice == maxPrice}">
-                                                <span th:text="${#numbers.formatDecimal(minPrice, 0, 0)}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 0)}">45.000</span>₫
+                                                <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
                                             </th:block>
                                         </span>
-                                        <span class="badge ms-2" style="background:#8b5cf6;font-size:.75rem;vertical-align:middle;" th:text="'-' + ${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)} + '%'">-15%</span>
+                                        <span class="badge ms-2" style="background:#8b5cf6;font-size:.75rem;vertical-align:middle;" th:text="'-' + ${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 'POINT', 0, 'POINT')} + '%'">-15%</span>
                                     </th:block>
                                     <th:block th:if="${flashSale == null and bestPercentagePromo == null and minPrice != null and maxPrice != null}">
-                                        <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 0)} + '₫'">15.000₫</th:block>
+                                        <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
                                         <th:block th:unless="${minPrice == maxPrice}">
-                                            <span th:text="${#numbers.formatDecimal(minPrice, 0, 0)}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 0)}">45.000</span>₫
+                                            <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
                                         </th:block>
                                     </th:block>
                                     <th:block th:if="${minPrice == null}">Liên hệ</th:block>
@@ -227,9 +227,9 @@
                                         th:disabled="${defaultVariant == null or defaultVariant.soLuongTon <= 0}">
                                     Mua ngay <span th:if="${defaultVariant != null}">-
                                         <th:block th:if="${bestPercentagePromo != null and variantPromoPriceMap.get(defaultVariant.id) != null}"
-                                                  th:text="${#numbers.formatDecimal(variantPromoPriceMap.get(defaultVariant.id), 0, 0)} + '₫'">12.750₫</th:block>
+                                                  th:text="${#numbers.formatDecimal(variantPromoPriceMap.get(defaultVariant.id), 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
                                         <th:block th:if="${bestPercentagePromo == null or variantPromoPriceMap.get(defaultVariant.id) == null}"
-                                                  th:text="${defaultVariant.giaKhuyenMai != null ? #numbers.formatDecimal(defaultVariant.giaKhuyenMai, 0, 0) : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 0)} + '₫'">15.000₫</th:block>
+                                                  th:text="${defaultVariant.giaKhuyenMai != null ? #numbers.formatDecimal(defaultVariant.giaKhuyenMai, 0, 'POINT', 0, 'POINT') : #numbers.formatDecimal(defaultVariant.giaGoc, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
                                     </span>
                                 </button>
                             </div>
@@ -371,7 +371,7 @@
                                         <div class="card-title" th:text="${rp.tenSanPham}">Tên SP</div>
                                         <div class="card-price">
                                             <th:block th:if="${relatedMinPrices != null and relatedMinPrices.containsKey(rp.id)}">
-                                                <span th:text="${#numbers.formatDecimal(relatedMinPrices.get(rp.id), 0, 0)}">15.000</span>₫
+                                                <span th:text="${#numbers.formatDecimal(relatedMinPrices.get(rp.id), 0, 'POINT', 0, 'POINT')}">15.000</span>₫
                                             </th:block>
                                             <th:block th:unless="${relatedMinPrices != null and relatedMinPrices.containsKey(rp.id)}">Liên hệ</th:block>
                                         </div>
@@ -393,16 +393,16 @@
                             <div class="vc-card h-100">
                                 <div class="vc-discount">
                                     <span th:if="${p.loaiGiam == 'PHAN_TRAM'}" th:text="'GIẢM ' + ${p.giaTriGiam} + '%'">GIẢM 15%</span>
-                                    <span th:if="${p.loaiGiam == 'SO_TIEN'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(p.giaTriGiam, 0, 0)} + 'đ'">GIẢM 30.000đ</span>
+                                    <span th:if="${p.loaiGiam == 'SO_TIEN'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT')} + 'đ'">GIẢM 30.000đ</span>
                                 </div>
                                 <div class="vc-desc" th:text="${p.tenChuongTrinh}">Mô tả</div>
                                 <span class="vc-code">Mã: <span th:text="${p.maCode}">CODE</span></span>
                                 <div class="vc-grid">
                                     <div class="vc-grid-item" th:if="${p.donHangToiThieu > 0}">
-                                        <span>&#x1F6D2;</span> Tối thiểu: <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 0)} + 'đ'">200.000đ</strong>
+                                        <span>&#x1F6D2;</span> Tối thiểu: <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT')} + 'đ'">200.000đ</strong>
                                     </div>
                                     <div class="vc-grid-item" th:if="${p.giamToiDa > 0 and p.loaiGiam == 'PHAN_TRAM'}">
-                                        <span>&#x1F4B0;</span> Tối đa: <strong th:text="${#numbers.formatDecimal(p.giamToiDa, 0, 0)} + 'đ'">100.000đ</strong>
+                                        <span>&#x1F4B0;</span> Tối đa: <strong th:text="${#numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT')} + 'đ'">100.000đ</strong>
                                     </div>
                                     <div class="vc-grid-item">
                                         <span>&#x1F4C5;</span> HSD: <span th:text="${p.denNgay != null ? #temporals.format(p.denNgay, 'dd/MM/yyyy') : 'Không giới hạn'}">01/01/2027</span>
@@ -770,8 +770,10 @@
                     if (!data)
                         return;
                     if (data.success) {
+                        if (typeof markCartBadgeUnread === 'function')
+                            markCartBadgeUnread();
                         if (typeof updateCartBadge === 'function')
-                            updateCartBadge(data.cartCount);
+                            updateCartBadge(data.cartCount, true);
                         addCartPopupItemFromDetail(productId, variantId, qty, productName, validImgSrc, variantName, rawPrice, selectedStock);
                         if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
                             DuaStore.toast.success('Đã thêm vào giỏ hàng');

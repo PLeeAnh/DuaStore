@@ -28,4 +28,25 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
 
     @Query("SELECT COALESCE(SUM(oi.soLuong), 0) FROM OrderItem oi WHERE oi.productId = :productId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
     long sumSoldQuantityByProductId(@Param("productId") Integer productId);
+
+    @Query("SELECT oi.variantId, SUM(oi.soLuong) FROM OrderItem oi "
+            + "WHERE oi.variantId IS NOT NULL "
+            + "AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH') "
+            + "AND oi.order.ngayDat BETWEEN :start AND :end "
+            + "GROUP BY oi.variantId")
+    List<Object[]> sumSoldByVariantInRange(@Param("start") java.time.LocalDateTime start,
+            @Param("end") java.time.LocalDateTime end);
+
+    @Query("SELECT DISTINCT oi.productId FROM OrderItem oi WHERE oi.order.user.id = :userId "
+            + "AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH') "
+            + "AND oi.order.ngayDat > :since")
+    List<Integer> findPurchasedProductIdsByUserSince(@Param("userId") Integer userId,
+            @Param("since") java.time.LocalDateTime since);
+
+    @Query("SELECT DISTINCT oi2.productId FROM OrderItem oi1 "
+            + "JOIN OrderItem oi2 ON oi1.order.id = oi2.order.id "
+            + "WHERE oi1.productId = :productId "
+            + "AND oi2.productId != :productId "
+            + "AND (oi1.order.trangThaiDon = 'DA_GIAO' OR oi1.order.trangThaiDon = 'DA_HOAN_THANH')")
+    List<Integer> findCoPurchasedProductIds(@Param("productId") Integer productId);
 }

@@ -42,6 +42,7 @@
                         <span><i class="bi bi-info-circle me-2"></i>Thông tin danh mục</span>
                     </div>
                     <div class="adm-card-body">
+                        <div class="table-responsive">
                         <table class="table table-borderless adm-info-table mb-0">
                             <tr>
                                 <td>Tên danh mục</td>
@@ -80,6 +81,7 @@
                                 <td th:text="${category.ngayCapNhat != null ? #temporals.format(category.ngayCapNhat, 'dd/MM/yyyy HH:mm') : '—'}">—</td>
                             </tr>
                         </table>
+                        </div>
 
                         <div th:if="${not #strings.isEmpty(category.moTa)}" class="mt-4">
                             <h6 class="fw-semibold mb-2">Mô tả</h6>
@@ -93,6 +95,7 @@
                         <span><i class="bi bi-diagram-2 me-2"></i>Danh mục con (<span th:text="${#lists.size(children)}">0</span>)</span>
                     </div>
                     <div class="adm-card-body p-0">
+                        <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -138,6 +141,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
 
@@ -146,6 +150,7 @@
                         <span><i class="bi bi-box-seam me-2"></i>Sản phẩm trong danh mục (<span th:text="${#lists.size(products)}">0</span>)</span>
                     </div>
                     <div class="adm-card-body p-0">
+                        <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -180,6 +185,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

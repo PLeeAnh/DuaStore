@@ -22,6 +22,9 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
     @Query("SELECT w.productId FROM Wishlist w WHERE w.userId = ?1")
     List<Integer> findProductIdsByUserId(Integer userId);
 
+    @Query("SELECT w.userId FROM Wishlist w WHERE w.productId = ?1")
+    List<Integer> findUserIdsByProductId(Integer productId);
+
     @Query("SELECT w.productId, COUNT(w) FROM Wishlist w WHERE w.productId IN :productIds GROUP BY w.productId")
     List<Object[]> countByProductIds(@Param("productIds") List<Integer> productIds);
 

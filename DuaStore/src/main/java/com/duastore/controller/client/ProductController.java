@@ -20,7 +20,9 @@ import com.duastore.service.client.ProductService;
 import com.duastore.service.client.ReviewService;
 import com.duastore.service.client.WishlistService;
 import com.duastore.service.FileUploadService;
+import com.duastore.service.NotificationHelper;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,12 @@ public class ProductController {
     private final FileUploadService fileUploadService;
     private final PricingService pricingService;
     private final OrderItemRepository orderItemRepository;
+    private final NotificationHelper notificationHelper;
+    private final com.duastore.repository.ProductViewRepository productViewRepository;
+    private final com.duastore.service.ActivityAnalyticsService activityAnalyticsService;
+
+    @Value("${app.url}")
+    private String appUrl;
 
     private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
         List<Category> path = new ArrayList<>();
@@ -81,7 +89,10 @@ public class ProductController {
             SecurityUtil securityUtil,
             FileUploadService fileUploadService,
             PricingService pricingService,
-            OrderItemRepository orderItemRepository) {
+            OrderItemRepository orderItemRepository,
+            NotificationHelper notificationHelper,
+            com.duastore.repository.ProductViewRepository productViewRepository,
+            com.duastore.service.ActivityAnalyticsService activityAnalyticsService) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -94,6 +105,9 @@ public class ProductController {
         this.fileUploadService = fileUploadService;
         this.pricingService = pricingService;
         this.orderItemRepository = orderItemRepository;
+        this.notificationHelper = notificationHelper;
+        this.productViewRepository = productViewRepository;
+        this.activityAnalyticsService = activityAnalyticsService;
     }
 
     @GetMapping("/san-pham")
@@ -299,6 +313,16 @@ public class ProductController {
         model.addAttribute("title", product.getTenSanPham());
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
+
+        Integer uid = securityUtil.getCurrentUserId();
+        if (uid != null) {
+            com.duastore.model.ProductView pv = new com.duastore.model.ProductView();
+            pv.setUserId(uid);
+            pv.setProductId(id);
+            productViewRepository.save(pv);
+            activityAnalyticsService.logActivity(uid, "PRODUCT_VIEW",
+                    "Xem sản phẩm: " + product.getTenSanPham(), null);
+        }
 
         // Flash sale for this product
         FlashSale flashSale = null;
@@ -510,7 +534,7 @@ public class ProductController {
         }
 
         // Page URL for social sharing
-        model.addAttribute("pageUrl", "https://duastore.vn/san-pham/" + id);
+        model.addAttribute("pageUrl", appUrl + "/san-pham/" + id);
 
         return "view/client/product/product-detail";
     }
@@ -586,7 +610,17 @@ public class ProductController {
             }
         }
         try {
+            reviewService.createReview(userId, request, hinhAnhUrls);
+            
             reviewService.createReview(userId, request, hinhAnhUrls.isEmpty() ? null : hinhAnhUrls);
+            Product product = productService.findById(id);
+            String productName = product != null ? product.getTenSanPham() : "san pham #" + id;
+            notificationHelper.notifyStaff(
+                    "Co danh gia moi cho san pham " + productName + " can duyet",
+                    "PRODUCT", id,
+                    "/admin/danh-gia",
+                    "Duyet danh gia"
+            );
             if (isAjax) return java.util.Map.of("success", true, "message", "Cam on ban da danh gia!");
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {

@@ -9,7 +9,9 @@
     <body>
         <div layout:fragment="content">
             <div class="container-xl py-5">
-                <h4 class="fw-bold mb-4"><i class="bi bi-newspaper me-2"></i>Bài viết</h4>
+                <div class="ds-section-card mb-4">
+                    <h4 class="fw-bold mb-0"><i class="bi bi-newspaper me-2"></i>Bài viết</h4>
+                </div>
 
                 <div th:if="${not #lists.isEmpty(featuredPosts)}" class="mb-5">
                     <h5 class="fw-bold mb-3"><i class="bi bi-star-fill text-warning me-2"></i>Bài viết nổi bật</h5>
@@ -108,6 +110,25 @@
                                     <p class="card-text small text-muted mb-0" th:if="${p.tomTat != null}" th:text="${p.tomTat}"></p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-3 shadow-sm border mt-4" style="border-color:#f0f0f0;">
+                        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                            <small class="text-muted fw-medium" style="font-size:.85rem;">
+                                Hiển thị <strong th:text="${currentPage * pageSize + 1}">1</strong>-<strong th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">12</strong> trong tổng số <strong th:text="${totalItems}">0</strong> <span>bài viết</span>
+                            </small>
+                            <form th:action="@{/blog}" method="get" class="d-inline">
+                                <input type="hidden" name="keyword" th:value="${keyword}" th:if="${keyword != null}" />
+                                <input type="hidden" name="danhMuc" th:value="${danhMuc}" th:if="${danhMuc != null}" />
+                                <input type="hidden" name="page" value="0" />
+                                <select name="size" onchange="this.form.submit()" style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
+                                    <option value="6" th:selected="${pageSize == 6}">Hiển thị 6</option>
+                                    <option value="12" th:selected="${pageSize == 12}">Hiển thị 12</option>
+                                    <option value="24" th:selected="${pageSize == 24}">Hiển thị 24</option>
+                                    <option value="48" th:selected="${pageSize == 48}">Hiển thị 48</option>
+                                </select>
+                            </form>
                         </div>
                     </div>
 

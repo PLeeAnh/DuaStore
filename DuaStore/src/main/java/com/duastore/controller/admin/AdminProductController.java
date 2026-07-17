@@ -1,17 +1,21 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.dto.ProductFormDTO;
 import com.duastore.model.Category;
 import com.duastore.model.Product;
 import com.duastore.model.ProductImage;
 import com.duastore.model.ProductVariant;
+import com.duastore.model.User;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.repository.WishlistRepository;
 import com.duastore.service.FileUploadService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminProductService;
+import com.duastore.service.admin.AutoDescriptionService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +28,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,23 +44,32 @@ public class AdminProductController {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final WishlistRepository wishlistRepository;
     private final FileUploadService fileUploadService;
     private final NotificationHelper notificationHelper;
+    private final SecurityUtil securityUtil;
+    private final AutoDescriptionService autoDescriptionService;
 
     public AdminProductController(AdminProductService productService,
             CategoryRepository categoryRepository,
             ProductRepository productRepository,
             ProductImageRepository productImageRepository,
             ProductVariantRepository productVariantRepository,
+            WishlistRepository wishlistRepository,
             FileUploadService fileUploadService,
-            NotificationHelper notificationHelper) {
+            NotificationHelper notificationHelper,
+            SecurityUtil securityUtil,
+            AutoDescriptionService autoDescriptionService) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.productVariantRepository = productVariantRepository;
+        this.wishlistRepository = wishlistRepository;
         this.fileUploadService = fileUploadService;
         this.notificationHelper = notificationHelper;
+        this.securityUtil = securityUtil;
+        this.autoDescriptionService = autoDescriptionService;
     }
 
     @GetMapping
@@ -251,6 +266,12 @@ public class AdminProductController {
                         saved.getTenSanPham()
                 );
             } catch (Exception ignored) {}
+            notificationHelper.notifyStaff(
+                    "Admin " + getCurrentAdminName() + " đã thêm sản phẩm mới: " + saved.getTenSanPham(),
+                    "PRODUCT", saved.getId(),
+                    "/admin/san-pham/chi-tiet/" + saved.getId(),
+                    "Xem sản phẩm"
+            );
         }
         ra.addFlashAttribute("successMsg", "Thêm sản phẩm thành công");
         return "redirect:/admin/san-pham";
@@ -308,12 +329,18 @@ public class AdminProductController {
             return "view/admin/product/product-form";
         }
         dto.setId(id);
+        List<ProductVariant> oldVariants = productVariantRepository.findByProductIdAndIsActiveTrue(id);
+        Map<Integer, Integer> oldStock = oldVariants.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, ProductVariant::getSoLuongTon));
+        Map<Integer, BigDecimal> oldPrices = oldVariants.stream()
+                .collect(Collectors.toMap(ProductVariant::getId, this::effectivePrice));
         Product saved = productService.save(dto);
         if (saved == null) {
             ra.addFlashAttribute("errorMsg", "Không tìm thấy sản phẩm");
             return "redirect:/admin/san-pham";
         }
         ra.addFlashAttribute("successMsg", "Cập nhật sản phẩm thành công");
+        notifyWishlistUsersOnVariantChanges(saved, oldStock, oldPrices);
         return "redirect:/admin/san-pham";
     }
 
@@ -404,12 +431,74 @@ public class AdminProductController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/api/tu-dong-mo-ta")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_CREATE) or @sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_UPDATE)")
+    public ResponseEntity<Map<String, String>> autoDescription(@RequestBody Map<String, String> params) {
+        String description = autoDescriptionService.generate(params);
+        return ResponseEntity.ok(Map.of("description", description));
+    }
+
     private void addComboLists(Model model) {
         model.addAttribute("brands", productService.getDistinctThuongHieu());
         model.addAttribute("materials", productService.getDistinctChatLieu());
         model.addAttribute("origins", productService.getDistinctXuatXu());
         model.addAttribute("glassTypes", productService.getDistinctKinhLoai());
         model.addAttribute("purposes", productService.getDistinctMucDichSuDung());
+    }
+
+    private void notifyWishlistUsersOnVariantChanges(Product product,
+            Map<Integer, Integer> oldStock,
+            Map<Integer, BigDecimal> oldPrices) {
+        List<ProductVariant> newVariants = productVariantRepository.findByProductIdAndIsActiveTrue(product.getId());
+        boolean backInStock = newVariants.stream()
+                .anyMatch(v -> oldStock.getOrDefault(v.getId(), 0) <= 0
+                && v.getSoLuongTon() != null && v.getSoLuongTon() > 0);
+        Optional<BigDecimal> droppedPrice = newVariants.stream()
+                .filter(v -> oldPrices.containsKey(v.getId()))
+                .filter(v -> effectivePrice(v).compareTo(oldPrices.get(v.getId())) < 0)
+                .map(this::effectivePrice)
+                .min(BigDecimal::compareTo);
+        if (!backInStock && droppedPrice.isEmpty()) {
+            return;
+        }
+
+        List<Integer> userIds = wishlistRepository.findUserIdsByProductId(product.getId());
+        for (Integer userId : userIds) {
+            if (backInStock) {
+                notificationHelper.notifyAll(
+                        "Sản phẩm " + product.getTenSanPham() + " đã có hàng trở lại",
+                        "PRODUCT", product.getId(),
+                        "/san-pham/" + product.getId(),
+                        "Xem ngay",
+                        userId
+                );
+            }
+            droppedPrice.ifPresent(price -> notificationHelper.notifyAll(
+                    "Sản phẩm " + product.getTenSanPham() + " đã giảm giá còn " + formatCurrency(price),
+                    "PRODUCT", product.getId(),
+                    "/san-pham/" + product.getId(),
+                    "Xem ngay",
+                    userId
+            ));
+        }
+    }
+
+    private BigDecimal effectivePrice(ProductVariant variant) {
+        return variant.getGiaKhuyenMai() != null ? variant.getGiaKhuyenMai() : variant.getGiaGoc();
+    }
+
+    private String formatCurrency(BigDecimal price) {
+        return NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(price);
+    }
+
+    private String getCurrentAdminName() {
+        try {
+            User admin = securityUtil.getCurrentUser();
+            return admin != null ? admin.getHoTen() : "";
+        } catch (Exception e) {
+            return "";
+        }
     }
 
 }

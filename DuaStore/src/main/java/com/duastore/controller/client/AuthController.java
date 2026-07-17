@@ -4,6 +4,7 @@ import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.VerificationCodeService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -29,15 +30,18 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final VerificationCodeService verifyCodeService;
+    private final NotificationHelper notificationHelper;
 
     public AuthController(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             RoleRepository roleRepository,
-            VerificationCodeService verifyCodeService) {
+            VerificationCodeService verifyCodeService,
+            NotificationHelper notificationHelper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.verifyCodeService = verifyCodeService;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping("/oauth2/success")
@@ -95,7 +99,13 @@ public class AuthController {
         Role userRole = roleRepository.findByName("USER");
         user.setRoles(Set.of(userRole));
         user.setIsActive(true);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        notificationHelper.notifyStaff(
+                "Khach hang moi: " + savedUser.getHoTen() + " (" + savedUser.getEmail() + ")",
+                null, null,
+                "/admin/khach-hang/" + savedUser.getId(),
+                "Xem khach hang"
+        );
         verifyCodeService.delete(req.getEmail());
 
         ra.addFlashAttribute("successMsg", "Đăng ký thành công! Vui lòng đăng nhập.");

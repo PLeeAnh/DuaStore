@@ -3,6 +3,7 @@ package com.duastore.controller.client;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +22,9 @@ public class ForgotPasswordController {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.url:http://localhost:8080}")
+    private String appUrl;
 
     public ForgotPasswordController(UserRepository userRepository,
             EmailService emailService,
@@ -54,7 +58,7 @@ public class ForgotPasswordController {
         emailService.send(email, "Đặt lại mật khẩu DuaStore",
                 "<h2>Đặt lại mật khẩu</h2>"
                 + "<p>Nhấp vào link dưới đây để đặt lại mật khẩu của bạn:</p>"
-                + "<a href='http://localhost:8080/dat-lai-mat-khau?token=" + token + "'>"
+                + "<a href='" + appUrl + "/dat-lai-mat-khau?token=" + token + "'>"
                 + "Đặt lại mật khẩu</a>"
                 + "<p>Link có hiệu lực trong 1 giờ.</p>"
                 + "<p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>");

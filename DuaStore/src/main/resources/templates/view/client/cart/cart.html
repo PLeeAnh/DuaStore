@@ -63,6 +63,9 @@
                             <div class="col-12 col-lg-8">
                                 <div class="ds-card p-4">
                                     <div class="ds-cart-header-row d-none d-lg-flex">
+                                        <div class="ds-cart-header-cell" style="width:40px;flex:0 0 40px;">
+                                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" checked />
+                                        </div>
                                         <div class="ds-cart-header-cell ds-cart-header-product">Sản phẩm</div>
                                         <div class="ds-cart-header-cell ds-cart-header-price">Đơn giá</div>
                                         <div class="ds-cart-header-cell ds-cart-header-qty">Số lượng</div>
@@ -71,6 +74,9 @@
 
                                     <div th:each="item : ${myCart}" class="ds-cart-item" th:id="'cart-item-' + ${item.variantId}"
                                          th:data-stock="${item.soLuongTon}" th:data-qty="${item.soLuong}">
+                                        <div class="ds-cart-checkbox-col d-flex align-items-center justify-content-center" style="width:40px;flex:0 0 40px;">
+                                            <input type="checkbox" class="cart-item-checkbox" th:attr="data-variant-id=${item.variantId}" onchange="updateSelectedTotal()" checked />
+                                        </div>
                                         <div class="ds-cart-item-left">
                                             <img class="ds-cart-image"
                                                  th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}"
@@ -197,9 +203,9 @@
                                             <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
                                         </div>
 
-                                        <a th:href="@{/checkout}" class="ds-btn-checkout mt-3">
+                                        <button type="button" class="ds-btn-checkout mt-3" onclick="checkoutSelected()">
                                             Thanh toán <i class="bi bi-arrow-right ms-2"></i>
-                                        </a>
+                                        </button>
 
                                         <a th:href="@{/san-pham}" class="d-block text-center mt-3 small text-muted" style="text-decoration:none;">
                                             <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua sắm
@@ -283,21 +289,9 @@
                     if (typeof updateCartBadge === 'function')
                         updateCartBadge(data.cartCount);
 
-                    var cartTotal = 0;
-                    document.querySelectorAll('.ds-cart-total-price').forEach(function (cell) {
-                        var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
-                        cartTotal += val;
-                    });
-                    var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
-                    var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
-                    if (subtotalRow)
-                        subtotalRow.innerText = formattedTotal;
-                    var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
-                    if (summaryTotal)
-                        summaryTotal.innerText = formattedTotal;
+                    updateSelectedTotal();
 
                     DuaStore.toast.success('Đã cập nhật số lượng');
-                    checkPromoHint(cartTotal);
                 });
             }
 
@@ -355,6 +349,8 @@
                     if (summaryTotal)
                         summaryTotal.innerText = formattedTotal;
 
+                    updateSelectedTotal();
+
                     if (typeof updateCartBadge === 'function')
                         updateCartBadge(data.cartCount);
                     DuaStore.toast.success('Đã cập nhật số lượng');
@@ -400,6 +396,8 @@
                                 var remaining = document.querySelectorAll('.ds-cart-item');
                                 if (remaining.length === 0)
                                     window.location.reload();
+                                else
+                                    updateSelectedTotal();
                             }
                         }, 5000);
                     } else {
@@ -445,6 +443,7 @@
                     if (result.ok && result.data.success) {
                         if (typeof updateCartBadge === 'function') updateCartBadge(result.data.cartCount);
                         DuaStore.toast.success('Đã khôi phục ' + info.name);
+                        updateSelectedTotal();
                         if (!itemEl) window.location.reload();
                     } else {
                         DuaStore.toast.error('Không thể khôi phục sản phẩm');
@@ -508,6 +507,50 @@
                 });
             }
 
+            function toggleSelectAll(source) {
+                document.querySelectorAll('.cart-item-checkbox').forEach(function(cb) {
+                    cb.checked = source.checked;
+                });
+                updateSelectedTotal();
+            }
+
+            function updateSelectedTotal() {
+                var cartTotal = 0;
+                document.querySelectorAll('.cart-item-checkbox:checked').forEach(function(cb) {
+                    var item = cb.closest('.ds-cart-item');
+                    if (item) {
+                        var cell = item.querySelector('.ds-cart-total-price');
+                        if (cell) {
+                            var val = parseInt(cell.innerText.replace(/[^\d]/g, '')) || 0;
+                            cartTotal += val;
+                        }
+                    }
+                });
+                var formattedTotal = cartTotal.toLocaleString('vi-VN') + '₫';
+                var subtotalRow = document.querySelector('.ds-cart-summary-row:first-of-type span:last-child');
+                if (subtotalRow)
+                    subtotalRow.innerText = formattedTotal;
+                var summaryTotal = document.querySelector('.ds-cart-summary-total span:last-child');
+                if (summaryTotal)
+                    summaryTotal.innerText = formattedTotal;
+                checkPromoHint(cartTotal);
+            }
+
+            function checkoutSelected() {
+                var selected = document.querySelectorAll('.cart-item-checkbox:checked');
+                var ids = [];
+                selected.forEach(function(cb) {
+                    ids.push(cb.getAttribute('data-variant-id'));
+                });
+                if (ids.length === 0) {
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.warning('Vui lòng chọn ít nhất một sản phẩm');
+                    }
+                    return;
+                }
+                window.location.href = '/checkout?selected=' + ids.join(',');
+            }
+
             function checkPromoHint(currentTotal) {
                 var hint = document.getElementById('promoHint');
                 var text = document.getElementById('promoHintText');
@@ -542,11 +585,7 @@
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                var totalEl = document.querySelector('.ds-cart-summary-total span:last-child');
-                if (totalEl) {
-                    var total = parseInt(totalEl.innerText.replace(/[^\d]/g, '')) || 0;
-                    checkPromoHint(total);
-                }
+                updateSelectedTotal();
             });
         </script>
     </th:block>

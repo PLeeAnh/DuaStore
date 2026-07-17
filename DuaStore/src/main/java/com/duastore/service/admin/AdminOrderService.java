@@ -120,12 +120,20 @@ public class AdminOrderService {
 
     public void updateOrderStatus(Integer id, String trangThaiDon) {
         Order order = getOrderById(id);
+        String error = validateTransition(order.getTrangThaiDon(), trangThaiDon);
+        if (error != null) {
+            throw new IllegalArgumentException(error);
+        }
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
     }
 
     public void updatePaymentStatus(Integer id, String trangThaiTT) {
         Order order = getOrderById(id);
+        String old = order.getTrangThaiTT();
+        if (old == null || old.equals(trangThaiTT)) {
+            throw new IllegalArgumentException("Trạng thái thanh toán không hợp lệ");
+        }
         order.setTrangThaiTT(trangThaiTT);
         orderRepository.save(order);
     }
@@ -153,36 +161,7 @@ public class AdminOrderService {
     }
 
     private String adjustStock(Integer orderId, String newStatus, String oldStatus) {
-        if ("DA_XAC_NHAN".equals(newStatus)) {
-            List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-            int totalSubtracted = 0;
-            StringBuilder detail = new StringBuilder();
-            for (OrderItem item : items) {
-                if (item.getVariantId() == null) {
-                    continue;
-                }
-                ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
-                if (variant == null) {
-                    continue;
-                }
-                int oldStock = variant.getSoLuongTon();
-                int qty = item.getSoLuong();
-                int affected = variantRepository.decrementStock(variant.getId(), qty);
-                if (affected == 0) {
-                    return "Không thể xác nhận: \"" + item.getTenSanPham() + "\" không đủ hàng trong kho (còn " + oldStock + ", cần " + qty + ")";
-                }
-                totalSubtracted += qty;
-                if (detail.length() > 0) {
-                    detail.append("; ");
-                }
-                detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(oldStock - qty);
-            }
-            return totalSubtracted > 0 ? "Đã trừ " + totalSubtracted + " sản phẩm khỏi tồn kho. " + detail : null;
-        }
         if ("DA_HUY".equals(newStatus)) {
-            if ("CHO_XAC_NHAN".equals(oldStatus)) {
-                return "Đơn chưa xác nhận, không cần hoàn tồn kho.";
-            }
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {

@@ -4,6 +4,8 @@ import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.EmailService;
 import com.duastore.service.VerificationCodeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class VerificationCodeController {
 
+    private static final Logger log = LoggerFactory.getLogger(VerificationCodeController.class);
     private final VerificationCodeService codeService;
     private final EmailService emailService;
     private final UserRepository userRepository;
@@ -37,17 +40,13 @@ public class VerificationCodeController {
         }
 
         String code = codeService.generate(email);
-        System.out.println("╔══════════════════════════════════════════════╗");
-        System.out.println("║  OTP cho " + email);
-        System.out.println("║  Mã: " + code);
-        System.out.println("╚══════════════════════════════════════════════╝");
+        log.info("OTP sent to {}", email);
 
         try {
             emailService.sendOtpEmail(email, code, "REGISTER");
             return ResponseEntity.ok(Map.of("success", true));
         } catch (Exception e) {
-            System.out.println("[send-code] Gửi email thất bại: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to send email to {}", email, e);
             return ResponseEntity.ok(Map.of("success", false, "error", "Không thể gửi email. Vui lòng thử lại sau."));
         }
     }

@@ -4,12 +4,15 @@
 'use strict';
 
 /* ═══ UPDATE CART BADGE ═══ */
-function updateCartBadge(count) {
+function updateCartBadge(count, forceVisible) {
     var badge = document.getElementById('cartBadge');
     if (!badge)
         return;
 
     count = Number(count) || 0;
+    var serverCount = document.getElementById('dsCartCountServer');
+    if (serverCount)
+        serverCount.value = String(count);
 
     if (count <= 0) {
         badge.classList.add('d-none');
@@ -17,7 +20,9 @@ function updateCartBadge(count) {
     }
 
     badge.textContent = count > 99 ? '99+' : String(count);
-    badge.classList.remove('d-none');
+    var viewedCount = (typeof getViewedCount === 'function') ? getViewedCount('ds_viewedCartCount') : null;
+    var shouldShow = forceVisible === true || viewedCount === null || count !== viewedCount;
+    badge.classList.toggle('d-none', !shouldShow);
 }
 
 /* ═══ POPUP TOGGLE ═══ */
@@ -41,10 +46,11 @@ function togglePopup(popupId, markAsViewed) {
                     saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
                 }
             } else if (popupId === 'cart-popup') {
-                var cBadge = document.getElementById('cartBadge');
-                if (cBadge) cBadge.classList.add('d-none');
-                if (typeof saveViewedCount === 'function' && typeof getBadgeCount === 'function') {
-                    saveViewedCount('ds_viewedCartCount', getBadgeCount('cartBadge'));
+                if (typeof markCartBadgeViewed === 'function') {
+                    markCartBadgeViewed();
+                } else {
+                    var cBadge = document.getElementById('cartBadge');
+                    if (cBadge) cBadge.classList.add('d-none');
                 }
             }
         }
@@ -85,8 +91,10 @@ function addToCart(productId, variantId, quantity) {
         if (data.success) {
             if (btnAdd)
                 btnAdd.classList.add('added');
+            if (typeof markCartBadgeUnread === 'function')
+                markCartBadgeUnread();
             if (typeof updateCartBadge === 'function')
-                updateCartBadge(data.cartCount);
+                updateCartBadge(data.cartCount, true);
             if (card) {
                 addCartPopupItem(card, productId, variantId, quantity);
             }
@@ -119,9 +127,13 @@ function addToCartFromWishlist(productId, variantId) {
         if (!data)
             return;
         if (data.success) {
+            if (typeof markCartBadgeUnread === 'function')
+                markCartBadgeUnread();
             if (typeof updateCartBadge === 'function')
-                updateCartBadge(data.cartCount);
-            DuaStore.toast.success('Đã thêm vào giỏ hàng');
+                updateCartBadge(data.cartCount, true);
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.success('Đã thêm vào giỏ hàng');
+            }
 
             var item = document.getElementById('wishlist-item-' + productId);
             var productName = 'Sản phẩm';
@@ -186,11 +198,15 @@ function addToCartFromWishlist(productId, variantId) {
                 if (typeof showLoginPopup === 'function')
                     showLoginPopup();
             } else {
-                DuaStore.toast.error(data.message || 'Không thể thêm vào giỏ');
+                if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                    DuaStore.toast.error(data.message || 'Không thể thêm vào giỏ');
+                }
             }
         }
     }).catch(function () {
-        DuaStore.toast.error('Lỗi kết nối');
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.error('Lỗi kết nối');
+        }
     });
 }
 
@@ -223,8 +239,10 @@ function addToCartFromCard(btn) {
             return;
         if (data.success) {
             btn.classList.add('added');
+            if (typeof markCartBadgeUnread === 'function')
+                markCartBadgeUnread();
             if (typeof updateCartBadge === 'function')
-                updateCartBadge(data.cartCount);
+                updateCartBadge(data.cartCount, true);
             addCartPopupItem(card, productId, variantId, qty);
             if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
                 DuaStore.toast.success('Đã thêm vào giỏ hàng');

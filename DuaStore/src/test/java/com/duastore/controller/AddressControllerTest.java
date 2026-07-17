@@ -85,7 +85,7 @@ class AddressControllerTest {
                         .with(csrf())
                         .param("tenNguoiNhan", "Test")
                         .param("soDienThoai", "0900000000"))
-                .andExpect(status().isOk())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Vui lòng đăng nhập"));
     }

@@ -11,6 +11,7 @@
         <li class="breadcrumb-item active" aria-current="page">Khách hàng</li>
     </th:block>
     <div layout:fragment="content">
+
         <div class="adm-detail-hero">
             <div class="d-flex align-items-start gap-3">
                 <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
@@ -28,7 +29,7 @@
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-md-4 col-6">
+            <div class="col-md-3 col-6">
                 <div class="adm-stat">
                     <div class="d-flex align-items-center gap-3">
                         <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
@@ -41,9 +42,48 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${activeCount}">0</div>
+                            <div class="adm-stat-label">Đang hoạt động</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEE2E2;color:#DC2626">
+                            <i class="bi bi-lock"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${lockedCount}">0</div>
+                            <div class="adm-stat-label">Bị khóa</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${newThisMonth}">0</div>
+                            <div class="adm-stat-label">Mới trong tháng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="adm-filter-bar">
+        <div class="adm-table-wrap p-3 mb-4">
             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                 <div class="d-flex gap-2 flex-wrap">
                     <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:180px" placeholder="Tìm tên, email..." th:value="${keyword}" />
@@ -63,6 +103,9 @@
                         <option value="new" th:selected="${spendingTier == 'new'}">Mới (&lt;2tr)</option>
                     </select>
                 </div>
+                <a th:href="@{/admin/khach-hang}" class="btn btn-outline-secondary btn-sm" th:if="${searching}">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Xóa lọc
+                </a>
             </div>
         </div>
 
@@ -107,9 +150,24 @@
                                 <span th:if="${!customer.isActive}" class="status-pill status-LOCKED">Khóa</span>
                             </td>
                             <td>
-                                <a th:href="@{/admin/khach-hang/{id}(id=${customer.id})}" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
-                                    <i class="bi bi-eye"></i>
-                                </a>
+                                <div class="dropdown">
+                                    <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                                        <li><a class="dropdown-item" th:href="@{/admin/khach-hang/{id}(id=${customer.id})}"><i class="bi bi-eye"></i>Chi tiết</a></li>
+                                        <li>
+                                            <form th:action="@{/admin/khach-hang/toggle-status}" method="post" class="d-block">
+                                                <input type="hidden" name="id" th:value="${customer.id}" />
+                                                <button type="submit" class="dropdown-item" th:classappend="${customer.isActive} ? 'text-warning' : 'text-success'">
+                                                    <i th:if="${customer.isActive}" class="bi bi-lock"></i>
+                                                    <i th:if="${!customer.isActive}" class="bi bi-unlock"></i>
+                                                    <span th:text="${customer.isActive} ? 'Khóa' : 'Kích hoạt'"></span>
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(customers)}">
