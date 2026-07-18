@@ -12,6 +12,7 @@ public class TreeNodeDto {
     private Integer thuTuHienThi;
     private boolean hasChildren;
     private int level;
+    private String fullPath;
     private long productCount;
     private int childCount;
 }

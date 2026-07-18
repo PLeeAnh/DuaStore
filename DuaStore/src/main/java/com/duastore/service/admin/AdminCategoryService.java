@@ -85,17 +85,19 @@ public class AdminCategoryService {
         List<Category> roots = categoryRepository
                 .findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc();
         List<TreeNodeDto> result = new ArrayList<>();
-        buildAvailableTree(roots, 0, exclude, result);
+        buildAvailableTree(roots, 0, null, exclude, result);
         return result;
     }
 
-    private void buildAvailableTree(List<Category> nodes, int level, Set<Integer> exclude, List<TreeNodeDto> result) {
+    private void buildAvailableTree(List<Category> nodes, int level, String parentPath, Set<Integer> exclude, List<TreeNodeDto> result) {
         for (Category cat : nodes) {
             if (exclude.contains(cat.getId())) {
                 continue;
             }
             TreeNodeDto dto = new TreeNodeDto();
             dto.setId(cat.getId());
+            String path = parentPath != null ? parentPath + " › " + cat.getTenDanhMuc() : cat.getTenDanhMuc();
+            dto.setFullPath(path);
             dto.setTenDanhMuc(cat.getTenDanhMuc());
             dto.setImageUrl(cat.getImageUrl());
             dto.setActive(cat.isActive());
@@ -104,7 +106,7 @@ public class AdminCategoryService {
             dto.setLevel(level);
             result.add(dto);
             if (!cat.getChildren().isEmpty()) {
-                buildAvailableTree(cat.getChildren(), level + 1, exclude, result);
+                buildAvailableTree(cat.getChildren(), level + 1, path, exclude, result);
             }
         }
     }
@@ -252,14 +254,16 @@ public class AdminCategoryService {
     public List<TreeNodeDto> getFlatTree(Map<Integer, Long> productCountMap) {
         List<Category> roots = getTree();
         List<TreeNodeDto> result = new ArrayList<>();
-        buildFlatTree(roots, 0, productCountMap, result);
+        buildFlatTree(roots, 0, null, productCountMap, result);
         return result;
     }
 
-    private void buildFlatTree(List<Category> nodes, int level, Map<Integer, Long> productCountMap, List<TreeNodeDto> result) {
+    private void buildFlatTree(List<Category> nodes, int level, String parentPath, Map<Integer, Long> productCountMap, List<TreeNodeDto> result) {
         for (Category cat : nodes) {
             TreeNodeDto dto = new TreeNodeDto();
             dto.setId(cat.getId());
+            String path = parentPath != null ? parentPath + " › " + cat.getTenDanhMuc() : cat.getTenDanhMuc();
+            dto.setFullPath(path);
             dto.setTenDanhMuc(cat.getTenDanhMuc());
             dto.setImageUrl(cat.getImageUrl());
             dto.setActive(cat.isActive());
@@ -270,7 +274,7 @@ public class AdminCategoryService {
             dto.setChildCount(countRecursiveChildren(cat));
             result.add(dto);
             if (!cat.getChildren().isEmpty()) {
-                buildFlatTree(cat.getChildren(), level + 1, productCountMap, result);
+                buildFlatTree(cat.getChildren(), level + 1, path, productCountMap, result);
             }
         }
     }

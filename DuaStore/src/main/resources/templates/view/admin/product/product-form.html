@@ -451,6 +451,16 @@
                         });
                     }
                 </script>
+        <script th:src="@{/js/admin-duplicate.js}"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof initDuplicateCheck === 'function') {
+                    initDuplicateCheck('product', { excludeId: /*[[${product.id}]]*/ null });
+                }
+            });
+            /*]]>*/
+        </script>
             </th:block>
             </body>
             </html>
