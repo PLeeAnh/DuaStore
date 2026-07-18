@@ -551,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 execScripts(contentArea);
 
                 // Execute scripts in new extra content
-                document.querySelectorAll('[data-ajax-extra] script, script[data-ajax-extra]').forEach(function (old) {
+                document.querySelectorAll('[data-ajax-extra] script').forEach(function (old) {
                     var s = document.createElement('script');
                     for (var i = 0; i < old.attributes.length; i++) {
                         s.setAttribute(old.attributes[i].name, old.attributes[i].value);
