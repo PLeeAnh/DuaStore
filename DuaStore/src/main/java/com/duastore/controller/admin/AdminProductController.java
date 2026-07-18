@@ -451,6 +451,19 @@ public class AdminProductController {
             Map<Integer, Integer> oldStock,
             Map<Integer, BigDecimal> oldPrices) {
         List<ProductVariant> newVariants = productVariantRepository.findByProductIdAndIsActiveTrue(product.getId());
+
+        boolean anyOutOfStock = newVariants.stream()
+                .anyMatch(v -> oldStock.getOrDefault(v.getId(), 0) > 0
+                        && (v.getSoLuongTon() == null || v.getSoLuongTon() <= 0));
+        if (anyOutOfStock) {
+            notificationHelper.notifyStaff(
+                    "Sản phẩm " + product.getTenSanPham() + " vừa hết hàng!",
+                    "PRODUCT", product.getId(),
+                    "/admin/san-pham/sua/" + product.getId(),
+                    "Xem sản phẩm"
+            );
+        }
+
         boolean backInStock = newVariants.stream()
                 .anyMatch(v -> oldStock.getOrDefault(v.getId(), 0) <= 0
                 && v.getSoLuongTon() != null && v.getSoLuongTon() > 0);
