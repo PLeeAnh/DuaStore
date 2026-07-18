@@ -1902,11 +1902,13 @@ body.adm-body {
 }
 .ts-wrapper .ts-dropdown {
     background: var(--card);
-    border: 1.5px solid var(--border);
+    border: 2px solid var(--primary);
     border-radius: 12px;
     margin-top: 4px;
+    padding: 4px;
     color: var(--text);
     font-size: .875rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 .ts-wrapper .ts-dropdown .option.active {
     background: var(--primary-light);

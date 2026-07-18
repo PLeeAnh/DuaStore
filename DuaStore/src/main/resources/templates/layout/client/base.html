@@ -121,16 +121,16 @@
           th:text="${cartCount != null and cartCount > 99} ? '99+' : ${cartCount}"
           >0</span>
 </button>
-    <div id="cart-popup" class="custom-popup" style="width: 340px;">
-                        <h6 class="border-bottom pb-2 mb-0 fw-bold">Giỏ hàng của bạn</h6>
-                        
+                    <div id="cart-popup" class="custom-popup" style="width: 340px;">
+                        <h6 class="border-bottom pb-2 mb-0 fw-bold d-flex align-items-center justify-content-between">
+                            <span>Giỏ hàng của bạn</span>
+                            <a th:href="@{/gio-hang}" class="small text-decoration-none">Xem giỏ hàng</a>
+                        </h6>
                         <div id="cart-items-container" class="mt-2" style="max-height: 400px; overflow-y: auto;">
                             <div th:if="${#lists.isEmpty(myCart)}" class="text-center py-4 text-muted">
                                 <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
                                 <p class="mt-2 mb-0">Giỏ hàng trống</p>
                             </div>
-                            
-                            <!-- Dùng biến uid thông minh để tương thích với mọi loại Java DTO -->
                             <div th:each="item : ${myCart}" th:with="uid=${item.variantId != null ? item.variantId : item.id}" class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" th:id="'cart-item-' + ${uid}" th:data-productid="${item.productId}">
                                 <div style="width: 50px; height: 50px; background: #e5e5e5; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
                                     <img th:if="${item.hinhAnh != null}" th:src="@{${item.hinhAnh}}" class="w-100 h-100 object-fit-cover" alt="Ảnh SP" loading="lazy">
@@ -163,7 +163,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="mt-2 pt-2" th:unless="${#lists.isEmpty(myCart)}">
     <a th:href="@{/gio-hang}" class="btn btn-primary w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
 </div>

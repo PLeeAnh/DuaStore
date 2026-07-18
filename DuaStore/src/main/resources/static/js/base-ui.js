@@ -385,24 +385,103 @@ container.innerHTML = `
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
         togglePopup('notif-popup');
+        var popup = document.getElementById('notif-popup');
+        if (popup && popup.style.display === 'block') {
+        fetchNotifPopupContent(popup);
+        }
+}
+function fetchNotifPopupContent(popup) {
+        var container = popup.querySelector('.mt-2');
+        if (!container) return;
+        container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
+        fetch('/api/thong-bao')
+        .then(r => r.json())
+        .then(data => {
+        var allNotifs = data.notifications || [];
+                var unreadNotifs = allNotifs.filter(function(n) { return !n.read; });
+                if (unreadNotifs.length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+                return;
+                }
+        var html = '';
+                for (var i = 0; i < unreadNotifs.length; i++) {
+        html += buildNotifItemHtml(unreadNotifs[i]);
+                }
+        container.innerHTML = html;
+        })
+        .catch(function() {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><p class="mb-0">Không thể tải thông báo</p></div>';
+        });
+}
+function buildNotifItemHtml(n) {
+        var timeHtml = formatNotifTime(n.createdAt);
+        var deleteBtn = '<button class="btn btn-sm p-0 border-0 text-muted ms-1 flex-shrink-0" onclick="event.stopPropagation(); deleteNotif(' + n.id + ')" title="Xóa thông báo"><i class="bi bi-x-circle" style="font-size:.8rem;"></i></button>';
+        if (n.linkType) {
+        return '<a href="' + (n.linkUrl || '#') + '" class="text-decoration-none text-reset d-block notif-item" data-notif-id="' + n.id + '" onclick="markNotifRead(' + n.id + ')">' +
+                '<div class="d-flex align-items-start gap-2 px-1 py-1">' +
+                getNotifIcon(n.linkType) +
+                '<div class="flex-grow-1 min-w-0">' +
+                '<p class="mb-0 notif-text">' + escapeHtml(truncate(n.content, 100)) + '</p>' +
+                '<div class="mt-1"><span class="notif-link"><span>' + escapeHtml(truncate(n.linkLabel, 35)) + '</span><i class="bi bi-arrow-right ms-1"></i></span></div>' +
+                '<small class="notif-time">' + timeHtml + '</small>' +
+                '</div>' + deleteBtn + '</div></a>';
+        }
+        return '<div class="notif-item" data-notif-id="' + n.id + '"><div class="d-flex align-items-start gap-2 px-1 py-1">' +
+                '<span class="notif-icon bg-primary-subtle text-primary flex-shrink-0"><i class="bi bi-megaphone"></i></span>' +
+                '<div class="flex-grow-1 min-w-0"><p class="mb-0 notif-text">' + escapeHtml(truncate(n.content, 100)) + '</p>' +
+                '<small class="notif-time">' + timeHtml + '</small></div>' + deleteBtn + '</div></div>';
+}
+function formatNotifTime(isoString) {
+        if (!isoString) return '';
+        try {
+        var d = new Date(isoString);
+                var hh = String(d.getHours()).padStart(2, '0');
+                var mm = String(d.getMinutes()).padStart(2, '0');
+                var dd = String(d.getDate()).padStart(2, '0');
+                var mon = String(d.getMonth() + 1).padStart(2, '0');
+                return hh + ':' + mm + ', ' + dd + '/' + mon;
+        } catch(e) { return isoString; }
+}
+function escapeHtml(text) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(text));
+        return d.innerHTML;
+}
+function truncate(text, max) {
+        if (!text) return '';
+        return text.length > max ? text.substring(0, max) + '...' : text;
 }
 function markNotifRead(id) {
-        fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
-        .then(function(r) {
-        if (r.status === 401 || r.status === 403) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                return null;
-                }
-        return r.text();
-                })
-        .then(function(text) {
-        if (text === null) return;
-                if (text && (text.indexOf('dang nhap') !== - 1 || text.indexOf('đăng nhập') !== - 1)) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                }
+        // Remove from popup DOM immediately
+        var item = document.querySelector('#notif-popup [data-notif-id="' + id + '"]');
+        if (item) {
+        item.remove();
+                var container = document.querySelector('#notif-popup .mt-2');
+                if (container && container.querySelectorAll('.notif-item').length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+        }
+        }
+        pollNotifications();
+        // keepalive ensures request completes even during page navigation
+        fetch('/api/thong-bao/doc/' + id, { method: 'POST', keepalive: true })
+        .catch(function() {});
+}
+function deleteNotif(id) {
+        if (!confirm('Xóa thông báo này?')) return;
+        fetch('/api/thong-bao/xoa/' + id, { method: 'POST' })
+        .then(function(r) { return r.text(); })
+        .then(function() {
+        var item = document.querySelector('[data-notif-id="' + id + '"]');
+        if (item) item.remove();
+        var container = document.querySelector('#notif-popup .mt-2');
+        if (container && container.querySelectorAll('.notif-item').length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+        }
+        pollNotifications();
         })
         .catch(function() {});
 }
+
 function getNotifIcon(linkType) {
         if (linkType === 'PRODUCT') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-box-seam"></i></span>';
         if (linkType === 'PROMOTION') return '<span class="notif-icon bg-warning-subtle text-warning flex-shrink-0"><i class="bi bi-tag"></i></span>';

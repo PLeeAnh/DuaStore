@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Controller
@@ -28,6 +29,19 @@ public class NotificationController {
                 ? notificationRepository.findCustomerNotifications(userId)
                 : java.util.List.of();
         model.addAttribute("notifications", notifications);
+
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+        List<Notification> newNotifs = new ArrayList<>();
+        List<Notification> oldNotifs = new ArrayList<>();
+        for (Notification n : notifications) {
+            if (n.getCreatedAt() != null && n.getCreatedAt().isAfter(cutoff)) {
+                newNotifs.add(n);
+            } else {
+                oldNotifs.add(n);
+            }
+        }
+        model.addAttribute("newNotifs", newNotifs);
+        model.addAttribute("oldNotifs", oldNotifs);
 
         return "view/client/notification/notification-list";
     }
@@ -82,6 +96,16 @@ public class NotificationController {
             session.setAttribute("notifReadIds", readIds);
         } catch (Exception ignored) {
         }
+        return "ok";
+    }
+
+    @PostMapping("/api/thong-bao/xoa/{id}")
+    @ResponseBody
+    public String deleteNotif(@PathVariable Integer id) {
+        notificationRepository.findById(id).ifPresent(n -> {
+            n.setIsActive(false);
+            notificationRepository.save(n);
+        });
         return "ok";
     }
 

@@ -32,7 +32,7 @@ public class AdminNotificationService {
     @Transactional(readOnly = true)
     public Page<Notification> getAllNotifications(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return notificationRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return notificationRepository.findAdminNotifications(pageable);
     }
 
     @Transactional(readOnly = true)

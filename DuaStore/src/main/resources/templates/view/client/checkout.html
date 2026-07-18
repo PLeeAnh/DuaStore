@@ -151,6 +151,10 @@
                                     </div>
                                 </div>
 
+                            <th:block th:if="${selectedIds != null}">
+                                <input type="hidden" name="selectedIds" th:each="id : ${selectedIds}" th:value="${id}"/>
+                            </th:block>
+
                             </form>
                         </div>
 
@@ -158,24 +162,27 @@
                             <div class="card border-0 shadow-sm sticky-top ds-checkout-sticky-card" style="top:1rem;z-index:1025">
                                 <div class="card-body">
                                     <h6 class="fw-bold mb-3">Tóm tắt đơn hàng</h6>
-                                    <div th:each="item : ${cartItems}" class="d-flex gap-2 mb-2">
-                                        <img th:src="@{${item.hinhAnh}}" th:alt="${item.tenSanPham}" class="rounded" style="width:50px;height:50px;object-fit:cover" loading="lazy" onerror="this.src='/images/no-image.png'" />
-                                        <div class="flex-grow-1 small">
-                                            <div class="text-truncate" th:text="${item.tenSanPham}"></div>
-                                            <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger" style="font-size:.6rem">Flash Sale</span>
-                                            <div class="text-muted" th:text="${item.tenBienThe}"></div>
-                                            <div class="d-flex justify-content-between align-items-center">
+                                    <div th:each="item : ${cartItems}" class="ds-summary-item">
+                                        <img th:src="@{${item.hinhAnh}}" th:alt="${item.tenSanPham}" class="ds-summary-img" loading="lazy" onerror="this.src='/images/no-image.png'" />
+                                        <div class="ds-summary-info">
+                                            <div class="ds-summary-name" th:text="${item.tenSanPham}"></div>
+                                            <div class="ds-summary-variant">
+                                                <span th:text="${item.tenBienThe}"></span>
+                                                <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger ms-1" style="font-size:.6rem">Flash Sale</span>
+                                            </div>
+                                            <div class="ds-summary-qty-price">
                                                 <div>
                                                     <span th:if="${item.giaBanSauGiam == null}"
+                                                          class="ds-summary-price"
                                                           th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                                                     <span th:if="${item.giaBanSauGiam != null}"
-                                                          class="text-primary fw-semibold me-1"
+                                                          class="ds-summary-price text-primary fw-semibold me-1"
                                                           th:text="${#numbers.formatDecimal(item.giaBanSauGiam, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                                                     <small th:if="${item.giaBanSauGiam != null}"
                                                            class="text-decoration-line-through text-muted"
                                                            th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'"></small>
                                                 </div>
-                                                <span class="text-muted">x<span th:text="${item.soLuong}"></span></span>
+                                                <span class="ds-summary-qty">x<span th:text="${item.soLuong}"></span></span>
                                             </div>
                                         </div>
                                     </div>

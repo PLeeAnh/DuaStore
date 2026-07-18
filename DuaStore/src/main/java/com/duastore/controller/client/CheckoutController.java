@@ -37,8 +37,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/checkout")
@@ -93,9 +96,17 @@ public class CheckoutController {
     }
 
     @GetMapping
-    public String showCheckout(Model model) {
+    public String showCheckout(Model model,
+            @RequestParam(value = "selected", required = false) List<Integer> selected) {
         Integer userId = getUserId();
         List<CartItemDTO> cartItems = cartService.getItems(userId);
+        if (selected != null && !selected.isEmpty()) {
+            Set<Integer> selectedSet = new HashSet<>(selected);
+            cartItems = cartItems.stream()
+                    .filter(item -> item.getVariantId() != null && selectedSet.contains(item.getVariantId()))
+                    .collect(Collectors.toList());
+            model.addAttribute("selectedIds", selected);
+        }
         if (cartItems.isEmpty()) {
             return "redirect:/gio-hang";
         }
@@ -210,15 +221,18 @@ public class CheckoutController {
         Integer userId = getUserId();
 
         if (result.hasErrors()) {
-            buildCheckoutModel(model, userId);
+            buildCheckoutModel(model, userId, req.getSelectedIds());
             return "view/client/checkout";
         }
 
         try {
+            Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
+                    ? new HashSet<>(req.getSelectedIds()) : null;
             Order order = orderService.processCheckout(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
-                    req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0
+                    req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0,
+                    selectedSet
             );
 
             try {
@@ -273,7 +287,7 @@ public class CheckoutController {
             }
             return "redirect:/checkout/thanh-cong/" + order.getId();
         } catch (RuntimeException e) {
-            buildCheckoutModel(model, userId);
+            buildCheckoutModel(model, userId, req.getSelectedIds());
             model.addAttribute("error", e.getMessage());
             return "view/client/checkout";
         }
@@ -301,7 +315,18 @@ public class CheckoutController {
     }
 
     private void buildCheckoutModel(Model model, Integer userId) {
+        buildCheckoutModel(model, userId, null);
+    }
+
+    private void buildCheckoutModel(Model model, Integer userId, List<Integer> selectedIds) {
         List<CartItemDTO> cartItems = cartService.getItems(userId);
+        if (selectedIds != null && !selectedIds.isEmpty()) {
+            Set<Integer> selectedSet = new HashSet<>(selectedIds);
+            cartItems = cartItems.stream()
+                    .filter(item -> item.getVariantId() != null && selectedSet.contains(item.getVariantId()))
+                    .collect(Collectors.toList());
+            model.addAttribute("selectedIds", selectedIds);
+        }
         List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(userId);
         BigDecimal subtotal = cartService.total(cartItems);
         BigDecimal phiShip = addresses.isEmpty()
@@ -361,10 +386,13 @@ public class CheckoutController {
         }
         try {
             int pointsToRedeem = req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0;
+            Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
+                    ? new HashSet<>(req.getSelectedIds()) : null;
             Order order = orderService.processCheckout(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
-                    pointsToRedeem
+                    pointsToRedeem,
+                    selectedSet
             );
             try {
                 notificationHelper.notifyStaff(

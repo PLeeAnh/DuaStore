@@ -46,4 +46,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) AND n.id > :readMaxId ORDER BY n.createdAt DESC")
     List<Notification> findNewByUserId(@Param("userId") Integer userId, @Param("readMaxId") Integer readMaxId);
+
+    @Query("SELECT n FROM Notification n WHERE n.isActive = true AND (n.targetRole = 'STAFF' OR (n.targetRole IS NULL AND n.userId IS NULL)) ORDER BY n.createdAt DESC")
+    Page<Notification> findAdminNotifications(Pageable pageable);
 }

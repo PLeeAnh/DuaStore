@@ -131,7 +131,9 @@ function addToCartFromWishlist(productId, variantId) {
                 markCartBadgeUnread();
             if (typeof updateCartBadge === 'function')
                 updateCartBadge(data.cartCount, true);
-            DuaStore.toast.success('Đã thêm vào giỏ hàng');
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.success('Đã thêm vào giỏ hàng');
+            }
 
             var item = document.getElementById('wishlist-item-' + productId);
             var productName = 'Sản phẩm';
@@ -196,11 +198,15 @@ function addToCartFromWishlist(productId, variantId) {
                 if (typeof showLoginPopup === 'function')
                     showLoginPopup();
             } else {
-                DuaStore.toast.error(data.message || 'Không thể thêm vào giỏ');
+                if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                    DuaStore.toast.error(data.message || 'Không thể thêm vào giỏ');
+                }
             }
         }
     }).catch(function () {
-        DuaStore.toast.error('Lỗi kết nối');
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.error('Lỗi kết nối');
+        }
     });
 }
 

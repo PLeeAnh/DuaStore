@@ -90,6 +90,12 @@ public class OrderService {
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
             String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem) {
+        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, pointsToRedeem, null);
+    }
+
+    @Transactional
+    public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
+            String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem, Set<Integer> selectedVariantIds) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         Address address = addressRepository.findById(addressId)
@@ -99,6 +105,11 @@ public class OrderService {
         }
 
         List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId);
+        if (selectedVariantIds != null && !selectedVariantIds.isEmpty()) {
+            cartItems = cartItems.stream()
+                    .filter(ci -> ci.getVariantId() != null && selectedVariantIds.contains(ci.getVariantId()))
+                    .collect(Collectors.toList());
+        }
         if (cartItems.isEmpty()) {
             throw new RuntimeException("Giỏ hàng trống");
         }
