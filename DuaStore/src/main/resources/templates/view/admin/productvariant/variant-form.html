@@ -104,5 +104,21 @@
             </div>
         </div>
     </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/admin-duplicate.js}"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof initDuplicateCheck === 'function') {
+                    initDuplicateCheck('variant', {
+                        productId: /*[[${variant.productId}]]*/ null,
+                        excludeId: /*[[${variant.id}]]*/ null
+                    });
+                }
+            });
+            /*]]>*/
+        </script>
+    </th:block>
 </body>
 </html>

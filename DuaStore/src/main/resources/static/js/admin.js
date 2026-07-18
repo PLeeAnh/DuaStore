@@ -302,21 +302,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initDirtyBar();
-    const treeRoot = document.querySelector('.category-tree');
-    if (treeRoot) {
-        treeRoot.addEventListener('click', function (e) {
-            const toggle = e.target.closest('.tree-toggle');
-            if (toggle && toggle.hasAttribute('data-target')) {
-                e.stopPropagation();
-                const targetId = toggle.getAttribute('data-target');
-                const el = document.getElementById(targetId);
-                if (el) {
-                    el.classList.toggle('d-none');
-                    toggle.classList.toggle('collapsed');
-                }
+    document.addEventListener('click', function (e) {
+        const toggle = e.target.closest('.tree-toggle');
+        if (toggle && toggle.hasAttribute('data-target')) {
+            e.stopPropagation();
+            const targetId = toggle.getAttribute('data-target');
+            const el = document.getElementById(targetId);
+            if (el) {
+                el.classList.toggle('d-none');
+                toggle.classList.toggle('collapsed');
             }
-        });
-    }
+        }
+    });
 
     // ── expose reinit for AJAX navigation ──
     window.__reinitAdminComponents = function () {

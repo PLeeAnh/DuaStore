@@ -18,9 +18,9 @@ public interface UserActivityLogRepository extends JpaRepository<UserActivityLog
 
     long countByUserIdAndActivityTypeAndActivityAtAfter(Integer userId, String activityType, LocalDateTime since);
 
-    @Query("SELECT FUNCTION('DATEPART', 'hour', ual.activityAt), COUNT(ual) " +
+    @Query("SELECT DATEPART(HOUR, ual.activityAt), COUNT(ual) " +
             "FROM UserActivityLog ual WHERE ual.userId = :userId " +
-            "AND ual.activityAt > :since GROUP BY FUNCTION('DATEPART', 'hour', ual.activityAt) " +
+            "AND ual.activityAt > :since GROUP BY DATEPART(HOUR, ual.activityAt) " +
             "ORDER BY COUNT(ual) DESC")
     List<Object[]> findHourlyActivityDistribution(@Param("userId") Integer userId, @Param("since") LocalDateTime since);
 }

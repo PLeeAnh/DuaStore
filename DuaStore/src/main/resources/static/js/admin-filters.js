@@ -22,30 +22,32 @@ document.addEventListener('DOMContentLoaded', function () {
 // ── category-list filter (form auto-submit) ──
 (function () {
     var filterForm = document.getElementById('filterForm');
-    if (filterForm) {
-        var keywordInput = document.getElementById('keywordInput');
-        var statusSelect = document.getElementById('statusSelect');
-        var timer;
+    if (!filterForm) return;
+    var keywordInput = document.getElementById('keywordInput');
+    var statusSelect = document.getElementById('statusSelect');
+    var timer;
 
-        function submitFilter() {
-            clearTimeout(timer);
-            timer = setTimeout(function () {
-                filterForm.submit();
-            }, 400);
-        }
-
-        keywordInput.addEventListener('input', submitFilter);
-        statusSelect.addEventListener('change', function () {
+    function submitFilter() {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
             filterForm.submit();
-        });
+        }, 400);
     }
+
+    if (keywordInput) keywordInput.addEventListener('input', submitFilter);
+    if (statusSelect) statusSelect.addEventListener('change', function () {
+        filterForm.submit();
+    });
 })();
 
 // ── notification-list filter ──
 (function () {
+    var el = document.getElementById('filterActive');
+    var kw = document.getElementById('searchKeyword');
+    if (!el && !kw) return;
     function doFilter() {
-        var keyword = document.getElementById('searchKeyword').value;
-        var active = document.getElementById('filterActive').value;
+        var keyword = kw ? kw.value : '';
+        var active = el ? el.value : '';
         var params = new URLSearchParams();
         if (keyword)
             params.set('keyword', keyword);
@@ -53,12 +55,14 @@ document.addEventListener('DOMContentLoaded', function () {
             params.set('isActive', active);
         window.location.href = '/admin/thong-bao?' + params.toString();
     }
-    document.getElementById('filterActive').addEventListener('change', doFilter);
-    var searchTimer;
-    document.getElementById('searchKeyword').addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(doFilter, 400);
-    });
+    if (el) el.addEventListener('change', doFilter);
+    if (kw) {
+        var searchTimer;
+        kw.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(doFilter, 400);
+        });
+    }
 })();
 
 // ── order-list filter ──
@@ -66,10 +70,14 @@ document.addEventListener('DOMContentLoaded', function () {
 // (e.g., <script>var tatCa = [[${tatCa}]];</script>) before this script loads.
 (function () {
     var tatCa = window.tatCa || false;
+    var qEl = document.getElementById('searchQ');
+    var ttEl = document.getElementById('filterTrangThai');
+    var tttEl = document.getElementById('filterTrangThaiTT');
+    if (!qEl && !ttEl && !tttEl) return;
     function doFilter() {
-        var q = document.getElementById('searchQ').value;
-        var trangThai = document.getElementById('filterTrangThai').value;
-        var trangThaiTT = document.getElementById('filterTrangThaiTT').value;
+        var q = qEl ? qEl.value : '';
+        var trangThai = ttEl ? ttEl.value : '';
+        var trangThaiTT = tttEl ? tttEl.value : '';
         var params = new URLSearchParams();
         if (q)
             params.set('q', q);
@@ -80,20 +88,25 @@ document.addEventListener('DOMContentLoaded', function () {
         params.set('tatCa', tatCa);
         window.location.href = '/admin/don-hang?' + params.toString();
     }
-    document.getElementById('filterTrangThai').addEventListener('change', doFilter);
-    document.getElementById('filterTrangThaiTT').addEventListener('change', doFilter);
-    var searchTimer;
-    document.getElementById('searchQ').addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(doFilter, 400);
-    });
+    if (ttEl) ttEl.addEventListener('change', doFilter);
+    if (tttEl) tttEl.addEventListener('change', doFilter);
+    if (qEl) {
+        var searchTimer;
+        qEl.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(doFilter, 400);
+        });
+    }
 })();
 
 // ── post-list filter ──
 (function () {
+    var kw = document.getElementById('searchKeyword');
+    var st = document.getElementById('filterStatus');
+    if (!kw && !st) return;
     function doFilter() {
-        var keyword = document.getElementById('searchKeyword').value;
-        var status = document.getElementById('filterStatus').value;
+        var keyword = kw ? kw.value : '';
+        var status = st ? st.value : '';
         var params = new URLSearchParams();
         if (keyword)
             params.set('keyword', keyword);
@@ -101,19 +114,24 @@ document.addEventListener('DOMContentLoaded', function () {
             params.set('trangThai', status);
         window.location.href = '/admin/bai-viet?' + params.toString();
     }
-    document.getElementById('filterStatus').addEventListener('change', doFilter);
-    var searchTimer;
-    document.getElementById('searchKeyword').addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(doFilter, 400);
-    });
+    if (st) st.addEventListener('change', doFilter);
+    if (kw) {
+        var searchTimer;
+        kw.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(doFilter, 400);
+        });
+    }
 })();
 
 // ── promotion-list filter ──
 (function () {
+    var kw = document.getElementById('searchKeyword');
+    var ac = document.getElementById('filterActive');
+    if (!kw && !ac) return;
     function doFilter() {
-        var keyword = document.getElementById('searchKeyword').value;
-        var active = document.getElementById('filterActive').value;
+        var keyword = kw ? kw.value : '';
+        var active = ac ? ac.value : '';
         var params = new URLSearchParams();
         if (keyword)
             params.set('keyword', keyword);
@@ -121,21 +139,28 @@ document.addEventListener('DOMContentLoaded', function () {
             params.set('isActive', active);
         window.location.href = '/admin/khuyen-mai?' + params.toString();
     }
-    document.getElementById('filterActive').addEventListener('change', doFilter);
-    var searchTimer;
-    document.getElementById('searchKeyword').addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(doFilter, 400);
-    });
+    if (ac) ac.addEventListener('change', doFilter);
+    if (kw) {
+        var searchTimer;
+        kw.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(doFilter, 400);
+        });
+    }
 })();
 
 // ── customer/list filter ──
 (function () {
+    var kw = document.getElementById('searchKeyword');
+    var st = document.getElementById('filterStatus');
+    var ct = document.getElementById('filterCity');
+    var sp = document.getElementById('filterSpendingTier');
+    if (!kw && !st && !ct && !sp) return;
     function doFilter() {
-        var keyword = document.getElementById('searchKeyword').value;
-        var status = document.getElementById('filterStatus').value;
-        var city = document.getElementById('filterCity').value;
-        var spendingTier = document.getElementById('filterSpendingTier').value;
+        var keyword = kw ? kw.value : '';
+        var status = st ? st.value : '';
+        var city = ct ? ct.value : '';
+        var spendingTier = sp ? sp.value : '';
         var params = new URLSearchParams();
         if (keyword)
             params.set('keyword', keyword);
@@ -147,12 +172,14 @@ document.addEventListener('DOMContentLoaded', function () {
             params.set('spendingTier', spendingTier);
         window.location.href = '/admin/khach-hang?' + params.toString();
     }
-    document.getElementById('filterStatus').addEventListener('change', doFilter);
-    document.getElementById('filterCity').addEventListener('change', doFilter);
-    document.getElementById('filterSpendingTier').addEventListener('change', doFilter);
-    var searchTimer;
-    document.getElementById('searchKeyword').addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(doFilter, 400);
-    });
+    if (st) st.addEventListener('change', doFilter);
+    if (ct) ct.addEventListener('change', doFilter);
+    if (sp) sp.addEventListener('change', doFilter);
+    if (kw) {
+        var searchTimer;
+        kw.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(doFilter, 400);
+        });
+    }
 })();

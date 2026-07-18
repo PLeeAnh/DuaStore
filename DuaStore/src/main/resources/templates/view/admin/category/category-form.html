@@ -62,7 +62,7 @@
                                         <option value="">Danh mục gốc</option>
                                         <option th:each="opt : ${parentOptions}"
                                                 th:value="${opt.id}"
-                                                th:text="${#strings.repeat('─ ', opt.level) + opt.tenDanhMuc}">Danh mục cha</option>
+                                                th:text="${opt.fullPath}">Danh mục cha</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
@@ -130,6 +130,16 @@
 
     <th:block layout:fragment="extra-script">
         <script th:src="@{/js/admin-category.js}"></script>
+        <script th:src="@{/js/admin-duplicate.js}"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof initDuplicateCheck === 'function') {
+                    initDuplicateCheck('category', { excludeId: /*[[${category.id}]]*/ null });
+                }
+            });
+            /*]]>*/
+        </script>
     </th:block>
 </body>
 </html>
