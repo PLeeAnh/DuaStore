@@ -3,6 +3,7 @@ package com.duastore.controller.admin;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.*;
 import com.duastore.repository.*;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminCustomerService;
 import com.duastore.service.LoyaltyPointsService;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,7 @@ public class AdminCustomersController {
     private final UserVoucherRepository userVoucherRepository;
     private final OrderItemRepository orderItemRepository;
     private final LoyaltyPointsService loyaltyPointsService;
+    private final NotificationHelper notificationHelper;
     private final SecurityUtil securityUtil;
 
     public AdminCustomersController(AdminCustomerService adminCustomerService,
@@ -45,6 +47,7 @@ public class AdminCustomersController {
             UserVoucherRepository userVoucherRepository,
             OrderItemRepository orderItemRepository,
             LoyaltyPointsService loyaltyPointsService,
+            NotificationHelper notificationHelper,
             SecurityUtil securityUtil) {
         this.adminCustomerService = adminCustomerService;
         this.userRepository = userRepository;
@@ -55,6 +58,7 @@ public class AdminCustomersController {
         this.userVoucherRepository = userVoucherRepository;
         this.orderItemRepository = orderItemRepository;
         this.loyaltyPointsService = loyaltyPointsService;
+        this.notificationHelper = notificationHelper;
         this.securityUtil = securityUtil;
     }
 
@@ -216,6 +220,25 @@ public class AdminCustomersController {
         }
         user.setIsActive(!user.getIsActive());
         userRepository.save(user);
+        boolean nowActive = user.getIsActive();
+        String statusMsg = nowActive ? "đã được kích hoạt" : "đã bị khóa";
+        notificationHelper.notifyAll(
+                "Tài khoản của bạn " + statusMsg,
+                null, null, null, null,
+                user.getId()
+        );
+        String adminName;
+        try {
+            adminName = securityUtil.getCurrentUser().getHoTen();
+        } catch (Exception e) {
+            adminName = "";
+        }
+        notificationHelper.notifyStaff(
+                "Admin " + adminName + " " + statusMsg + " tài khoản khách hàng " + user.getHoTen(),
+                "CUSTOMER", user.getId(),
+                "/admin/khach-hang/" + user.getId(),
+                "Xem khách hàng"
+        );
         ra.addFlashAttribute("successMsg", user.getIsActive() ? "Đã kích hoạt khách hàng" : "Đã khóa khách hàng");
         return "redirect:/admin/khach-hang";
     }

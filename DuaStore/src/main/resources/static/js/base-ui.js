@@ -397,14 +397,15 @@ function fetchNotifPopupContent(popup) {
         fetch('/api/thong-bao')
         .then(r => r.json())
         .then(data => {
-        var notifs = data.notifications || [];
-                if (notifs.length === 0) {
+        var allNotifs = data.notifications || [];
+                var unreadNotifs = allNotifs.filter(function(n) { return !n.read; });
+                if (unreadNotifs.length === 0) {
         container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
                 return;
                 }
         var html = '';
-                for (var i = 0; i < notifs.length; i++) {
-        html += buildNotifItemHtml(notifs[i]);
+                for (var i = 0; i < unreadNotifs.length; i++) {
+        html += buildNotifItemHtml(unreadNotifs[i]);
                 }
         container.innerHTML = html;
         })
@@ -451,20 +452,18 @@ function truncate(text, max) {
         return text.length > max ? text.substring(0, max) + '...' : text;
 }
 function markNotifRead(id) {
-        fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
-        .then(function(r) {
-        if (r.status === 401 || r.status === 403) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                return null;
-                }
-        return r.text();
-                })
-        .then(function(text) {
-        if (text === null) return;
-                if (text && (text.indexOf('dang nhap') !== - 1 || text.indexOf('đăng nhập') !== - 1)) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                }
-        })
+        // Remove from popup DOM immediately
+        var item = document.querySelector('#notif-popup [data-notif-id="' + id + '"]');
+        if (item) {
+        item.remove();
+                var container = document.querySelector('#notif-popup .mt-2');
+                if (container && container.querySelectorAll('.notif-item').length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+        }
+        }
+        pollNotifications();
+        // keepalive ensures request completes even during page navigation
+        fetch('/api/thong-bao/doc/' + id, { method: 'POST', keepalive: true })
         .catch(function() {});
 }
 function deleteNotif(id) {
@@ -478,11 +477,7 @@ function deleteNotif(id) {
         if (container && container.querySelectorAll('.notif-item').length === 0) {
         container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
         }
-        var badge = document.getElementById('notifBadge');
-        if (badge) {
-        var current = parseInt(badge.textContent) || 0;
-        if (current > 0) { badge.textContent = String(current - 1); if (current - 1 <= 0) badge.classList.add('d-none'); }
-        }
+        pollNotifications();
         })
         .catch(function() {});
 }
