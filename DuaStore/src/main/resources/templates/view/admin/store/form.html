@@ -37,7 +37,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Số điện thoại</label>
-                        <input type="text" name="store_phone" class="form-control"
+                        <input type="tel" name="store_phone" class="form-control"
                                th:value="${settings.get('store_phone')}" />
                     </div>
                     <div class="col-md-6">
@@ -53,13 +53,13 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Vĩ độ (Latitude)</label>
-                        <input type="text" id="storeLatitude" name="store_latitude" class="form-control"
-                               th:value="${settings.get('store_latitude')}" readonly />
+                        <input type="number" id="storeLatitude" name="store_latitude" class="form-control"
+                               th:value="${settings.get('store_latitude')}" step="any" readonly />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Kinh độ (Longitude)</label>
-                        <input type="text" id="storeLongitude" name="store_longitude" class="form-control"
-                               th:value="${settings.get('store_longitude')}" readonly />
+                        <input type="number" id="storeLongitude" name="store_longitude" class="form-control"
+                               th:value="${settings.get('store_longitude')}" step="any" readonly />
                     </div>
                     <div class="col-12">
                         <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-geo-alt me-1"></i>Vị trí trên bản đồ</h6>
