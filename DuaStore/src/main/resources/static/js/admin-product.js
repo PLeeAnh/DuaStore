@@ -31,14 +31,17 @@ function deleteGalleryImage(imageId, btn) {
 }
 
 (function () {
-    document.getElementById('imageGrid').addEventListener('click', function (e) {
-        const card = e.target.closest('[data-href]');
-        if (!card)
-            return;
-        if (e.target.closest('a, button, .dropdown, .adm-image-action, .adm-kebab-btn, label, input, select, textarea'))
-            return;
-        window.location.href = card.getAttribute('data-href');
-    });
+    var imageGrid = document.getElementById('imageGrid');
+    if (imageGrid) {
+        imageGrid.addEventListener('click', function (e) {
+            const card = e.target.closest('[data-href]');
+            if (!card)
+                return;
+            if (e.target.closest('a, button, .dropdown, .adm-image-action, .adm-kebab-btn, label, input, select, textarea'))
+                return;
+            window.location.href = card.getAttribute('data-href');
+        });
+    }
 
     const kpiFilter = document.querySelector('[data-filter]');
     if (kpiFilter) {

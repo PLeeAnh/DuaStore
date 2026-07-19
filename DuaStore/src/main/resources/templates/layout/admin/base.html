@@ -396,7 +396,7 @@
                 </div>
                 <div class="modal-footer justify-content-end">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    <button type="button" class="btn btn-primary" disabled>Lưu thay đổi</button>
                 </div>
             </form>
         </div>
@@ -428,7 +428,7 @@
                 </div>
                 <div class="modal-footer justify-content-end">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
+                    <button type="button" class="btn btn-primary" disabled>Đổi mật khẩu</button>
                 </div>
             </form>
         </div>
@@ -438,7 +438,7 @@
 <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index:9999"></div>
 
 <!-- Save Bar -->
-<div id="dsSaveBar" class="ds-save-bar" style="display:none;">
+<div id="dsSaveBar" class="ds-save-bar show" style="display: flex;">
     <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>
     <div class="ds-save-bar-actions">
         <button type="button" class="btn btn-outline-secondary btn-sm" id="dsSaveBarReset">Đặt lại</button>
