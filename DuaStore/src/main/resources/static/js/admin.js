@@ -136,7 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmForm = btn.closest('form');
             if (!confirmForm) return;
             e.preventDefault();
-            document.getElementById('confirmModalMessage').textContent = msg;
+            var msgEl = document.getElementById('confirmModalMessage');
+            if (msgEl) msgEl.textContent = msg;
             confirmModal.show();
         }
 
@@ -156,7 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Bind existing [data-confirm] buttons
         document.querySelectorAll('[data-confirm]').forEach(bindDataConfirm);
 
-        document.getElementById('confirmModalConfirm').addEventListener('click', () => {
+        var confirmBtn = document.getElementById('confirmModalConfirm');
+        if (confirmBtn) confirmBtn.addEventListener('click', () => {
             if (confirmForm) {
                 confirmForm.submit();
                 confirmForm = null;
@@ -207,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
         }
-        new TomSelect(el, opts);
+        if (typeof TomSelect !== 'undefined') new TomSelect(el, opts);
     });
 
     /* ── Dirty Save Bar ── */
@@ -216,8 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!bar)
             return;
         var forms = document.querySelectorAll('form[data-dirty-bar]');
-        if (!forms.length)
+        if (!forms.length) {
+            bar.style.display = 'none';
             return;
+        }
         var activeForm = null;
         var resetBtn = document.getElementById('dsSaveBarReset');
         var saveBtn = document.getElementById('dsSaveBarSave');
@@ -253,18 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function updateBar(dirty, f) {
+            activeForm = f;
             if (dirty) {
-                activeForm = f;
                 bar.style.display = 'flex';
                 requestAnimationFrame(function () {
                     bar.classList.add('show');
                 });
-            } else {
-                bar.classList.remove('show');
-                activeForm = null;
-                setTimeout(function () {
-                    bar.style.display = 'none';
-                }, 300);
             }
         }
 
@@ -288,16 +286,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        if (forms.length === 1) activeForm = forms[0];
+
         if (resetBtn)
             resetBtn.addEventListener('click', function () {
-                if (activeForm)
-                    resetDirty(activeForm);
+                var f = activeForm || document.querySelector('form[data-dirty-bar]');
+                if (f) resetDirty(f);
             });
 
         if (saveBtn)
             saveBtn.addEventListener('click', function () {
-                if (activeForm)
-                    activeForm.requestSubmit();
+                var f = activeForm || document.querySelector('form[data-dirty-bar]');
+                if (f) { bar.style.display = 'none'; f.requestSubmit(); }
             });
     }
 
@@ -353,7 +353,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.onclick = function (e) {
                     e.preventDefault();
                     window.__confirmForm = btn.closest('form');
-                    document.getElementById('confirmModalMessage').textContent = btn.getAttribute('data-confirm');
+                    var msgEl = document.getElementById('confirmModalMessage');
+                    if (msgEl) msgEl.textContent = btn.getAttribute('data-confirm');
                     if (window.__confirmModal) {
                         window.__confirmModal.show();
                     } else {
@@ -362,7 +363,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
             });
-            document.getElementById('confirmModalConfirm').onclick = function () {
+            var confirmBtn = document.getElementById('confirmModalConfirm');
+            if (confirmBtn) confirmBtn.onclick = function () {
                 if (window.__confirmForm) { window.__confirmForm.submit(); window.__confirmForm = null; }
                 if (window.__confirmModal) window.__confirmModal.hide();
             };
@@ -400,57 +402,63 @@ document.addEventListener('DOMContentLoaded', () => {
                     else el.dispatchEvent(new Event('change', {bubbles: true}));
                 };
             }
-            new TomSelect(el, opts);
+            if (typeof TomSelect !== 'undefined') new TomSelect(el, opts);
         });
 
         /* Dirty bar (simple: rebind change listeners on [data-dirty-bar] forms) */
         var dsBar = document.getElementById('dsSaveBar');
         if (dsBar) {
-            document.querySelectorAll('form[data-dirty-bar]').forEach(function (f) {
+            var __fc = document.querySelectorAll('form[data-dirty-bar]');
+            if (!__fc.length) { dsBar.style.display = 'none'; return; }
+
+            function getFD(f) { return new FormData(f); }
+            function updBar(dirty, f) {
+                window.__activeForm = f;
+                if (dirty) {
+                    dsBar.style.display = 'flex';
+                    requestAnimationFrame(function () { dsBar.classList.add('show'); });
+                }
+            }
+            function chkDirty(f) {
+                var cur = getFD(f);
+                var dirty = false;
+                var keys = new Set();
+                for (var pair of f._cleanData.entries()) keys.add(pair[0]);
+                for (var pair of cur.entries()) keys.add(pair[0]);
+                keys.forEach(function (k) {
+                    var v1 = f._cleanData.getAll(k).sort().join(',');
+                    var v2 = cur.getAll(k).sort().join(',');
+                    if (v1 !== v2) dirty = true;
+                });
+                if (dirty !== f._dirty) { f._dirty = dirty; updBar(dirty, f); }
+            }
+
+            __fc.forEach(function (f) {
                 if (f._dsRebound) return;
                 f._dsRebound = true;
                 f._cleanData = new FormData(f);
                 f._dirty = false;
-                function getFD(f) { return new FormData(f); }
-                function updBar(dirty, f) {
-                    if (dirty) {
-                        window.__activeForm = f;
-                        dsBar.style.display = 'flex';
-                        requestAnimationFrame(function () { dsBar.classList.add('show'); });
-                    } else {
-                        dsBar.classList.remove('show');
-                        window.__activeForm = null;
-                        setTimeout(function () { dsBar.style.display = 'none'; }, 300);
-                    }
-                }
-                function chkDirty(f) {
-                    var cur = getFD(f);
-                    var dirty = false;
-                    var keys = new Set();
-                    for (var pair of f._cleanData.entries()) keys.add(pair[0]);
-                    for (var pair of cur.entries()) keys.add(pair[0]);
-                    keys.forEach(function (k) {
-                        var v1 = f._cleanData.getAll(k).sort().join(',');
-                        var v2 = cur.getAll(k).sort().join(',');
-                        if (v1 !== v2) dirty = true;
-                    });
-                    if (dirty !== f._dirty) { f._dirty = dirty; updBar(dirty, f); }
-                }
                 f.addEventListener('input', function () { chkDirty(f); });
                 f.addEventListener('change', function () { chkDirty(f); });
             });
-            document.getElementById('dsSaveBarReset').onclick = function () {
-                if (window.__activeForm) {
-                    window.__activeForm.reset();
+
+            if (__fc.length === 1 && !window.__activeForm) window.__activeForm = __fc[0];
+            var rsBtn = document.getElementById('dsSaveBarReset');
+            if (rsBtn) rsBtn.onclick = function () {
+                var f = window.__activeForm || document.querySelector('form[data-dirty-bar]');
+                if (f) {
+                    f.reset();
                     setTimeout(function () {
-                        window.__activeForm._cleanData = new FormData(window.__activeForm);
-                        window.__activeForm._dirty = false;
-                        updBar(false, window.__activeForm);
+                        f._cleanData = new FormData(f);
+                        f._dirty = false;
+                        updBar(false, f);
                     }, 50);
                 }
             };
-            document.getElementById('dsSaveBarSave').onclick = function () {
-                if (window.__activeForm) window.__activeForm.requestSubmit();
+            var svBtn = document.getElementById('dsSaveBarSave');
+            if (svBtn) svBtn.onclick = function () {
+                var f = window.__activeForm || document.querySelector('form[data-dirty-bar]');
+                if (f) { dsBar.style.display = 'none'; f.requestSubmit(); }
             };
         }
     };

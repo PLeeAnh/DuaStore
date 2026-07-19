@@ -6045,6 +6045,7 @@ body.ds-checkout-page #main-content {
 }
 
 /* ── Save Bar ── */
+body { padding-bottom: 56px; }
 .ds-save-bar {
     position: fixed;
     bottom: 0;

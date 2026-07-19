@@ -54,6 +54,11 @@
                         <i class="bi bi-images me-1"></i>Hình ảnh <span class="badge bg-primary ms-1" th:text="${#lists.size(galleryImages)}">0</span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pricing-tab" data-bs-toggle="tab" data-bs-target="#pricing" type="button">
+                        <i class="bi bi-graph-up-arrow me-1"></i>Định giá động
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content">
@@ -200,6 +205,25 @@
                         <div class="adm-empty-desc">Thêm ảnh đầu tiên cho sản phẩm.</div>
                     </div>
                 </div>
+
+                <!-- ═══ TAB: ĐỊNH GIÁ ĐỘNG ═══ -->
+                <div class="tab-pane fade" id="pricing">
+                    <div class="adm-table-wrap p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h6 class="mb-0 fw-bold"><i class="bi bi-magic me-2"></i>AI Đề xuất định giá</h6>
+                            <span class="badge bg-primary" style="font-size:.7rem">Dynamic Pricing</span>
+                        </div>
+                        <div id="pricingSuggestionPanel">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Đang tải...</span>
+                                </div>
+                                <div class="text-muted small mt-2">AI đang phân tích dữ liệu...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -207,6 +231,16 @@
 
     <th:block layout:fragment="extra-script">
         <script th:src="@{/js/admin-product.js}"></script>
+        <script th:src="@{/js/admin-dynamic-pricing.js}"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof initDynamicPricingProduct === 'function') {
+                    initDynamicPricingProduct(/*[[${product.id}]]*/ null);
+                }
+            });
+            /*]]>*/
+        </script>
     </th:block>
 </body>
 </html>
