@@ -2,6 +2,7 @@ package com.duastore.controller.admin;
 
 import com.duastore.model.Order;
 import com.duastore.service.admin.AdminDashboardService;
+import com.duastore.service.admin.AdminVariantPredictionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,15 +11,20 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class AdminDashboardController {
 
     private final AdminDashboardService dashboardService;
+    private final AdminVariantPredictionService predictionService;
 
-    public AdminDashboardController(AdminDashboardService dashboardService) {
+    public AdminDashboardController(AdminDashboardService dashboardService,
+                                     AdminVariantPredictionService predictionService) {
         this.dashboardService = dashboardService;
+        this.predictionService = predictionService;
     }
 
     @GetMapping("/admin")
@@ -54,6 +60,20 @@ public class AdminDashboardController {
 
         model.addAttribute("dailyRevenue", dashboardService.getDailyRevenueLast7Days());
         model.addAttribute("topProducts", dashboardService.getTopSellingProducts(5));
+        model.addAttribute("lowStockCount", dashboardService.getLowStockCount());
+        model.addAttribute("lowStockProducts", dashboardService.getLowStockProducts(8));
+        model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
+
+        List<Map<String, Object>> allPredictions = predictionService.getRestockRecommendations(30, 50);
+        List<Map<String, Object>> smartAlerts = allPredictions.stream()
+                .filter(p -> {
+                    double days = (Double) p.get("daysUntilEmpty");
+                    int stock = (Integer) p.get("stock");
+                    return days < 30 || stock < 5;
+                })
+                .collect(Collectors.toList());
+        model.addAttribute("smartAlertCount", smartAlerts.size());
+        model.addAttribute("smartAlerts", smartAlerts);
 
         // Enhanced dashboard data
         model.addAttribute("statComparison", dashboardService.getStatComparison());
@@ -61,6 +81,9 @@ public class AdminDashboardController {
         model.addAttribute("paymentMethodDistribution", dashboardService.getPaymentMethodDistribution());
         model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
         model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
+        model.addAttribute("monthlyRevenueData", dashboardService.getMonthlyRevenueLast12Months());
+        model.addAttribute("topProducts7Days", dashboardService.getTopSellingProductsLast7Days(5));
+        model.addAttribute("cancelRefundRate", dashboardService.getCancelRefundRate());
 
         return "view/admin/dashboard";
     }

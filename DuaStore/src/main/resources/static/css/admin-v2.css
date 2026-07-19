@@ -11,7 +11,7 @@
 
     --success: #16A34A;
     --warning: #F59E0B;
-    --danger: #2563eb;
+    --danger: #ef4444;
 
     --bg: #F6F9FC;
     --card: #FFFFFF;
@@ -440,6 +440,26 @@ body.adm-body {
     flex: 1;
 }
 
+.adm-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .65rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.adm-info-row:last-child {
+    border-bottom: none;
+}
+.adm-info-label {
+    font-size: .8rem;
+    color: var(--muted);
+}
+.adm-info-value {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
 /* ── 10. Table ── */
 .adm-table-wrap {
     background: var(--card);
@@ -449,12 +469,14 @@ body.adm-body {
     overflow: hidden;
 }
 
-.adm-table-wrap .table {
+.adm-table-wrap .table,
+.adm-card .table {
     margin: 0;
     color: var(--text);
 }
 
-.adm-table-wrap .table th {
+.adm-table-wrap .table th,
+.adm-card .table:not(.table-sm):not(.table-borderless) th {
     background: #F8FAFC;
     font-size: .7rem;
     font-weight: 600;
@@ -468,24 +490,37 @@ body.adm-body {
     z-index: 3;
 }
 
-.adm-table-wrap .table td {
+.adm-table-wrap .table td,
+.adm-card .table:not(.table-sm):not(.table-borderless) td {
     padding: .85rem 1.25rem;
     vertical-align: middle;
     font-size: .875rem;
     border-bottom: 1px solid var(--border);
 }
 
-.adm-table-wrap .table tbody tr:last-child td {
+.adm-table-wrap .table tbody tr:last-child td,
+.adm-card .table:not(.table-sm):not(.table-borderless) tbody tr:last-child td {
     border-bottom: none;
 }
 
-.adm-table-wrap .table tbody tr:hover {
+.adm-table-wrap .table tbody tr:hover,
+.adm-card .table:not(.table-sm):not(.table-borderless) tbody tr:hover {
     background: #F8FAFC;
 }
 
-.adm-table-wrap td a:not(.btn) {
+.adm-table-wrap td a:not(.btn),
+.adm-card td a:not(.btn) {
     color: var(--primary);
     font-weight: 500;
+}
+
+.adm-info-table td:first-child {
+    width: 160px;
+    color: var(--muted);
+    font-size: .82rem;
+}
+.adm-info-table td:last-child {
+    font-size: .875rem;
 }
 
 /* ── 11. Forms ── */
@@ -1728,6 +1763,7 @@ body.adm-body {
 @media (max-width: 767px) {
     .adm-table-wrap {
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .adm-content {
@@ -1737,6 +1773,7 @@ body.adm-body {
     .adm-table-wrap .table th,
     .adm-table-wrap .table td {
         padding: .65rem .75rem;
+        font-size: .82rem;
     }
 
     .adm-table-wrap .btn-sm {
@@ -1750,6 +1787,92 @@ body.adm-body {
     }
 }
 
+@media (max-width: 576px) {
+    .adm-topbar {
+        padding: 0 .75rem;
+    }
+    .adm-content {
+        padding: 1rem;
+    }
+    .adm-topbar .breadcrumb {
+        font-size: .78rem;
+    }
+    .adm-topbar-right {
+        gap: .5rem;
+    }
+    .adm-stat {
+        padding: 1rem;
+    }
+    .adm-stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+        border-radius: 12px;
+    }
+    .adm-stat-value {
+        font-size: 1.5rem;
+    }
+    .adm-stat-label {
+        font-size: .75rem;
+    }
+    .adm-filter-bar {
+        padding: 1rem;
+    }
+    .adm-filter-bar .d-flex.gap-2 {
+        flex-direction: column;
+        width: 100%;
+        gap: .5rem !important;
+    }
+    .adm-filter-bar .form-control,
+    .adm-filter-bar .form-select {
+        width: 100% !important;
+    }
+    .adm-table-wrap {
+        margin: 0 -.5rem;
+    }
+    .adm-table-wrap .table th,
+    .adm-table-wrap .table td {
+        padding: .6rem .75rem;
+        font-size: .82rem;
+        white-space: nowrap;
+    }
+    .adm-table-wrap .table td:last-child,
+    .adm-table-wrap .table th:last-child {
+        position: sticky;
+        right: 0;
+        background: var(--card);
+        z-index: 1;
+    }
+    .adm-detail-hero {
+        padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .75rem;
+    }
+    .adm-detail-hero .btn-group {
+        width: 100%;
+    }
+    .adm-detail-hero .btn-group .btn {
+        flex: 1;
+    }
+    .adm-card {
+        padding: 1rem;
+    }
+    .adm-detail-hero .text-nowrap {
+        white-space: normal !important;
+    }
+    .adm-card .text-nowrap {
+        white-space: normal !important;
+    }
+    .nav-tabs .nav-link {
+        padding: .5rem .75rem;
+        font-size: .78rem;
+    }
+    .tab-content {
+        padding: 1rem !important;
+    }
+}
+
 /* ── 19. TomSelect (searchable-select) ── */
 .ts-wrapper.form-select,
 .ts-wrapper.multi .ts-control {
@@ -1760,7 +1883,7 @@ body.adm-body {
 }
 .ts-wrapper .ts-control {
     background: var(--card);
-    border: 2px solid var(--border) !important;
+    border: 2px solid color-mix(in srgb, var(--border) 80%, #000 20%) !important;
     border-radius: 12px;
     padding: .35rem 1rem .35rem .75rem;
     min-height: 40px;
@@ -1779,11 +1902,13 @@ body.adm-body {
 }
 .ts-wrapper .ts-dropdown {
     background: var(--card);
-    border: 1.5px solid var(--border);
+    border: 2px solid var(--primary);
     border-radius: 12px;
     margin-top: 4px;
+    padding: 4px;
     color: var(--text);
     font-size: .875rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
 .ts-wrapper .ts-dropdown .option.active {
     background: var(--primary-light);

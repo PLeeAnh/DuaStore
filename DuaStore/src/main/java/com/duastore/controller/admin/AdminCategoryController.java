@@ -2,6 +2,7 @@ package com.duastore.controller.admin;
 
 import com.duastore.dto.CategoryDTO;
 import com.duastore.model.Category;
+import com.duastore.model.Product;
 import com.duastore.service.FileUploadService;
 import com.duastore.service.admin.AdminCategoryService;
 import jakarta.validation.Valid;
@@ -84,6 +85,9 @@ public class AdminCategoryController {
         model.addAttribute("productCountMap", productCountMap);
         model.addAttribute("productCount", productCountMap.getOrDefault(id, 0L));
 
+        List<Product> products = categoryService.findProductsByCategory(id);
+        model.addAttribute("products", products);
+
         return "view/admin/category/category-detail";
     }
 
@@ -92,7 +96,7 @@ public class AdminCategoryController {
     public String createForm(Model model) {
         model.addAttribute("title", "danh-muc");
         model.addAttribute("category", new CategoryDTO());
-        model.addAttribute("parents", categoryService.findAvailableParents(null));
+        model.addAttribute("parentOptions", categoryService.findAvailableParentTree(null));
         return "view/admin/category/category-form";
     }
 
@@ -105,7 +109,7 @@ public class AdminCategoryController {
             RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "danh-muc");
-            model.addAttribute("parents", categoryService.findAvailableParents(null));
+            model.addAttribute("parentOptions", categoryService.findAvailableParentTree(null));
             return "view/admin/category/category-form";
         }
         if (imageFile != null && !imageFile.isEmpty()) {
@@ -127,7 +131,7 @@ public class AdminCategoryController {
         }
         model.addAttribute("title", "danh-muc");
         model.addAttribute("category", dto);
-        model.addAttribute("parents", categoryService.findAvailableParents(id));
+        model.addAttribute("parentOptions", categoryService.findAvailableParentTree(id));
         return "view/admin/category/category-form";
     }
 
@@ -141,7 +145,7 @@ public class AdminCategoryController {
             RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("title", "danh-muc");
-            model.addAttribute("parents", categoryService.findAvailableParents(id));
+            model.addAttribute("parentOptions", categoryService.findAvailableParentTree(id));
             return "view/admin/category/category-form";
         }
         dto.setId(id);

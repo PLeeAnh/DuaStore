@@ -107,4 +107,11 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     long countByPhuongThucTTAndNgayDatBetween(@Param("phuongThuc") String phuongThuc,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.trangThaiDon = :trangThai AND o.ngayDat < :before")
+    long countByTrangThaiDonAndNgayDatBefore(@Param("trangThai") String trangThai,
+            @Param("before") LocalDateTime before);
+
+    @Query("SELECT o.promotion.id, COUNT(o) FROM Order o WHERE o.promotion IS NOT NULL GROUP BY o.promotion.id")
+    List<Object[]> countOrdersByPromotion();
 }

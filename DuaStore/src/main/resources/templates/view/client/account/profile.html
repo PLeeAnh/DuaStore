@@ -11,7 +11,7 @@
                     <div class="ds-card mb-3">
                         <div class="ds-card-body d-flex align-items-center gap-3">
                             <div class="position-relative flex-shrink-0">
-                                <img th:if="${user.avatar}" th:src="@{${user.avatar}}" class="ds-profile-avatar lg object-fit-cover" alt="Avatar" style="width:56px;height:56px;border-radius:50%;">
+                                <img th:if="${user.avatar}" th:src="@{${user.avatar}}" class="ds-profile-avatar lg object-fit-cover" alt="Avatar" style="width:56px;height:56px;border-radius:50%;" loading="lazy">
                                 <span th:unless="${user.avatar}" class="ds-profile-avatar lg" th:text="${session.userInitial}">A</span>
                                 <span class="position-absolute bottom-0 end-0" style="width:14px;height:14px;border-radius:50%;border:2px solid #fff;"
                                       th:classappend="${user.status == 'ONLINE'} ? 'bg-success' : (${user.status == 'AWAY'} ? 'bg-warning' : (${user.status == 'DND'} ? 'bg-danger' : 'bg-secondary'))"></span>

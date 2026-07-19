@@ -62,6 +62,7 @@
                     <div class="row g-4">
                         <div class="col-lg-7">
                             <h6 class="fw-semibold mb-3">Thông tin sản phẩm</h6>
+                            <div class="table-responsive">
                             <table class="table table-borderless adm-info-table mb-0">
                                 <tr><td>Tên sản phẩm</td><td class="fw-semibold" th:text="${product.tenSanPham}">—</td></tr>
                                 <tr><td>SKU</td><td class="fw-semibold">#<span th:text="${product.id}">0</span></td></tr>
@@ -88,6 +89,7 @@
                                 <tr><td>Ngày tạo</td><td th:text="${product.ngayTao != null ? #temporals.format(product.ngayTao, 'dd/MM/yyyy HH:mm') : '—'}">—</td></tr>
                                 <tr><td>Cập nhật</td><td th:text="${product.ngayCapNhat != null ? #temporals.format(product.ngayCapNhat, 'dd/MM/yyyy HH:mm') : '—'}">—</td></tr>
                             </table>
+                            </div>
                         </div>
                         <div class="col-lg-5">
                             <h6 class="fw-semibold mb-3">Ảnh đại diện & Giá</h6>
@@ -204,39 +206,7 @@
     </div>
 
     <th:block layout:fragment="extra-script">
-        <script>
-            function getCsrfHeaders() {
-                const headers = {};
-                const csrf = document.querySelector('meta[name=_csrf]');
-                const header = document.querySelector('meta[name=_csrf_header]');
-                if (csrf && header)
-                    headers[header.content] = csrf.content;
-                return headers;
-            }
-
-            function deleteGalleryImage(imageId, btn) {
-                const modalEl = document.getElementById('confirmModal');
-                if (!modalEl)
-                    return;
-                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                document.getElementById('confirmModalMessage').textContent = 'Xoá ảnh này?';
-                const confirmBtn = document.getElementById('confirmModalConfirm');
-                const handler = function () {
-                    fetch('/admin/san-pham/xoa-anh/' + imageId, {method: 'POST', headers: getCsrfHeaders()})
-                            .then(r => {
-                                if (r.ok)
-                                    btn.closest('.adm-gallery-item').remove();
-                            });
-                    modal.hide();
-                    confirmBtn.removeEventListener('click', handler);
-                };
-                confirmBtn.addEventListener('click', handler);
-                modalEl.addEventListener('hidden.bs.modal', function () {
-                    confirmBtn.removeEventListener('click', handler);
-                }, {once: true});
-                modal.show();
-            }
-        </script>
+        <script th:src="@{/js/admin-product.js}"></script>
     </th:block>
 </body>
 </html>

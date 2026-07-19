@@ -4,6 +4,7 @@ import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.repository.UserRepository;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminUserService;
 import org.springframework.data.domain.Page;
@@ -31,12 +32,15 @@ public class AdminUserController {
     private final AdminUserService adminUserService;
     private final AdminLogService adminLogService;
     private final SecurityUtil securityUtil;
+    private final NotificationHelper notificationHelper;
 
-    public AdminUserController(UserRepository userRepository, AdminUserService adminUserService, AdminLogService adminLogService, SecurityUtil securityUtil) {
+    public AdminUserController(UserRepository userRepository, AdminUserService adminUserService, AdminLogService adminLogService, SecurityUtil securityUtil,
+            NotificationHelper notificationHelper) {
         this.userRepository = userRepository;
         this.adminUserService = adminUserService;
         this.adminLogService = adminLogService;
         this.securityUtil = securityUtil;
+        this.notificationHelper = notificationHelper;
     }
 
     @GetMapping
@@ -83,6 +87,19 @@ public class AdminUserController {
             User target = adminUserService.getUserById(id);
             boolean oldActive = target.getIsActive();
             adminUserService.toggleStatus(id, admin);
+            boolean newActive = !oldActive;
+            notificationHelper.notifyAll(
+                    newActive ? "Tai khoan cua ban da duoc kich hoat" : "Tai khoan cua ban da bi khoa",
+                    null, null, null, null,
+                    target.getId()
+            );
+            notificationHelper.notifyStaff(
+                    "Admin " + admin.getHoTen() + " da " + (newActive ? "kich hoat" : "khoa")
+                            + " tai khoan khach hang " + target.getHoTen(),
+                    null, null,
+                    "/admin/khach-hang/" + target.getId(),
+                    "Xem khach hang"
+            );
             adminLogService.ghiLog(admin, oldActive ? "KHOA_USER" : "KICH_HOAT_USER", "USER", id, String.valueOf(oldActive), String.valueOf(!oldActive), (oldActive ? "Khóa" : "Kích hoạt") + " tài khoản " + target.getHoTen());
             ra.addFlashAttribute("successMsg", "Cập nhật trạng thái thành công");
         } catch (IllegalArgumentException e) {
@@ -104,6 +121,40 @@ public class AdminUserController {
             ra.addFlashAttribute("errorMsg", e.getMessage());
             return "redirect:/admin/nguoi-dung";
         }
+    }
+
+    @GetMapping("/tao-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).USER_CREATE)")
+    public String createForm(Model model) {
+        model.addAttribute("title", "nguoi-dung");
+        model.addAttribute("allRoles", adminUserService.getAllRoles());
+        return "view/admin/user/user-create";
+    }
+
+    @PostMapping("/tao-moi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).USER_CREATE)")
+    public String create(@RequestParam String username,
+                         @RequestParam String hoTen,
+                         @RequestParam String email,
+                         @RequestParam String password,
+                         @RequestParam(required = false) String soDienThoai,
+                         @RequestParam(required = false) Boolean isActive,
+                         @RequestParam(required = false) List<Integer> roleIds,
+                         RedirectAttributes ra) {
+        try {
+            User admin = securityUtil.getCurrentUser();
+            if (admin == null) {
+                ra.addFlashAttribute("errorMsg", "Không xác định được người dùng hiện tại");
+                return "redirect:/admin/nguoi-dung";
+            }
+            User newUser = adminUserService.createUser(username, hoTen, email, password, soDienThoai, isActive, roleIds, admin);
+            adminLogService.ghiLog(admin, "TAO_USER", "USER", newUser.getId(), null, username, "Tạo tài khoản mới " + hoTen);
+            ra.addFlashAttribute("successMsg", "Tạo tài khoản thành công");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/nguoi-dung/tao-moi";
+        }
+        return "redirect:/admin/nguoi-dung";
     }
 
     @PostMapping("/sua/{id}")

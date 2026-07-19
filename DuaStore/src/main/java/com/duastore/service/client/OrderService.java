@@ -5,11 +5,13 @@ import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.*;
 import com.duastore.repository.*;
 import com.duastore.service.GHNShippingService;
+import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PricingService;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.util.PriceUtils;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +46,7 @@ public class OrderService {
     private final VNPAYService vnpayService;
     private final PricingService pricingService;
     private final FlashSaleRepository flashSaleRepository;
+    private final LoyaltyPointsService loyaltyPointsService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             CartService cartService, AddressRepository addressRepository,
@@ -57,7 +60,8 @@ public class OrderService {
             GHNShippingService ghnShippingService,
             VNPAYService vnpayService,
             PricingService pricingService,
-            FlashSaleRepository flashSaleRepository) {
+            FlashSaleRepository flashSaleRepository,
+            LoyaltyPointsService loyaltyPointsService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -74,11 +78,24 @@ public class OrderService {
         this.vnpayService = vnpayService;
         this.pricingService = pricingService;
         this.flashSaleRepository = flashSaleRepository;
+        this.loyaltyPointsService = loyaltyPointsService;
     }
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
             String phuongThucGiaoHang, String maCode, String ghiChu) {
+        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, 0);
+    }
+
+    @Transactional
+    public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
+            String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem) {
+        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, pointsToRedeem, null);
+    }
+
+    @Transactional
+    public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
+            String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem, Set<Integer> selectedVariantIds) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         Address address = addressRepository.findById(addressId)
@@ -88,6 +105,11 @@ public class OrderService {
         }
 
         List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId);
+        if (selectedVariantIds != null && !selectedVariantIds.isEmpty()) {
+            cartItems = cartItems.stream()
+                    .filter(ci -> ci.getVariantId() != null && selectedVariantIds.contains(ci.getVariantId()))
+                    .collect(Collectors.toList());
+        }
         if (cartItems.isEmpty()) {
             throw new RuntimeException("Giỏ hàng trống");
         }
@@ -113,8 +135,13 @@ public class OrderService {
         for (CartItem ci : cartItems) {
             Product product = ci.getProduct();
             ProductVariant variant = ci.getVariant();
-            PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashSaleMap.get(product.getId()));
-            BigDecimal donGia = priced.finalPrice();
+            BigDecimal donGia = ci.getGiaLucThem();
+            String loaiGia = "THUONG";
+            if (donGia == null) {
+                PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashSaleMap.get(product.getId()));
+                donGia = priced.finalPrice();
+                loaiGia = priced.source().name();
+            }
             BigDecimal thanhTien = donGia.multiply(BigDecimal.valueOf(ci.getSoLuong()));
             tienHang = tienHang.add(thanhTien);
 
@@ -128,7 +155,7 @@ public class OrderService {
             item.setDonGia(donGia);
             item.setSoLuong(ci.getSoLuong());
             item.setThanhTien(thanhTien);
-            item.setLoaiGia(priced.source().name());
+            item.setLoaiGia(loaiGia);
             order.getOrderItems().add(item);
         }
         order.setTienHang(tienHang);
@@ -164,17 +191,45 @@ public class OrderService {
             order.setTienGiam(BigDecimal.ZERO);
         }
 
-        BigDecimal tong = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam());
+        BigDecimal pointsDiscount = BigDecimal.ZERO;
+        StringBuilder pointsNote = new StringBuilder();
+        if (pointsToRedeem > 0) {
+            int balance = loyaltyPointsService.getBalance(userId);
+            if (pointsToRedeem > balance) {
+                throw new RuntimeException("Bạn chỉ có " + balance + " điểm tích lũy (cần " + pointsToRedeem + ")");
+            }
+            int maxPoints = loyaltyPointsService.getPointsEarnRate() * 100;
+            if (pointsToRedeem > maxPoints) {
+                throw new RuntimeException("Chỉ có thể dùng tối đa " + maxPoints + " điểm cho một đơn hàng");
+            }
+            BigDecimal redeemValue = loyaltyPointsService.convertPointsToMoney(pointsToRedeem);
+            BigDecimal tongTruocGiam = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam());
+            if (redeemValue.compareTo(tongTruocGiam) > 0) {
+                redeemValue = tongTruocGiam;
+                pointsToRedeem = redeemValue.divideToIntegralValue(BigDecimal.valueOf(loyaltyPointsService.getPointsRedeemRate())).intValue();
+                if (pointsToRedeem <= 0) {
+                    throw new RuntimeException("Số điểm không phù hợp");
+                }
+                redeemValue = loyaltyPointsService.convertPointsToMoney(pointsToRedeem);
+            }
+            loyaltyPointsService.redeemPoints(userId, pointsToRedeem, "Đổi điểm cho đơn hàng #" + order.getMaDon());
+            pointsDiscount = redeemValue;
+            pointsNote.append(" (dùng ").append(pointsToRedeem).append(" điểm, giảm ").append(PriceUtils.format(redeemValue)).append(")");
+        }
+
+        BigDecimal tong = order.getTienHang().add(order.getPhiVanChuyen()).subtract(order.getTienGiam()).subtract(pointsDiscount);
         if (tong.compareTo(BigDecimal.ZERO) < 0) {
             tong = BigDecimal.ZERO;
         }
         order.setTongThanhToan(tong);
+        if (ghiChu != null && !ghiChu.isBlank()) {
+            ghiChu = ghiChu + pointsNote.toString();
+        } else if (pointsNote.length() > 0) {
+            ghiChu = pointsNote.toString().trim();
+        }
+        order.setGhiChu(ghiChu);
 
-        order = orderRepository.save(order);
-
-        orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
-
-        // Lock flash sale + decrement stock
+        // Lock flash sale + decrement stock FIRST (before saving order)
         for (CartItem ci : cartItems) {
             if (ci.getVariant() == null) {
                 continue;
@@ -200,16 +255,19 @@ public class OrderService {
                 }
             }
 
-            // Lock variant and decrement stock
+            // Lock variant and decrement stock atomically
             ProductVariant variant = variantRepository.findByIdWithLock(ci.getVariant().getId())
                     .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại trong kho"));
-            if (variant.getSoLuongTon() < ci.getSoLuong()) {
+            int affected = variantRepository.decrementStock(variant.getId(), ci.getSoLuong());
+            if (affected == 0) {
                 throw new RuntimeException("Sản phẩm \"" + oi.getTenSanPham()
                         + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
             }
-            variant.setSoLuongTon(variant.getSoLuongTon() - ci.getSoLuong());
-            variantRepository.save(variant);
         }
+
+        order = orderRepository.save(order);
+
+        orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
 
         cartItemRepository.deleteAll(cartItems);
 
@@ -341,6 +399,19 @@ public class OrderService {
     }
 
     @Transactional
+    public void markOrderReceived(Integer userId, Integer orderId) {
+        Order order = getOrderByUserAndId(userId, orderId);
+        if (!"DA_GIAO".equals(order.getTrangThaiDon())) {
+            throw new RuntimeException("Chỉ có thể xác nhận đã nhận khi đơn hàng ở trạng thái 'Đã giao'");
+        }
+        order.setTrangThaiDon("DA_HOAN_THANH");
+        orderRepository.save(order);
+        orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, null,
+                "DA_GIAO", "DA_HOAN_THANH",
+                "Khách hàng xác nhận đã nhận được hàng");
+    }
+
+    @Transactional
     public void cancelOrder(Integer userId, Integer orderId, String lyDo) {
         Order order = getOrderByUserAndId(userId, orderId);
         if (!"CHO_XAC_NHAN".equals(order.getTrangThaiDon())) {
@@ -444,8 +515,13 @@ public class OrderService {
         OrderDTO dto = new OrderDTO();
         dto.setId(order.getId());
         dto.setMaDon(order.getMaDon());
-        dto.setUserId(order.getUser().getId());
-        dto.setUserEmail(order.getUser().getEmail());
+        try {
+            dto.setUserId(order.getUser().getId());
+            dto.setUserEmail(order.getUser().getEmail());
+        } catch (ObjectNotFoundException e) {
+            dto.setUserId(null);
+            dto.setUserEmail("Người dùng đã xoá");
+        }
         dto.setTenNguoiNhan(order.getSnapTenNguoiNhan());
         dto.setSoDienThoai(order.getSnapSoDienThoai());
         dto.setDiaChi(order.getSnapDiaChi());

@@ -13,8 +13,10 @@ import com.duastore.repository.AddressRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.model.OrderEventType;
 import com.duastore.service.EmailService;
+import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PaymentService;
 import com.duastore.service.ShippingFeeService;
+import com.duastore.service.SiteSettingService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.CartService;
@@ -35,8 +37,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/checkout")
@@ -54,6 +59,8 @@ public class CheckoutController {
     private final NotificationHelper notificationHelper;
     private final VNPAYService vnpayService;
     private final VoucherWalletService voucherWalletService;
+    private final LoyaltyPointsService loyaltyPointsService;
+    private final SiteSettingService siteSettingService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
             AddressRepository addressRepository,
@@ -65,7 +72,9 @@ public class CheckoutController {
             OrderStatusLogService orderStatusLogService,
             NotificationHelper notificationHelper,
             VNPAYService vnpayService,
-            VoucherWalletService voucherWalletService) {
+            VoucherWalletService voucherWalletService,
+            LoyaltyPointsService loyaltyPointsService,
+            SiteSettingService siteSettingService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -78,6 +87,8 @@ public class CheckoutController {
         this.notificationHelper = notificationHelper;
         this.vnpayService = vnpayService;
         this.voucherWalletService = voucherWalletService;
+        this.loyaltyPointsService = loyaltyPointsService;
+        this.siteSettingService = siteSettingService;
     }
 
     private Integer getUserId() {
@@ -85,9 +96,17 @@ public class CheckoutController {
     }
 
     @GetMapping
-    public String showCheckout(Model model) {
+    public String showCheckout(Model model,
+            @RequestParam(value = "selected", required = false) List<Integer> selected) {
         Integer userId = getUserId();
         List<CartItemDTO> cartItems = cartService.getItems(userId);
+        if (selected != null && !selected.isEmpty()) {
+            Set<Integer> selectedSet = new HashSet<>(selected);
+            cartItems = cartItems.stream()
+                    .filter(item -> item.getVariantId() != null && selectedSet.contains(item.getVariantId()))
+                    .collect(Collectors.toList());
+            model.addAttribute("selectedIds", selected);
+        }
         if (cartItems.isEmpty()) {
             return "redirect:/gio-hang";
         }
@@ -141,7 +160,38 @@ public class CheckoutController {
         model.addAttribute("checkoutRequest", checkoutRequest);
         model.addAttribute("title", "Thanh toán");
         model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
+        model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
+        model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
+        model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
+
+        // Estimated delivery date
+        model.addAttribute("estimatedDeliveryDate", java.time.LocalDate.now().plusDays(5).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " – " + java.time.LocalDate.now().plusDays(10).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+
+        // Load payment method toggles from DB
+        Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
+        Map<String, Boolean> paymentMethods = new HashMap<>();
+        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        model.addAttribute("paymentMethods", paymentMethods);
+
+        // Set default payment method based on available methods
+        if (!paymentMethods.get("cod") && paymentMethods.get("vnpay")) {
+            model.addAttribute("defaultPaymentMethod", "VNPAY");
+        } else if (!paymentMethods.get("cod") && paymentMethods.get("bank")) {
+            model.addAttribute("defaultPaymentMethod", "CHUYEN_KHOAN");
+        } else {
+            model.addAttribute("defaultPaymentMethod", "COD");
+        }
         return "view/client/checkout";
+    }
+
+    private void addPaymentMethodsToModel(Model model, Map<String, String> paymentSettings) {
+        Map<String, Boolean> paymentMethods = new HashMap<>();
+        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        model.addAttribute("paymentMethods", paymentMethods);
     }
 
     @GetMapping("/shipping-fee")
@@ -155,6 +205,7 @@ public class CheckoutController {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
             BigDecimal fee = shippingFeeService.calculateFee(address, method);
             res.put("fee", fee);
+            res.put("deliveryDays", shippingFeeService.getDeliveryDays(method));
             res.put("success", true);
         } catch (RuntimeException e) {
             res.put("success", false);
@@ -170,14 +221,18 @@ public class CheckoutController {
         Integer userId = getUserId();
 
         if (result.hasErrors()) {
-            buildCheckoutModel(model, userId);
+            buildCheckoutModel(model, userId, req.getSelectedIds());
             return "view/client/checkout";
         }
 
         try {
+            Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
+                    ? new HashSet<>(req.getSelectedIds()) : null;
             Order order = orderService.processCheckout(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
-                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
+                    req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0,
+                    selectedSet
             );
 
             try {
@@ -232,7 +287,7 @@ public class CheckoutController {
             }
             return "redirect:/checkout/thanh-cong/" + order.getId();
         } catch (RuntimeException e) {
-            buildCheckoutModel(model, userId);
+            buildCheckoutModel(model, userId, req.getSelectedIds());
             model.addAttribute("error", e.getMessage());
             return "view/client/checkout";
         }
@@ -260,7 +315,18 @@ public class CheckoutController {
     }
 
     private void buildCheckoutModel(Model model, Integer userId) {
+        buildCheckoutModel(model, userId, null);
+    }
+
+    private void buildCheckoutModel(Model model, Integer userId, List<Integer> selectedIds) {
         List<CartItemDTO> cartItems = cartService.getItems(userId);
+        if (selectedIds != null && !selectedIds.isEmpty()) {
+            Set<Integer> selectedSet = new HashSet<>(selectedIds);
+            cartItems = cartItems.stream()
+                    .filter(item -> item.getVariantId() != null && selectedSet.contains(item.getVariantId()))
+                    .collect(Collectors.toList());
+            model.addAttribute("selectedIds", selectedIds);
+        }
         List<Address> addresses = addressRepository.findByUserIdOrderByIsDefaultDesc(userId);
         BigDecimal subtotal = cartService.total(cartItems);
         BigDecimal phiShip = addresses.isEmpty()
@@ -277,6 +343,19 @@ public class CheckoutController {
         model.addAttribute("storeLat", shippingFeeService.getStoreLat());
         model.addAttribute("storeLng", shippingFeeService.getStoreLng());
         model.addAttribute("title", "Thanh toán");
+        model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
+        model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
+        model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
+        model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
+        List<Promotion> activePromotions = getActivePromotions();
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        model.addAttribute("bestPromo", bestPromo);
+        Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
+        Map<String, Boolean> paymentMethods = new HashMap<>();
+        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        model.addAttribute("paymentMethods", paymentMethods);
     }
 
     private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
@@ -306,9 +385,14 @@ public class CheckoutController {
             return ResponseEntity.ok(res);
         }
         try {
+            int pointsToRedeem = req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0;
+            Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
+                    ? new HashSet<>(req.getSelectedIds()) : null;
             Order order = orderService.processCheckout(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
-                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu()
+                    req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
+                    pointsToRedeem,
+                    selectedSet
             );
             try {
                 notificationHelper.notifyStaff(

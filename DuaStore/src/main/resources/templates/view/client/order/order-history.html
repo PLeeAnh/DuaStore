@@ -43,15 +43,20 @@
                                     <strong>Mã ĐH: <span th:text="${o.maDon}"></span></strong>
                                     <span class="text-muted ms-2 small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></span>
                                 </div>
-                                <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
-                                      th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : o.trangThaiDon}"></span>
+                                <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : o.trangThaiDon == 'DA_HOAN_TIEN' ? 'bg-secondary' : 'bg-secondary'}"
+                                      th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : o.trangThaiDon == 'DA_HOAN_TIEN' ? 'Đã hoàn tiền' : o.trangThaiDon}"></span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="fw-bold text-danger" th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                                 <div class="d-flex gap-2">
                                     <a th:href="@{/tai-khoan/don-hang/{id}(id=${o.id})}" class="ds-btn ds-btn-outline ds-btn-sm">Xem chi tiết</a>
+                                    <form th:if="${o.trangThaiDon == 'DA_HOAN_THANH' or o.trangThaiDon == 'DA_HUY'}" th:action="@{'/gio-hang/mua-lai/' + ${o.id}}" method="post" class="d-inline">
+                                        <button type="submit" class="ds-btn ds-btn-outline ds-btn-sm">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Mua lại
+                                        </button>
+                                    </form>
                                     <button th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" type="button" class="ds-btn ds-btn-outline ds-btn-sm" style="color:#2563eb;border-color:#2563eb;"
-                                            data-bs-toggle="modal" data-bs-target="${'#cancelReasonModal_' + o.id}">Hủy</button>
+                                            data-bs-toggle="modal" th:attr="data-bs-target=${'#cancelReasonModal_' + o.id}">Hủy</button>
                                     <!-- Cancel Reason Modal -->
                                     <div class="modal fade" th:id="${'cancelReasonModal_' + o.id}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">

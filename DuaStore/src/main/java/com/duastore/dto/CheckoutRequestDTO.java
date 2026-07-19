@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +21,8 @@ public class CheckoutRequestDTO {
     private String maCode;
 
     private String ghiChu;
+
+    private Integer pointsToRedeem;
+
+    private List<Integer> selectedIds;
 }

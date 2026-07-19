@@ -34,7 +34,7 @@ function openDetailModal(promoId) {
             })
             .then(function (d) {
                 if (!d.success) {
-                    showToast(d.message || 'Không thể tải chi tiết khuyến mãi');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(d.message || 'Không thể tải chi tiết khuyến mãi'); }
                     return;
                 }
 
@@ -43,7 +43,7 @@ function openDetailModal(promoId) {
                     'dm-related-list', 'dm-footer-action', 'detailModal'];
                 for (var i = 0; i < els.length; i++) {
                     if (!el(els[i])) {
-                        showToast('Lỗi hiển thị: không tìm thấy ' + els[i]);
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Lỗi hiển thị: không tìm thấy ' + els[i]); }
                         return;
                     }
                 }
@@ -92,14 +92,14 @@ function openDetailModal(promoId) {
                         '<button class="vc-btn ds-btn-fill" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận</button>';
 
                 if (typeof bootstrap === 'undefined') {
-                    showToast('Không thể hiển thị popup: Bootstrap chưa được tải');
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Không thể hiển thị popup: Bootstrap chưa được tải'); }
                     return;
                 }
                 var modal = new bootstrap.Modal(el('detailModal'));
                 modal.show();
             })
             .catch(function (err) {
-                showToast('Không thể tải chi tiết khuyến mãi');
+                if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Không thể tải chi tiết khuyến mãi'); }
                 console.error(err);
             });
 }
@@ -116,8 +116,8 @@ function handleUnauthorized(r) {
 function handleVoucherResponse(data, btn) {
     if (!data)
         return;
-    showToast(data.message);
     if (data.message && data.message.indexOf('dang nhap') !== -1) {
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.info(data.message); }
         if (typeof showLoginPopup === 'function')
             showLoginPopup();
         if (btn) {
@@ -127,6 +127,7 @@ function handleVoucherResponse(data, btn) {
         return;
     }
     if (data.success) {
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success(data.message); }
         if (btn) {
             btn.disabled = true;
             btn.style.opacity = '.4';
@@ -134,6 +135,7 @@ function handleVoucherResponse(data, btn) {
         }
         location.reload();
     } else {
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message); }
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'Nhận';
@@ -169,7 +171,7 @@ function copyDetailCode() {
         return;
     if (navigator.clipboard) {
         navigator.clipboard.writeText(code).then(function () {
-            showToast('Đã copy mã: ' + code);
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã copy mã: ' + code); }
         });
     } else {
         var ta = document.createElement('textarea');
@@ -178,7 +180,7 @@ function copyDetailCode() {
         ta.select();
         document.execCommand('copy');
         document.body.removeChild(ta);
-        showToast('Đã copy mã: ' + code);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã copy mã: ' + code); }
     }
 }
 

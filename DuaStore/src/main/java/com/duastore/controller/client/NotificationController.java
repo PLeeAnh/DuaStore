@@ -8,12 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 public class NotificationController {
@@ -34,16 +30,25 @@ public class NotificationController {
                 : java.util.List.of();
         model.addAttribute("notifications", notifications);
 
-        session.setAttribute("notifReadMaxId",
-                notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
-                        .map(Notification::getId).orElse(0));
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+        List<Notification> newNotifs = new ArrayList<>();
+        List<Notification> oldNotifs = new ArrayList<>();
+        for (Notification n : notifications) {
+            if (n.getCreatedAt() != null && n.getCreatedAt().isAfter(cutoff)) {
+                newNotifs.add(n);
+            } else {
+                oldNotifs.add(n);
+            }
+        }
+        model.addAttribute("newNotifs", newNotifs);
+        model.addAttribute("oldNotifs", oldNotifs);
 
         return "view/client/notification/notification-list";
     }
 
-    @GetMapping("/api/thong-bao")
+    @GetMapping(value = "/api/thong-bao", produces = "application/json")
     @ResponseBody
-    public Map<String, Object> getNotifs(HttpSession session) {
+    public Map<String, Object> getNotificationsJson(HttpSession session) {
         Map<String, Object> res = new HashMap<>();
         try {
             Integer userId = securityUtil.getCurrentUserId();
@@ -52,16 +57,14 @@ public class NotificationController {
                 res.put("notifications", java.util.List.of());
                 return res;
             }
-            Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
             @SuppressWarnings("unchecked")
             Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
             final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : new HashSet<>();
 
-            Integer maxId = readMaxId != null ? readMaxId : 0;
             List<Notification> all = notificationRepository.findCustomerNotifications(userId);
             List<Map<String, Object>> items = new ArrayList<>();
             for (Notification n : all) {
-                boolean read = (n.getId() <= maxId) || readIds.contains(n.getId());
+                boolean read = readIds.contains(n.getId());
                 Map<String, Object> item = new HashMap<>();
                 item.put("id", n.getId());
                 item.put("content", n.getContent());
@@ -72,10 +75,7 @@ public class NotificationController {
                 item.put("read", read);
                 items.add(item);
             }
-            long unread = all.stream().filter(n -> {
-                boolean r = (n.getId() <= maxId) || readIds.contains(n.getId());
-                return !r;
-            }).count();
+            long unread = all.stream().filter(n -> !readIds.contains(n.getId())).count();
             res.put("count", unread);
             res.put("notifications", items);
         } catch (Exception e) {
@@ -99,57 +99,29 @@ public class NotificationController {
         return "ok";
     }
 
-    @PostMapping("/api/thong-bao/doc-tat-ca")
+    @PostMapping("/api/thong-bao/xoa/{id}")
     @ResponseBody
-    public String markAllRead(HttpSession session) {
-        session.setAttribute("notifReadMaxId",
-                notificationRepository.findTopByIsActiveTrueOrderByIdDesc()
-                        .map(Notification::getId).orElse(0));
+    public String deleteNotif(@PathVariable Integer id) {
+        notificationRepository.findById(id).ifPresent(n -> {
+            n.setIsActive(false);
+            notificationRepository.save(n);
+        });
         return "ok";
     }
 
-    @GetMapping(value = "/api/thong-bao", produces = "application/json")
+    @PostMapping("/api/thong-bao/doc-tat-ca")
     @ResponseBody
-    public Map<String, Object> getNotificationsJson(HttpSession session) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        Integer userId = securityUtil.getCurrentUserId();
-        if (userId == null) {
-            result.put("count", 0);
-            result.put("notifications", java.util.List.of());
-            return result;
-        }
-        Integer readMaxId = (Integer) session.getAttribute("notifReadMaxId");
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm, dd/MM");
-
-        List<Map<String, String>> notifList = new ArrayList<>();
-
-        if (readMaxId != null && readMaxId > 0) {
-            List<Notification> unread = notificationRepository
-                    .findNewByUserId(userId, readMaxId);
-            for (Notification n : unread) {
-                notifList.add(buildNotifMap(n, fmt));
+    public String markAllRead(HttpSession session) {
+        try {
+            Integer userId = securityUtil.getCurrentUserId();
+            if (userId != null) {
+                Set<Integer> readIds = new HashSet<>();
+                notificationRepository.findCustomerNotifications(userId)
+                        .forEach(n -> readIds.add(n.getId()));
+                session.setAttribute("notifReadIds", readIds);
             }
-            result.put("count", notificationRepository.countUnreadCustomerNotifications(userId, readMaxId));
-        } else {
-            List<Notification> all = notificationRepository.findCustomerNotifications(userId);
-            for (Notification n : all) {
-                notifList.add(buildNotifMap(n, fmt));
-            }
-            result.put("count", notificationRepository.countCustomerNotifications(userId));
+        } catch (Exception ignored) {
         }
-
-        result.put("notifications", notifList);
-        return result;
-    }
-
-    private Map<String, String> buildNotifMap(Notification n, DateTimeFormatter fmt) {
-        Map<String, String> m = new LinkedHashMap<>();
-        m.put("id", String.valueOf(n.getId()));
-        m.put("content", n.getContent());
-        m.put("linkType", n.getLinkType() != null ? n.getLinkType() : "");
-        m.put("linkUrl", n.getLinkUrl() != null ? n.getLinkUrl() : "");
-        m.put("linkLabel", n.getLinkLabel() != null ? n.getLinkLabel() : "");
-        m.put("time", n.getCreatedAt() != null ? n.getCreatedAt().format(fmt) : "");
-        return m;
+        return "ok";
     }
 }

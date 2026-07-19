@@ -3,18 +3,6 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
-<<<<<<< Updated upstream
-    <head>
-        <title>Phân tích</title>
-    </head>
-    <body>
-    <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item active" aria-current="page">Phân tích</li>
-    </th:block>
-    <div layout:fragment="content">
-        <div class="adm-page-header">
-            <h4><i class="bi bi-graph-up me-2"></i>Phân tích</h4>
-=======
 <head>
     <title>Phân tích</title>
 </head>
@@ -80,159 +68,67 @@
         </div>
     </form>
 
-    <!-- Tabs -->
-    <ul class="nav nav-tabs mb-4" id="analyticsTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#revenue" type="button" role="tab">
-                <i class="bi bi-currency-exchange me-1"></i>Doanh thu
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab">
-                <i class="bi bi-receipt me-1"></i>Đơn hàng
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">
-                <i class="bi bi-people me-1"></i>Khách hàng
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">
-                <i class="bi bi-box-seam me-1"></i>Sản phẩm
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#promotions" type="button" role="tab">
-                <i class="bi bi-tag me-1"></i>Khuyến mãi
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#traffic" type="button" role="tab">
-                <i class="bi bi-globe me-1"></i>Traffic
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="analyticsTabContent">
-
-        <!-- ===== REVENUE TAB ===== -->
-        <div class="tab-pane fade show active" id="revenue" role="tabpanel">
-            <div class="row g-3 mb-4">
-                <div class="col-md-3 col-6">
-                    <div class="adm-stat">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669"><i class="bi bi-currency-exchange"></i></div>
-                            <div>
-                                <div class="adm-stat-value" th:text="${totalRevenue}">0₫</div>
-                                <div class="adm-stat-label">Tổng doanh thu</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="adm-stat">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB"><i class="bi bi-receipt-cutoff"></i></div>
-                            <div>
-                                <div class="adm-stat-value" th:text="${avgOrderValue}">0₫</div>
-                                <div class="adm-stat-label">Giá trị đơn TB</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="adm-stat">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706"><i class="bi bi-bag-check"></i></div>
-                            <div>
-                                <div class="adm-stat-value" th:text="${totalOrders}">0</div>
-                                <div class="adm-stat-label">Tổng đơn hàng</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="adm-stat">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563eb"><i class="bi bi-percent"></i></div>
-                            <div>
-                                <div class="adm-stat-value" th:text="${totalDiscountGiven}">0₫</div>
-                                <div class="adm-stat-label">Giảm giá đã cấp</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- Admin Copilot -->
+        <div class="adm-card p-3 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2" style="cursor:pointer" onclick="toggleCopilot()">
+                <i class="bi bi-robot" style="font-size:1.1rem;color:var(--ef-primary)"></i>
+                <strong style="font-size:.9rem">Admin Copilot</strong>
+                <i class="bi bi-chevron-down ms-auto" id="copilotArrow" style="font-size:.8rem;transition:transform .2s"></i>
             </div>
-            <div class="row g-3">
-                <div class="col-12 col-lg-8">
-                    <div class="adm-card p-3">
-                        <strong style="font-size:.875rem">Biểu đồ doanh thu theo ngày</strong>
-                        <div style="position:relative;height:280px;" class="mt-2">
-                            <canvas id="dailyRevenueChart"></canvas>
-                        </div>
-                    </div>
+            <div id="copilotBody">
+                <div class="d-flex gap-2">
+                    <input type="text" id="copilotQuery" class="form-control form-control-sm"
+                           placeholder='VD: "so doanh thu tuần này với tuần trước" hoặc "top 5 sản phẩm bán chạy"'
+                           onkeydown="if(event.key==='Enter') askCopilot()">
+                    <button class="btn btn-primary btn-sm" onclick="askCopilot()" id="copilotBtn">
+                        <i class="bi bi-send me-1"></i>Hỏi
+                    </button>
                 </div>
-                <div class="col-12 col-lg-4">
-                    <div class="adm-card p-3">
-                        <strong style="font-size:.875rem">Doanh thu theo danh mục</strong>
-                        <div class="mt-3 d-flex flex-column gap-2" th:if="${not #lists.isEmpty(revenueByCategory)}">
-                            <div th:each="cat : ${revenueByCategory}" class="d-flex align-items-center justify-content-between">
-                                <span style="font-size:.82rem" th:text="${cat.name}">Danh mục</span>
-                                <span class="badge bg-primary" th:text="${#numbers.formatDecimal(cat.revenue, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
-                            </div>
-                        </div>
-                        <p th:if="${#lists.isEmpty(revenueByCategory)}" class="text-muted small mt-2 mb-0">Chưa có dữ liệu</p>
-                    </div>
-                </div>
+                <div id="copilotAnswer" class="mt-2 p-2 rounded" style="display:none;background:var(--ef-bg);font-size:.85rem;white-space:pre-line;line-height:1.6"></div>
+                <div id="copilotError" class="mt-2 small text-danger" style="display:none"></div>
             </div>
->>>>>>> Stashed changes
         </div>
-
-        <!-- Quick Period Filter -->
-        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-            <a th:href="@{/admin/phan-tich(period='today')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'today'} ? 'btn-dark' : 'btn-outline-secondary'">Hôm nay</a>
-            <a th:href="@{/admin/phan-tich(period='yesterday')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'yesterday'} ? 'btn-dark' : 'btn-outline-secondary'">Hôm qua</a>
-            <a th:href="@{/admin/phan-tich(period='last-7')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'last-7'} ? 'btn-dark' : 'btn-outline-secondary'">7 ngày</a>
-            <a th:href="@{/admin/phan-tich(period='this-week')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'this-week'} ? 'btn-dark' : 'btn-outline-secondary'">Tuần này</a>
-            <a th:href="@{/admin/phan-tich(period='this-month')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'this-month'} ? 'btn-dark' : 'btn-outline-secondary'">Tháng này</a>
-            <a th:href="@{/admin/phan-tich(period='last-month')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'last-month'} ? 'btn-dark' : 'btn-outline-secondary'">Tháng trước</a>
-            <a th:href="@{/admin/phan-tich(period='this-quarter')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'this-quarter'} ? 'btn-dark' : 'btn-outline-secondary'">Quý này</a>
-            <a th:href="@{/admin/phan-tich(period='this-year')}"
-               class="btn btn-sm"
-               th:classappend="${activePeriod == 'this-year'} ? 'btn-dark' : 'btn-outline-secondary'">Năm nay</a>
-        </div>
-
-        <!-- Custom Date Filter -->
-        <form method="get" class="adm-card p-3 mb-4" th:if="${activePeriod == null}">
-            <div class="d-flex align-items-center gap-3 flex-wrap">
-                <input type="hidden" name="period" value="" />
-                <div class="d-flex align-items-center gap-2">
-                    <label class="form-label mb-0 fw-semibold" style="font-size:.85rem">Từ ngày</label>
-                    <input type="date" name="from" class="form-control form-control-sm" th:value="${fromDate}" style="width:160px"/>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <label class="form-label mb-0 fw-semibold" style="font-size:.85rem">Đến ngày</label>
-                    <input type="date" name="to" class="form-control form-control-sm" th:value="${toDate}" style="width:160px"/>
-                </div>
-                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel me-1"></i>Lọc</button>
-                <a th:href="@{/admin/phan-tich(period='this-month')}" class="btn btn-outline-secondary btn-sm">Mặc định</a>
-            </div>
-        </form>
+        <script>
+        let copilotOpen = true;
+        function toggleCopilot() {
+            copilotOpen = !copilotOpen;
+            document.getElementById('copilotBody').style.display = copilotOpen ? 'block' : 'none';
+            document.getElementById('copilotArrow').style.transform = copilotOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+        }
+        function askCopilot() {
+            const q = document.getElementById('copilotQuery').value.trim();
+            if (!q) return;
+            const btn = document.getElementById('copilotBtn');
+            const answerDiv = document.getElementById('copilotAnswer');
+            const errorDiv = document.getElementById('copilotError');
+            answerDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang trả lời...';
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+            const headers = {'Content-Type': 'application/json'};
+            if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+            fetch('/admin/phan-tich/api/copilot', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({query: q})
+            })
+            .then(r => r.json())
+            .then(data => {
+                answerDiv.textContent = data.answer;
+                answerDiv.style.display = 'block';
+            })
+            .catch(e => {
+                errorDiv.textContent = 'Lỗi kết nối, vui lòng thử lại.';
+                errorDiv.style.display = 'block';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send me-1"></i>Hỏi';
+            });
+        }
+        </script>
 
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" id="analyticsTabs" role="tablist">
@@ -497,6 +393,7 @@
                     <div class="px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
                         <strong style="font-size:.875rem"><i class="bi bi-trophy me-1"></i>Top 10 khách hàng</strong>
                     </div>
+                    <div class="table-responsive">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -525,6 +422,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -569,6 +467,7 @@
                     <div class="px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
                         <strong style="font-size:.875rem"><i class="bi bi-trophy me-1"></i>Top sản phẩm bán chạy</strong>
                     </div>
+                    <div class="table-responsive">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -600,6 +499,50 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
+                </div>
+                <div class="adm-card mt-3">
+                    <div class="px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
+                        <strong style="font-size:.875rem"><i class="bi bi-graph-up-arrow me-1"></i>Dự đoán biến thể cần nhập hàng</strong>
+                        <span class="badge bg-info ms-2">30 ngày gần nhất</span>
+                    </div>
+                    <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Biến thể</th>
+                                <th>Sản phẩm</th>
+                                <th>Đã bán</th>
+                                <th>Tồn kho</th>
+                                <th>Bán/ngày</th>
+                                <th>Ngày hết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="p, iter : ${restockPredictions}">
+                                <td th:text="${iter.index + 1}"></td>
+                                <td th:text="${p.variantName}"></td>
+                                <td>
+                                    <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${p.productId})}" class="text-decoration-none" th:text="${p.productName}"></a>
+                                </td>
+                                <td><span class="badge bg-danger" th:text="${p.sold}">0</span></td>
+                                <td>
+                                    <span th:if="${p.stock < 10}" class="badge bg-warning text-dark" th:text="${p.stock}">0</span>
+                                    <span th:unless="${p.stock < 10}" th:text="${p.stock}">0</span>
+                                </td>
+                                <td th:text="${p.salesPerDay}">0</td>
+                                <td>
+                                    <span th:if="${p.daysUntilEmpty < 30}" class="text-danger fw-semibold" th:text="${p.daysUntilEmpty} + ' ngày'"></span>
+                                    <span th:unless="${p.daysUntilEmpty < 30}" class="text-muted" th:text="'&gt; 30 ngày'"></span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(restockPredictions)}">
+                                <td colspan="7" class="text-center text-muted py-3">Chưa có dữ liệu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
                 </div>
             </div>
 
@@ -655,6 +598,7 @@
                     <div class="px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
                         <strong style="font-size:.875rem"><i class="bi bi-trophy me-1"></i>Top voucher được dùng</strong>
                     </div>
+                    <div class="table-responsive">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -686,6 +630,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -708,6 +653,7 @@
                     <div class="px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
                         <strong style="font-size:.875rem"><i class="bi bi-clock-history me-1"></i>Đơn hàng gần đây</strong>
                     </div>
+                    <div class="table-responsive">
                     <table class="table mb-0">
                         <thead>
                             <tr>
@@ -731,6 +677,7 @@
                                         <span th:case="'DA_GIAO'" class="status-pill status-da-giao">Đã giao</span>
                                         <span th:case="'DA_HOAN_THANH'" class="status-pill status-da-hoan-thanh">Hoàn thành</span>
                                         <span th:case="'DA_HUY'" class="status-pill status-da-huy">Đã huỷ</span>
+                                        <span th:case="'DA_HOAN_TIEN'" class="status-pill status-da-huy">Đã hoàn tiền</span>
                                         <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiDon}"></span>
                                     </span>
                                 </td>
@@ -741,6 +688,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
                 <div class="adm-card p-4 text-center mt-3">
                     <i class="bi bi-info-circle" style="font-size:2rem;color:var(--ef-primary);opacity:.4"></i>
@@ -754,125 +702,13 @@
 
     <th:block layout:fragment="extra-script">
         <script th:inline="javascript">
-            document.addEventListener('DOMContentLoaded', function () {
-                var colors = {
-                    primary: 'rgba(255, 107, 0, 1)',
-                    primaryBg: 'rgba(255, 107, 0, 0.15)',
-                    success: 'rgba(34, 197, 94, 1)',
-                    warning: 'rgba(234, 179, 8, 1)',
-                    danger: 'rgba(239, 68, 68, 1)',
-                    info: 'rgba(59, 130, 246, 1)',
-                    purple: 'rgba(124, 58, 237, 1)',
-                    palette: ['#ff6b00', '#22c55e', '#3b82f6', '#eab308', '#ef4444', '#7c3aed', '#06b6d4', '#f97316', '#ec4899', '#14b8a6']
-                };
-
-                // Daily Revenue Chart
-                var revenueData = [[${dailyRevenue}
-                ]];
-                if (revenueData && revenueData.length) {
-                    var labels = revenueData.map(function (d) {
-                        return d.date.substring(5);
-                    });
-                    var values = revenueData.map(function (d) {
-                        return Number(d.revenue);
-                    });
-                    var ctx = document.getElementById('dailyRevenueChart');
-                    if (ctx) {
-                        new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                        label: 'Doanh thu',
-                                        data: values,
-                                        borderColor: colors.primary,
-                                        backgroundColor: colors.primaryBg,
-                                        fill: true,
-                                        tension: 0.35,
-                                        pointRadius: 4,
-                                        pointBackgroundColor: '#fff',
-                                        pointBorderColor: colors.primary,
-                                        pointBorderWidth: 2,
-                                        borderWidth: 2
-                                    }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {legend: {display: false}},
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        ticks: {callback: function (v) {
-                                                return v >= 1000000 ? (v / 1000000).toFixed(0) + 'tr' : (v / 1000).toFixed(0) + 'k';
-                                            }},
-                                        grid: {color: 'rgba(0,0,0,0.05)'}
-                                    },
-                                    x: {grid: {display: false}}
-                                }
-                            }
-                        });
-                    }
-                }
-
-                // Order Status Chart
-                var statusData = [[${orderStatusCounts}
-                ]];
-                if (statusData) {
-                    var statusLabels = ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Hoàn thành', 'Đã huỷ'];
-                    var statusKeys = ['CHO_XAC_NHAN', 'DA_XAC_NHAN', 'DANG_GIAO', 'DA_GIAO', 'DA_HOAN_THANH', 'DA_HUY'];
-                    var statusValues = statusKeys.map(function (k) {
-                        return Number(statusData[k] || 0);
-                    });
-                    var statusColors = [colors.warning, colors.info, colors.purple, '#2563eb', colors.success, colors.danger];
-                    var ctx3 = document.getElementById('orderStatusChart');
-                    if (ctx3) {
-                        new Chart(ctx3, {
-                            type: 'doughnut',
-                            data: {
-                                labels: statusLabels,
-                                datasets: [{data: statusValues, backgroundColor: statusColors, borderWidth: 0, hoverOffset: 6}]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                cutout: '60%',
-                                plugins: {legend: {position: 'bottom', labels: {padding: 12, usePointStyle: true}}}
-                            }
-                        });
-                    }
-                }
-
-                // Payment Method Chart
-                var paymentData = [[${paymentMethodCounts}
-                ]];
-                if (paymentData) {
-                    var payLabels = Object.keys(paymentData).map(function (k) {
-                        var map = {'COD': 'COD', 'BANK_TRANSFER': 'Chuyển khoản', 'MOMO': 'MoMo', 'VNPAY': 'VNPay'};
-                        return map[k] || k;
-                    });
-                    var payValues = Object.values(paymentData).map(function (v) {
-                        return Number(v);
-                    });
-                    var ctx4 = document.getElementById('paymentMethodChart');
-                    if (ctx4) {
-                        new Chart(ctx4, {
-                            type: 'doughnut',
-                            data: {
-                                labels: payLabels,
-                                datasets: [{data: payValues, backgroundColor: colors.palette, borderWidth: 0, hoverOffset: 6}]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                cutout: '60%',
-                                plugins: {legend: {position: 'bottom', labels: {padding: 12, usePointStyle: true}}}
-                            }
-                        });
-                    }
-                }
-            });
+            window.__analyticsData = {
+                dailyRevenue: [[${dailyRevenue}]],
+                orderStatusCounts: [[${orderStatusCounts}]],
+                paymentMethodCounts: [[${paymentMethodCounts}]]
+            };
         </script>
+        <script th:src="@{/js/admin-analytics.js}"></script>
     </th:block>
 </body>
 </html>

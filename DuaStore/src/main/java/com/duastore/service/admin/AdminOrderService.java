@@ -9,6 +9,7 @@ import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.service.LoyaltyPointsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +49,7 @@ public class AdminOrderService {
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
     private final OrderNoteService orderNoteService;
+    private final LoyaltyPointsService loyaltyPointsService;
 
     public AdminOrderService(OrderRepository orderRepository,
             AdminLogService adminLogService,
@@ -55,7 +57,8 @@ public class AdminOrderService {
             OrderItemRepository orderItemRepository,
             ProductVariantRepository variantRepository,
             OrderStatusLogService orderStatusLogService,
-            OrderNoteService orderNoteService) {
+            OrderNoteService orderNoteService,
+            LoyaltyPointsService loyaltyPointsService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
@@ -63,6 +66,7 @@ public class AdminOrderService {
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
         this.orderNoteService = orderNoteService;
+        this.loyaltyPointsService = loyaltyPointsService;
     }
 
     @Transactional
@@ -116,12 +120,20 @@ public class AdminOrderService {
 
     public void updateOrderStatus(Integer id, String trangThaiDon) {
         Order order = getOrderById(id);
+        String error = validateTransition(order.getTrangThaiDon(), trangThaiDon);
+        if (error != null) {
+            throw new IllegalArgumentException(error);
+        }
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
     }
 
     public void updatePaymentStatus(Integer id, String trangThaiTT) {
         Order order = getOrderById(id);
+        String old = order.getTrangThaiTT();
+        if (old == null || old.equals(trangThaiTT)) {
+            throw new IllegalArgumentException("Trạng thái thanh toán không hợp lệ");
+        }
         order.setTrangThaiTT(trangThaiTT);
         orderRepository.save(order);
     }
@@ -149,34 +161,7 @@ public class AdminOrderService {
     }
 
     private String adjustStock(Integer orderId, String newStatus, String oldStatus) {
-        if ("DA_XAC_NHAN".equals(newStatus)) {
-            List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-            int totalSubtracted = 0;
-            StringBuilder detail = new StringBuilder();
-            for (OrderItem item : items) {
-                if (item.getVariantId() == null) {
-                    continue;
-                }
-                ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
-                if (variant == null) {
-                    continue;
-                }
-                int oldStock = variant.getSoLuongTon();
-                int qty = item.getSoLuong();
-                variant.setSoLuongTon(oldStock - qty);
-                variantRepository.save(variant);
-                totalSubtracted += qty;
-                if (detail.length() > 0) {
-                    detail.append("; ");
-                }
-                detail.append(item.getTenSanPham()).append(": ").append(oldStock).append(" → ").append(variant.getSoLuongTon());
-            }
-            return totalSubtracted > 0 ? "Đã trừ " + totalSubtracted + " sản phẩm khỏi tồn kho. " + detail : null;
-        }
         if ("DA_HUY".equals(newStatus)) {
-            if ("CHO_XAC_NHAN".equals(oldStatus)) {
-                return "Đơn chưa xác nhận, không cần hoàn tồn kho.";
-            }
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {
@@ -202,13 +187,22 @@ public class AdminOrderService {
         if (error != null) {
             throw new IllegalArgumentException(error);
         }
-        if ("DA_HUY".equals(trangThaiDon)) {
-            return deleteOrderWithLog(id, oldStatus, admin, request);
-        }
-
         Order order = orderRepository.findById(id).orElse(null);
         if (order == null) {
             throw new RuntimeException("Không tìm thấy đơn hàng");
+        }
+
+        if ("DA_HUY".equals(trangThaiDon)) {
+            String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
+            order.setTrangThaiDon("DA_HUY");
+            orderRepository.save(order);
+            orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, "DA_HUY",
+                    "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""));
+            adminLogService.ghiLogDonHang(admin, id, "HUY_DON_HANG",
+                    oldStatus, "DA_HUY",
+                    "Hủy đơn hàng (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""),
+                    request);
+            return stockMsg;
         }
 
         // Auto-set payment to DA_THANH_TOAN when completing unpaid order
@@ -222,6 +216,10 @@ public class AdminOrderService {
 
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
+
+        if ("DA_HOAN_THANH".equals(trangThaiDon) && order.getUser() != null) {
+            loyaltyPointsService.earnPoints(order.getUser().getId(), id, order.getTongThanhToan());
+        }
 
         String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, stockMsg);

@@ -4,6 +4,7 @@ import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
+import com.duastore.service.NotificationHelper;
 import com.duastore.service.VerificationCodeService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -29,15 +30,23 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final VerificationCodeService verifyCodeService;
+    private final NotificationHelper notificationHelper;
 
     public AuthController(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             RoleRepository roleRepository,
-            VerificationCodeService verifyCodeService) {
+            VerificationCodeService verifyCodeService,
+            NotificationHelper notificationHelper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.verifyCodeService = verifyCodeService;
+        this.notificationHelper = notificationHelper;
+    }
+
+    @GetMapping("/oauth2/success")
+    public String oauth2Success() {
+        return "view/auth/oauth2-success";
     }
 
     @GetMapping("/dang-nhap")
@@ -90,7 +99,14 @@ public class AuthController {
         Role userRole = roleRepository.findByName("USER");
         user.setRoles(Set.of(userRole));
         user.setIsActive(true);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        notificationHelper.notifyStaff(
+                "Khach hang moi: " + savedUser.getHoTen() + " (" + savedUser.getEmail() + ")",
+                null, null,
+                "/admin/khach-hang/" + savedUser.getId(),
+                "Xem khach hang"
+        );
+        verifyCodeService.delete(req.getEmail());
 
         ra.addFlashAttribute("successMsg", "Đăng ký thành công! Vui lòng đăng nhập.");
         return "redirect:/dang-nhap";
@@ -108,8 +124,8 @@ public class AuthController {
 
         @NotBlank(message = "Mật khẩu không được để trống")
         @Size(min = 8, message = "Mật khẩu tối thiểu 8 ký tự")
-        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]).+$",
-                message = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt")
+        @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).{8,}$",
+                message = "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ và số")
         private String password;
 
         private String confirmPassword;

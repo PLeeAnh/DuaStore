@@ -11,7 +11,10 @@ import java.math.RoundingMode;
 public class ShippingFeeService {
 
     private static final BigDecimal MIN_FEE = new BigDecimal("10000");
+    private static final BigDecimal FREE_SHIP_THRESHOLD = new BigDecimal("500000");
     private static final double EARTH_RADIUS_KM = 6371.0;
+    private static final BigDecimal EXPRESS_KM_RATE = new BigDecimal("300");
+    private static final BigDecimal SHIP_KM_RATE = new BigDecimal("200");
 
     private final double storeLat;
     private final double storeLng;
@@ -27,6 +30,13 @@ public class ShippingFeeService {
     }
 
     public BigDecimal calculateFee(Address address, String shippingMethod) {
+        return calculateFee(address, shippingMethod, BigDecimal.ZERO);
+    }
+
+    public BigDecimal calculateFee(Address address, String shippingMethod, BigDecimal subtotal) {
+        if (subtotal.compareTo(FREE_SHIP_THRESHOLD) >= 0) {
+            return BigDecimal.ZERO;
+        }
         BigDecimal ghnFee = ghnShippingService.calculateFee(address, shippingMethod);
         if (ghnFee != null) {
             return ghnFee;
@@ -38,9 +48,10 @@ public class ShippingFeeService {
         return calculateFee(address.getLatitude(), address.getLongitude(), shippingMethod);
     }
 
-    public BigDecimal calculateFee(double userLat, double userLng, String shippingMethod) {
+    private BigDecimal calculateFee(double userLat, double userLng, String shippingMethod) {
         double distance = haversine(userLat, userLng, storeLat, storeLng);
-        BigDecimal fee = new BigDecimal("10000").add(new BigDecimal("200").multiply(BigDecimal.valueOf(distance)));
+        BigDecimal kmRate = "EXPRESS".equals(shippingMethod) ? EXPRESS_KM_RATE : SHIP_KM_RATE;
+        BigDecimal fee = MIN_FEE.add(kmRate.multiply(BigDecimal.valueOf(distance)));
         if (fee.compareTo(MIN_FEE) < 0) {
             fee = MIN_FEE;
         }
@@ -48,6 +59,10 @@ public class ShippingFeeService {
             fee = new BigDecimal("1000000");
         }
         return fee.setScale(0, RoundingMode.HALF_UP);
+    }
+
+    public int getDeliveryDays(String shippingMethod) {
+        return "EXPRESS".equals(shippingMethod) ? 3 : 7;
     }
 
     public double getStoreLat() {

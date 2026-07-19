@@ -1,9 +1,13 @@
 package com.duastore.service;
 
 import com.duastore.model.FlashSale;
+import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ProductVariantRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,9 +34,14 @@ public class PricingService {
     }
 
     private final FlashSaleRepository flashSaleRepository;
+    private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
 
-    public PricingService(FlashSaleRepository flashSaleRepository) {
+    public PricingService(FlashSaleRepository flashSaleRepository, ProductRepository productRepository,
+            ProductVariantRepository productVariantRepository) {
         this.flashSaleRepository = flashSaleRepository;
+        this.productRepository = productRepository;
+        this.productVariantRepository = productVariantRepository;
     }
 
     public PriceResult resolvePrice(ProductVariant variant, FlashSale activeFlashSale) {
@@ -118,5 +127,22 @@ public class PricingService {
     public void decrementSoldQuantity(FlashSale fs, int soLuong) {
         int current = fs.getSoLuongDaBan() == null ? 0 : fs.getSoLuongDaBan();
         fs.setSoLuongDaBan(Math.max(0, current - soLuong));
+    }
+
+    @Transactional
+    public void recalculateMinPrice(Integer productId) {
+        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActiveTrue(productId);
+        BigDecimal min = variants.stream()
+                .filter(v -> v.getGiaGoc() != null)
+                .map(v -> {
+                    BigDecimal p = v.getGiaKhuyenMai();
+                    return (p != null && p.compareTo(v.getGiaGoc()) < 0) ? p : v.getGiaGoc();
+                })
+                .min(java.util.Comparator.naturalOrder())
+                .orElse(BigDecimal.ZERO);
+        productRepository.findById(productId).ifPresent(p -> {
+            p.setMinPrice(min);
+            productRepository.save(p);
+        });
     }
 }

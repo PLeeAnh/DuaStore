@@ -20,11 +20,14 @@ import com.duastore.service.client.ProductService;
 import com.duastore.service.client.ReviewService;
 import com.duastore.service.client.WishlistService;
 import com.duastore.service.FileUploadService;
+import com.duastore.service.NotificationHelper;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -56,6 +59,12 @@ public class ProductController {
     private final FileUploadService fileUploadService;
     private final PricingService pricingService;
     private final OrderItemRepository orderItemRepository;
+    private final NotificationHelper notificationHelper;
+    private final com.duastore.repository.ProductViewRepository productViewRepository;
+    private final com.duastore.service.ActivityAnalyticsService activityAnalyticsService;
+
+    @Value("${app.url}")
+    private String appUrl;
 
     private List<Category> buildCategoryBreadcrumb(Integer categoryId) {
         List<Category> path = new ArrayList<>();
@@ -80,7 +89,10 @@ public class ProductController {
             SecurityUtil securityUtil,
             FileUploadService fileUploadService,
             PricingService pricingService,
-            OrderItemRepository orderItemRepository) {
+            OrderItemRepository orderItemRepository,
+            NotificationHelper notificationHelper,
+            com.duastore.repository.ProductViewRepository productViewRepository,
+            com.duastore.service.ActivityAnalyticsService activityAnalyticsService) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -93,6 +105,9 @@ public class ProductController {
         this.fileUploadService = fileUploadService;
         this.pricingService = pricingService;
         this.orderItemRepository = orderItemRepository;
+        this.notificationHelper = notificationHelper;
+        this.productViewRepository = productViewRepository;
+        this.activityAnalyticsService = activityAnalyticsService;
     }
 
     @GetMapping("/san-pham")
@@ -101,6 +116,8 @@ public class ProductController {
             @RequestParam(required = false) Integer dungTich,
             @RequestParam(required = false) String chatLieu,
             @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) BigDecimal priceFrom,
+            @RequestParam(required = false) BigDecimal priceTo,
             @RequestParam(defaultValue = "newest") String sortBy,
             @RequestParam(defaultValue = "0") int page,
             Model model) {
@@ -116,34 +133,35 @@ public class ProductController {
             priceRange = null;
         }
 
+        // Handle custom price range via priceFrom/priceTo params
+        if (priceRange == null && (priceFrom != null || priceTo != null)) {
+            priceRange = productService.encodePriceRange(priceFrom, priceTo);
+        }
+
         boolean hasFilters = (priceRange != null || dungTich != null || chatLieu != null
-                || !"newest".equals(sortBy));
+                || !"newest".equals(sortBy)) && !"best_selling".equals(sortBy);
+
+        if (keyword != null) {
+            model.addAttribute("keyword", keyword);
+        }
+        if (danhMuc != null) {
+            categoryRepository.findById(danhMuc).ifPresent(c -> {
+                model.addAttribute("selectedCategory", c);
+                model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
+            });
+        }
 
         Page<Product> productPage;
-        if (hasFilters) {
-            if (keyword != null) {
-                model.addAttribute("keyword", keyword);
-            }
-            if (danhMuc != null) {
-                categoryRepository.findById(danhMuc).ifPresent(c -> {
-                    model.addAttribute("selectedCategory", c);
-                    model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
-                });
-            }
+        if ("best_selling".equals(sortBy)) {
+            productPage = productService.filterPagedBestSelling(keyword, danhMuc, chatLieu, priceRange, dungTich, page, PAGE_SIZE);
+        } else if (hasFilters || keyword != null) {
             productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, PAGE_SIZE);
-        } else if (keyword != null && !keyword.isBlank()) {
-            productPage = productService.searchPaged(keyword, page, PAGE_SIZE);
-            model.addAttribute("keyword", keyword);
         } else if (danhMuc != null) {
             List<Integer> categoryIds = new ArrayList<>();
             categoryIds.add(danhMuc);
             categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
                     .forEach(child -> categoryIds.add(child.getId()));
             productPage = productService.findByCategoriesPaged(categoryIds, page, PAGE_SIZE);
-            categoryRepository.findById(danhMuc).ifPresent(c -> {
-                model.addAttribute("selectedCategory", c);
-                model.addAttribute("categoryBreadcrumb", buildCategoryBreadcrumb(danhMuc));
-            });
         } else {
             productPage = productService.getDangBanPaged(page, PAGE_SIZE);
         }
@@ -296,6 +314,29 @@ public class ProductController {
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
 
+        Integer uid = securityUtil.getCurrentUserId();
+        if (uid != null) {
+            com.duastore.model.ProductView pv = new com.duastore.model.ProductView();
+            pv.setUserId(uid);
+            pv.setProductId(id);
+            productViewRepository.save(pv);
+            activityAnalyticsService.logActivity(uid, "PRODUCT_VIEW",
+                    "Xem sản phẩm: " + product.getTenSanPham(), null);
+        }
+
+        // Flash sale for this product
+        FlashSale flashSale = null;
+        Map<Integer, FlashSale> fsMap = pricingService.loadActiveFlashSaleMap(List.of(id));
+        if (fsMap != null) flashSale = fsMap.get(id);
+        model.addAttribute("flashSale", flashSale);
+
+        // Determine default variant: first with isDefault=true, else first in list
+        ProductVariant defaultVariant = variants.stream()
+                .filter(ProductVariant::isDefault)
+                .findFirst()
+                .orElse(variants.isEmpty() ? null : variants.get(0));
+        model.addAttribute("defaultVariant", defaultVariant);
+
         // Build gallery images: ProductImages from DB + fallback to main + variant images
         List<ProductImage> dbImages = productImageRepository
                 .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id);
@@ -367,33 +408,48 @@ public class ProductController {
 
         BigDecimal promoDiscountedPrice = null;
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
-        if (bestPercentagePromo != null && !variants.isEmpty()) {
-            BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
-            boolean hasGiamToiDa = bestPercentagePromo.getGiamToiDa() != null;
-            for (ProductVariant pv : variants) {
-                BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
-                if (basePrice != null) {
-                    BigDecimal raw = basePrice
-                            .multiply(BigDecimal.valueOf(100).subtract(discountPct))
+
+        for (ProductVariant pv : variants) {
+            BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
+            if (basePrice == null) continue;
+
+            BigDecimal bestPrice = basePrice;
+
+            // Apply promotion if available
+            if (bestPercentagePromo != null) {
+                BigDecimal promoPrice = basePrice
+                        .multiply(BigDecimal.valueOf(100).subtract(bestPercentagePromo.getGiaTriGiam()))
+                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                if (bestPercentagePromo.getGiamToiDa() != null) {
+                    BigDecimal actualDiscount = basePrice.multiply(bestPercentagePromo.getGiaTriGiam())
                             .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                    if (hasGiamToiDa) {
-                        BigDecimal maxDiscount = bestPercentagePromo.getGiamToiDa();
-                        BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                        if (actualDiscount.compareTo(maxDiscount) > 0) {
-                            raw = basePrice.subtract(maxDiscount);
-                        }
+                    if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
+                        promoPrice = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
                     }
-                    variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
+                }
+                if (promoPrice.compareTo(bestPrice) < 0) {
+                    bestPrice = promoPrice;
                 }
             }
-            if (!variants.isEmpty()) {
-                ProductVariant first = variants.get(0);
-                BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
-                if (basePrice != null) {
-                    promoDiscountedPrice = variantPromoPriceMap.get(first.getId());
+
+            // Apply flash sale if available (overrides promotion)
+            if (flashSale != null && pricingService.isFlashSaleUsable(flashSale)) {
+                BigDecimal giaGoc = pv.getGiaGoc();
+                if (giaGoc != null) {
+                    BigDecimal fsPrice = giaGoc.multiply(
+                            BigDecimal.ONE.subtract(flashSale.getGiaTriGiam().divide(BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP))
+                    ).setScale(0, java.math.RoundingMode.HALF_UP);
+                    if (fsPrice.compareTo(bestPrice) < 0) {
+                        bestPrice = fsPrice;
+                    }
                 }
             }
+
+            variantPromoPriceMap.put(pv.getId(), bestPrice);
+        }
+
+        if (!variants.isEmpty()) {
+            promoDiscountedPrice = variantPromoPriceMap.get(variants.get(0).getId());
         }
         model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
@@ -451,14 +507,6 @@ public class ProductController {
         model.addAttribute("minVolume", minVolume);
         model.addAttribute("maxVolume", maxVolume);
 
-        // Compute initial promo discounted price for server-rendered display
-        if (bestPercentagePromo != null && !variantPromoPriceMap.isEmpty() && minPrice != null) {
-            BigDecimal promoMin = variantPromoPriceMap.values().stream().min(BigDecimal::compareTo).orElse(null);
-            if (promoMin != null) {
-                model.addAttribute("promoDiscountedPrice", promoMin);
-            }
-        }
-
         // Category name + breadcrumb
         Integer catId = product.getDanhMucId();
         String categoryName = categoryRepository.findById(catId)
@@ -484,6 +532,9 @@ public class ProductController {
             }
             model.addAttribute("relatedMinPrices", relatedMinPrices);
         }
+
+        // Page URL for social sharing
+        model.addAttribute("pageUrl", appUrl + "/san-pham/" + id);
 
         return "view/client/product/product-detail";
     }
@@ -525,42 +576,55 @@ public class ProductController {
     }
 
     @PostMapping("/san-pham/{id}/danh-gia")
-    public String submitReview(@PathVariable Integer id,
+    public Object submitReview(@PathVariable Integer id,
             @Valid @ModelAttribute ReviewRequestDTO request,
             BindingResult result,
             @RequestParam(value = "hinhAnh", required = false) List<MultipartFile> hinhAnhFiles,
-            RedirectAttributes ra) {
+            RedirectAttributes ra,
+            jakarta.servlet.http.HttpServletRequest httpRequest) {
+        boolean isAjax = "XMLHttpRequest".equals(httpRequest.getHeader("X-Requested-With"));
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
+            if (isAjax) return java.util.Map.of("success", false, "message", "Vui long dang nhap de danh gia");
             ra.addFlashAttribute("errorMsg", "Vui long dang nhap de danh gia");
             return "redirect:/dang-nhap";
         }
         if (result.hasErrors()) {
+            if (isAjax) return java.util.Map.of("success", false, "message", "Vui long nhap day du thong tin danh gia");
             ra.addFlashAttribute("errorMsg", "Vui long nhap day du thong tin danh gia");
             return "redirect:/san-pham/" + id;
         }
         request.setProductId(id);
-        String hinhAnhUrls = null;
+        List<String> hinhAnhUrls = new java.util.ArrayList<>();
         if (hinhAnhFiles != null && !hinhAnhFiles.isEmpty()) {
             try {
-                List<String> urls = new java.util.ArrayList<>();
                 for (MultipartFile f : hinhAnhFiles) {
                     if (!f.isEmpty()) {
-                        urls.add(fileUploadService.save(f, "reviews"));
+                        hinhAnhUrls.add(fileUploadService.save(f, "reviews"));
                     }
                 }
-                if (!urls.isEmpty()) {
-                    hinhAnhUrls = String.join(",", urls);
-                }
             } catch (Exception e) {
+                if (isAjax) return java.util.Map.of("success", false, "message", "Loi upload anh: " + e.getMessage());
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;
             }
         }
         try {
             reviewService.createReview(userId, request, hinhAnhUrls);
+            
+            reviewService.createReview(userId, request, hinhAnhUrls.isEmpty() ? null : hinhAnhUrls);
+            Product product = productService.findById(id);
+            String productName = product != null ? product.getTenSanPham() : "san pham #" + id;
+            notificationHelper.notifyStaff(
+                    "Co danh gia moi cho san pham " + productName + " can duyet",
+                    "PRODUCT", id,
+                    "/admin/danh-gia",
+                    "Duyet danh gia"
+            );
+            if (isAjax) return java.util.Map.of("success", true, "message", "Cam on ban da danh gia!");
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {
+            if (isAjax) return java.util.Map.of("success", false, "message", e.getMessage());
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/san-pham/" + id;
@@ -571,5 +635,20 @@ public class ProductController {
     @ResponseBody
     public VariantApiDTO getVariant(@PathVariable Integer variantId) {
         return productService.getVariantApi(variantId);
+    }
+
+    @GetMapping("/api/products/suggestions")
+    @ResponseBody
+    public List<Map<String, Object>> suggest(@RequestParam String keyword) {
+        List<Product> products = productService.searchSuggestions(keyword, 5);
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Product p : products) {
+            Map<String, Object> m = new java.util.HashMap<>();
+            m.put("id", p.getId());
+            m.put("tenSanPham", p.getTenSanPham());
+            m.put("hinhAnhChinh", p.getHinhAnhChinh());
+            result.add(m);
+        }
+        return result;
     }
 }

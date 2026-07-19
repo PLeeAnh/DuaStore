@@ -95,6 +95,7 @@
         </div>
 
         <div class="adm-table-wrap">
+            <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
@@ -103,6 +104,7 @@
                         <th>Mã</th>
                         <th>Giá trị</th>
                         <th>SL còn</th>
+                        <th>Đã dùng</th>
                         <th>Ngày BĐ</th>
                         <th>Ngày KT</th>
                         <th>Trạng thái</th>
@@ -120,6 +122,7 @@
                         </td>
                         <td th:text="${p.loaiGiam == 'PHAN_TRAM' ? p.giaTriGiam + '%' : #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></td>
                         <td th:text="${p.soLanDung != null ? p.soLanDung - p.daDung : 'Không giới hạn'}"></td>
+                        <td th:text="${usageCounts.get(p.id) != null ? usageCounts.get(p.id) : 0}"></td>
                         <td th:text="${#temporals.format(p.tuNgay, 'dd/MM/yyyy HH:mm')}"></td>
                         <td th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
@@ -139,34 +142,16 @@
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(promotions)}">
-                        <td colspan="9" class="text-muted text-center py-4">Chưa có dữ liệu</td>
+                        <td colspan="10" class="text-muted text-center py-4">Chưa có dữ liệu</td>
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
     <th:block layout:fragment="extra-script">
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                function doFilter() {
-                    var keyword = document.getElementById('searchKeyword').value;
-                    var active = document.getElementById('filterActive').value;
-                    var params = new URLSearchParams();
-                    if (keyword)
-                        params.set('keyword', keyword);
-                    if (active)
-                        params.set('isActive', active);
-                    window.location.href = '/admin/khuyen-mai?' + params.toString();
-                }
-                document.getElementById('filterActive').addEventListener('change', doFilter);
-                var searchTimer;
-                document.getElementById('searchKeyword').addEventListener('input', function () {
-                    clearTimeout(searchTimer);
-                    searchTimer = setTimeout(doFilter, 400);
-                });
-            });
-        </script>
+        <script th:src="@{/js/admin-filters.js}"></script>
     </th:block>
 </body>
 </html>

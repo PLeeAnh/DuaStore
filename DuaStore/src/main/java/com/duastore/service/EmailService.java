@@ -1,5 +1,7 @@
 package com.duastore.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -10,8 +12,9 @@ import jakarta.mail.internet.MimeMessage;
 import java.util.Properties;
 
 @Service
-public class EmailService {
+public class EmailService implements EmailSender {
 
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender defaultMailSender;
     private final SiteSettingService siteSettingService;
 
@@ -81,6 +84,12 @@ public class EmailService {
         return (name != null && !name.isBlank()) ? name : "DuaStore";
     }
 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
     public void send(String to, String subject, String body) {
         try {
             JavaMailSender sender = resolveMailSender();
@@ -91,7 +100,8 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(body, true);
             sender.send(msg);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 
@@ -119,30 +129,30 @@ public class EmailService {
                       <td style="background:linear-gradient(135deg,#e53935,#c62828);
                                  padding:32px;text-align:center;">
                         <div style="color:#fff;font-size:24px;font-weight:800;">DuaStore</div>
-                        <div style="color:rgba(255,255,255,.8);font-size:13px;">Đồ Thủy Tinh Cao Cấp</div>
+                        <div style="color:rgba(255,255,255,.8);font-size:13px;">&#272;&#7891; Th&#7911;y Tinh Cao C&#7845;p</div>
                       </td>
                     </tr>
                     <tr>
                       <td style="padding:36px 40px;">
                         <p style="font-size:15px;color:#616161;">
-                          Bạn đã yêu cầu <strong>%s</strong> tại DuaStore.<br/>
-                          Vui lòng dùng mã OTP bên dưới:
+                          B&#7841;n &#273;ã y&#234u c&#7847u <strong>%s</strong> t&#7841;i DuaStore.<br/>
+                          Vui l&ograve;ng d&ugrave;ng m&atilde; OTP b&ecirc;n d&#432;&#7899;i:
                         </p>
                         <div style="background:#fff8f8;border:2px dashed #e53935;
                                     border-radius:12px;padding:24px;text-align:center;">
                           <div style="font-size:13px;color:#9e9e9e;letter-spacing:2px;">
-                            MÃ XÁC THỰC
+                            M&Atilde; X&Aacute;C TH&#7920;C
                           </div>
                           <div style="font-size:44px;font-weight:900;letter-spacing:12px;
                                       color:#e53935;font-family:monospace;">
                             %s
                           </div>
                           <div style="font-size:12px;color:#9e9e9e;margin-top:8px;">
-                            Hiệu lực trong <strong>5 phút</strong>
+                            Hi&#7879;u l&#7909;c trong <strong>5 ph&uacute;t</strong>
                           </div>
                         </div>
                         <p style="font-size:12px;color:#9e9e9e;margin-top:20px;">
-                          Không chia sẻ mã này với bất kỳ ai.
+                          Kh&ocirc;ng chia s&#7867; m&atilde; n&agrave;y v&#7899;i b&#7845;t k&#7923; ai.
                         </p>
                       </td>
                     </tr>
@@ -158,12 +168,17 @@ public class EmailService {
                 </body></html>
                 """.formatted(action, otp);
 
+            String plainText = "DuaStore - Ma xac thuc: " + otp + "\n"
+                    + "Ban da yeu cau " + action + " tai DuaStore.\n"
+                    + "Ma xac thuc cua ban la: " + otp + "\n"
+                    + "Hieu luc trong 5 phut. Khong chia se ma nay voi bat ky ai.";
+
             helper.setSubject(subject);
-            helper.setText(html, true);
+            helper.setText(plainText, html);
             sender.send(msg);
 
         } catch (Exception e) {
-            throw new RuntimeException("Không thể gửi email: " + e.getMessage());
+            log.warn("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -234,7 +249,8 @@ public class EmailService {
 
             helper.setText(html, true);
             sender.send(msg);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to send order confirmation email to {}: {}", toEmail, e.getMessage());
         }
     }
 
@@ -254,7 +270,8 @@ public class EmailService {
                 </div>
                 """, true);
             sender.send(msg);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
         }
     }
 }

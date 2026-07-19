@@ -85,7 +85,8 @@ var email = document.getElementById('forgotEmail')?.value.trim() || '';
 /* ── Send code buttons ── */
 document.querySelectorAll('.ds-auth-code-inline').forEach(function(btn) {
 btn.addEventListener('click', function() {
-var field = this.closest('.ds-auth-field')?.querySelector('input[type="email"]');
+var modal = this.closest('.modal');
+        var field = modal ? modal.querySelector('input[type="email"]') : this.closest('.ds-auth-field')?.querySelector('input[type="email"]');
         var emailField = field || document.getElementById('regEmail') || document.getElementById('forgotEmail');
         var email = emailField?.value.trim();
         if (!email || !email.includes('@')) {
@@ -101,7 +102,11 @@ var orig = this.textContent;
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email })
         }).then(function(r) { return r.json(); }).then(function(data) {
-if (data.success) {
+if (data.dev_code) {
+        var statusEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-status') || document.getElementById('codeStatus');
+        if (statusEl) { statusEl.textContent = 'Mã: ' + data.dev_code; statusEl.style.display = ''; }
+        }
+        if (data.success) {
 btn.textContent = 'Đã gửi';
         setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
         } else {
@@ -109,11 +114,8 @@ btn.textContent = 'Thử lại';
         var errMsg = data.error || 'Gửi mã thất bại';
         var emailErr = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
         if (emailErr) { emailErr.querySelector('span').textContent = errMsg; emailErr.classList.add('show'); }
-setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
+setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 3000);
         }
-}).catch(function() {
-btn.textContent = 'Lỗi';
-        setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 2000);
         });
         });
         });
@@ -157,20 +159,58 @@ btn.disabled = false;
         });
 });
 
-// ── Ghi nhớ trạng thái giỏ hàng ──
+// ── Badge persistence (count-based) ──
+function getBadgeCount(badgeId) {
+        if (badgeId === 'cartBadge') {
+        var h = document.getElementById('dsCartCountServer');
+                if (h) return parseInt(h.value) || 0;
+        }
+        var el = document.getElementById(badgeId);
+        if (!el) return 0;
+        var text = el.textContent.trim();
+        return parseInt(text) || 0;
+}
+
+function getViewedCount(key) {
+        try { return parseInt(localStorage.getItem(key)) || 0; } catch (e) { return 0; }
+}
+
+function saveViewedCount(key, count) {
+        localStorage.setItem(key, String(count));
+}
+
+function markCartBadgeUnread() {
+        try { localStorage.removeItem('ds_viewedCartCount'); } catch (e) {}
+}
+
+function markCartBadgeViewed() {
+        var count = getBadgeCount('cartBadge');
+        saveViewedCount('ds_viewedCartCount', count);
+        setPopupBadge('cartBadge', count, false);
+}
+
+function setPopupBadge(badgeId, count, visible) {
+        var badge = document.getElementById(badgeId);
+        if (!badge) return;
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.classList.toggle('d-none', !visible || count <= 0);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-        var cartItems = document.querySelectorAll('#cart-items-container .popup-item');
-        var currentCartState = [];
-        cartItems.forEach(function(item) {
-        var qtyEl = item.querySelector('input[id^="popup-qty-"]');
-                var qty = qtyEl ? qtyEl.value : '1';
-                currentCartState.push(item.id + '-qty-' + qty);
-                });
-        var viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
+        var cartCount = getBadgeCount('cartBadge');
+        var viewedCart = getViewedCount('ds_viewedCartCount');
+        setPopupBadge('cartBadge', cartCount, cartCount > 0 && cartCount !== viewedCart);
+
+        var wishCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
+        var viewedWish = getViewedCount('ds_viewedWishCount');
+        setPopupBadge('wishlistBadge', wishCount, wishCount > 0 && wishCount !== viewedWish);
+
+        var notifCount = getBadgeCount('notifBadge');
+        setPopupBadge('notifBadge', notifCount, notifCount > 0);
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
-function togglePopup(popupId) {
+function togglePopup(popupId, markAsViewed) {
         document.querySelectorAll('.custom-popup').forEach(function(popup) {
 if (popup.id !== popupId) popup.style.display = 'none';
         });
@@ -178,32 +218,26 @@ if (popup.id !== popupId) popup.style.display = 'none';
         if (popup) {
 var isOpening = (popup.style.display !== 'block');
         popup.style.display = isOpening ? 'block' : 'none';
-        if (isOpening) {
+        if (isOpening && markAsViewed === true) {
 if (popupId === 'wishlist-popup') {
-var wBadge = document.getElementById('wishlistBadge');
-        if (wBadge) wBadge.classList.add('d-none');
-        const items = document.querySelectorAll('#wishlist-items-container .popup-item');
-        let states = [];
-        items.forEach(i => states.push(i.id));
-        localStorage.setItem('viewedWishlistState', JSON.stringify(states));
+        var wBadge = document.getElementById('wishlistBadge');
+                if (wBadge) wBadge.classList.add('d-none');
+                saveViewedCount('ds_viewedWishCount', document.querySelectorAll('#wishlist-items-container .popup-item').length);
         } else if (popupId === 'cart-popup') {
-var cBadge = document.getElementById('cartBadge');
-        if (cBadge) cBadge.classList.add('d-none');
-        localStorage.setItem('cartViewed', 'true');
-        const items = document.querySelectorAll('#cart-items-container .popup-item');
-        let states = [];
-        items.forEach(item => {
-        const inp = item.querySelector('input[id^="popup-qty-"]');
-                const qty = inp ? inp.value : '1';
-                states.push(item.id + '-qty-' + qty);
-                });
-        localStorage.setItem('viewedCartState', JSON.stringify(states));
+                markCartBadgeViewed();
         }
 }
 }
 }
 
 /* ── HÀM TĂNG GIẢM SỐ LƯỢNG ── */
+function updateMinusButtonState(itemId) {
+    var minusBtn = document.querySelector('#popup-qty-' + itemId)?.closest('.ds-qty-selector')?.querySelector('.ds-qty-minus');
+    if (!minusBtn) return;
+    var qty = parseInt(document.getElementById('popup-qty-' + itemId)?.value) || 1;
+    minusBtn.style.opacity = qty <= 1 ? '0.35' : '1';
+}
+
 function updatePopupQty(itemId, delta) {
         const qtyInput = document.getElementById('popup-qty-' + itemId);
         const priceSpan = document.getElementById('popup-price-' + itemId);
@@ -212,10 +246,9 @@ function updatePopupQty(itemId, delta) {
         let newQty = currentQty + delta;
         let stock = parseInt(qtyInput.getAttribute('data-stock')) || 999;
         if (newQty < 1) {
-if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-removeCartItem(itemId);
-        }
-return;
+        newQty = 1;
+        updateMinusButtonState(itemId);
+        return;
         }
 
 if (newQty > stock) {
@@ -225,6 +258,7 @@ DuaStore.toast.warning('Chỉ còn ' + stock + ' sản phẩm trong kho');
         }
 
 qtyInput.value = newQty;
+        updateMinusButtonState(itemId);
         if (priceSpan) {
 let unitPrice = parseInt(priceSpan.getAttribute('data-price')) || 0;
         priceSpan.innerText = (unitPrice * newQty).toLocaleString('vi-VN') + '₫';
@@ -236,7 +270,7 @@ method: 'POST',
         body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: newQty })
         })
         .then(function(r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
         if (typeof showLoginPopup === 'function') showLoginPopup();
                 qtyInput.value = currentQty;
                 return null;
@@ -251,14 +285,6 @@ method: 'POST',
                 return;
                 }
 
-        const items = document.querySelectorAll('#cart-items-container .popup-item');
-                let states = [];
-                items.forEach(item => {
-                const inp = item.querySelector('input[id^="popup-qty-"]');
-                        const q = inp ? inp.value : '1';
-                        states.push(item.id + '-qty-' + q);
-                });
-                localStorage.setItem('viewedCartState', JSON.stringify(states));
                 if (typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
                 })
         .catch(err => {
@@ -281,12 +307,15 @@ el.value = val;
                 body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
                 })
         .then(function(r) {
-        if (r.status === 403) { if (typeof showLoginPopup === 'function') showLoginPopup(); return null; }
+        if (r.status === 401 || r.status === 403) { showLoginPopup(); return null; }
         return r.json();
                 })
         .then(function(data) {
         if (!data) return;
-                if (data.success && typeof updateCartBadge === 'function') updateCartBadge(data.cartCount);
+                if (data.success && typeof updateCartBadge === 'function') {
+                updateCartBadge(data.cartCount);
+                updateMinusButtonState(itemId);
+                }
                 })
         .catch(function() {});
 }
@@ -315,7 +344,7 @@ method: 'POST',
         body: JSON.stringify({ variantId: parseInt(itemId), itemId: parseInt(itemId), soLuong: val })
         })
         .then(function(r) {
-        if (r.status === 403) {
+        if (r.status === 401 || r.status === 403) {
         if (typeof showLoginPopup === 'function') showLoginPopup();
                 return null;
                 }
@@ -332,17 +361,15 @@ method: 'POST',
         .catch(err => console.error('Lỗi cập nhật:', err));
 }
 function refreshWishlistBadgeCount() {
-// Đếm số lượng thẻ sản phẩm đang nằm trong popup container
         let currentCount = document.querySelectorAll('#wishlist-items-container .popup-item').length;
         let badge = document.getElementById('wishlistBadge');
         if (!badge) return;
         if (currentCount > 0) {
-badge.textContent = currentCount;
-        badge.classList.remove('d-none'); // Hiển thị badge che icon
+        badge.textContent = currentCount;
+        var viewedWish = getViewedCount('ds_viewedWishCount');
+                badge.classList.toggle('d-none', currentCount === viewedWish);
         } else {
-badge.classList.add('d-none'); // Ẩn badge nếu không còn sản phẩm nào
-
-// Hiển thị trạng thái trống kèm icon trái tim tan vỡ
+        badge.classList.add('d-none');
         let container = document.getElementById('wishlist-items-container');
         if (container && !container.querySelector('.bi-heartbreak')) {
 container.innerHTML = `
@@ -358,44 +385,103 @@ container.innerHTML = `
 /* ── THÔNG BÁO ── */
 function toggleNotifPopup() {
         togglePopup('notif-popup');
-        var badge = document.getElementById('notifBadge');
-        if (badge && !badge.classList.contains('d-none')) {
-fetch('/api/thong-bao/doc-tat-ca', { method: 'POST' })
-        .then(function(r) {
-        if (r.status === 403) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                return null;
-                }
-        return r.text();
-                })
-        .then(function(text) {
-        if (text === null) return;
-                if (text && (text.indexOf('dang nhap') !== - 1 || text.indexOf('đăng nhập') !== - 1)) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                return;
-                }
-        badge.classList.add('d-none');
-                })
-        .catch(function() { badge.classList.add('d-none'); });
+        var popup = document.getElementById('notif-popup');
+        if (popup && popup.style.display === 'block') {
+        fetchNotifPopupContent(popup);
         }
 }
+function fetchNotifPopupContent(popup) {
+        var container = popup.querySelector('.mt-2');
+        if (!container) return;
+        container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
+        fetch('/api/thong-bao')
+        .then(r => r.json())
+        .then(data => {
+        var allNotifs = data.notifications || [];
+                var unreadNotifs = allNotifs.filter(function(n) { return !n.read; });
+                if (unreadNotifs.length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+                return;
+                }
+        var html = '';
+                for (var i = 0; i < unreadNotifs.length; i++) {
+        html += buildNotifItemHtml(unreadNotifs[i]);
+                }
+        container.innerHTML = html;
+        })
+        .catch(function() {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><p class="mb-0">Không thể tải thông báo</p></div>';
+        });
+}
+function buildNotifItemHtml(n) {
+        var timeHtml = formatNotifTime(n.createdAt);
+        var deleteBtn = '<button class="btn btn-sm p-0 border-0 text-muted ms-1 flex-shrink-0" onclick="event.stopPropagation(); deleteNotif(' + n.id + ')" title="Xóa thông báo"><i class="bi bi-x-circle" style="font-size:.8rem;"></i></button>';
+        if (n.linkType) {
+        return '<a href="' + (n.linkUrl || '#') + '" class="text-decoration-none text-reset d-block notif-item" data-notif-id="' + n.id + '" onclick="markNotifRead(' + n.id + ')">' +
+                '<div class="d-flex align-items-start gap-2 px-1 py-1">' +
+                getNotifIcon(n.linkType) +
+                '<div class="flex-grow-1 min-w-0">' +
+                '<p class="mb-0 notif-text">' + escapeHtml(truncate(n.content, 100)) + '</p>' +
+                '<div class="mt-1"><span class="notif-link"><span>' + escapeHtml(truncate(n.linkLabel, 35)) + '</span><i class="bi bi-arrow-right ms-1"></i></span></div>' +
+                '<small class="notif-time">' + timeHtml + '</small>' +
+                '</div>' + deleteBtn + '</div></a>';
+        }
+        return '<div class="notif-item" data-notif-id="' + n.id + '"><div class="d-flex align-items-start gap-2 px-1 py-1">' +
+                '<span class="notif-icon bg-primary-subtle text-primary flex-shrink-0"><i class="bi bi-megaphone"></i></span>' +
+                '<div class="flex-grow-1 min-w-0"><p class="mb-0 notif-text">' + escapeHtml(truncate(n.content, 100)) + '</p>' +
+                '<small class="notif-time">' + timeHtml + '</small></div>' + deleteBtn + '</div></div>';
+}
+function formatNotifTime(isoString) {
+        if (!isoString) return '';
+        try {
+        var d = new Date(isoString);
+                var hh = String(d.getHours()).padStart(2, '0');
+                var mm = String(d.getMinutes()).padStart(2, '0');
+                var dd = String(d.getDate()).padStart(2, '0');
+                var mon = String(d.getMonth() + 1).padStart(2, '0');
+                return hh + ':' + mm + ', ' + dd + '/' + mon;
+        } catch(e) { return isoString; }
+}
+function escapeHtml(text) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(text));
+        return d.innerHTML;
+}
+function truncate(text, max) {
+        if (!text) return '';
+        return text.length > max ? text.substring(0, max) + '...' : text;
+}
 function markNotifRead(id) {
-        fetch('/api/thong-bao/doc/' + id, { method: 'POST' })
-        .then(function(r) {
-        if (r.status === 403) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                return null;
-                }
-        return r.text();
-                })
-        .then(function(text) {
-        if (text === null) return;
-                if (text && (text.indexOf('dang nhap') !== - 1 || text.indexOf('đăng nhập') !== - 1)) {
-        if (typeof showLoginPopup === 'function') showLoginPopup();
-                }
+        // Remove from popup DOM immediately
+        var item = document.querySelector('#notif-popup [data-notif-id="' + id + '"]');
+        if (item) {
+        item.remove();
+                var container = document.querySelector('#notif-popup .mt-2');
+                if (container && container.querySelectorAll('.notif-item').length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+        }
+        }
+        pollNotifications();
+        // keepalive ensures request completes even during page navigation
+        fetch('/api/thong-bao/doc/' + id, { method: 'POST', keepalive: true })
+        .catch(function() {});
+}
+function deleteNotif(id) {
+        if (!confirm('Xóa thông báo này?')) return;
+        fetch('/api/thong-bao/xoa/' + id, { method: 'POST' })
+        .then(function(r) { return r.text(); })
+        .then(function() {
+        var item = document.querySelector('[data-notif-id="' + id + '"]');
+        if (item) item.remove();
+        var container = document.querySelector('#notif-popup .mt-2');
+        if (container && container.querySelectorAll('.notif-item').length === 0) {
+        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+        }
+        pollNotifications();
         })
         .catch(function() {});
 }
+
 function getNotifIcon(linkType) {
         if (linkType === 'PRODUCT') return '<span class="notif-icon bg-info-subtle text-info flex-shrink-0"><i class="bi bi-box-seam"></i></span>';
         if (linkType === 'PROMOTION') return '<span class="notif-icon bg-warning-subtle text-warning flex-shrink-0"><i class="bi bi-tag"></i></span>';
@@ -409,47 +495,28 @@ function pollNotifications() {
         .then(data => {
         var badge = document.getElementById('notifBadge');
                 if (badge) {
-        if (data.count > 0) {
-        badge.textContent = data.count;
-                badge.classList.remove('d-none');
+        var count = data.count || 0;
+                badge.textContent = count > 99 ? '99+' : String(count);
+                if (count > 0) {
+        badge.classList.remove('d-none');
                 } else {
         badge.classList.add('d-none');
                 }
         }
-        var container = document.querySelector('#notif-popup .mt-2');
-                if (!container) return;
-                if (!data.notifications || data.notifications.length === 0) {
-        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size: 2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
-                return;
-                }
-        var html = '';
-                data.notifications.forEach(function(n) {
-                if (n.linkType) {
-                html += '<a href="' + n.linkUrl + '" class="text-decoration-none text-reset d-block notif-item">';
-                        html += '<div class="d-flex align-items-start gap-2">';
-                        html += getNotifIcon(n.linkType);
-                        html += '<div class="flex-grow-1 min-w-0">';
-                        html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
-                        if (n.linkLabel) {
-                html += '<div class="mt-1"><span class="notif-link"><span>' + n.linkLabel.substring(0, 35) + '</span><i class="bi bi-arrow-right ms-1"></i></span></div>';
-                }
-                html += '<small class="notif-time">' + n.time + '</small>';
-                        html += '</div></div></a>';
-                } else {
-                html += '<div class="notif-item"><div class="d-flex align-items-start gap-2">';
-                        html += getNotifIcon(null);
-                        html += '<div class="flex-grow-1 min-w-0">';
-                        html += '<p class="mb-0 notif-text">' + n.content.substring(0, 100) + '</p>';
-                        html += '<small class="notif-time">' + n.time + '</small>';
-                        html += '</div></div></div>';
-                }
-                });
-                container.innerHTML = html;
-                })
+        })
         .catch(function() {});
 }
 
 setInterval(pollNotifications, 15000);
+
+/* ── Prevent stuck modal-backdrop ── */
+document.addEventListener('hidden.bs.modal', function() {
+    if (document.querySelectorAll('.modal.show').length === 0) {
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('padding-right');
+    }
+});
 
 /* ── Dirty Save Bar ── */
 function initDirtyBar() {
@@ -800,7 +867,7 @@ function saveSettingsPassword() {
         var confirmP = document.getElementById('sConfirmPassword').value;
         var errDiv = document.getElementById('settingsPassError');
         if (!oldP || !newP || !confirmP) { errDiv.textContent = 'Vui lòng nhập đầy đủ'; errDiv.classList.remove('d-none'); return; }
-if (newP.length < 6) { errDiv.textContent = 'Mật khẩu mới tối thiểu 6 ký tự'; errDiv.classList.remove('d-none'); return; }
+if (newP.length < 8) { errDiv.textContent = 'Mật khẩu mới tối thiểu 8 ký tự'; errDiv.classList.remove('d-none'); return; }
 if (newP !== confirmP) { errDiv.textContent = 'Mật khẩu mới không khớp'; errDiv.classList.remove('d-none'); return; }
 var fd = new FormData();
         fd.append('oldPassword', oldP);
@@ -847,10 +914,3 @@ function showToast(msg) {
                 t.style.pointerEvents = 'none';
         }, 3000);
 }
-/* ── Ẩn badge giỏ hàng nếu đã xem trước đó ── */
-document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('cartViewed') === 'true') {
-        var b = document.getElementById('cartBadge');
-        if (b) b.classList.add('d-none');
-    }
-});

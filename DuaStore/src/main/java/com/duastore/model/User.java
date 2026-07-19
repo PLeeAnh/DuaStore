@@ -2,6 +2,7 @@ package com.duastore.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -69,6 +70,15 @@ public class User {
     @Column
     private LocalDateTime ngayCapNhat;
 
+    @Column
+    private LocalDate ngaySinh;
+
+    @Column(length = 64)
+    private String twoFactorSecret;
+
+    @Column
+    private Boolean twoFactorEnabled = false;
+
     @Column(length = 255)
     private String resetToken;
 
@@ -80,6 +90,9 @@ public class User {
         ngayTao = LocalDateTime.now();
         if (isActive == null) {
             isActive = true;
+        }
+        if (twoFactorEnabled == null) {
+            twoFactorEnabled = false;
         }
     }
 

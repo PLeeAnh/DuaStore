@@ -85,7 +85,7 @@ class AddressControllerTest {
                         .with(csrf())
                         .param("tenNguoiNhan", "Test")
                         .param("soDienThoai", "0900000000"))
-                .andExpect(status().isOk())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Vui lòng đăng nhập"));
     }
@@ -202,5 +202,40 @@ class AddressControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Không tìm thấy địa chỉ"));
+    }
+
+    @Test
+    @WithMockUser(username = "addr-test@example.com")
+    void apiSaveAddress_rejectsStreetMatchingProvince() throws Exception {
+        doNothing().when(geocodingService).geocodeIfMissing(any());
+
+        mockMvc.perform(post("/address/api/save")
+                        .with(csrf())
+                        .param("tenNguoiNhan", "Test User")
+                        .param("soDienThoai", "0900000000")
+                        .param("tinhThanh", "Hà Nội")
+                        .param("quanHuyen", "Cầu Giấy")
+                        .param("phuongXa", "Dịch Vọng")
+                        .param("diaChiCuThe", "Hải Phòng"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Số nhà, đường không được nhập tên tỉnh/quận/phường"));
+    }
+
+    @Test
+    @WithMockUser(username = "addr-test@example.com")
+    void apiSaveAddress_acceptsValidStreet() throws Exception {
+        doNothing().when(geocodingService).geocodeIfMissing(any());
+
+        mockMvc.perform(post("/address/api/save")
+                        .with(csrf())
+                        .param("tenNguoiNhan", "Test User")
+                        .param("soDienThoai", "0900000000")
+                        .param("tinhThanh", "Hà Nội")
+                        .param("quanHuyen", "Cầu Giấy")
+                        .param("phuongXa", "Dịch Vọng")
+                        .param("diaChiCuThe", "Số 123, Đường Nguyễn Văn Linh"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
     }
 }

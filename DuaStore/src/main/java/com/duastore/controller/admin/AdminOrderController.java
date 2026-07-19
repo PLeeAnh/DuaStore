@@ -243,7 +243,8 @@ public class AdminOrderController {
                             "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
                             "ORDER", order.getId(),
                             "/tai-khoan/don-hang/" + order.getId(),
-                            order.getMaDon()
+                            order.getMaDon(),
+                            order.getUser() != null ? order.getUser().getId() : null
                     );
                 } catch (Exception ignored) {
                 }
@@ -304,7 +305,8 @@ public class AdminOrderController {
                             "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
                             "ORDER", order.getId(),
                             "/tai-khoan/don-hang/" + order.getId(),
-                            order.getMaDon()
+                            order.getMaDon(),
+                            order.getUser() != null ? order.getUser().getId() : null
                     );
                 } catch (Exception ignored) {
                 }
@@ -329,6 +331,61 @@ public class AdminOrderController {
             if ("DA_HUY".equals(trangThai)) {
                 result.put("deleted", true);
             }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/api/batch-cap-nhat-trang-thai")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
+    public ResponseEntity<Map<String, Object>> batchUpdateStatus(@RequestBody Map<String, Object> body,
+            HttpServletRequest request) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            User admin = securityUtil.getCurrentUser();
+            if (admin == null) {
+                result.put("success", false);
+                result.put("message", "Chưa đăng nhập");
+                return ResponseEntity.status(401).body(result);
+            }
+
+            @SuppressWarnings("unchecked")
+            List<Integer> ids = ((List<Integer>) body.get("ids"));
+            String status = (String) body.get("status");
+
+            if (ids == null || ids.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Danh sách đơn hàng trống");
+                return ResponseEntity.ok(result);
+            }
+            if (status == null || status.isBlank()) {
+                result.put("success", false);
+                result.put("message", "Trạng thái không hợp lệ");
+                return ResponseEntity.ok(result);
+            }
+
+            int updated = 0;
+            List<String> errors = new java.util.ArrayList<>();
+
+            for (Integer id : ids) {
+                try {
+                    Order order = adminOrderService.getOrderById(id);
+                    String oldStatus = order.getTrangThaiDon();
+                    String stockMsg = adminOrderService.updateOrderStatusWithLog(id, status, oldStatus, admin, request);
+                    updated++;
+                    log.info("Batch update order #{}: {} -> {}", id, oldStatus, status);
+                } catch (Exception e) {
+                    log.error("Batch update failed for order #{}: {}", id, e.getMessage());
+                    errors.add("Đơn #" + id + ": " + e.getMessage());
+                }
+            }
+
+            result.put("success", true);
+            result.put("updated", updated);
+            result.put("errors", errors);
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", e.getMessage());

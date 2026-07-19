@@ -38,66 +38,70 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- ═══════ FORM ═══════ -->
-                <form id="productForm"
-                      th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
-                      th:object="${product}" method="post" data-dirty-bar enctype="multipart/form-data">
-                    <input type="hidden" th:field="*{id}" />
+        <!-- ═══════ FORM ═══════ -->
+        <form id="productForm"
+              th:action="${product.id != null} ? @{/admin/san-pham/sua/{id}(id=${product.id})} : @{/admin/san-pham/them-moi}"
+              th:object="${product}" method="post" data-dirty-bar enctype="multipart/form-data">
+            <input type="hidden" th:field="*{id}" />
 
-                    <div class="row g-4">
-                        <!-- ═══ LEFT COLUMN ═══ -->
-                        <div class="col-lg-8">
+            <div class="row g-4">
+                <!-- ═══ LEFT COLUMN ═══ -->
+                <div class="col-lg-8">
 
-                            <!-- Card: Thông tin cơ bản -->
-                            <div class="adm-card">
-                                <div class="adm-card-header">
-                                    <span><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</span>
+                    <!-- Card: Thông tin cơ bản -->
+                    <div class="adm-card">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
+                                    <input type="text" th:field="*{tenSanPham}" class="form-control" required />
+                                    <div th:if="${#fields.hasErrors('tenSanPham')}" th:errors="*{tenSanPham}" class="text-danger small"></div>
                                 </div>
-                                <div class="adm-card-body">
+                                <div class="col-md-4">
+                                    <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+                                    <select th:field="*{danhMucId}" class="form-select searchable-select" required>
+                                        <option value="">— Chọn danh mục —</option>
+                                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}">DM</option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('danhMucId')}" th:errors="*{danhMucId}" class="text-danger small"></div>
+                                </div>
+                                <div class="col-12">
                                     <div class="row g-3">
-                                        <div class="col-md-8">
-                                            <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
-                                            <input type="text" th:field="*{tenSanPham}" class="form-control" required />
-                                            <div th:if="${#fields.hasErrors('tenSanPham')}" th:errors="*{tenSanPham}" class="text-danger small"></div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-                                            <select th:field="*{danhMucId}" class="form-select searchable-select" required>
-                                                <option value="">— Chọn danh mục —</option>
-                                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}">DM</option>
-                                            </select>
-                                            <div th:if="${#fields.hasErrors('danhMucId')}" th:errors="*{danhMucId}" class="text-danger small"></div>
-                                        </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Thương hiệu</label>
                                             <select th:field="*{thuongHieu}" class="form-select searchable-select" data-create>
                                                 <option value="">— Chọn thương hiệu —</option>
                                                 <option th:each="b : ${brands}" th:value="${b}" th:text="${b}">Brand</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Chất liệu</label>
                                             <select th:field="*{chatLieu}" class="form-select searchable-select" data-create>
                                                 <option value="">— Chọn chất liệu —</option>
                                                 <option th:each="m : ${materials}" th:value="${m}" th:text="${m}">Material</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Xuất xứ</label>
                                             <select th:field="*{xuatXu}" class="form-select searchable-select" data-create>
                                                 <option value="">— Chọn xuất xứ —</option>
                                                 <option th:each="o : ${origins}" th:value="${o}" th:text="${o}">Origin</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Loại kính</label>
                                             <select th:field="*{kinhLoai}" class="form-select searchable-select" data-create>
                                                 <option value="">— Chọn loại kính —</option>
                                                 <option th:each="g : ${glassTypes}" th:value="${g}" th:text="${g}">GlassType</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <label class="form-label">Mục đích sử dụng</label>
                                             <select th:field="*{mucDichSuDung}" class="form-select searchable-select" data-create>
                                                 <option value="">— Chọn mục đích —</option>
@@ -114,125 +118,134 @@
                                                 <label class="form-check-label" for="featured">Nổi bật</label>
                                             </div>
                                         </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Mô tả sản phẩm</label>
-                                            <textarea th:field="*{moTa}" class="form-control" rows="5" style="min-height:120px"></textarea>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Trạng thái</label>
-                                            <div class="d-flex flex-wrap gap-2">
-                                                <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDangBan" value="DANG_BAN" th:checked="${product.trangThaiSanPham == 'DANG_BAN'}" />
-                                                <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'DANG_BAN'} ? 'active' : ''" for="statusDangBan" style="cursor:pointer">
-                                                    <i class="bi bi-check-circle-fill text-success me-1"></i>Đang bán
-                                                </label>
-                                                <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDatTruoc" value="DAT_TRUOC" th:checked="${product.trangThaiSanPham == 'DAT_TRUOC'}" />
-                                                <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'DAT_TRUOC'} ? 'active' : ''" for="statusDatTruoc" style="cursor:pointer">
-                                                    <i class="bi bi-clock-fill text-warning me-1"></i>Đặt trước
-                                                </label>
-                                                <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusNgungBan" value="NGUNG_BAN" th:checked="${product.trangThaiSanPham == 'NGUNG_BAN'}" />
-                                                <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'NGUNG_BAN'} ? 'active' : ''" for="statusNgungBan" style="cursor:pointer">
-                                                    <i class="bi bi-x-circle-fill text-danger me-1"></i>Ngừng bán
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-lg-4">
-                                            <label class="form-label">Ngày phát hành</label>
-                                            <input type="date" th:field="*{ngayPhatHanh}" class="form-control" />
-                                        </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Card: Bộ sưu tập ảnh -->
-                            <div class="adm-card mt-4">
-                                <div class="adm-card-header">
-                                    <span><i class="bi bi-collection me-2"></i>Bộ sưu tập ảnh</span>
-                                </div>
-                                <div class="adm-card-body">
-                                    <div class="gallery-upload-zone" id="galleryUploadZone" style="cursor:pointer">
-                                        <input type="file" name="galleryFiles" id="galleryInput" accept="image/*" multiple hidden />
-                                        <div class="gallery-upload-content">
-                                            <i class="bi bi-cloud-arrow-up"></i>
-                                            <p>Kéo thả ảnh vào đây hoặc Click để chọn ảnh</p>
-                                            <small>Hỗ trợ JPG, PNG, WEBP</small>
-                                        </div>
-                                    </div>
-                                    <div class="gallery-preview" id="galleryPreview"></div>
-                                    <div th:if="${not #lists.isEmpty(galleryImages)}" class="d-flex flex-wrap gap-2 mt-3">
-                                        <div th:each="img : ${galleryImages}" style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #eee;flex-shrink:0">
-                                            <img th:src="@{${img.imageUrl}}" alt="" style="width:100%;height:100%;object-fit:cover" />
-                                            <button type="button" th:data-image-id="${img.id}" onclick="deleteGalleryImage(this.getAttribute('data-image-id'), this)" class="btn btn-sm p-0 d-flex align-items-center justify-content-center" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:11px;cursor:pointer">✕</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <!-- ═══ RIGHT COLUMN ═══ -->
-                        <div class="col-lg-4 d-flex flex-column">
-
-                            <!-- Card: Thông tin tổng quan (only for edit mode) -->
-                            <div class="adm-card" th:if="${product.id != null}">
-                                <div class="adm-card-header">
-                                    <span><i class="bi bi-info-square me-2"></i>Thông tin tổng quan</span>
-                                </div>
-                                <div class="adm-card-body">
-                                    <div class="adm-info-row">
-                                        <span class="adm-info-label">SKU</span>
-                                        <span class="adm-info-value">#<span th:text="${product.id}">1</span></span>
-                                    </div>
-                                    <div class="adm-info-row">
-                                        <span class="adm-info-label">Danh mục</span>
-                                        <span class="adm-info-value" th:text="${categoryName}">—</span>
-                                    </div>
-                                    <div class="adm-info-row">
-                                        <span class="adm-info-label">Ngày tạo</span>
-                                        <span class="adm-info-value">—</span>
-                                    </div>
-                                    <div class="adm-info-row">
-                                        <span class="adm-info-label">Cập nhật</span>
-                                        <span class="adm-info-value">—</span>
-                                    </div>
-                                    <div class="adm-info-row">
-                                        <span class="adm-info-label">Hình ảnh</span>
-                                        <span class="adm-info-value" th:text="${#lists.size(galleryImages)}">0</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card: Ảnh chính (centered) -->
-                            <div class="adm-card mt-4 flex-grow-1 d-flex flex-column justify-content-center">
-                                <div class="adm-card-header">
-                                    <span><i class="bi bi-image me-2"></i>Ảnh chính</span>
-                                </div>
-                                <div class="adm-card-body">
-                                    <div class="adm-main-image-wrap">
-                                        <img th:if="${product.hinhAnhChinh}" th:src="@{${product.hinhAnhChinh}}" alt="" class="adm-main-image" />
-                                        <div th:unless="${product.hinhAnhChinh}" class="adm-empty py-3">
-                                            <i class="bi bi-image adm-empty-icon"></i>
-                                            <div class="adm-empty-title">Chưa có ảnh đại diện</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex gap-2 mt-3">
-                                        <label class="btn btn-outline-primary btn-sm flex-fill" id="mainImageLabel">
-                                            <i class="bi bi-arrow-repeat me-1"></i><span th:text="${product.hinhAnhChinh != null} ? 'Đổi ảnh' : 'Thêm ảnh'">Đổi ảnh</span>
-                                            <input type="file" name="hinhAnhFile" id="mainImageInput" accept="image/*" hidden />
+                <div class="col-12">
+                    <label class="form-label">Mô tả sản phẩm</label>
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="generateDescription()">
+                            <i class="bi bi-magic me-1"></i>Tự động viết mô tả
+                        </button>
+                        <span id="descStatus" class="small text-muted align-self-center" style="display:none"></span>
+                    </div>
+                    <textarea th:field="*{moTa}" class="form-control" rows="5" style="min-height:120px"></textarea>
+                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Trạng thái</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDangBan" value="DANG_BAN" th:checked="${product.trangThaiSanPham == 'DANG_BAN'}" />
+                                        <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'DANG_BAN'} ? 'active' : ''" for="statusDangBan" style="cursor:pointer">
+                                            <i class="bi bi-check-circle-fill text-success me-1"></i>Đang bán
                                         </label>
-                                        <button type="button" class="btn btn-outline-danger btn-sm flex-fill" th:if="${product.hinhAnhChinh}" th:data-product-id="${product.id}"
-                                                onclick="confirmDeleteMainImage(this)">
-                                            <i class="bi bi-trash me-1"></i>Xóa ảnh
-                                        </button>
+                                        <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusDatTruoc" value="DAT_TRUOC" th:checked="${product.trangThaiSanPham == 'DAT_TRUOC'}" />
+                                        <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'DAT_TRUOC'} ? 'active' : ''" for="statusDatTruoc" style="cursor:pointer">
+                                            <i class="bi bi-clock-fill text-warning me-1"></i>Đặt trước
+                                        </label>
+                                        <input type="radio" class="btn-check" name="trangThaiSanPham" id="statusNgungBan" value="NGUNG_BAN" th:checked="${product.trangThaiSanPham == 'NGUNG_BAN'}" />
+                                        <label class="adm-tab" th:classappend="${product.trangThaiSanPham == 'NGUNG_BAN'} ? 'active' : ''" for="statusNgungBan" style="cursor:pointer">
+                                            <i class="bi bi-x-circle-fill text-danger me-1"></i>Ngừng bán
+                                        </label>
                                     </div>
                                 </div>
+                                <div class="col-md-6 col-lg-4">
+                                    <label class="form-label">Ngày phát hành</label>
+                                    <input type="date" th:field="*{ngayPhatHanh}" class="form-control" />
+                                </div>
                             </div>
-
                         </div>
                     </div>
-                </form>
-            </div>
 
-            <th:block layout:fragment="extra-script">
+                    <!-- Card: Bộ sưu tập ảnh -->
+                    <div class="adm-card mt-4">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-collection me-2"></i>Bộ sưu tập ảnh</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="gallery-upload-zone" id="galleryUploadZone" style="cursor:pointer">
+                                <input type="file" name="galleryFiles" id="galleryInput" accept="image/*" multiple hidden />
+                                <div class="gallery-upload-content">
+                                    <i class="bi bi-cloud-arrow-up"></i>
+                                    <p>Kéo thả ảnh vào đây hoặc Click để chọn ảnh</p>
+                                    <small>Hỗ trợ JPG, PNG, WEBP</small>
+                                </div>
+                            </div>
+                            <div class="gallery-preview" id="galleryPreview"></div>
+                            <div th:if="${not #lists.isEmpty(galleryImages)}" class="d-flex flex-wrap gap-2 mt-3">
+                                <div th:each="img : ${galleryImages}" style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #eee;flex-shrink:0">
+                                    <img th:src="@{${img.imageUrl}}" alt="" style="width:100%;height:100%;object-fit:cover" />
+                                    <button type="button" th:data-image-id="${img.id}" onclick="deleteGalleryImage(this.getAttribute('data-image-id'), this)" class="btn btn-sm p-0 d-flex align-items-center justify-content-center" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:11px;cursor:pointer">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ═══ RIGHT COLUMN ═══ -->
+                <div class="col-lg-4 d-flex flex-column">
+
+                    <!-- Card: Thông tin tổng quan (only for edit mode) -->
+                    <div class="adm-card" th:if="${product.id != null}">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-info-square me-2"></i>Thông tin tổng quan</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="adm-info-row">
+                                <span class="adm-info-label">SKU</span>
+                                <span class="adm-info-value">#<span th:text="${product.id}">1</span></span>
+                            </div>
+                            <div class="adm-info-row">
+                                <span class="adm-info-label">Danh mục</span>
+                                <span class="adm-info-value" th:text="${categoryName}">—</span>
+                            </div>
+                            <div class="adm-info-row">
+                                <span class="adm-info-label">Ngày tạo</span>
+                                <span class="adm-info-value">—</span>
+                            </div>
+                            <div class="adm-info-row">
+                                <span class="adm-info-label">Cập nhật</span>
+                                <span class="adm-info-value">—</span>
+                            </div>
+                            <div class="adm-info-row">
+                                <span class="adm-info-label">Hình ảnh</span>
+                                <span class="adm-info-value" th:text="${#lists.size(galleryImages)}">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card: Ảnh chính (centered) -->
+                    <div class="adm-card mt-4 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-image me-2"></i>Ảnh chính</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="adm-main-image-wrap">
+                                <img th:if="${product.hinhAnhChinh}" th:src="@{${product.hinhAnhChinh}}" alt="" class="adm-main-image" />
+                                <div th:unless="${product.hinhAnhChinh}" class="adm-empty py-3">
+                                    <i class="bi bi-image adm-empty-icon"></i>
+                                    <div class="adm-empty-title">Chưa có ảnh đại diện</div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 mt-3">
+                                <label class="btn btn-outline-primary btn-sm flex-fill" id="mainImageLabel">
+                                    <i class="bi bi-arrow-repeat me-1"></i><span th:text="${product.hinhAnhChinh != null} ? 'Đổi ảnh' : 'Thêm ảnh'">Đổi ảnh</span>
+                                    <input type="file" name="hinhAnhFile" id="mainImageInput" accept="image/*" hidden />
+                                </label>
+                                <button type="button" class="btn btn-outline-danger btn-sm flex-fill" th:if="${product.hinhAnhChinh}" th:data-product-id="${product.id}"
+                                        onclick="confirmDeleteMainImage(this)">
+                                    <i class="bi bi-trash me-1"></i>Xóa ảnh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+        <th:block layout:fragment="extra-script">
                 <script>
                     function getCsrfHeaders() {
                         const headers = {};
@@ -404,7 +417,50 @@
                                 e.formData.set('hinhAnhFile', mainImageFile);
                         });
                     })();
+
+                    function generateDescription() {
+                        const fields = ['tenSanPham', 'danhMucId', 'thuongHieu', 'chatLieu', 'xuatXu', 'kinhLoai', 'mucDichSuDung', 'dungTich'];
+                        const params = {};
+                        fields.forEach(f => {
+                            const el = document.querySelector('[name="' + f + '"]');
+                            if (el) params[f] = el.value;
+                        });
+                        const ta = document.querySelector('[name="moTa"]');
+                        if (!ta) return;
+                        const btn = document.querySelector('button[onclick="generateDescription()"]');
+                        const status = document.getElementById('descStatus');
+                        btn.disabled = true;
+                        status.style.display = '';
+                        status.textContent = 'Đang tạo...';
+                        fetch('/admin/san-pham/api/tu-dong-mo-ta', {
+                            method: 'POST',
+                            headers: Object.assign({'Content-Type': 'application/json'}, getCsrfHeaders()),
+                            body: JSON.stringify(params)
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            ta.value = data.description;
+                            status.textContent = '✅ Đã tạo mô tả tự động';
+                        })
+                        .catch(() => {
+                            status.textContent = '❌ Lỗi, vui lòng thử lại';
+                        })
+                        .finally(() => {
+                            btn.disabled = false;
+                            setTimeout(() => { status.style.display = 'none'; }, 3000);
+                        });
+                    }
                 </script>
+        <script th:src="@{/js/admin-duplicate.js}"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof initDuplicateCheck === 'function') {
+                    initDuplicateCheck('product', { excludeId: /*[[${product.id}]]*/ null });
+                }
+            });
+            /*]]>*/
+        </script>
             </th:block>
             </body>
             </html>

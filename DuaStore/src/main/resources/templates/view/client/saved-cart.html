@@ -9,7 +9,15 @@
         <div layout:fragment="content" class="py-5">
             <div class="container-xl">
                 <div class="ds-section-card">
-                    <h2 class="fw-bold mb-4"><i class="bi bi-bookmark me-2"></i>Sản phẩm đã lưu</h2>
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h2 class="fw-bold mb-0"><i class="bi bi-bookmark me-2"></i>Sản phẩm đã lưu</h2>
+                        <a th:href="@{/gio-hang}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i> Về giỏ hàng
+                        </a>
+                    </div>
+                    <div class="alert alert-info small py-2 mb-3">
+                        <i class="bi bi-info-circle me-1"></i> Sản phẩm đã lưu cũng được hiển thị ở cuối trang <a th:href="@{/gio-hang}" class="alert-link">giỏ hàng</a>.
+                    </div>
 
                     <div th:if="${#lists.isEmpty(savedItems)}" class="ds-cart-empty">
                         <i class="bi bi-bookmark-dash ds-cart-empty-icon"></i>
