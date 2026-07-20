@@ -15,10 +15,13 @@ import com.duastore.model.OrderEventType;
 import com.duastore.service.EmailService;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PaymentService;
+import com.duastore.dto.CarrierQuote;
+import com.duastore.service.MultiCarrierShippingService;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
+import com.duastore.service.admin.FraudDetectionService;
 import com.duastore.service.client.CartService;
 import com.duastore.service.client.OrderService;
 import com.duastore.service.client.VoucherWalletService;
@@ -58,9 +61,11 @@ public class CheckoutController {
     private final OrderStatusLogService orderStatusLogService;
     private final NotificationHelper notificationHelper;
     private final VNPAYService vnpayService;
+    private final FraudDetectionService fraudDetectionService;
     private final VoucherWalletService voucherWalletService;
     private final LoyaltyPointsService loyaltyPointsService;
     private final SiteSettingService siteSettingService;
+    private final MultiCarrierShippingService multiCarrierShippingService;
 
     public CheckoutController(OrderService orderService, CartService cartService,
             AddressRepository addressRepository,
@@ -72,9 +77,11 @@ public class CheckoutController {
             OrderStatusLogService orderStatusLogService,
             NotificationHelper notificationHelper,
             VNPAYService vnpayService,
+            FraudDetectionService fraudDetectionService,
             VoucherWalletService voucherWalletService,
             LoyaltyPointsService loyaltyPointsService,
-            SiteSettingService siteSettingService) {
+            SiteSettingService siteSettingService,
+            MultiCarrierShippingService multiCarrierShippingService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -86,9 +93,11 @@ public class CheckoutController {
         this.orderStatusLogService = orderStatusLogService;
         this.notificationHelper = notificationHelper;
         this.vnpayService = vnpayService;
+        this.fraudDetectionService = fraudDetectionService;
         this.voucherWalletService = voucherWalletService;
         this.loyaltyPointsService = loyaltyPointsService;
         this.siteSettingService = siteSettingService;
+        this.multiCarrierShippingService = multiCarrierShippingService;
     }
 
     private Integer getUserId() {
@@ -214,6 +223,26 @@ public class CheckoutController {
         return ResponseEntity.ok(res);
     }
 
+    @GetMapping("/api/quotes")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getQuotes(
+            @RequestParam Integer addressId,
+            @RequestParam(defaultValue = "SHIP") String method,
+            @RequestParam(required = false) BigDecimal subtotal) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            Address address = addressRepository.findById(addressId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
+            List<CarrierQuote> quotes = multiCarrierShippingService.getQuotes(address, method, subtotal);
+            res.put("quotes", quotes);
+            res.put("success", true);
+        } catch (RuntimeException e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(res);
+    }
+
     @PostMapping
     public String processCheckout(@Valid @ModelAttribute("checkoutRequest") CheckoutRequestDTO req,
             BindingResult result, Model model,
@@ -232,8 +261,11 @@ public class CheckoutController {
                     userId, req.getAddressId(), req.getPhuongThucTT(),
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
                     req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0,
-                    selectedSet
+                    selectedSet,
+                    req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN"
             );
+
+            fraudDetectionService.analyzeAndPersist(order);
 
             try {
                 notificationHelper.notifyStaff(
@@ -392,8 +424,10 @@ public class CheckoutController {
                     userId, req.getAddressId(), req.getPhuongThucTT(),
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
                     pointsToRedeem,
-                    selectedSet
+                    selectedSet,
+                    req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN"
             );
+            fraudDetectionService.analyzeAndPersist(order);
             try {
                 notificationHelper.notifyStaff(
                         "Khách hàng vừa đặt đơn hàng mới: " + order.getMaDon(),

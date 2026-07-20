@@ -84,11 +84,39 @@
                     </div>
                     <div class="col-12">
                         <h6 class="fw-semibold border-bottom pb-2 mt-4">
-                            <i class="bi bi-box-seam me-1"></i>GHN (Giao Hàng Nhanh)
+                            <i class="bi bi-truck me-1"></i>Đơn vị vận chuyển — Cấu hình phí
                         </h6>
                     </div>
+                    <!-- GHN -->
+                    <div class="col-12 mt-2"><strong>GHN (Giao Hàng Nhanh)</strong></div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí cơ bản</label>
+                        <input type="number" name="carrier_ghn_base_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghn_base_fee')}" placeholder="15000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí/km</label>
+                        <input type="number" name="carrier_ghn_rate_km" class="form-control"
+                               th:value="${settings.get('carrier_ghn_rate_km')}" placeholder="220" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí tối thiểu</label>
+                        <input type="number" name="carrier_ghn_min_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghn_min_fee')}" placeholder="10000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao (tiêu chuẩn)</label>
+                        <input type="number" name="carrier_ghn_days_ship" class="form-control"
+                               th:value="${settings.get('carrier_ghn_days_ship')}" placeholder="5" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao (nhanh)</label>
+                        <input type="number" name="carrier_ghn_days_express" class="form-control"
+                               th:value="${settings.get('carrier_ghn_days_express')}" placeholder="2" />
+                    </div>
+                    <!-- GHN API -->
                     <div class="col-md-6">
-                        <label class="form-label">GHN Token <span class="text-danger">*</span>
+                        <label class="form-label">GHN Token
                             <small class="text-muted">(<a href="https://ghn.vn" target="_blank">Đăng ký</a>)</small></label>
                         <input type="text" name="ghn_token" class="form-control font-monospace"
                                th:value="${settings.get('ghn_token')}" placeholder="Token từ GHN" />
@@ -115,6 +143,60 @@
                         <label class="form-label">Mã phường/xã mặc định</label>
                         <input type="text" name="ghn_default_ward_code" class="form-control"
                                th:value="${settings.get('ghn_default_ward_code')}" placeholder="21012" />
+                    </div>
+                    <!-- GHTK -->
+                    <div class="col-12 mt-3"><strong>GHTK (Giao Hàng Tiết Kiệm)</strong></div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí cơ bản</label>
+                        <input type="number" name="carrier_ghtk_base_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_base_fee')}" placeholder="12000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí/km</label>
+                        <input type="number" name="carrier_ghtk_rate_km" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_rate_km')}" placeholder="200" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí tối thiểu</label>
+                        <input type="number" name="carrier_ghtk_min_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_min_fee')}" placeholder="10000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao (tiêu chuẩn)</label>
+                        <input type="number" name="carrier_ghtk_days_ship" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_days_ship')}" placeholder="5" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao (nhanh)</label>
+                        <input type="number" name="carrier_ghtk_days_express" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_days_express')}" placeholder="3" />
+                    </div>
+                    <!-- Viettel Post -->
+                    <div class="col-12 mt-3"><strong>Viettel Post</strong></div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí cơ bản</label>
+                        <input type="number" name="carrier_viettel_post_base_fee" class="form-control"
+                               th:value="${settings.get('carrier_viettel_post_base_fee')}" placeholder="10000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí/km</label>
+                        <input type="number" name="carrier_viettel_post_rate_km" class="form-control"
+                               th:value="${settings.get('carrier_viettel_post_rate_km')}" placeholder="170" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí tối thiểu</label>
+                        <input type="number" name="carrier_viettel_post_min_fee" class="form-control"
+                               th:value="${settings.get('carrier_viettel_post_min_fee')}" placeholder="10000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao (tiêu chuẩn)</label>
+                        <input type="number" name="carrier_viettel_post_days_ship" class="form-control"
+                               th:value="${settings.get('carrier_viettel_post_days_ship')}" placeholder="5" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao (nhanh)</label>
+                        <input type="number" name="carrier_viettel_post_days_express" class="form-control"
+                               th:value="${settings.get('carrier_viettel_post_days_express')}" placeholder="3" />
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>

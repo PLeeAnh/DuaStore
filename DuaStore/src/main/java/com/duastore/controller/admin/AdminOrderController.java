@@ -10,6 +10,7 @@ import com.duastore.repository.OrderRepository;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminOrderService;
+import com.duastore.service.admin.FraudDetectionService;
 import com.duastore.service.admin.OrderNoteService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.client.OrderService;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -50,6 +52,7 @@ public class AdminOrderController {
     private final OrderRepository orderRepository;
     private final com.duastore.repository.ProductRepository productRepository;
     private final com.duastore.repository.ProductVariantRepository variantRepository;
+    private final FraudDetectionService fraudDetectionService;
 
     public AdminOrderController(AdminOrderService adminOrderService,
             OrderService orderService,
@@ -60,7 +63,8 @@ public class AdminOrderController {
             NotificationHelper notificationHelper,
             OrderRepository orderRepository,
             com.duastore.repository.ProductRepository productRepository,
-            com.duastore.repository.ProductVariantRepository variantRepository) {
+            com.duastore.repository.ProductVariantRepository variantRepository,
+            FraudDetectionService fraudDetectionService) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
@@ -71,6 +75,7 @@ public class AdminOrderController {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
+        this.fraudDetectionService = fraudDetectionService;
     }
 
     @GetMapping
@@ -176,6 +181,14 @@ public class AdminOrderController {
         try {
             User admin = securityUtil.getCurrentUser();
             Order order = adminOrderService.getOrderById(id);
+            if (order.getFraudWarning() == null) {
+                fraudDetectionService.analyzeAndPersist(order);
+                order = adminOrderService.getOrderById(id);
+            }
+            String rawWarning = order.getFraudWarning();
+            List<String> fraudWarnings = rawWarning != null ? Arrays.asList(rawWarning.split(";;")) : null;
+            model.addAttribute("fraudWarnings", fraudWarnings);
+
             OrderDTO orderDTO = orderService.convertToDTO(order);
             List<OrderItemDTO> items = orderService.getOrderItemsByOrder(order);
             var logs = adminLogService.getLogsByOrder(id);

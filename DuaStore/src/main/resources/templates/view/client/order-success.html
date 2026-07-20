@@ -87,6 +87,7 @@
                         </div>
 
                         <div class="d-flex justify-content-center gap-2">
+                            <a th:href="@{/tracking/{maDon}(maDon=${order.maDon})}" class="ds-btn ds-btn-outline"><i class="bi bi-truck me-1"></i>Theo dõi đơn hàng</a>
                             <a th:href="@{/tai-khoan/don-hang/{id}(id=${order.id})}" class="ds-btn ds-btn-outline">Xem đơn hàng</a>
                             <a th:href="@{/}" class="ds-btn ds-btn-fill">Tiếp tục mua sắm</a>
                         </div>

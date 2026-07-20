@@ -113,6 +113,15 @@
             </a>
         </div>
 
+        <!-- Fraud Warning Banner -->
+        <div th:if="${fraudWarnings != null and not #lists.isEmpty(fraudWarnings)}" class="alert alert-danger alert-dismissible fade show no-print mt-3" role="alert">
+            <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>Cảnh báo gian lận</h6>
+            <ul class="mb-0 ps-3">
+                <li th:each="w : ${fraudWarnings}" th:text="${w}"></li>
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <!-- TIMELINE - full width -->
         <div th:if="${currentStep > 0}" class="adm-card mt-3">
             <div class="d-flex align-items-center justify-content-between mb-2">

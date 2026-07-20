@@ -28,6 +28,21 @@
             </div>
         </div>
 
+        <div th:if="${dashboardError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <span th:text="${dashboardError}"></span>
+            <hr class="my-2"/>
+            <div class="small">
+                <strong>Khắc phục:</strong> Chạy lệnh SQL sau trong SQL Server:
+                <pre class="mt-1 mb-0 bg-light p-2 rounded" style="font-size:11px;overflow-x:auto;">
+ALTER TABLE orders ADD fraudWarning VARCHAR(1000) NULL;
+ALTER TABLE orders ADD shippingCarrier VARCHAR(30) NULL;
+ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
+                </pre>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <!-- ═════ CẢNH BÁO ═════ -->
         <div class="row g-3 mb-4" th:if="${urgentOrderCount > 0 or smartAlertCount > 0}">
             <div class="col-12">
