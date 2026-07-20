@@ -661,9 +661,59 @@ function updateShipFee() {
     fetchFee('SHIP', function (fee) {
         var el = document.getElementById('shipSafePrice');
         if (el) el.textContent = fee.toLocaleString('vi-VN') + '₫';
-        var ttEl = document.getElementById('shipTTPrice');
-        if (ttEl) ttEl.textContent = fee.toLocaleString('vi-VN') + 'đ';
     });
+}
+
+function updateAllQuotes() {
+    var addrId = getSelectedAddressId();
+    var method = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value || 'SHIP';
+    if (!addrId) return;
+    var subtotalEl = document.getElementById('rawSubtotal');
+    var subtotal = subtotalEl ? parseInt(subtotalEl.textContent) || 0 : 0;
+    DuaStore.api.get('/checkout/api/quotes?addressId=' + addrId + '&method=' + method + '&subtotal=' + subtotal)
+            .then(function (result) {
+                if (!result.ok || !result.data.success) return;
+                var quotes = result.data.quotes || [];
+                var selectedCarrier = document.querySelector('input[name="shippingCarrier"]:checked')?.value;
+                var firstFee = null;
+                var cheapest = null;
+                quotes.forEach(function (q) {
+                    var el = document.getElementById('carrier' + q.carrierCode + 'Price');
+                    if (el) el.textContent = q.fee.toLocaleString('vi-VN') + '₫';
+                    var dayEl = document.getElementById('carrier' + q.carrierCode + 'Days');
+                    if (dayEl) dayEl.textContent = q.deliveryDays + ' ngày';
+                    if (firstFee === null) firstFee = q.fee;
+                    if (cheapest === null || q.fee < cheapest.fee) {
+                        cheapest = { code: q.carrierCode, fee: q.fee, days: q.deliveryDays };
+                    }
+                });
+                // If no carrier selected, auto-select cheapest
+                if (!selectedCarrier || !document.querySelector('input[name="shippingCarrier"][value="' + selectedCarrier + '"]')) {
+                    if (cheapest) {
+                        var radio = document.querySelector('input[name="shippingCarrier"][value="' + cheapest.code + '"]');
+                        if (radio) { radio.checked = true; }
+                        document.getElementById('shipFeeDisplay').textContent = cheapest.fee.toLocaleString('vi-VN') + '₫';
+                        updateEstimatedDelivery(cheapest.days);
+                    } else if (firstFee !== null) {
+                        document.getElementById('shipFeeDisplay').textContent = firstFee.toLocaleString('vi-VN') + '₫';
+                    }
+                } else {
+                    var selQuote = quotes.find(function (q) { return q.carrierCode === selectedCarrier; });
+                    if (selQuote) {
+                        document.getElementById('shipFeeDisplay').textContent = selQuote.fee.toLocaleString('vi-VN') + '₫';
+                        updateEstimatedDelivery(selQuote.deliveryDays);
+                    }
+                }
+                updateTotal();
+            });
+}
+
+function updateEstimatedDelivery(days) {
+    var today = new Date();
+    var minDate = new Date(today); minDate.setDate(today.getDate() + (days || 7));
+    var maxDate = new Date(today); maxDate.setDate(today.getDate() + (days || 7) + 2);
+    var el = document.getElementById('estimatedDeliveryEl');
+    if (el) el.textContent = minDate.toLocaleDateString('vi-VN') + ' – ' + maxDate.toLocaleDateString('vi-VN');
 }
 
 /* ═══ DOM READY ═══ */
@@ -885,7 +935,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('input[name="phuongThucGiaoHang"]').forEach(function (el) {
         el.addEventListener('change', function () {
-            updateShipFee();
+            updateAllQuotes();
+        });
+    });
+    document.querySelectorAll('input[name="shippingCarrier"]').forEach(function (el) {
+        el.addEventListener('change', function () {
+            updateAllQuotes();
         });
     });
     document.querySelectorAll('input[name="phuongThucTT"]').forEach(function (el) {
@@ -906,7 +961,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('input[name="addressId"]').forEach(function (el) {
         el.addEventListener('change', function () {
-            updateShipFee();
+            updateAllQuotes();
             var label = this.closest('.ds-address-card');
             if (label) {
                 document.querySelectorAll('.ds-address-card-list .ds-address-card').forEach(function (c) {

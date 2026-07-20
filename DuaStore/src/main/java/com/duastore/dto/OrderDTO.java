@@ -29,6 +29,8 @@ public class OrderDTO {
     private Integer promotionId;
     private String ghiChu;
     private String maVanDon;
+    private String fraudWarning;
+    private String shippingCarrier;
     private LocalDateTime ngayDat;
     private String userEmail;
 }

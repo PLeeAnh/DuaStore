@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Theo dõi đơn hàng — DuaStore</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            #trackingMap { width: 100%; height: 380px; border-radius: 12px; z-index: 1; }
+            .tl { position: relative; padding: 0; list-style: none; }
+            .tl::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #e5e7eb; }
+            .tl-item { position: relative; padding: 0 0 22px 44px; }
+            .tl-item:last-child { padding-bottom: 0; }
+            .tl-dot { position: absolute; left: 7px; width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; border: 3px solid #e5e7eb; z-index: 1; transition: all .3s; }
+            .tl-dot.done { background: #10b981; border-color: #10b981; }
+            .tl-dot.active { background: #2563eb; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+            .tl-dot.cancel { background: #ef4444; border-color: #ef4444; }
+            .tl-label { font-weight: 600; font-size: .9rem; color: #6b7280; }
+            .tl-label.done { color: #10b981; }
+            .tl-label.active { color: #2563eb; }
+            .tl-label.cancel { color: #ef4444; }
+            .tl-time { font-size: .75rem; color: #9ca3af; margin-top: 1px; }
+            .tl-desc { font-size: .8rem; color: #6b7280; }
+            .tracking-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+            .tracking-card-hd { background: #f9fafb; padding: 14px 20px; border-bottom: 1px solid #e5e7eb; }
+            .tracking-card-bd { padding: 20px; }
+            .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+            @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+            @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+            .live-badge { animation: pulse 2s infinite; }
+            #ghnFrame { width: 100%; height: 300px; border: none; border-radius: 8px; }
+        </style>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container-xl py-4">
+                <div class="ds-section-card">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <a href="javascript:history.back()" class="ds-btn ds-btn-outline ds-btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Quay lại
+                        </a>
+                        <span class="text-muted small" id="trackingTitle">Đang tải...</span>
+                    </div>
+
+                    <div id="trackingLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <p class="text-muted">Đang tải thông tin vận chuyển...</p>
+                    </div>
+
+                    <div id="trackingContent" style="display:none">
+                        <div class="row g-4">
+                            <div class="col-12 col-lg-8">
+                                <div class="tracking-card mb-3">
+                                    <div class="tracking-card-bd p-0" style="overflow:hidden;border-radius:14px;">
+                                        <div id="trackingMap"></div>
+                                    </div>
+                                </div>
+
+                                <div class="tracking-card">
+                                    <div class="tracking-card-hd d-flex align-items-center justify-content-between">
+                                        <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-1"></i>Lộ trình đơn hàng</h6>
+                                        <span class="badge" id="statusBadge">---</span>
+                                    </div>
+                                    <div class="tracking-card-bd">
+                                        <ul class="tl mb-0" id="timelineList"></ul>
+                                    </div>
+                                </div>
+
+                                <div class="tracking-card mt-3" id="carrierInfoCard" style="display:none">
+                                    <div class="tracking-card-hd">
+                                        <h6 class="fw-bold mb-0"><i class="bi bi-box-seam me-1"></i>Thông tin vận chuyển</h6>
+                                    </div>
+                                    <div class="tracking-card-bd">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <span class="text-muted small d-block">Đơn vị vận chuyển</span>
+                                                <span class="fw-semibold" id="carrierNameEl"></span>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="text-muted small d-block">Mã vận đơn</span>
+                                                <span class="fw-semibold font-monospace small" id="maVanDonEl"></span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2" id="carrierLinkContainer">
+                                            <a id="carrierLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm w-100">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>Theo dõi trên website hãng vận chuyển
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-lg-4">
+                                <div class="tracking-card">
+                                    <div class="tracking-card-hd">
+                                        <h6 class="fw-bold mb-0"><i class="bi bi-info-circle me-1"></i>Thông tin đơn hàng</h6>
+                                    </div>
+                                    <div class="tracking-card-bd">
+                                        <table class="table table-sm table-borderless mb-0 small">
+                                            <tr><td class="text-muted ps-0">Mã đơn</td><td class="fw-semibold pe-0 text-end font-monospace" id="infoMaDon"></td></tr>
+                                            <tr><td class="text-muted ps-0">Ngày đặt</td><td class="pe-0 text-end" id="infoNgayDat"></td></tr>
+                                            <tr><td class="text-muted ps-0">Người nhận</td><td class="fw-semibold pe-0 text-end" id="infoNguoiNhan"></td></tr>
+                                            <tr><td class="text-muted ps-0">SĐT</td><td class="pe-0 text-end" id="infoSDT"></td></tr>
+                                            <tr><td class="text-muted ps-0">Địa chỉ</td><td class="pe-0 text-end small" style="max-width:180px" id="infoDiaChi"></td></tr>
+                                            <tr><td class="text-muted ps-0">Phương thức TT</td><td class="pe-0 text-end" id="infoPhuongThucTT"></td></tr>
+                                            <tr><td class="text-muted ps-0">Tổng tiền</td><td class="fw-bold pe-0 text-end text-danger" id="infoTongTien"></td></tr>
+                                            <tr id="ghiChuRow" style="display:none"><td class="text-muted ps-0">Ghi chú</td><td class="pe-0 text-end small" id="infoGhiChu"></td></tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="tracking-card mt-3">
+                                    <div class="tracking-card-bd text-center small text-muted">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Tự động làm mới mỗi 30 giây
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="trackingError" style="display:none" class="text-center py-5">
+                        <i class="bi bi-exclamation-triangle" style="font-size:3rem;color:#d1d5db;"></i>
+                        <h5 class="mt-3 text-muted">Không tìm thấy đơn hàng</h5>
+                        <p class="text-muted small">Vui lòng kiểm tra lại mã đơn hàng</p>
+                        <a href="/tracking" class="ds-btn ds-btn-outline ds-btn-sm mt-2">
+                            <i class="bi bi-search me-1"></i>Tra cứu đơn hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="extra-script">
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <script src="/js/modules/tracking.js"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var maDon = '[[${maDon}]]';
+                    DuaStore.tracking.init(maDon);
+                });
+            </script>
+        </th:block>
+    </body>
+</html>
