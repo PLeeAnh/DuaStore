@@ -129,12 +129,9 @@
             </section>
         </div>
     <th:block layout:fragment="extra-script">
-        <script>
-            var cLat = parseFloat([[${storeLat}]]) || 21.0285;
-            var cLng = parseFloat([[${storeLng}]]) || 105.8542;
-            var contactMap = L.map('contactMap', { center: [cLat, cLng], zoom: 16, zoomControl: true });
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(contactMap);
-            L.marker([cLat, cLng]).addTo(contactMap).bindPopup('DuaStore');
+        <script src="/js/client-contact.js"></script>
+        <script th:inline="javascript">
+            initContactMap([[${storeLat}]], [[${storeLng}]]);
         </script>
     </th:block>
     </body>

@@ -671,6 +671,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 })();
 
+/* ── Submit spinner ── */
+document.addEventListener('submit', function(e) {
+    var btn = e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...'; }
+});
+
 /* ── Global: copy promo code ── */
 function copyPromoCode(btn) {
     var code = btn.getAttribute('data-code');
