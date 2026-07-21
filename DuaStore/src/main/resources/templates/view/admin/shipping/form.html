@@ -114,10 +114,9 @@
                     <div class="col-md-3">
                         <label class="form-label">Mã phường/xã mặc định</label>
                         <input type="text" name="ghn_default_ward_code" class="form-control"
-                               th:value="${settings.get('ghn_default_ward_code')}" placeholder="21012" />
+                               th:value="${settings.get('ghn_default_ward_code')}" placeholder="21012" inputmode="numeric" pattern="[0-9]+" title="Chỉ nhập số" />
                     </div>
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
                     </div>
                 </form>
             </div>

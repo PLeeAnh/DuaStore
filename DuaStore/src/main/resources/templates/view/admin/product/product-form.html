@@ -32,9 +32,6 @@
                             <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-x-lg me-1"></i>Hủy
                             </a>
-                            <button type="submit" form="productForm" class="btn btn-primary btn-sm">
-                                <i class="bi bi-check-lg me-1"></i><span th:text="${product.id != null} ? 'Lưu thay đổi' : 'Tạo sản phẩm'">Lưu</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -110,7 +107,7 @@
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label">Lead time (ngày)</label>
-                                            <input type="number" th:field="*{leadTimeDays}" class="form-control" min="0" />
+                                            <input type="number" th:field="*{leadTimeDays}" class="form-control" min="0" inputmode="numeric" />
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
                                             <div class="form-check">

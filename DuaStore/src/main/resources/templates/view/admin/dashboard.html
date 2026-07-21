@@ -147,7 +147,7 @@
 
         </div>
 
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-3">
             <div class="col-12 col-lg-8">
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -157,7 +157,7 @@
                             <span><span class="badge" style="background:rgba(148,112,219,0.8)">&nbsp;</span> Tuần trước</span>
                         </div>
                     </div>
-                    <div style="position:relative;height:200px;">
+                    <div style="position:relative;height:260px;">
                         <canvas id="revenueChart"></canvas>
                     </div>
                 </div>
@@ -208,7 +208,7 @@
             </div>
         </div>
 
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-3">
             <div class="col-12 col-lg-4">
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -369,23 +369,25 @@
     </div>
 
     <th:block layout:fragment="extra-script">
-    <div id="revenueData" class="d-none">
-        <span th:each="dr : ${dailyRevenue}"
-              th:attr="data-label=${dr.date}, data-value=${dr.revenue}"></span>
+    <div id="dashboard-extra">
+        <div id="revenueData" class="d-none">
+            <span th:each="dr : ${dailyRevenue}"
+                  th:attr="data-label=${dr.date}, data-value=${dr.revenue}"></span>
+        </div>
+        <div id="prevRevenueData" class="d-none">
+            <span th:each="pr : ${previousWeekRevenue}"
+                  th:attr="data-label=${pr.date}, data-value=${pr.revenue}"></span>
+        </div>
+        <div id="paymentData" class="d-none">
+            <span th:each="pm : ${paymentMethodDistribution}"
+                  th:attr="data-method=${pm.key}, data-count=${pm.value}"></span>
+        </div>
+        <div id="monthlyRevenueData" class="d-none">
+            <span th:each="mr : ${monthlyRevenueData}"
+                  th:attr="data-label=${mr.label}, data-value=${mr.revenue}"></span>
+        </div>
+        <script th:src="@{/js/admin-dashboard.js}"></script>
     </div>
-    <div id="prevRevenueData" class="d-none">
-        <span th:each="pr : ${previousWeekRevenue}"
-              th:attr="data-label=${pr.date}, data-value=${pr.revenue}"></span>
-    </div>
-    <div id="paymentData" class="d-none">
-        <span th:each="pm : ${paymentMethodDistribution}"
-              th:attr="data-method=${pm.key}, data-count=${pm.value}"></span>
-    </div>
-    <div id="monthlyRevenueData" class="d-none">
-        <span th:each="mr : ${monthlyRevenueData}"
-              th:attr="data-label=${mr.label}, data-value=${mr.revenue}"></span>
-    </div>
-    <script th:src="@{/js/admin-dashboard.js}"></script>
     </th:block>
 
 </body>

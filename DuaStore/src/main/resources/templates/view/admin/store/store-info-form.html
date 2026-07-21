@@ -26,9 +26,6 @@
                             <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-x-lg me-1"></i>Hủy
                             </a>
-                            <button type="submit" form="storeForm" class="btn btn-primary btn-sm">
-                                <i class="bi bi-check-lg me-1"></i><span th:text="${store.id != null} ? 'Lưu thay đổi' : 'Thêm mới'">Lưu</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -54,7 +51,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Số điện thoại</label>
-                                    <input type="text" th:field="*{soDienThoai}" class="form-control" maxlength="20" />
+                                    <input type="tel" th:field="*{soDienThoai}" class="form-control" maxlength="20" />
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Số nhà</label>
@@ -88,11 +85,11 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Vĩ độ (Latitude)</label>
-                                    <input type="text" th:field="*{latitude}" class="form-control" placeholder="21.028511" />
+                                    <input type="number" th:field="*{latitude}" class="form-control" placeholder="21.028511" step="any" />
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Kinh độ (Longitude)</label>
-                                    <input type="text" th:field="*{longitude}" class="form-control" placeholder="105.854170" />
+                                    <input type="number" th:field="*{longitude}" class="form-control" placeholder="105.854170" step="any" />
                                 </div>
                             </div>
                         </div>

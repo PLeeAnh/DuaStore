@@ -1,6 +1,6 @@
 /* ── Auth modal helpers ── */
 function togglePass(id, btn) {
-var inp = document.getElementById(id);
+var inp = document.getElementById(id); if (!inp) return;
         var ico = btn.querySelector('i');
         if (inp.type === 'password') { inp.type = 'text'; ico.className = 'bi bi-eye'; }
 else { inp.type = 'password'; ico.className = 'bi bi-eye-slash'; }
@@ -16,8 +16,8 @@ else { showLoginPopup(); }
         }
 });
         function switchModal(from, to) {
-        bootstrap.Modal.getInstance(document.querySelector(from))?.hide();
-                new bootstrap.Modal(document.querySelector(to)).show();
+        var fromEl = document.querySelector(from); if (fromEl) bootstrap.Modal.getInstance(fromEl)?.hide();
+                var toEl = document.querySelector(to); if (toEl) new bootstrap.Modal(toEl).show();
         }
 function showAuthError(el) { if (el) el.classList.add('show'); }
 function hideAuthError(el) { if (el) el.classList.remove('show'); }
@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
 /* ── Login error param ── */
 var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('loginError')) {
-var m = new bootstrap.Modal(document.getElementById('loginModal'));
+var loginEl = document.getElementById('loginModal'); if (!loginEl) return;
+        var m = new bootstrap.Modal(loginEl);
         m.show();
         showAuthError(document.getElementById('loginServerError'));
         }
@@ -523,7 +524,7 @@ function initDirtyBar() {
         var bar = document.getElementById('dsSaveBar');
         if (!bar) return;
         var forms = document.querySelectorAll('form[data-dirty-bar]');
-        if (!forms.length) return;
+        if (!forms.length) { bar.style.display = 'none'; return; }
         var activeForm = null;
         var resetBtn = document.getElementById('dsSaveBarReset');
         var saveBtn = document.getElementById('dsSaveBarSave');
@@ -545,14 +546,10 @@ var current = getFormData(f);
 }
 
 function updateBar(dirty, f) {
-if (dirty) {
 activeForm = f;
+if (dirty) {
         bar.style.display = 'flex';
         requestAnimationFrame(function() { bar.classList.add('show'); });
-        } else {
-bar.classList.remove('show');
-        activeForm = null;
-        setTimeout(function() { bar.style.display = 'none'; }, 300);
         }
 }
 
@@ -571,11 +568,12 @@ f._cleanData = getFormData(f);
         f.addEventListener('input', function() { checkDirty(f); });
         f.addEventListener('change', function() { checkDirty(f); });
         });
+        if (forms.length === 1) activeForm = forms[0];
         if (resetBtn) resetBtn.addEventListener('click', function() {
-if (activeForm) resetDirty(activeForm);
+var f = activeForm || document.querySelector('form[data-dirty-bar]'); if (f) resetDirty(f);
         });
         if (saveBtn) saveBtn.addEventListener('click', function() {
-if (activeForm) activeForm.requestSubmit();
+var f = activeForm || document.querySelector('form[data-dirty-bar]'); if (f) { bar.style.display = 'none'; f.requestSubmit(); }
         });
 }
 
