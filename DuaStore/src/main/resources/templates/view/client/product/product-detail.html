@@ -177,7 +177,7 @@
                                          th:data-group="${entry.key}"
                                          th:classappend="${iter.first} ? 'active' : ''">
                                         <div th:if="${#lists.size(entry.value) == 1}" class="variant-single">
-                                            <span th:text="${entry.value[0].dungTich != null ? entry.value[0].dungTich + 'ml' : (entry.value[0].tenBienThe.contains(' - ') ? entry.value[0].tenBienThe.substring(0, entry.value[0].tenBienThe.indexOf(' - ')).trim() : entry.value[0].tenBienThe)}">500ml</span>
+                                            <span th:text="${entry.value[0].tenBienThe != null and entry.value[0].tenBienThe.contains(' - ') ? (entry.value[0].dungTich != null ? entry.value[0].dungTich + 'ml' : entry.value[0].tenBienThe.substring(0, entry.value[0].tenBienThe.indexOf(' - ')).trim()) : (entry.value[0].dungTich != null ? entry.value[0].dungTich + 'ml' + (entry.value[0].tenBienThe != null ? ' - ' + entry.value[0].tenBienThe : '') : entry.value[0].tenBienThe)}">500ml - Nắp bạc</span>
                                         </div>
                                         <button th:if="${#lists.size(entry.value) > 1}"
                                                 th:each="v : ${entry.value}"
@@ -194,12 +194,12 @@
                                                 th:data-display="${v.dungTich != null ? v.dungTich + 'ml' : (v.tenBienThe.contains(' - ') ? v.tenBienThe.substring(0, v.tenBienThe.indexOf(' - ')).trim() : v.tenBienThe)}"
                                                 th:disabled="${v.soLuongTon <= 0}"
                                                 type="button">
-                                            <span th:text="${v.dungTich != null ? v.dungTich + 'ml' : (v.tenBienThe.contains(' - ') ? v.tenBienThe.substring(0, v.tenBienThe.indexOf(' - ')).trim() : v.tenBienThe)}">50ml</span>
+                                            <span th:text="${v.tenBienThe != null and v.tenBienThe.contains(' - ') ? (v.dungTich != null ? v.dungTich + 'ml' : v.tenBienThe.substring(0, v.tenBienThe.indexOf(' - ')).trim()) : (v.dungTich != null ? v.dungTich + 'ml' + (v.tenBienThe != null ? ' - ' + v.tenBienThe : '') : v.tenBienThe)}">50ml - Nắp bạc</span>
                                         </button>
                                     </div>
 
                                     <!-- Dòng "Đã chọn: X" -->
-                                    <div class="variant-selected-label" id="variantSelectedDisplay">Đã chọn: <strong th:text="${defaultVariant.dungTich != null ? defaultVariant.dungTich + 'ml' : (defaultVariant.tenBienThe.contains(' - ') ? defaultVariant.tenBienThe.substring(0, defaultVariant.tenBienThe.indexOf(' - ')).trim() : defaultVariant.tenBienThe)}">500ml</strong></div>
+                                    <div class="variant-selected-label" id="variantSelectedDisplay">Đã chọn: <strong th:text="${defaultVariant.tenBienThe != null and defaultVariant.tenBienThe.contains(' - ') ? (defaultVariant.dungTich != null ? defaultVariant.dungTich + 'ml' : defaultVariant.tenBienThe.substring(0, defaultVariant.tenBienThe.indexOf(' - ')).trim()) : (defaultVariant.dungTich != null ? defaultVariant.dungTich + 'ml' + (defaultVariant.tenBienThe != null ? ' - ' + defaultVariant.tenBienThe : '') : defaultVariant.tenBienThe)}">500ml - Nắp bạc</strong></div>
                                 </div>
                             </div>
 

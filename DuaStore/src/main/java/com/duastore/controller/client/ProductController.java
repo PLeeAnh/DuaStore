@@ -360,12 +360,16 @@ public class ProductController {
         // Group variants by cap type (parsed from tenBienThe, e.g. "50ml - Nắp Gỗ")
         Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();
         for (ProductVariant v : variants) {
-            String groupKey = "Khác";
+            String groupKey;
             if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                 String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                if (parts.length >= 2) {
-                    groupKey = parts[1].trim();
-                }
+                groupKey = parts.length >= 2 ? parts[1].trim() : "Phân loại";
+            } else if (v.getTenBienThe() != null) {
+                groupKey = v.getTenBienThe().trim();
+            } else if (v.getDungTich() != null) {
+                groupKey = v.getDungTich() + "ml";
+            } else {
+                groupKey = "Phân loại";
             }
             grouped.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(v);
         }

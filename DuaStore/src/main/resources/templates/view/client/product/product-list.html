@@ -218,7 +218,7 @@
                                                              th:data-stock="${pv.soLuongTon}"
                                                              th:data-image="${pv.hinhAnh}"
                                                              th:disabled="${pv.soLuongTon <= 0}"
-                                                             th:text="${pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ')}"
+                                                              th:text="${pv.tenBienThe != null and pv.tenBienThe.contains(' - ') ? (pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ').trim()) : (pv.dungTich != null ? pv.dungTich + 'ml' + (pv.tenBienThe != null ? ' - ' + pv.tenBienThe : '') : pv.tenBienThe)}"
                                                              type="button">50ml</button>
                                                 </div>
                                             </div>

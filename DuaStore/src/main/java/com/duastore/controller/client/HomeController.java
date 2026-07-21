@@ -191,6 +191,10 @@ public class HomeController {
         model.addAttribute("ratingMap", ratingMap);
         model.addAttribute("ratingCountMap", ratingCountMap);
         model.addAttribute("wishlistCountMap", wishlistCountMap);
+        boolean hasFavProducts = browseProducts.stream().anyMatch(p -> wishlistCountMap.getOrDefault(p.getId(), 0L) > 0);
+        boolean hasSoldProducts = browseProducts.stream().anyMatch(p -> soldCountMap.getOrDefault(p.getId(), 0L) > 0);
+        model.addAttribute("hasFavProducts", hasFavProducts);
+        model.addAttribute("hasSoldProducts", hasSoldProducts);
 
         // Gallery images cho browse section
         Map<Integer, List<String>> browseGalleryMap = new HashMap<>();
