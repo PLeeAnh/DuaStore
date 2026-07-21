@@ -203,22 +203,30 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <span id="stockDisplay" class="stock-indicator"
-                                      th:with="totalStock=${defaultVariant != null ? defaultVariant.soLuongTon : 0}">
-                                    <span class="stock-dot" th:classappend="${totalStock > 0} ? 'in-stock' : 'out-of-stock'"></span>
+                            <div class="mb-3"
+                                 th:with="totalStock=${defaultVariant != null ? defaultVariant.soLuongTon : 0}">
+                                <div id="inStockDisplay" class="stock-indicator"
+                                     th:style="${totalStock > 0} ? '' : 'display:none'">
+                                    <span class="stock-dot in-stock"></span>
                                     <span th:if="${totalStock > 0}" th:text="'Còn hàng (' + ${totalStock} + ')'">Còn hàng (25)</span>
-                                    <span th:unless="${totalStock > 0}">Hết hàng</span>
-                                </span>
+                                </div>
+                                <div id="outOfStockDisplay" class="oos-banner"
+                                     th:style="${totalStock > 0} ? 'display:none' : ''">
+                                    <div class="oos-banner-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                                    <div class="oos-banner-content">
+                                        <strong>Hết hàng</strong>
+                                        <span>Sản phẩm tạm thời không có sẵn. Vui lòng quay lại sau.</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="d-flex align-items-center gap-3 mb-2">
-                                <div class="ds-qty-selector" style="height:46px;padding:4px;">
-                                    <button class="ds-qty-btn ds-qty-minus" type="button" onclick="qtyChange(-1)" id="qtyMinusBtn" style="width:38px;height:38px;border-radius:8px;">
+                            <div class="d-flex align-items-center gap-3 mb-2" id="ctaRow">
+                                <div id="qtySelector" class="ds-qty-selector" style="height:46px;padding:4px;">
+                                    <button class="ds-qty-btn ds-qty-minus" type="button" id="qtyMinusBtn" style="width:38px;height:38px;border-radius:8px;">
                                         <svg width="16" height="16" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
                                     </button>
                                     <input type="text" id="qtyInput" class="ds-qty-val" value="1" style="width:40px;height:38px;font-size:.95rem;" />
-                                    <button class="ds-qty-btn ds-qty-plus" type="button" onclick="qtyChange(1)" style="width:38px;height:38px;border-radius:8px;">
+                                    <button class="ds-qty-btn ds-qty-plus" type="button" id="qtyPlusBtn" style="width:38px;height:38px;border-radius:8px;">
                                         <svg width="16" height="16" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
                                     </button>
                                 </div>
@@ -237,6 +245,11 @@
                             <button id="addToCartSecondaryBtn" class="btn-outline-dark w-100 mb-1" type="button" onclick="addToCartDetail()"
                                     th:disabled="${defaultVariant == null or defaultVariant.soLuongTon <= 0}">
                                 <i class="bi bi-cart-plus me-1"></i>Thêm vào giỏ hàng
+                            </button>
+
+                            <button id="oosButton" class="btn-oos w-100 mb-1"
+                                    style="display:none" disabled>
+                                <i class="bi bi-x-circle me-1"></i>Tạm hết hàng
                             </button>
 
                             <div class="d-flex gap-2 mt-2 pt-2 border-top" style="border-color:var(--ds-border)!important;">
@@ -620,22 +633,30 @@
                 }
 
                 // Update stock
-                const stockEl = document.getElementById('stockDisplay');
-                if (stockEl) {
-                    const dot = stockEl.querySelector('.stock-dot');
-                    const text = stockEl.querySelector('span:last-child');
+                const inStockEl = document.getElementById('inStockDisplay');
+                const outOfStockEl = document.getElementById('outOfStockDisplay');
+                const qtySel = document.getElementById('qtySelector');
+                const oosBtn = document.getElementById('oosButton');
+                const cartBtn = document.getElementById('addToCartSecondaryBtn');
+                if (inStockEl && outOfStockEl) {
                     if (selectedStock > 0) {
-                        dot.className = 'stock-dot in-stock';
-                        text.textContent = 'Còn hàng (' + selectedStock + ')';
+                        inStockEl.style.display = '';
+                        inStockEl.querySelector('span:last-child').textContent = 'Còn hàng (' + selectedStock + ')';
+                        outOfStockEl.style.display = 'none';
+                        if (qtySel) qtySel.style.display = '';
+                        if (oosBtn) oosBtn.style.display = 'none';
+                        if (cartBtn) cartBtn.style.display = '';
                     } else {
-                        dot.className = 'stock-dot out-of-stock';
-                        text.textContent = 'Hết hàng';
+                        inStockEl.style.display = 'none';
+                        outOfStockEl.style.display = '';
+                        if (qtySel) qtySel.style.display = 'none';
+                        if (oosBtn) oosBtn.style.display = '';
+                        if (cartBtn) cartBtn.style.display = 'none';
                     }
                 }
 
                 // Update CTA buttons
                 const buyBtn = document.getElementById('buyNowBtn');
-                const cartBtn = document.getElementById('addToCartSecondaryBtn');
                 if (buyBtn) {
                     buyBtn.disabled = selectedStock <= 0;
                     buyBtn.innerHTML = 'Mua ngay - ' + effectivePrice.toLocaleString('vi-VN') + '₫';
@@ -653,6 +674,7 @@
             // ── Quantity ──
             function qtyChange(delta) {
                 const input = document.getElementById('qtyInput');
+                if (!input) return;
                 const minusBtn = document.getElementById('qtyMinusBtn');
                 let val = parseInt(input.value) || 1;
 
@@ -670,11 +692,9 @@
                 if (minusBtn)
                     minusBtn.disabled = (val <= 1);
             }
-            document.querySelectorAll('.variant-chip').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    selectVariant(this);
-                });
-            });
+
+            document.getElementById('qtyMinusBtn')?.addEventListener('click', function () { qtyChange(-1); });
+            document.getElementById('qtyPlusBtn')?.addEventListener('click', function () { qtyChange(1); });
 
     // ── Variant tabs switching ──
             document.querySelectorAll('.variant-tab').forEach(tab => {

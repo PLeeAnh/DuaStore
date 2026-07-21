@@ -197,11 +197,11 @@
                             </div>
                             <div class="adm-info-row">
                                 <span class="adm-info-label">Ngày tạo</span>
-                                <span class="adm-info-value">—</span>
+                                <span class="adm-info-value" th:text="${ngayTao != null} ? ${#temporals.format(ngayTao, 'dd/MM/yyyy HH:mm')} : '—'">—</span>
                             </div>
                             <div class="adm-info-row">
                                 <span class="adm-info-label">Cập nhật</span>
-                                <span class="adm-info-value">—</span>
+                                <span class="adm-info-value" th:text="${ngayCapNhat != null} ? ${#temporals.format(ngayCapNhat, 'dd/MM/yyyy HH:mm')} : '—'">—</span>
                             </div>
                             <div class="adm-info-row">
                                 <span class="adm-info-label">Hình ảnh</span>
@@ -385,6 +385,8 @@
                         if (!input)
                             return;
 
+                        const wrap = document.querySelector('.adm-main-image-wrap');
+
                         input.addEventListener('change', function () {
                             if (this.files && this.files[0]) {
                                 const file = this.files[0];
@@ -397,6 +399,12 @@
                                 if (img) {
                                     img.src = url;
                                     img.style.display = '';
+                                } else if (wrap) {
+                                    const newImg = document.createElement('img');
+                                    newImg.className = 'adm-main-image';
+                                    newImg.src = url;
+                                    newImg.alt = '';
+                                    wrap.insertBefore(newImg, empty);
                                 }
                                 if (empty)
                                     empty.style.display = 'none';
@@ -436,7 +444,16 @@
                         })
                         .then(r => r.json())
                         .then(data => {
-                            ta.value = data.description;
+                            var txt = data.description
+                                .replace(/<br\s*\/?>/gi, '\n')
+                                .replace(/<\/(h[1-6]|p|li|ul|ol|div|blockquote|tr|td|th)>/gi, '\n')
+                                .replace(/<li>/gi, '• ')
+                                .replace(/<[^>]*>/g, '')
+                                .replace(/&nbsp;/g, ' ')
+                                .replace(/\n{3,}/g, '\n\n')
+                                .trim();
+                            ta.value = txt;
+                            ta.dispatchEvent(new Event('input', {bubbles: true}));
                             status.textContent = '✅ Đã tạo mô tả tự động';
                         })
                         .catch(() => {

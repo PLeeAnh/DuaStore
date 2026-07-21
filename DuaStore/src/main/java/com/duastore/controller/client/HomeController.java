@@ -27,7 +27,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.*;
@@ -149,17 +148,17 @@ public class HomeController {
         for (Object[] row : topSellingRows) {
             soldCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
         }
-        Map<Integer, Product> productById = productRepository.findAllById(topSellerIds).stream()
+        Map<Integer, Product> productById = productRepository.findAllByIdWithVariants(topSellerIds).stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
         List<Product> topSellers = topSellerIds.stream()
                 .map(productById::get)
-                .filter(p -> p != null && p.isActive())
+                .filter(p -> p != null)
                 .toList();
         model.addAttribute("topSellers", topSellers);
         model.addAttribute("soldCountMap", soldCountMap);
 
         // ─ Sản phẩm mới ─
-        List<Product> newestProducts = productRepository.findByIsActiveTrueOrderByNgayTaoDesc(PageRequest.of(0, 10)).getContent();
+        List<Product> newestProducts = productRepository.findNewestWithVariants(PageRequest.of(0, 10)).getContent();
         model.addAttribute("newestProducts", newestProducts);
 
         // ─ Dưới 300.000đ ─

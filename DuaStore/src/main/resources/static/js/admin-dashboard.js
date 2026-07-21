@@ -1,6 +1,6 @@
 'use strict';
 
-document.addEventListener('DOMContentLoaded', function () {
+(function () {
     var labels = [], values = [], prevValues = [];
     document.querySelectorAll('#revenueData span').forEach(function(el) {
         labels.push(el.dataset.label);
@@ -110,4 +110,4 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-});
+})();

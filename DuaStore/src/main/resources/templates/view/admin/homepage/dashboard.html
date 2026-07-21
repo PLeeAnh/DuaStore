@@ -178,18 +178,22 @@
             }
 
             function showToast(msg, type) {
+                type = type || 'success';
+                if (window.dsToast) { dsToast(type, msg); return; }
                 var container = document.getElementById('toastContainer');
                 if (!container) return;
-                var bg = type === 'success' ? 'bg-success' : 'bg-danger';
-                var icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle';
-                var t = document.createElement('div');
-                t.className = 'toast align-items-center text-white border-0 ' + bg;
-                t.role = 'alert';
-                t.innerHTML = '<div class="d-flex"><div class="toast-body"><i class="bi ' + icon + ' me-1"></i>' + msg + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
-                container.appendChild(t);
-                var bsToast = new bootstrap.Toast(t);
-                bsToast.show();
-                setTimeout(function() { t.remove(); }, 4000);
+                var iconMap = {success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill'};
+                var el = document.createElement('div');
+                el.className = 'ds-toast ds-toast-' + type;
+                el.innerHTML = '<i class="bi ' + (iconMap[type] || iconMap.success) + '"></i><span>' + msg + '</span><button class="ds-toast-close">&times;</button>';
+                container.appendChild(el);
+                el.querySelector('.ds-toast-close').addEventListener('click', function () { el.remove(); });
+                setTimeout(function () {
+                    if (el.parentNode) {
+                        el.style.animation = 'ds-toast-fade-out .3s ease forwards';
+                        setTimeout(function () { el.remove(); }, 300);
+                    }
+                }, 3000);
             }
 
             // Load

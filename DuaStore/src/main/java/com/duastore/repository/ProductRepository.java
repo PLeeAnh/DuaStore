@@ -18,11 +18,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     List<Product> findByDanhMucIdAndIsActiveTrue(Integer danhMucId);
 
-    List<Product> findByDanhMucIdAndIsActiveTrue(Integer danhMucId, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.danhMucId IN :danhMucIds AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true)")
+    List<Product> findByDanhMucIdInAndIsActiveTrue(@Param("danhMucIds") List<Integer> danhMucIds);
 
-    List<Product> findByDanhMucIdInAndIsActiveTrue(List<Integer> danhMucIds);
-
-    List<Product> findByIsFeaturedTrueAndIsActiveTrue();
+    @Query("SELECT p FROM Product p WHERE p.isFeatured = true AND p.isActive = true AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true)")
+    List<Product> findFeaturedWithVariants();
 
     List<Product> findByIsActiveTrueOrderByNgayTaoDesc();
 
@@ -38,10 +38,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p FROM Product p WHERE p.isActive = true AND (LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.thuongHieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.xuatXu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.mucDichSuDung) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.kinhLoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) ORDER BY p.ngayTao DESC")
     Page<Product> searchByNamePaged(@Param("keyword") String keyword, Pageable pageable);
 
-    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' ORDER BY p.ngayTao DESC")
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true) ORDER BY p.ngayTao DESC")
     Page<Product> findDangBanPaged(Pageable pageable);
 
-    Page<Product> findByDanhMucIdInAndIsActiveTrue(List<Integer> danhMucIds, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.danhMucId IN :danhMucIds AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true)")
+    Page<Product> findByDanhMucIdInAndIsActiveTrue(@Param("danhMucIds") List<Integer> danhMucIds, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.isActive = true "
             + "AND (:keyword IS NULL OR (LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.thuongHieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.xuatXu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.mucDichSuDung) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.kinhLoai) LIKE LOWER(CONCAT('%', :keyword, '%')))) "
@@ -64,7 +65,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     Page<Product> findByIsActiveTrueOrderByNgayTaoDesc(Pageable pageable);
 
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true) ORDER BY p.ngayTao DESC")
+    Page<Product> findNewestWithVariants(Pageable pageable);
+
     @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true) "
             + "AND (:keyword IS NULL OR (LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.thuongHieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.xuatXu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.mucDichSuDung) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.kinhLoai) LIKE LOWER(CONCAT('%', :keyword, '%')))) "
             + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
             + "AND (:minPrice IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) >= :minPrice)) "
@@ -80,6 +85,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             Pageable pageable);
 
     @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true) "
             + "AND (:keyword IS NULL OR (LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.thuongHieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.xuatXu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.mucDichSuDung) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.kinhLoai) LIKE LOWER(CONCAT('%', :keyword, '%')))) "
             + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
             + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) "
@@ -96,6 +102,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             Pageable pageable);
 
     @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true) "
             + "AND (:keyword IS NULL OR (LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.thuongHieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.xuatXu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.mucDichSuDung) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.kinhLoai) LIKE LOWER(CONCAT('%', :keyword, '%')))) "
             + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
             + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) "
@@ -112,11 +119,13 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             Pageable pageable);
 
     @Query(value = "SELECT p.id FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true) "
             + "AND (:keyword IS NULL OR (LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.thuongHieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.xuatXu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.mucDichSuDung) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.kinhLoai) LIKE LOWER(CONCAT('%', :keyword, '%')))) "
             + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
             + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu) "
             + "ORDER BY (SELECT COALESCE(AVG(r.danhGia), 0) FROM Review r WHERE r.productId = p.id) DESC",
             countQuery = "SELECT COUNT(DISTINCT p.id) FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true) "
             + "AND (:keyword IS NULL OR (LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.chatLieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.thuongHieu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.xuatXu) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.mucDichSuDung) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.kinhLoai) LIKE LOWER(CONCAT('%', :keyword, '%')))) "
             + "AND (:danhMucId IS NULL OR p.danhMucId = :danhMucId) "
             + "AND (:chatLieu IS NULL OR p.chatLieu = :chatLieu)")
@@ -125,8 +134,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             @Param("chatLieu") String chatLieu,
             Pageable pageable);
 
-    @Query("SELECT DISTINCT p.hinhDang FROM Product p WHERE p.isActive = true AND p.hinhDang IS NOT NULL ORDER BY p.hinhDang ASC")
-    List<String> findDistinctHinhDang();
+    @Query("SELECT p FROM Product p WHERE p.id IN :ids AND p.isActive = true AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true)")
+    List<Product> findAllByIdWithVariants(@Param("ids") List<Integer> ids);
 
     @Query("SELECT DISTINCT p.chatLieu FROM Product p WHERE p.isActive = true AND p.chatLieu IS NOT NULL ORDER BY p.chatLieu ASC")
     List<String> findDistinctChatLieu();

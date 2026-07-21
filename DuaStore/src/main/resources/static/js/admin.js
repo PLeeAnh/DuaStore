@@ -28,6 +28,24 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    /* ── Global toast helper ── */
+    window.dsToast = function (type, msg) {
+        var icons = {success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill'};
+        var tc = document.getElementById('toastContainer');
+        if (!tc) return;
+        var el = document.createElement('div');
+        el.className = 'ds-toast ds-toast-' + type;
+        el.innerHTML = '<i class="bi ' + (icons[type] || icons.success) + '"></i><span>' + msg + '</span><button class="ds-toast-close">&times;</button>';
+        tc.appendChild(el);
+        el.querySelector('.ds-toast-close').addEventListener('click', function () { el.remove(); });
+        setTimeout(function () {
+            if (el.parentNode) {
+                el.style.animation = 'ds-toast-fade-out .3s ease forwards';
+                setTimeout(function () { el.remove(); }, 300);
+            }
+        }, 3000);
+    };
+
     /* ── Sidebar toggle ── */
     const toggle = document.getElementById('admNavToggle');
     const sidebar = document.querySelector('.adm-sidebar');
@@ -91,33 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ── Toast notification ── */
     var toastTriggers = document.querySelectorAll('[data-toast-msg]');
-    var toastContainer = document.getElementById('toastContainer');
     toastTriggers.forEach(function (el) {
         var msg = el.getAttribute('data-toast-msg');
         var type = el.getAttribute('data-toast-type') || 'success';
-        var icons = {success: 'bi-check-circle-fill text-success', error: 'bi-x-circle-fill text-danger', warning: 'bi-exclamation-triangle-fill text-warning'};
-        var titles = {success: 'Thành công', error: 'Lỗi', warning: 'Cảnh báo'};
-        var toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
-        if (toastContainer) {
-            toastContainer.insertAdjacentHTML('beforeend',
-                    '<div id="' + toastId + '" class="toast" role="alert" data-bs-delay="4000">' +
-                    '<div class="toast-header">' +
-                    '<i class="bi ' + (icons[type] || icons.success) + ' me-2"></i>' +
-                    '<strong class="me-auto">' + (titles[type] || titles.success) + '</strong>' +
-                    '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
-                    '</div>' +
-                    '<div class="toast-body">' + msg + '</div>' +
-                    '</div>');
-            var toastEl = document.getElementById(toastId);
-            if (toastEl) {
-                var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
-                toast.show();
-                toastEl.addEventListener('hidden.bs.toast', function () {
-                    toastEl.remove();
-                });
-            }
-        }
-        el.remove();
+        dsToast(type, msg);
     });
 
     /* ── Confirm xóa (Bootstrap Modal) ── */
@@ -215,54 +210,42 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ── Dirty Save Bar ── */
     function initDirtyBar() {
         var bar = document.getElementById('dsSaveBar');
-        if (!bar)
-            return;
+        if (!bar) return;
         var forms = document.querySelectorAll('form[data-dirty-bar]');
         if (!forms.length) {
             bar.style.display = 'none';
             return;
         }
-        var activeForm = null;
+        var main = document.querySelector('.adm-main');
+        bar._activeForm = null;
+        bar._firstForm = null;
         var resetBtn = document.getElementById('dsSaveBarReset');
         var saveBtn = document.getElementById('dsSaveBarSave');
-        var fields = 'input, select, textarea';
 
-        function getFormData(f) {
-            return new FormData(f);
-        }
+        function getFormData(f) { return new FormData(f); }
 
         function checkDirty(f) {
-            if (!f._cleanData) {
-                f._cleanData = getFormData(f);
-                f._dirty = false;
-                return;
-            }
+            if (!f._cleanData) { return; }
             var current = getFormData(f);
             var dirty = false;
             var keys = new Set();
-            for (var pair of f._cleanData.entries())
-                keys.add(pair[0]);
-            for (var pair of current.entries())
-                keys.add(pair[0]);
+            for (var pair of f._cleanData.entries()) keys.add(pair[0]);
+            for (var pair of current.entries()) keys.add(pair[0]);
             keys.forEach(function (k) {
                 var v1 = f._cleanData.getAll(k).sort().join(',');
                 var v2 = current.getAll(k).sort().join(',');
-                if (v1 !== v2)
-                    dirty = true;
+                if (v1 !== v2) dirty = true;
             });
             if (dirty !== f._dirty) {
                 f._dirty = dirty;
-                updateBar(dirty, f);
-            }
-        }
-
-        function updateBar(dirty, f) {
-            activeForm = f;
-            if (dirty) {
-                bar.style.display = 'flex';
-                requestAnimationFrame(function () {
-                    bar.classList.add('show');
-                });
+                if (dirty) {
+                    bar._activeForm = f;
+                    bar.style.display = 'flex';
+                    if (main) main.style.paddingBottom = '56px';
+                } else {
+                    bar.style.display = 'none';
+                    if (main) main.style.paddingBottom = '';
+                }
             }
         }
 
@@ -271,37 +254,54 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(function () {
                 f._cleanData = getFormData(f);
                 f._dirty = false;
-                updateBar(false, f);
+                if (main) main.style.paddingBottom = '';
+                bar.style.display = 'none';
             }, 50);
         }
 
         forms.forEach(function (f) {
+            if (f._dirtyInit) return;
+            f._dirtyInit = true;
+            if (!bar._firstForm) bar._firstForm = f;
             f._cleanData = getFormData(f);
             f._dirty = false;
-            f.addEventListener('input', function () {
-                checkDirty(f);
-            });
-            f.addEventListener('change', function () {
-                checkDirty(f);
-            });
+            f.addEventListener('input', function () { checkDirty(f); });
+            f.addEventListener('change', function () { checkDirty(f); });
         });
+        if (forms.length === 1) bar._activeForm = forms[0];
+        if (!bar._activeForm) bar._activeForm = bar._firstForm;
 
-        if (forms.length === 1) activeForm = forms[0];
+        if (!bar._dirtyInit) {
+            bar._dirtyInit = true;
 
-        if (resetBtn)
-            resetBtn.addEventListener('click', function () {
-                var f = activeForm || document.querySelector('form[data-dirty-bar]');
-                if (f) resetDirty(f);
+            if (resetBtn) resetBtn.addEventListener('click', function () {
+                history.back();
             });
 
-        if (saveBtn)
-            saveBtn.addEventListener('click', function () {
-                var f = activeForm || document.querySelector('form[data-dirty-bar]');
-                if (f) { bar.style.display = 'none'; f.requestSubmit(); }
+            if (saveBtn) saveBtn.addEventListener('click', function () {
+                var f = bar._activeForm || document.querySelector('form[data-dirty-bar]');
+                if (!f) return;
+                bar.style.display = 'none';
+                if (main) main.style.paddingBottom = '';
+                f.requestSubmit();
             });
+        }
     }
 
     initDirtyBar();
+
+    /* ── Confirm leaving with unsaved changes ── */
+    window.addEventListener('beforeunload', function (e) {
+        var forms = document.querySelectorAll('form[data-dirty-bar]');
+        for (var i = 0; i < forms.length; i++) {
+            if (forms[i]._dirty) {
+                e.preventDefault();
+                e.returnValue = '';
+                return;
+            }
+        }
+    });
+
     document.addEventListener('click', function (e) {
         const toggle = e.target.closest('.tree-toggle');
         if (toggle && toggle.hasAttribute('data-target')) {
@@ -317,31 +317,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── expose reinit for AJAX navigation ──
     window.__reinitAdminComponents = function () {
+        /* Re-init dirty bar for newly loaded forms */
+        initDirtyBar();
         /* Toast */
         document.querySelectorAll('[data-toast-msg]').forEach(function (el) {
             var msg = el.getAttribute('data-toast-msg');
             var type = el.getAttribute('data-toast-type') || 'success';
-            var icons = {success: 'bi-check-circle-fill text-success', error: 'bi-x-circle-fill text-danger', warning: 'bi-exclamation-triangle-fill text-warning'};
-            var titles = {success: 'Thành công', error: 'Lỗi', warning: 'Cảnh báo'};
-            var toastId = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
-            var tc = document.getElementById('toastContainer');
-            if (tc) {
-                tc.insertAdjacentHTML('beforeend',
-                    '<div id="' + toastId + '" class="toast" role="alert" data-bs-delay="4000">' +
-                    '<div class="toast-header">' +
-                    '<i class="bi ' + (icons[type] || icons.success) + ' me-2"></i>' +
-                    '<strong class="me-auto">' + (titles[type] || titles.success) + '</strong>' +
-                    '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
-                    '</div>' +
-                    '<div class="toast-body">' + msg + '</div>' +
-                    '</div>');
-                var toastEl = document.getElementById(toastId);
-                if (toastEl) {
-                    var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
-                    toast.show();
-                    toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
-                }
-            }
+            dsToast(type, msg);
             el.remove();
         });
 
@@ -405,62 +387,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof TomSelect !== 'undefined') new TomSelect(el, opts);
         });
 
-        /* Dirty bar (simple: rebind change listeners on [data-dirty-bar] forms) */
-        var dsBar = document.getElementById('dsSaveBar');
-        if (dsBar) {
-            var __fc = document.querySelectorAll('form[data-dirty-bar]');
-            if (!__fc.length) { dsBar.style.display = 'none'; return; }
-
-            function getFD(f) { return new FormData(f); }
-            function updBar(dirty, f) {
-                window.__activeForm = f;
-                if (dirty) {
-                    dsBar.style.display = 'flex';
-                    requestAnimationFrame(function () { dsBar.classList.add('show'); });
-                }
-            }
-            function chkDirty(f) {
-                var cur = getFD(f);
-                var dirty = false;
-                var keys = new Set();
-                for (var pair of f._cleanData.entries()) keys.add(pair[0]);
-                for (var pair of cur.entries()) keys.add(pair[0]);
-                keys.forEach(function (k) {
-                    var v1 = f._cleanData.getAll(k).sort().join(',');
-                    var v2 = cur.getAll(k).sort().join(',');
-                    if (v1 !== v2) dirty = true;
-                });
-                if (dirty !== f._dirty) { f._dirty = dirty; updBar(dirty, f); }
-            }
-
-            __fc.forEach(function (f) {
-                if (f._dsRebound) return;
-                f._dsRebound = true;
-                f._cleanData = new FormData(f);
-                f._dirty = false;
-                f.addEventListener('input', function () { chkDirty(f); });
-                f.addEventListener('change', function () { chkDirty(f); });
-            });
-
-            if (__fc.length === 1 && !window.__activeForm) window.__activeForm = __fc[0];
-            var rsBtn = document.getElementById('dsSaveBarReset');
-            if (rsBtn) rsBtn.onclick = function () {
-                var f = window.__activeForm || document.querySelector('form[data-dirty-bar]');
-                if (f) {
-                    f.reset();
-                    setTimeout(function () {
-                        f._cleanData = new FormData(f);
-                        f._dirty = false;
-                        updBar(false, f);
-                    }, 50);
-                }
-            };
-            var svBtn = document.getElementById('dsSaveBarSave');
-            if (svBtn) svBtn.onclick = function () {
-                var f = window.__activeForm || document.querySelector('form[data-dirty-bar]');
-                if (f) { dsBar.style.display = 'none'; f.requestSubmit(); }
-            };
-        }
     };
 });
 
@@ -472,15 +398,22 @@ document.addEventListener('DOMContentLoaded', () => {
     var contentArea = document.querySelector('.adm-content');
     if (!sidebar || !contentArea) return;
 
-    function execScripts(container) {
-        container.querySelectorAll('script').forEach(function (old) {
-            var s = document.createElement('script');
-            for (var i = 0; i < old.attributes.length; i++) {
-                s.setAttribute(old.attributes[i].name, old.attributes[i].value);
-            }
-            s.textContent = old.textContent;
-            old.parentNode.replaceChild(s, old);
-        });
+    function execScripts(container, scripts) {
+        var list = scripts || Array.from(container.querySelectorAll('script'));
+        for (var i = 0; i < list.length; i++) {
+            try {
+                var old = list[i];
+                if (!old.parentNode) continue;
+                if (old.src) {
+                    var s = document.createElement('script');
+                    s.src = old.src;
+                    old.parentNode.replaceChild(s, old);
+                } else {
+                    try { (0, eval)(old.textContent); } catch (e2) { /* ignore */ }
+                    old.parentNode.removeChild(old);
+                }
+            } catch (e) { /* ignore script errors from extensions */ }
+        }
     }
 
     function getExtraElements(doc) {
@@ -507,10 +440,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadAdminPage(url, clickedLink) {
-        contentArea.style.opacity = '0.4';
-        contentArea.style.pointerEvents = 'none';
+	contentArea.style.opacity = '0.4';
+	contentArea.style.pointerEvents = 'none';
 
-        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+	fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(function (html) {
                 var doc = new DOMParser().parseFromString(html, 'text/html');
@@ -518,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Replace main content
                 var newContent = doc.querySelector('.adm-content');
                 if (newContent) contentArea.innerHTML = newContent.innerHTML;
+                var contentScripts = Array.from(contentArea.querySelectorAll('script'));
 
                 // Replace breadcrumb
                 var bc = doc.querySelector('.breadcrumb');
@@ -549,23 +483,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Remove old extra content, add new extra content
                 document.querySelectorAll('[data-ajax-extra]').forEach(function (el) { el.remove(); });
                 var extraEls = getExtraElements(doc);
+                var extraScripts = [];
                 for (var k = 0; k < extraEls.length; k++) {
                     var clone = extraEls[k].cloneNode(true);
                     clone.setAttribute('data-ajax-extra', 'true');
-                    document.body.appendChild(clone);
+                    if (clone.tagName === 'SCRIPT') {
+                        extraScripts.push(clone);
+                    } else {
+                        Array.from(clone.querySelectorAll('script')).forEach(function (s) { extraScripts.push(s); });
+                        document.body.appendChild(clone);
+                    }
                 }
 
                 // Execute scripts in content area
-                execScripts(contentArea);
+                execScripts(contentArea, contentScripts);
 
                 // Execute scripts in new extra content
-                document.querySelectorAll('[data-ajax-extra] script').forEach(function (old) {
-                    var s = document.createElement('script');
-                    for (var i = 0; i < old.attributes.length; i++) {
-                        s.setAttribute(old.attributes[i].name, old.attributes[i].value);
-                    }
-                    s.textContent = old.textContent;
-                    old.parentNode.replaceChild(s, old);
+                extraScripts.forEach(function (old) {
+                    try {
+                        if (old.src) {
+                            var s = document.createElement('script');
+                            s.src = old.src;
+                            if (old.parentNode) {
+                                old.parentNode.replaceChild(s, old);
+                            } else {
+                                document.body.appendChild(s);
+                            }
+                        } else {
+                            try { (0, eval)(old.textContent); } catch (e2) { /* ignore */ }
+                        }
+                    } catch (e) { /* ignore script errors from extensions */ }
                 });
 
                 // Re-init admin components
@@ -580,16 +527,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    function confirmLeavingIfDirty() {
+        var forms = document.querySelectorAll('form[data-dirty-bar]');
+        for (var i = 0; i < forms.length; i++) {
+            if (forms[i]._dirty) return confirm('Bạn có thay đổi chưa lưu. Bạn có muốn rời khỏi trang?');
+        }
+        return true;
+    }
+
     sidebar.addEventListener('click', function (e) {
         var link = e.target.closest('a.adm-nav-link');
         if (!link) return;
         var href = link.getAttribute('href');
         if (!href || href === '#' || href === '' || href.indexOf('http') === 0) return;
-        // Only intercept links starting with /admin (excludes "Về trang chủ" → /)
         if (href.indexOf('/admin') !== 0) return;
-        // Allow ctrl/meta/middle-click for new tab
         if (e.ctrlKey || e.metaKey || e.button === 1) return;
         e.preventDefault();
+        if (!confirmLeavingIfDirty()) return;
         loadAdminPage(href, link);
     });
 
@@ -597,6 +551,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.state && e.state.url) {
             window.location.href = e.state.url;
         }
+    });
+
+    /* ── AJAX pagination: intercept pagination links & size select ── */
+    document.addEventListener('click', function (e) {
+        var link = e.target.closest('[data-pagination] a[href]');
+        if (!link) return;
+        var href = link.getAttribute('href');
+        if (!href || href === '#' || href.indexOf('/admin') !== 0) return;
+        if (e.ctrlKey || e.metaKey || e.button === 1) return;
+        e.preventDefault();
+        if (!confirmLeavingIfDirty()) return;
+        loadAdminPage(href);
+    });
+    document.addEventListener('change', function (e) {
+        var sel = e.target.closest('[data-pagination] select[name="size"]');
+        if (!sel) return;
+        if (!confirmLeavingIfDirty()) return;
+        var form = sel.closest('form');
+        if (!form) return;
+        var url = form.action;
+        if (!url) return;
+        var params = new URLSearchParams(new FormData(form));
+        loadAdminPage(url + '?' + params.toString());
+    });
+
+    /* ── AJAX tab navigation: load via AJAX instead of full reload ── */
+    document.addEventListener('click', function (e) {
+        var tab = e.target.closest('.adm-tab-nav a.adm-tab');
+        if (!tab) return;
+        var href = tab.getAttribute('href');
+        if (!href || href === '#' || href.indexOf('/admin') !== 0) return;
+        if (e.ctrlKey || e.metaKey || e.button === 1) return;
+        e.preventDefault();
+        if (!confirmLeavingIfDirty()) return;
+        loadAdminPage(href, null);
     });
 })();
 

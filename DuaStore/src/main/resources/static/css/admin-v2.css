@@ -17,7 +17,7 @@
     --card: #FFFFFF;
     --text: #0F172A;
     --muted: #64748B;
-    --border: #E2E8F0;
+    --border: #6B7280;
 
     --sidebar-w: 280px;
     --header-h: 72px;
@@ -422,7 +422,7 @@ body.adm-body {
     background: var(--card);
     border-radius: var(--card-radius);
     box-shadow: var(--shadow);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border) !important;
     padding: 1.5rem;
 }
 
@@ -466,7 +466,11 @@ body.adm-body {
     border-radius: var(--card-radius);
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
-    overflow: hidden;
+    overflow: visible;
+}
+
+.adm-table-wrap .table-responsive {
+    overflow: visible;
 }
 
 .adm-table-wrap .table,
@@ -1140,14 +1144,14 @@ body.adm-body {
     background: var(--card);
     border-radius: var(--card-radius);
     box-shadow: var(--shadow);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border) !important;
     padding: 1.25rem;
     margin-bottom: 1.5rem;
 }
 
 /* ── 26. KPI Cards Warning State ── */
 .adm-stat-warning {
-    border-color: #FDE68A;
+    border-color: #D97706;
     background: #FFFBEB;
 }
 
@@ -1400,7 +1404,6 @@ body.adm-body {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--card-radius);
-    overflow: hidden;
     transition: box-shadow .2s, transform .2s;
     cursor: pointer;
     display: flex;
@@ -1547,7 +1550,7 @@ body.adm-body {
 }
 
 .category-tree .tree-children {
-    overflow: hidden;
+    overflow: visible;
     transform-origin: top;
     will-change: height, opacity, transform;
 }
@@ -1881,12 +1884,11 @@ body.adm-body {
     background: transparent;
     border-radius: 0;
 }
-.ts-wrapper .ts-control {
+.ts-wrapper.form-select .ts-control {
     background: var(--card);
-    border: 2px solid color-mix(in srgb, var(--border) 80%, #000 20%) !important;
+    border: 1.5px solid var(--border) !important;
     border-radius: 12px;
-    padding: .35rem 1rem .35rem .75rem;
-    min-height: 40px;
+    padding: .55rem 1rem;
     font-size: .875rem;
     color: var(--text);
     box-shadow: none;
@@ -1896,7 +1898,7 @@ body.adm-body {
     font-size: .875rem;
     color: var(--text);
 }
-.ts-wrapper.focus .ts-control {
+.ts-wrapper.form-select.focus .ts-control {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
@@ -1909,6 +1911,7 @@ body.adm-body {
     color: var(--text);
     font-size: .875rem;
     box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 99999;
 }
 .ts-wrapper .ts-dropdown .option.active {
     background: var(--primary-light);
@@ -1943,11 +1946,10 @@ body.adm-body {
 }
 
 /* ── Save Bar ── */
-body { padding-bottom: 56px; }
 .ds-save-bar {
     position: fixed;
     bottom: 0;
-    left: 0;
+    left: var(--sidebar-w);
     right: 0;
     z-index: 99999;
     background: #fff;
@@ -1957,11 +1959,6 @@ body { padding-bottom: 56px; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transform: translateY(100%);
-    transition: transform .3s ease;
-}
-.ds-save-bar.show {
-    transform: translateY(0);
 }
 .ds-save-bar .ds-save-bar-msg {
     display: flex;
@@ -1977,4 +1974,61 @@ body { padding-bottom: 56px; }
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+/* ── Toast / Notification ── */
+.ds-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+.ds-toast-container > * {
+    pointer-events: auto;
+}
+.ds-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15,23,42,.12);
+    font-size: .875rem;
+    color: #1e293b;
+    min-width: 280px;
+    max-width: 420px;
+    animation: ds-toast-slide-in .3s ease forwards;
+}
+.ds-toast-success { border-left: 3px solid #10B981; }
+.ds-toast-error   { border-left: 3px solid #EF4444; }
+.ds-toast-warning { border-left: 3px solid #F59E0B; }
+.ds-toast-info    { border-left: 3px solid #2563EB; }
+.ds-toast-close {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    font-size: 1rem;
+    transition: color .15s;
+}
+.ds-toast-close:hover {
+    color: #1e293b;
+}
+
+@keyframes ds-toast-slide-in {
+    from { opacity: 0; transform: translateX(100%); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes ds-toast-fade-out {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(100%); }
 }

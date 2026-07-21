@@ -132,6 +132,9 @@
                             </th:block>
                         </div>
                     </div>
+                    <div class="col-12">
+                        <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -336,6 +339,7 @@
                 function saveBH() {
                     var toSave = JSON.parse(JSON.stringify(bhData));
                     bhInput.value = JSON.stringify(toSave);
+                    bhInput.dispatchEvent(new Event('input', {bubbles: true}));
                 }
 
                 allDays.forEach(function(d) {
@@ -374,6 +378,7 @@
                     var urls = storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean);
                     urls = urls.filter(function(u){ return u !== url });
                     storeImagesInput.value = urls.join(',');
+                    storeImagesInput.dispatchEvent(new Event('input', {bubbles: true}));
                     refreshGallery();
                 });
 
@@ -398,6 +403,7 @@
                                     var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
                                     urls = urls.concat(uploaded);
                                     storeImagesInput.value = urls.join(',');
+                                    storeImagesInput.dispatchEvent(new Event('input', {bubbles: true}));
                                     refreshGallery();
                                 }
                             })
@@ -407,6 +413,7 @@
                                     var urls = storeImagesInput.value ? storeImagesInput.value.split(',').map(function(s){return s.trim()}).filter(Boolean) : [];
                                     urls = urls.concat(uploaded);
                                     storeImagesInput.value = urls.join(',');
+                                    storeImagesInput.dispatchEvent(new Event('input', {bubbles: true}));
                                     refreshGallery();
                                 }
                             });
@@ -442,6 +449,7 @@
                         .then(function(data) {
                             if (data && data.display_name) {
                                 addrInput.value = data.display_name;
+                                addrInput.dispatchEvent(new Event('input', {bubbles: true}));
                             }
                         });
                 }
@@ -450,12 +458,16 @@
                     var p = marker.getLatLng();
                     latInput.value = p.lat.toFixed(6);
                     lngInput.value = p.lng.toFixed(6);
+                    latInput.dispatchEvent(new Event('input', {bubbles: true}));
+                    lngInput.dispatchEvent(new Event('input', {bubbles: true}));
                     reverseGeocode(p);
                 });
                 map.on('click', function(e) {
                     marker.setLatLng(e.latlng);
                     latInput.value = e.latlng.lat.toFixed(6);
                     lngInput.value = e.latlng.lng.toFixed(6);
+                    latInput.dispatchEvent(new Event('input', {bubbles: true}));
+                    lngInput.dispatchEvent(new Event('input', {bubbles: true}));
                     reverseGeocode(e.latlng);
                 });
 
@@ -476,6 +488,8 @@
                                     marker.setLatLng([lat, lng]);
                                     latInput.value = lat.toFixed(6);
                                     lngInput.value = lng.toFixed(6);
+                                    latInput.dispatchEvent(new Event('input', {bubbles: true}));
+                                    lngInput.dispatchEvent(new Event('input', {bubbles: true}));
                                 }
                             });
                     }, 500);
@@ -493,6 +507,8 @@
                                 marker.setLatLng([lat, lng]);
                                 latInput.value = lat.toFixed(6);
                                 lngInput.value = lng.toFixed(6);
+                                latInput.dispatchEvent(new Event('input', {bubbles: true}));
+                                lngInput.dispatchEvent(new Event('input', {bubbles: true}));
                             }
                         });
                 }

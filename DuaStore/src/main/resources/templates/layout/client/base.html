@@ -21,8 +21,8 @@
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Inter'}" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
-    <link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css}"/>
+<link rel="stylesheet" th:href="@{/css/style.css(v=2)}"/>
+<link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css(v=1)}"/>
 
     <script defer th:src="@{/js/main.js(v=1)}"></script>
     <script defer th:src="@{/js/toast.js(v=2)}"></script>
@@ -48,7 +48,7 @@
             --ds-r-lg: [[${themeSettings.get('theme_border_radius') ?: '20'}]]px;
             --ds-r-xl: [[${themeSettings.get('theme_border_radius') ?: '24'}]]px;
         }
-        .ds-ctn-width { max-width: [[${themeSettings.get('theme_container_width') ?: '1280'}]]px !important; }
+        .ds-ctn-width { max-width: [[${themeSettings.get('theme_container_width') ?: '1280'}]]px !important; margin: 0 auto; }
     </style>
     <link rel="stylesheet" th:href="@{/css/base-ui.css}"/>
 </head>
@@ -92,6 +92,7 @@
       th:classappend="${#lists.isEmpty(myWishlist)} ? ' d-none' : ''">0</span>
     </button>
     <div id="wishlist-popup" class="custom-popup">
+                        <th:block th:if="${session.loggedIn}">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold">Sản phẩm yêu thích</h6>
                         <div id="wishlist-items-container">
                             <div th:if="${#lists.isEmpty(myWishlist)}" class="text-center py-4 text-muted">
@@ -106,8 +107,15 @@
                                 <div class="popup-item-info">
                                     <a th:href="@{/san-pham/{id}(id=${item.productId})}" th:text="${item.tenSanPham}">Tên SP</a>
                                 </div>
-                                
-        </div>
+                            </div>
+                        </div>
+                        </th:block>
+                        <th:block th:unless="${session.loggedIn}">
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-heartbreak" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">Vui lòng đăng nhập</p>
+                            </div>
+                        </th:block>
     </div>
 </div>
 
@@ -123,6 +131,7 @@
           >0</span>
 </button>
                     <div id="cart-popup" class="custom-popup" style="width: 340px;">
+                        <th:block th:if="${session.loggedIn}">
                         <h6 class="border-bottom pb-2 mb-0 fw-bold d-flex align-items-center justify-content-between">
                             <span>Giỏ hàng của bạn</span>
                             <a th:href="@{/gio-hang}" class="small text-decoration-none">Xem giỏ hàng</a>
@@ -167,6 +176,13 @@
                         <div class="mt-2 pt-2" th:unless="${#lists.isEmpty(myCart)}">
     <a th:href="@{/gio-hang}" class="btn btn-primary w-100 fw-semibold py-2 text-center d-block">Xem giỏ hàng / Thanh toán</a>
 </div>
+                        </th:block>
+                        <th:block th:unless="${session.loggedIn}">
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">Vui lòng đăng nhập</p>
+                            </div>
+                        </th:block>
                     </div>
                 </div>
                 <!-- NOTIFICATION BUTTON + POPUP -->
@@ -187,7 +203,7 @@
                                 <p class="mt-2 mb-0">Chưa có thông báo</p>
                             </div>
                             <div th:each="n : ${recentNotifs}" th:classappend="${n.linkType != null} ? 'cursor-pointer' : ''">
-                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item" th:onclick="'markNotifRead(' + ${n.id} + ')'">
+                                <a th:if="${n.linkType != null}" th:href="@{${n.linkUrl}}" class="text-decoration-none text-reset d-block notif-item" th:attr="data-notif-id=${n.id}" th:onclick="'markNotifRead(' + ${n.id} + ')'">
                                     <div class="d-flex align-items-start gap-2">
                                         <span th:if="${n.linkType == 'PRODUCT'}" class="notif-icon bg-info-subtle text-info flex-shrink-0">
                                             <i class="bi bi-box-seam"></i>
@@ -280,7 +296,8 @@
         </div>
 
         <!-- Mobile collapse nav -->
-        <div class="collapse navbar-collapse d-lg-none" id="dsNavMobile">
+        <div class="collapse navbar-collapse d-lg-none" id="dsNavMobile"
+             th:if="${themeSettings.containsKey('menu_1_label')}">
             <ul class="navbar-nav d-flex flex-column gap-1 mt-3 pt-3 border-top" style="border-color:var(--ds-border);">
                 <th:block th:each="i : ${#numbers.sequence(1,10)}">
                     <th:block th:if="${themeSettings.containsKey('menu_' + i + '_label') and themeSettings.get('menu_' + i + '_active') != '0'}">
@@ -1027,13 +1044,13 @@ if (searchInput && searchBox) {
 }
 </script>
 
-<script th:src="@{/js/base-ui.js(v=7)}"></script>
+<script th:src="@{/js/base-ui.js(v=8)}"></script>
 <div id="dsToast"
      class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
      style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
 
 <!-- Save Bar -->
-<div id="dsSaveBar" class="ds-save-bar show" style="display: flex;">
+<div id="dsSaveBar" class="ds-save-bar" style="display: none;">
     <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>
     <div class="ds-save-bar-actions">
         <button type="button" class="btn btn-outline-secondary btn-sm" id="dsSaveBarReset">Đặt lại</button>

@@ -177,6 +177,7 @@ a {
     position: sticky;
     top: 0;
     z-index: 1000;
+    display: block !important;
 }
 
 /* Logo */
@@ -3089,6 +3090,53 @@ a {
 }
 .stock-dot.out-of-stock {
     background: var(--ds-red);
+}
+
+/* ── Out-of-stock banner ── */
+.oos-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    border-radius: 12px;
+}
+.oos-banner-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FCD34D;
+    border-radius: 10px;
+    color: #92400E;
+    font-size: 1rem;
+}
+.oos-banner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.oos-banner-content strong {
+    font-size: .9rem;
+    color: #92400E;
+}
+.oos-banner-content span {
+    font-size: .8rem;
+    color: #A16207;
+    line-height: 1.4;
+}
+.btn-oos {
+    background: #F3F4F6;
+    color: #9CA3AF;
+    border: 1.5px solid #E5E7EB;
+    border-radius: 10px;
+    padding: .7rem 1rem;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: not-allowed;
 }
 
 /* ── CTA buttons ── */
@@ -6045,7 +6093,6 @@ body.ds-checkout-page #main-content {
 }
 
 /* ── Save Bar ── */
-body { padding-bottom: 56px; }
 .ds-save-bar {
     position: fixed;
     bottom: 0;

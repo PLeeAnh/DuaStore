@@ -229,7 +229,7 @@ public class CartService {
     public List<Product> getSuggestions(Integer userId, int limit) {
         List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId);
         if (cartItems.isEmpty()) {
-            return productRepository.findByIsFeaturedTrueAndIsActiveTrue().stream()
+            return productRepository.findFeaturedWithVariants().stream()
                     .filter(p -> p.getTrangThaiSanPham().equals("DANG_BAN"))
                     .limit(limit)
                     .collect(Collectors.toList());
