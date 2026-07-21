@@ -231,7 +231,10 @@ public class AdminVariantController {
 
     @GetMapping("/bulk-edit/{productId}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
-    public String bulkEditForm(@PathVariable Integer productId, Model model, RedirectAttributes ra) {
+    public String bulkEditForm(@PathVariable Integer productId,
+                               @RequestParam(defaultValue = "0") int page,
+                               @RequestParam(defaultValue = "20") int size,
+                               Model model, RedirectAttributes ra) {
         var p = productRepository.findById(productId).orElse(null);
         if (p == null) {
             ra.addFlashAttribute("errorMsg", "Không tìm thấy sản phẩm");
@@ -240,7 +243,13 @@ public class AdminVariantController {
         model.addAttribute("title", "san-pham");
         model.addAttribute("productId", productId);
         model.addAttribute("productName", p.getTenSanPham());
-        model.addAttribute("variants", variantService.findByProductId(productId));
+
+        var paged = variantService.findByProductIdPaged(productId, page, size);
+        model.addAttribute("variants", paged.getContent());
+        model.addAttribute("totalElements", paged.getTotalElements());
+        model.addAttribute("page", paged.getNumber());
+        model.addAttribute("pageSize", paged.getSize());
+
         return "view/admin/product/variant-bulk-edit";
     }
 

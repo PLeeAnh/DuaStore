@@ -172,6 +172,7 @@
                     if (q.length < 1) {
                         box.style.display = 'none';
                         hidden.value = '';
+                        hidden.dispatchEvent(new Event('input', {bubbles: true}));
                         return;
                     }
                     timer = setTimeout(function () {
@@ -191,6 +192,7 @@
                             btn.addEventListener('click', function () {
                                 input.value = item.name;
                                 hidden.value = item.name;
+                                hidden.dispatchEvent(new Event('input', {bubbles: true}));
                                 box.style.display = 'none';
                                 if (onSelect)
                                     onSelect(item);

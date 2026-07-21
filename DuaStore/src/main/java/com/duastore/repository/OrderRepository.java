@@ -18,6 +18,8 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     Optional<Order> findByMaVanDon(String maVanDon);
 
+    Optional<Order> findByMaDon(String maDon);
+
     Page<Order> findByUserId(Integer userId, Pageable pageable);
 
     List<Order> findAllByUserId(Integer userId);
@@ -114,4 +116,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT o.promotion.id, COUNT(o) FROM Order o WHERE o.promotion IS NOT NULL GROUP BY o.promotion.id")
     List<Object[]> countOrdersByPromotion();
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.snapSoDienThoai = :phone AND o.trangThaiDon = 'DA_HUY' AND o.ngayDat >= :since")
+    long countCancelledByPhoneSince(@Param("phone") String phone, @Param("since") LocalDateTime since);
 }

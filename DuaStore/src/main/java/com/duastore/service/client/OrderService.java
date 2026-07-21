@@ -2,10 +2,12 @@ package com.duastore.service.client;
 
 import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
+import com.duastore.dto.TimelineEvent;
 import com.duastore.model.*;
 import com.duastore.repository.*;
 import com.duastore.service.GHNShippingService;
 import com.duastore.service.LoyaltyPointsService;
+import com.duastore.service.MultiCarrierShippingService;
 import com.duastore.service.PricingService;
 import com.duastore.service.ShippingFeeService;
 import com.duastore.service.VNPAYService;
@@ -47,6 +49,7 @@ public class OrderService {
     private final PricingService pricingService;
     private final FlashSaleRepository flashSaleRepository;
     private final LoyaltyPointsService loyaltyPointsService;
+    private final MultiCarrierShippingService multiCarrierShippingService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             CartService cartService, AddressRepository addressRepository,
@@ -61,7 +64,8 @@ public class OrderService {
             VNPAYService vnpayService,
             PricingService pricingService,
             FlashSaleRepository flashSaleRepository,
-            LoyaltyPointsService loyaltyPointsService) {
+            LoyaltyPointsService loyaltyPointsService,
+            MultiCarrierShippingService multiCarrierShippingService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -79,23 +83,31 @@ public class OrderService {
         this.pricingService = pricingService;
         this.flashSaleRepository = flashSaleRepository;
         this.loyaltyPointsService = loyaltyPointsService;
+        this.multiCarrierShippingService = multiCarrierShippingService;
     }
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
             String phuongThucGiaoHang, String maCode, String ghiChu) {
-        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, 0);
+        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, 0, null, "GHN");
     }
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
             String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem) {
-        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, pointsToRedeem, null);
+        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, pointsToRedeem, null, "GHN");
     }
 
     @Transactional
     public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
             String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem, Set<Integer> selectedVariantIds) {
+        return processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang, maCode, ghiChu, pointsToRedeem, selectedVariantIds, "GHN");
+    }
+
+    @Transactional
+    public Order processCheckout(Integer userId, Integer addressId, String phuongThucTT,
+            String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem,
+            Set<Integer> selectedVariantIds, String shippingCarrier) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
         Address address = addressRepository.findById(addressId)
@@ -129,7 +141,8 @@ public class OrderService {
         order.setPhuongThucTT(phuongThucTT);
         order.setPhuongThucGiaoHang(phuongThucGiaoHang);
         order.setGhiChu(ghiChu);
-        order.setPhiVanChuyen(calculateShipFee(address, phuongThucGiaoHang));
+        order.setShippingCarrier(shippingCarrier);
+        order.setPhiVanChuyen(calculateShipFee(address, phuongThucGiaoHang, shippingCarrier));
 
         BigDecimal tienHang = BigDecimal.ZERO;
         for (CartItem ci : cartItems) {
@@ -328,7 +341,11 @@ public class OrderService {
     }
 
     private BigDecimal calculateShipFee(Address address, String phuongThucGH) {
-        return shippingFeeService.calculateFee(address, phuongThucGH);
+        return calculateShipFee(address, phuongThucGH, "GHN");
+    }
+
+    private BigDecimal calculateShipFee(Address address, String phuongThucGH, String shippingCarrier) {
+        return multiCarrierShippingService.calculateFeeForCarrier(shippingCarrier, address, phuongThucGH, null);
     }
 
     public void validatePromotion(Promotion promo, BigDecimal tienHang) {
@@ -389,6 +406,47 @@ public class OrderService {
             throw new RuntimeException("Không có quyền xem đơn hàng này");
         }
         return order;
+    }
+
+    public Order getOrderByMaDon(String maDon) {
+        return orderRepository.findByMaDon(maDon)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+    }
+
+    public List<TimelineEvent> getOrderTimeline(String maDon) {
+        Order order = getOrderByMaDon(maDon);
+        List<OrderStatusLog> logs = orderStatusLogService.getLogsByOrder(order.getId());
+        List<TimelineEvent> events = new ArrayList<>();
+        for (int i = 0; i < logs.size(); i++) {
+            OrderStatusLog log = logs.get(i);
+            String desc = switch (log.getLoaiSuKien()) {
+                case CREATE_ORDER -> "Đã đặt hàng";
+                case PAYMENT_CONFIRMED -> "Đã thanh toán";
+                case ASSIGN_ADMIN -> "Đã phân công xử lý";
+                case STATUS_CHANGE -> {
+                    String s = log.getTrangThaiMoi() != null ? log.getTrangThaiMoi() : "";
+                    yield switch (s) {
+                        case "DA_XAC_NHAN" -> "Đã xác nhận đơn hàng";
+                        case "DANG_GIAO" -> "Đang giao hàng";
+                        case "DA_GIAO" -> "Đã giao hàng";
+                        case "DA_HOAN_THANH" -> "Hoàn thành";
+                        default -> "Cập nhật: " + s;
+                    };
+                }
+                case CANCEL_ORDER -> "Đã hủy đơn hàng";
+                case REFUND_ORDER -> "Đã hoàn tiền";
+            };
+            boolean isLast = (i == logs.size() - 1);
+            events.add(new TimelineEvent(
+                    desc,
+                    log.getGhiChu() != null ? log.getGhiChu() : "",
+                    log.getThoiGian(),
+                    log.getLoaiSuKien().name(),
+                    true,
+                    isLast
+            ));
+        }
+        return events;
     }
 
     @Transactional
@@ -535,6 +593,8 @@ public class OrderService {
         dto.setTrangThaiDon(order.getTrangThaiDon());
         dto.setGhiChu(order.getGhiChu());
         dto.setMaVanDon(order.getMaVanDon());
+        dto.setFraudWarning(order.getFraudWarning());
+        dto.setShippingCarrier(order.getShippingCarrier());
         dto.setNgayDat(order.getNgayDat());
         if (order.getPromotion() != null) {
             dto.setPromotionId(order.getPromotion().getId());

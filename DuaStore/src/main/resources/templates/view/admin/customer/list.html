@@ -92,11 +92,11 @@
                         <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
                         <option value="LOCKED" th:selected="${status == 'LOCKED'}">Khóa</option>
                     </select>
-                    <select id="filterCity" class="form-select form-select-sm" style="width:auto">
+                    <select id="filterCity" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tất cả tỉnh/thành">
                         <option value="">Tất cả tỉnh/thành</option>
                         <option th:each="c : ${cities}" th:value="${c}" th:selected="${city == c}" th:text="${c}"></option>
                     </select>
-                    <select id="filterSpendingTier" class="form-select form-select-sm" style="width:auto">
+                    <select id="filterSpendingTier" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Phân khúc chi tiêu">
                         <option value="">Phân khúc chi tiêu</option>
                         <option value="vip" th:selected="${spendingTier == 'vip'}">VIP (&ge;10tr)</option>
                         <option value="medium" th:selected="${spendingTier == 'medium'}">Trung bình (2-10tr)</option>

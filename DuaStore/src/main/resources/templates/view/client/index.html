@@ -195,9 +195,9 @@
                         <!-- Cột trái: tabs + list -->
                         <div>
                             <div class="ds-browse-tabs">
-                                <button class="ds-browse-tab active" data-tab="fav">Yêu thích nhất</button>
-                                <button class="ds-browse-tab" data-tab="sold">Bán chạy nhất</button>
-                                <button class="ds-browse-tab" data-tab="new">Sắp ra mắt</button>
+                                <button th:if="${hasFavProducts}" class="ds-browse-tab active" data-tab="fav">Yêu thích nhất</button>
+                                <button th:if="${hasSoldProducts}" class="ds-browse-tab" th:classappend="${!hasFavProducts ? 'active' : ''}" data-tab="sold">Bán chạy nhất</button>
+                                <button class="ds-browse-tab" th:classappend="${!hasFavProducts and !hasSoldProducts ? 'active' : ''}" data-tab="new">Sắp ra mắt</button>
                             </div>
                             <div class="ds-browse-list" id="browseList">
                                 <div th:each="p, iter : ${browseProducts}"
@@ -236,13 +236,13 @@
                             </div>
                             <div class="ds-see-more-link">
                                 <span>Xem thêm:</span>
-                                <div class="ds-see-more-btn" data-tab="fav" style="display:block">
+                                <div th:if="${hasFavProducts}" class="ds-see-more-btn" data-tab="fav" style="display:block">
                                     <a th:href="@{/san-pham(sortBy='yêu thích')}" class="ds-see-more-btn-inner">Yêu thích nhất</a>
                                 </div>
-                                <div class="ds-see-more-btn" data-tab="sold" style="display:none">
+                                <div th:if="${hasSoldProducts}" class="ds-see-more-btn" data-tab="sold" th:style="${!hasFavProducts} ? 'display:block' : 'display:none'">
                                     <a th:href="@{/san-pham(sortBy='bán chạy')}" class="ds-see-more-btn-inner">Bán chạy nhất</a>
                                 </div>
-                                <div class="ds-see-more-btn" data-tab="new" style="display:none">
+                                <div class="ds-see-more-btn" data-tab="new" th:style="${!hasFavProducts and !hasSoldProducts} ? 'display:block' : 'display:none'">
                                     <a th:href="@{/san-pham(sortBy='mới nhất')}" class="ds-see-more-btn-inner">Sắp ra mắt</a>
                                 </div>
                             </div>

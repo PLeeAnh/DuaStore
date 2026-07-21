@@ -100,24 +100,25 @@
                  th:data-href="@{/admin/san-pham/chi-tiet/{id}(id=${p.id})}">
                 <div class="adm-image-card"
                      th:classappend="${imageCounts.get(p.id) == 0} ? 'adm-image-card--empty' : ''">
-                    <!-- ═══ PREVIEW ═══ -->
-                    <div class="adm-image-preview">
-                        <img th:if="${p.hinhAnhChinh}" th:src="@{${p.hinhAnhChinh}}" alt="" />
-                        <div th:unless="${p.hinhAnhChinh}" class="adm-image-preview-placeholder">
-                            <i class="bi bi-image"></i>
-                            <small>Chưa có ảnh</small>
-                        </div>
-                        <!-- Badge số lượng ảnh -->
-                        <span class="adm-image-preview-badge badge rounded-pill"
-                              th:classappend="${imageCounts.get(p.id) > 0} ? 'bg-primary' : 'bg-secondary'">
-                            <i class="bi bi-image me-1"></i><span th:text="${imageCounts.get(p.id)}">0</span> ảnh
-                        </span>
-                        <!-- Kebab menu -->
-                        <div class="adm-image-card-kebab dropdown" onclick="event.stopPropagation()">
-                            <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
-                                <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                     <!-- ═══ PREVIEW ═══ -->
+                     <div class="adm-image-preview">
+                         <img th:if="${p.hinhAnhChinh}" th:src="@{${p.hinhAnhChinh}}" alt="" />
+                         <div th:unless="${p.hinhAnhChinh}" class="adm-image-preview-placeholder">
+                             <i class="bi bi-image"></i>
+                             <small>Chưa có ảnh</small>
+                         </div>
+                         <!-- Badge số lượng ảnh -->
+                         <span class="adm-image-preview-badge badge rounded-pill"
+                               th:classappend="${imageCounts.get(p.id) > 0} ? 'bg-primary' : 'bg-secondary'">
+                             <i class="bi bi-image me-1"></i><span th:text="${imageCounts.get(p.id)}">0</span> ảnh
+                         </span>
+                     </div>
+                     <!-- Kebab menu -->
+                     <div class="adm-image-card-kebab dropdown" onclick="event.stopPropagation()">
+                         <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                             <i class="bi bi-three-dots-vertical"></i>
+                         </button>
+                         <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
                                 <li><a class="dropdown-item" th:href="@{/admin/san-pham/chi-tiet/{id}(id=${p.id})}">
                                         <i class="bi bi-eye"></i>Xem sản phẩm</a></li>
                                 <li><a class="dropdown-item" th:href="@{/admin/san-pham/sua/{id}(id=${p.id})}">
@@ -131,7 +132,6 @@
                                 </li>
                             </ul>
                         </div>
-                    </div>
                     <!-- ═══ BODY ═══ -->
                     <div class="adm-image-card-body">
                         <div class="adm-image-name" th:text="${p.tenSanPham}">Tên SP</div>
