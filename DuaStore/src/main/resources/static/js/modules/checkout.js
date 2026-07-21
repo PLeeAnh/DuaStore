@@ -635,42 +635,28 @@ function getSelectedAddressId() {
 
 function updateShipFee() {
     var addrId = getSelectedAddressId();
-    var method = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value || 'SHIP';
-    if (!addrId)
-        return;
-    function fetchFee(m, cb) {
-        DuaStore.api.get('/checkout/shipping-fee?addressId=' + addrId + '&method=' + m)
-                .then(function (result) {
-                    if (result.ok && result.data.success)
-                        cb(result.data.fee, result.data.deliveryDays);
-                });
-    }
-    fetchFee(method, function (fee, deliveryDays) {
-        document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + '₫';
-        var today = new Date();
-        var minDate = new Date(today); minDate.setDate(today.getDate() + (deliveryDays || 7));
-        var maxDate = new Date(today); maxDate.setDate(today.getDate() + (deliveryDays || 7) + 2);
-        var el = document.getElementById('estimatedDeliveryEl');
-        if (el) el.textContent =  minDate.toLocaleDateString('vi-VN') + ' – ' + maxDate.toLocaleDateString('vi-VN');
-        updateTotal();
-    });
-    fetchFee('EXPRESS', function (fee) {
-        var el = document.getElementById('shipExpressPrice');
-        if (el) el.textContent = fee.toLocaleString('vi-VN') + '₫';
-    });
-    fetchFee('SHIP', function (fee) {
-        var el = document.getElementById('shipSafePrice');
-        if (el) el.textContent = fee.toLocaleString('vi-VN') + '₫';
-    });
+    if (!addrId) return;
+    DuaStore.api.get('/checkout/shipping-fee?addressId=' + addrId + '&method=SHIP')
+            .then(function (result) {
+                if (result.ok && result.data.success) {
+                    var fee = result.data.fee, days = result.data.deliveryDays;
+                    document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + '₫';
+                    var today = new Date();
+                    var minDate = new Date(today); minDate.setDate(today.getDate() + (days || 7));
+                    var maxDate = new Date(today); maxDate.setDate(today.getDate() + (days || 7) + 2);
+                    var el = document.getElementById('estimatedDeliveryEl');
+                    if (el) el.textContent =  minDate.toLocaleDateString('vi-VN') + ' – ' + maxDate.toLocaleDateString('vi-VN');
+                    updateTotal();
+                }
+            });
 }
 
 function updateAllQuotes() {
     var addrId = getSelectedAddressId();
-    var method = document.querySelector('input[name="phuongThucGiaoHang"]:checked')?.value || 'SHIP';
     if (!addrId) return;
     var subtotalEl = document.getElementById('rawSubtotal');
     var subtotal = subtotalEl ? parseInt(subtotalEl.textContent) || 0 : 0;
-    DuaStore.api.get('/checkout/api/quotes?addressId=' + addrId + '&method=' + method + '&subtotal=' + subtotal)
+    DuaStore.api.get('/checkout/api/quotes?addressId=' + addrId + '&method=SHIP&subtotal=' + subtotal)
             .then(function (result) {
                 if (!result.ok || !result.data.success) return;
                 var quotes = result.data.quotes || [];
@@ -933,11 +919,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    document.querySelectorAll('input[name="phuongThucGiaoHang"]').forEach(function (el) {
-        el.addEventListener('change', function () {
-            updateAllQuotes();
-        });
-    });
     document.querySelectorAll('input[name="shippingCarrier"]').forEach(function (el) {
         el.addEventListener('change', function () {
             updateAllQuotes();
@@ -994,4 +975,10 @@ document.addEventListener('DOMContentLoaded', function () {
         closeAddressModal();
     });
 
+    setTimeout(function () {
+        if (document.querySelector('input[name="addressId"]:checked')) {
+            updateAllQuotes();
+            updateShipFee();
+        }
+    }, 300);
 });
