@@ -283,7 +283,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!f) return;
                 bar.style.display = 'none';
                 if (main) main.style.paddingBottom = '';
-                f.requestSubmit();
+                if (typeof window.__submitDirtyForm === 'function') {
+                    window.__submitDirtyForm(f);
+                } else {
+                    f.requestSubmit();
+                }
             });
         }
     }
@@ -291,6 +295,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initDirtyBar();
 
     /* ── Confirm leaving with unsaved changes ── */
+    window.__pendingNav = null;
+    document.getElementById('unsavedModalConfirm').addEventListener('click', function () {
+        var nav = window.__pendingNav;
+        window.__pendingNav = null;
+        var modal = bootstrap.Modal.getInstance(document.getElementById('unsavedModal'));
+        if (modal) modal.hide();
+        if (typeof nav === 'function') nav();
+    });
+    document.getElementById('unsavedModal').addEventListener('hidden.bs.modal', function () {
+        window.__pendingNav = null;
+    });
     window.addEventListener('beforeunload', function (e) {
         var forms = document.querySelectorAll('form[data-dirty-bar]');
         for (var i = 0; i < forms.length; i++) {
@@ -347,8 +362,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             var confirmBtn = document.getElementById('confirmModalConfirm');
             if (confirmBtn) confirmBtn.onclick = function () {
-                if (window.__confirmForm) { window.__confirmForm.submit(); window.__confirmForm = null; }
-                if (window.__confirmModal) window.__confirmModal.hide();
+                var f = window.__confirmForm;
+                window.__confirmForm = null;
+                if (!f) return;
+                var fd = new FormData(f);
+                var url = f.getAttribute('action');
+                var method = f.getAttribute('method') || 'post';
+                fetch(url, { method: method.toUpperCase(), body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (r) {
+                        if (r.redirected) {
+                            var finalUrl = r.url;
+                            if (finalUrl && finalUrl !== window.location.href) history.pushState({ url: finalUrl }, '', finalUrl);
+                            return r.text().then(window.__handleResponseHtml);
+                        }
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.text();
+                    })
+                    .then(function (html) {
+                        if (!html) return;
+                        window.__handleResponseHtml(html);
+                    })
+                    .catch(function () {
+                        if (typeof dsToast === 'function') dsToast('error', 'Thao tác thất bại, vui lòng thử lại');
+                    });
             };
         }
 
@@ -527,10 +563,60 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    function confirmLeavingIfDirty() {
+    window.__handleResponseHtml = function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var newContent = doc.querySelector('.adm-content');
+        if (newContent) {
+            contentArea.innerHTML = newContent.innerHTML;
+            execScripts(contentArea);
+        }
+        document.title = doc.title;
+        var bc = doc.querySelector('.breadcrumb');
+        var curBc = document.querySelector('.breadcrumb');
+        if (bc && curBc) curBc.innerHTML = bc.innerHTML;
+        doc.querySelectorAll('[data-toast-msg]').forEach(function (el) {
+            var msg = el.getAttribute('data-toast-msg');
+            var type = el.getAttribute('data-toast-type') || 'success';
+            if (typeof dsToast === 'function') dsToast(type, msg);
+        });
+        if (window.__reinitAdminComponents) window.__reinitAdminComponents();
+    };
+
+    window.__submitDirtyForm = function (f) {
+        var fd = new FormData(f);
+        var url = f.getAttribute('action');
+        var method = f.getAttribute('method') || 'post';
+        fetch(url, { method: method.toUpperCase(), body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) {
+                if (r.redirected) {
+                    var finalUrl = r.url;
+                    if (finalUrl && finalUrl !== window.location.href) history.pushState({ url: finalUrl }, '', finalUrl);
+                    return r.text().then(window.__handleResponseHtml);
+                }
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function (html) {
+                if (!html) return;
+                window.__handleResponseHtml(html);
+            })
+            .catch(function () {
+                if (typeof dsToast === 'function') dsToast('error', 'Lưu thất bại, vui lòng thử lại');
+            });
+    };
+
+    function confirmLeavingIfDirty(fn) {
         var forms = document.querySelectorAll('form[data-dirty-bar]');
         for (var i = 0; i < forms.length; i++) {
-            if (forms[i]._dirty) return confirm('Bạn có thay đổi chưa lưu. Bạn có muốn rời khỏi trang?');
+            if (forms[i]._dirty) {
+                window.__pendingNav = fn || null;
+                var modalEl = document.getElementById('unsavedModal');
+                if (modalEl) {
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+                return false;
+            }
         }
         return true;
     }
@@ -543,8 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (href.indexOf('/admin') !== 0) return;
         if (e.ctrlKey || e.metaKey || e.button === 1) return;
         e.preventDefault();
-        if (!confirmLeavingIfDirty()) return;
-        loadAdminPage(href, link);
+        if (confirmLeavingIfDirty(function () { loadAdminPage(href, link); })) loadAdminPage(href, link);
     });
 
     window.addEventListener('popstate', function (e) {
@@ -561,19 +646,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!href || href === '#' || href.indexOf('/admin') !== 0) return;
         if (e.ctrlKey || e.metaKey || e.button === 1) return;
         e.preventDefault();
-        if (!confirmLeavingIfDirty()) return;
-        loadAdminPage(href);
+        if (confirmLeavingIfDirty(function () { loadAdminPage(href); })) loadAdminPage(href);
     });
     document.addEventListener('change', function (e) {
         var sel = e.target.closest('[data-pagination] select[name="size"]');
         if (!sel) return;
-        if (!confirmLeavingIfDirty()) return;
         var form = sel.closest('form');
         if (!form) return;
         var url = form.action;
         if (!url) return;
         var params = new URLSearchParams(new FormData(form));
-        loadAdminPage(url + '?' + params.toString());
+        if (confirmLeavingIfDirty(function () { loadAdminPage(url + '?' + params.toString()); })) loadAdminPage(url + '?' + params.toString());
     });
 
     /* ── AJAX tab navigation: load via AJAX instead of full reload ── */
@@ -584,8 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!href || href === '#' || href.indexOf('/admin') !== 0) return;
         if (e.ctrlKey || e.metaKey || e.button === 1) return;
         e.preventDefault();
-        if (!confirmLeavingIfDirty()) return;
-        loadAdminPage(href, null);
+        if (confirmLeavingIfDirty(function () { loadAdminPage(href, null); })) loadAdminPage(href, null);
     });
 })();
 

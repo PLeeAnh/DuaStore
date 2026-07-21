@@ -78,7 +78,7 @@
                                 <span th:unless="${v.active}" class="status-pill status-da-huy">Ngừng</span>
                             </td>
                         </tr>
-                        <tr th:if="${variants.totalElements == 0}">
+                        <tr th:if="${#lists.isEmpty(variants)}">
                             <td colspan="6" class="text-center py-5">
                                 <div class="adm-empty">
                                     <i class="bi bi-diagram-3 adm-empty-icon"></i>
