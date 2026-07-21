@@ -10,7 +10,6 @@ import com.duastore.model.ProductImage;
 import com.duastore.model.ProductVariant;
 import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
-import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.service.PricingService;
 import com.duastore.repository.ProductImageRepository;
@@ -21,7 +20,6 @@ import com.duastore.service.client.ReviewService;
 import com.duastore.service.client.WishlistService;
 import com.duastore.service.FileUploadService;
 import com.duastore.service.NotificationHelper;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -52,7 +50,6 @@ public class ProductController {
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
     private final ReviewService reviewService;
-    private final FlashSaleRepository flashSaleRepository;
     private final PromotionRepository promotionRepository;
     private final WishlistService wishlistService;
     private final SecurityUtil securityUtil;
@@ -83,7 +80,6 @@ public class ProductController {
             ProductImageRepository productImageRepository,
             CategoryRepository categoryRepository,
             ReviewService reviewService,
-            FlashSaleRepository flashSaleRepository,
             PromotionRepository promotionRepository,
             WishlistService wishlistService,
             SecurityUtil securityUtil,
@@ -98,7 +94,6 @@ public class ProductController {
         this.productImageRepository = productImageRepository;
         this.categoryRepository = categoryRepository;
         this.reviewService = reviewService;
-        this.flashSaleRepository = flashSaleRepository;
         this.promotionRepository = promotionRepository;
         this.wishlistService = wishlistService;
         this.securityUtil = securityUtil;
@@ -310,6 +305,9 @@ public class ProductController {
         }
 
         List<ProductVariant> variants = productService.getVariants(id);
+        if (variants == null || variants.isEmpty()) {
+            return "redirect:/san-pham?errorMsg=San+pham+khong+con+phien+ban";
+        }
         model.addAttribute("title", product.getTenSanPham());
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
@@ -362,12 +360,16 @@ public class ProductController {
         // Group variants by cap type (parsed from tenBienThe, e.g. "50ml - Nắp Gỗ")
         Map<String, List<ProductVariant>> grouped = new LinkedHashMap<>();
         for (ProductVariant v : variants) {
-            String groupKey = "Khác";
+            String groupKey;
             if (v.getTenBienThe() != null && v.getTenBienThe().contains(" - ")) {
                 String[] parts = v.getTenBienThe().split("\\s*-\\s*");
-                if (parts.length >= 2) {
-                    groupKey = parts[1].trim();
-                }
+                groupKey = parts.length >= 2 ? parts[1].trim() : "Phân loại";
+            } else if (v.getTenBienThe() != null) {
+                groupKey = v.getTenBienThe().trim();
+            } else if (v.getDungTich() != null) {
+                groupKey = v.getDungTich() + "ml";
+            } else {
+                groupKey = "Phân loại";
             }
             grouped.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(v);
         }
@@ -610,8 +612,6 @@ public class ProductController {
             }
         }
         try {
-            reviewService.createReview(userId, request, hinhAnhUrls);
-            
             reviewService.createReview(userId, request, hinhAnhUrls.isEmpty() ? null : hinhAnhUrls);
             Product product = productService.findById(id);
             String productName = product != null ? product.getTenSanPham() : "san pham #" + id;

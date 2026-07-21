@@ -16,36 +16,16 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     Page<Notification> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    List<Notification> findByIsActiveTrueOrderByCreatedAtDesc();
-
-    List<Notification> findTop5ByIsActiveTrueOrderByCreatedAtDesc();
-
-    long countByIsActiveTrue();
-
-    long countByIsActiveTrueAndIdGreaterThan(Integer id);
-
     Optional<Notification> findTopByIsActiveTrueOrderByIdDesc();
 
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) ORDER BY n.createdAt DESC")
     List<Notification> findCustomerNotifications(@Param("userId") Integer userId);
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId)")
-    long countCustomerNotifications(@Param("userId") Integer userId);
-
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) AND n.id > :readMaxId")
-    long countUnreadCustomerNotifications(@Param("userId") Integer userId, @Param("readMaxId") Integer readMaxId);
-
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF' ORDER BY n.createdAt DESC")
     List<Notification> findStaffNotifications();
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF'")
-    long countStaffNotifications();
-
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF' AND n.id > :readMaxId")
     long countUnreadStaffNotifications(Integer readMaxId);
-
-    @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) AND n.id > :readMaxId ORDER BY n.createdAt DESC")
-    List<Notification> findNewByUserId(@Param("userId") Integer userId, @Param("readMaxId") Integer readMaxId);
 
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND (n.targetRole = 'STAFF' OR (n.targetRole IS NULL AND n.userId IS NULL)) ORDER BY n.createdAt DESC")
     Page<Notification> findAdminNotifications(Pageable pageable);

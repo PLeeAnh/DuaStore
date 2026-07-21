@@ -160,7 +160,7 @@ public class RecommendationService {
     }
 
     private List<Product> getFallbackSuggestions(int limit) {
-        return productRepository.findByIsFeaturedTrueAndIsActiveTrue().stream()
+        return productRepository.findFeaturedWithVariants().stream()
                 .filter(p -> "DANG_BAN".equals(p.getTrangThaiSanPham()))
                 .limit(limit)
                 .collect(Collectors.toList());

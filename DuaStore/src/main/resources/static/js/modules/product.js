@@ -18,6 +18,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         chip.classList.add('active');
 
+        var imgWrap = card.querySelector('.ds-product-image-wrap');
+        if (imgWrap) {
+            var img = imgWrap.querySelector('img');
+            var varImg = chip.getAttribute('data-image');
+            if (img && varImg) {
+                if (!img._origSrc) img._origSrc = img.src;
+                if (img._timer) { clearTimeout(img._timer); img._timer = null; }
+                img.src = varImg;
+                img._timer = setTimeout(function () {
+                    img.src = img._origSrc;
+                    img._timer = null;
+                }, 10000);
+            }
+        }
+
         var newPrice = chip.getAttribute('data-price');
         var newStock = parseInt(chip.getAttribute('data-stock')) || 0;
         var stockEl = card.querySelector('.ds-stock-info');

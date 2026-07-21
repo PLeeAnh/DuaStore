@@ -77,6 +77,12 @@ public class Order {
     @Column(length = 50)
     private String maVanDon;
 
+    @Column(length = 1000)
+    private String fraudWarning;
+
+    @Column(length = 30)
+    private String shippingCarrier;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime ngayDat;
 
