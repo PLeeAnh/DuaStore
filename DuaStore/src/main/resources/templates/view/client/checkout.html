@@ -73,28 +73,31 @@
                                     <div class="card-body p-4">
                                         <h5 class="ds-checkout-section-title"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
 
+                                        <div th:if="${subtotal != null and subtotal.compareTo(shippingFreeMin) >= 0}" class="alert alert-success py-2 small mb-2">
+                                            <i class="bi bi-truck me-1"></i>Miễn phí vận chuyển (đơn từ <strong th:text="${#numbers.formatDecimal(shippingFreeMin, 0, 'POINT', 0, 'POINT')} + '₫'"></strong>)
+                                        </div>
+                                        <div th:if="${subtotal == null or subtotal.compareTo(shippingFreeMin) < 0}" class="text-muted small mb-2">
+                                            <i class="bi bi-info-circle me-1"></i>Miễn phí ship cho đơn từ <strong th:text="${#numbers.formatDecimal(shippingFreeMin, 0, 'POINT', 0, 'POINT')} + '₫'"></strong>
+                                        </div>
+
                                         <div class="ds-checkout-radio-group" id="carrierOptions">
-                                            <div class="ds-checkout-radio">
+                                            <div class="ds-checkout-radio" th:if="${carrierGHNEnabled}">
                                                 <input type="radio" name="shippingCarrier" id="carrierGHN" value="GHN" checked />
                                                 <label for="carrierGHN">
-                                                    <span><strong>Giao Hàng Nhanh</strong> <small class="text-muted">(GHN)</small></span>
+                                                    <span><strong>GHN (Giao Hàng Nhanh)</strong></span>
                                                     <span class="ds-checkout-radio-price" id="carrierGHNPrice">---</span>
                                                 </label>
                                             </div>
-                                            <div class="ds-checkout-radio">
+                                            <div class="ds-checkout-radio" th:if="${carrierGHTKEnabled}">
                                                 <input type="radio" name="shippingCarrier" id="carrierGHTK" value="GHTK" />
                                                 <label for="carrierGHTK">
-                                                    <span><strong>Giao Hàng Tiết Kiệm</strong> <small class="text-muted">(GHTK)</small></span>
+                                                    <span><strong>GHTK (Giao Hàng Tiết Kiệm)</strong></span>
                                                     <span class="ds-checkout-radio-price" id="carrierGHTKPrice">---</span>
                                                 </label>
                                             </div>
-                                            <div class="ds-checkout-radio">
-                                                <input type="radio" name="shippingCarrier" id="carrierViettel" value="VIETTEL_POST" />
-                                                <label for="carrierViettel">
-                                                    <span><strong>Viettel Post</strong> <small class="text-muted">(VIETT)</small></span>
-                                                    <span class="ds-checkout-radio-price" id="carrierViettelPrice">---</span>
-                                                </label>
-                                            </div>
+                                        </div>
+                                        <div th:if="${!carrierGHNEnabled and !carrierGHTKEnabled}" class="text-muted small">
+                                            <i class="bi bi-exclamation-circle me-1"></i>Hiện không có đơn vị vận chuyển nào. Vui lòng liên hệ shop.
                                         </div>
                                     </div>
                                 </div>
@@ -198,7 +201,9 @@
                                     </div>
                                     <div class="d-flex justify-content-between small mb-1">
                                         <span>Phí vận chuyển</span>
-                                        <span th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'" id="shipFeeDisplay"></span>
+                                        <span id="shipFeeDisplay" class="fw-semibold"
+                                              th:classappend="${phiVanChuyen != null and phiVanChuyen.compareTo(BigDecimal.ZERO) > 0} ? '' : 'text-success'"
+                                              th:text="${phiVanChuyen != null and phiVanChuyen.compareTo(BigDecimal.ZERO) > 0} ? ${#numbers.formatDecimal(phiVanChuyen, 0, 'POINT', 0, 'POINT')} + '₫' : '✓ Miễn phí'"></span>
                                     </div>
                                     <div class="small text-muted mb-2" style="font-size:.75rem;">
                                         <i class="bi bi-truck me-1"></i>Dự kiến giao hàng: <strong id="estimatedDeliveryEl" th:text="${estimatedDeliveryDate != null ? estimatedDeliveryDate : '3-7 ngày làm việc'}">3-7 ngày làm việc</strong>

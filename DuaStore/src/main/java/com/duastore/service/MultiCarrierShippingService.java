@@ -32,52 +32,48 @@ public class MultiCarrierShippingService {
         this.storeLng = storeLng;
     }
 
-    public List<CarrierQuote> getQuotes(Address address, String shippingMethod, BigDecimal subtotal) {
+    public List<CarrierQuote> getQuotes(Address address, BigDecimal subtotal) {
         List<CarrierQuote> quotes = new ArrayList<>();
-        BigDecimal freeThreshold = new BigDecimal(siteSettingService.getValue("shipping_free_min", "500000"));
+        BigDecimal freeThreshold = freeThreshold();
+        boolean ghnEnabled = "1".equals(siteSettingService.getValue("carrier_ghn_enabled", "1"));
+        boolean ghtkEnabled = "1".equals(siteSettingService.getValue("carrier_ghtk_enabled", "1"));
         if (subtotal != null && subtotal.compareTo(freeThreshold) >= 0) {
-            for (String code : new String[]{"GHN", "GHTK", "VIETTEL_POST"}) {
-                String name = carrierName(code);
-                quotes.add(new CarrierQuote(code, name, BigDecimal.ZERO, deliveryDays(code, shippingMethod), false));
-            }
+            if (ghnEnabled) quotes.add(new CarrierQuote("GHN", "Giao Hàng Nhanh", BigDecimal.ZERO, deliveryDays("GHN"), false));
+            if (ghtkEnabled) quotes.add(new CarrierQuote("GHTK", "Giao Hàng Tiết Kiệm", BigDecimal.ZERO, deliveryDays("GHTK"), false));
             return quotes;
         }
-        for (String code : new String[]{"GHN", "GHTK", "VIETTEL_POST"}) {
-            String name = carrierName(code);
-            CarrierQuote q;
-            if ("GHN".equals(code)) {
-                BigDecimal ghnFee = ghnShippingService.calculateFee(address, shippingMethod);
-                if (ghnFee != null) {
-                    q = new CarrierQuote(code, name, ghnFee, deliveryDays(code, shippingMethod), false);
-                } else {
-                    q = estimateQuote(code, name, address, shippingMethod);
-                }
+        if (ghnEnabled) {
+            BigDecimal ghnFee = ghnShippingService.calculateFee(address);
+            if (ghnFee != null) {
+                quotes.add(new CarrierQuote("GHN", "Giao Hàng Nhanh", ghnFee, deliveryDays("GHN"), false));
             } else {
-                q = estimateQuote(code, name, address, shippingMethod);
+                quotes.add(estimateQuote("GHN", "Giao Hàng Nhanh", address));
             }
-            quotes.add(q);
+        }
+        if (ghtkEnabled) {
+            quotes.add(estimateQuote("GHTK", "Giao Hàng Tiết Kiệm", address));
         }
         return quotes;
     }
 
-    public CarrierQuote getQuoteForCarrier(String carrierCode, Address address, String shippingMethod, BigDecimal subtotal) {
-        BigDecimal freeThreshold = new BigDecimal(siteSettingService.getValue("shipping_free_min", "500000"));
+    public CarrierQuote getQuoteForCarrier(String carrierCode, Address address, BigDecimal subtotal) {
+        BigDecimal freeThreshold = freeThreshold();
         if (subtotal != null && subtotal.compareTo(freeThreshold) >= 0) {
-            return new CarrierQuote(carrierCode, carrierName(carrierCode), BigDecimal.ZERO, deliveryDays(carrierCode, shippingMethod), false);
+            return new CarrierQuote(carrierCode, carrierName(carrierCode), BigDecimal.ZERO, deliveryDays(carrierCode), false);
         }
         if ("GHN".equals(carrierCode)) {
-            BigDecimal ghnFee = ghnShippingService.calculateFee(address, shippingMethod);
+            BigDecimal ghnFee = ghnShippingService.calculateFee(address);
             if (ghnFee != null) {
-                return new CarrierQuote(carrierCode, carrierName(carrierCode), ghnFee, deliveryDays(carrierCode, shippingMethod), false);
+                return new CarrierQuote(carrierCode, carrierName(carrierCode), ghnFee, deliveryDays(carrierCode), false);
             }
         }
-        return estimateQuote(carrierCode, carrierName(carrierCode), address, shippingMethod);
+        return estimateQuote(carrierCode, carrierName(carrierCode), address);
     }
 
-    private CarrierQuote estimateQuote(String code, String name, Address address, String shippingMethod) {
+    private CarrierQuote estimateQuote(String code, String name, Address address) {
         if (address.getLatitude() == null || address.getLongitude() == null) {
             BigDecimal minFee = carrierMinFee(code);
-            return new CarrierQuote(code, name, minFee, deliveryDays(code, shippingMethod), true);
+            return new CarrierQuote(code, name, minFee, deliveryDays(code), true);
         }
         double distance = haversine(address.getLatitude(), address.getLongitude(), storeLat, storeLng);
         BigDecimal baseFee = carrierBaseFee(code);
@@ -86,11 +82,11 @@ public class MultiCarrierShippingService {
         BigDecimal minFee = carrierMinFee(code);
         if (fee.compareTo(minFee) < 0) { fee = minFee; }
         if (fee.compareTo(ABSOLUTE_MAX) > 0) { fee = ABSOLUTE_MAX; }
-        return new CarrierQuote(code, name, fee.setScale(0, RoundingMode.HALF_UP), deliveryDays(code, shippingMethod), true);
+        return new CarrierQuote(code, name, fee.setScale(0, RoundingMode.HALF_UP), deliveryDays(code), true);
     }
 
-    public BigDecimal calculateFeeForCarrier(String carrierCode, Address address, String shippingMethod, BigDecimal subtotal) {
-        CarrierQuote q = getQuoteForCarrier(carrierCode, address, shippingMethod, subtotal);
+    public BigDecimal calculateFeeForCarrier(String carrierCode, Address address, BigDecimal subtotal) {
+        CarrierQuote q = getQuoteForCarrier(carrierCode, address, subtotal);
         return q.getFee();
     }
 
@@ -105,57 +101,42 @@ public class MultiCarrierShippingService {
     }
 
     private String carrierName(String code) {
-        return switch (code) {
-            case "GHN" -> "Giao Hàng Nhanh";
-            case "GHTK" -> "Giao Hàng Tiết Kiệm";
-            case "VIETTEL_POST" -> "Viettel Post";
-            default -> code;
-        };
+        return "GHN".equals(code) ? "Giao Hàng Nhanh" : "Giao Hàng Tiết Kiệm";
     }
 
     private BigDecimal carrierBaseFee(String code) {
         String v = siteSettingService.getValue("carrier_" + code.toLowerCase() + "_base_fee", "");
         if (!v.isBlank()) return new BigDecimal(v);
-        return switch (code) {
-            case "GHN" -> new BigDecimal("15000");
-            case "GHTK" -> new BigDecimal("12000");
-            case "VIETTEL_POST" -> new BigDecimal("10000");
-            default -> new BigDecimal("10000");
-        };
+        return "GHN".equals(code) ? new BigDecimal("15000") : new BigDecimal("12000");
     }
 
     private BigDecimal carrierRateKm(String code) {
         String v = siteSettingService.getValue("carrier_" + code.toLowerCase() + "_rate_km", "");
         if (!v.isBlank()) return new BigDecimal(v);
-        return switch (code) {
-            case "GHN" -> new BigDecimal("220");
-            case "GHTK" -> new BigDecimal("200");
-            case "VIETTEL_POST" -> new BigDecimal("170");
-            default -> new BigDecimal("200");
-        };
+        return "GHN".equals(code) ? new BigDecimal("220") : new BigDecimal("200");
     }
 
     private BigDecimal carrierMinFee(String code) {
         String v = siteSettingService.getValue("carrier_" + code.toLowerCase() + "_min_fee", "");
         if (!v.isBlank()) return new BigDecimal(v);
-        return switch (code) {
-            default -> new BigDecimal("10000");
-        };
+        return new BigDecimal("10000");
     }
 
-    private int deliveryDays(String code, String shippingMethod) {
-        String key = "carrier_" + code.toLowerCase() + "_days_" + (shippingMethod != null ? shippingMethod.toLowerCase() : "ship");
+    private int deliveryDays(String code) {
+        String key = "carrier_" + code.toLowerCase() + "_days";
         String v = siteSettingService.getValue(key, "");
         if (!v.isBlank()) {
             try { return Integer.parseInt(v); } catch (NumberFormatException ignored) {}
         }
-        boolean express = "EXPRESS".equals(shippingMethod);
-        return switch (code) {
-            case "GHN" -> express ? 2 : 5;
-            case "GHTK" -> express ? 3 : 5;
-            case "VIETTEL_POST" -> express ? 3 : 5;
-            default -> express ? 4 : 7;
-        };
+        return "GHN".equals(code) ? 3 : 4;
+    }
+
+    private BigDecimal freeThreshold() {
+        String v = siteSettingService.getValue("shipping_free_min", "500000");
+        if (v != null && !v.isBlank()) {
+            try { return new BigDecimal(v.trim()); } catch (NumberFormatException ignored) {}
+        }
+        return new BigDecimal("500000");
     }
 
 }

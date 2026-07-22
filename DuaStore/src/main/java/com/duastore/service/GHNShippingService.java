@@ -37,7 +37,7 @@ public class GHNShippingService {
         return token != null && !token.isBlank();
     }
 
-    public BigDecimal calculateFee(Address address, String shippingMethod) {
+    public BigDecimal calculateFee(Address address) {
         if (!isEnabled()) {
             return null;
         }

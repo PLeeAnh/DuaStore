@@ -9,7 +9,6 @@ import com.duastore.service.GHNShippingService;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.MultiCarrierShippingService;
 import com.duastore.service.PricingService;
-import com.duastore.service.ShippingFeeService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.util.PriceUtils;
@@ -40,7 +39,6 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
     private final OrderAssignmentRepository orderAssignmentRepository;
-    private final ShippingFeeService shippingFeeService;
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
     private final UserVoucherRepository userVoucherRepository;
@@ -56,7 +54,6 @@ public class OrderService {
             PromotionRepository promotionRepository, UserRepository userRepository,
             CartItemRepository cartItemRepository,
             OrderAssignmentRepository orderAssignmentRepository,
-            ShippingFeeService shippingFeeService,
             ProductVariantRepository variantRepository,
             OrderStatusLogService orderStatusLogService,
             UserVoucherRepository userVoucherRepository,
@@ -74,7 +71,6 @@ public class OrderService {
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
         this.orderAssignmentRepository = orderAssignmentRepository;
-        this.shippingFeeService = shippingFeeService;
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
         this.userVoucherRepository = userVoucherRepository;
@@ -139,10 +135,9 @@ public class OrderService {
         order.setSnapSoDienThoai(address.getSoDienThoai());
         order.setSnapDiaChi(buildFullAddress(address));
         order.setPhuongThucTT(phuongThucTT);
-        order.setPhuongThucGiaoHang(phuongThucGiaoHang);
+        order.setPhuongThucGiaoHang("SHIP");
         order.setGhiChu(ghiChu);
         order.setShippingCarrier(shippingCarrier);
-        order.setPhiVanChuyen(calculateShipFee(address, phuongThucGiaoHang, shippingCarrier));
 
         BigDecimal tienHang = BigDecimal.ZERO;
         for (CartItem ci : cartItems) {
@@ -172,6 +167,7 @@ public class OrderService {
             order.getOrderItems().add(item);
         }
         order.setTienHang(tienHang);
+        order.setPhiVanChuyen(calculateShipFee(address, shippingCarrier, tienHang));
 
         if (maCode != null && !maCode.isBlank()) {
             Promotion promo = promotionRepository.findByMaCodeIgnoreCaseAndIsActiveTrue(maCode.trim())
@@ -284,10 +280,12 @@ public class OrderService {
 
         cartItemRepository.deleteAll(cartItems);
 
-        String ghnCode = ghnShippingService.createOrder(order, address);
-        if (ghnCode != null) {
-            order.setMaVanDon(ghnCode);
-            orderRepository.save(order);
+        if ("GHN".equals(shippingCarrier)) {
+            String ghnCode = ghnShippingService.createOrder(order, address);
+            if (ghnCode != null) {
+                order.setMaVanDon(ghnCode);
+                orderRepository.save(order);
+            }
         }
 
         return order;
@@ -340,12 +338,8 @@ public class OrderService {
                 + (a.getTinhThanh() != null ? a.getTinhThanh() : "");
     }
 
-    private BigDecimal calculateShipFee(Address address, String phuongThucGH) {
-        return calculateShipFee(address, phuongThucGH, "GHN");
-    }
-
-    private BigDecimal calculateShipFee(Address address, String phuongThucGH, String shippingCarrier) {
-        return multiCarrierShippingService.calculateFeeForCarrier(shippingCarrier, address, phuongThucGH, null);
+    private BigDecimal calculateShipFee(Address address, String shippingCarrier, BigDecimal tienHang) {
+        return multiCarrierShippingService.calculateFeeForCarrier(shippingCarrier, address, tienHang);
     }
 
     public void validatePromotion(Promotion promo, BigDecimal tienHang) {

@@ -1,14 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
     <head>
-        <title>Qu?n l� don h�ng � Chi ti?t</title>
+        <title>Quản lý đơn hàng — Chi tiết</title>
     </head>
     <body>
     <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item"><a th:href="@{/admin/don-hang}">�on h�ng</a></li>
+        <li class="breadcrumb-item"><a th:href="@{/admin/don-hang}">Đơn hàng</a></li>
         <li class="breadcrumb-item active" aria-current="page" th:text="'#' + ${order.maDon}"></li>
     </th:block>
 
@@ -23,15 +23,15 @@
         </div>
 
         <div class="adm-page-header">
-            <h4><i class="bi bi-receipt me-2"></i>�on h�ng #<span th:text="${order.maDon}"></span></h4>
+            <h4><i class="bi bi-receipt me-2"></i>Đơn hàng #<span th:text="${order.maDon}"></span></h4>
             <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm no-print">
-                <i class="bi bi-arrow-left me-1"></i>Quay l?i
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
             </a>
         </div>
 
         <!-- Fraud Warning Banner -->
         <div th:if="${fraudWarnings != null and not #lists.isEmpty(fraudWarnings)}" class="alert alert-danger alert-dismissible fade show no-print mt-3" role="alert">
-            <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>C?nh b�o gian l?n</h6>
+            <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>Cảnh báo gian lận</h6>
             <ul class="mb-0 ps-3">
                 <li th:each="w : ${fraudWarnings}" th:text="${w}"></li>
             </ul>
@@ -41,15 +41,15 @@
         <!-- TIMELINE - full width -->
         <div th:if="${currentStep > 0}" class="adm-card mt-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="text-uppercase small fw-bold text-muted">Ti?n tr�nh don h�ng d? ki?n</span>
+                <span class="text-uppercase small fw-bold text-muted">Tiến trình đơn hàng dự kiến</span>
                 <span class="text-muted small no-print" th:if="${order.trangThaiDon != 'DA_HUY' and order.trangThaiDon != 'DA_HOAN_THANH' and order.trangThaiDon != 'DA_HOAN_TIEN'}">
-                    <i class="bi bi-hand-index-thumb me-1"></i>B?m v�o bu?c ti?p theo d? c?p nh?t
+                    <i class="bi bi-hand-index-thumb me-1"></i>Bấm vào bước tiếp theo để cập nhật
                 </span>
                 <span class="badge bg-danger" th:if="${order.trangThaiDon == 'DA_HUY'}">
-                    <i class="bi bi-x-circle me-1"></i>�on d� b? h?y
+                    <i class="bi bi-x-circle me-1"></i>Đơn đã bị hủy
                 </span>
                 <span class="badge bg-secondary" th:if="${order.trangThaiDon == 'DA_HOAN_TIEN'}">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>�� ho�n ti?n
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Đã hoàn tiền
                 </span>
             </div>
 
@@ -97,13 +97,13 @@
                 <!-- PRODUCT LIST -->
                 <div class="adm-card">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="mb-0"><i class="bi bi-basket me-2"></i>S?n ph?m d?t mua</h6>
-                        <span class="badge bg-light text-dark border" th:text="${#lists.size(items)} + ' s?n ph?m'"></span>
+                        <h6 class="mb-0"><i class="bi bi-basket me-2"></i>Sản phẩm đặt mua</h6>
+                        <span class="badge bg-light text-dark border" th:text="${#lists.size(items)} + ' sản phẩm'"></span>
                     </div>
                     <div class="adm-table-wrap mb-0">
                         <table class="table table-hover align-middle mb-0">
                             <thead>
-                                <tr><th>S?n ph?m</th><th class="text-center">SL</th><th class="text-end">�on gi�</th><th class="text-end">Th�nh ti?n</th></tr>
+                                <tr><th>Sản phẩm</th><th class="text-center">SL</th><th class="text-end">Đơn giá</th><th class="text-end">Thành tiền</th></tr>
                             </thead>
                             <tbody>
                                 <tr th:each="item : ${items}">
@@ -120,8 +120,8 @@
                                         </div>
                                     </td>
                                     <td class="text-center" th:text="${item.soLuong}"></td>
-                                    <td class="text-end" th:text="${#numbers.formatDecimal(item.donGia, 0, 'POINT', 0, 'POINT')} + '?'"></td>
-                                    <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'POINT', 0, 'POINT')} + '?'"></td>
+                                    <td class="text-end" th:text="${#numbers.formatDecimal(item.donGia, 0, 'POINT', 0, 'POINT')} + '₫'"></td>
+                                    <td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'POINT', 0, 'POINT')} + '₫'"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -131,7 +131,7 @@
                 <!-- PAYMENT INFO -->
                 <div class="adm-card mt-4">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Th�ng tin thanh to�n</h6>
+                        <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Thông tin thanh toán</h6>
                         <span class="badge fs-6 px-3 py-2"
                               th:classappend="${T(com.duastore.util.PaymentStatusUtil).getBadgeClass(order.trangThaiTT)}"
                               th:text="${T(com.duastore.util.PaymentStatusUtil).getDisplayName(order.trangThaiTT)}">
@@ -144,7 +144,7 @@
                               th:text="${T(com.duastore.util.PaymentStatusUtil).getPaymentMethodLabel(order.phuongThucTT)}"></span>
                         <span class="text-muted mx-1">|</span>
                         <span class="text-muted small"
-                              th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao h�ng nhanh' : 'Giao h�ng an to�n'}"></span>
+                              th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao hàng nhanh' : 'Giao hàng an toàn'}"></span>
                         <span class="text-muted mx-1">|</span>
                         <span class="text-muted small" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></span>
                     </div>
@@ -152,22 +152,22 @@
                     <div class="row align-items-center">
                         <div class="col">
                             <div class="d-flex justify-content-between small mb-1">
-                                <span class="text-muted">T?m t�nh</span>
-                                <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 'POINT', 0, 'POINT')} + '?'"></span>
+                                <span class="text-muted">Tạm tính</span>
+                                <span th:text="${#numbers.formatDecimal(order.tienHang, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                             </div>
                             <div class="d-flex justify-content-between small mb-1">
-                                <span class="text-muted">Ph� v?n chuy?n</span>
-                                <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'POINT', 0, 'POINT')} + '?'"></span>
+                                <span class="text-muted">Phí vận chuyển</span>
+                                <span th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                             </div>
                             <div class="d-flex justify-content-between small mb-1">
-                                <span class="text-muted">Gi?m gi�</span>
-                                <span class="text-danger" th:text="'-' + ${#numbers.formatDecimal(order.tienGiam, 0, 'POINT', 0, 'POINT')} + '?'"></span>
+                                <span class="text-muted">Giảm giá</span>
+                                <span class="text-danger" th:text="'-' + ${#numbers.formatDecimal(order.tienGiam, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                             </div>
                             <hr class="my-2" />
                             <div class="d-flex justify-content-between fw-bold align-items-center">
-                                <span class="fs-6">T?ng c?ng</span>
+                                <span class="fs-6">Tổng cộng</span>
                                 <span class="text-danger fs-4 fw-bold"
-                                      th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '?'"></span>
+                                      th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                             </div>
                         </div>
                     </div>
@@ -175,7 +175,7 @@
 
                 <!-- INTERNAL NOTES (left) -->
                 <div class="adm-card mt-4">
-                    <h6><i class="bi bi-chat-dots me-2"></i>Ghi ch� n?i b?</h6>
+                    <h6><i class="bi bi-chat-dots me-2"></i>Ghi chú nội bộ</h6>
                     <div th:if="${not #lists.isEmpty(notes)}" style="max-height:400px; overflow-y:auto" class="mb-3">
                         <div th:each="note : ${notes}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
                             <div class="flex-shrink-0">
@@ -197,23 +197,23 @@
                         </div>
                     </div>
                     <div th:if="${#lists.isEmpty(notes)}" class="text-muted small py-2 mb-3">
-                        <i class="bi bi-inbox me-1"></i>Chua c� ghi ch�
+                        <i class="bi bi-inbox me-1"></i>Chưa có ghi chú
                     </div>
                     <form th:action="@{/admin/don-hang/{id}/ghi-chu(id=${order.id})}" method="post" class="d-flex flex-column gap-2 no-print">
                         <div class="d-flex gap-2 align-items-center mb-1">
                             <select name="tag" class="form-select form-select-sm" style="width:auto">
-                                <option value="">Kh�ng tag</option>
+                                <option value="">Không tag</option>
                                 <option value="Kho">[Kho]</option>
                                 <option value="CSKH">[CSKH]</option>
-                                <option value="H? th?ng">[H? th?ng]</option>
-                                <option value="K? to�n">[K? to�n]</option>
+                                <option value="Hệ thống">[Hệ thống]</option>
+                                <option value="Kế toán">[Kế toán]</option>
                             </select>
-                            <span class="text-muted small">Ph�n nh�m</span>
+                            <span class="text-muted small">Phân nhóm</span>
                         </div>
                         <div class="d-flex gap-2">
-                            <input type="text" name="noiDung" class="form-control form-control-sm" placeholder="Nh?p ghi ch�..." required maxlength="1000" />
+                            <input type="text" name="noiDung" class="form-control form-control-sm" placeholder="Nhập ghi chú..." required maxlength="1000" />
                             <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
-                                <i class="bi bi-send me-1"></i>G?i
+                                <i class="bi bi-send me-1"></i>Gửi
                             </button>
                         </div>
                     </form>
@@ -225,15 +225,15 @@
 
                 <!-- CUSTOMER INFO -->
                 <div class="adm-card">
-                    <h6><i class="bi bi-person-circle me-2"></i>Th�ng tin kh�ch h�ng</h6>
+                    <h6><i class="bi bi-person-circle me-2"></i>Thông tin khách hàng</h6>
                     <table class="table table-sm table-borderless mb-0">
-                        <tr><td class="text-muted ps-0" style="width:90px">H? t�n</td><td class="fw-semibold" th:text="${order.tenNguoiNhan}"></td></tr>
-                        <tr><td class="text-muted ps-0">S�T</td><td th:text="${order.soDienThoai}"></td></tr>
+                        <tr><td class="text-muted ps-0" style="width:90px">Họ tên</td><td class="fw-semibold" th:text="${order.tenNguoiNhan}"></td></tr>
+                        <tr><td class="text-muted ps-0">SĐT</td><td th:text="${order.soDienThoai}"></td></tr>
                         <tr><td class="text-muted ps-0">Email</td><td th:text="${order.userEmail}"></td></tr>
-                        <tr><td class="text-muted ps-0">�?a ch?</td><td th:text="${order.diaChi}"></td></tr>
-                        <tr><td class="text-muted ps-0">Ng�y d?t</td><td th:text="${#temporals.format(order.ngayDat, 'HH:mm dd/MM/yyyy')}"></td></tr>
+                        <tr><td class="text-muted ps-0">Địa chỉ</td><td th:text="${order.diaChi}"></td></tr>
+                        <tr><td class="text-muted ps-0">Ngày đặt</td><td th:text="${#temporals.format(order.ngayDat, 'HH:mm dd/MM/yyyy')}"></td></tr>
                         <tr th:if="${order.ghiChu != null and order.ghiChu != ''}">
-                            <td class="text-muted ps-0">Ghi ch� kh�ch</td><td class="fst-italic" th:text="${order.ghiChu}"></td>
+                            <td class="text-muted ps-0">Ghi chú khách</td><td class="fst-italic" th:text="${order.ghiChu}"></td>
                         </tr>
                     </table>
                 </div>
@@ -241,9 +241,9 @@
                 <!-- ADMIN ASSIGNMENT -->
                 <div class="adm-card mt-4">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Admin ph? tr�ch</h6>
+                        <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Admin phụ trách</h6>
                         <button type="button" class="btn btn-link btn-sm p-0 no-print" data-bs-toggle="modal" data-bs-target="#assignModal">
-                            Ph�n c�ng l?i
+                            Phân công lại
                         </button>
                     </div>
                     <div th:if="${assignment != null}" class="d-flex align-items-center gap-2">
@@ -251,24 +251,24 @@
                         <div>
                             <div class="fw-semibold" th:text="${assignment.admin.hoTen}"></div>
                             <div class="text-muted small" th:text="${assignment.admin.email}"></div>
-                            <div class="text-muted small">T? l�c: <span th:text="${#temporals.format(assignment.ngayPhan, 'HH:mm dd/MM/yyyy')}"></span></div>
+                            <div class="text-muted small">Từ lúc: <span th:text="${#temporals.format(assignment.ngayPhan, 'HH:mm dd/MM/yyyy')}"></span></div>
                         </div>
                     </div>
                     <div th:if="${assignment == null}" class="text-muted small py-2">
-                        <i class="bi bi-exclamation-circle me-1"></i>Chua du?c ph�n c�ng
+                        <i class="bi bi-exclamation-circle me-1"></i>Chưa được phân công
                     </div>
                 </div>
 
                 <!-- SHIPPING CARD -->
                 <div class="adm-card mt-4">
-                    <h6><i class="bi bi-truck me-2"></i>Th�ng tin v?n chuy?n</h6>
+                    <h6><i class="bi bi-truck me-2"></i>Thông tin vận chuyển</h6>
                     <div class="small">
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Phuong th?c</span>
-                            <span class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao h�ng nhanh' : 'Giao h�ng an to�n'}"></span>
+                            <span class="text-muted">Phương thức</span>
+                            <span class="fw-semibold" th:text="${order.phuongThucGiaoHang == 'EXPRESS' ? 'Giao hàng nhanh' : 'Giao hàng an toàn'}"></span>
                         </div>
                         <div class="d-flex justify-content-between mb-1 align-items-center">
-                            <span class="text-muted">M� v?n don</span>
+                            <span class="text-muted">Mã vận đơn</span>
                             <div class="d-flex align-items-center gap-1">
                                 <span th:id="'maVanDonText-' + ${order.id}" class="fw-semibold"
                                       th:if="${order.maVanDon != null and order.maVanDon != ''}">
@@ -276,11 +276,11 @@
                                     <span class="badge bg-warning text-dark ms-1" style="font-size:10px">GHN</span>
                                 </span>
                                 <span th:id="'maVanDonText-' + ${order.id}" class="text-muted fst-italic"
-                                      th:unless="${order.maVanDon != null and order.maVanDon != ''}">Chua c�</span>
+                                      th:unless="${order.maVanDon != null and order.maVanDon != ''}">Chưa có</span>
                                 <input th:id="'maVanDonInput-' + ${order.id}" type="text" class="form-control form-control-sm d-none"
-                                       style="width:140px" th:value="${order.maVanDon}" placeholder="Nh?p m� V�" />
+                                       style="width:140px" th:value="${order.maVanDon}" placeholder="Nhập mã VĐ" />
                                 <button th:id="'maVanDonBtn-' + ${order.id}" class="btn btn-link btn-sm p-0 text-muted no-print"
-                                        th:onclick="'editMaVanDon(' + ${order.id} + ')'" title="C?p nh?t m� v?n don">
+                                        th:onclick="'editMaVanDon(' + ${order.id} + ')'" title="Cập nhật mã vận đơn">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button th:id="'maVanDonSave-' + ${order.id}" class="btn btn-link btn-sm p-0 text-success d-none no-print"
@@ -291,10 +291,10 @@
                         </div>
                         <div class="mt-2 p-2 bg-light rounded">
                             <div class="text-muted small">
-                                <i class="bi bi-clock-history me-1"></i>Tr?ng th�i h�nh tr�nh:
-                                <span th:if="${order.trangThaiDon == 'DANG_GIAO'}" class="text-primary fw-semibold">�ang du?c v?n chuy?n</span>
-                                <span th:if="${order.trangThaiDon == 'DA_GIAO' or order.trangThaiDon == 'DA_HOAN_THANH'}" class="text-success fw-semibold">�� giao th�nh c�ng</span>
-                                <span th:if="${order.trangThaiDon == 'CHO_XAC_NHAN' or order.trangThaiDon == 'DA_XAC_NHAN'}" class="text-muted">Ch? xu?t kho</span>
+                                <i class="bi bi-clock-history me-1"></i>Trạng thái hành trình:
+                                <span th:if="${order.trangThaiDon == 'DANG_GIAO'}" class="text-primary fw-semibold">Đang được vận chuyển</span>
+                                <span th:if="${order.trangThaiDon == 'DA_GIAO' or order.trangThaiDon == 'DA_HOAN_THANH'}" class="text-success fw-semibold">Đã giao thành công</span>
+                                <span th:if="${order.trangThaiDon == 'CHO_XAC_NHAN' or order.trangThaiDon == 'DA_XAC_NHAN'}" class="text-muted">Chờ xuất kho</span>
                             </div>
                         </div>
                     </div>
@@ -302,9 +302,9 @@
 
                 <!-- PAYMENT HISTORY -->
                 <div class="adm-card mt-4">
-                    <h6><i class="bi bi-credit-card-2-back me-2"></i>L?ch s? giao d?ch t�i ch�nh</h6>
+                    <h6><i class="bi bi-credit-card-2-back me-2"></i>Lịch sử giao dịch tài chính</h6>
                     <div th:if="${#lists.isEmpty(paymentLogs)}" class="text-muted small py-2 text-center">
-                        <i class="bi bi-inbox me-1"></i>Chua c� giao d?ch thanh to�n
+                        <i class="bi bi-inbox me-1"></i>Chưa có giao dịch thanh toán
                     </div>
                     <div th:each="log : ${paymentLogs}" class="d-flex gap-2 mb-2 pb-2 border-bottom">
                         <div class="flex-shrink-0">
@@ -316,23 +316,23 @@
                         </div>
                         <div class="flex-grow-1 min-w-0">
                             <div class="d-flex justify-content-between align-items-center">
-                                <strong class="small text-success"><i class="bi bi-check-circle-fill me-1"></i>Thanh to�n th�nh c�ng</strong>
+                                <strong class="small text-success"><i class="bi bi-check-circle-fill me-1"></i>Thanh toán thành công</strong>
                                 <small class="text-muted" th:text="${#temporals.format(log.thoiGian, 'HH:mm dd/MM/yyyy')}"></small>
                             </div>
-                            <div class="small text-muted" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'H? th?ng'}"></div>
+                            <div class="small text-muted" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'Hệ thống'}"></div>
                             <div th:if="${log.ghiChu != null and !log.ghiChu.isEmpty()}" class="small text-muted mt-1" th:text="${log.ghiChu}"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- L?CH S? NH?T K� & LOGS �ON (OMS timeline style) -->
+                <!-- LỊCH SỬ NHẬT KÝ & LOGS ĐƠN (OMS timeline style) -->
                 <div class="adm-card mt-4">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>L?ch s? nh?t k� & logs don</h6>
-                        <span class="badge bg-light text-muted border small">T? d?ng</span>
+                        <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Lịch sử nhật ký & logs đơn</h6>
+                        <span class="badge bg-light text-muted border small">Tự động</span>
                     </div>
                     <div th:if="${#lists.isEmpty(statusLogs)}" class="text-muted small py-3 text-center">
-                        <i class="bi bi-inbox me-1"></i>Chua c� d? li?u
+                        <i class="bi bi-inbox me-1"></i>Chưa có dữ liệu
                     </div>
                     <div th:if="${not #lists.isEmpty(statusLogs)}" class="position-relative ps-4" style="border-left:2px solid #e9ecef; max-height:400px; overflow-y:auto">
                         <div th:each="log : ${statusLogs}" class="position-relative pb-3 mb-3" style="border-bottom:1px solid #f1f3f5">
@@ -344,16 +344,16 @@
                                     <i th:classappend="${'bi ' + T(com.duastore.util.OrderStatusUtil).getIconClass(log.loaiSuKien) + ' ' + T(com.duastore.util.OrderStatusUtil).getIconColorClass(log.loaiSuKien)}"
                                        class="me-1"></i>
                                     <span th:switch="${log.loaiSuKien.name()}">
-                                        <span th:case="'CREATE_ORDER'">�on h�ng du?c kh?i t?o</span>
-                                        <span th:case="'ASSIGN_ADMIN'" th:text="${log.ghiChu != null ? log.ghiChu : 'Ph�n c�ng admin'}"></span>
+                                        <span th:case="'CREATE_ORDER'">Đơn hàng được khởi tạo</span>
+                                        <span th:case="'ASSIGN_ADMIN'" th:text="${log.ghiChu != null ? log.ghiChu : 'Phân công admin'}"></span>
                                         <span th:case="'STATUS_CHANGE'">
-                                            <span class="text-muted">Tr?ng th�i:</span>
+                                            <span class="text-muted">Trạng thái:</span>
                                             <span class="badge bg-secondary ms-1" th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(log.trangThaiCu)}"></span>
                                             <i class="bi bi-arrow-right text-muted mx-1"></i>
                                             <span class="badge bg-primary" th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(log.trangThaiMoi)}"></span>
                                         </span>
-                                        <span th:case="'CANCEL_ORDER'"><span class="text-danger">Kh�ch h�ng h?y don</span></span>
-                                        <span th:case="'PAYMENT_CONFIRMED'"><span class="text-success">Thanh to�n du?c ki?m duy?t</span></span>
+                                        <span th:case="'CANCEL_ORDER'"><span class="text-danger">Khách hàng hủy đơn</span></span>
+                                        <span th:case="'PAYMENT_CONFIRMED'"><span class="text-success">Thanh toán được kiểm duyệt</span></span>
                                     </span>
                                 </div>
                                 <small class="text-muted text-nowrap ms-2" th:text="${#temporals.format(log.thoiGian, 'HH:mm')}">
@@ -361,19 +361,19 @@
                             </div>
                             <div class="text-muted small mt-1">
                                 <span th:switch="${log.loaiSuKien.name()}">
-                                    <span th:case="'CREATE_ORDER'">�on t?o th�nh c�ng t? Web Portal DuaStore</span>
-                                    <span th:case="'STATUS_CHANGE'">Admin <strong class="text-dark" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'H? th?ng'}"></strong> c?p nh?t tr?ng th�i don
+                                    <span th:case="'CREATE_ORDER'">Đơn tạo thành công từ Web Portal DuaStore</span>
+                                    <span th:case="'STATUS_CHANGE'">Admin <strong class="text-dark" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'Hệ thống'}"></strong> cập nhật trạng thái đơn
                                         <span th:if="${log.ghiChu != null and !log.ghiChu.isEmpty()}" class="d-block small text-muted mt-1" th:text="${log.ghiChu}"></span></span>
                                     <span th:case="'CANCEL_ORDER'">
-                                        <span th:if="${log.ghiChu}" th:text="${'L� do: ' + log.ghiChu}"></span>
-                                        <span th:unless="${log.ghiChu}">Kh�ch h�ng y�u c?u h?y don</span>
+                                        <span th:if="${log.ghiChu}" th:text="${'Lý do: ' + log.ghiChu}"></span>
+                                        <span th:unless="${log.ghiChu}">Khách hàng yêu cầu hủy đơn</span>
                                     </span>
-                                    <span th:case="'PAYMENT_CONFIRMED'">C?ng thanh to�n ghi nh?n giao d?ch th�nh c�ng</span>
+                                    <span th:case="'PAYMENT_CONFIRMED'">Cổng thanh toán ghi nhận giao dịch thành công</span>
                                     <span th:case="'ASSIGN_ADMIN'">
-                                        Admin <strong class="text-dark" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'H? th?ng'}"></strong> du?c ph�n c�ng
+                                        Admin <strong class="text-dark" th:text="${log.nguoiThucHien != null ? log.nguoiThucHien.hoTen : 'Hệ thống'}"></strong> được phân công
                                     </span>
                                 </span>
-                                <span class="fst-italic text-muted opacity-50 ms-1" th:text="${log.nguoiThucHien != null and log.loaiSuKien.name() != 'STATUS_CHANGE' and log.loaiSuKien.name() != 'ASSIGN_ADMIN' ? '� ' + log.nguoiThucHien.hoTen : ''}"></span>
+                                <span class="fst-italic text-muted opacity-50 ms-1" th:text="${log.nguoiThucHien != null and log.loaiSuKien.name() != 'STATUS_CHANGE' and log.loaiSuKien.name() != 'ASSIGN_ADMIN' ? '• ' + log.nguoiThucHien.hoTen : ''}"></span>
                             </div>
                         </div>
                     </div>
@@ -388,12 +388,12 @@
                 <div class="modal-content">
                     <form th:action="@{/admin/don-hang/{id}/phan-cong(id=${order.id})}" method="post">
                         <div class="modal-header border-0">
-                            <h6 class="modal-title"><i class="bi bi-person-gear me-2"></i>Ph�n c�ng admin ph? tr�ch</h6>
+                            <h6 class="modal-title"><i class="bi bi-person-gear me-2"></i>Phân công admin phụ trách</h6>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div th:if="${#lists.isEmpty(activeAdmins)}" class="text-muted small py-2">
-                                <i class="bi bi-exclamation-circle me-1"></i>Kh�ng c� admin n�o dang ho?t d?ng.
+                                <i class="bi bi-exclamation-circle me-1"></i>Không có admin nào đang hoạt động.
                             </div>
                             <div class="list-group" th:unless="${#lists.isEmpty(activeAdmins)}">
                                 <label th:each="a : ${activeAdmins}" class="list-group-item d-flex align-items-center gap-2">
@@ -410,8 +410,8 @@
                             </div>
                         </div>
                         <div class="modal-footer border-0">
-                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">��ng</button>
-                            <button type="submit" class="btn btn-primary btn-sm" th:disabled="${#lists.isEmpty(activeAdmins)}">X�c nh?n ph�n c�ng</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                            <button type="submit" class="btn btn-primary btn-sm" th:disabled="${#lists.isEmpty(activeAdmins)}">Xác nhận phân công</button>
                         </div>
                     </form>
                 </div>
@@ -423,7 +423,7 @@
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header border-0">
-                        <h6 class="modal-title" id="qvTitle"><i class="bi bi-box-seam me-2"></i>Chi ti?t s?n ph?m</h6>
+                        <h6 class="modal-title" id="qvTitle"><i class="bi bi-box-seam me-2"></i>Chi tiết sản phẩm</h6>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body" id="qvBody">
