@@ -190,6 +190,9 @@ public class CheckoutController {
         model.addAttribute("carrierGHNEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghn_enabled", "1")));
         model.addAttribute("carrierGHTKEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghtk_enabled", "1")));
 
+        String freeMin = shippingSettings.getOrDefault("shipping_free_min", "500000");
+        model.addAttribute("shippingFreeMin", new BigDecimal(freeMin.isBlank() ? "500000" : freeMin.trim()));
+
         model.addAttribute("storeLat", storeLat);
         model.addAttribute("storeLng", storeLng);
 
@@ -260,6 +263,7 @@ public class CheckoutController {
             return "view/client/checkout";
         }
 
+        validateCheckoutRequest(req);
         try {
             Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
                     ? new HashSet<>(req.getSelectedIds()) : null;
@@ -424,6 +428,7 @@ public class CheckoutController {
             res.put("message", "Dữ liệu không hợp lệ");
             return ResponseEntity.ok(res);
         }
+        validateCheckoutRequest(req);
         try {
             int pointsToRedeem = req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0;
             Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
@@ -670,6 +675,26 @@ public class CheckoutController {
             return "view/client/order-success";
         } catch (RuntimeException e) {
             return "redirect:/";
+        }
+    }
+
+    private void validateCheckoutRequest(CheckoutRequestDTO req) {
+        Map<String, String> shippingSettings = siteSettingService.getGroup("shipping");
+        String carrier = req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN";
+        boolean carrierEnabled = "1".equals(shippingSettings.getOrDefault("carrier_" + carrier.toLowerCase() + "_enabled", "1"));
+        if (!carrierEnabled) {
+            throw new RuntimeException("Đơn vị vận chuyển " + carrier + " hiện đang tạm tắt");
+        }
+        Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
+        String paymentMethod = req.getPhuongThucTT() != null ? req.getPhuongThucTT() : "";
+        boolean paymentEnabled = switch (paymentMethod) {
+            case "COD" -> "1".equals(paymentSettings.getOrDefault("payment_cod", "1"));
+            case "CHUYEN_KHOAN" -> "1".equals(paymentSettings.getOrDefault("payment_bank", "1"));
+            case "VNPAY" -> "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1"));
+            default -> true;
+        };
+        if (!paymentEnabled) {
+            throw new RuntimeException("Phương thức thanh toán " + paymentMethod + " hiện đang tạm tắt");
         }
     }
 }
