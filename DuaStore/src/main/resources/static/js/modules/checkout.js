@@ -633,30 +633,12 @@ function getSelectedAddressId() {
     return sel ? sel.value : null;
 }
 
-function updateShipFee() {
-    var addrId = getSelectedAddressId();
-    if (!addrId) return;
-    DuaStore.api.get('/checkout/shipping-fee?addressId=' + addrId + '&method=SHIP')
-            .then(function (result) {
-                if (result.ok && result.data.success) {
-                    var fee = result.data.fee, days = result.data.deliveryDays;
-                    document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + '₫';
-                    var today = new Date();
-                    var minDate = new Date(today); minDate.setDate(today.getDate() + (days || 7));
-                    var maxDate = new Date(today); maxDate.setDate(today.getDate() + (days || 7) + 2);
-                    var el = document.getElementById('estimatedDeliveryEl');
-                    if (el) el.textContent =  minDate.toLocaleDateString('vi-VN') + ' – ' + maxDate.toLocaleDateString('vi-VN');
-                    updateTotal();
-                }
-            });
-}
-
 function updateAllQuotes() {
     var addrId = getSelectedAddressId();
     if (!addrId) return;
     var subtotalEl = document.getElementById('rawSubtotal');
     var subtotal = subtotalEl ? parseInt(subtotalEl.textContent) || 0 : 0;
-    DuaStore.api.get('/checkout/api/quotes?addressId=' + addrId + '&method=SHIP&subtotal=' + subtotal)
+    DuaStore.api.get('/checkout/api/quotes?addressId=' + addrId + '&subtotal=' + subtotal)
             .then(function (result) {
                 if (!result.ok || !result.data.success) return;
                 var quotes = result.data.quotes || [];
@@ -978,7 +960,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
         if (document.querySelector('input[name="addressId"]:checked')) {
             updateAllQuotes();
-            updateShipFee();
         }
     }, 300);
 });
