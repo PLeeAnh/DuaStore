@@ -45,3 +45,63 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+
+/* ── Sidebar mobile toggle ── */
+(function() {
+    var sidebar = document.querySelector('.adm-sidebar');
+    var backdrop = document.getElementById('admSidebarBackdrop');
+    var toggle = document.getElementById('admNavToggle');
+    if (!sidebar || !backdrop || !toggle) return;
+
+    function openSidebar() {
+        sidebar.classList.add('adm-sidebar-mobile-open');
+        backdrop.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('adm-sidebar-mobile-open');
+        backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (sidebar.classList.contains('adm-sidebar-mobile-open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar.classList.contains('adm-sidebar-mobile-open')) {
+            closeSidebar();
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 992) {
+            closeSidebar();
+        }
+    });
+})();
+
+/* ── Notification polling ── */
+(function() {
+    const badge = document.getElementById('staffNotifBadge');
+    if (badge) {
+        setInterval(function() {
+            fetch('/admin/thong-bao/api/count')
+                .then(r => r.text())
+                .then(count => {
+                    const num = parseInt(count) || 0;
+                    badge.textContent = num;
+                    badge.classList.toggle('d-none', num === 0);
+                })
+                .catch(() => {});
+        }, 30000);
+    }
+})();

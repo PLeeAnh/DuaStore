@@ -1,72 +1,90 @@
 'use strict';
-(function () {
-    var colors = {
-        primary: 'rgba(255, 107, 0, 1)',
-        primaryBg: 'rgba(255, 107, 0, 0.15)',
-        success: 'rgba(34, 197, 94, 1)',
-        warning: 'rgba(234, 179, 8, 1)',
-        danger: 'rgba(239, 68, 68, 1)',
-        info: 'rgba(59, 130, 246, 1)',
-        purple: 'rgba(124, 58, 237, 1)',
-        palette: ['#ff6b00', '#22c55e', '#3b82f6', '#eab308', '#ef4444', '#7c3aed', '#06b6d4', '#f97316', '#ec4899', '#14b8a6']
-    };
-    var data = window.__analyticsData || {};
+let copilotOpen = true;
+function toggleCopilot() {
+    copilotOpen = !copilotOpen;
+    document.getElementById('copilotBody').style.display = copilotOpen ? 'block' : 'none';
+    document.getElementById('copilotArrow').style.transform = copilotOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+}
+function askCopilot() {
+    const q = document.getElementById('copilotQuery').value.trim();
+    if (!q) return;
+    const btn = document.getElementById('copilotBtn');
+    const answerDiv = document.getElementById('copilotAnswer');
+    const errorDiv = document.getElementById('copilotError');
+    answerDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang trả lời...';
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+    const headers = {'Content-Type': 'application/json'};
+    if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+    fetch('/admin/phan-tich/api/copilot', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({query: q})
+    })
+    .then(r => r.json())
+    .then(data => {
+        answerDiv.textContent = data.answer;
+        answerDiv.style.display = 'block';
+    })
+    .catch(e => {
+        errorDiv.textContent = 'Lỗi kết nối, vui lòng thử lại.';
+        errorDiv.style.display = 'block';
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send me-1"></i>Hỏi';
+    });
+}
 
-    var revenueData = data.dailyRevenue;
-    if (revenueData && revenueData.length) {
-        var labels = revenueData.map(function (d) { return d.date.substring(5); });
-        var values = revenueData.map(function (d) { return Number(d.revenue); });
-        var ctx = document.getElementById('dailyRevenueChart');
-        if (ctx) {
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{label: 'Doanh thu', data: values, borderColor: colors.primary, backgroundColor: colors.primaryBg, fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderColor: colors.primary, pointBorderWidth: 2, borderWidth: 2}]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {legend: {display: false}},
-                    scales: {
-                        y: {beginAtZero: true, ticks: {callback: function (v) { return v >= 1000000 ? (v / 1000000).toFixed(0) + 'tr' : (v / 1000).toFixed(0) + 'k'; }}, grid: {color: 'rgba(0,0,0,0.05)'}},
-                        x: {grid: {display: false}}
-                    }
-                }
-            });
-        }
-    }
+function initAnalyticsCharts(data) {
+    if (!data || typeof Chart === 'undefined') return;
+    var colorPalette = ['#2563eb', '#f97316', '#10b981', '#8b5cf6', '#ef4444', '#6b7280'];
 
-    var statusData = data.orderStatusCounts;
-    if (statusData) {
-        var statusLabels = ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Hoàn thành', 'Đã huỷ'];
-        var statusKeys = ['CHO_XAC_NHAN', 'DA_XAC_NHAN', 'DANG_GIAO', 'DA_GIAO', 'DA_HOAN_THANH', 'DA_HUY'];
-        var statusValues = statusKeys.map(function (k) { return Number(statusData[k] || 0); });
-        var statusColors = [colors.warning, colors.info, colors.purple, '#2563eb', colors.success, colors.danger];
-        var ctx3 = document.getElementById('orderStatusChart');
-        if (ctx3) {
-            new Chart(ctx3, {
-                type: 'doughnut',
-                data: {labels: statusLabels, datasets: [{data: statusValues, backgroundColor: statusColors, borderWidth: 0, hoverOffset: 6}]},
-                options: {responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: {legend: {position: 'bottom', labels: {padding: 12, usePointStyle: true}}}}
-            });
-        }
-    }
-
-    var paymentData = data.paymentMethodCounts;
-    if (paymentData) {
-        var payLabels = Object.keys(paymentData).map(function (k) {
-            var map = {'COD': 'COD', 'BANK_TRANSFER': 'Chuyển khoản', 'MOMO': 'MoMo', 'VNPAY': 'VNPay'};
-            return map[k] || k;
+    var revCanvas = document.getElementById('dailyRevenueChart');
+    if (revCanvas && data.dailyRevenue) {
+        var labels = data.dailyRevenue.map(function(d) { return d.date || d.label; });
+        var values = data.dailyRevenue.map(function(d) { return parseFloat(d.revenue || d.value) || 0; });
+        new Chart(revCanvas, {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: 'Doanh thu', data: values, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
         });
-        var payValues = Object.values(paymentData).map(function (v) { return Number(v); });
-        var ctx4 = document.getElementById('paymentMethodChart');
-        if (ctx4) {
-            new Chart(ctx4, {
+    }
+
+    var osCanvas = document.getElementById('orderStatusChart');
+    if (osCanvas && data.orderStatusCounts) {
+        var osLabels = [], osValues = [], osColors = [];
+        var osColorMap = { CHO_XAC_NHAN: '#f97316', DA_XAC_NHAN: '#3b82f6', DANG_GIAO: '#8b5cf6', DA_GIAO: '#10b981', DA_HUY: '#ef4444', DA_HOAN_TIEN: '#6b7280', CHO_LAY_HANG: '#f59e0b' };
+        Object.keys(data.orderStatusCounts).forEach(function(key) {
+            if (data.orderStatusCounts[key] > 0) { osLabels.push(key); osValues.push(data.orderStatusCounts[key]); osColors.push(osColorMap[key] || '#6b7280'); }
+        });
+        if (osLabels.length) {
+            new Chart(osCanvas, {
                 type: 'doughnut',
-                data: {labels: payLabels, datasets: [{data: payValues, backgroundColor: colors.palette, borderWidth: 0, hoverOffset: 6}]},
-                options: {responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: {legend: {position: 'bottom', labels: {padding: 12, usePointStyle: true}}}}
+                data: { labels: osLabels, datasets: [{ data: osValues, backgroundColor: osColors, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
             });
         }
     }
-})();
+
+    var pmCanvas = document.getElementById('paymentMethodChart');
+    if (pmCanvas && data.paymentMethodCounts) {
+        var pmLabels = [], pmValues = [], pmColors = [];
+        var ci = 0;
+        Object.keys(data.paymentMethodCounts).forEach(function(key) {
+            if (data.paymentMethodCounts[key] > 0) { pmLabels.push(key); pmValues.push(data.paymentMethodCounts[key]); pmColors.push(colorPalette[ci % colorPalette.length]); ci++; }
+        });
+        if (pmLabels.length) {
+            new Chart(pmCanvas, {
+                type: 'doughnut',
+                data: { labels: pmLabels, datasets: [{ data: pmValues, backgroundColor: pmColors, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+            });
+        }
+    }
+}
+
+if (window.__analyticsData) initAnalyticsCharts(window.__analyticsData);
