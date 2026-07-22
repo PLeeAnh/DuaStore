@@ -26,7 +26,8 @@
 
     <script defer th:src="@{/js/main.js(v=1)}"></script>
     <script defer th:src="@{/js/toast.js(v=2)}"></script>
-<script defer th:src="@{/js/chat-faq.js(v=1)}"></script>
+<script defer th:if="${themeSettings.get('widget_chatbot') != '0'}" th:src="@{/js/chat-faq.js(v=1)}"></script>
+<script defer th:if="${themeSettings.get('widget_popup') == '1'}" th:src="@{/js/popup.js(v=1)}"></script>
     <script defer th:src="@{/js/api.js(v=1)}"></script>
     <script defer th:src="@{/js/utils.js(v=1)}"></script>
     <script defer th:src="@{/js/modules/auth.js(v=1)}"></script>
@@ -664,7 +665,7 @@
                     <div class="ds-auth-accent-fade mt-3 mb-3"></div>
 
                     <a class="ds-auth-google" href="#"
-                       onclick="event.preventDefault(); var w=window.open('/oauth2/authorization/google','google-login','width=600,height=700'); if(w) { var t=setInterval(function(){ if(w.closed) { clearInterval(t); window.location.reload(); } },500); }"
+                       onclick="event.preventDefault();openGoogleAuth()"
                        title="Đăng nhập với Google">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
                              width="20" height="20" alt="Google">
@@ -922,6 +923,21 @@
 <a th:if="${themeSettings.get('widget_messenger') == '1' and themeSettings.get('widget_messenger_page_id') != ''}" th:href="'https://m.me/' + ${themeSettings.get('widget_messenger_page_id')}" target="_blank" rel="noopener noreferrer" class="ds-float-zalo" style="bottom:80px" title="Chat Messenger" aria-label="Chat Messenger"><i class="bi bi-messenger"></i></a>
 <a th:if="${themeSettings.get('widget_call') == '1' and themeSettings.get('widget_call_phone') != ''}" th:href="'tel:' + ${themeSettings.get('widget_call_phone')}" class="ds-float-zalo" style="bottom:140px;background:#28a745" title="Gọi điện" aria-label="Gọi điện"><i class="bi bi-telephone-fill"></i></a>
 <button th:if="${themeSettings.get('widget_backtotop') != '0'}" class="ds-float-top" id="backTopBtn" style="display:none" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Lên đầu trang"><i class="bi bi-chevron-up"></i></button>
+
+<!-- POPUP -->
+<div th:if="${themeSettings.get('widget_popup') == '1'}" id="dsPopupOverlay" class="ds-popup-overlay" style="display:none">
+    <div class="ds-popup-modal">
+        <button type="button" class="ds-popup-close" id="dsPopupClose" aria-label="Đóng">&times;</button>
+        <div class="ds-popup-icon"><i class="bi bi-gift-fill"></i></div>
+        <h4 class="ds-popup-title">Nhận ưu đãi độc quyền!</h4>
+        <p class="ds-popup-desc">Đăng ký email để nhận mã giảm giá <strong>10%</strong> cho đơn hàng đầu tiên và cập nhật sản phẩm mới.</p>
+        <form class="ds-popup-form" id="dsPopupForm">
+            <input type="email" class="ds-popup-input" placeholder="Nhập email của bạn..." required />
+            <button type="submit" class="ds-popup-submit">Đăng ký ngay</button>
+        </form>
+        <p class="ds-popup-skip" id="dsPopupSkip">Không, cảm ơn</p>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
