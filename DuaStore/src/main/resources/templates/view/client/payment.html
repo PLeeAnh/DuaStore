@@ -52,16 +52,40 @@
                                         </div>
                                     </div>
 
+                                    <div id="countdown-box" class="alert alert-info small py-2 mb-3">
+                                        <i class="bi bi-clock me-1"></i>
+                                        Vui lòng thanh toán trong <strong id="countdown-timer">15:00</strong>
+                                    </div>
+
                                     <div class="alert alert-warning small py-2 mb-4">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Sau khi chuyển khoản, vui lòng bấm <strong>"Đã thanh toán"</strong> để hoàn tất đơn hàng.
                                     </div>
 
-                                    <form th:action="@{/checkout/chuyen-khoan/{id}/xac-nhan(id=${order.id})}" method="post">
-                                        <button type="submit" class="btn btn-success btn-lg rounded-pill w-100 fw-semibold py-2">
-                                            <i class="bi bi-check-circle me-1"></i>Đã thanh toán
-                                        </button>
-                                    </form>
+                                    <button id="btn-confirm" type="button"
+                                            class="btn btn-success btn-lg rounded-pill w-100 fw-semibold py-2"
+                                            th:data-order-id="${order.id}">
+                                        <i class="bi bi-check-circle me-1"></i>Đã thanh toán
+                                    </button>
+
+                                    <div id="confirm-loading" class="d-none mt-3">
+                                        <div class="spinner-border spinner-border-sm text-success me-1" role="status"></div>
+                                        <span class="text-muted small">Đang xử lý...</span>
+                                    </div>
+
+                                    <div id="confirm-success" class="d-none mt-3">
+                                        <div class="alert alert-success py-2 mb-0">
+                                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                            <span>Xác nhận thành công! Đang chuyển trang...</span>
+                                        </div>
+                                    </div>
+
+                                    <div id="confirm-error" class="d-none mt-3">
+                                        <div class="alert alert-danger py-2 mb-0">
+                                            <i class="bi bi-exclamation-triangle text-danger me-1"></i>
+                                            <span id="confirm-error-msg">Có lỗi xảy ra, vui lòng thử lại.</span>
+                                        </div>
+                                    </div>
 
                                     <div class="mt-3">
                                         <a th:href="@{/}" class="text-muted small">Quay lại trang chủ</a>
@@ -74,5 +98,111 @@
                 </div>
             </div>
         </div>
+
+        <script th:inline="javascript">
+            (function () {
+                var orderId = document.getElementById('btn-confirm').getAttribute('data-order-id');
+                var pollInterval = null;
+                var countdownSeconds = 15 * 60;
+
+                // ── Countdown Timer ──────────────────────────
+                var timerEl = document.getElementById('countdown-timer');
+                function updateCountdown() {
+                    if (countdownSeconds <= 0) {
+                        timerEl.textContent = '00:00';
+                        document.getElementById('countdown-box').className = 'alert alert-danger small py-2 mb-3';
+                        document.getElementById('countdown-box').innerHTML =
+                            '<i class="bi bi-clock me-1"></i>Phiên thanh toán đã hết hạn. Vui lòng quay lại giỏ hàng.';
+                        document.getElementById('btn-confirm').disabled = true;
+                        stopPolling();
+                        return;
+                    }
+                    var m = Math.floor(countdownSeconds / 60);
+                    var s = countdownSeconds % 60;
+                    timerEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                    countdownSeconds--;
+                }
+                setInterval(updateCountdown, 1000);
+
+                // ── AJAX Confirm ─────────────────────────────
+                var btnConfirm = document.getElementById('btn-confirm');
+                var loadingEl = document.getElementById('confirm-loading');
+                var successEl = document.getElementById('confirm-success');
+                var errorEl = document.getElementById('confirm-error');
+                var errorMsgEl = document.getElementById('confirm-error-msg');
+                var confirming = false;
+
+                btnConfirm.addEventListener('click', function () {
+                    if (confirming) return;
+                    confirming = true;
+
+                    btnConfirm.classList.add('d-none');
+                    loadingEl.classList.remove('d-none');
+                    errorEl.classList.add('d-none');
+                    successEl.classList.add('d-none');
+
+                    fetch('/checkout/chuyen-khoan/' + orderId + '/xac-nhan', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            [document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN']:
+                                document.querySelector('meta[name="_csrf"]')?.content || ''
+                        }
+                    })
+                    .then(function (resp) { return resp.json(); })
+                    .then(function (data) {
+                        loadingEl.classList.add('d-none');
+                        if (data.success) {
+                            successEl.classList.remove('d-none');
+                            stopPolling();
+                            setTimeout(function () {
+                                window.location.href = data.redirectUrl || '/checkout/thanh-cong/' + orderId;
+                            }, 1500);
+                        } else {
+                            errorMsgEl.textContent = data.message || 'Có lỗi xảy ra, vui lòng thử lại.';
+                            errorEl.classList.remove('d-none');
+                            btnConfirm.classList.remove('d-none');
+                            confirming = false;
+                        }
+                    })
+                    .catch(function () {
+                        loadingEl.classList.add('d-none');
+                        errorMsgEl.textContent = 'Lỗi kết nối, vui lòng thử lại.';
+                        errorEl.classList.remove('d-none');
+                        btnConfirm.classList.remove('d-none');
+                        confirming = false;
+                    });
+                });
+
+                // ── Polling: auto-check payment status ───────
+                function startPolling() {
+                    pollInterval = setInterval(function () {
+                        fetch('/checkout/api/check-payment-status/' + orderId)
+                            .then(function (resp) { return resp.json(); })
+                            .then(function (data) {
+                                if (data.paid && data.redirectUrl) {
+                                    stopPolling();
+                                    successEl.classList.remove('d-none');
+                                    loadingEl.classList.add('d-none');
+                                    errorEl.classList.add('d-none');
+                                    setTimeout(function () {
+                                        window.location.href = data.redirectUrl;
+                                    }, 1000);
+                                }
+                            })
+                            .catch(function () {});
+                    }, 10000);
+                }
+
+                function stopPolling() {
+                    if (pollInterval) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                    }
+                }
+
+                startPolling();
+            })();
+        </script>
     </body>
 </html>
