@@ -51,7 +51,7 @@ function renderSections(sections) {
             '</div>';
         container.appendChild(col);
     });
-    document.getElementById('loadingSpinner').style.display = 'none';
+    var spinner = document.getElementById('loadingSpinner'); if (spinner) spinner.style.display = 'none';
 
     new Sortable(container, {
         handle: '.drag-handle',
@@ -138,5 +138,61 @@ fetch('/admin/api/homepage-layout', {
         sectionList = JSON.parse(JSON.stringify(data));
     }
 }).catch(function() {
-    document.getElementById('loadingSpinner').style.display = 'none';
+    var spinner = document.getElementById('loadingSpinner'); if (spinner) spinner.style.display = 'none';
 });
+
+function initDashboardCharts() {
+    if (typeof Chart === 'undefined') return;
+    var colorPalette = ['#2563eb', '#f97316', '#10b981', '#8b5cf6', '#ef4444', '#6b7280'];
+
+    var revCanvas = document.getElementById('revenueChart');
+    if (revCanvas) {
+        var revData = [], prevData = [];
+        document.querySelectorAll('#revenueData span').forEach(function(el) { revData.push({ label: el.dataset.label, value: parseFloat(el.dataset.value) || 0 }); });
+        document.querySelectorAll('#prevRevenueData span').forEach(function(el) { prevData.push({ label: el.dataset.label, value: parseFloat(el.dataset.value) || 0 }); });
+        if (revData.length) {
+            new Chart(revCanvas, {
+                type: 'line',
+                data: {
+                    labels: revData.map(function(d) { return d.label; }),
+                    datasets: [
+                        { label: 'Tuần này', data: revData.map(function(d) { return d.value; }), borderColor: 'rgba(255,107,0,0.8)', backgroundColor: 'rgba(255,107,0,0.08)', fill: true, tension: 0.3, pointRadius: 3 },
+                        { label: 'Tuần trước', data: prevData.map(function(d) { return d.value; }), borderColor: 'rgba(148,112,219,0.8)', backgroundColor: 'rgba(148,112,219,0.08)', fill: true, tension: 0.3, pointRadius: 3, borderDash: [5,5] }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN'); } } } } }
+            });
+        }
+    }
+
+    var payCanvas = document.getElementById('paymentChart');
+    if (payCanvas) {
+        var payLabels = [], payValues = [], payColors = [];
+        var ci = 0;
+        document.querySelectorAll('#paymentData span').forEach(function(el) {
+            payLabels.push(el.dataset.method); payValues.push(parseInt(el.dataset.count) || 0); payColors.push(colorPalette[ci % colorPalette.length]); ci++;
+        });
+        if (payLabels.length) {
+            new Chart(payCanvas, {
+                type: 'doughnut',
+                data: { labels: payLabels, datasets: [{ data: payValues, backgroundColor: payColors, borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } } }
+            });
+        }
+    }
+
+    var monCanvas = document.getElementById('monthlyRevenueChart');
+    if (monCanvas) {
+        var monLabels = [], monValues = [];
+        document.querySelectorAll('#monthlyRevenueData span').forEach(function(el) { monLabels.push(el.dataset.label); monValues.push(parseFloat(el.dataset.value) || 0); });
+        if (monLabels.length) {
+            new Chart(monCanvas, {
+                type: 'bar',
+                data: { labels: monLabels, datasets: [{ label: 'Doanh thu', data: monValues, backgroundColor: 'rgba(37,99,235,0.7)', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v.toLocaleString('vi-VN'); } } } } }
+            });
+        }
+    }
+}
+
+initDashboardCharts();

@@ -500,7 +500,7 @@
 <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
 <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
 <span id="rawRedeemRate" style="display:none" th:text="${loyaltyRedeemRate}"></span>
-                    <script src="/js/client-checkout.js"></script>
+                    <script th:src="@{/js/client-checkout.js(v=1)}"></script>
                     <script>
                         window.storeLat = [[${storeLat}]];
                         window.storeLng = [[${storeLng}]];

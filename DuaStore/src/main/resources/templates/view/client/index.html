@@ -281,7 +281,7 @@
         </div>
     <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
-        <script src="/js/client-home.js"></script>
+        <script th:src="@{/js/client-home.js(v=1)}"></script>
     </th:block>
 </body>
 </html>

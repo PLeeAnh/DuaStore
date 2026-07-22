@@ -129,7 +129,7 @@
             </section>
         </div>
     <th:block layout:fragment="extra-script">
-        <script src="/js/client-contact.js"></script>
+        <script th:src="@{/js/client-contact.js(v=1)}"></script>
         <script th:inline="javascript">
             initContactMap([[${storeLat}]], [[${storeLng}]]);
         </script>

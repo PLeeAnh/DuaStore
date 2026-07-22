@@ -5496,24 +5496,14 @@ a {
     gap: .5rem;
 }
 .ds-browse-preview-images {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 4px;
     padding: 0 14px 12px;
-    overflow-x: auto;
-    scrollbar-width: thin;
-}
-.ds-browse-preview-images::-webkit-scrollbar {
-    height: 4px;
-}
-.ds-browse-preview-images::-webkit-scrollbar-thumb {
-    background: var(--ds-border);
-    border-radius: 4px;
 }
 .ds-browse-preview-img {
-    flex-shrink: 0;
-    width: 100px;
-    height: 60px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
     border-radius: 4px;
     object-fit: cover;
     background: var(--ds-gray-200);

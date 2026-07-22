@@ -354,7 +354,7 @@
         <script th:inline="javascript">
             window.__customerId = [[${customer.id}]];
         </script>
-        <script src="/js/admin-customer.js"></script>
+        <script th:src="@{/js/admin-customer.js(v=1)}"></script>
     </th:block>
 </body>
 </html>

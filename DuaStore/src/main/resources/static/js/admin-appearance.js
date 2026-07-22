@@ -1,4 +1,6 @@
 'use strict';
+
+/* ── Widget toggle visibility ── */
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[name="widget_messenger"]').forEach(function (cb) {
         document.getElementById('messengerConfig').style.display = cb.checked ? 'block' : 'none';
@@ -20,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+/* ── Color picker sync ── */
 document.querySelectorAll('input[type="color"]').forEach(function (colorInput) {
     colorInput.addEventListener('input', function () {
         var textInput = this.parentElement.querySelector('input[type="text"]');
@@ -35,6 +38,7 @@ document.querySelectorAll('input[name$="_text"]').forEach(function (textInput) {
     });
 });
 
+/* ── Menu sorting ── */
 var menuSortable = new Sortable(document.querySelector('.menu-sortable'), {
     handle: '.bi-grip-vertical',
     animation: 150,
@@ -73,6 +77,7 @@ function addMenuItem() {
     menuSortable.sort(tbody.children);
 }
 
+/* ── Footer columns ── */
 var footerColCount = 3;
 function addFooterColumn() {
     footerColCount++;
@@ -91,6 +96,7 @@ function addFooterColumn() {
     container.appendChild(div);
 }
 
+/* ── Homepage designer ── */
 var hpCounter = 7;
 
 var sectionTypes = [
@@ -285,3 +291,5 @@ function renumberHomepageSections() {
         });
     });
 }
+
+

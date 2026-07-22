@@ -52,7 +52,7 @@
         </div>
 
         <th:block layout:fragment="extra-script">
-            <script src="/js/client-track-verify.js"></script>
+            <script th:src="@{/js/client-track-verify.js(v=1)}"></script>
         </th:block>
     </body>
 </html>

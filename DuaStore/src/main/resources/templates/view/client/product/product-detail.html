@@ -440,7 +440,7 @@
         </div>
 
     <th:block layout:fragment="extra-script">
-        <script src="/js/client-product-detail.js"></script>
+        <script th:src="@{/js/client-product-detail.js(v=1)}"></script>
 
     <script th:inline="javascript">
             let selectedVariantId = null;

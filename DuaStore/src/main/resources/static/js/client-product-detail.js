@@ -15,40 +15,6 @@ document.querySelectorAll('.star-rating-readonly[data-score]').forEach(function 
     el.textContent = html;
 });
 
-if (document.getElementById('starRatingInput')) {
-    document.querySelectorAll('#starRatingInput .star').forEach(function (star) {
-        star.addEventListener('click', function () {
-            var val = parseInt(this.dataset.value);
-            document.getElementById('danhGiaInput').value = val;
-            document.getElementById('starError').style.display = 'none';
-            document.querySelectorAll('#starRatingInput .star').forEach(function (s) {
-                s.textContent = parseInt(s.dataset.value) <= val ? '★' : '☆';
-                s.style.color = parseInt(s.dataset.value) <= val ? '#f59e0b' : '#d1d5db';
-            });
-        });
-        star.addEventListener('mouseenter', function () {
-            var val = parseInt(this.dataset.value);
-            document.querySelectorAll('#starRatingInput .star').forEach(function (s) {
-                s.textContent = parseInt(s.dataset.value) <= val ? '★' : '☆';
-                s.style.color = parseInt(s.dataset.value) <= val ? '#f59e0b' : '#d1d5db';
-            });
-        });
-        star.addEventListener('mouseleave', function () {
-            var selected = parseInt(document.getElementById('danhGiaInput').value);
-            document.querySelectorAll('#starRatingInput .star').forEach(function (s) {
-                s.textContent = parseInt(s.dataset.value) <= selected ? '★' : '☆';
-                s.style.color = parseInt(s.dataset.value) <= selected ? '#f59e0b' : '#d1d5db';
-            });
-        });
-    });
-    document.querySelector('form[action*="danh-gia"]')?.addEventListener('submit', function (e) {
-        if (!document.getElementById('danhGiaInput').value) {
-            e.preventDefault();
-            document.getElementById('starError').style.display = 'block';
-        }
-    });
-}
-
 var reviewImageGroup = [];
 var reviewImageIndex = 0;
 

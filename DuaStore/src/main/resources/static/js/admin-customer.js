@@ -20,12 +20,13 @@ function addTag() {
         if (empty) empty.remove();
         list.appendChild(span);
         input.value = '';
-    });
+    }).catch(function(err) { console.error(err); });
 }
 function removeTag(tagId) {
     if (!confirm('Xóa thẻ này?')) return;
     fetch('/admin/khach-hang/' + customerId + '/api/tags/' + tagId, { method: 'DELETE' })
-        .then(function(r) { return r.json(); }).then(function() { location.reload(); });
+        .then(function(r) { return r.json(); }).then(function() { location.reload(); })
+        .catch(function(err) { console.error(err); });
 }
 function addNote() {
     var input = document.getElementById('newNoteInput');
@@ -46,10 +47,11 @@ function addNote() {
         if (empty) empty.remove();
         list.prepend(div);
         input.value = '';
-    });
+    }).catch(function(err) { console.error(err); });
 }
 function deleteNote(noteId) {
     if (!confirm('Xóa ghi chú này?')) return;
     fetch('/admin/khach-hang/' + customerId + '/api/notes/' + noteId, { method: 'DELETE' })
-        .then(function(r) { return r.json(); }).then(function() { location.reload(); });
+        .then(function(r) { return r.json(); }).then(function() { location.reload(); })
+        .catch(function(err) { console.error(err); });
 }
