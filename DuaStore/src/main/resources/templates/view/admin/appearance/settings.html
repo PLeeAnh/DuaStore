@@ -14,7 +14,7 @@
     <div layout:fragment="content">
         <div class="adm-detail-hero">
             <div class="d-flex align-items-start gap-3">
-                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <div class="adm-icon-48">
                     <i class="bi bi-palette"></i>
                 </div>
                 <div class="flex-grow-1">
@@ -262,7 +262,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">Cột 1</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="if(!confirm('Bạn có chắc chắn muốn xóa cột này?')) return;this.closest('.footer-col').remove()">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFooterColumn(this)">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -274,7 +274,7 @@
                                         <div class="col-md-8">
                                             <textarea name="footer_col_1_content" class="form-control form-control-sm" rows="3"
                                                       placeholder="Nội dung" th:text="${settings.get('footer_col_1_content')}">Giới thiệu về cửa hàng
-Liên hệ | lien-he</textarea>
+ Liên hệ | lien-he</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -283,7 +283,7 @@ Liên hệ | lien-he</textarea>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">Cột 2</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="if(!confirm('Bạn có chắc chắn muốn xóa cột này?')) return;this.closest('.footer-col').remove()">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFooterColumn(this)">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -295,8 +295,8 @@ Liên hệ | lien-he</textarea>
                                         <div class="col-md-8">
                                             <textarea name="footer_col_2_content" class="form-control form-control-sm" rows="3"
                                                       placeholder="Nội dung" th:text="${settings.get('footer_col_2_content')}">Chính sách đổi trả
-Chính sách bảo mật
-Chính sách vận chuyển</textarea>
+ Chính sách bảo mật
+ Chính sách vận chuyển</textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -305,7 +305,7 @@ Chính sách vận chuyển</textarea>
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h6 class="mb-0">Cột 3</h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="if(!confirm('Bạn có chắc chắn muốn xóa cột này?')) return;this.closest('.footer-col').remove()">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFooterColumn(this)">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
@@ -390,6 +390,14 @@ Email: ...</textarea>
                                 <div class="mt-2" id="callConfig" style="display:none">
 <input type="tel" name="widget_call_phone" class="form-control form-control-sm mt-1"
                                             placeholder="Số điện thoại" th:value="${settings.get('widget_call_phone')}" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="widget_chatbot" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="widget_chatbot" value="1"
+                                           id="widgetChatbot" th:checked="${settings.get('widget_chatbot') == '1' or settings.get('widget_chatbot') == null}" />
+                                    <label class="form-check-label" for="widgetChatbot">Chat FAQ</label>
                                 </div>
                             </div>
                             <div class="col-md-4">

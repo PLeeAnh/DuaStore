@@ -95,6 +95,10 @@ function addFooterColumn() {
             '</div></div></div>';
     container.appendChild(div);
 }
+function deleteFooterColumn(btn) {
+    if (!confirm('Bạn có chắc chắn muốn xóa cột này?')) return;
+    btn.closest('.footer-col').remove();
+}
 
 /* ── Homepage designer ── */
 var hpCounter = 7;

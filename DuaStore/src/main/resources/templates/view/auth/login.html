@@ -56,7 +56,7 @@
                     <div class="ds-auth-divider">HOẶC</div>
 
                     <a href="#"
-                       onclick="event.preventDefault(); var w=window.open('/oauth2/authorization/google','google-login','width=600,height=700'); if(w) { var t=setInterval(function(){ if(w.closed) { clearInterval(t); window.location.reload(); } },500); }"
+                       onclick="event.preventDefault();openGoogleAuth()"
                        class="ds-auth-page-google">
                         <i class="bi bi-google"></i> Đăng nhập bằng Google
                     </a>
