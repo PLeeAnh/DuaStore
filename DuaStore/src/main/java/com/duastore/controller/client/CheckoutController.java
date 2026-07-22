@@ -511,12 +511,22 @@ public class CheckoutController {
     }
 
     @PostMapping("/chuyen-khoan/{id}/xac-nhan")
-    public String xacNhanChuyenKhoan(@PathVariable Integer id) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> xacNhanChuyenKhoan(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
         Integer userId = getUserId();
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);
             if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
-                return "redirect:/checkout/thanh-cong/" + id;
+                res.put("success", false);
+                res.put("message", "Đơn hàng không phải chuyển khoản");
+                return ResponseEntity.ok(res);
+            }
+            if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                res.put("success", true);
+                res.put("alreadyPaid", true);
+                res.put("redirectUrl", "/checkout/thanh-cong/" + id);
+                return ResponseEntity.ok(res);
             }
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
             orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
@@ -561,10 +571,32 @@ public class CheckoutController {
             emailThread.setDaemon(true);
             emailThread.start();
 
-            return "redirect:/checkout/thanh-cong/" + id;
+            res.put("success", true);
+            res.put("redirectUrl", "/checkout/thanh-cong/" + id);
+            return ResponseEntity.ok(res);
         } catch (RuntimeException e) {
-            return "redirect:/";
+            res.put("success", false);
+            res.put("message", e.getMessage());
+            return ResponseEntity.ok(res);
         }
+    }
+
+    @GetMapping("/api/check-payment-status/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkPaymentStatus(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        Integer userId = getUserId();
+        try {
+            Order order = orderService.getOrderByUserAndId(userId, id);
+            boolean isPaid = "DA_THANH_TOAN".equals(order.getTrangThaiTT());
+            res.put("paid", isPaid);
+            if (isPaid) {
+                res.put("redirectUrl", "/checkout/thanh-cong/" + id);
+            }
+        } catch (RuntimeException e) {
+            res.put("paid", false);
+        }
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/vnpay/return")
