@@ -488,15 +488,15 @@ function markNotifRead(id) {
 	container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
 	}
 	}
-	fetch('/api/thong-bao/doc/' + id, { method: 'POST', keepalive: true })
+	DuaStore.api.post('/api/thong-bao/doc/' + id)
 	.then(function() { pollNotifications(); })
 	.catch(function() { pollNotifications(); });
 }
 function deleteNotif(id) {
         if (!confirm('Xóa thông báo này?')) return;
-        fetch('/api/thong-bao/xoa/' + id, { method: 'POST' })
-        .then(function(r) { return r.text(); })
-        .then(function() {
+        DuaStore.api.post('/api/thong-bao/xoa/' + id)
+        .then(function(r) {
+        if (!r.ok) return;
         var item = document.querySelector('[data-notif-id="' + id + '"]');
         if (item) item.remove();
         var container = document.querySelector('#notif-popup .mt-2');

@@ -770,34 +770,22 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         btn.textContent = 'Đang xử lý...';
         var form = document.getElementById('checkoutForm');
-        var formData = new FormData(form);
-        fetch('/checkout/api/create', {method: 'POST', body: new URLSearchParams(formData)})
-                .then(function (r) {
-                    if (r.status === 401 || r.status === 403) {
-                        if (typeof showLoginPopup === 'function')
-                            showLoginPopup();
-                        return null;
-                    }
-                    return r.json();
-                })
-                .then(function (data) {
-                    if (!data) {
+        var formData = new URLSearchParams(new FormData(form));
+        DuaStore.api.postForm('/checkout/api/create', formData)
+                .then(function (result) {
+                    if (!result.ok || !result.data) {
+                        DuaStore.toast.error(result.message || 'Đặt hàng thất bại');
                         btn.disabled = false;
                         btn.textContent = 'Đã thanh toán';
                         return;
                     }
-                    if (data.success) {
-                        window.location.href = '/checkout/thanh-cong/' + data.orderId;
+                    if (result.data.success) {
+                        window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
                     } else {
-                        DuaStore.toast.error(data.message || 'Đặt hàng thất bại');
+                        DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
                         btn.disabled = false;
                         btn.textContent = 'Đã thanh toán';
                     }
-                })
-                .catch(function () {
-                    DuaStore.toast.error('Lỗi kết nối');
-                    btn.disabled = false;
-                    btn.textContent = 'Đã thanh toán';
                 });
     });
 
@@ -838,41 +826,25 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
 
             var form = document.getElementById('checkoutForm');
-            var formData = new FormData(form);
+            var formData = new URLSearchParams(new FormData(form));
 
-            fetch('/checkout/api/create', {
-                method: 'POST',
-                body: new URLSearchParams(formData)
-            })
-                    .then(function (r) {
-                        if (r.status === 401 || r.status === 403) {
-                            if (typeof showLoginPopup === 'function')
-                                showLoginPopup();
-                            return null;
-                        }
-                        return r.json();
-                    })
-                    .then(function (data) {
-                        if (!data) {
+            DuaStore.api.postForm('/checkout/api/create', formData)
+                    .then(function (result) {
+                        if (!result.ok || !result.data) {
+                            DuaStore.toast.error(result.message || 'Đặt hàng thất bại');
                             btn._submitted = false;
                             btn.disabled = false;
                             btn.innerHTML = 'Đặt hàng';
                             return;
                         }
-                        if (data.success) {
-                            window.location.href = '/checkout/thanh-cong/' + data.orderId;
+                        if (result.data.success) {
+                            window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
                         } else {
-                            DuaStore.toast.error(data.message || 'Đặt hàng thất bại');
+                            DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
                             btn._submitted = false;
                             btn.disabled = false;
                             btn.innerHTML = 'Đặt hàng';
                         }
-                    })
-                    .catch(function () {
-                        DuaStore.toast.error('Đặt hàng thất bại, vui lòng thử lại');
-                        btn._submitted = false;
-                        btn.disabled = false;
-                        btn.innerHTML = 'Đặt hàng';
                     });
         }
     });

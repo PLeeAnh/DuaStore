@@ -3,6 +3,12 @@
  ===================================================== */
 'use strict';
 
+function csrfHeaders() {
+    var t = document.querySelector('meta[name="_csrf"]')?.content || '';
+    var h = document.querySelector('meta[name="_csrf_header"]')?.content || '';
+    return h ? {[h]: t} : {};
+}
+
 /* ═══ UPDATE CART BADGE ═══ */
 function updateCartBadge(count, forceVisible) {
     var badge = document.getElementById('cartBadge');
@@ -76,7 +82,7 @@ function addToCart(productId, variantId, quantity) {
     var card = document.querySelector('.ds-product-card[data-productid="' + productId + '"]');
     var btnAdd = card ? card.querySelector('.ds-card-add-cart') : null;
     fetch('/api/cart/add-popup', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
+        method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({productId: productId, variantId: variantId, quantity: quantity})
     }).then(function (r) {
         if (r.status === 401 || r.status === 403) {
@@ -114,7 +120,7 @@ function addToCartFromWishlist(productId, variantId) {
     }
 
     fetch('/api/cart/add-popup', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
+        method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({productId: productId, variantId: variantId || null, quantity: 1})
     }).then(function (r) {
         if (r.status === 401 || r.status === 403) {
@@ -225,7 +231,7 @@ function addToCartFromCard(btn) {
     var variantId = activeChip ? parseInt(activeChip.getAttribute('data-variantid')) : null;
     fetch('/api/cart/add-popup', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({productId: parseInt(productId), variantId: variantId, quantity: qty})
     }).then(function (r) {
         if (r.status === 401 || r.status === 403) {
@@ -283,7 +289,7 @@ function removeCartItem(cartItemId) {
             chk.remove();
     }
     fetch('/api/cart/remove-item', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
+        method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({variantId: cartItemId})
     }).then(function (r) {
         if (r.status === 401 || r.status === 403) {
@@ -353,7 +359,7 @@ function updatePopupQty(variantId, delta) {
     }
 
     fetch('/api/cart/update', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
+        method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({variantId: variantId, soLuong: next})
     }).then(function (r) {
         if (r.status === 401 || r.status === 403) {
@@ -386,13 +392,12 @@ function updatePopupQty(variantId, delta) {
             }
         }
     }).catch(function (err) {
-        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Lỗi kết nối hệ thống. Vui lòng thử lại!'); }
+        console.error('Lỗi cập nhật giỏ hàng:', err);
         qtyInput.value = cur;
         if (priceSpan) {
             var unit = parseInt(priceSpan.getAttribute('data-price')) || 0;
             priceSpan.innerText = (unit * cur).toLocaleString('vi-VN') + '₫';
         }
-        console.error('Lỗi cập nhật SL:', err);
     });
 }
 
@@ -411,8 +416,8 @@ function setPopupQty(variantId) {
         priceSpan.innerText = (unit * val).toLocaleString('vi-VN') + '₫';
     }
     fetch('/api/cart/update', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({variantId: variantId, quantity: val})
+        method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
+        body: JSON.stringify({variantId: variantId, soLuong: val})
     }).then(function (r) {
         if (r.status === 401 || r.status === 403) {
             if (typeof showLoginPopup === 'function')
