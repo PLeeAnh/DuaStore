@@ -471,7 +471,7 @@ function deleteNotif(id) {
         fetch('/api/thong-bao/xoa/' + id, { method: 'POST' })
         .then(function(r) { return r.text(); })
         .then(function() {
-        var item = document.querySelector('[data-notif-id="' + id + '"]');
+        var item = document.querySelector('#notif-popup [data-notif-id="' + id + '"]');
         if (item) item.remove();
         var container = document.querySelector('#notif-popup .mt-2');
         if (container && container.querySelectorAll('.notif-item').length === 0) {
