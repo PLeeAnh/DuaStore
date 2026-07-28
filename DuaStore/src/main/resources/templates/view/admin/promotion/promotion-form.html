@@ -185,6 +185,7 @@
                 maxItems: null,
                 onChange: function (values) {
                     targetIdsInput.value = values.join(',');
+                    targetIdsInput.dispatchEvent(new Event('input', {bubbles: true}));
                 }
             });
             function populateTargetOptions() {

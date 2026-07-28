@@ -206,8 +206,18 @@ document.addEventListener('DOMContentLoaded', function() {
         var viewedWish = getViewedCount('ds_viewedWishCount');
         setPopupBadge('wishlistBadge', wishCount, wishCount > 0 && wishCount !== viewedWish);
 
-        var notifCount = getBadgeCount('notifBadge');
-        setPopupBadge('notifBadge', notifCount, notifCount > 0);
+	var notifCount = getBadgeCount('notifBadge');
+	// Check sessionStorage for badge count from previous page (set by markNotifRead before navigation)
+	try {
+		var stored = sessionStorage.getItem('notifBadgeCount');
+		if (stored !== null) {
+			var parsed = parseInt(stored, 10);
+			if (!isNaN(parsed)) { notifCount = parsed; }
+			sessionStorage.removeItem('notifBadgeCount');
+		}
+	} catch (e) {}
+	setPopupBadge('notifBadge', notifCount, notifCount > 0);
+	pollNotifications();
 });
 
 /* ── HÀM BẬT/TẮT POPUP ── */
@@ -388,6 +398,11 @@ function toggleNotifPopup() {
         togglePopup('notif-popup');
         var popup = document.getElementById('notif-popup');
         if (popup && popup.style.display === 'block') {
+        if (!isLoggedIn()) {
+                var container = popup.querySelector('.mt-2');
+                if (container) container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Vui lòng đăng nhập</p></div>';
+                return;
+        }
         fetchNotifPopupContent(popup);
         }
 }
@@ -396,7 +411,7 @@ function fetchNotifPopupContent(popup) {
         if (!container) return;
         container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
         fetch('/api/thong-bao')
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
         .then(data => {
         var allNotifs = data.notifications || [];
                 var unreadNotifs = allNotifs.filter(function(n) { return !n.read; });
@@ -453,19 +468,29 @@ function truncate(text, max) {
         return text.length > max ? text.substring(0, max) + '...' : text;
 }
 function markNotifRead(id) {
-        // Remove from popup DOM immediately
-        var item = document.querySelector('#notif-popup [data-notif-id="' + id + '"]');
-        if (item) {
-        item.remove();
-                var container = document.querySelector('#notif-popup .mt-2');
-                if (container && container.querySelectorAll('.notif-item').length === 0) {
-        container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
-        }
-        }
-        pollNotifications();
-        // keepalive ensures request completes even during page navigation
-        fetch('/api/thong-bao/doc/' + id, { method: 'POST', keepalive: true })
-        .catch(function() {});
+	var badge = document.getElementById('notifBadge');
+	if (badge) {
+		var count = parseInt(badge.textContent, 10) || 0;
+		count = Math.max(0, count - 1);
+		badge.textContent = count > 99 ? '99+' : String(count);
+		if (count <= 0) {
+			badge.classList.add('d-none');
+		} else {
+			badge.classList.remove('d-none');
+		}
+		try { sessionStorage.setItem('notifBadgeCount', String(count)); } catch (e) {}
+	}
+	var item = document.querySelector('#notif-popup [data-notif-id="' + id + '"]');
+	if (item) {
+	item.remove();
+		var container = document.querySelector('#notif-popup .mt-2');
+		if (container && container.querySelectorAll('.notif-item').length === 0) {
+	container.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-bell-slash" style="font-size:2rem;"></i><p class="mt-2 mb-0">Chưa có thông báo</p></div>';
+	}
+	}
+	fetch('/api/thong-bao/doc/' + id, { method: 'POST', keepalive: true })
+	.then(function() { pollNotifications(); })
+	.catch(function() { pollNotifications(); });
 }
 function deleteNotif(id) {
         if (!confirm('Xóa thông báo này?')) return;
@@ -490,22 +515,32 @@ function getNotifIcon(linkType) {
         return '<span class="notif-icon bg-primary-subtle text-primary flex-shrink-0"><i class="bi bi-megaphone"></i></span>';
 }
 
+function isLoggedIn() {
+    var profileBtn = document.getElementById('btn-profile-toggle');
+    return profileBtn && profileBtn.dataset.profile === 'true';
+}
+
 function pollNotifications() {
-        fetch('/api/thong-bao')
-        .then(r => r.json())
-        .then(data => {
-        var badge = document.getElementById('notifBadge');
-                if (badge) {
-        var count = data.count || 0;
+    if (!isLoggedIn()) return;
+    fetch('/api/thong-bao')
+        .then(function (r) {
+            if (!r.ok) return null;
+            return r.json();
+        })
+        .then(function (data) {
+            if (!data) return;
+            var badge = document.getElementById('notifBadge');
+            if (badge) {
+                var count = data.count || 0;
                 badge.textContent = count > 99 ? '99+' : String(count);
                 if (count > 0) {
-        badge.classList.remove('d-none');
+                    badge.classList.remove('d-none');
                 } else {
-        badge.classList.add('d-none');
+                    badge.classList.add('d-none');
                 }
-        }
+            }
         })
-        .catch(function() {});
+        .catch(function () {});
 }
 
 setInterval(pollNotifications, 15000);
@@ -518,66 +553,6 @@ document.addEventListener('hidden.bs.modal', function() {
         document.body.style.removeProperty('padding-right');
     }
 });
-
-/* ── Dirty Save Bar ── */
-function initDirtyBar() {
-        var bar = document.getElementById('dsSaveBar');
-        if (!bar) return;
-        var forms = document.querySelectorAll('form[data-dirty-bar]');
-        if (!forms.length) { bar.style.display = 'none'; return; }
-        var activeForm = null;
-        var resetBtn = document.getElementById('dsSaveBarReset');
-        var saveBtn = document.getElementById('dsSaveBarSave');
-        function getFormData(f) { return new FormData(f); }
-
-function checkDirty(f) {
-if (!f._cleanData) { f._cleanData = getFormData(f); f._dirty = false; return; }
-var current = getFormData(f);
-        var dirty = false;
-        var keys = new Set();
-        for (var pair of f._cleanData.entries()) keys.add(pair[0]);
-        for (var pair of current.entries()) keys.add(pair[0]);
-        keys.forEach(function(k) {
-        var v1 = f._cleanData.getAll(k).sort().join(',');
-                var v2 = current.getAll(k).sort().join(',');
-                if (v1 !== v2) dirty = true;
-                });
-        if (dirty !== f._dirty) { f._dirty = dirty; updateBar(dirty, f); }
-}
-
-function updateBar(dirty, f) {
-activeForm = f;
-if (dirty) {
-        bar.style.display = 'flex';
-        requestAnimationFrame(function() { bar.classList.add('show'); });
-        }
-}
-
-function resetDirty(f) {
-f.reset();
-        setTimeout(function() {
-        f._cleanData = getFormData(f);
-                f._dirty = false;
-                updateBar(false, f);
-                }, 50);
-        }
-
-forms.forEach(function(f) {
-f._cleanData = getFormData(f);
-        f._dirty = false;
-        f.addEventListener('input', function() { checkDirty(f); });
-        f.addEventListener('change', function() { checkDirty(f); });
-        });
-        if (forms.length === 1) activeForm = forms[0];
-        if (resetBtn) resetBtn.addEventListener('click', function() {
-var f = activeForm || document.querySelector('form[data-dirty-bar]'); if (f) resetDirty(f);
-        });
-        if (saveBtn) saveBtn.addEventListener('click', function() {
-var f = activeForm || document.querySelector('form[data-dirty-bar]'); if (f) { bar.style.display = 'none'; f.requestSubmit(); }
-        });
-}
-
-initDirtyBar();
 
 /* ── Edit profile tabs ── */
 function switchEpTab(tab, el) {
@@ -899,16 +874,4 @@ function deactivateAccount() {
         else { DuaStore.toast.error(data.message || 'Không thể vô hiệu hóa'); }
         });
 }
-// ── Toast notification ──
-function showToast(msg) {
-        var t = document.getElementById('dsToast');
-        if (!t) return;
-        t.textContent = msg;
-        t.style.opacity = '1';
-        t.style.pointerEvents = 'auto';
-        clearTimeout(t._hide);
-        t._hide = setTimeout(function() {
-        t.style.opacity = '0';
-                t.style.pointerEvents = 'none';
-        }, 3000);
-}
+

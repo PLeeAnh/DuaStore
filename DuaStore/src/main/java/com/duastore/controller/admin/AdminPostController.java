@@ -6,6 +6,7 @@ import com.duastore.model.User;
 import com.duastore.repository.PostCategoryRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.config.security.SecurityUtil;
+import com.duastore.service.FileUploadService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminPostService;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
@@ -30,25 +32,39 @@ public class AdminPostController {
     private final SecurityUtil securityUtil;
     private final PostCategoryRepository postCategoryRepository;
     private final NotificationHelper notificationHelper;
+    private final FileUploadService fileUploadService;
 
     public AdminPostController(AdminPostService adminPostService,
             UserRepository userRepository,
             SecurityUtil securityUtil,
             PostCategoryRepository postCategoryRepository,
-            NotificationHelper notificationHelper) {
+            NotificationHelper notificationHelper,
+            FileUploadService fileUploadService) {
         this.adminPostService = adminPostService;
         this.userRepository = userRepository;
         this.securityUtil = securityUtil;
         this.postCategoryRepository = postCategoryRepository;
         this.notificationHelper = notificationHelper;
+        this.fileUploadService = fileUploadService;
     }
 
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_READ)")
     public String list(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) Integer danhMucId,
             Model model) {
-        Page<Post> postPage = adminPostService.getAllPosts(page, size);
+        boolean hasKeyword = keyword != null && !keyword.isEmpty();
+        boolean hasTrangThai = trangThai != null && !trangThai.isEmpty();
+
+        Page<Post> postPage;
+        if (hasKeyword || hasTrangThai || danhMucId != null) {
+            postPage = adminPostService.searchPosts(keyword, trangThai, danhMucId, page, size);
+        } else {
+            postPage = adminPostService.getAllPosts(page, size);
+        }
 
         Map<Integer, String> tacGiaMap = new HashMap<>();
         Set<Integer> tacGiaIds = postPage.getContent().stream()
@@ -57,6 +73,11 @@ public class AdminPostController {
             userRepository.findAllById(tacGiaIds)
                     .forEach(u -> tacGiaMap.put(u.getId(), u.getHoTen()));
         }
+
+        Map<String, Object> filterParams = new LinkedHashMap<>();
+        if (hasKeyword) filterParams.put("keyword", keyword);
+        if (hasTrangThai) filterParams.put("trangThai", trangThai);
+        if (danhMucId != null) filterParams.put("danhMucId", danhMucId);
 
         model.addAttribute("title", "bai-viet");
         model.addAttribute("posts", postPage.getContent());
@@ -67,7 +88,7 @@ public class AdminPostController {
         model.addAttribute("pageSize", size);
         model.addAttribute("entityLabel", "bài viết");
         model.addAttribute("url", "/admin/bai-viet");
-        model.addAttribute("filterParams", Collections.emptyMap());
+        model.addAttribute("filterParams", filterParams);
         return "view/admin/post/post-list";
     }
 
@@ -207,6 +228,21 @@ public class AdminPostController {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/bai-viet";
+    }
+
+    @PostMapping("/upload-hinh")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).POST_UPDATE)")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> uploadImage(@RequestParam("file") MultipartFile file) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            String url = fileUploadService.save(file);
+            res.put("location", url);
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            res.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(res);
+        }
     }
 
     @PostMapping("/batch-cap-nhat")

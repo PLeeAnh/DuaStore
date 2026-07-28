@@ -18,6 +18,8 @@ public class CheckoutRequestDTO {
 
     private String phuongThucGiaoHang = "SHIP";
 
+    private String shippingCarrier = "GHN";
+
     private String maCode;
 
     private String ghiChu;

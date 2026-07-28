@@ -2,6 +2,7 @@ package com.duastore.service.admin;
 
 import com.duastore.model.PostCategory;
 import com.duastore.repository.PostCategoryRepository;
+import com.duastore.service.admin.AdminPostService;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,9 @@ public class AdminPostCategoryService {
         }
         if (category.getThuTu() == null) {
             category.setThuTu(0);
+        }
+        if (category.getSlug() == null || category.getSlug().isBlank()) {
+            category.setSlug(AdminPostService.toSlug(category.getTenDanhMuc()));
         }
         postCategoryRepository.save(category);
     }

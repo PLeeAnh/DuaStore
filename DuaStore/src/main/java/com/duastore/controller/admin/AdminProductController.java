@@ -309,6 +309,8 @@ public class AdminProductController {
         model.addAttribute("galleryImages", productImageRepository
                 .findByProductIdAndIsActiveTrueOrderBySortOrderAscCreatedAtAsc(id));
         model.addAttribute("categoryName", productService.getCategoryName(p.getDanhMucId()));
+        model.addAttribute("ngayTao", p.getNgayTao());
+        model.addAttribute("ngayCapNhat", p.getNgayCapNhat());
         addComboLists(model);
         return "view/admin/product/product-form";
     }

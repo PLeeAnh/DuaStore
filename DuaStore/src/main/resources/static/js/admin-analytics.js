@@ -1,5 +1,5 @@
 'use strict';
-document.addEventListener('DOMContentLoaded', function () {
+(function () {
     var colors = {
         primary: 'rgba(255, 107, 0, 1)',
         primaryBg: 'rgba(255, 107, 0, 0.15)',
@@ -69,4 +69,4 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
-});
+})();

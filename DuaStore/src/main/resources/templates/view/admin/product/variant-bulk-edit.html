@@ -23,7 +23,7 @@
                             <div class="adm-detail-meta">
                                 Sản phẩm: <strong th:text="${productName}">Tên SP</strong>
                                 <span class="mx-2">|</span>
-                                <span th:text="${#lists.size(variants)}">0</span> biến thể
+                                <span th:text="${totalElements}">0</span> biến thể
                             </div>
                         </div>
                         <div class="adm-detail-actions">
@@ -40,7 +40,7 @@
         </div>
         <div class="adm-card">
             <div class="adm-card-body p-0">
-                <form id="bulkEditForm" onsubmit="return submitBulkEdit(event)">
+                <form id="bulkEditForm" method="post" onsubmit="return submitBulkEdit(event)">
                 <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead>
@@ -55,7 +55,7 @@
                     </thead>
                     <tbody>
                         <tr th:each="v, stat : ${variants}">
-                            <td class="text-center text-muted" th:text="${stat.index + 1}">1</td>
+                            <td class="text-center text-muted" th:text="${page * pageSize + stat.index + 1}">1</td>
                             <td>
                                 <span class="fw-semibold" th:text="${v.tenBienThe}">Tên biến thể</span>
                                 <div class="small text-muted">SKU: #<span th:text="${v.id}">1</span></div>
@@ -93,11 +93,23 @@
                 </form>
             </div>
         </div>
-        <div class="mt-3 text-end" th:unless="${#lists.isEmpty(variants)}">
-            <button type="submit" form="bulkEditForm" class="btn btn-primary">
-                <i class="bi bi-floppy me-1"></i>Lưu tất cả
-            </button>
-            <a href="javascript:history.back()" class="btn btn-outline-secondary">Hủy</a>
+        <div class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;" th:unless="${#lists.isEmpty(variants)}">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <small class="text-muted fw-medium" style="font-size:.85rem;">
+                    Hiển thị <strong th:text="${page * pageSize + 1}">1</strong>-<strong th:text="${page * pageSize + #lists.size(variants)}">7</strong> trong tổng số <strong th:text="${totalElements}">7</strong> <span>biến thể</span>
+                </small>
+            </div>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2" data-pagination="true">
+                <form th:action="@{/admin/bien-the/bulk-edit/{id}(id=${productId})}" method="get" class="d-inline">
+                    <input type="hidden" name="page" th:value="${page}">
+                    <select name="size" style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
+                        <option value="5" th:selected="${param.size != null and param.size[0] == '5'}">Hiển thị 5</option>
+                        <option value="10" th:selected="${param.size != null and param.size[0] == '10'}">Hiển thị 10</option>
+                        <option value="20" th:selected="${param.size == null or param.size[0] == '20'}">Hiển thị 20</option>
+                        <option value="50" th:selected="${param.size != null and param.size[0] == '50'}">Hiển thị 50</option>
+                    </select>
+                </form>
+            </div>
         </div>
     </div>
     <th:block layout:fragment="extra-script">
@@ -133,14 +145,17 @@
         .then(function(r) { return r.json(); })
         .then(function(result) {
             if (result.success) {
-                var toastContainer = document.getElementById('toastContainer');
-                if (toastContainer) {
-                    var el = document.createElement('div');
-                    el.className = 'toast align-items-center text-bg-success border-0 show';
-                    el.setAttribute('role', 'alert');
-                    el.innerHTML = '<div class="d-flex"><div class="toast-body"><i class="bi bi-check-circle me-1"></i>Lưu thành công!</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
-                    toastContainer.appendChild(el);
-                    setTimeout(function() { el.remove(); }, 3000);
+                if (window.dsToast) { dsToast('success', 'Lưu thành công!'); }
+                else {
+                    var tc = document.getElementById('toastContainer');
+                    if (tc) {
+                        var el = document.createElement('div');
+                        el.className = 'ds-toast ds-toast-success';
+                        el.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>Lưu thành công!</span><button class="ds-toast-close">&times;</button>';
+                        tc.appendChild(el);
+                        el.querySelector('.ds-toast-close').addEventListener('click', function () { el.remove(); });
+                        setTimeout(function () { if (el.parentNode) { el.style.animation = 'ds-toast-fade-out .3s ease forwards'; setTimeout(function () { el.remove(); }, 300); } }, 3000);
+                    }
                 }
             } else {
                 alert('Có lỗi xảy ra khi lưu.');

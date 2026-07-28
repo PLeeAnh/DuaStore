@@ -20,10 +20,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.bootstrap5.min.css"/>
     <link rel="stylesheet" th:href="@{/css/admin.css}"/>
     <link rel="stylesheet" th:href="@{/css/admin-v2.css}"/>
     <link rel="stylesheet" th:href="@{/css/admin-base.css}"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.bootstrap5.min.css"/>
 
     <th:block layout:fragment="extra-head">
         <style>
@@ -131,6 +131,12 @@
                    th:classappend="${title == 'bai-viet' ? ' active' : ''}">
                     <i class="bi bi-newspaper"></i>
                     <span>Bài viết</span>
+                </a>
+                <a class="adm-nav-link" th:href="@{/admin/danh-muc-bai-viet}"
+                   th:if="${userPermissions.contains('POST_CATEGORY_READ')}"
+                   th:classappend="${title == 'danh-muc-bai-viet' ? ' active' : ''}">
+                    <i class="bi bi-folder"></i>
+                    <span>Danh mục bài viết</span>
                 </a>
                 <a class="adm-nav-link" th:href="@{/admin/thong-bao}"
                    th:if="${userPermissions.contains('NOTIFICATION_READ')}"
@@ -355,6 +361,15 @@
             </th:block>
         </main>
 
+        <!-- Save Bar -->
+        <div id="dsSaveBar" class="ds-save-bar" style="display: none;">
+            <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>
+            <div class="ds-save-bar-actions">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="dsSaveBarReset">Đặt lại</button>
+                <button type="button" class="btn btn-primary btn-sm" id="dsSaveBarSave"><i class="bi bi-floppy me-1"></i>Lưu</button>
+            </div>
+        </div>
+
         <footer class="adm-footer">
             DuaStore Admin &copy; 2026 &mdash; FPT Polytechnic Hải Phòng
         </footer>
@@ -435,16 +450,7 @@
     </div>
 </div>
 
-<div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index:9999"></div>
-
-<!-- Save Bar -->
-<div id="dsSaveBar" class="ds-save-bar show" style="display: flex;">
-    <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>
-    <div class="ds-save-bar-actions">
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="dsSaveBarReset">Đặt lại</button>
-        <button type="button" class="btn btn-primary btn-sm" id="dsSaveBarSave"><i class="bi bi-floppy me-1"></i>Lưu</button>
-    </div>
-</div>
+<div class="ds-toast-container" id="toastContainer"></div>
 
 <!-- Confirm Modal (reusable) -->
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
@@ -460,6 +466,24 @@
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Huỷ</button>
                 <button type="button" class="btn btn-danger btn-sm" id="confirmModalConfirm">Xoá</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="unsavedModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h6 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Thay đổi chưa lưu</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0 small">Bạn có thay đổi chưa được lưu. Bạn có muốn rời khỏi trang?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Ở lại</button>
+                <button type="button" class="btn btn-primary btn-sm" id="unsavedModalConfirm">Rời khỏi</button>
             </div>
         </div>
     </div>

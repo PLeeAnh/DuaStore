@@ -30,6 +30,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     List<ProductVariant> findByProductIdAndIsActiveTrue(Integer productId);
 
+    Page<ProductVariant> findByProductIdAndIsActiveTrue(Integer productId, Pageable pageable);
+
     List<ProductVariant> findByProductId(Integer productId);
 
     Optional<ProductVariant> findByProductIdAndIsDefaultTrue(Integer productId);

@@ -37,26 +37,7 @@ public class ProductService {
 
     @Cacheable(value = "featuredProducts", unless = "#result.isEmpty()")
     public List<Product> getFeatured() {
-        return productRepository.findByIsFeaturedTrueAndIsActiveTrue();
-    }
-
-    public List<Product> getDangBan() {
-        return productRepository.findDangBan();
-    }
-
-    public List<Product> search(String keyword) {
-        return productRepository.searchByName(keyword);
-    }
-
-    public List<Product> findByCategory(Integer danhMucId) {
-        return productRepository.findByDanhMucIdAndIsActiveTrue(danhMucId);
-    }
-
-    public List<Product> findByCategories(List<Integer> danhMucIds) {
-        if (danhMucIds == null || danhMucIds.isEmpty()) {
-            return List.of();
-        }
-        return productRepository.findByDanhMucIdInAndIsActiveTrue(danhMucIds);
+        return productRepository.findFeaturedWithVariants();
     }
 
     public Page<Product> getDangBanPaged(int page, int size) {
@@ -119,22 +100,18 @@ public class ProductService {
         if (topIds.isEmpty()) {
             return productRepository.filterPaged(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, PageRequest.of(page, size));
         }
-        List<Product> allMatching = productRepository.filterPaged(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+        List<Product> allMatching = productRepository.filterPaged(expanded, danhMucId, minPrice, maxPrice, dungTich, chatLieu, PageRequest.of(0, Math.min(5000, Integer.MAX_VALUE))).getContent();
         Set<Integer> matchingIds = allMatching.stream().map(Product::getId).collect(Collectors.toSet());
-        List<Product> sorted = topIds.stream()
-                .filter(matchingIds::contains)
-                .map(id -> allMatching.stream().filter(p -> p.getId().equals(id)).findFirst().orElse(null))
-                .filter(Objects::nonNull)
-                .toList();
-        int total = sorted.size();
+        List<Integer> filteredIds = topIds.stream().filter(matchingIds::contains).toList();
+        int total = filteredIds.size();
         int start = Math.min(page * size, total);
         int end = Math.min(start + size, total);
-        List<Product> pageContent = start < total ? sorted.subList(start, end) : List.of();
+        if (start >= total) return Page.empty(PageRequest.of(page, size));
+        List<Integer> pageIds = filteredIds.subList(start, end);
+        List<Product> unordered = productRepository.findAllById(pageIds);
+        Map<Integer, Product> productMap = unordered.stream().collect(Collectors.toMap(Product::getId, p -> p));
+        List<Product> pageContent = pageIds.stream().map(productMap::get).filter(Objects::nonNull).toList();
         return new PageImpl<>(pageContent, PageRequest.of(page, size), total);
-    }
-
-    public List<String> getDistinctShapes() {
-        return productRepository.findDistinctHinhDang();
     }
 
     public List<String> getDistinctChatLieu() {
@@ -209,23 +186,6 @@ public class ProductService {
 
     public List<Integer> getDistinctVolumes() {
         return variantRepository.findDistinctDungTich();
-    }
-
-    public List<String> getDistinctCapTypes() {
-        List<String> tenBienTheList = variantRepository.findDistinctTenBienThe();
-        Set<String> kieuNaps = new LinkedHashSet<>();
-        for (String name : tenBienTheList) {
-            if (name != null && name.contains(" - ")) {
-                String[] parts = name.split("\\s*-\\s*");
-                if (parts.length >= 2) {
-                    String cap = parts[1].trim();
-                    if (cap.toLowerCase(java.util.Locale.ROOT).contains("nắp")) {
-                        kieuNaps.add(cap);
-                    }
-                }
-            }
-        }
-        return new ArrayList<>(kieuNaps);
     }
 
     public Product findById(Integer id) {

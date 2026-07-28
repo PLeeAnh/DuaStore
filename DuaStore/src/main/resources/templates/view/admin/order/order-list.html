@@ -158,6 +158,7 @@
                         <th>Tổng tiền</th>
                         <th style="min-width:120px">Trạng thái</th>
                         <th style="min-width:120px">Thanh toán</th>
+                        <th style="width:60px">Cảnh báo</th>
                         <th>Ngày đặt</th>
                         <th></th>
                     </tr>
@@ -193,13 +194,21 @@
                                 <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiTT}"></span>
                             </span>
                         </td>
+                        <td>
+                            <span th:if="${o.fraudWarning != null}"
+                                  class="badge bg-warning text-dark"
+                                  th:title="${o.fraudWarning}"
+                                  style="cursor:help;font-size:11px">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Gian lận
+                            </span>
+                        </td>
                         <td class="small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
                             <a th:href="@{/admin/don-hang/{id}(id=${o.id})}" class="btn btn-sm btn-outline-primary px-2 py-0">Chi tiết</a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(orders)}">
-                        <td colspan="9" class="text-muted text-center py-4">Chưa có đơn hàng</td>
+                        <td colspan="10" class="text-muted text-center py-4">Chưa có đơn hàng</td>
                     </tr>
                 </tbody>
             </table>

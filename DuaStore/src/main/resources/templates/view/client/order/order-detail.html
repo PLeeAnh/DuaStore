@@ -28,7 +28,7 @@
                                     <button th:if="${order.trangThaiDon == 'CHO_XAC_NHAN'}" type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-toggle="modal" data-bs-target="#cancelReasonModal">
                                         <i class="bi bi-x-circle me-1"></i>Hủy đơn
                                     </button>
-                                    <a th:if="${order.maVanDon != null and !order.maVanDon.isEmpty()}" th:href="@{/don-hang/tracking/{maVanDon}(maVanDon=${order.maVanDon})}" class="ds-btn ds-btn-outline ds-btn-sm">
+                                    <a th:href="@{/tracking/{maDon}(maDon=${order.maDon})}" class="ds-btn ds-btn-outline ds-btn-sm">
                                         <i class="bi bi-truck me-1"></i>Theo dõi vận chuyển
                                     </a>
                                     <th:block th:if="${order.trangThaiDon == 'DA_GIAO'}">

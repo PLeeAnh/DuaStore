@@ -75,19 +75,27 @@
                                 <div class="card border-0 shadow-sm mb-3">
                                     <div class="card-body p-4">
                                         <h5 class="ds-checkout-section-title"><i class="bi bi-truck me-2"></i>Phương thức vận chuyển</h5>
-                                        <div class="ds-checkout-radio-group">
+
+                                        <div class="ds-checkout-radio-group" id="carrierOptions">
                                             <div class="ds-checkout-radio">
-                                                <input type="radio" name="phuongThucGiaoHang" id="shipExpress" value="EXPRESS" />
-                                                <label for="shipExpress">
-                                                    <span>Giao hàng nhanh</span>
-                                                    <span class="ds-checkout-radio-price" id="shipExpressPrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 30000, 0, 'POINT', 0, 'POINT')} + '₫'">30.000₫</span>
+                                                <input type="radio" name="shippingCarrier" id="carrierGHN" value="GHN" checked />
+                                                <label for="carrierGHN">
+                                                    <span><strong>Giao Hàng Nhanh</strong> <small class="text-muted">(GHN)</small></span>
+                                                    <span class="ds-checkout-radio-price" id="carrierGHNPrice">---</span>
                                                 </label>
                                             </div>
                                             <div class="ds-checkout-radio">
-                                                <input type="radio" name="phuongThucGiaoHang" id="shipSafe" value="SHIP" checked />
-                                                <label for="shipSafe">
-                                                    <span>Giao hàng an toàn</span>
-                                                    <span class="ds-checkout-radio-price" id="shipSafePrice" th:text="${#numbers.formatDecimal(phiVanChuyen != null ? phiVanChuyen : 15000, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</span>
+                                                <input type="radio" name="shippingCarrier" id="carrierGHTK" value="GHTK" />
+                                                <label for="carrierGHTK">
+                                                    <span><strong>Giao Hàng Tiết Kiệm</strong> <small class="text-muted">(GHTK)</small></span>
+                                                    <span class="ds-checkout-radio-price" id="carrierGHTKPrice">---</span>
+                                                </label>
+                                            </div>
+                                            <div class="ds-checkout-radio">
+                                                <input type="radio" name="shippingCarrier" id="carrierViettel" value="VIETTEL_POST" />
+                                                <label for="carrierViettel">
+                                                    <span><strong>Viettel Post</strong> <small class="text-muted">(VIETT)</small></span>
+                                                    <span class="ds-checkout-radio-price" id="carrierViettelPrice">---</span>
                                                 </label>
                                             </div>
                                         </div>
