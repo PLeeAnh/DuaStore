@@ -73,7 +73,6 @@ public class TrackingService {
         return switch (carrier != null ? carrier : "") {
             case "GHN" -> "https://donhang.ghn.vn/?order_code=" + maVanDon;
             case "GHTK" -> "https://khachhang.giaohangtietkiem.vn/tracking?code=" + maVanDon;
-            case "VIETTEL_POST" -> "https://viettelpost.com.vn/tracking?key=" + maVanDon;
             default -> null;
         };
     }
@@ -114,12 +113,7 @@ public class TrackingService {
 
     private String carrierName(String carrier) {
         if (carrier == null) return "";
-        return switch (carrier) {
-            case "GHN" -> "Giao Hàng Nhanh";
-            case "GHTK" -> "Giao Hàng Tiết Kiệm";
-            case "VIETTEL_POST" -> "Viettel Post";
-            default -> carrier;
-        };
+        return "GHN".equals(carrier) ? "Giao Hàng Nhanh" : "Giao Hàng Tiết Kiệm";
     }
 
     private String paymentDisplay(String method) {

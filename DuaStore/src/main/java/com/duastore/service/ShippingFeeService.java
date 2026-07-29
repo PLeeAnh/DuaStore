@@ -11,10 +11,8 @@ import java.math.RoundingMode;
 public class ShippingFeeService {
 
     private static final BigDecimal MIN_FEE = new BigDecimal("10000");
-    private static final BigDecimal FREE_SHIP_THRESHOLD = new BigDecimal("500000");
     private static final double EARTH_RADIUS_KM = 6371.0;
-    private static final BigDecimal EXPRESS_KM_RATE = new BigDecimal("300");
-    private static final BigDecimal SHIP_KM_RATE = new BigDecimal("200");
+    private static final BigDecimal RATE_KM = new BigDecimal("200");
 
     private final double storeLat;
     private final double storeLng;
@@ -29,40 +27,30 @@ public class ShippingFeeService {
         this.ghnShippingService = ghnShippingService;
     }
 
-    public BigDecimal calculateFee(Address address, String shippingMethod) {
-        return calculateFee(address, shippingMethod, BigDecimal.ZERO);
-    }
-
-    public BigDecimal calculateFee(Address address, String shippingMethod, BigDecimal subtotal) {
-        if (subtotal.compareTo(FREE_SHIP_THRESHOLD) >= 0) {
+    public BigDecimal calculateFee(Address address, BigDecimal subtotal) {
+        if (subtotal != null && subtotal.compareTo(new BigDecimal("500000")) >= 0) {
             return BigDecimal.ZERO;
         }
-        BigDecimal ghnFee = ghnShippingService.calculateFee(address, shippingMethod);
+        BigDecimal ghnFee = ghnShippingService.calculateFee(address);
         if (ghnFee != null) {
             return ghnFee;
         }
-
         if (address.getLatitude() == null || address.getLongitude() == null) {
             return MIN_FEE;
         }
-        return calculateFee(address.getLatitude(), address.getLongitude(), shippingMethod);
+        return calculateFee(address.getLatitude(), address.getLongitude());
     }
 
-    private BigDecimal calculateFee(double userLat, double userLng, String shippingMethod) {
+    private BigDecimal calculateFee(double userLat, double userLng) {
         double distance = haversine(userLat, userLng, storeLat, storeLng);
-        BigDecimal kmRate = "EXPRESS".equals(shippingMethod) ? EXPRESS_KM_RATE : SHIP_KM_RATE;
-        BigDecimal fee = MIN_FEE.add(kmRate.multiply(BigDecimal.valueOf(distance)));
-        if (fee.compareTo(MIN_FEE) < 0) {
-            fee = MIN_FEE;
-        }
-        if (fee.compareTo(new BigDecimal("1000000")) > 0) {
-            fee = new BigDecimal("1000000");
-        }
+        BigDecimal fee = MIN_FEE.add(RATE_KM.multiply(BigDecimal.valueOf(distance)));
+        if (fee.compareTo(MIN_FEE) < 0) { fee = MIN_FEE; }
+        if (fee.compareTo(new BigDecimal("1000000")) > 0) { fee = new BigDecimal("1000000"); }
         return fee.setScale(0, RoundingMode.HALF_UP);
     }
 
-    public int getDeliveryDays(String shippingMethod) {
-        return "EXPRESS".equals(shippingMethod) ? 3 : 7;
+    public int getDeliveryDays() {
+        return 5;
     }
 
     public double getStoreLat() {

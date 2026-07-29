@@ -17,7 +17,6 @@ import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PaymentService;
 import com.duastore.dto.CarrierQuote;
 import com.duastore.service.MultiCarrierShippingService;
-import com.duastore.service.ShippingFeeService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.VNPAYService;
 import com.duastore.service.admin.OrderStatusLogService;
@@ -28,6 +27,7 @@ import com.duastore.service.client.VoucherWalletService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.util.PriceUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -55,7 +55,6 @@ public class CheckoutController {
     private final AddressRepository addressRepository;
     private final PromotionRepository promotionRepository;
     private final SecurityUtil securityUtil;
-    private final ShippingFeeService shippingFeeService;
     private final EmailService emailService;
     private final PaymentService paymentService;
     private final OrderStatusLogService orderStatusLogService;
@@ -67,11 +66,16 @@ public class CheckoutController {
     private final SiteSettingService siteSettingService;
     private final MultiCarrierShippingService multiCarrierShippingService;
 
+    @Value("${store.latitude}")
+    private double storeLat;
+
+    @Value("${store.longitude}")
+    private double storeLng;
+
     public CheckoutController(OrderService orderService, CartService cartService,
             AddressRepository addressRepository,
             PromotionRepository promotionRepository,
             SecurityUtil securityUtil,
-            ShippingFeeService shippingFeeService,
             EmailService emailService,
             PaymentService paymentService,
             OrderStatusLogService orderStatusLogService,
@@ -87,7 +91,6 @@ public class CheckoutController {
         this.addressRepository = addressRepository;
         this.promotionRepository = promotionRepository;
         this.securityUtil = securityUtil;
-        this.shippingFeeService = shippingFeeService;
         this.emailService = emailService;
         this.paymentService = paymentService;
         this.orderStatusLogService = orderStatusLogService;
@@ -124,7 +127,7 @@ public class CheckoutController {
         BigDecimal subtotal = cartService.total(cartItems);
         BigDecimal phiShip = addresses.isEmpty()
                 ? new BigDecimal("10000")
-                : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
+                : multiCarrierShippingService.calculateFeeForCarrier("GHN", addresses.get(0), subtotal);
 
         // Auto-apply best promotion
         List<Promotion> activePromotions = getActivePromotions();
@@ -164,8 +167,6 @@ public class CheckoutController {
         model.addAttribute("tienGiam", tienGiam);
         model.addAttribute("bestPromo", bestPromo);
         model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
-        model.addAttribute("storeLat", shippingFeeService.getStoreLat());
-        model.addAttribute("storeLng", shippingFeeService.getStoreLng());
         model.addAttribute("checkoutRequest", checkoutRequest);
         model.addAttribute("title", "Thanh toán");
         model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
@@ -179,10 +180,21 @@ public class CheckoutController {
         // Load payment method toggles from DB
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
-        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
         paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
         model.addAttribute("paymentMethods", paymentMethods);
+
+        // Load carrier settings
+        Map<String, String> shippingSettings = siteSettingService.getGroup("shipping");
+        model.addAttribute("carrierGHNEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghn_enabled", "1")));
+        model.addAttribute("carrierGHTKEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghtk_enabled", "1")));
+
+        String freeMin = shippingSettings.getOrDefault("shipping_free_min", "500000");
+        model.addAttribute("shippingFreeMin", new BigDecimal(freeMin.isBlank() ? "500000" : freeMin.trim()));
+
+        model.addAttribute("storeLat", storeLat);
+        model.addAttribute("storeLng", storeLng);
 
         // Set default payment method based on available methods
         if (!paymentMethods.get("cod") && paymentMethods.get("vnpay")) {
@@ -197,7 +209,7 @@ public class CheckoutController {
 
     private void addPaymentMethodsToModel(Model model, Map<String, String> paymentSettings) {
         Map<String, Boolean> paymentMethods = new HashMap<>();
-        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
         paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
         model.addAttribute("paymentMethods", paymentMethods);
@@ -206,15 +218,13 @@ public class CheckoutController {
     @GetMapping("/shipping-fee")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getShippingFee(
-            @RequestParam Integer addressId,
-            @RequestParam(defaultValue = "SHIP") String method) {
+            @RequestParam Integer addressId) {
         Map<String, Object> res = new HashMap<>();
         try {
             Address address = addressRepository.findById(addressId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
-            BigDecimal fee = shippingFeeService.calculateFee(address, method);
+            BigDecimal fee = multiCarrierShippingService.calculateFeeForCarrier("GHN", address, null);
             res.put("fee", fee);
-            res.put("deliveryDays", shippingFeeService.getDeliveryDays(method));
             res.put("success", true);
         } catch (RuntimeException e) {
             res.put("success", false);
@@ -227,13 +237,12 @@ public class CheckoutController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getQuotes(
             @RequestParam Integer addressId,
-            @RequestParam(defaultValue = "SHIP") String method,
             @RequestParam(required = false) BigDecimal subtotal) {
         Map<String, Object> res = new HashMap<>();
         try {
             Address address = addressRepository.findById(addressId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
-            List<CarrierQuote> quotes = multiCarrierShippingService.getQuotes(address, method, subtotal);
+            List<CarrierQuote> quotes = multiCarrierShippingService.getQuotes(address, subtotal);
             res.put("quotes", quotes);
             res.put("success", true);
         } catch (RuntimeException e) {
@@ -254,6 +263,7 @@ public class CheckoutController {
             return "view/client/checkout";
         }
 
+        validateCheckoutRequest(req);
         try {
             Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
                     ? new HashSet<>(req.getSelectedIds()) : null;
@@ -280,7 +290,7 @@ public class CheckoutController {
 
             User finalUser = order.getUser();
             String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "VNPAY".equals(order.getPhuongThucTT()) ? "VNPay" : "COD";
-            String finalGh = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
+            String finalGh = "GHN".equals(order.getShippingCarrier()) ? "Giao Hàng Nhanh" : "Giao Hàng Tiết Kiệm";
             String finalMaDon = order.getMaDon();
             String finalNgayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
             String finalDiaChi = order.getSnapDiaChi();
@@ -363,7 +373,7 @@ public class CheckoutController {
         BigDecimal subtotal = cartService.total(cartItems);
         BigDecimal phiShip = addresses.isEmpty()
                 ? new BigDecimal("10000")
-                : shippingFeeService.calculateFee(addresses.get(0), "SHIP");
+                : multiCarrierShippingService.calculateFeeForCarrier("GHN", addresses.get(0), subtotal);
         BigDecimal tienGiam = calcAutoDiscount(subtotal);
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("addresses", addresses);
@@ -372,8 +382,6 @@ public class CheckoutController {
         model.addAttribute("tienGiam", tienGiam);
         model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
         model.addAttribute("checkoutRequest", new com.duastore.dto.CheckoutRequestDTO());
-        model.addAttribute("storeLat", shippingFeeService.getStoreLat());
-        model.addAttribute("storeLng", shippingFeeService.getStoreLng());
         model.addAttribute("title", "Thanh toán");
         model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
@@ -384,10 +392,14 @@ public class CheckoutController {
         model.addAttribute("bestPromo", bestPromo);
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
-        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
         paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
         model.addAttribute("paymentMethods", paymentMethods);
+
+        Map<String, String> shippingSettings = siteSettingService.getGroup("shipping");
+        model.addAttribute("carrierGHNEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghn_enabled", "1")));
+        model.addAttribute("carrierGHTKEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghtk_enabled", "1")));
     }
 
     private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
@@ -416,6 +428,7 @@ public class CheckoutController {
             res.put("message", "Dữ liệu không hợp lệ");
             return ResponseEntity.ok(res);
         }
+        validateCheckoutRequest(req);
         try {
             int pointsToRedeem = req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0;
             Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
@@ -511,12 +524,22 @@ public class CheckoutController {
     }
 
     @PostMapping("/chuyen-khoan/{id}/xac-nhan")
-    public String xacNhanChuyenKhoan(@PathVariable Integer id) {
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> xacNhanChuyenKhoan(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
         Integer userId = getUserId();
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);
             if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
-                return "redirect:/checkout/thanh-cong/" + id;
+                res.put("success", false);
+                res.put("message", "Đơn hàng không phải chuyển khoản");
+                return ResponseEntity.ok(res);
+            }
+            if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                res.put("success", true);
+                res.put("alreadyPaid", true);
+                res.put("redirectUrl", "/checkout/thanh-cong/" + id);
+                return ResponseEntity.ok(res);
             }
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
             orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
@@ -561,10 +584,32 @@ public class CheckoutController {
             emailThread.setDaemon(true);
             emailThread.start();
 
-            return "redirect:/checkout/thanh-cong/" + id;
+            res.put("success", true);
+            res.put("redirectUrl", "/checkout/thanh-cong/" + id);
+            return ResponseEntity.ok(res);
         } catch (RuntimeException e) {
-            return "redirect:/";
+            res.put("success", false);
+            res.put("message", e.getMessage());
+            return ResponseEntity.ok(res);
         }
+    }
+
+    @GetMapping("/api/check-payment-status/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkPaymentStatus(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        Integer userId = getUserId();
+        try {
+            Order order = orderService.getOrderByUserAndId(userId, id);
+            boolean isPaid = "DA_THANH_TOAN".equals(order.getTrangThaiTT());
+            res.put("paid", isPaid);
+            if (isPaid) {
+                res.put("redirectUrl", "/checkout/thanh-cong/" + id);
+            }
+        } catch (RuntimeException e) {
+            res.put("paid", false);
+        }
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/vnpay/return")
@@ -575,16 +620,23 @@ public class CheckoutController {
             return "view/client/payment-fail";
         }
         String txnRef = result.get("txnRef");
-        if (txnRef != null) {
-            try {
-                int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-                orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
-                Order order = orderService.getOrderByUserAndId(getUserId(), orderId);
-                model.addAttribute("order", orderService.convertToDTO(order));
-            } catch (Exception e) {
-                model.addAttribute("error", "Không tìm thấy đơn hàng");
-                return "view/client/payment-fail";
-            }
+        if (txnRef == null) {
+            model.addAttribute("error", "Không tìm thấy đơn hàng");
+            return "view/client/payment-fail";
+        }
+        if (!"00".equals(result.get("responseCode"))) {
+            model.addAttribute("error", "Giao dịch không thành công hoặc đã bị hủy (mã lỗi: "
+                    + result.get("responseCode") + ")");
+            return "view/client/payment-fail";
+        }
+        try {
+            int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
+            orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+            Order order = orderService.getOrderByUserAndId(getUserId(), orderId);
+            model.addAttribute("order", orderService.convertToDTO(order));
+        } catch (Exception e) {
+            model.addAttribute("error", "Không tìm thấy đơn hàng");
+            return "view/client/payment-fail";
         }
         return "redirect:/checkout/thanh-cong/" + txnRef.replace("DUASTORE", "");
     }
@@ -630,6 +682,26 @@ public class CheckoutController {
             return "view/client/order-success";
         } catch (RuntimeException e) {
             return "redirect:/";
+        }
+    }
+
+    private void validateCheckoutRequest(CheckoutRequestDTO req) {
+        Map<String, String> shippingSettings = siteSettingService.getGroup("shipping");
+        String carrier = req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN";
+        boolean carrierEnabled = "1".equals(shippingSettings.getOrDefault("carrier_" + carrier.toLowerCase() + "_enabled", "1"));
+        if (!carrierEnabled) {
+            throw new RuntimeException("Đơn vị vận chuyển " + carrier + " hiện đang tạm tắt");
+        }
+        Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
+        String paymentMethod = req.getPhuongThucTT() != null ? req.getPhuongThucTT() : "";
+        boolean paymentEnabled = switch (paymentMethod) {
+            case "COD" -> "1".equals(paymentSettings.getOrDefault("payment_cod", "1"));
+            case "CHUYEN_KHOAN" -> "1".equals(paymentSettings.getOrDefault("payment_bank", "1"));
+            case "VNPAY" -> "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1"));
+            default -> true;
+        };
+        if (!paymentEnabled) {
+            throw new RuntimeException("Phương thức thanh toán " + paymentMethod + " hiện đang tạm tắt");
         }
     }
 }

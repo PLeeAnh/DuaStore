@@ -59,7 +59,8 @@ public class FraudDetectionService {
         if (address.length() < 15) return "Địa chỉ quá ngắn, có thể là địa chỉ ảo";
 
         boolean hasLocationKeyword = address.matches(".*(?i)(phường|xã|quận|huyện|tỉnh|thành phố|thị xã|thị trấn|đường|phố|thôn|ấp|khu phố|tổ dân phố|số |ngách|ngõ|xa|thi tran|khu pho).*");
-        if (!hasLocationKeyword) return "Địa chỉ không chứa thông tin hành chính (phường/xã/quận/huyện)";
+        boolean hasStructuredParts = address.split("[,，]").length >= 3;
+        if (!hasLocationKeyword && !hasStructuredParts) return "Địa chỉ không chứa thông tin hành chính (phường/xã/quận/huyện)";
 
         String clean = address.replaceAll("[\\s,.\"'\\-]", "").toLowerCase();
         if (clean.matches("(.)\\1{8,}")) return "Địa chỉ chứa ký tự lặp bất thường";

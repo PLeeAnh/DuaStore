@@ -90,23 +90,7 @@ public class SecurityConfig {
                         "/api/auth/verify-code",
                         "/admin/thong-bao/api/don-hang-moi",
                         "/admin/thong-bao/api/lien-he-moi",
-                        "/api/thong-bao/chua-doc",
-                        "/api/cart/add-popup",
-                        "/api/cart/remove-item",
-                        "/api/cart/update",
-                        "/api/wishlist/toggle",
-                        "/api/vi-voucher/luu/{promotionId}",
-                        "/api/vi-voucher/xoa/{voucherId}",
-                        "/api/thong-bao/doc/{id}",
-                        "/api/thong-bao/doc-tat-ca",
-                        "/api/coupon/validate",
-                        "/checkout/api/create",
-                        "/checkout/ap-dung-ma",
-                        "/checkout/chuyen-khoan/{id}/xac-nhan",
-                        "/checkout/vnpay/ipn",
-                        "/admin/don-hang/api/{id}/cap-nhat-trang-thai",
-                        "/admin/don-hang/api/batch-cap-nhat-trang-thai",
-                        "/admin/don-hang/api/{id}/cap-nhat-ma-van-don"
+                        "/checkout/vnpay/ipn"
                 ));
 
         http.headers(headers -> headers

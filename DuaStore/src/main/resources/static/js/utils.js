@@ -1,7 +1,17 @@
 /* =====================================================
  DuaStore — Utility Layer
- DOM shortcuts, debounce, escape helpers
+ DOM shortcuts, debounce, escape helpers, shared callbacks
  ===================================================== */
+
+window.openGoogleAuth = function () {
+    event.preventDefault();
+    var w = window.open('/oauth2/authorization/google', 'google-login', 'width=600,height=700');
+    if (w) {
+        var t = setInterval(function () {
+            if (w.closed) { clearInterval(t); window.location.reload(); }
+        }, 500);
+    }
+};
 'use strict';
 
 window.DuaStore = window.DuaStore || {};
