@@ -60,10 +60,9 @@ public class RateLimitingFilter extends HttpFilter {
     }
 
     private String ip(HttpServletRequest req) {
-        String xf = req.getHeader("X-Forwarded-For");
-        if (xf != null && !xf.isBlank()) return xf.split(",")[0].trim();
-        String xri = req.getHeader("X-Real-IP");
-        if (xri != null && !xri.isBlank()) return xri.trim();
+        // Khong tin X-Forwarded-For/X-Real-IP: day la header client tu gui duoc,
+        // ke tan cong co the doi gia tri moi lan request de "reset" bucket va
+        // vo hieu hoa gioi han brute-force. Chi dung dia chi TCP thuc te.
         return req.getRemoteAddr();
     }
 

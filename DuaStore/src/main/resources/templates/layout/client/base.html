@@ -40,8 +40,8 @@
     <style th:if="${customCss}" th:utext="${customCss}"></style>
     <style>
         :root {
-            --ds-primary: [[${themeSettings.get('theme_primary_color') ?: '#2563EB'}]];
-            --ds-primary-hover: [[${themeSettings.get('theme_secondary_color') ?: '#1D4ED8'}]];
+            --ds-primary: [[${themeSettings.get('theme_primary_color') ?: '#0EA5E9'}]];
+            --ds-primary-hover: [[${themeSettings.get('theme_secondary_color') ?: '#0284C7'}]];
             --ds-header-bg: [[${themeSettings.get('theme_header_bg') ?: '#ffffff'}]];
             --font-body: '[[${themeSettings.get('theme_font') ?: 'DM Sans'}]]', -apple-system, BlinkMacSystemFont, sans-serif;
             --ds-r-sm: [[${themeSettings.get('theme_border_radius') ?: '8'}]]px;
@@ -56,7 +56,6 @@
 <body>
 
 <div class="ds-bg-gradient" style="position:fixed;inset:0;z-index:-3;min-height:0;pointer-events:none;"></div>
-<div class="ds-bg-pattern"></div>
 
 <nav class="ds-navbar navbar navbar-expand-lg ds-nav-glass">
     <div class="container-xl ds-ctn-width">

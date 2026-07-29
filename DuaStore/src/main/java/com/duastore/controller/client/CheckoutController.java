@@ -180,7 +180,7 @@ public class CheckoutController {
         // Load payment method toggles from DB
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
-        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
         paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
         model.addAttribute("paymentMethods", paymentMethods);
@@ -209,7 +209,7 @@ public class CheckoutController {
 
     private void addPaymentMethodsToModel(Model model, Map<String, String> paymentSettings) {
         Map<String, Boolean> paymentMethods = new HashMap<>();
-        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
         paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
         model.addAttribute("paymentMethods", paymentMethods);
@@ -392,7 +392,7 @@ public class CheckoutController {
         model.addAttribute("bestPromo", bestPromo);
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
-        paymentMethods.put("cod", "1".equals(paymentSettings.get("payment_cod")));
+        paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
         paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
         model.addAttribute("paymentMethods", paymentMethods);
@@ -620,16 +620,23 @@ public class CheckoutController {
             return "view/client/payment-fail";
         }
         String txnRef = result.get("txnRef");
-        if (txnRef != null) {
-            try {
-                int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-                orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
-                Order order = orderService.getOrderByUserAndId(getUserId(), orderId);
-                model.addAttribute("order", orderService.convertToDTO(order));
-            } catch (Exception e) {
-                model.addAttribute("error", "Không tìm thấy đơn hàng");
-                return "view/client/payment-fail";
-            }
+        if (txnRef == null) {
+            model.addAttribute("error", "Không tìm thấy đơn hàng");
+            return "view/client/payment-fail";
+        }
+        if (!"00".equals(result.get("responseCode"))) {
+            model.addAttribute("error", "Giao dịch không thành công hoặc đã bị hủy (mã lỗi: "
+                    + result.get("responseCode") + ")");
+            return "view/client/payment-fail";
+        }
+        try {
+            int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
+            orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+            Order order = orderService.getOrderByUserAndId(getUserId(), orderId);
+            model.addAttribute("order", orderService.convertToDTO(order));
+        } catch (Exception e) {
+            model.addAttribute("error", "Không tìm thấy đơn hàng");
+            return "view/client/payment-fail";
         }
         return "redirect:/checkout/thanh-cong/" + txnRef.replace("DUASTORE", "");
     }

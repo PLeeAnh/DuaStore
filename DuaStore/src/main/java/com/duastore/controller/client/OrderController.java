@@ -129,6 +129,16 @@ public class OrderController {
         Integer userId = getUserId();
         try {
             Order order = orderService.getOrderByUserAndId(userId, id);
+            if (!"DA_GIAO".equals(order.getTrangThaiDon()) && !"DA_HOAN_THANH".equals(order.getTrangThaiDon())) {
+                throw new RuntimeException("Chỉ có thể yêu cầu hoàn tiền cho đơn hàng đã giao");
+            }
+            if (refundService.hasRefundRequestByOrderId(id)) {
+                throw new RuntimeException("Đơn hàng này đã có yêu cầu hoàn tiền trước đó");
+            }
+            if (soTienHoan == null || soTienHoan.compareTo(BigDecimal.ZERO) <= 0
+                    || soTienHoan.compareTo(order.getTongThanhToan()) > 0) {
+                throw new RuntimeException("Số tiền hoàn không hợp lệ, tối đa " + order.getTongThanhToan() + "đ");
+            }
             RefundRequest request = new RefundRequest();
             request.setOrderId(id);
             request.setUserId(userId);

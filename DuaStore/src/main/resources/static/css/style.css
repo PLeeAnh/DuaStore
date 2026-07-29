@@ -535,126 +535,6 @@ a {
     position: relative;
     overflow: hidden;
 }
-.hero-slide {
-    min-height: 75vh;
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-.hero-bg-shapes {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-}
-.hero-blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    opacity: .12;
-}
-.hero-blob-1 {
-    width: 400px;
-    height: 400px;
-    background: #6366f1;
-    top: -100px;
-    right: -100px;
-}
-.hero-blob-2 {
-    width: 300px;
-    height: 300px;
-    background: #06b6d4;
-    bottom: -50px;
-    left: -50px;
-}
-.hero-content {
-    position: relative;
-    z-index: 1;
-    padding: 60px 1rem;
-}
-.hero-badge {
-    display: inline-block;
-    background: rgba(255,255,255,.12);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,.2);
-    padding: 6px 20px;
-    border-radius: 100px;
-    font-size: .78rem;
-    font-weight: 600;
-    color: rgba(255,255,255,.9);
-    margin-bottom: 24px;
-    letter-spacing: .05em;
-}
-.hero-badge-purple {
-    background: rgba(167,139,250,.2);
-    border-color: rgba(167,139,250,.35);
-    color: #a78bfa;
-}
-.hero-title {
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.2;
-    margin-bottom: 20px;
-}
-.hero-desc {
-    font-size: 1rem;
-    color: rgba(255,255,255,.65);
-    max-width: 420px;
-    line-height: 1.7;
-    margin-bottom: 32px;
-}
-.hero-actions {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-/* Glass card */
-.hero-img-col {
-    display: flex;
-    justify-content: center;
-}
-.hero-glass-card {
-    text-align: center;
-}
-.hero-glass-inner {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.08);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,.18);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    box-shadow: 0 12px 40px rgba(0,0,0,.15);
-}
-.hero-glass-label {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: rgba(255,255,255,.75);
-}
-
-/* Swiper pagination */
-.hero-pagination {
-    position: absolute;
-    bottom: 20px !important;
-    z-index: 2;
-}
-.hero-pagination .swiper-pagination-bullet {
-    width: 10px;
-    height: 10px;
-    background: rgba(255,255,255,.5);
-    opacity: 1;
-}
-.hero-pagination .swiper-pagination-bullet-active {
-    background: #fff;
-    width: 24px;
-    border-radius: 5px;
-}
-
 /* =====================================================
    07. FEATURES STRIP
 ===================================================== */
@@ -2378,47 +2258,6 @@ a {
 }
 .ds-auth-success.show {
     display:flex;
-}
-
-/* Hero slide gradients */
-.hero-slide:nth-child(1) {
-    background:linear-gradient(135deg,#0a0a23 0%,#1a1a4e 40%,#2d1b69 100%);
-}
-.hero-slide:nth-child(2) {
-    background:linear-gradient(135deg,#1a0a2e 0%,#2d1b69 40%,#4a1942 100%);
-}
-.hero-slide:nth-child(2) .hero-blob-1 {
-    background:#a78bfa;
-}
-.hero-slide:nth-child(2) .hero-blob-2 {
-    background:#f472b6;
-}
-.hero-glass-icon {
-    font-size:4rem;
-    color:rgba(255,255,255,.5);
-}
-.hero-pagination-wrap {
-    padding-top:0;
-}
-
-/* Category icon gradients */
-.ds-cat-icon-chai {
-    background:linear-gradient(135deg,#2563EB 0%,#1D4ED8 100%);
-}
-.ds-cat-icon-hu {
-    background:linear-gradient(135deg,#3B82F6 0%,#2563EB 100%);
-}
-.ds-cat-icon-binh {
-    background:linear-gradient(135deg,#60A5FA 0%,#3B82F6 100%);
-}
-.ds-cat-icon-ly {
-    background:linear-gradient(135deg,#2563EB 0%,#7C3AED 100%);
-}
-.ds-cat-icon-qua-tang {
-    background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);
-}
-.ds-cat-icon-all {
-    background:linear-gradient(135deg,#6366F1 0%,#4F46E5 100%);
 }
 
 /* Product list extras */
@@ -6275,10 +6114,8 @@ body.ds-checkout-page #main-content {
 
 /* Glassmorphism nav & footer */
 .ds-nav-glass {
-    background: rgba(255, 255, 255, 0.88) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    background: rgba(240, 249, 255, 0.97) !important;
+    border-bottom: 1px solid rgba(186, 230, 253, 0.7);
 }
 .ds-footer-glass {
     background: transparent !important;
@@ -6287,10 +6124,8 @@ body.ds-checkout-page #main-content {
     margin-top: 40px;
 }
 .ds-footer-glass .ds-footer-card {
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(186, 230, 253, 0.5);
     box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 }
 .ds-footer-glass .ds-footer-bottom {

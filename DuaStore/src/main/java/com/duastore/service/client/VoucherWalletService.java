@@ -71,6 +71,16 @@ public class VoucherWalletService {
         if (!uv.getUserId().equals(userId)) {
             throw new RuntimeException("Không có quyền xóa voucher này");
         }
+        // Chi tra lai suat claim neu voucher chua tung duoc su dung, tranh bi
+        // lam can quota (maxClaims) cua khuyen mai qua vong lap luu/xoa/luu lai.
+        if (uv.getStatus() == VoucherStatus.AVAILABLE && uv.getPromotion() != null) {
+            promotionRepository.findByIdWithLock(uv.getPromotion().getId()).ifPresent(lockedPromo -> {
+                if (lockedPromo.getSavedCount() != null && lockedPromo.getSavedCount() > 0) {
+                    lockedPromo.setSavedCount(lockedPromo.getSavedCount() - 1);
+                    promotionRepository.save(lockedPromo);
+                }
+            });
+        }
         userVoucherRepository.delete(uv);
     }
 

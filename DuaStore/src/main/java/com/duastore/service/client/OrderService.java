@@ -221,7 +221,6 @@ public class OrderService {
                 }
                 redeemValue = loyaltyPointsService.convertPointsToMoney(pointsToRedeem);
             }
-            loyaltyPointsService.redeemPoints(userId, pointsToRedeem, "Đổi điểm cho đơn hàng #" + order.getMaDon());
             pointsDiscount = redeemValue;
             pointsNote.append(" (dùng ").append(pointsToRedeem).append(" điểm, giảm ").append(PriceUtils.format(redeemValue)).append(")");
         }
@@ -275,6 +274,11 @@ public class OrderService {
         }
 
         order = orderRepository.save(order);
+
+        if (pointsToRedeem > 0) {
+            loyaltyPointsService.redeemPoints(userId, pointsToRedeem, order.getId(),
+                    "Đổi điểm cho đơn hàng #" + order.getMaDon());
+        }
 
         orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
 
@@ -471,6 +475,7 @@ public class OrderService {
         }
         restoreStock(orderId);
         restoreFlashSaleQuota(orderId);
+        loyaltyPointsService.refundRedeemedPointsForOrder(userId, orderId);
         orderAssignmentRepository.findByOrderId(orderId).ifPresent(orderAssignmentRepository::delete);
         order.setTrangThaiDon("DA_HUY");
         orderRepository.save(order);
