@@ -278,10 +278,27 @@
                     </div>
                 </section>
             </div><!-- /.ds-home-content -->
+
+            <!-- POPUP THÔNG BÁO ẢNH TRANG CHỦ -->
+            <div th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
+                 id="dsPromoPopupOverlay" class="ds-promo-popup-overlay"
+                 th:data-mode="${popupPromoMode}" th:data-interval="${popupPromoInterval}">
+                <div class="ds-promo-popup-modal">
+                    <button type="button" class="ds-promo-popup-close" id="dsPromoPopupClose" aria-label="Đóng">&times;</button>
+                    <a th:href="${popupPromoLink != null and !popupPromoLink.isEmpty()} ? ${popupPromoLink} : '#'"
+                       th:target="${popupPromoLink != null and !popupPromoLink.isEmpty()} ? '_blank' : '_self'"
+                       class="ds-promo-popup-img-link"
+                       th:onclick="${popupPromoLink == null or popupPromoLink.isEmpty()} ? 'event.preventDefault()' : ''">
+                        <img th:src="${popupPromoImage}" alt="Thông báo khuyến mãi" loading="eager" />
+                    </a>
+                </div>
+            </div>
         </div>
     <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
         <script th:src="@{/js/client-home.js(v=1)}"></script>
+        <script th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
+                th:src="@{/js/popup-promo.js(v=1)}"></script>
     </th:block>
 </body>
 </html>

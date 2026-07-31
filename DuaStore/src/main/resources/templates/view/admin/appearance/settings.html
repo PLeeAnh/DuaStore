@@ -417,6 +417,65 @@ Email: ...</textarea>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- POPUP THÔNG BÁO ẢNH -->
+                        <hr class="my-3" />
+                        <h6 class="text-muted border-bottom pb-2"><i class="bi bi-image me-1"></i>Popup thông báo ảnh (Trang chủ)</h6>
+                        <p class="text-muted small mb-3">Hiện popup ảnh quảng cáo/thông báo khi khách vào trang chủ. Giống như các shop lớn.</p>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="popup_promo_active" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="popup_promo_active" value="1"
+                                           id="popupPromoActive" th:checked="${settings.get('popup_promo_active') == '1'}" />
+                                    <label class="form-check-label fw-semibold" for="popupPromoActive">Bật popup ảnh</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="popupPromoConfig" class="mt-3" style="display:none">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">URL ảnh popup <span class="text-danger">*</span></label>
+                                    <input type="url" name="popup_promo_image" class="form-control form-control-sm" id="popupPromoImage"
+                                           placeholder="https://example.com/banner.jpg"
+                                           th:value="${settings.get('popup_promo_image')}" />
+                                    <div class="form-text">Hỗ trợ JPG, PNG, GIF, WebP. Nên dùng ảnh tỷ lệ dọc hoặc vuông.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Xem trước</label>
+                                    <div id="popupPromoPreview"
+                                         style="width:100%;max-height:160px;border:1px dashed #d1d5db;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f9fafb">
+                                        <img th:if="${settings.get('popup_promo_image') != null and settings.get('popup_promo_image') != ''}"
+                                             th:src="${settings.get('popup_promo_image')}"
+                                             style="max-width:100%;max-height:160px;object-fit:contain" alt="Preview" />
+                                        <span th:if="${settings.get('popup_promo_image') == null or settings.get('popup_promo_image') == ''}"
+                                              class="text-muted small">Chưa có ảnh</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Link khi click ảnh</label>
+                                    <input type="url" name="popup_promo_link" class="form-control form-control-sm"
+                                           placeholder="https://example.com/khuyen-mai (bỏ trống nếu không cần)"
+                                           th:value="${settings.get('popup_promo_link')}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Chế độ hiển thị</label>
+                                    <select name="popup_promo_mode" class="form-select form-select-sm" id="popupPromoMode">
+                                        <option value="once" th:selected="${settings.get('popup_promo_mode') == 'once' or settings.get('popup_promo_mode') == null}">Hiện 1 lần</option>
+                                        <option value="always" th:selected="${settings.get('popup_promo_mode') == 'always'}">Mỗi lần quay lại</option>
+                                        <option value="timed" th:selected="${settings.get('popup_promo_mode') == 'timed'}">Theo thời gian</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="popupPromoIntervalWrap" style="display:none">
+                                    <label class="form-label small fw-semibold">Hiện lại sau (phút)</label>
+                                    <input type="number" name="popup_promo_interval" class="form-control form-control-sm"
+                                           min="1" max="10080" placeholder="60"
+                                           th:value="${settings.get('popup_promo_interval') ?: '60'}" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     </div>
                 </form>

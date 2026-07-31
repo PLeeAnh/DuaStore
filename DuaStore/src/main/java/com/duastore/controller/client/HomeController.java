@@ -394,6 +394,13 @@ public class HomeController {
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
         model.addAttribute("bestDiscountMap", bestDiscountMap);
 
+        // Popup thông báo ảnh trang chủ
+        model.addAttribute("popupPromoActive", siteSettingService.getValue("popup_promo_active", "0"));
+        model.addAttribute("popupPromoImage", siteSettingService.getValue("popup_promo_image", ""));
+        model.addAttribute("popupPromoLink", siteSettingService.getValue("popup_promo_link", ""));
+        model.addAttribute("popupPromoMode", siteSettingService.getValue("popup_promo_mode", "once"));
+        model.addAttribute("popupPromoInterval", siteSettingService.getValue("popup_promo_interval", "60"));
+
         return "view/client/index";
     }
 

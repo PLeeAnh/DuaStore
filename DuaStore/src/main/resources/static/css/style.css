@@ -6642,3 +6642,108 @@ body.ds-checkout-page #main-content {
 .oauth-box { text-align:center; padding:40px; background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.1); }
 .oauth-check { font-size:48px; color:#4caf50; }
 .oauth-msg { color:#616161; margin-top:8px; }
+
+/* =====================================================
+   102. PROMOTION POPUP (Homepage Banner Popup)
+===================================================== */
+.ds-promo-popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: rgba(0, 0, 0, 0);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background .3s ease;
+    cursor: pointer;
+}
+.ds-promo-popup-overlay.ds-promo-popup-visible {
+    background: rgba(0, 0, 0, .6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.ds-promo-popup-overlay.ds-promo-popup-hiding {
+    background: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+}
+.ds-promo-popup-modal {
+    position: relative;
+    max-width: 560px;
+    width: 90%;
+    cursor: default;
+    opacity: 0;
+    transform: scale(.85) translateY(24px);
+    transition: opacity .35s cubic-bezier(.34, 1.56, .64, 1),
+                transform .35s cubic-bezier(.34, 1.56, .64, 1);
+}
+.ds-promo-popup-visible .ds-promo-popup-modal {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+.ds-promo-popup-hiding .ds-promo-popup-modal {
+    opacity: 0;
+    transform: scale(.9) translateY(16px);
+    transition: opacity .25s ease, transform .25s ease;
+}
+.ds-promo-popup-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    color: #6b7280;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+    transition: background .2s, color .2s, transform .2s;
+    line-height: 1;
+}
+.ds-promo-popup-close:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+    transform: scale(1.1);
+}
+.ds-promo-popup-img-link {
+    display: block;
+    text-decoration: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .3);
+}
+.ds-promo-popup-img-link img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+    transition: transform .3s ease;
+}
+.ds-promo-popup-img-link:hover img {
+    transform: scale(1.015);
+}
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+    .ds-promo-popup-modal {
+        max-width: 95%;
+    }
+    .ds-promo-popup-close {
+        top: -10px;
+        right: -6px;
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+    }
+    .ds-promo-popup-img-link {
+        border-radius: 12px;
+    }
+}

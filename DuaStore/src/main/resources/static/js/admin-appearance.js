@@ -20,6 +20,40 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('callConfig').style.display = this.checked ? 'block' : 'none';
         });
     });
+
+    // ── Popup Promo (ảnh thông báo) ──
+    var promoActive = document.getElementById('popupPromoActive');
+    var promoConfig = document.getElementById('popupPromoConfig');
+    var promoMode = document.getElementById('popupPromoMode');
+    var promoIntervalWrap = document.getElementById('popupPromoIntervalWrap');
+    var promoImageInput = document.getElementById('popupPromoImage');
+    var promoPreview = document.getElementById('popupPromoPreview');
+
+    if (promoActive && promoConfig) {
+        // Toggle config section
+        promoConfig.style.display = promoActive.checked ? 'block' : 'none';
+        promoActive.addEventListener('change', function () {
+            promoConfig.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    if (promoMode && promoIntervalWrap) {
+        // Toggle interval input
+        promoIntervalWrap.style.display = promoMode.value === 'timed' ? 'block' : 'none';
+        promoMode.addEventListener('change', function () {
+            promoIntervalWrap.style.display = this.value === 'timed' ? 'block' : 'none';
+        });
+    }
+    if (promoImageInput && promoPreview) {
+        // Live preview image URL
+        promoImageInput.addEventListener('input', function () {
+            var url = this.value.trim();
+            if (url) {
+                promoPreview.innerHTML = '<img src="' + url + '" style="max-width:100%;max-height:160px;object-fit:contain" alt="Preview" onerror="this.parentElement.innerHTML=\'<span class=text-muted>Ảnh không hợp lệ</span>\'" />';
+            } else {
+                promoPreview.innerHTML = '<span class="text-muted small">Chưa có ảnh</span>';
+            }
+        });
+    }
 });
 
 /* ── Color picker sync ── */
