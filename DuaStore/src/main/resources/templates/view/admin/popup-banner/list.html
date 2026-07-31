@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý popup banner</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Popup banner</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                    <i class="bi bi-window-stack"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Popup banner trang chủ</h4>
+                            <div class="adm-detail-meta">Hiển thị popup ảnh khi khách hàng truy cập trang chủ.</div>
+                        </div>
+                        <a th:href="@{/admin/popup-banner/them-moi}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm popup
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Ảnh</th>
+                            <th>Tiêu đề</th>
+                            <th>Chế độ hiển thị</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="banner : ${banners}">
+                            <td>
+                                <img th:src="@{${banner.imageUrl}}" th:alt="${banner.title}"
+                                     style="width:180px;height:100px;object-fit:cover;border-radius:8px"
+                                     onerror="this.onerror=null;this.src='/images/no-image.png'"/>
+                            </td>
+                            <td>
+                                <strong th:text="${banner.title}">Popup</strong>
+                                <a th:if="${banner.linkUrl != null}" th:href="${banner.linkUrl}" target="_blank"
+                                   rel="noopener noreferrer" class="small text-truncate d-block" style="max-width:260px"
+                                   th:text="${banner.linkUrl}"></a>
+                            </td>
+                            <td>
+                                <span th:if="${banner.displayMode == 'ONCE'}" class="badge text-bg-info">Hiện 1 lần</span>
+                                <span th:if="${banner.displayMode == 'EVERY_VISIT'}" class="badge text-bg-primary">Mỗi lần visit</span>
+                                <span th:if="${banner.displayMode == 'INTERVAL'}" class="badge text-bg-warning">
+                                    Lặp lại mỗi <span th:text="${banner.intervalMinutes}"></span> phút
+                                </span>
+                            </td>
+                            <td>
+                                <span th:if="${!banner.active}" class="status-pill status-AN">Đang tắt</span>
+                                <span th:if="${banner.active}" class="status-pill status-DANG_HIEN_THI">Đang bật</span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <form th:action="@{/admin/popup-banner/toggle/{id}(id=${banner.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm"
+                                            th:classappend="${banner.active ? 'btn-outline-secondary' : 'btn-outline-success'}"
+                                            th:title="${banner.active ? 'Tắt popup' : 'Bật popup'}">
+                                        <i th:class="${banner.active ? 'bi bi-toggle-on' : 'bi bi-toggle-off'}"></i>
+                                    </button>
+                                </form>
+                                <a th:href="@{/admin/popup-banner/sua/{id}(id=${banner.id})}"
+                                   class="btn btn-sm btn-outline-primary" title="Sửa">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/admin/popup-banner/xoa/{id}(id=${banner.id})}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Xóa popup banner này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(banners)}">
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="bi bi-window-stack fs-2 d-block mb-2"></i>
+                                Chưa có popup banner nào.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -45,3 +45,18 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+
+/* ── Notification polling ── */
+(function() {
+    var badge = document.getElementById('staffNotifBadge');
+    if (!badge) return;
+    setInterval(function() {
+        fetch('/admin/thong-bao/api/count')
+            .then(function(r) { return r.text(); })
+            .then(function(count) {
+                var num = parseInt(count) || 0;
+                badge.classList.toggle('d-none', num === 0);
+            })
+            .catch(function() {});
+    }, 30000);
+})();
