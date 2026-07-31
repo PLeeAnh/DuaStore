@@ -226,7 +226,7 @@
                                         </div>
                                     </div>
                                 </a>
-                                <div th:if="${n.linkType == null}" class="notif-item">
+                                <div th:if="${n.linkType == null}" class="notif-item" th:attr="data-notif-id=${n.id}">
                                     <div class="d-flex align-items-start gap-2">
                                         <span class="notif-icon bg-primary-subtle text-primary flex-shrink-0">
                                             <i class="bi bi-megaphone"></i>
@@ -944,6 +944,8 @@
 <script th:src="@{/js/client-base.js(v=1)}"></script>
 
 <script th:src="@{/js/base-ui.js(v=8)}"></script>
+<script th:src="@{/js/base-ui.js(v=7)}"></script>
+<script th:src="@{/js/popup-banner.js}"></script>
 <div id="dsToast"
      class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
      style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
