@@ -494,10 +494,10 @@ function markNotifRead(id) {
 }
 function deleteNotif(id) {
         if (!confirm('Xóa thông báo này?')) return;
-        fetch('/api/thong-bao/xoa/' + id, { method: 'POST' })
-        .then(function(r) { return r.text(); })
-        .then(function() {
-        var item = document.querySelector('#notif-popup [data-notif-id="' + id + '"]');
+        DuaStore.api.post('/api/thong-bao/xoa/' + id)
+        .then(function(r) {
+        if (!r.ok) return;
+        var item = document.querySelector('[data-notif-id="' + id + '"]');
         if (item) item.remove();
         var container = document.querySelector('#notif-popup .mt-2');
         if (container && container.querySelectorAll('.notif-item').length === 0) {
