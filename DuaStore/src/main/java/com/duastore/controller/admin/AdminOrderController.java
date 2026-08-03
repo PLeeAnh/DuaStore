@@ -7,6 +7,8 @@ import com.duastore.dto.OrderStatusDTO;
 import com.duastore.model.Order;
 import com.duastore.model.User;
 import com.duastore.repository.OrderRepository;
+import com.duastore.repository.UserRepository;
+import com.duastore.service.EmailService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminOrderService;
@@ -53,6 +55,8 @@ public class AdminOrderController {
     private final com.duastore.repository.ProductRepository productRepository;
     private final com.duastore.repository.ProductVariantRepository variantRepository;
     private final FraudDetectionService fraudDetectionService;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
 
     public AdminOrderController(AdminOrderService adminOrderService,
             OrderService orderService,
@@ -64,7 +68,9 @@ public class AdminOrderController {
             OrderRepository orderRepository,
             com.duastore.repository.ProductRepository productRepository,
             com.duastore.repository.ProductVariantRepository variantRepository,
-            FraudDetectionService fraudDetectionService) {
+            FraudDetectionService fraudDetectionService,
+            EmailService emailService,
+            UserRepository userRepository) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
@@ -76,6 +82,8 @@ public class AdminOrderController {
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.fraudDetectionService = fraudDetectionService;
+        this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -259,6 +267,14 @@ public class AdminOrderController {
                             order.getMaDon(),
                             order.getUser() != null ? order.getUser().getId() : null
                     );
+                    // Gửi email cho khách hàng
+                    if (order.getUser() != null && order.getUser().getEmail() != null) {
+                        final String toEmail   = order.getUser().getEmail();
+                        final String hoTen     = order.getUser().getHoTen();
+                        final String maDon     = order.getMaDon();
+                        final String statusLbl = statusName;
+                        new Thread(() -> emailService.sendOrderStatusEmail(toEmail, hoTen, maDon, statusLbl)).start();
+                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -321,6 +337,14 @@ public class AdminOrderController {
                             order.getMaDon(),
                             order.getUser() != null ? order.getUser().getId() : null
                     );
+                    // Gửi email cho khách hàng
+                    if (order.getUser() != null && order.getUser().getEmail() != null) {
+                        final String toEmail   = order.getUser().getEmail();
+                        final String hoTen     = order.getUser().getHoTen();
+                        final String maDon     = order.getMaDon();
+                        final String statusLbl = statusName;
+                        new Thread(() -> emailService.sendOrderStatusEmail(toEmail, hoTen, maDon, statusLbl)).start();
+                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -390,6 +414,27 @@ public class AdminOrderController {
                     String stockMsg = adminOrderService.updateOrderStatusWithLog(id, status, oldStatus, admin, request);
                     updated++;
                     log.info("Batch update order #{}: {} -> {}", id, oldStatus, status);
+
+                    if (!"DA_HUY".equals(status)) {
+                        try {
+                            String statusName = AdminOrderService.getStatusName(status);
+                            notificationHelper.notifyAll(
+                                    "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                                    "ORDER", order.getId(),
+                                    "/tai-khoan/don-hang/" + order.getId(),
+                                    order.getMaDon(),
+                                    order.getUser() != null ? order.getUser().getId() : null
+                            );
+                            if (order.getUser() != null && order.getUser().getEmail() != null && !order.getUser().getEmail().isBlank()) {
+                                final String toEmail   = order.getUser().getEmail();
+                                final String hoTen     = order.getUser().getHoTen();
+                                final String maDon     = order.getMaDon();
+                                final String statusLbl = statusName;
+                                new Thread(() -> emailService.sendOrderStatusEmail(toEmail, hoTen, maDon, statusLbl)).start();
+                            }
+                        } catch (Exception ignored) {
+                        }
+                    }
                 } catch (Exception e) {
                     log.error("Batch update failed for order #{}: {}", id, e.getMessage());
                     errors.add("Đơn #" + id + ": " + e.getMessage());
@@ -486,8 +531,35 @@ public class AdminOrderController {
             User newAdmin = new User();
             newAdmin.setId(adminId);
             adminLogService.reassignAdmin(order, admin, newAdmin, request);
+
+            // Gửi email cho admin/staff được phân công
+            try {
+                User assignedUser = userRepository.findById(adminId).orElse(null);
+                if (assignedUser != null && assignedUser.getEmail() != null && !assignedUser.getEmail().isBlank()) {
+                    final String toEmail      = assignedUser.getEmail();
+                    final String adminName    = assignedUser.getHoTen() != null ? assignedUser.getHoTen() : assignedUser.getEmail();
+                    final String maDon        = order.getMaDon();
+                    final String customerName = order.getSnapTenNguoiNhan() != null ? order.getSnapTenNguoiNhan() : "Khách hàng";
+                    final String assignedBy   = admin.getHoTen() != null ? admin.getHoTen() : admin.getUsername();
+                    log.info("Gửi email phân công đơn {} tới {} <{}>", maDon, adminName, toEmail);
+                    new Thread(() -> {
+                        try {
+                            emailService.sendOrderAssignedEmail(toEmail, adminName, maDon, customerName, assignedBy);
+                            log.info("Email phân công đơn {} gửi thành công tới {}", maDon, toEmail);
+                        } catch (Exception ex) {
+                            log.error("Lỗi gửi email phân công đơn {}: {}", maDon, ex.getMessage(), ex);
+                        }
+                    }).start();
+                } else {
+                    log.warn("Không gửi email phân công: adminId={} không có email hoặc không tìm thấy", adminId);
+                }
+            } catch (Exception emailEx) {
+                log.error("Lỗi khi chuẩn bị email phân công đơn #{}: {}", id, emailEx.getMessage(), emailEx);
+            }
+
             ra.addFlashAttribute("successMsg", "Đã phân công lại đơn hàng");
         } catch (Exception e) {
+            log.error("Lỗi reassignAdmin đơn #{}: {}", id, e.getMessage(), e);
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/don-hang/" + id;

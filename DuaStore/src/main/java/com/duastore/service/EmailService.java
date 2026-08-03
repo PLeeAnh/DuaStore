@@ -274,4 +274,107 @@ public class EmailService implements EmailSender {
             log.warn("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
         }
     }
+
+    // ─── Email thay đổi trạng thái đơn hàng → gửi cho khách hàng ───────────
+    public void sendOrderStatusEmail(String toEmail, String hoTen, String maDon, String trangThaiLabel) {
+        try {
+            JavaMailSender sender = resolveMailSender();
+            MimeMessage msg = sender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setFrom(resolveFromEmail(), resolveFromName());
+            helper.setTo(toEmail);
+            helper.setSubject("[DuaStore] Cập nhật đơn hàng " + maDon);
+            String html = """
+                <html><body style="font-family:Arial;background:#f5f5f5;padding:40px 0;">
+                  <table width="520" align="center"
+                         style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.1);">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#e53935,#c62828);padding:28px;text-align:center;">
+                        <div style="color:#fff;font-size:22px;font-weight:800;">DuaStore</div>
+                        <div style="color:rgba(255,255,255,.8);font-size:13px;">Đồ Thủy Tinh Cao Cấp</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:32px 40px;">
+                        <p style="font-size:15px;color:#616161;">Xin chào <strong>%s</strong>,</p>
+                        <p style="font-size:14px;color:#616161;line-height:1.7;">
+                          Đơn hàng <strong style="color:#e53935;">%s</strong> của bạn vừa được cập nhật trạng thái mới:
+                        </p>
+                        <div style="background:#fff8f8;border-left:4px solid #e53935;border-radius:8px;padding:16px 20px;margin:16px 0;">
+                          <div style="font-size:16px;font-weight:700;color:#e53935;">%s</div>
+                        </div>
+                        <p style="font-size:13px;color:#9e9e9e;margin-top:24px;">
+                          Cảm ơn bạn đã tin tưởng mua sắm tại DuaStore!<br/>
+                          Mọi thắc mắc vui lòng liên hệ <strong>0901 234 567</strong>
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="background:#f9f9f9;padding:14px;text-align:center;border-top:1px solid #eee;">
+                        <span style="font-size:12px;color:#bdbdbd;">&copy; 2025 DuaStore</span>
+                      </td>
+                    </tr>
+                  </table>
+                </body></html>
+                """.formatted(hoTen, maDon, trangThaiLabel);
+            helper.setText(html, true);
+            sender.send(msg);
+        } catch (Exception e) {
+            log.warn("Failed to send order status email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    // ─── Email phân công đơn hàng → gửi cho admin/nhân viên được giao ────────
+    public void sendOrderAssignedEmail(String toEmail, String adminName, String maDon,
+                                        String customerName, String assignedBy) {
+        try {
+            JavaMailSender sender = resolveMailSender();
+            MimeMessage msg = sender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            helper.setFrom(resolveFromEmail(), resolveFromName());
+            helper.setTo(toEmail);
+            helper.setSubject("[DuaStore Admin] Đơn hàng mới được phân công: " + maDon);
+            String html = """
+                <html><body style="font-family:Arial;background:#f5f5f5;padding:40px 0;">
+                  <table width="520" align="center"
+                         style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.1);">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#1565c0,#0d47a1);padding:28px;text-align:center;">
+                        <div style="color:#fff;font-size:22px;font-weight:800;">DuaStore Admin</div>
+                        <div style="color:rgba(255,255,255,.8);font-size:13px;">Hệ thống quản lý đơn hàng</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:32px 40px;">
+                        <p style="font-size:15px;color:#616161;">Xin chào <strong>%s</strong>,</p>
+                        <p style="font-size:14px;color:#616161;line-height:1.7;">
+                          Bạn vừa được <strong>%s</strong> phân công xử lý đơn hàng sau:
+                        </p>
+                        <div style="background:#f0f6ff;border-left:4px solid #1565c0;border-radius:8px;padding:16px 20px;margin:16px 0;">
+                          <table style="width:100%%;border-collapse:collapse;">
+                            <tr><td style="font-size:13px;color:#9e9e9e;width:120px;">Mã đơn hàng</td>
+                                <td style="font-size:15px;font-weight:700;color:#1565c0;">%s</td></tr>
+                            <tr><td style="font-size:13px;color:#9e9e9e;padding-top:6px;">Khách hàng</td>
+                                <td style="font-size:14px;color:#424242;padding-top:6px;">%s</td></tr>
+                          </table>
+                        </div>
+                        <p style="font-size:13px;color:#9e9e9e;margin-top:20px;">
+                          Vui lòng đăng nhập vào hệ thống admin để xử lý đơn hàng này.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="background:#f9f9f9;padding:14px;text-align:center;border-top:1px solid #eee;">
+                        <span style="font-size:12px;color:#bdbdbd;">&copy; 2025 DuaStore</span>
+                      </td>
+                    </tr>
+                  </table>
+                </body></html>
+                """.formatted(adminName, assignedBy, maDon, customerName);
+            helper.setText(html, true);
+            sender.send(msg);
+        } catch (Exception e) {
+            log.warn("Failed to send order assigned email to {}: {}", toEmail, e.getMessage());
+        }
+    }
 }
