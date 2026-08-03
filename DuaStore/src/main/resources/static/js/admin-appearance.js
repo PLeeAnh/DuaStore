@@ -20,6 +20,34 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('callConfig').style.display = this.checked ? 'block' : 'none';
         });
     });
+
+    // ── Popup Promo ──
+    var pActive  = document.getElementById('popupPromoActive');
+    var pConfig  = document.getElementById('popupPromoConfig');
+    var pMode    = document.getElementById('popupPromoMode');
+    var pItvWrap = document.getElementById('popupPromoIntervalWrap');
+    var pImg     = document.getElementById('popupPromoImage');
+    var pPreview = document.getElementById('popupPromoPreview');
+    if (pActive && pConfig) {
+        pConfig.style.display = pActive.checked ? 'block' : 'none';
+        pActive.addEventListener('change', function () {
+            pConfig.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    if (pMode && pItvWrap) {
+        pItvWrap.style.display = pMode.value === 'timed' ? 'block' : 'none';
+        pMode.addEventListener('change', function () {
+            pItvWrap.style.display = this.value === 'timed' ? 'block' : 'none';
+        });
+    }
+    if (pImg && pPreview) {
+        pImg.addEventListener('input', function () {
+            var url = this.value.trim();
+            pPreview.innerHTML = url
+                ? '<img src="' + url + '" style="max-width:100%;max-height:160px;object-fit:contain" alt="Preview" onerror="this.parentElement.innerHTML=\'<span class=text-muted>\u1ea2nh kh\u00f4ng h\u1ee3p l\u1ec7</span>\'">'
+                : '<span class="text-muted small">Ch\u01b0a c\u00f3 \u1ea3nh</span>';
+        });
+    }
 });
 
 /* ── Color picker sync ── */
