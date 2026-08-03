@@ -13,7 +13,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Map;
@@ -34,7 +33,6 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     }
 
     @Override
-    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
         HttpSession session = request.getSession();
@@ -73,7 +71,11 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             session.setAttribute("userPhoneVisible", user.getPhoneVisible());
             session.setAttribute("userEmailMarketing", user.getEmailMarketing());
             session.setAttribute("userCreatedAt", user.getNgayTao());
-            session.setAttribute("hasGoogleLinked", userAuthProviderRepository.existsByUserIdAndProvider(user.getId(), "GOOGLE"));
+            try {
+                session.setAttribute("hasGoogleLinked", userAuthProviderRepository.existsByUserIdAndProvider(user.getId(), "GOOGLE"));
+            } catch (Exception ex) {
+                session.setAttribute("hasGoogleLinked", false);
+            }
 
             boolean isAdmin = user.getRoles().stream()
                     .anyMatch(r -> Set.of("ADMIN", "SUPER_ADMIN").contains(r.getName()));
@@ -95,8 +97,12 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         @SuppressWarnings("unchecked")
         Map<Integer, Integer> guestCart = (Map<Integer, Integer>) session.getAttribute("guestCart");
         if (guestCart != null && !guestCart.isEmpty() && user != null) {
-            cartService.mergeGuestCart(user.getId(), guestCart);
-            session.removeAttribute("guestCart");
+            try {
+                cartService.mergeGuestCart(user.getId(), guestCart);
+                session.removeAttribute("guestCart");
+            } catch (Exception ex) {
+                session.removeAttribute("guestCart");
+            }
         }
 
         if (authentication.getPrincipal() instanceof OAuth2User) {
