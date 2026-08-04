@@ -30,11 +30,8 @@
             <div class="ds-home-content">
 
                 <!-- DANH MỤC (slider 4 cột + arrows + dots) -->
-                <section class="ds-section-card ds-cat-v2 sr-up ds-slider-section" th:if="${themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0'}"
+                <section class="ds-section-card ds-cat-v2 sr-up ds-slider-section" th:if="${(themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0') and not #lists.isEmpty(featuredCategories)}"
                          data-items-per-page="4">
-                    <div class="ds-section-header">
-                        <h2 class="ds-section-title-sm">Duyệt theo danh mục</h2>
-                    </div>
                     <div class="ds-slider-wrap">
                         <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                         <div class="ds-slider-viewport">
@@ -55,7 +52,7 @@
                 </section>
 
                 <!-- SẢN PHẨM NỔI BẬT -->
-                <section class="ds-section-card sr-up" th:if="${themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0'}">
+                <section class="ds-section-card sr-up" th:if="${(themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0') and not #lists.isEmpty(featuredProducts)}">
                     <div class="ds-product-grid-v2" th:style="'--cols:' + ${productColumns}">
 
                         <div th:each="p : ${featuredProducts}">

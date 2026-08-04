@@ -274,8 +274,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!bar._dirtyInit) {
             bar._dirtyInit = true;
 
+            // Browser autofill (username/password) can fire after the page loads,
+            // making a pristine form look dirty. Re-capture the baseline once
+            // autofill has settled so the save bar doesn't show prematurely.
+            setTimeout(function () {
+                forms.forEach(function (f) {
+                    f._cleanData = getFormData(f);
+                    f._dirty = false;
+                });
+                bar.style.display = 'none';
+                if (main) main.style.paddingBottom = '';
+            }, 400);
+
             if (resetBtn) resetBtn.addEventListener('click', function () {
-                history.back();
+                // Reset only the main content area via AJAX instead of a full
+                // page reload / history.back().
+                if (typeof window.__loadAdminPage === 'function') {
+                    window.__loadAdminPage(window.location.pathname + window.location.search);
+                } else {
+                    history.back();
+                }
             });
 
             if (saveBtn) saveBtn.addEventListener('click', function () {
@@ -301,7 +319,12 @@ document.addEventListener('DOMContentLoaded', () => {
         window.__pendingNav = null;
         var modal = bootstrap.Modal.getInstance(document.getElementById('unsavedModal'));
         if (modal) modal.hide();
-        if (typeof nav === 'function') nav();
+        if (typeof nav === 'function') {
+            nav();
+        } else if (typeof window.__loadAdminPage === 'function') {
+            // No pending navigation: discard changes and reload current main area via AJAX
+            window.__loadAdminPage(window.location.pathname + window.location.search);
+        }
     });
     document.getElementById('unsavedModal').addEventListener('hidden.bs.modal', function () {
         window.__pendingNav = null;
@@ -478,7 +501,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadAdminPage(url, clickedLink) {
 	contentArea.style.opacity = '0.4';
 	contentArea.style.pointerEvents = 'none';
-
 	fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(function (html) {
@@ -563,8 +585,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    window.__handleResponseHtml = function (html) {
-        var doc = new DOMParser().parseFromString(html, 'text/html');
+    window.__loadAdminPage = loadAdminPage;
+    window.__handleResponseHtml = function (html) {        var doc = new DOMParser().parseFromString(html, 'text/html');
         var newContent = doc.querySelector('.adm-content');
         if (newContent) {
             contentArea.innerHTML = newContent.innerHTML;

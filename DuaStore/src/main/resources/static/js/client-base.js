@@ -7,20 +7,46 @@
             if (!raw) throw 'no data';
             var data = JSON.parse(raw);
             var dayNames = {mon:'T2',tue:'T3',wed:'T4',thu:'T5',fri:'T6',sat:'T7',sun:'CN'};
-            var parts = [];
-            ['mon','tue','wed','thu','fri','sat','sun'].forEach(function(d) {
-                if (!data[d]) return;
+            var order = ['mon','tue','wed','thu','fri','sat','sun'];
+
+            function daySchedule(d) {
                 var day = data[d];
+                if (!day || !day.open) return 'closed';
+                if (day.allDay) return 'allday';
+                var seen = {};
+                var times = [];
+                (day.slots || []).forEach(function(s) {
+                    if (!s || !s.open || !s.close) return;
+                    if (!/^\d{2}:\d{2}$/.test(s.open) || !/^\d{2}:\d{2}$/.test(s.close)) return;
+                    var k = s.open + ' – ' + s.close;
+                    if (!seen[k]) { seen[k] = true; times.push(k); }
+                });
+                return times.length ? times.join(', ') : 'closed';
+            }
+
+            var groups = [];
+            var cur = null;
+            order.forEach(function(d) {
                 var label = dayNames[d];
-                if (!day.open) { parts.push('<span style="opacity:.55">' + label + ': Đóng cửa</span>'); return; }
-                if (day.allDay) { parts.push(label + ': Mở cả ngày'); return; }
-                if (day.slots && day.slots.length) {
-                    var valid = day.slots.filter(function(s) { return s.open && s.close && /^\d{2}:\d{2}$/.test(s.open) && /^\d{2}:\d{2}$/.test(s.close); });
-                    if (valid.length) {
-                        var times = valid.map(function(s) { return s.open + ' – ' + s.close; }).join(', ');
-                        parts.push(label + ': ' + times);
-                    }
+                var sched = daySchedule(d);
+                if (cur && cur.sched === sched) {
+                    cur.days.push(label);
+                } else {
+                    cur = { days: [label], sched: sched };
+                    groups.push(cur);
                 }
+            });
+
+            function rangeLabel(days) {
+                if (days.length === 1) return days[0];
+                return days[0] + ' – ' + days[days.length - 1];
+            }
+
+            var parts = groups.map(function(g) {
+                var label = rangeLabel(g.days);
+                if (g.sched === 'closed') return '<span style="opacity:.55">' + label + ': Đóng cửa</span>';
+                if (g.sched === 'allday') return label + ': Mở cả ngày';
+                return label + ': ' + g.sched;
             });
             hoursEl.innerHTML = parts.join('<br>') || '<span style="opacity:.55">Chưa cập nhật</span>';
         } catch(e) { hoursEl.style.display = 'none'; }

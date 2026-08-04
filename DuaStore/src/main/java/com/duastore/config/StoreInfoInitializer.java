@@ -25,15 +25,14 @@ public class StoreInfoInitializer implements CommandLineRunner {
 
         StoreInfo store = new StoreInfo();
         store.setTenCuaHang("DuaStore");
-        store.setSoNha("Số 1");
-        store.setDuong("Đại Cồ Việt");
-        store.setPhuongXa("Phường Bách Khoa");
-        store.setQuanHuyen("Quận Hai Bà Trưng");
-        store.setTinhThanh("Thành phố Hà Nội");
-        store.setSoDienThoai("0901 234 567");
-        store.setEmail("hello@dua.store");
-        store.setLatitude(21.028511);
-        store.setLongitude(105.854170);
+        store.setDuong("Phố Tôn Thất Thuyết");
+        store.setPhuongXa("Phan Bội Châu");
+        store.setQuanHuyen("Phường Hồng Bàng");
+        store.setTinhThanh("Thành phố Hải Phòng");
+        store.setSoDienThoai("0983595240");
+        store.setEmail("anhpltp00872@gmail.com");
+        store.setLatitude(20.8565);
+        store.setLongitude(106.6756);
         store.setIsActive(true);
         store.setIsDefault(true);
         repository.save(store);

@@ -21,7 +21,7 @@
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Inter'}" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
-<link rel="stylesheet" th:href="@{/css/style.css(v=2)}"/>
+<link rel="stylesheet" th:href="@{/css/style.css(v=4)}"/>
 <link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css(v=1)}"/>
 
     <script defer th:src="@{/js/main.js(v=1)}"></script>
@@ -75,7 +75,7 @@
                 </th:block>
             </ul>
 
-            <div class="ds-nav-right ms-auto d-flex align-items-center gap-2">
+            <div class="ds-nav-right d-flex align-items-center gap-2">
                 <div th:if="${themeSettings.get('header_search') != '0'}" class="ds-search-wrap">
                     <form th:action="@{/san-pham}" method="get" class="ds-search-inline" role="search">
                         <i class="bi bi-search"></i>
@@ -854,9 +854,9 @@
             <div class="row g-5">
                 <div class="col-12 col-lg-4">
                     <div class="ds-footer-logo">DuaStore</div>
-                    <div class="mt-4" th:if="${storeSettings.get('store_address')}">
+                    <div class="mt-4">
                         <p class="ds-footer-info-label">Địa chỉ</p>
-                        <p class="ds-footer-info-val" th:text="${storeSettings.get('store_address')}">Số 1 Đại Cồ Việt</p>
+                        <p class="ds-footer-info-val" th:text="${storeSettings.get('store_address') ?: 'Phố Tôn Thất Thuyết, Phan Bội Châu, Phường Hồng Bàng, Thành phố Hải Phòng, 18000, Việt Nam'}">Phố Tôn Thất Thuyết, Phan Bội Châu, Hải Phòng</p>
                     </div>
                     <div class="mt-3">
                         <p class="ds-footer-info-label">Liên hệ</p>
@@ -894,10 +894,17 @@
                                 <div class="col-6 col-md-3">
                                     <h6 class="ds-footer-col-title" th:text="${themeSettings.get('footer_col_' + i + '_title')}">Tiêu đề</h6>
                                     <ul class="ds-footer-links">
-                                        <th:block th:each="line : ${#strings.arraySplit(themeSettings.get('footer_col_' + i + '_content'), '\\r?\\n|\\\\n')}">
-                                            <li th:unless="${#strings.isEmpty(#strings.trim(line))}">
-                                                <a th:href="${#strings.contains(line, ' | ')} ? ${#strings.substringAfter(line, ' | ').trim()} : '#'"
-                                                   th:text="${#strings.contains(line, ' | ')} ? ${#strings.substringBefore(line, ' | ').trim()} : ${#strings.trim(line)}">Link</a>
+                                        <th:block th:each="line : ${footerCols.get(i)}">
+                                            <li>
+                                                <a th:if="${#strings.contains(line, ' | ')}"
+                                                   th:href="${#strings.substringAfter(line, ' | ').trim()}"
+                                                   th:text="${#strings.substringBefore(line, ' | ').trim()}">Link</a>
+                                                <a th:if="${! #strings.contains(line, ' | ') and (#strings.startsWith(line, '/') or #strings.startsWith(line, 'http'))}"
+                                                   th:href="${line}"
+                                                   th:text="${line}">Link</a>
+                                                <a th:if="${! #strings.contains(line, ' | ') and !(#strings.startsWith(line, '/') or #strings.startsWith(line, 'http'))}"
+                                                   th:href="'#'"
+                                                   th:text="${line}">Link</a>
                                             </li>
                                         </th:block>
                                     </ul>
@@ -910,9 +917,9 @@
         </div>
         <div class="ds-footer-bottom">
             <span th:text="${themeSettings.get('footer_copyright') ?: '© 2026 DuaStore. All rights reserved.'}">© 2026 DuaStore</span>
-            <span class="ms-auto d-flex align-items-center gap-2" th:if="${storeSettings.get('store_address')}">
+            <span class="ms-auto d-flex align-items-center gap-2">
                 <i class="bi bi-geo-alt-fill" style="color:var(--ds-primary);font-size:.85rem;"></i>
-                <span th:text="${storeSettings.get('store_address')}" style="font-size:.8rem;color:var(--ds-gray-500);">167 P. Phan Bội Châu, Hồng Bàng, Hải Phòng</span>
+                <span th:text="${storeSettings.get('store_address') ?: 'Phố Tôn Thất Thuyết, Phan Bội Châu, Phường Hồng Bàng, Thành phố Hải Phòng, 18000, Việt Nam'}" style="font-size:.8rem;color:var(--ds-gray-500);">Phố Tôn Thất Thuyết, Phan Bội Châu, Hải Phòng</span>
             </span>
         </div>
     </div>
@@ -941,7 +948,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
-<script th:src="@{/js/client-base.js(v=1)}"></script>
+<script th:src="@{/js/client-base.js(v=2)}"></script>
 
 <script th:src="@{/js/base-ui.js(v=8)}"></script>
 <script th:src="@{/js/popup-banner.js}"></script>

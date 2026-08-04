@@ -65,6 +65,9 @@ public class RefundService {
 
     public RefundRequest approve(Integer id, Integer adminId, String ghiChu) {
         RefundRequest request = getById(id);
+        if (!"CHO_DUYET".equals(request.getTrangThai())) {
+            throw new RuntimeException("Yêu cầu hoàn tiền đã được xử lý");
+        }
         request.setTrangThai("DA_DUYET");
         request.setNguoiXuLyId(adminId);
         request.setNgayXuLy(LocalDateTime.now());
@@ -94,6 +97,9 @@ public class RefundService {
 
     public RefundRequest reject(Integer id, Integer adminId, String ghiChu) {
         RefundRequest request = getById(id);
+        if (!"CHO_DUYET".equals(request.getTrangThai())) {
+            throw new RuntimeException("Yêu cầu hoàn tiền đã được xử lý");
+        }
         request.setTrangThai("TU_CHOI");
         request.setNguoiXuLyId(adminId);
         request.setNgayXuLy(LocalDateTime.now());

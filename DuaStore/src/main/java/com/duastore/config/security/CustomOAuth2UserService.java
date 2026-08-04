@@ -97,7 +97,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             passProv.setProvider("PASSWORD");
             userAuthProviderRepository.save(passProv);
         } else if (!user.getIsActive()) {
-            return oauth2User;
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("account_locked",
+                            "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.", null));
         }
 
         if (googleSub != null && !userAuthProviderRepository.existsByUserIdAndProvider(user.getId(), "GOOGLE")) {

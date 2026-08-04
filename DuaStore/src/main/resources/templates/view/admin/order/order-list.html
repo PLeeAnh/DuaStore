@@ -108,7 +108,7 @@
                 <div class="d-flex gap-2">
                     <input type="text" id="searchQ" class="form-control form-control-sm" style="width:180px" placeholder="Mã đơn, tên KH..." th:value="${q}" />
                     <select id="filterTrangThai" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
-                        <option value="">Trạng thái đơn</option>
+                        <option value="CHUA_HOAN_THANH" th:selected="${trangThai == null or trangThai == '' or trangThai == 'CHUA_HOAN_THANH'}">Chưa hoàn thành</option>
                         <option value="CHO_XAC_NHAN" th:selected="${trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
                         <option value="DA_XAC_NHAN" th:selected="${trangThai == 'DA_XAC_NHAN'}">Đã xác nhận</option>
                         <option value="DANG_GIAO" th:selected="${trangThai == 'DANG_GIAO'}">Đang giao</option>

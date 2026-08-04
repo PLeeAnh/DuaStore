@@ -27,16 +27,19 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final CustomAuthenticationSuccessHandler successHandler;
     private final CustomOAuth2UserService oAuth2UserService;
+    private final TwoFactorAuthFilter twoFactorAuthFilter;
 
     @Value("${duastore.remember-me.key}")
     private String rememberMeKey;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
             CustomAuthenticationSuccessHandler successHandler,
-            CustomOAuth2UserService oAuth2UserService) {
+            CustomOAuth2UserService oAuth2UserService,
+            TwoFactorAuthFilter twoFactorAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
         this.oAuth2UserService = oAuth2UserService;
+        this.twoFactorAuthFilter = twoFactorAuthFilter;
     }
 
     @Bean
@@ -101,7 +104,7 @@ public class SecurityConfig {
                 );
 
         http.addFilterBefore(rateLimitingFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterAfter(twoFactorAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(twoFactorAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -112,13 +115,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public TwoFactorAuthFilter twoFactorAuthFilter() {
-        return new TwoFactorAuthFilter();
+    public FilterRegistrationBean<RateLimitingFilter> rateLimitingRegistration(RateLimitingFilter filter) {
+        FilterRegistrationBean<RateLimitingFilter> reg = new FilterRegistrationBean<>(filter);
+        reg.setEnabled(false);
+        return reg;
     }
 
     @Bean
-    public FilterRegistrationBean<RateLimitingFilter> rateLimitingRegistration(RateLimitingFilter filter) {
-        FilterRegistrationBean<RateLimitingFilter> reg = new FilterRegistrationBean<>(filter);
+    public FilterRegistrationBean<TwoFactorAuthFilter> twoFactorAuthRegistration(TwoFactorAuthFilter filter) {
+        FilterRegistrationBean<TwoFactorAuthFilter> reg = new FilterRegistrationBean<>(filter);
         reg.setEnabled(false);
         return reg;
     }

@@ -247,9 +247,6 @@ a {
     gap: 4px;
 }
 
-
-}
-
 .ds-nav-link-desktop {
     display: flex;
     align-items: center;
@@ -377,7 +374,17 @@ a {
 
 /* ── Right icons ── */
 .ds-nav-right {
+    display: flex;
+    align-items: center;
     gap: 6px;
+}
+
+/* Không phụ thuộc hoàn toàn vào Bootstrap: header luôn là flex hàng ngang */
+.ds-navbar .container-xl > .d-flex {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: .5rem !important;
 }
 
 .ds-icon-btn {
@@ -2298,11 +2305,33 @@ a {
 @media (min-width: 992px) {
     .ds-nav-list-desktop {
         display: flex;
+        margin-right: auto !important;
+    }
+    /* Menu nằm sát logo bên trái, nhóm icon (search/cart/notif/profile) dồn về bên phải */
+    .ds-navbar .ds-logo {
+        margin-right: 0 !important;
+    }
+    /* Chỉ hiện menu desktop; luôn ẩn menu mobile + nút hamburger trên desktop */
+    .ds-navbar #dsNavMobile {
+        display: none !important;
+    }
+    .ds-navbar .navbar-toggler {
+        display: none !important;
     }
 }
 
 /* Mobile */
-@media (max-width: 991px) {
+@media (max-width: 991.98px) {
+    .ds-nav-list-desktop {
+        display: none !important;
+    }
+    .ds-navbar #dsNavMobile:not(.show) {
+        display: none !important;
+    }
+    .ds-navbar #dsNavMobile.show {
+        display: block;
+    }
+
     .hero-slide {
         min-height: 60vh;
     }
@@ -6684,4 +6713,184 @@ body.ds-checkout-page #main-content {
     .ds-promo-popup-modal { max-width: 95%; }
     .ds-promo-popup-close { top: -10px; right: -6px; width: 32px; height: 32px; font-size: 18px; }
     .ds-promo-popup-img-link { border-radius: 12px; }
+}
+
+/* =====================================================
+    PROMO PAGE v2 (khuyen-mai) - xanh nuoc bien nhat
+===================================================== */
+.ds-promo-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--ds-r-lg);
+    padding: 2.2rem 2rem 2rem;
+    background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 45%, #93C5FD 100%);
+    border: 1px solid rgba(37,99,235,.12);
+    margin-bottom: 1.25rem;
+}
+.ds-promo-hero-deco {
+    position: absolute; border-radius: 50%;
+    background: rgba(37,99,235,.10);
+    pointer-events: none;
+}
+.ds-promo-hero-deco-1 { width: 220px; height: 220px; top: -80px; right: -40px; }
+.ds-promo-hero-deco-2 { width: 140px; height: 140px; bottom: -60px; left: 30%; background: rgba(16,185,129,.12); }
+.ds-promo-hero-deco-3 { width: 60px; height: 60px; top: 24px; left: 18%; background: rgba(37,99,235,.16); }
+.ds-promo-hero-badge {
+    position: relative; display: inline-block;
+    background: #1D4ED8; color: #fff;
+    font-size: .7rem; font-weight: 700; letter-spacing: 1.5px;
+    padding: .3rem .9rem; border-radius: 100px;
+    margin-bottom: .75rem;
+}
+.ds-promo-hero-title {
+    position: relative;
+    font-size: clamp(1.5rem, 3.2vw, 2.2rem);
+    font-weight: 800; color: #1E3A8A; margin: 0;
+    line-height: 1.25;
+}
+.ds-promo-hero-sub {
+    position: relative;
+    color: #3B5BDB; font-size: .95rem; margin: .35rem 0 1.1rem;
+}
+.ds-promo-hero-stats {
+    position: relative;
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+    margin-bottom: 1.1rem;
+}
+.ds-promo-hero-stat {
+    background: rgba(255,255,255,.75);
+    border: 1px solid rgba(37,99,235,.15);
+    border-radius: 14px;
+    padding: .6rem 1rem;
+    min-width: 190px;
+}
+.ds-promo-hero-stat-label {
+    display: block; font-size: .72rem; font-weight: 600;
+    color: #64748B; letter-spacing: .3px; text-transform: uppercase;
+    margin-bottom: .3rem;
+}
+.ds-promo-hero-stat-value {
+    font-size: 1.25rem; font-weight: 800; color: #1E3A8A;
+}
+.ds-promo-countdown { display: inline-flex; align-items: center; gap: 4px; }
+.cd-box {
+    display: inline-flex; flex-direction: column; align-items: center;
+    background: #1E3A8A; color: #fff;
+    border-radius: 8px; min-width: 42px; padding: .25rem .35rem;
+}
+.cd-val { font-size: 1.1rem; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.cd-unit { font-size: .6rem; opacity: .85; text-transform: uppercase; }
+.cd-sep { color: #1E3A8A; font-weight: 800; }
+.ds-promo-hero-cta {
+    position: relative; display: inline-block;
+    background: #1D4ED8; color: #fff;
+    font-weight: 600; font-size: .9rem;
+    padding: .6rem 1.6rem; border-radius: 100px;
+    text-decoration: none;
+    transition: background .2s, transform .2s;
+}
+.ds-promo-hero-cta:hover { background: #1E40AF; color: #fff; transform: translateY(-1px); }
+
+/* Tabs */
+.ds-promo-tabs {
+    display: flex; flex-wrap: wrap; gap: .5rem;
+    background: #fff; border: 1px solid var(--ds-border);
+    border-radius: var(--ds-r);
+    padding: .5rem; margin-bottom: 1.25rem;
+}
+.ds-promo-tab {
+    border: 1px solid transparent; background: transparent;
+    color: #475569; font-size: .85rem; font-weight: 600;
+    padding: .45rem 1.1rem; border-radius: 100px; cursor: pointer;
+    transition: all .2s;
+}
+.ds-promo-tab:hover { background: #EFF6FF; color: #1D4ED8; }
+.ds-promo-tab.active {
+    background: linear-gradient(135deg, #60A5FA, #3B82F6);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 4px 12px rgba(37,99,235,.25);
+}
+.ds-promo-item.hidden { display: none !important; }
+
+/* Ticket-style voucher card */
+.vc2-card {
+    display: flex; align-items: stretch;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+    overflow: hidden; height: 100%;
+    transition: box-shadow .2s, transform .2s;
+}
+.vc2-card:hover { box-shadow: 0 8px 24px rgba(37,99,235,.12); transform: translateY(-2px); }
+.vc2-left {
+    position: relative; flex-shrink: 0; width: 128px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 1rem .6rem;
+}
+.vc2-pct { background: linear-gradient(160deg, #93C5FD, #60A5FA 55%, #3B82F6); color: #fff; }
+.vc2-money { background: linear-gradient(160deg, #6EE7B7, #34D399 55%, #10B981); color: #fff; }
+.vc2-discount { font-size: 1.05rem; font-weight: 800; line-height: 1.25; }
+.vc2-max { font-size: .68rem; font-weight: 700; opacity: .95; margin-top: .3rem; }
+.vc2-label {
+    position: absolute; bottom: 8px; left: 8px; right: 8px;
+    font-size: .58rem; font-weight: 700; letter-spacing: .6px;
+    text-transform: uppercase; opacity: .8;
+}
+.vc2-notch {
+    position: relative; flex-shrink: 0; width: 0;
+}
+.vc2-notch::before, .vc2-notch::after {
+    content: ""; position: absolute; left: -9px; z-index: 1;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--ds-card-bg, #fff);
+}
+.vc2-notch::before { top: -9px; }
+.vc2-notch::after { bottom: -9px; }
+.vc2-notch div {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    border-left: 2px dashed rgba(30,58,138,.35);
+}
+.vc2-body { flex: 1; min-width: 0; padding: .9rem 1rem .9rem 1.1rem; display: flex; flex-direction: column; }
+.vc2-name { font-weight: 700; color: #1E293B; font-size: .92rem; margin-bottom: .45rem; line-height: 1.35; }
+.vc2-conds { display: flex; flex-wrap: wrap; gap: .3rem .9rem; margin-bottom: .55rem; }
+.vc2-cond { font-size: .75rem; color: #64748B; display: inline-flex; align-items: center; gap: 4px; }
+.vc2-cond strong { color: #1D4ED8; }
+.vc2-code-row { display: flex; align-items: center; gap: .5rem; margin-bottom: .6rem; }
+.vc2-code {
+    font-family: monospace; font-size: .8rem; font-weight: 700; letter-spacing: 1px;
+    color: #1E3A8A; background: #EFF6FF;
+    border: 1.5px dashed #93C5FD; border-radius: 8px;
+    padding: .25rem .8rem;
+}
+.vc2-copy {
+    border: 1px solid #93C5FD; background: #fff; color: #1D4ED8;
+    font-size: .75rem; font-weight: 600; border-radius: 8px;
+    padding: .3rem .8rem; cursor: pointer; transition: all .2s;
+}
+.vc2-copy:hover { background: #EFF6FF; }
+.vc2-copy.copied { background: #D1FAE5; border-color: #34D399; color: #047857; }
+.vc2-actions { display: flex; gap: .5rem; margin-top: auto; }
+.vc2-actions .vc-btn { font-size: .78rem; padding: .4rem .9rem; }
+.vc2-get {
+    border: none; border-radius: 100px;
+    background: linear-gradient(135deg, #60A5FA, #2563EB);
+    color: #fff; font-size: .78rem; font-weight: 600;
+    padding: .4rem 1.2rem; cursor: pointer;
+    transition: all .2s;
+}
+.vc2-get:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+
+/* Product cards in promo page */
+.ds-promo-product-card { height: 100%; }
+.ds-promo-price-row { display: flex; align-items: baseline; gap: 8px; margin-top: .35rem; flex-wrap: wrap; }
+.ds-promo-price-now { font-size: 1rem; font-weight: 800; color: #1D4ED8; }
+.ds-promo-price-old { font-size: .8rem; color: #94A3B8; text-decoration: line-through; }
+
+@media (max-width: 575.98px) {
+    .ds-promo-hero { padding: 1.6rem 1.1rem 1.4rem; }
+    .ds-promo-hero-stats { gap: .6rem; }
+    .ds-promo-hero-stat { min-width: 150px; }
+    .vc2-card { flex-direction: column; }
+    .vc2-left { width: 100%; flex-direction: row; gap: 1rem; padding: .8rem 1rem; }
+    .vc2-label { position: static; margin-left: auto; }
+    .vc2-notch { display: none; }
+    .vc2-discount { font-size: .95rem; }
 }

@@ -122,8 +122,7 @@
                                     <button class="vc-btn ds-btn-outline btn-detail" type="button"
                                             th:data-id="${v.promotion.id}">Chi tiết</button>
                                     <th:block th:if="${v.status.name() == 'AVAILABLE'}">
-                                        <button class="vc-btn vc-btn-disabled" type="button"
-                                                class="btn-remove-voucher" type="button"
+                                        <button class="vc-btn vc-btn-disabled btn-remove-voucher" type="button"
                                                 th:data-id="${v.id}">Đã lưu</button>
                                     </th:block>
                                     <th:block th:if="${v.status.name() == 'USED'}">

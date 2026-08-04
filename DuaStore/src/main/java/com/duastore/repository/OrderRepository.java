@@ -68,22 +68,27 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT o FROM Order o WHERE "
             + "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND "
-            + "(:trangThai IS NULL OR o.trangThaiDon = :trangThai) AND "
+            + "(:trangThai IS NULL OR :trangThai = 'CHUA_HOAN_THANH' OR o.trangThaiDon = :trangThai) AND "
+            + "(:trangThai IS NULL OR :trangThai <> 'CHUA_HOAN_THANH' OR o.trangThaiDon <> 'DA_HOAN_THANH') AND "
             + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) "
-            + "ORDER BY CASE WHEN o.trangThaiDon = 'CHO_XAC_NHAN' THEN 0 ELSE 1 END, o.ngayDat DESC")
+            + "ORDER BY o.ngayDat ASC")
     Page<Order> searchOrders(@Param("q") String q, @Param("trangThai") String trangThai,
             @Param("trangThaiTT") String trangThaiTT, Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE o.id IN :ids AND "
             + "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND "
-            + "(:trangThai IS NULL OR o.trangThaiDon = :trangThai) AND "
+            + "(:trangThai IS NULL OR :trangThai = 'CHUA_HOAN_THANH' OR o.trangThaiDon = :trangThai) AND "
+            + "(:trangThai IS NULL OR :trangThai <> 'CHUA_HOAN_THANH' OR o.trangThaiDon <> 'DA_HOAN_THANH') AND "
             + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) "
-            + "ORDER BY CASE WHEN o.trangThaiDon = 'CHO_XAC_NHAN' THEN 0 ELSE 1 END, o.ngayDat DESC")
+            + "ORDER BY o.ngayDat ASC")
     Page<Order> searchOrdersByIds(@Param("ids") List<Integer> ids,
             @Param("q") String q,
             @Param("trangThai") String trangThai,
             @Param("trangThaiTT") String trangThaiTT,
             Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)")
+    List<Order> findUnassignedOrders();
 
     @Query("SELECT o.user.id, COUNT(o) FROM Order o WHERE o.user.id IN :userIds GROUP BY o.user.id")
     List<Object[]> countByUserIds(@Param("userIds") List<Integer> userIds);

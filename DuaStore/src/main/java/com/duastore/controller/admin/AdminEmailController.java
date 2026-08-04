@@ -9,6 +9,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import org.springframework.util.MultiValueMap;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/admin/email-smtp")
 public class AdminEmailController {
@@ -24,7 +27,9 @@ public class AdminEmailController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).EMAIL_SETTING_READ)")
     public String edit(Model model) {
-        model.addAttribute("settings", siteSettingService.getGroup(GROUP));
+        Map<String, String> settings = new HashMap<>(SiteSettingService.EMAIL_DEFAULTS);
+        settings.putAll(siteSettingService.getGroup(GROUP));
+        model.addAttribute("settings", settings);
         model.addAttribute("title", "email-smtp");
         return "view/admin/email/form";
     }

@@ -124,7 +124,6 @@
                             </div>
                         </div>
                     </div>
-                    </div>
                 </form>
             </div>
 
@@ -194,7 +193,6 @@
                             </div>
                         </div>
                     </div>
-                    </div>
                 </form>
             </div>
 
@@ -245,7 +243,6 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
                     </div>
                 </form>
             </div>
@@ -345,7 +342,6 @@ Email: ...</textarea>
                                        th:value="${settings.get('footer_instagram')}" />
                             </div>
                         </div>
-                    </div>
                     </div>
                 </form>
             </div>
@@ -468,11 +464,10 @@ Email: ...</textarea>
                                     <label class="form-label small fw-semibold">Hiện lại sau (phút)</label>
                                     <input type="number" name="popup_promo_interval" class="form-control form-control-sm"
                                            min="1" max="10080" placeholder="60"
-                                           th:value="${settings.get('popup_promo_interval') ?: '60'}" />
+                                            th:value="${settings.get('popup_promo_interval') ?: '60'}" />
                                 </div>
                             </div>
                         </div>
-                    </div>
                     </div>
                 </form>
             </div>
@@ -485,7 +480,6 @@ Email: ...</textarea>
                         <p class="text-muted small">Nhập CSS để tùy chỉnh giao diện website. Không cần thẻ &lt;style&gt;.</p>
                         <textarea name="custom_css" class="form-control font-monospace" rows="15"
                                   style="font-size:0.85rem" th:text="${settings.get('custom_css')}"></textarea>
-                    </div>
                     </div>
                 </form>
             </div>
@@ -503,7 +497,6 @@ Email: ...</textarea>
                         <div class="alert alert-info small">
                             <i class="bi bi-info-circle me-1"></i>Kéo thả section để sắp xếp. Trong mỗi section có thể chọn layout cột và kéo thả nội dung vào từng cột.
                         </div>
-                    </div>
                     </div>
                 </form>
             </div>

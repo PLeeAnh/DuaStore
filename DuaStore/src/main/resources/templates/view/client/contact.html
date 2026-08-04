@@ -11,10 +11,16 @@
             <section class="ds-section sr-up">
                 <div class="container-xl">
                     <div class="ds-section-card">
+                        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${successMsg}">Cảm ơn bạn đã liên hệ!</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${errorMsg}">Có lỗi xảy ra, vui lòng thử lại.</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                         <div class="text-center mb-5">
-                            <span class="ds-section-badge">Liên hệ</span>
                             <h2 class="ds-section-title">Thông tin cửa hàng</h2>
-                            <p class="ds-section-desc">Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn</p>
                         </div>
 
                         <div class="row g-5" th:with="s=${store}">
@@ -41,7 +47,7 @@
                                                     <span th:if="${s.quanHuyen != null and !s.quanHuyen.isEmpty()}" th:text="${s.quanHuyen}"></span><br th:if="${s.quanHuyen != null and !s.quanHuyen.isEmpty() and (s.tinhThanh != null and !s.tinhThanh.isEmpty())}"/>
                                                     <span th:if="${s.tinhThanh != null and !s.tinhThanh.isEmpty()}" th:text="${s.tinhThanh}"></span>
                                                 </th:block>
-                                                <th:block th:unless="${s != null}">Số 1, Đại Cồ Việt<br/>Phường Bách Khoa<br/>Quận Hai Bà Trưng<br/>Thành phố Hà Nội</th:block>
+                                                <th:block th:unless="${s != null}">Phố Tôn Thất Thuyết, Phan Bội Châu<br/>Phường Hồng Bàng<br/>Thành phố Hải Phòng</th:block>
                                                 </p>
                                             </div>
                                         </div>
@@ -51,8 +57,8 @@
                                             <div>
                                                 <p class="fw-semibold mb-1">Điện thoại</p>
                                                 <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
-                                                    <a th:if="${s != null}" th:href="'tel:' + ${s.soDienThoai}" th:text="${s.soDienThoai}" style="color:inherit;text-decoration:none;">0901 234 567</a>
-                                                    <span th:unless="${s != null}">0901 234 567</span>
+                                                    <a th:if="${s != null}" th:href="'tel:' + ${s.soDienThoai}" th:text="${s.soDienThoai}" style="color:inherit;text-decoration:none;">0983595240</a>
+                                                    <span th:unless="${s != null}">0983595240</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -62,8 +68,8 @@
                                             <div>
                                                 <p class="fw-semibold mb-1">Email</p>
                                                 <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
-                                                    <a th:if="${s != null}" th:href="'mailto:' + ${s.email}" th:text="${s.email}" style="color:inherit;text-decoration:none;">hello@dua.store</a>
-                                                    <span th:unless="${s != null}">hello@dua.store</span>
+                                                    <a th:if="${s != null}" th:href="'mailto:' + ${s.email}" th:text="${s.email}" style="color:inherit;text-decoration:none;">anhpltp00872@gmail.com</a>
+                                                    <span th:unless="${s != null}">anhpltp00872@gmail.com</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -72,7 +78,7 @@
                                             <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-clock-fill"></i></span>
                                             <div>
                                                 <p class="fw-semibold mb-1">Giờ làm việc</p>
-                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">Thứ 2 - Thứ 7: 8:00 - 21:00<br/>Chủ nhật: 9:00 - 17:00</p>
+                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">T2 – CN: 08:00 – 19:00</p>
                                             </div>
                                         </div>
                                     </div>
@@ -89,9 +95,7 @@
                         </div>
 
                         <div class="text-center my-5 pt-3">
-                            <span class="ds-section-badge">Liên hệ</span>
                             <h2 class="ds-section-title">Gửi tin nhắn cho chúng tôi</h2>
-                            <p class="ds-section-desc">Mọi thắc mắc xin vui lòng để lại lời nhắn</p>
                         </div>
 
                         <div class="row justify-content-center">

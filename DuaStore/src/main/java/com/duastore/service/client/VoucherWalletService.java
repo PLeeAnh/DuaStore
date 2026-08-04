@@ -6,7 +6,6 @@ import com.duastore.model.VoucherStatus;
 import com.duastore.model.VoucherType;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.UserVoucherRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +36,9 @@ public class VoucherWalletService {
         if (!Boolean.TRUE.equals(lockedPromo.getIsActive())) {
             throw new RuntimeException("Khuyến mãi không còn hiệu lực");
         }
+        if (userVoucherRepository.existsByUserIdAndPromotionId(userId, promotionId)) {
+            throw new RuntimeException("Voucher đã có trong ví");
+        }
         if (lockedPromo.getMaxClaimsPerUser() != null && lockedPromo.getMaxClaimsPerUser() <= 0) {
             throw new RuntimeException("Khuyến mãi này không cho phép lưu voucher");
         }
@@ -57,12 +59,7 @@ public class VoucherWalletService {
 
         lockedPromo.setSavedCount(lockedPromo.getSavedCount() != null ? lockedPromo.getSavedCount() + 1 : 1);
         promotionRepository.save(lockedPromo);
-
-        try {
-            return userVoucherRepository.save(uv);
-        } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("Voucher đã có trong ví");
-        }
+        return userVoucherRepository.save(uv);
     }
 
     public void removeVoucher(Integer userId, Integer voucherId) {

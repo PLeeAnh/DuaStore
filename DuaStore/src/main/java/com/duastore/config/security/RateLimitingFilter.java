@@ -21,7 +21,12 @@ public class RateLimitingFilter extends HttpFilter {
             "/api/auth/send-code",
             "/api/auth/verify-code",
             "/quen-mat-khau",
-            "/dat-lai-mat-khau"
+            "/dat-lai-mat-khau",
+            "/tai-khoan/tai-khoan-lien-ket"
+    );
+
+    private static final Set<String> PROTECTED_PREFIXES = Set.of(
+            "/tai-khoan/chuyen-doi/"
     );
 
     private final ConcurrentHashMap<String, Window> store = new ConcurrentHashMap<>();
@@ -35,7 +40,9 @@ public class RateLimitingFilter extends HttpFilter {
         }
 
         String path = req.getRequestURI();
-        if (!PROTECTED_PATHS.contains(path)) {
+        boolean protectedPath = PROTECTED_PATHS.contains(path)
+                || PROTECTED_PREFIXES.stream().anyMatch(path::startsWith);
+        if (!protectedPath) {
             chain.doFilter(req, res);
             return;
         }

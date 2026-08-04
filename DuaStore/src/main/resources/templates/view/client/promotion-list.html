@@ -7,62 +7,93 @@
     </head>
     <body>
         <div layout:fragment="content">
-            <div class="ds-container py-4">
+            <div class="container-xl ds-ctn-width py-4">
                 <div class="ds-section-card">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb small">
-                            <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
-                            <li class="breadcrumb-item active">Khuyến mãi</li>
-                        </ol>
-                    </nav>
 
-                    <h4 class="fw-bold mb-3">Khuyến mãi hiện có</h4>
+                    <!-- ── Hero ── -->
+                    <div class="ds-promo-hero">
+                        <div class="ds-promo-hero-deco ds-promo-hero-deco-1"></div>
+                        <div class="ds-promo-hero-deco ds-promo-hero-deco-2"></div>
+                        <div class="ds-promo-hero-deco ds-promo-hero-deco-3"></div>
+                        <div class="ds-promo-hero-badge">KHUYẾN MÃI</div>
+                        <h1 class="ds-promo-hero-title">Ưu đãi hấp dẫn đang chờ bạn</h1>
+                        <p class="ds-promo-hero-sub" th:text="${promoCount != null ? promoCount + ' chương trình đang diễn ra' : 'Chương trình khuyến mãi đang diễn ra'}">3 chương trình đang diễn ra</p>
+                        <div class="ds-promo-hero-stats">
+                            <div class="ds-promo-hero-stat" th:if="${maxDiscountLabel != null and maxDiscountLabel != ''}">
+                                <span class="ds-promo-hero-stat-label">Giảm tối đa</span>
+                                <span class="ds-promo-hero-stat-value" th:text="${maxDiscountLabel}">Đến 50%</span>
+                            </div>
+                            <div class="ds-promo-hero-stat" th:if="${countdownEnd != null}">
+                                <span class="ds-promo-hero-stat-label">Kết thúc sau</span>
+                                <span class="ds-promo-countdown"
+                                      th:data-end="${#strings.concat(#temporals.format(countdownEnd, 'yyyy-MM-dd'), 'T', #temporals.format(countdownEnd, 'HH:mm:ss'))}">
+                                    <span class="cd-box"><span class="cd-val cd-days">0</span><span class="cd-unit">ngày</span></span>
+                                    <span class="cd-sep">:</span>
+                                    <span class="cd-box"><span class="cd-val cd-hours">00</span><span class="cd-unit">giờ</span></span>
+                                    <span class="cd-sep">:</span>
+                                    <span class="cd-box"><span class="cd-val cd-mins">00</span><span class="cd-unit">phút</span></span>
+                                    <span class="cd-sep">:</span>
+                                    <span class="cd-box"><span class="cd-val cd-secs">00</span><span class="cd-unit">giây</span></span>
+                                </span>
+                            </div>
+                        </div>
+                        <a class="ds-promo-hero-cta" href="#ds-promo-grid">Khám phá ngay</a>
+                    </div>
 
+                    <!-- ── Tab lọc ── -->
+                    <div class="ds-promo-tabs" id="promoTabs">
+                        <button type="button" class="ds-promo-tab active" data-filter="all">Tất cả</button>
+                        <button type="button" class="ds-promo-tab" data-filter="PHAN_TRAM">Giảm %</button>
+                        <button type="button" class="ds-promo-tab" data-filter="SO_TIEN">Giảm tiền</button>
+                        <button type="button" class="ds-promo-tab" data-filter="expiring">Sắp hết hạn</button>
+                    </div>
+
+                    <!-- ── Voucher ── -->
                     <div th:if="${#lists.isEmpty(promotions)}" class="text-center py-5 text-muted">
                         <i class="bi bi-ticket-perforated" style="font-size: 3rem;"></i>
                         <p class="mt-3">Hiện chưa có chương trình khuyến mãi nào</p>
                     </div>
 
-                    <div th:unless="${#lists.isEmpty(promotions)}" class="row g-3">
-                        <div th:each="p : ${promotions}" class="col-md-4 col-6">
-                            <div class="vc-card h-100">
-
-                                <!-- Discount -->
-                                <div class="vc-discount">
-                                    <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                          th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
-                                    <span th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
-                                          th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                    <div th:unless="${#lists.isEmpty(promotions)}" class="row g-3 ds-promo-grid" id="ds-promo-grid">
+                        <div th:each="p : ${promotions}" class="col-lg-6 col-12 ds-promo-item"
+                             th:data-loai="${p.loaiGiam}"
+                             th:data-end="${p.denNgay != null ? #temporals.format(p.denNgay, 'yyyy-MM-dd') : ''}">
+                            <div class="vc2-card">
+                                <div class="vc2-left" th:classappend="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'vc2-pct' : 'vc2-money'">
+                                    <div class="vc2-discount">
+                                        <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                                              th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">GIẢM 15%</span>
+                                        <span th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
+                                              th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}">GIẢM 30.000đ</span>
+                                    </div>
+                                    <div class="vc2-max" th:if="${p.giamToiDa != null}"
+                                         th:text="${'TỐI ĐA ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">TỐI ĐA 100.000đ</div>
+                                    <div class="vc2-label" th:text="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'Voucher giảm %' : 'Voucher giảm tiền'">Voucher</div>
                                 </div>
-
-                                <!-- Description -->
-                                <div class="vc-desc" th:text="${p.tenChuongTrinh}">Tên chương trình</div>
-
-                                <!-- Code pill -->
-                                <span class="vc-code">Mã: <span th:text="${p.maCode}">CODE</span></span>
-
-                                <!-- Conditions grid -->
-                                <div class="vc-grid">
-                                    <div class="vc-grid-item" th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}">
-                                        <span>&#x1F6D2;</span> Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                <div class="vc2-notch"></div>
+                                <div class="vc2-body">
+                                    <div class="vc2-name" th:text="${p.tenChuongTrinh}">Tên chương trình</div>
+                                    <div class="vc2-conds">
+                                        <span class="vc2-cond" th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}">
+                                            <i class="bi bi-cart3"></i> Đơn từ <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                        </span>
+                                        <span class="vc2-cond">
+                                            <i class="bi bi-calendar3"></i> HSD: <strong th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}">31/12/2026</strong>
+                                        </span>
+                                        <span class="vc2-cond" th:if="${p.savedCount != null and p.savedCount > 0}">
+                                            <i class="bi bi-people"></i> <strong th:text="${p.savedCount}">120</strong> người lưu
+                                        </span>
                                     </div>
-                                    <div class="vc-grid-item" th:if="${p.giamToiDa != null}">
-                                        <span>&#x1F4B0;</span> Giảm tối đa: <strong th:text="${#numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                    <div class="vc2-code-row">
+                                        <span class="vc2-code" th:text="${p.maCode}">CODE</span>
+                                        <button type="button" class="vc2-copy" th:data-code="${p.maCode}">Sao chép</button>
                                     </div>
-                                    <div class="vc-grid-item">
-                                        <span>&#x1F4C5;</span> HSD: <span th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}"></span>
+                                    <div class="vc2-actions">
+                                        <button class="vc-btn ds-btn-outline btn-detail" type="button"
+                                                th:data-id="${p.id}">Chi tiết</button>
+                                        <button class="vc2-get btn-save-voucher" type="button"
+                                                th:data-id="${p.id}">Nhận</button>
                                     </div>
-                                    <div class="vc-grid-item" th:if="${p.savedCount != null and p.savedCount > 0}">
-                                        <span>&#x1F465;</span> <span th:text="${p.savedCount}"></span> người lưu
-                                    </div>
-                                </div>
-
-                                <!-- Bottom row -->
-                                <div class="vc-bottom">
-                                    <button class="vc-btn ds-btn-outline btn-detail" type="button"
-                                            th:data-id="${p.id}">Chi tiết</button>
-                                    <button class="vc-btn ds-btn-fill btn-save-voucher" type="button"
-                                            th:data-id="${p.id}">Nhận</button>
                                 </div>
                             </div>
                         </div>
@@ -71,25 +102,96 @@
                     <nav th:if="${totalPages > 1}" class="mt-4">
                         <ul class="pagination justify-content-center">
                             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                <a class="page-link" th:href="@{/khuyen-mai(page=${currentPage - 1}, size=${pageSize})}">Trước</a>
+                                <a class="page-link" th:href="@{/khuyen-mai(page=${currentPage - 1}, size=${pageSize}, pPage=${dealCurrentPage})}">Trước</a>
                             </li>
                             <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
-                                <a class="page-link" th:href="@{/khuyen-mai(page=${i}, size=${pageSize})}" th:text="${i + 1}">1</a>
+                                <a class="page-link" th:href="@{/khuyen-mai(page=${i}, size=${pageSize}, pPage=${dealCurrentPage})}" th:text="${i + 1}">1</a>
                             </li>
                             <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                                <a class="page-link" th:href="@{/khuyen-mai(page=${currentPage + 1}, size=${pageSize})}">Sau</a>
+                                <a class="page-link" th:href="@{/khuyen-mai(page=${currentPage + 1}, size=${pageSize}, pPage=${dealCurrentPage})}">Sau</a>
                             </li>
                         </ul>
                     </nav>
 
-                    <!-- Modal phải nằm TRONG layout:fragment="content" mới được Thymeleaf ghép vào trang.
-                         Trước đây đặt ngoài div này nên bị loại bỏ hoàn toàn khi render layout -> popup không bao giờ hiện. -->
+                    <!-- ── Sản phẩm đang giảm giá ── -->
+                    <div class="mt-5">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <h4 class="fw-bold mb-0">Sản phẩm đang giảm giá</h4>
+                            <span class="ds-section-badge">DEAL HOT</span>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(dealProducts)}" class="text-center py-5 text-muted">
+                            <i class="bi bi-box-seam" style="font-size:3rem;"></i>
+                            <p class="mt-3">Chưa có sản phẩm nào trong chương trình</p>
+                        </div>
+
+                        <div th:unless="${#lists.isEmpty(dealProducts)}" class="row g-3">
+                            <div th:each="p : ${dealProducts}" class="col-xl-3 col-lg-4 col-sm-6 col-6"
+                                 th:with="pv=${dealVariantsMap.get(p.id) != null and !dealVariantsMap.get(p.id).isEmpty()} ? ${dealVariantsMap.get(p.id)[0]} : null">
+                                <div class="ds-product-card ds-promo-product-card">
+                                    <div class="ds-product-image-wrap">
+                                        <a th:href="@{/san-pham/{id}(id=${p.id})}">
+                                            <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                            <img th:if="${p.hinhAnhChinh == null and pv != null and pv.hinhAnh != null}" th:src="@{${pv.hinhAnh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                            <i th:if="${p.hinhAnhChinh == null and (pv == null or pv.hinhAnh == null)}" class="bi bi-box-seam"></i>
+                                            <span class="ds-badge-sale" th:if="${dealPctMap.get(p.id) != null and dealPctMap.get(p.id) > 0}"
+                                                  th:text="'-' + ${dealPctMap.get(p.id)} + '%'">-15%</span>
+                                            <span class="ds-badge-oos" th:classappend="${pv != null and pv.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
+                                        </a>
+                                    </div>
+                                    <div class="ds-card-body">
+                                        <a th:href="@{/san-pham/{id}(id=${p.id})}" class="ds-product-name" th:text="${p.tenSanPham}">Tên SP</a>
+                                        <div class="ds-promo-price-row">
+                                            <span class="ds-promo-price-now"
+                                                  th:text="${#numbers.formatInteger(dealPriceMap.get(p.id), 0, 'POINT')} + '₫'">100.000₫</span>
+                                            <span class="ds-promo-price-old" th:if="${dealPctMap.get(p.id) != null and dealPctMap.get(p.id) > 0}"
+                                                  th:text="${#numbers.formatInteger(dealOriginalMap.get(p.id), 0, 'POINT')} + '₫'">120.000₫</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;" th:if="${dealTotalItems > 0}">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <small class="text-muted fw-medium" style="font-size:.85rem;">
+                                    Hiển thị <strong th:text="${dealTotalItems == 0 ? 0 : dealCurrentPage * dealPageSize + 1}">1</strong>-<strong th:text="${(dealCurrentPage + 1) * dealPageSize > dealTotalItems ? dealTotalItems : (dealCurrentPage + 1) * dealPageSize}">12</strong> trong tổng số <strong th:text="${dealTotalItems}">0</strong> <span>sản phẩm</span>
+                                </small>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                                <nav th:if="${dealTotalPages > 1}">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <a th:href="@{/khuyen-mai(page=${currentPage}, size=${pageSize}, pPage=${dealCurrentPage - 1})}"
+                                           class="ds-pagination-nav-btn"
+                                           th:classappend="${dealCurrentPage == 0} ? 'disabled' : ''"
+                                           th:attr="tabindex=${dealCurrentPage == 0} ? '-1' : ''">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                        </a>
+                                        <a th:each="i : ${#numbers.sequence(0, dealTotalPages - 1)}"
+                                           th:href="@{/khuyen-mai(page=${currentPage}, size=${pageSize}, pPage=${i})}"
+                                           class="ds-pagination-btn"
+                                           th:classappend="${i == dealCurrentPage} ? 'active' : ''"
+                                           th:text="${i + 1}">1</a>
+                                        <a th:href="@{/khuyen-mai(page=${currentPage}, size=${pageSize}, pPage=${dealCurrentPage + 1})}"
+                                           class="ds-pagination-nav-btn"
+                                           th:classappend="${dealCurrentPage >= dealTotalPages - 1} ? 'disabled' : ''"
+                                           th:attr="tabindex=${dealCurrentPage >= dealTotalPages - 1} ? '-1' : ''">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                        </a>
+                                    </div>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal phải nằm TRONG layout:fragment="content" mới được Thymeleaf ghép vào trang. -->
                     <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
                 </div>
             </div>
         </div>
 
     <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/client-promo.js(v=1)}"></script>
     </th:block>
 </body>
 </html>

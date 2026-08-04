@@ -8,11 +8,39 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class SiteSettingService {
+
+    // Giá trị mặc định thông tin cửa hàng khi admin chưa lưu cấu hình.
+    public static final Map<String, String> STORE_DEFAULTS = new LinkedHashMap<>();
+
+    // Giá trị mặc định cấu hình SMTP khi admin chưa lưu (form admin /admin/email-smtp).
+    public static final Map<String, String> EMAIL_DEFAULTS = new LinkedHashMap<>();
+
+    static {
+        STORE_DEFAULTS.put("store_address", "Phố Tôn Thất Thuyết, Phan Bội Châu, Phường Hồng Bàng, Thành phố Hải Phòng, 18000, Việt Nam");
+        STORE_DEFAULTS.put("store_phone", "0983595240");
+        STORE_DEFAULTS.put("store_email", "anhpltp00872@gmail.com");
+        STORE_DEFAULTS.put("store_business_hours",
+                "{\"mon\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"
+                + "\"tue\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"
+                + "\"wed\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"
+                + "\"thu\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"
+                + "\"fri\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"
+                + "\"sat\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"
+                + "\"sun\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]}}");
+        EMAIL_DEFAULTS.put("email_host", "smtp.gmail.com");
+        EMAIL_DEFAULTS.put("email_port", "587");
+        EMAIL_DEFAULTS.put("email_encryption", "tls");
+        EMAIL_DEFAULTS.put("email_username", "hhi658724@gmail.com");
+        EMAIL_DEFAULTS.put("email_password", "zkhj vycf jtyg tyzr");
+        EMAIL_DEFAULTS.put("email_from", "hhi658724@gmail.com");
+        EMAIL_DEFAULTS.put("email_from_name", "DuaStore");
+    }
 
     private final SiteSettingRepository siteSettingRepository;
 

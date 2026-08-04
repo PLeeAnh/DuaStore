@@ -101,7 +101,7 @@ public class AdminOrderController {
         }
 
         String query = (q != null && !q.isBlank()) ? q.trim() : null;
-        String filterTT = (trangThai != null && !trangThai.isBlank()) ? trangThai : null;
+        String filterTT = (trangThai != null && !trangThai.isBlank()) ? trangThai : "CHUA_HOAN_THANH";
         String filterTTTT = (trangThaiTT != null && !trangThaiTT.isBlank()) ? trangThaiTT : null;
 
         Page<Order> orderPage;
@@ -291,8 +291,10 @@ public class AdminOrderController {
             if ("DA_HUY".equals(newStatus)) {
                 return "redirect:/admin/don-hang";
             }
-            if (dto.getTrangThaiTT() != null && !dto.getTrangThaiTT().isBlank() && !dto.getTrangThaiTT().equals(order.getTrangThaiTT())) {
-                adminOrderService.updatePaymentStatusWithLog(id, dto.getTrangThaiTT(), order.getTrangThaiTT(), admin, request);
+            Order updatedOrder = adminOrderService.getOrderById(id);
+            if (dto.getTrangThaiTT() != null && !dto.getTrangThaiTT().isBlank()
+                    && !dto.getTrangThaiTT().equals(updatedOrder.getTrangThaiTT())) {
+                adminOrderService.updatePaymentStatusWithLog(id, dto.getTrangThaiTT(), updatedOrder.getTrangThaiTT(), admin, request);
             }
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
