@@ -72,10 +72,7 @@
                         </div>
                     </div>
 
-                    <div th:if="${#lists.isEmpty(posts)}" class="text-center py-5">
-                        <i class="bi bi-newspaper" style="font-size:3rem;color:#ccc;"></i>
-                        <p class="text-muted mt-3">Chưa có bài viết nào.</p>
-                    </div>
+                    <div th:if="${#lists.isEmpty(posts)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-newspaper', title='Chưa có bài viết nào', desc='Các bài viết về mẹo sử dụng và chăm sóc đồ thủy tinh sẽ sớm được đăng tải.', btnText='Về trang chủ', btnHref='/')}"></div>
 
                     <div th:unless="${#lists.isEmpty(posts)}" class="row g-4">
                         <div th:each="p : ${posts}" class="col-md-4 col-6">

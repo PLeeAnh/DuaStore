@@ -21,7 +21,7 @@
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Inter'}" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
-<link rel="stylesheet" th:href="@{/css/style.css(v=4)}"/>
+<link rel="stylesheet" th:href="@{/css/style.css(v=11)}"/>
 <link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css(v=1)}"/>
 
     <script defer th:src="@{/js/main.js(v=1)}"></script>
@@ -65,7 +65,7 @@
                 <i class="bi bi-list" style="font-size:1.6rem;"></i>
             </button>
 
-            <a class="ds-logo me-auto" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}">DuaStore</a>
+            <a class="ds-logo me-auto" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}"><img class="ds-logo-img" th:src="@{/images/logo.png}" alt="DuaStore logo"/><span>DuaStore</span></a>
 
             <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavDesktop">
                 <th:block th:each="i : ${#numbers.sequence(1,10)}">
@@ -242,8 +242,8 @@
                     </div>
                 </div>
 
-                <!-- PROFILE BUTTON + POPUP (like wishlist/cart) (logged-in only) -->
-                <div th:if="${themeSettings.get('header_account') != '0'}" class="position-relative d-inline-block">
+                <!-- PROFILE BUTTON + POPUP (like wishlist/cart) (logged-in only) — hidden on mobile (bottom nav has Tài khoản) -->
+                <div th:if="${themeSettings.get('header_account') != '0'}" class="position-relative d-inline-block d-none d-lg-inline-block">
                     <button class="ds-icon-btn" id="btn-profile-toggle"
                             type="button" th:data-profile="${session.loggedIn}"
                             title="Tài khoản" aria-label="Tài khoản">
@@ -850,11 +850,36 @@
 
 <footer class="ds-footer ds-footer-glass">
     <div class="container-xl ds-ctn-width">
-        <div class="ds-footer-card">
+        <div class="ds-footer-card m-3">
             <div class="row g-5">
+                <div class="col-12 col-lg-8">
+                    <div class="row g-4">
+                        <th:block th:each="i : ${#numbers.sequence(1,6)}">
+                            <th:block th:if="${themeSettings.containsKey('footer_col_' + i + '_title') and themeSettings.get('footer_col_' + i + '_title') != '' and themeSettings.containsKey('footer_col_' + i + '_content') and themeSettings.get('footer_col_' + i + '_content') != ''}">
+                                <div class="col-6 col-md-3">
+                                    <h6 class="ds-footer-col-title" th:text="${themeSettings.get('footer_col_' + i + '_title')}">Tiêu đề</h6>
+                                    <ul class="ds-footer-links">
+                                        <th:block th:each="line : ${footerCols.get(i)}">
+                                            <li>
+                                                <a th:if="${#strings.contains(line, ' | ')}"
+                                                   th:href="${#strings.substringAfter(line, ' | ').trim()}"
+                                                   th:text="${#strings.substringBefore(line, ' | ').trim()}">Link</a>
+                                                <a th:if="${! #strings.contains(line, ' | ') and (#strings.startsWith(line, '/') or #strings.startsWith(line, 'http'))}"
+                                                   th:href="${line}"
+                                                   th:text="${line}">Link</a>
+                                                <a th:if="${! #strings.contains(line, ' | ') and !(#strings.startsWith(line, '/') or #strings.startsWith(line, 'http'))}"
+                                                   th:href="'#'"
+                                                   th:text="${line}">Link</a>
+                                            </li>
+                                        </th:block>
+                                    </ul>
+                                </div>
+                            </th:block>
+                        </th:block>
+                    </div>
+                </div>
                 <div class="col-12 col-lg-4">
-                    <div class="ds-footer-logo">DuaStore</div>
-                    <div class="mt-4">
+                    <div>
                         <p class="ds-footer-info-label">Địa chỉ</p>
                         <p class="ds-footer-info-val" th:text="${storeSettings.get('store_address') ?: 'Phố Tôn Thất Thuyết, Phan Bội Châu, Phường Hồng Bàng, Thành phố Hải Phòng, 18000, Việt Nam'}">Phố Tôn Thất Thuyết, Phan Bội Châu, Hải Phòng</p>
                     </div>
@@ -883,34 +908,13 @@
                          id="footerMap" style="width:100%;max-width:300px;height:140px;border-radius:10px;border:1px solid var(--ds-border);background:#e9ecef"
                          th:attr="data-lat=${storeSettings.get('store_latitude')}, data-lng=${storeSettings.get('store_longitude')}"></div>
                     <div class="ds-footer-socials mt-4">
-                        <a th:if="${themeSettings.get('footer_facebook')}" th:href="${themeSettings.get('footer_facebook')}" target="_blank"><i class="bi bi-facebook"></i></a>
-                        <a th:if="${themeSettings.get('footer_instagram')}" th:href="${themeSettings.get('footer_instagram')}" target="_blank"><i class="bi bi-instagram"></i></a>
-                    </div>
-                </div>
-                <div class="col-12 col-lg-8">
-                    <div class="row g-4">
-                        <th:block th:each="i : ${#numbers.sequence(1,6)}">
-                            <th:block th:if="${themeSettings.containsKey('footer_col_' + i + '_title') and themeSettings.get('footer_col_' + i + '_title') != '' and themeSettings.containsKey('footer_col_' + i + '_content') and themeSettings.get('footer_col_' + i + '_content') != ''}">
-                                <div class="col-6 col-md-3">
-                                    <h6 class="ds-footer-col-title" th:text="${themeSettings.get('footer_col_' + i + '_title')}">Tiêu đề</h6>
-                                    <ul class="ds-footer-links">
-                                        <th:block th:each="line : ${footerCols.get(i)}">
-                                            <li>
-                                                <a th:if="${#strings.contains(line, ' | ')}"
-                                                   th:href="${#strings.substringAfter(line, ' | ').trim()}"
-                                                   th:text="${#strings.substringBefore(line, ' | ').trim()}">Link</a>
-                                                <a th:if="${! #strings.contains(line, ' | ') and (#strings.startsWith(line, '/') or #strings.startsWith(line, 'http'))}"
-                                                   th:href="${line}"
-                                                   th:text="${line}">Link</a>
-                                                <a th:if="${! #strings.contains(line, ' | ') and !(#strings.startsWith(line, '/') or #strings.startsWith(line, 'http'))}"
-                                                   th:href="'#'"
-                                                   th:text="${line}">Link</a>
-                                            </li>
-                                        </th:block>
-                                    </ul>
-                                </div>
-                            </th:block>
-                        </th:block>
+                        <a th:if="${themeSettings.get('footer_facebook')}" th:href="${themeSettings.get('footer_facebook')}" target="_blank" rel="noopener noreferrer" title="Facebook" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a th:if="${themeSettings.get('footer_instagram')}" th:href="${themeSettings.get('footer_instagram')}" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a th:if="${themeSettings.get('footer_tiktok')}" th:href="${themeSettings.get('footer_tiktok')}" target="_blank" rel="noopener noreferrer" title="TikTok" aria-label="TikTok"><i class="bi bi-tiktok"></i></a>
+                        <a th:if="${themeSettings.get('footer_youtube')}" th:href="${themeSettings.get('footer_youtube')}" target="_blank" rel="noopener noreferrer" title="YouTube" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                        <a th:if="${themeSettings.get('widget_zalo') == '1' and themeSettings.get('widget_zalo_phone') != ''}" th:href="'https://zalo.me/' + ${themeSettings.get('widget_zalo_phone')}" target="_blank" rel="noopener noreferrer" title="Chat Zalo" aria-label="Chat Zalo"><i class="bi bi-chat-dots-fill"></i></a>
+                        <a th:if="${themeSettings.get('widget_messenger') == '1' and themeSettings.get('widget_messenger_page_id') != ''}" th:href="'https://m.me/' + ${themeSettings.get('widget_messenger_page_id')}" target="_blank" rel="noopener noreferrer" title="Chat Messenger" aria-label="Chat Messenger"><i class="bi bi-messenger"></i></a>
+                        <a th:if="${storeSettings.get('store_email')}" th:href="'mailto:' + ${storeSettings.get('store_email')}" title="Email" aria-label="Email"><i class="bi bi-envelope-fill"></i></a>
                     </div>
                 </div>
             </div>
@@ -926,8 +930,8 @@
 </footer>
 
 <a th:if="${themeSettings.get('widget_zalo') == '1' and themeSettings.get('widget_zalo_phone') != ''}" th:href="'https://zalo.me/' + ${themeSettings.get('widget_zalo_phone')}" target="_blank" rel="noopener noreferrer" class="ds-float-zalo" title="Chat Zalo" aria-label="Liên hệ Zalo"><i class="bi bi-chat-dots-fill"></i></a>
-<a th:if="${themeSettings.get('widget_messenger') == '1' and themeSettings.get('widget_messenger_page_id') != ''}" th:href="'https://m.me/' + ${themeSettings.get('widget_messenger_page_id')}" target="_blank" rel="noopener noreferrer" class="ds-float-zalo" style="bottom:80px" title="Chat Messenger" aria-label="Chat Messenger"><i class="bi bi-messenger"></i></a>
-<a th:if="${themeSettings.get('widget_call') == '1' and themeSettings.get('widget_call_phone') != ''}" th:href="'tel:' + ${themeSettings.get('widget_call_phone')}" class="ds-float-zalo" style="bottom:140px;background:#28a745" title="Gọi điện" aria-label="Gọi điện"><i class="bi bi-telephone-fill"></i></a>
+<a th:if="${themeSettings.get('widget_messenger') == '1' and themeSettings.get('widget_messenger_page_id') != ''}" th:href="'https://m.me/' + ${themeSettings.get('widget_messenger_page_id')}" target="_blank" rel="noopener noreferrer" class="ds-float-zalo ds-float-messenger" title="Chat Messenger" aria-label="Chat Messenger"><i class="bi bi-messenger"></i></a>
+<a th:if="${themeSettings.get('widget_call') == '1' and themeSettings.get('widget_call_phone') != ''}" th:href="'tel:' + ${themeSettings.get('widget_call_phone')}" class="ds-float-zalo ds-float-call" style="background:#28a745" title="Gọi điện" aria-label="Gọi điện"><i class="bi bi-telephone-fill"></i></a>
 <button th:if="${themeSettings.get('widget_backtotop') != '0'}" class="ds-float-top" id="backTopBtn" style="display:none" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Lên đầu trang"><i class="bi bi-chevron-up"></i></button>
 
 <!-- POPUP -->
@@ -948,7 +952,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://unpkg.com/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
-<script th:src="@{/js/client-base.js(v=2)}"></script>
+<script th:src="@{/js/client-base.js(v=3)}"></script>
 
 <script th:src="@{/js/base-ui.js(v=8)}"></script>
 <script th:src="@{/js/popup-banner.js}"></script>
@@ -968,6 +972,15 @@
 <!-- Submit spinner moved to client-base.js -->
 
 <th:block layout:fragment="extra-script"></th:block>
+
+<!-- Mobile bottom nav -->
+<nav class="ds-mobile-nav d-lg-none" aria-label="Điều hướng mobile">
+    <a class="ds-mnav-item" th:href="@{/}"><i class="bi bi-house-door"></i><span>Trang chủ</span></a>
+    <a class="ds-mnav-item" th:href="@{/san-pham}"><i class="bi bi-grid"></i><span>Sản phẩm</span></a>
+    <button type="button" class="ds-mnav-item" onclick="focusMobileSearch()" title="Tìm kiếm"><i class="bi bi-search"></i><span>Tìm kiếm</span></button>
+    <a class="ds-mnav-item" th:href="@{/gio-hang}"><i class="bi bi-bag"></i><span>Giỏ hàng</span></a>
+    <a class="ds-mnav-item" th:href="@{/tai-khoan}"><i class="bi bi-person"></i><span>Tài khoản</span></a>
+</nav>
 
 </body>
 </html>

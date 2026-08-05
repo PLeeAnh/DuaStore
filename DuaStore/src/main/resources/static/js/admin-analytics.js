@@ -58,7 +58,6 @@
 
     window.initAnalyticsCharts = function (data) {
         if (!data || typeof Chart === 'undefined') return;
-
         // Destroy previously created charts so re-init (AJAX navigation) doesn't
         // throw "Canvas is already in use".
         chartInstances.forEach(function (c) { if (c) c.destroy(); });
@@ -141,4 +140,17 @@
     };
 
     if (window.__analyticsData) window.initAnalyticsCharts(window.__analyticsData);
+
+    // Chart init khi tab dang an (display:none) co the cho kich thuoc 0;
+    // khi tab duoc mo thi resize lai de chart hien dung.
+    var tabs = document.querySelectorAll('#analyticsTabs .nav-link');
+    for (var ti = 0; ti < tabs.length; ti++) {
+        tabs[ti].addEventListener('shown.bs.tab', function () {
+            for (var ci = 0; ci < chartInstances.length; ci++) {
+                if (chartInstances[ci] && typeof chartInstances[ci].resize === 'function') {
+                    chartInstances[ci].resize();
+                }
+            }
+        });
+    }
 })();

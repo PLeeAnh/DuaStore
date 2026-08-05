@@ -52,6 +52,16 @@ public class ClientNavbarAdvice {
         THEME_DEFAULTS.put("footer_col_3_title", "Liên hệ");
         THEME_DEFAULTS.put("footer_col_3_content", "Khuyến mãi | /khuyen-mai\nSản phẩm | /san-pham\nLiên hệ | /lien-he");
         THEME_DEFAULTS.put("footer_copyright", "© 2026 DuaStore. Tất cả quyền được bảo lưu.");
+        THEME_DEFAULTS.put("footer_facebook", "https://www.facebook.com/duastore.vn");
+        THEME_DEFAULTS.put("footer_instagram", "https://www.instagram.com/duastore.vn");
+        THEME_DEFAULTS.put("footer_tiktok", "https://www.tiktok.com/@duastore.vn");
+        THEME_DEFAULTS.put("footer_youtube", "https://www.youtube.com/@duastore");
+        THEME_DEFAULTS.put("widget_zalo", "1");
+        THEME_DEFAULTS.put("widget_zalo_phone", "0983595240");
+        THEME_DEFAULTS.put("widget_messenger", "1");
+        THEME_DEFAULTS.put("widget_messenger_page_id", "duastore.vn");
+        THEME_DEFAULTS.put("widget_call", "1");
+        THEME_DEFAULTS.put("widget_call_phone", "0983595240");
     }
 
     private final CartService cartService;

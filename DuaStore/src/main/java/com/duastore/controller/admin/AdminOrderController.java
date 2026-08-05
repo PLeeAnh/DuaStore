@@ -94,21 +94,26 @@ public class AdminOrderController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String trangThai,
             @RequestParam(name = "trangThaiTT", required = false) String trangThaiTT,
+            @RequestParam(name = "fromDate", required = false) String fromDateStr,
+            @RequestParam(name = "toDate", required = false) String toDateStr,
             Model model) {
         User admin = securityUtil.getCurrentUser();
         if (admin == null) {
-            return "redirect:/login";
+            return "redirect:/dang-nhap";
         }
 
         String query = (q != null && !q.isBlank()) ? q.trim() : null;
         String filterTT = (trangThai != null && !trangThai.isBlank()) ? trangThai : "CHUA_HOAN_THANH";
         String filterTTTT = (trangThaiTT != null && !trangThaiTT.isBlank()) ? trangThaiTT : null;
 
+        java.time.LocalDateTime fromDate = parseDateStart(fromDateStr);
+        java.time.LocalDateTime toDate = parseDateEndExclusive(toDateStr);
+
         Page<Order> orderPage;
         if (tatCa) {
-            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT);
+            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT, fromDate, toDate);
         } else {
-            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT);
+            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT, fromDate, toDate);
         }
         List<OrderDTO> orderDTOs = orderPage.getContent().stream()
                 .map(orderService::convertToDTO)
@@ -132,11 +137,19 @@ public class AdminOrderController {
         if (filterTTTT != null) {
             filterParams.put("trangThaiTT", filterTTTT);
         }
+        if (fromDate != null) {
+            filterParams.put("fromDate", fromDateStr);
+        }
+        if (toDate != null) {
+            filterParams.put("toDate", toDateStr);
+        }
         model.addAttribute("filterParams", filterParams);
         model.addAttribute("tatCa", tatCa);
         model.addAttribute("q", q);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("trangThaiTT", trangThaiTT);
+        model.addAttribute("fromDate", fromDateStr);
+        model.addAttribute("toDate", toDateStr);
         model.addAttribute("title", "don-hang");
         model.addAttribute("orderTab", "don-hang");
 
@@ -145,6 +158,28 @@ public class AdminOrderController {
         model.addAttribute("completedOrdersCount", orderRepository.countByTrangThaiDon("DA_HOAN_THANH"));
         model.addAttribute("cancelledOrdersCount", orderRepository.countByTrangThaiDon("DA_HUY"));
         return "view/admin/order/order-list";
+    }
+
+    private java.time.LocalDateTime parseDateStart(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return null;
+        }
+        try {
+            return java.time.LocalDate.parse(dateStr).atStartOfDay();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private java.time.LocalDateTime parseDateEndExclusive(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return null;
+        }
+        try {
+            return java.time.LocalDate.parse(dateStr).plusDays(1).atStartOfDay();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @GetMapping("/{id}/debug")
@@ -527,7 +562,7 @@ public class AdminOrderController {
         try {
             User admin = securityUtil.getCurrentUser();
             if (admin == null) {
-                return "redirect:/login";
+                return "redirect:/dang-nhap";
             }
             Order order = adminOrderService.getOrderById(id);
             User newAdmin = new User();

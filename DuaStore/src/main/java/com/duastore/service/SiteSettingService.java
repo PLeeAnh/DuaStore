@@ -25,6 +25,8 @@ public class SiteSettingService {
         STORE_DEFAULTS.put("store_address", "Phố Tôn Thất Thuyết, Phan Bội Châu, Phường Hồng Bàng, Thành phố Hải Phòng, 18000, Việt Nam");
         STORE_DEFAULTS.put("store_phone", "0983595240");
         STORE_DEFAULTS.put("store_email", "anhpltp00872@gmail.com");
+        STORE_DEFAULTS.put("store_latitude", "20.8565");
+        STORE_DEFAULTS.put("store_longitude", "106.6756");
         STORE_DEFAULTS.put("store_business_hours",
                 "{\"mon\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"
                 + "\"tue\":{\"open\":true,\"allDay\":false,\"slots\":[{\"open\":\"08:00\",\"close\":\"19:00\"}]},"

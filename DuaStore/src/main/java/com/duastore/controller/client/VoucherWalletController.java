@@ -32,7 +32,7 @@ public class VoucherWalletController {
             @RequestParam(defaultValue = "default") String sort,
             Model model, Principal principal) {
         if (principal == null) {
-            return "redirect:/login";
+            return "redirect:/dang-nhap";
         }
         Integer userId = securityUtil.getCurrentUserId();
 

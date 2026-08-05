@@ -84,9 +84,10 @@ public class AdminOrderService {
     }
 
     @Transactional
-    public Page<Order> getAllOrders(int page, int size, String q, String trangThai, String trangThaiTT) {
+    public Page<Order> getAllOrders(int page, int size, String q, String trangThai, String trangThaiTT,
+            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Order> orders = orderRepository.searchOrders(q, trangThai, trangThaiTT, pageable);
+        Page<Order> orders = orderRepository.searchOrders(q, trangThai, trangThaiTT, fromDate, toDate, pageable);
         for (Order o : orders.getContent()) {
             adminLogService.tuDongPhanDon(o);
         }
@@ -94,7 +95,8 @@ public class AdminOrderService {
     }
 
     @Transactional
-    public Page<Order> getMyOrders(Integer adminId, int page, int size, String q, String trangThai, String trangThaiTT) {
+    public Page<Order> getMyOrders(Integer adminId, int page, int size, String q, String trangThai, String trangThaiTT,
+            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate) {
         // Tự động phân những đơn chưa được gán cho ai về admin đang xem, để
         // tab "Của tôi" không bị trống dù đơn hàng vẫn tồn tại ở tab "Tất cả".
         User current = userRepository.findById(adminId).orElse(null);
@@ -112,7 +114,7 @@ public class AdminOrderService {
                 .collect(Collectors.toList());
 
         Pageable pageable = PageRequest.of(page, size);
-        return orderRepository.searchOrdersByIds(ids, q, trangThai, trangThaiTT, pageable);
+        return orderRepository.searchOrdersByIds(ids, q, trangThai, trangThaiTT, fromDate, toDate, pageable);
     }
 
     @Transactional(readOnly = true)

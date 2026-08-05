@@ -400,10 +400,8 @@
                     <div class="row g-3">
                         <div class="col-6 col-md-4" th:each="p : ${productPromotions}">
                             <div class="vc-card h-100">
-                                <div class="vc-discount">
-                                    <span th:if="${p.loaiGiam == 'PHAN_TRAM'}" th:text="'GIẢM ' + ${p.giaTriGiam} + '%'">GIẢM 15%</span>
-                                    <span th:if="${p.loaiGiam == 'SO_TIEN'}" th:text="'GIẢM ' + ${#numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT')} + 'đ'">GIẢM 30.000đ</span>
-                                </div>
+                                <div class="vc-discount"
+                                     th:text="${p.loaiGiam == 'PHAN_TRAM' ? ('GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%') : ('GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ')}">GIẢM 15%</div>
                                 <div class="vc-desc" th:text="${p.tenChuongTrinh}">Mô tả</div>
                                 <span class="vc-code">Mã: <span th:text="${p.maCode}">CODE</span></span>
                                 <div class="vc-grid">
@@ -418,8 +416,8 @@
                                     </div>
                                 </div>
                                 <div class="vc-bottom">
-                                    <button class="vc-btn ds-btn-outline btn-detail" type="button" th:data-id="${p.id}">Chi tiết</button>
-                                    <button class="vc-btn ds-btn-fill btn-save-voucher" type="button" th:data-id="${p.id}">Nhận</button>
+                                    <button class="vc-btn vc-btn-ghost btn-detail" type="button" th:data-id="${p.id}">Chi tiết</button>
+                                    <button class="vc-btn vc-btn-cta btn-save-voucher" type="button" th:data-id="${p.id}">Nhận</button>
                                 </div>
                             </div>
                         </div>
@@ -432,7 +430,7 @@
 
             <!-- Dùng chung fragment thay vì bản sao thủ công (đỡ phải sửa 2 nơi mỗi khi đổi cấu trúc),
                  và đặt TRONG layout:fragment="content" để Thymeleaf thực sự ghép vào trang. -->
-            <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
+            <th:block th:insert="~{fragments/promotion-modal :: promotionModal}" />
         </div>
 
     <th:block layout:fragment="extra-script">

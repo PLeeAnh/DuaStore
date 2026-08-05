@@ -631,8 +631,14 @@ public class CheckoutController {
         }
         try {
             int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-            orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
             Order order = orderService.getOrderByUserAndId(getUserId(), orderId);
+            long expectedAmount = order.getTongThanhToan().longValue() * 100L;
+            if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
+                model.addAttribute("error", "Số tiền giao dịch không khớp với đơn hàng");
+                return "view/client/payment-fail";
+            }
+            orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+            order = orderService.getOrderByUserAndId(getUserId(), orderId);
             model.addAttribute("order", orderService.convertToDTO(order));
         } catch (Exception e) {
             model.addAttribute("error", "Không tìm thấy đơn hàng");
@@ -652,9 +658,16 @@ public class CheckoutController {
             if (txnRef != null) {
                 try {
                     int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-                    orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
-                    response.put("RspCode", "00");
-                    response.put("Message", "Confirm Success");
+                    Order order = orderService.getOrderById(orderId);
+                    long expectedAmount = order.getTongThanhToan().longValue() * 100L;
+                    if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
+                        response.put("RspCode", "04");
+                        response.put("Message", "Amount mismatch");
+                    } else {
+                        orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                        response.put("RspCode", "00");
+                        response.put("Message", "Confirm Success");
+                    }
                 } catch (Exception e) {
                     response.put("RspCode", "99");
                     response.put("Message", "Order not found");

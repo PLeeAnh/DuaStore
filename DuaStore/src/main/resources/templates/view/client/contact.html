@@ -19,85 +19,6 @@
                             <span th:text="${errorMsg}">Có lỗi xảy ra, vui lòng thử lại.</span>
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                        <div class="text-center mb-5">
-                            <h2 class="ds-section-title">Thông tin cửa hàng</h2>
-                        </div>
-
-                        <div class="row g-5" th:with="s=${store}">
-                            <div class="col-12 col-lg-5">
-                                <div class="ds-card h-100">
-                                    <div class="ds-card-body">
-                                        <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
-                                            <span style="font-size:2rem;color:var(--ds-primary);"><i class="bi bi-shop"></i></span>
-                                            <div>
-                                                <h5 class="fw-bold mb-1" th:text="${s != null ? s.tenCuaHang : 'DuaStore'}">DuaStore</h5>
-                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.85rem;">Chai lọ thủy tinh chất lượng cao</p>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex gap-3 mb-3">
-                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-geo-alt-fill"></i></span>
-                                            <div>
-                                                <p class="fw-semibold mb-1">Địa chỉ</p>
-                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
-                                                <th:block th:if="${s != null}">
-                                                    <th:block th:if="${s.soNha != null and !s.soNha.isEmpty()}"><span th:text="${s.soNha}"></span>, </th:block>
-                                                    <span th:if="${s.duong != null and !s.duong.isEmpty()}" th:text="${s.duong}"></span><br th:if="${s.duong != null and !s.duong.isEmpty() and ((s.phuongXa != null and !s.phuongXa.isEmpty()) or (s.quanHuyen != null and !s.quanHuyen.isEmpty()) or (s.tinhThanh != null and !s.tinhThanh.isEmpty()))}"/>
-                                                    <span th:if="${s.phuongXa != null and !s.phuongXa.isEmpty()}" th:text="${s.phuongXa}"></span><br th:if="${s.phuongXa != null and !s.phuongXa.isEmpty() and ((s.quanHuyen != null and !s.quanHuyen.isEmpty()) or (s.tinhThanh != null and !s.tinhThanh.isEmpty()))}"/>
-                                                    <span th:if="${s.quanHuyen != null and !s.quanHuyen.isEmpty()}" th:text="${s.quanHuyen}"></span><br th:if="${s.quanHuyen != null and !s.quanHuyen.isEmpty() and (s.tinhThanh != null and !s.tinhThanh.isEmpty())}"/>
-                                                    <span th:if="${s.tinhThanh != null and !s.tinhThanh.isEmpty()}" th:text="${s.tinhThanh}"></span>
-                                                </th:block>
-                                                <th:block th:unless="${s != null}">Phố Tôn Thất Thuyết, Phan Bội Châu<br/>Phường Hồng Bàng<br/>Thành phố Hải Phòng</th:block>
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex gap-3 mb-3">
-                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-telephone-fill"></i></span>
-                                            <div>
-                                                <p class="fw-semibold mb-1">Điện thoại</p>
-                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
-                                                    <a th:if="${s != null}" th:href="'tel:' + ${s.soDienThoai}" th:text="${s.soDienThoai}" style="color:inherit;text-decoration:none;">0983595240</a>
-                                                    <span th:unless="${s != null}">0983595240</span>
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex gap-3 mb-3">
-                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-envelope-fill"></i></span>
-                                            <div>
-                                                <p class="fw-semibold mb-1">Email</p>
-                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
-                                                    <a th:if="${s != null}" th:href="'mailto:' + ${s.email}" th:text="${s.email}" style="color:inherit;text-decoration:none;">anhpltp00872@gmail.com</a>
-                                                    <span th:unless="${s != null}">anhpltp00872@gmail.com</span>
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex gap-3">
-                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-clock-fill"></i></span>
-                                            <div>
-                                                <p class="fw-semibold mb-1">Giờ làm việc</p>
-                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">T2 – CN: 08:00 – 19:00</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-lg-7">
-                                <div class="ds-card">
-                                    <div class="ds-card-body p-0" style="overflow:hidden;border-radius:12px;">
-                                        <div id="contactMap" style="width:100%;height:400px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-center my-5 pt-3">
-                            <h2 class="ds-section-title">Gửi tin nhắn cho chúng tôi</h2>
-                        </div>
-
                         <div class="row justify-content-center">
                             <div class="col-12 col-lg-8">
                                 <div class="ds-card">
@@ -124,6 +45,88 @@
                                                 <i class="bi bi-send me-2"></i>Gửi tin nhắn
                                             </button>
                                         </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-5 mt-1" th:with="s=${store}">
+                            <div class="col-12 col-lg-5">
+                                <div class="ds-card h-100">
+                                    <div class="ds-card-body">
+                                        <div class="d-flex gap-3 mb-4">
+                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-geo-alt-fill"></i></span>
+                                            <div>
+                                                <p class="fw-semibold mb-1">Địa chỉ</p>
+                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
+                                                <th:block th:if="${s != null}">
+                                                    <th:block th:if="${s.soNha != null and !s.soNha.isEmpty()}"><span th:text="${s.soNha}"></span>, </th:block>
+                                                    <span th:if="${s.duong != null and !s.duong.isEmpty()}" th:text="${s.duong}"></span><br th:if="${s.duong != null and !s.duong.isEmpty() and ((s.phuongXa != null and !s.phuongXa.isEmpty()) or (s.quanHuyen != null and !s.quanHuyen.isEmpty()) or (s.tinhThanh != null and !s.tinhThanh.isEmpty()))}"/>
+                                                    <span th:if="${s.phuongXa != null and !s.phuongXa.isEmpty()}" th:text="${s.phuongXa}"></span><br th:if="${s.phuongXa != null and !s.phuongXa.isEmpty() and ((s.quanHuyen != null and !s.quanHuyen.isEmpty()) or (s.tinhThanh != null and !s.tinhThanh.isEmpty()))}"/>
+                                                    <span th:if="${s.quanHuyen != null and !s.quanHuyen.isEmpty()}" th:text="${s.quanHuyen}"></span><br th:if="${s.quanHuyen != null and !s.quanHuyen.isEmpty() and (s.tinhThanh != null and !s.tinhThanh.isEmpty())}"/>
+                                                    <span th:if="${s.tinhThanh != null and !s.tinhThanh.isEmpty()}" th:text="${s.tinhThanh}"></span>
+                                                </th:block>
+                                                <th:block th:unless="${s != null}">Phố Tôn Thất Thuyết, Phan Bội Châu<br/>Phường Hồng Bàng<br/>Thành phố Hải Phòng</th:block>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex gap-3 mb-4">
+                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-telephone-fill"></i></span>
+                                            <div>
+                                                <p class="fw-semibold mb-1">Điện thoại</p>
+                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
+                                                    <a th:if="${s != null}" th:href="'tel:' + ${s.soDienThoai}" th:text="${s.soDienThoai}" style="color:inherit;text-decoration:none;">0983595240</a>
+                                                    <span th:unless="${s != null}">0983595240</span>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex gap-3 mb-4">
+                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-envelope-fill"></i></span>
+                                            <div>
+                                                <p class="fw-semibold mb-1">Email</p>
+                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">
+                                                    <a th:if="${s != null}" th:href="'mailto:' + ${s.email}" th:text="${s.email}" style="color:inherit;text-decoration:none;">anhpltp00872@gmail.com</a>
+                                                    <span th:unless="${s != null}">anhpltp00872@gmail.com</span>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex gap-3 mb-4">
+                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-clock-fill"></i></span>
+                                            <div>
+                                                <p class="fw-semibold mb-1">Giờ làm việc</p>
+                                                <p class="mb-0" style="color:var(--ds-gray-500);font-size:0.9rem;">T2 – CN: 08:00 – 19:00</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex gap-3 mb-4"
+                                             th:if="${(themeSettings.get('widget_zalo') == '1' and themeSettings.get('widget_zalo_phone') != '') or (themeSettings.get('footer_facebook') != null and !themeSettings.get('footer_facebook').isEmpty()) or (themeSettings.get('widget_messenger') == '1' and themeSettings.get('widget_messenger_page_id') != '')}">
+                                            <span style="font-size:1.3rem;color:var(--ds-primary);flex-shrink:0;"><i class="bi bi-share-fill"></i></span>
+                                            <div>
+                                                <p class="fw-semibold mb-1">Kênh liên hệ khác</p>
+                                                <div class="ds-footer-socials">
+                                                    <a th:if="${themeSettings.get('widget_zalo') == '1' and themeSettings.get('widget_zalo_phone') != ''}"
+                                                       th:href="'https://zalo.me/' + ${themeSettings.get('widget_zalo_phone')}"
+                                                       target="_blank" rel="noopener noreferrer" title="Chat Zalo" aria-label="Liên hệ Zalo"><i class="bi bi-chat-dots-fill"></i></a>
+                                                    <a th:if="${themeSettings.get('footer_facebook') != null and !themeSettings.get('footer_facebook').isEmpty()}"
+                                                       th:href="${themeSettings.get('footer_facebook')}"
+                                                       target="_blank" rel="noopener noreferrer" title="Facebook" aria-label="Fanpage Facebook"><i class="bi bi-facebook"></i></a>
+                                                    <a th:if="${themeSettings.get('widget_messenger') == '1' and themeSettings.get('widget_messenger_page_id') != ''}"
+                                                       th:href="'https://m.me/' + ${themeSettings.get('widget_messenger_page_id')}"
+                                                       target="_blank" rel="noopener noreferrer" title="Chat Messenger" aria-label="Chat Messenger"><i class="bi bi-messenger"></i></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-lg-7">
+                                <div class="ds-card">
+                                    <div class="ds-card-body p-0" style="overflow:hidden;border-radius:12px;">
+                                        <div id="contactMap" style="width:100%;height:400px;"></div>
                                     </div>
                                 </div>
                             </div>

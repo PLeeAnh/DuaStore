@@ -76,9 +76,9 @@
                                 <label class="form-label">Màu chủ đạo</label>
                                 <div class="input-group">
                                     <input type="color" name="theme_primary_color" class="form-control form-control-color"
-                                           th:value="${settings.get('theme_primary_color') ?: '#c62828'}" />
+                                           th:value="${settings.get('theme_primary_color') ?: '#0ea5e9'}" />
                                     <input type="text" name="theme_primary_color_text" class="form-control"
-                                           th:value="${settings.get('theme_primary_color') ?: '#c62828'}"
+                                           th:value="${settings.get('theme_primary_color') ?: '#0ea5e9'}"
                                            style="max-width:120px" />
                                 </div>
                             </div>
@@ -86,9 +86,9 @@
                                 <label class="form-label">Màu phụ</label>
                                 <div class="input-group">
                                     <input type="color" name="theme_secondary_color" class="form-control form-control-color"
-                                           th:value="${settings.get('theme_secondary_color') ?: '#2c3e50'}" />
+                                           th:value="${settings.get('theme_secondary_color') ?: '#0284c7'}" />
                                     <input type="text" name="theme_secondary_color_text" class="form-control"
-                                           th:value="${settings.get('theme_secondary_color') ?: '#2c3e50'}"
+                                           th:value="${settings.get('theme_secondary_color') ?: '#0284c7'}"
                                            style="max-width:120px" />
                                 </div>
                             </div>
@@ -341,6 +341,16 @@ Email: ...</textarea>
                                 <input type="url" name="footer_instagram" class="form-control"
                                        th:value="${settings.get('footer_instagram')}" />
                             </div>
+                            <div class="col-md-3">
+                                <label class="form-label">TikTok URL</label>
+                                <input type="url" name="footer_tiktok" class="form-control"
+                                       th:value="${settings.get('footer_tiktok')}" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">YouTube URL</label>
+                                <input type="url" name="footer_youtube" class="form-control"
+                                       th:value="${settings.get('footer_youtube')}" />
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -508,7 +518,7 @@ Email: ...</textarea>
         <script th:inline="javascript">
             var hpSettings = /*[[${settings}]]*/ {};
         </script>
-        <script th:src="@{/js/admin-appearance.js(v=1)}"></script>
+        <script th:src="@{/js/admin-appearance.js(v=2)}"></script>
     </th:block>
 </body>
 </html>

@@ -146,3 +146,29 @@ document.addEventListener('submit', function(e) {
     var btn = e.target.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...'; }
 });
+
+/* ── Mobile bottom nav: focus search from bottom nav ── */
+function focusMobileSearch() {
+    var i = document.getElementById('searchInput');
+    if (i) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(function () { i.focus(); }, 350);
+    }
+}
+
+/* ── Mobile bottom nav: highlight active item by pathname ── */
+(function () {
+    var path = window.location.pathname;
+    var links = document.querySelectorAll('.ds-mnav-item[href]');
+    var best = null, bestLen = -1;
+    for (var i = 0; i < links.length; i++) {
+        var href = links[i].getAttribute('href');
+        if (!href) continue;
+        if (href === '/') {
+            if (path === '/') { best = links[i]; bestLen = 0; }
+        } else if (path === href || path.indexOf(href + '/') === 0) {
+            if (href.length > bestLen) { best = links[i]; bestLen = href.length; }
+        }
+    }
+    if (best) best.classList.add('active');
+})();

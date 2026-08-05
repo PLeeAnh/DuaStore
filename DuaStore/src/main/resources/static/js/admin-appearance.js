@@ -129,23 +129,17 @@ function deleteFooterColumn(btn) {
 }
 
 /* ── Homepage designer ── */
-var hpCounter = 7;
+var hpCounter = 1;
 
 var sectionTypes = [
     {type: 'slider', label: 'Slider', icon: 'bi-images', color: 'secondary', title: 'Hero Banner Slider'},
-    {type: 'features', label: 'Features', icon: 'bi-grid-3x3', color: 'info', title: 'Tính năng nổi bật'},
-    {type: 'promotions', label: 'Promo', icon: 'bi-tag', color: 'warning', title: 'Mã giảm giá'},
-    {type: 'categories', label: 'Category', icon: 'bi-grid', color: 'success', title: 'Danh mục nổi bật'},
-    {type: 'products', label: 'Product', icon: 'bi-box-seam', color: 'primary', title: 'Sản phẩm nổi bật'},
-    {type: 'testimonials', label: 'Testimonial', icon: 'bi-chat-quote', color: 'dark', title: 'Khách hàng nói gì'},
-    {type: 'faq', label: 'FAQ', icon: 'bi-question-circle', color: 'dark', title: 'Câu hỏi thường gặp'},
     {type: 'custom', label: 'Custom', icon: 'bi-code', color: 'secondary', title: 'HTML tùy chỉnh'}
 ];
 
 function createHomepageSection(type, idx, active) {
     var st = sectionTypes.find(function (t) {
         return t.type === type;
-    }) || sectionTypes[7];
+    }) || sectionTypes[1];
     var div = document.createElement('div');
     div.className = 'card mb-2 hp-section' + (idx === 1 ? ' expanded' : '');
     div.innerHTML =
@@ -188,7 +182,7 @@ function createHomepageSection(type, idx, active) {
     return div;
 }
 
-var defaultSections = ['slider', 'features', 'promotions', 'categories', 'products', 'testimonials', 'faq'];
+var defaultSections = ['slider'];
 defaultSections.forEach(function (type, i) {
     var idx = i + 1;
     var section = createHomepageSection(type, idx, true);

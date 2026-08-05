@@ -120,10 +120,7 @@
                             <span class="ds-section-badge">DEAL HOT</span>
                         </div>
 
-                        <div th:if="${#lists.isEmpty(dealProducts)}" class="text-center py-5 text-muted">
-                            <i class="bi bi-box-seam" style="font-size:3rem;"></i>
-                            <p class="mt-3">Chưa có sản phẩm nào trong chương trình</p>
-                        </div>
+                        <div th:if="${#lists.isEmpty(dealProducts)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-tag', title='Chưa có sản phẩm giảm giá', desc='Hiện chưa có chương trình khuyến mãi nào đang diễn ra. Ghé thăm trang sản phẩm để xem hàng mới nhé!', btnText='Xem sản phẩm mới', btnHref='/san-pham')}"></div>
 
                         <div th:unless="${#lists.isEmpty(dealProducts)}" class="row g-3">
                             <div th:each="p : ${dealProducts}" class="col-xl-3 col-lg-4 col-sm-6 col-6"
@@ -185,7 +182,7 @@
                     </div>
 
                     <!-- Modal phải nằm TRONG layout:fragment="content" mới được Thymeleaf ghép vào trang. -->
-                    <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
+                    <th:block th:insert="~{fragments/promotion-modal :: promotionModal}" />
                 </div>
             </div>
         </div>

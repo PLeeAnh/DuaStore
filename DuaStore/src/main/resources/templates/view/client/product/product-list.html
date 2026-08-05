@@ -142,10 +142,7 @@
                 <div class="ds-section-card">
                     <div class="ds-card">
                         <div class="ds-card-body">
-                    <div th:if="${#lists.isEmpty(products)}" class="text-center py-5">
-                        <i class="bi bi-inbox ds-empty-icon"></i>
-                        <p class="text-muted mt-3">Không tìm thấy sản phẩm nào</p>
-                    </div>
+                    <div th:if="${#lists.isEmpty(products)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-search', title='Không tìm thấy sản phẩm', desc='Không có sản phẩm nào khớp với bộ lọc của bạn. Hãy thử xoá bộ lọc hoặc tìm kiếm từ khóa khác.', btnText='Xoá bộ lọc', btnHref='/san-pham')}"></div>
 
                     <div th:unless="${#lists.isEmpty(products)}" class="row g-3">
                         <div th:each="p : ${products}" class="col-xl-3 col-lg-4 col-sm-6 col-6">

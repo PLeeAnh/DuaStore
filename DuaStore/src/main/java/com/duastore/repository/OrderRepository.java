@@ -70,21 +70,30 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND "
             + "(:trangThai IS NULL OR :trangThai = 'CHUA_HOAN_THANH' OR o.trangThaiDon = :trangThai) AND "
             + "(:trangThai IS NULL OR :trangThai <> 'CHUA_HOAN_THANH' OR o.trangThaiDon <> 'DA_HOAN_THANH') AND "
-            + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) "
+            + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) AND "
+            + "(:fromDate IS NULL OR o.ngayDat >= :fromDate) AND "
+            + "(:toDate IS NULL OR o.ngayDat < :toDate) "
             + "ORDER BY o.ngayDat ASC")
     Page<Order> searchOrders(@Param("q") String q, @Param("trangThai") String trangThai,
-            @Param("trangThaiTT") String trangThaiTT, Pageable pageable);
+            @Param("trangThaiTT") String trangThaiTT,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
+            Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE o.id IN :ids AND "
             + "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND "
             + "(:trangThai IS NULL OR :trangThai = 'CHUA_HOAN_THANH' OR o.trangThaiDon = :trangThai) AND "
             + "(:trangThai IS NULL OR :trangThai <> 'CHUA_HOAN_THANH' OR o.trangThaiDon <> 'DA_HOAN_THANH') AND "
-            + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) "
+            + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) AND "
+            + "(:fromDate IS NULL OR o.ngayDat >= :fromDate) AND "
+            + "(:toDate IS NULL OR o.ngayDat < :toDate) "
             + "ORDER BY o.ngayDat ASC")
     Page<Order> searchOrdersByIds(@Param("ids") List<Integer> ids,
             @Param("q") String q,
             @Param("trangThai") String trangThai,
             @Param("trangThaiTT") String trangThaiTT,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
             Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)")
