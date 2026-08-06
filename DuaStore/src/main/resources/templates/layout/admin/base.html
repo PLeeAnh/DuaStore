@@ -120,6 +120,12 @@
                     <i class="bi bi-megaphone"></i>
                     <span>Thông báo</span>
                 </a>
+                <a class="adm-nav-link" th:href="@{/admin/tin-nhan-lien-he}"
+                   th:if="${userPermissions.contains('CONTACT_MESSAGE_READ')}"
+                   th:classappend="${title == 'tin-nhan-lien-he' ? ' active' : ''}">
+                    <i class="bi bi-inbox"></i>
+                    <span>Tin nhắn liên hệ</span>
+                </a>
                 <a class="adm-nav-link" th:href="@{/admin/popup-banner}"
                    th:if="${userPermissions.contains('BANNER_READ')}"
                    th:classappend="${title == 'popup-banner' ? ' active' : ''}">

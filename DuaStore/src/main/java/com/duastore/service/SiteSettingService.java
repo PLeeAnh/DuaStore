@@ -38,9 +38,9 @@ public class SiteSettingService {
         EMAIL_DEFAULTS.put("email_host", "smtp.gmail.com");
         EMAIL_DEFAULTS.put("email_port", "587");
         EMAIL_DEFAULTS.put("email_encryption", "tls");
-        EMAIL_DEFAULTS.put("email_username", "hhi658724@gmail.com");
-        EMAIL_DEFAULTS.put("email_password", "zkhj vycf jtyg tyzr");
-        EMAIL_DEFAULTS.put("email_from", "hhi658724@gmail.com");
+        EMAIL_DEFAULTS.put("email_username", "anhpltp00872@gmail.com");
+        EMAIL_DEFAULTS.put("email_password", "");
+        EMAIL_DEFAULTS.put("email_from", "anhpltp00872@gmail.com");
         EMAIL_DEFAULTS.put("email_from_name", "DuaStore");
     }
 

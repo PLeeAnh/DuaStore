@@ -288,35 +288,18 @@ public class CheckoutController {
                 // notifyStaff đã log lỗi, không break flow chính
             }
 
-            User finalUser = order.getUser();
-            String finalTt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản" : "VNPAY".equals(order.getPhuongThucTT()) ? "VNPay" : "COD";
-            String finalGh = "GHN".equals(order.getShippingCarrier()) ? "Giao Hàng Nhanh" : "Giao Hàng Tiết Kiệm";
-            String finalMaDon = order.getMaDon();
-            String finalNgayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-            String finalDiaChi = order.getSnapDiaChi();
-            String finalTongTien = PriceUtils.format(order.getTongThanhToan());
-
-            StringBuilder itemsHtml = new StringBuilder();
-            for (OrderItem item : order.getOrderItems()) {
-                itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
-                        .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
-                        .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
-                        .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
-            }
-            String finalItemsHtml = itemsHtml.toString();
-
-            Thread emailThread = new Thread(() -> {
-                try {
-                    emailService.sendOrderSuccessEmail(
-                            finalUser.getEmail(), finalUser.getHoTen(), finalMaDon,
-                            finalNgayDat, finalDiaChi, finalTt, finalGh,
-                            finalTongTien, finalItemsHtml
-                    );
-                } catch (Exception ignored) {
+            if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                boolean emailOk = sendOrderSuccessEmailChecked(order);
+                if (!emailOk) {
+                    try {
+                        orderService.cancelOrder(userId, order.getId(),
+                                "Không gửi được email xác nhận đơn hàng, tự động hủy");
+                    } catch (RuntimeException ignored) {
+                    }
+                    throw new RuntimeException(
+                            "Không gửi được email xác nhận đơn hàng. Đơn hàng không thành công, vui lòng kiểm tra hộp thư trước khi thử lại.");
                 }
-            });
-            emailThread.setDaemon(true);
-            emailThread.start();
+            }
 
             if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
                 return "redirect:/checkout/chuyen-khoan/" + order.getId();
@@ -332,6 +315,28 @@ public class CheckoutController {
             buildCheckoutModel(model, userId, req.getSelectedIds());
             model.addAttribute("error", e.getMessage());
             return "view/client/checkout";
+        }
+    }
+
+    private boolean sendOrderSuccessEmailChecked(Order order) {
+        try {
+            User u = order.getUser();
+            String tt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản"
+                    : "VNPAY".equals(order.getPhuongThucTT()) ? "VNPay" : "COD";
+            String gh = "GHN".equals(order.getShippingCarrier()) ? "Giao Hàng Nhanh" : "Giao Hàng Tiết Kiệm";
+            String ngayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            StringBuilder itemsHtml = new StringBuilder();
+            for (OrderItem item : order.getOrderItems()) {
+                itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
+                        .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
+                        .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
+                        .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
+            }
+            return emailService.sendOrderSuccessEmail(u.getEmail(), u.getHoTen(), order.getMaDon(),
+                    ngayDat, order.getSnapDiaChi(), tt, gh,
+                    PriceUtils.format(order.getTongThanhToan()), itemsHtml.toString());
+        } catch (Exception e) {
+            return false;
         }
     }
 
@@ -541,6 +546,15 @@ public class CheckoutController {
                 res.put("redirectUrl", "/checkout/thanh-cong/" + id);
                 return ResponseEntity.ok(res);
             }
+
+            boolean emailOk = sendOrderSuccessEmailChecked(order);
+            if (!emailOk) {
+                res.put("success", false);
+                res.put("message",
+                        "Không gửi được email xác nhận thanh toán. Thanh toán chưa hoàn tất, vui lòng thử lại.");
+                return ResponseEntity.ok(res);
+            }
+
             orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
             orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
 
@@ -553,36 +567,6 @@ public class CheckoutController {
                 );
             } catch (Exception ignored) {
             }
-
-            User finalUser = order.getUser();
-            String finalTt2 = "Chuyển khoản";
-            String finalGh2 = "EXPRESS".equals(order.getPhuongThucGiaoHang()) ? "Giao hàng nhanh" : "Giao hàng an toàn";
-            String finalMaDon2 = order.getMaDon();
-            String finalNgayDat2 = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-            String finalDiaChi2 = order.getSnapDiaChi();
-            String finalTongTien2 = PriceUtils.format(order.getTongThanhToan());
-
-            StringBuilder itemsHtml = new StringBuilder();
-            for (OrderItem item : order.getOrderItems()) {
-                itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
-                        .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
-                        .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
-                        .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
-            }
-            String finalItemsHtml2 = itemsHtml.toString();
-
-            Thread emailThread = new Thread(() -> {
-                try {
-                    emailService.sendOrderSuccessEmail(
-                            finalUser.getEmail(), finalUser.getHoTen(), finalMaDon2,
-                            finalNgayDat2, finalDiaChi2, finalTt2, finalGh2,
-                            finalTongTien2, finalItemsHtml2
-                    );
-                } catch (Exception ignored) {
-                }
-            });
-            emailThread.setDaemon(true);
-            emailThread.start();
 
             res.put("success", true);
             res.put("redirectUrl", "/checkout/thanh-cong/" + id);

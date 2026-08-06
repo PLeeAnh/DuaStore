@@ -14,9 +14,6 @@
                         <i class="bi bi-arrow-left me-1"></i>Quay lại
                     </a>
 
-                    <div th:if="${successMsg}" class="alert alert-success" th:text="${successMsg}"></div>
-                    <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}"></div>
-
                     <div class="ds-card mb-4">
                         <div class="ds-card-body">
                             <div class="d-flex justify-content-between align-items-start">
@@ -141,5 +138,18 @@
                 </div>
             </div>
         </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                /*<![CDATA[*/
+                var sm = [[${successMsg}]];
+                if (sm && window.DuaStore && DuaStore.toast) { DuaStore.toast.success(sm); }
+                var em = [[${errorMsg}]];
+                if (em && window.DuaStore && DuaStore.toast) { DuaStore.toast.error(em); }
+                /*]]>*/
+            });
+        </script>
+    </th:block>
     </body>
 </html>

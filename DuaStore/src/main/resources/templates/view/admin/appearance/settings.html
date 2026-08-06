@@ -501,11 +501,19 @@ Email: ...</textarea>
                         <h6 class="text-muted border-bottom pb-2">Thiết kế trang chủ</h6>
                         <p class="text-muted small">Kéo thả các section để sắp xếp thứ tự. Nhấp vào section để mở rộng tùy chỉnh layout và nội dung.</p>
                         <div id="homepageSections" class="mb-3"></div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mb-2" onclick="addHomepageSection()">
-                            <i class="bi bi-plus-lg"></i> Thêm section
-                        </button>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <select id="hpAddType" class="form-select form-select-sm" style="max-width:220px">
+                                <option value="products">+ Sản phẩm</option>
+                                <option value="categories">+ Danh mục</option>
+                                <option value="promotions">+ Khuyến mãi / Voucher</option>
+                                <option value="custom">+ HTML tùy chỉnh</option>
+                            </select>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addHomepageSection(document.getElementById('hpAddType').value)">
+                                <i class="bi bi-plus-lg"></i> Thêm section
+                            </button>
+                        </div>
                         <div class="alert alert-info small">
-                            <i class="bi bi-info-circle me-1"></i>Kéo thả section để sắp xếp. Trong mỗi section có thể chọn layout cột và kéo thả nội dung vào từng cột.
+                            <i class="bi bi-info-circle me-1"></i>Hero Banner Slider luôn đứng đầu trang chủ. Dùng nút <b>Thêm section</b> để thêm khối Sản phẩm, Danh mục, Khuyến mãi hoặc HTML tùy chỉnh — chọn nguồn dữ liệu, kiểu hiển thị (lưới / slide ngang), số cột và số item. Kéo thả để sắp xếp thứ tự.
                         </div>
                     </div>
                 </form>

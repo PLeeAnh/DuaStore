@@ -98,14 +98,39 @@ public class EmailService implements EmailSender {
             helper.setFrom(resolveFromEmail(), resolveFromName());
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(body, true);
+            helper.setText(toPlainText(body), body);
             sender.send(msg);
         } catch (Exception e) {
             log.warn("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 
-    public void sendOtpEmail(String toEmail, String otp, String purpose) {
+    public boolean sendTest() {
+        try {
+            JavaMailSender sender = resolveMailSender();
+            MimeMessage msg = sender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(msg, true, "UTF-8");
+            String from = resolveFromEmail();
+            helper.setFrom(from, resolveFromName());
+            helper.setTo(from);
+            helper.setSubject("[DuaStore] Email kiểm tra cấu hình SMTP");
+            String html = """
+                <div style="font-family:Arial;padding:20px;">
+                  <h2 style="color:#e53935;">DuaStore</h2>
+                  <p>Đây là email thử nghiệm được gửi từ trang <strong>Cấu hình Email/SMTP</strong>.</p>
+                  <p>Nếu bạn nhận được email này, cấu hình SMTP đã hoạt động bình thường.</p>
+                </div>
+                """;
+            helper.setText(toPlainText(html), html);
+            sender.send(msg);
+            return true;
+        } catch (Exception e) {
+            log.error("Test SMTP send failed: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    public boolean sendOtpEmail(String toEmail, String otp, String purpose) {
         try {
             JavaMailSender sender = resolveMailSender();
             MimeMessage msg = sender.createMimeMessage();
@@ -176,13 +201,14 @@ public class EmailService implements EmailSender {
             helper.setSubject(subject);
             helper.setText(plainText, html);
             sender.send(msg);
-
+            return true;
         } catch (Exception e) {
             log.warn("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
+            return false;
         }
     }
 
-    public void sendOrderSuccessEmail(String toEmail, String hoTen, String maDon,
+    public boolean sendOrderSuccessEmail(String toEmail, String hoTen, String maDon,
             String ngayDat, String diaChi, String phuongThucTT,
             String phuongThucGH, String tongTien,
             String danhSachSP) {
@@ -247,10 +273,12 @@ public class EmailService implements EmailSender {
                 </body></html>
                 """.formatted(hoTen, maDon, ngayDat, diaChi, phuongThucTT, phuongThucGH, danhSachSP, tongTien);
 
-            helper.setText(html, true);
+            helper.setText(toPlainText(html), html);
             sender.send(msg);
+            return true;
         } catch (Exception e) {
             log.warn("Failed to send order confirmation email to {}: {}", toEmail, e.getMessage());
+            return false;
         }
     }
 
@@ -262,13 +290,15 @@ public class EmailService implements EmailSender {
             helper.setFrom(resolveFromEmail(), resolveFromName());
             helper.setTo(toEmail);
             helper.setSubject("[DuaStore] Đặt lại mật khẩu thành công");
-            helper.setText("""
+            String plainPasswordReset = "DuaStore\n\nMật khẩu đã được đặt lại thành công.\n"
+                    + "Nếu không phải bạn, liên hệ: 0901 234 567";
+            helper.setText(plainPasswordReset, """
                 <div style="font-family:Arial;padding:20px;">
                   <h2 style="color:#e53935;">DuaStore</h2>
                   <p>Mật khẩu đã được <strong>đặt lại thành công</strong>.</p>
                   <p>Nếu không phải bạn, liên hệ: <strong>0901 234 567</strong></p>
                 </div>
-                """, true);
+                """);
             sender.send(msg);
         } catch (Exception e) {
             log.warn("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
@@ -276,7 +306,7 @@ public class EmailService implements EmailSender {
     }
 
     // ─── Email thay đổi trạng thái đơn hàng → gửi cho khách hàng ───────────
-    public void sendOrderStatusEmail(String toEmail, String hoTen, String maDon, String trangThaiLabel) {
+    public boolean sendOrderStatusEmail(String toEmail, String hoTen, String maDon, String trangThaiLabel) {
         try {
             JavaMailSender sender = resolveMailSender();
             MimeMessage msg = sender.createMimeMessage();
@@ -317,15 +347,17 @@ public class EmailService implements EmailSender {
                   </table>
                 </body></html>
                 """.formatted(hoTen, maDon, trangThaiLabel);
-            helper.setText(html, true);
+            helper.setText(toPlainText(html), html);
             sender.send(msg);
+            return true;
         } catch (Exception e) {
             log.warn("Failed to send order status email to {}: {}", toEmail, e.getMessage());
+            return false;
         }
     }
 
     // ─── Email phân công đơn hàng → gửi cho admin/nhân viên được giao ────────
-    public void sendOrderAssignedEmail(String toEmail, String adminName, String maDon,
+    public boolean sendOrderAssignedEmail(String toEmail, String adminName, String maDon,
                                         String customerName, String assignedBy) {
         try {
             JavaMailSender sender = resolveMailSender();
@@ -371,10 +403,32 @@ public class EmailService implements EmailSender {
                   </table>
                 </body></html>
                 """.formatted(adminName, assignedBy, maDon, customerName);
-            helper.setText(html, true);
+            helper.setText(toPlainText(html), html);
             sender.send(msg);
+            return true;
         } catch (Exception e) {
             log.warn("Failed to send order assigned email to {}: {}", toEmail, e.getMessage());
+            return false;
         }
+    }
+
+    private static String toPlainText(String html) {
+        if (html == null || html.isEmpty()) {
+            return "";
+        }
+        String text = html.replaceAll("(?is)<style[^>]*>.*?</style>", " ")
+                .replaceAll("(?s)<[^>]+>", "\n")
+                .replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .replace("\u00a0", " ");
+        text = text.replaceAll("(?m)\\s*\\n\\s*\\n+", "\n\n")
+                .replaceAll("(?m)^[ \\t]+", "")
+                .replaceAll("(?m)[ \\t]+$", "")
+                .trim();
+        return text;
     }
 }

@@ -255,6 +255,90 @@ public class HomeController {
         allSectionProducts.addAll(underPriceProducts);
         allSectionProducts.addAll(browseProducts);
 
+        // ── Các section động do admin thêm trong "Thiết kế trang chủ" ──
+        List<Map<String, Object>> hpSections = new ArrayList<>();
+        List<Product> hpDynamicProducts = new ArrayList<>();
+        Map<String, String> hpSettingsMap = siteSettingService.getGroup("appearance");
+        for (int i = 2; i <= 30; i++) {
+            String hpType = hpSettingsMap.get("hp_" + i + "_type");
+            if (hpType == null || hpType.isEmpty()) {
+                break;
+            }
+            if ("0".equals(hpSettingsMap.get("hp_" + i + "_active"))) {
+                continue;
+            }
+            String hpTitle = hpSettingsMap.get("hp_" + i + "_title");
+            String hpStyle = hpSettingsMap.get("hp_" + i + "_layout_style");
+            if (hpStyle == null || hpStyle.isEmpty()) {
+                hpStyle = "grid";
+            }
+            boolean sliderStyle = "slider".equals(hpStyle);
+            int hpCols = Math.min(Math.max(parseInt(hpSettingsMap.get("hp_" + i + "_layout"), 4), 2), 6);
+            int hpLimit = Math.min(Math.max(parseInt(hpSettingsMap.get("hp_" + i + "_limit"), 8), 1), 24);
+
+            if ("products".equals(hpType)) {
+                String hpMode = hpSettingsMap.get("hp_" + i + "_mode");
+                if (hpMode == null || hpMode.isEmpty()) {
+                    hpMode = "featured";
+                }
+                int minP = parseInt(hpSettingsMap.get("hp_" + i + "_min_price"), 0);
+                int maxP = parseInt(hpSettingsMap.get("hp_" + i + "_max_price"), 300000);
+                List<Integer> hpCatIds = new ArrayList<>();
+                String rawIds = hpSettingsMap.get("hp_" + i + "_category_ids");
+                if (rawIds != null) {
+                    for (String part : rawIds.split("[,;\\s]+")) {
+                        try {
+                            hpCatIds.add(Integer.parseInt(part.trim()));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+                List<Product> items = resolveHomepageProducts(hpMode, hpLimit, minP, maxP, hpCatIds);
+                if (items.isEmpty()) {
+                    continue;
+                }
+                hpDynamicProducts.addAll(items);
+                Map<String, Object> sec = new LinkedHashMap<>();
+                sec.put("type", "products");
+                sec.put("title", hpTitle);
+                sec.put("style", sliderStyle ? "slider" : "grid");
+                sec.put("cols", hpCols);
+                sec.put("items", items);
+                sec.put("linkLabel", hpSettingsMap.get("hp_" + i + "_link_label"));
+                sec.put("linkUrl", hpSettingsMap.get("hp_" + i + "_link_url"));
+                hpSections.add(sec);
+            } else if ("categories".equals(hpType)) {
+                List<Category> hpCats = categoryService.getFeaturedCategories().stream().limit(hpLimit).toList();
+                if (hpCats.isEmpty()) {
+                    continue;
+                }
+                Map<String, Object> sec = new LinkedHashMap<>();
+                sec.put("type", "categories");
+                sec.put("title", hpTitle);
+                sec.put("style", sliderStyle ? "slider" : "grid");
+                sec.put("cols", hpCols);
+                sec.put("items", hpCats);
+                hpSections.add(sec);
+            } else if ("promotions".equals(hpType)) {
+                List<Promotion> hpPromos = promotionRepository.findActiveNow(LocalDateTime.now()).stream()
+                        .limit(hpLimit).toList();
+                if (hpPromos.isEmpty()) {
+                    continue;
+                }
+                Map<String, Object> sec = new LinkedHashMap<>();
+                sec.put("type", "promotions");
+                sec.put("title", hpTitle);
+                sec.put("style", sliderStyle ? "slider" : "grid");
+                sec.put("cols", hpCols);
+                sec.put("items", hpPromos);
+                hpSections.add(sec);
+            }
+        }
+        model.addAttribute("hpSections", hpSections);
+        if (!hpDynamicProducts.isEmpty()) {
+            allSectionProducts.addAll(hpDynamicProducts);
+        }
+
         Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
         if (!allSectionProducts.isEmpty()) {
@@ -402,6 +486,42 @@ public class HomeController {
         model.addAttribute("popupPromoInterval", siteSettingService.getValue("popup_promo_interval", "60"));
 
         return "view/client/index";
+    }
+
+    private List<Product> resolveHomepageProducts(String mode, int limit, int minPrice, int maxPrice,
+            List<Integer> categoryIds) {
+        switch (mode) {
+            case "newest":
+                return productRepository.findNewestWithVariants(PageRequest.of(0, limit)).getContent();
+            case "best_sold":
+            case "most_liked":
+            {
+                List<Object[]> rows = ("best_sold".equals(mode)
+                        ? orderItemRepository.findTopSellingProductIds(PageRequest.of(0, limit))
+                        : wishlistRepository.findMostLiked(PageRequest.of(0, limit)));
+                List<Integer> ids = rows.stream().map(r -> (Integer) r[0]).toList();
+                Map<Integer, Product> byId = productRepository.findAllByIdWithVariants(ids).stream()
+                        .collect(Collectors.toMap(Product::getId, p -> p));
+                return ids.stream().map(byId::get).filter(Objects::nonNull).toList();
+            }
+            case "under_price":
+                return productRepository.findUnderPrice(BigDecimal.valueOf(Math.max(minPrice, 1000)),
+                        PageRequest.of(0, limit));
+            case "price_range":
+                if (minPrice >= maxPrice) {
+                    maxPrice = minPrice + 1;
+                }
+                return productRepository.filterPaged(null, null, BigDecimal.valueOf(minPrice),
+                        BigDecimal.valueOf(maxPrice), null, null, PageRequest.of(0, limit)).getContent();
+            case "category":
+                if (categoryIds.isEmpty()) {
+                    return java.util.Collections.emptyList();
+                }
+                return productRepository.findByDanhMucIdInAndIsActiveTrue(categoryIds).stream()
+                        .limit(limit).toList();
+            default:
+                return productService.getFeatured().stream().limit(limit).toList();
+        }
     }
 
     private int parseInt(String value, int defaultValue) {

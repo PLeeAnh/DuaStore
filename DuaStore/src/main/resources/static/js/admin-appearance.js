@@ -131,101 +131,177 @@ function deleteFooterColumn(btn) {
 /* ── Homepage designer ── */
 var hpCounter = 1;
 
-var sectionTypes = [
-    {type: 'slider', label: 'Slider', icon: 'bi-images', color: 'secondary', title: 'Hero Banner Slider'},
-    {type: 'custom', label: 'Custom', icon: 'bi-code', color: 'secondary', title: 'HTML tùy chỉnh'}
-];
+/* Các loại section dùng được cho cả mặc định và khi "Thêm section" */
+var hpTypes = {
+    'slider': {label: 'Slider', icon: 'bi-images', color: 'secondary', title: 'Hero Banner Slider'},
+    'products': {label: 'Sản phẩm', icon: 'bi-box-seam', color: 'primary', title: 'Sản phẩm'},
+    'categories': {label: 'Danh mục', icon: 'bi-grid', color: 'success', title: 'Danh mục'},
+    'promotions': {label: 'Khuyến mãi', icon: 'bi-tag', color: 'warning', title: 'Khuyến mãi / Voucher'},
+    'custom': {label: 'Custom', icon: 'bi-code', color: 'secondary', title: 'HTML tùy chỉnh'}
+};
+
+/* Các loại section hiện cho phép THÊM khi thiết kế trang chủ */
+var hpAddTypes = ['products', 'categories', 'promotions', 'custom'];
+
+/* Nguồn dữ liệu của section loại Sản phẩm */
+var hpProductModes = {
+    'featured': 'Sản phẩm nổi bật',
+    'newest': 'Sản phẩm mới nhất',
+    'best_sold': 'Mua nhiều nhất (bán chạy)',
+    'most_liked': 'Thích nhiều nhất (yêu thích)',
+    'under_price': 'Dưới một mức giá',
+    'price_range': 'Khoảng giá từ–đến',
+    'category': 'Theo danh mục'
+};
 
 function createHomepageSection(type, idx, active) {
-    var st = sectionTypes.find(function (t) {
-        return t.type === type;
-    }) || sectionTypes[1];
+    var st = hpTypes[type] || hpTypes.custom;
+    var sv = function (key, def) {
+        var v = hpSettings['hp_' + idx + '_' + key];
+        return (v !== undefined && v !== null && v !== 'null') ? v : (def !== undefined ? def : '');
+    };
+
     var div = document.createElement('div');
     div.className = 'card mb-2 hp-section' + (idx === 1 ? ' expanded' : '');
-    div.innerHTML =
+
+    var header = '' +
             '<div class="card-body py-2 d-flex align-items-center gap-2 hp-section-header" onclick="toggleHpSection(this)">' +
             '<i class="bi bi-grip-vertical text-muted"></i>' +
             '<span class="badge bg-' + st.color + ' me-1"><i class="bi ' + st.icon + ' me-1"></i>' + st.label + '</span>' +
-            '<span class="fw-semibold small">' + st.title + '</span>' +
+            '<span class="fw-semibold small">' + (sv('title', st.title) || st.title) + '</span>' +
             '<div class="ms-auto d-flex align-items-center gap-2">' +
             '<input type="hidden" name="hp_' + idx + '_type" value="' + type + '" />' +
             '<input type="hidden" name="hp_' + idx + '_active" value="0" /><input type="checkbox" name="hp_' + idx + '_active" value="1" ' + (active !== false ? 'checked' : '') + ' onclick="event.stopPropagation()" />' +
             '<i class="bi bi-trash text-danger" style="cursor:pointer;font-size:0.85rem" onclick="event.stopPropagation();removeHomepageSection(this)" title="Xoá section"></i>' +
             '<i class="bi bi-chevron-down hp-chevron"></i>' +
-            '</div>' +
-            '</div>' +
-            '<div class="hp-section-body">' +
+            '</div></div>';
+
+    var body = '';
+
+    if (type === 'slider') {
+        body = '' +
+            '<div class="card-body pt-0 border-top">' +
+            '<p class="text-muted small mb-1">Hero Banner Slider luôn hiển thị đầu trang chủ (không đổi).</p>' +
+            '<p class="text-muted small mb-0">Quản lý ảnh banner tại menu <b>Banner</b>. Khi chưa đặt banner, trang chủ hiện banner mặc định.</p>' +
+            '</div>';
+    } else if (type === 'custom') {
+        body = '' +
             '<div class="card-body pt-0 border-top">' +
             '<div class="row g-2 mb-2">' +
-            '<div class="col-md-4"><label class="form-label small">Tiêu đề section</label><input type="text" name="hp_' + idx + '_title" class="form-control form-control-sm" placeholder="Tiêu đề" /></div>' +
-            '<div class="col-md-3"><label class="form-label small">Layout cột</label>' +
-            '<div class="layout-grid" data-target="hp_' + idx + '_layout">' +
-            '<div class="layout-option active" data-cols="1" onclick="selectLayout(this)"><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="2" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="3" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="4" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="5" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="6" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="7" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="8" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="9" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
-            '<div class="layout-option" data-cols="10" onclick="selectLayout(this)"><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div><div class="col-preview"></div></div>' +
+            '<div class="col-md-6"><label class="form-label small">Tiêu đề section</label><input type="text" name="hp_' + idx + '_title" class="form-control form-control-sm" value="' + sv('title', '') + '" placeholder="Tiêu đề" /></div>' +
             '</div>' +
-            '<input type="hidden" name="hp_' + idx + '_layout" value="1" />' +
-            '</div>' +
-            '<div class="col-md-3"><label class="form-label small">Giới hạn hiển thị</label><input type="number" name="hp_' + idx + '_limit" class="form-control form-control-sm" value="8" min="1" /></div>' +
-            (type === 'products' ? '<div class="col-md-2"><label class="form-label small">Danh mục ID</label><input type="text" name="hp_' + idx + '_category_ids" class="form-control form-control-sm" placeholder="1,2,3" /></div>' : '') +
-            (type === 'custom' ? '<div class="col-12"><label class="form-label small">Nội dung HTML</label><textarea name="hp_' + idx + '_html" class="form-control form-control-sm" rows="3"></textarea></div>' : '') +
-            '</div>' +
+            '<div class="row g-2">' +
+            '<div class="col-12"><label class="form-label small">Nội dung HTML</label><textarea name="hp_' + idx + '_html" class="form-control form-control-sm font-monospace" rows="4" placeholder="&lt;div&gt;Nội dung tuỳ chỉnh...&lt;/div&gt;">' + sv('html', '') + '</textarea></div>' +
             '</div>' +
             '</div>';
+    } else {
+        var mode = sv('mode', 'featured');
+        var layoutStyle = sv('layout_style', 'grid');
+        var layout = sv('layout', '4');
+        var limit = sv('limit', '8');
+        var maxPrice = sv('max_price', '300000');
+        var minPrice = sv('min_price', '0');
+        var catIds = sv('category_ids', '');
+
+        var modeOpts = Object.keys(hpProductModes).map(function (m) {
+            return '<option value="' + m + '"' + (m === mode ? ' selected' : '') + '>' + hpProductModes[m] + '</option>';
+        }).join('');
+
+        body = '' +
+            '<div class="card-body pt-0 border-top">' +
+            '<div class="row g-2 mb-2">' +
+            '<div class="col-md-3"><label class="form-label small">Tiêu đề section</label><input type="text" name="hp_' + idx + '_title" class="form-control form-control-sm" value="' + (sv('title', st.title) || st.title) + '" placeholder="Tiêu đề" /></div>';
+
+        if (type === 'products') {
+            body +=
+                '<div class="col-md-3"><label class="form-label small">Nguồn dữ liệu</label>' +
+                '<select name="hp_' + idx + '_mode" class="form-select form-select-sm hp-mode" onchange="hpModeChanged(this)">' + modeOpts + '</select></div>' +
+                '<div class="col-md-3"><label class="form-label small">Kiểu hiển thị</label>' +
+                '<select name="hp_' + idx + '_layout_style" class="form-select form-select-sm hp-style">' +
+                '<option value="grid"' + (layoutStyle === 'grid' ? ' selected' : '') + '>Lưới (nhiều cột)</option>' +
+                '<option value="slider"' + (layoutStyle === 'slider' ? ' selected' : '') + '>Slide ngang</option>' +
+                '</select></div>' +
+                '<div class="col-md-3"><label class="form-label small">Số cột / trang</label><input type="number" name="hp_' + idx + '_layout" class="form-control form-control-sm" value="' + layout + '" min="2" max="6" /></div>' +
+                '<div class="col-md-3"><label class="form-label small">Số sản phẩm hiển thị</label><input type="number" name="hp_' + idx + '_limit" class="form-control form-control-sm" value="' + limit + '" min="1" max="24" /></div>' +
+                '<div class="col-md-6 hp-price-fields' + ((mode === 'under_price' || mode === 'price_range') ? '' : ' d-none') + '">' +
+                '<label class="form-label small">Khoảng giá (đ)</label>' +
+                '<div class="input-group input-group-sm">' +
+                '<span class="input-group-text">Từ</span><input type="number" name="hp_' + idx + '_min_price" class="form-control" value="' + minPrice + '" min="0" step="1000" />' +
+                '<span class="input-group-text">Đến</span><input type="number" name="hp_' + idx + '_max_price" class="form-control" value="' + maxPrice + '" min="1000" step="1000" />' +
+                '</div></div>' +
+                '<div class="col-md-6 hp-cat-fields' + (mode === 'category' ? '' : ' d-none') + '">' +
+                '<label class="form-label small">Danh mục ID (phẩn tách bằng dấu phẩy)</label>' +
+                '<input type="text" name="hp_' + idx + '_category_ids" class="form-control form-control-sm" value="' + catIds + '" placeholder="1,2,3" />' +
+                '</div>' +
+                '<div class="col-md-4"><label class="form-label small">Link "Xem tất cả" (tuỳ chọn)</label>' +
+                '<div class="d-flex gap-2">' +
+                '<input type="text" name="hp_' + idx + '_link_label" class="form-control form-control-sm" value="' + sv('link_label', '') + '" placeholder="Xem tất cả" />' +
+                '<input type="text" name="hp_' + idx + '_link_url" class="form-control form-control-sm" value="' + sv('link_url', '') + '" placeholder="/san-pham" />' +
+                '</div></div>';
+        } else if (type === 'categories') {
+            body +=
+                '<div class="col-md-3"><label class="form-label small">Số cột</label><input type="number" name="hp_' + idx + '_layout" class="form-control form-control-sm" value="' + layout + '" min="2" max="6" /></div>' +
+                '<div class="col-md-3"><label class="form-label small">Số danh mục hiển thị</label><input type="number" name="hp_' + idx + '_limit" class="form-control form-control-sm" value="' + limit + '" min="1" max="12" /></div>' +
+                '<div class="col-md-3 hp-style-block"><label class="form-label small">Kiểu hiển thị</label>' +
+                '<select name="hp_' + idx + '_layout_style" class="form-select form-select-sm hp-style">' +
+                '<option value="grid"' + (layoutStyle === 'grid' ? ' selected' : '') + '>Lưới (dạng ô)</option>' +
+                '<option value="slider"' + (layoutStyle === 'slider' ? ' selected' : '') + '>Slide ngang</option>' +
+                '</select></div>';
+        } else if (type === 'promotions') {
+            body +=
+                '<div class="col-md-3"><label class="form-label small">Số cột</label><input type="number" name="hp_' + idx + '_layout" class="form-control form-control-sm" value="' + layout + '" min="2" max="6" /></div>' +
+                '<div class="col-md-3"><label class="form-label small">Số lưu mã hiển thị</label><input type="number" name="hp_' + idx + '_limit" class="form-control form-control-sm" value="' + limit + '" min="1" max="12" /></div>' +
+                '<div class="col-md-3"><label class="form-label small">Kiểu hiển thị</label>' +
+                '<select name="hp_' + idx + '_layout_style" class="form-select form-select-sm hp-style">' +
+                '<option value="grid"' + (layoutStyle === 'grid' ? ' selected' : '') + '>Lưới (dạng ô)</option>' +
+                '<option value="slider"' + (layoutStyle === 'slider' ? ' selected' : '') + '>Slide ngang</option>' +
+                '</select></div>';
+        }
+
+        body += '</div></div>';
+    }
+
+    div.innerHTML = header + '<div class="hp-section-body">' + body + '</div>';
+    if (active === false) {
+        var cbx = div.querySelector('input[name="hp_' + idx + '_active"][type="checkbox"]');
+        if (cbx)
+            cbx.checked = false;
+    }
     return div;
 }
+
+/* Giữ tiêu đề trong header đồng bộ khi sửa */
+window.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('input', function (e) {
+        if (e.target && e.target.name && e.target.name.indexOf('_title') > 0) {
+            var card = e.target.closest('.hp-section');
+            if (card) {
+                var lbl = card.querySelector('.hp-section-header .fw-semibold');
+                if (lbl)
+                    lbl.textContent = e.target.value || 'Section';
+            }
+        }
+    });
+});
+
+/* Hiện/ẩn khối giá & danh mục theo nguồn dữ liệu đã chọn */
+function hpModeChanged(sel) {
+    var card = sel.closest('.hp-section');
+    var mode = sel.value;
+    var priceBlock = card.querySelector('.hp-price-fields');
+    var catBlock = card.querySelector('.hp-cat-fields');
+    if (priceBlock)
+        priceBlock.classList.toggle('d-none', !(mode === 'under_price' || mode === 'price_range'));
+    if (catBlock)
+        catBlock.classList.toggle('d-none', mode !== 'category');
+}
+window.hpModeChanged = hpModeChanged;
 
 var defaultSections = ['slider'];
 defaultSections.forEach(function (type, i) {
     var idx = i + 1;
-    var section = createHomepageSection(type, idx, true);
-    document.getElementById('homepageSections').appendChild(section);
-
-    var savedLayout = hpSettings['hp_' + idx + '_layout'];
-    var savedTitle = hpSettings['hp_' + idx + '_title'];
-    var savedLimit = hpSettings['hp_' + idx + '_limit'];
-    var savedActive = hpSettings['hp_' + idx + '_active'];
-    var savedCatIds = hpSettings['hp_' + idx + '_category_ids'];
-
-    if (savedTitle && savedTitle !== 'null') {
-        var titleInput = section.querySelector('input[name="hp_' + idx + '_title"]');
-        if (titleInput)
-            titleInput.value = savedTitle;
-    }
-    if (savedLayout && savedLayout !== 'null' && savedLayout !== '1') {
-        var layoutOption = section.querySelector('.layout-option[data-cols="' + savedLayout + '"]');
-        if (layoutOption) {
-            section.querySelectorAll('.layout-option').forEach(function (o) {
-                o.classList.remove('active');
-            });
-            layoutOption.classList.add('active');
-            var hidden = section.querySelector('input[name="hp_' + idx + '_layout"]');
-            if (hidden)
-                hidden.value = savedLayout;
-        }
-    }
-    if (savedLimit && savedLimit !== 'null') {
-        var limitInput = section.querySelector('input[name="hp_' + idx + '_limit"]');
-        if (limitInput)
-            limitInput.value = savedLimit;
-    }
-    if (savedActive === '0') {
-        var checkbox = section.querySelector('input[name="hp_' + idx + '_active"][type="checkbox"]');
-        if (checkbox)
-            checkbox.checked = false;
-    }
-    if (savedCatIds && savedCatIds !== 'null') {
-        var catInput = section.querySelector('input[name="hp_' + idx + '_category_ids"]');
-        if (catInput)
-            catInput.value = savedCatIds;
-    }
+    hpCounter = Math.max(hpCounter, idx);
+    document.getElementById('homepageSections').appendChild(createHomepageSection(type, idx, true));
 });
 
 function toggleHpSection(header) {
@@ -236,59 +312,14 @@ function toggleHpSection(header) {
         chevron.style.transform = card.classList.contains('expanded') ? 'rotate(180deg)' : '';
 }
 
-function selectLayout(el) {
-    var grid = el.closest('.layout-grid');
-    grid.querySelectorAll('.layout-option').forEach(function (o) {
-        o.classList.remove('active');
-    });
-    el.classList.add('active');
-    var hidden = grid.parentElement.querySelector('input[type="hidden"]');
-    if (hidden)
-        hidden.value = el.dataset.cols;
-}
-
-function addHomepageSection() {
+function addHomepageSection(type) {
+    if (!type)
+        type = 'custom';
     hpCounter++;
-    var section = createHomepageSection('custom', hpCounter, true);
+    var section = createHomepageSection(type, hpCounter, true);
     document.getElementById('homepageSections').appendChild(section);
-    hpSortable.sort(section);
-    var savedTitle = hpSettings['hp_' + hpCounter + '_title'];
-    var savedLayout = hpSettings['hp_' + hpCounter + '_layout'];
-    var savedLimit = hpSettings['hp_' + hpCounter + '_limit'];
-    var savedActive = hpSettings['hp_' + hpCounter + '_active'];
-    var savedCatIds = hpSettings['hp_' + hpCounter + '_category_ids'];
-    if (savedTitle && savedTitle !== 'null') {
-        var ti = section.querySelector('input[name="hp_' + hpCounter + '_title"]');
-        if (ti)
-            ti.value = savedTitle;
-    }
-    if (savedLayout && savedLayout !== 'null' && savedLayout !== '1') {
-        var lo = section.querySelector('.layout-option[data-cols="' + savedLayout + '"]');
-        if (lo) {
-            section.querySelectorAll('.layout-option').forEach(function (o) {
-                o.classList.remove('active');
-            });
-            lo.classList.add('active');
-            var h = section.querySelector('input[name="hp_' + hpCounter + '_layout"]');
-            if (h)
-                h.value = savedLayout;
-        }
-    }
-    if (savedLimit && savedLimit !== 'null') {
-        var li = section.querySelector('input[name="hp_' + hpCounter + '_limit"]');
-        if (li)
-            li.value = savedLimit;
-    }
-    if (savedActive === '0') {
-        var cb = section.querySelector('input[name="hp_' + hpCounter + '_active"][type="checkbox"]');
-        if (cb)
-            cb.checked = false;
-    }
-    if (savedCatIds && savedCatIds !== 'null') {
-        var ci = section.querySelector('input[name="hp_' + hpCounter + '_category_ids"]');
-        if (ci)
-            ci.value = savedCatIds;
-    }
+    if (window.hpSortable)
+        hpSortable.sort(section);
 }
 
 function removeHomepageSection(el) {

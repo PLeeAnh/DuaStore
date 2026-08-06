@@ -25,7 +25,10 @@ function addTag() {
 function removeTag(tagId) {
     if (!confirm('Xóa thẻ này?')) return;
     fetch('/admin/khach-hang/' + customerId + '/api/tags/' + tagId, { method: 'DELETE' })
-        .then(function(r) { return r.json(); }).then(function() { location.reload(); })
+        .then(function(r) { return r.json(); }).then(function() {
+            if (window.__dsToastAfterReload) window.__dsToastAfterReload('Đã xóa thẻ');
+            location.reload();
+        })
         .catch(function(err) { console.error(err); });
 }
 function addNote() {
@@ -52,6 +55,9 @@ function addNote() {
 function deleteNote(noteId) {
     if (!confirm('Xóa ghi chú này?')) return;
     fetch('/admin/khach-hang/' + customerId + '/api/notes/' + noteId, { method: 'DELETE' })
-        .then(function(r) { return r.json(); }).then(function() { location.reload(); })
+        .then(function(r) { return r.json(); }).then(function() {
+            if (window.__dsToastAfterReload) window.__dsToastAfterReload('Đã xóa ghi chú');
+            location.reload();
+        })
         .catch(function(err) { console.error(err); });
 }

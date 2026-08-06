@@ -46,6 +46,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     };
 
+    /* ── Toast sau reload (sessionStorage) ── */
+    window.__dsToastAfterReload = function (msg) {
+        try { sessionStorage.setItem('dsPendingToast', msg); } catch (e) { }
+    };
+    (function () {
+        try {
+            var pending = sessionStorage.getItem('dsPendingToast');
+            if (pending) {
+                sessionStorage.removeItem('dsPendingToast');
+                dsToast('success', pending);
+            }
+        } catch (e) { }
+    })();
+
+    /* ── Submit form qua AJAX kèm toast mặc định nếu controller không flash ── */
+    window.__dsConfirmForm = null;
+    function dsSubmitFormWithFeedback(f) {
+        if (!f) return;
+        window.__dsPendingDefaultToast = f.getAttribute('data-success-msg') || 'Thao tác thành công';
+        var fd = new FormData(f);
+        var url = f.getAttribute('action');
+        var method = f.getAttribute('method') || 'post';
+        fetch(url, { method: method.toUpperCase(), body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) {
+                if (r.redirected) {
+                    var finalUrl = r.url;
+                    if (finalUrl && finalUrl !== window.location.href) history.pushState({ url: finalUrl }, '', finalUrl);
+                    return r.text().then(window.__handleResponseHtml);
+                }
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function (html) {
+                if (html) window.__handleResponseHtml(html);
+            })
+            .catch(function () {
+                window.__dsPendingDefaultToast = null;
+                if (typeof dsToast === 'function') dsToast('error', 'Thao tác thất bại, vui lòng thử lại');
+            });
+    }
+
     /* ── Sidebar toggle ── */
     const toggle = document.getElementById('admNavToggle');
     const sidebar = document.querySelector('.adm-sidebar');
@@ -116,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ── Confirm xóa (Bootstrap Modal) ── */
-    let confirmForm = null;
     const confirmModalEl = document.getElementById('confirmModal');
     if (confirmModalEl) {
         const confirmModal = new bootstrap.Modal(confirmModalEl);
@@ -128,9 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
         function handleDataConfirm(e) {
             var btn = e.currentTarget;
             var msg = btn.getAttribute('data-confirm') || 'Xác nhận thực hiện thao tác này?';
-            confirmForm = btn.closest('form');
-            if (!confirmForm) return;
+            var form = btn.closest('form');
+            if (!form) return;
             e.preventDefault();
+            window.__dsConfirmForm = form;
             var msgEl = document.getElementById('confirmModalMessage');
             if (msgEl) msgEl.textContent = msg;
             confirmModal.show();
@@ -154,14 +195,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         var confirmBtn = document.getElementById('confirmModalConfirm');
         if (confirmBtn) confirmBtn.addEventListener('click', () => {
-            if (confirmForm) {
-                confirmForm.submit();
-                confirmForm = null;
+            if (window.__dsConfirmForm) {
+                dsSubmitFormWithFeedback(window.__dsConfirmForm);
+                window.__dsConfirmForm = null;
             }
             confirmModal.hide();
         });
         confirmModalEl.addEventListener('hidden.bs.modal', () => {
-            confirmForm = null;
+            window.__dsConfirmForm = null;
         });
     }
 
@@ -212,13 +253,14 @@ document.addEventListener('DOMContentLoaded', () => {
         var bar = document.getElementById('dsSaveBar');
         if (!bar) return;
         var forms = document.querySelectorAll('form[data-dirty-bar]');
-        if (!forms.length) {
-            bar.style.display = 'none';
-            return;
-        }
         var main = document.querySelector('.adm-main');
         bar._activeForm = null;
         bar._firstForm = null;
+        if (!forms.length) {
+            bar.style.display = 'none';
+            if (main) main.style.paddingBottom = '';
+            return;
+        }
         var resetBtn = document.getElementById('dsSaveBarReset');
         var saveBtn = document.getElementById('dsSaveBarSave');
 
@@ -270,6 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (forms.length === 1) bar._activeForm = forms[0];
         if (!bar._activeForm) bar._activeForm = bar._firstForm;
+
+        // Khi điều hướng AJAX (bấm Rời khỏi / Lưu / nút reset), dsSaveBar là element
+        // dùng chung nên phải ẩn ngay ở mỗi lần khởi tạo lại — không ẩn ở đây thì
+        // thanh cũ sẽ dính lại trên trang mới.
+        bar.style.display = 'none';
+        if (main) main.style.paddingBottom = '';
 
         if (!bar._dirtyInit) {
             bar._dirtyInit = true;
@@ -368,11 +416,12 @@ document.addEventListener('DOMContentLoaded', () => {
         /* Confirm modal — re-bind [data-confirm] */
         var cmEl = document.getElementById('confirmModal');
         if (cmEl) {
-            window.__confirmForm = null;
             document.querySelectorAll('[data-confirm]').forEach(function (btn) {
                 btn.onclick = function (e) {
                     e.preventDefault();
-                    window.__confirmForm = btn.closest('form');
+                    var form = btn.closest('form');
+                    if (!form) return;
+                    window.__dsConfirmForm = form;
                     var msgEl = document.getElementById('confirmModalMessage');
                     if (msgEl) msgEl.textContent = btn.getAttribute('data-confirm');
                     if (window.__confirmModal) {
@@ -385,29 +434,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             var confirmBtn = document.getElementById('confirmModalConfirm');
             if (confirmBtn) confirmBtn.onclick = function () {
-                var f = window.__confirmForm;
-                window.__confirmForm = null;
-                if (!f) return;
-                var fd = new FormData(f);
-                var url = f.getAttribute('action');
-                var method = f.getAttribute('method') || 'post';
-                fetch(url, { method: method.toUpperCase(), body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                    .then(function (r) {
-                        if (r.redirected) {
-                            var finalUrl = r.url;
-                            if (finalUrl && finalUrl !== window.location.href) history.pushState({ url: finalUrl }, '', finalUrl);
-                            return r.text().then(window.__handleResponseHtml);
-                        }
-                        if (!r.ok) throw new Error('HTTP ' + r.status);
-                        return r.text();
-                    })
-                    .then(function (html) {
-                        if (!html) return;
-                        window.__handleResponseHtml(html);
-                    })
-                    .catch(function () {
-                        if (typeof dsToast === 'function') dsToast('error', 'Thao tác thất bại, vui lòng thử lại');
-                    });
+                if (window.__dsConfirmForm) {
+                    dsSubmitFormWithFeedback(window.__dsConfirmForm);
+                    window.__dsConfirmForm = null;
+                }
             };
         }
 
@@ -596,11 +626,16 @@ document.addEventListener('DOMContentLoaded', () => {
         var bc = doc.querySelector('.breadcrumb');
         var curBc = document.querySelector('.breadcrumb');
         if (bc && curBc) curBc.innerHTML = bc.innerHTML;
+        var toastFired = false;
         doc.querySelectorAll('[data-toast-msg]').forEach(function (el) {
             var msg = el.getAttribute('data-toast-msg');
             var type = el.getAttribute('data-toast-type') || 'success';
-            if (typeof dsToast === 'function') dsToast(type, msg);
+            if (typeof dsToast === 'function') { dsToast(type, msg); toastFired = true; }
         });
+        if (window.__dsPendingDefaultToast && !toastFired) {
+            if (typeof dsToast === 'function') dsToast('success', window.__dsPendingDefaultToast);
+        }
+        window.__dsPendingDefaultToast = null;
         if (window.__reinitAdminComponents) window.__reinitAdminComponents();
     };
 

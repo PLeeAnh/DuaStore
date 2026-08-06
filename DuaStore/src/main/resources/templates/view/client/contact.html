@@ -11,14 +11,6 @@
             <section class="ds-section sr-up">
                 <div class="container-xl">
                     <div class="ds-section-card">
-                        <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show" role="alert">
-                            <span th:text="${successMsg}">Cảm ơn bạn đã liên hệ!</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                        <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <span th:text="${errorMsg}">Có lỗi xảy ra, vui lòng thử lại.</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
                         <div class="row justify-content-center">
                             <div class="col-12 col-lg-8">
                                 <div class="ds-card">
@@ -139,6 +131,14 @@
         <script th:src="@{/js/client-contact.js(v=1)}"></script>
         <script th:inline="javascript">
             initContactMap([[${storeLat}]], [[${storeLng}]]);
+            document.addEventListener('DOMContentLoaded', function () {
+                /*<![CDATA[*/
+                var sm = [[${successMsg}]];
+                if (sm && window.DuaStore && DuaStore.toast) { DuaStore.toast.success(sm); }
+                var em = [[${errorMsg}]];
+                if (em && window.DuaStore && DuaStore.toast) { DuaStore.toast.error(em); }
+                /*]]>*/
+            });
         </script>
     </th:block>
     </body>

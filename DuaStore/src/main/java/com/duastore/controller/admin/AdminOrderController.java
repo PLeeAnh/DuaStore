@@ -288,6 +288,19 @@ public class AdminOrderController {
 
             boolean wasUnpaid = "CHUA_THANH_TOAN".equals(order.getTrangThaiTT());
             String newStatus = dto.getTrangThaiDon();
+
+            if (!"DA_HUY".equals(newStatus) && order.getUser() != null && order.getUser().getEmail() != null) {
+                String statusName = AdminOrderService.getStatusName(newStatus);
+                boolean emailOk = emailService.sendOrderStatusEmail(
+                        order.getUser().getEmail(), order.getUser().getHoTen(),
+                        order.getMaDon(), statusName);
+                if (!emailOk) {
+                    ra.addFlashAttribute("errorMsg",
+                            "Không gửi được email cập nhật trạng thái cho khách hàng. Trạng thái không được thay đổi.");
+                    return "redirect:/admin/don-hang/" + id;
+                }
+            }
+
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, newStatus, oldStatus, admin, request);
             if (!"DA_HUY".equals(newStatus)) {
                 if (wasUnpaid && "DA_HOAN_THANH".equals(newStatus)) {
@@ -302,14 +315,6 @@ public class AdminOrderController {
                             order.getMaDon(),
                             order.getUser() != null ? order.getUser().getId() : null
                     );
-                    // Gửi email cho khách hàng
-                    if (order.getUser() != null && order.getUser().getEmail() != null) {
-                        final String toEmail   = order.getUser().getEmail();
-                        final String hoTen     = order.getUser().getHoTen();
-                        final String maDon     = order.getMaDon();
-                        final String statusLbl = statusName;
-                        new Thread(() -> emailService.sendOrderStatusEmail(toEmail, hoTen, maDon, statusLbl)).start();
-                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -363,6 +368,19 @@ public class AdminOrderController {
             String oldStatus = order.getTrangThaiDon();
             boolean wasUnpaid = "CHUA_THANH_TOAN".equals(order.getTrangThaiTT());
 
+            if (!"DA_HUY".equals(trangThai) && order.getUser() != null && order.getUser().getEmail() != null) {
+                String statusName = AdminOrderService.getStatusName(trangThai);
+                boolean emailOk = emailService.sendOrderStatusEmail(
+                        order.getUser().getEmail(), order.getUser().getHoTen(),
+                        order.getMaDon(), statusName);
+                if (!emailOk) {
+                    result.put("success", false);
+                    result.put("message",
+                            "Không gửi được email cập nhật trạng thái cho khách hàng. Trạng thái không được thay đổi.");
+                    return ResponseEntity.ok(result);
+                }
+            }
+
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, trangThai, oldStatus, admin, request);
             if (!"DA_HUY".equals(trangThai)) {
                 try {
@@ -374,14 +392,6 @@ public class AdminOrderController {
                             order.getMaDon(),
                             order.getUser() != null ? order.getUser().getId() : null
                     );
-                    // Gửi email cho khách hàng
-                    if (order.getUser() != null && order.getUser().getEmail() != null) {
-                        final String toEmail   = order.getUser().getEmail();
-                        final String hoTen     = order.getUser().getHoTen();
-                        final String maDon     = order.getMaDon();
-                        final String statusLbl = statusName;
-                        new Thread(() -> emailService.sendOrderStatusEmail(toEmail, hoTen, maDon, statusLbl)).start();
-                    }
                 } catch (Exception ignored) {
                 }
             }
@@ -448,6 +458,18 @@ public class AdminOrderController {
                 try {
                     Order order = adminOrderService.getOrderById(id);
                     String oldStatus = order.getTrangThaiDon();
+
+                    if (!"DA_HUY".equals(status) && order.getUser() != null
+                            && order.getUser().getEmail() != null && !order.getUser().getEmail().isBlank()) {
+                        boolean emailOk = emailService.sendOrderStatusEmail(
+                                order.getUser().getEmail(), order.getUser().getHoTen(),
+                                order.getMaDon(), AdminOrderService.getStatusName(status));
+                        if (!emailOk) {
+                            errors.add("Đơn #" + id + ": không gửi được email, bỏ qua cập nhật");
+                            continue;
+                        }
+                    }
+
                     String stockMsg = adminOrderService.updateOrderStatusWithLog(id, status, oldStatus, admin, request);
                     updated++;
                     log.info("Batch update order #{}: {} -> {}", id, oldStatus, status);
@@ -462,13 +484,6 @@ public class AdminOrderController {
                                     order.getMaDon(),
                                     order.getUser() != null ? order.getUser().getId() : null
                             );
-                            if (order.getUser() != null && order.getUser().getEmail() != null && !order.getUser().getEmail().isBlank()) {
-                                final String toEmail   = order.getUser().getEmail();
-                                final String hoTen     = order.getUser().getHoTen();
-                                final String maDon     = order.getMaDon();
-                                final String statusLbl = statusName;
-                                new Thread(() -> emailService.sendOrderStatusEmail(toEmail, hoTen, maDon, statusLbl)).start();
-                            }
                         } catch (Exception ignored) {
                         }
                     }
@@ -567,33 +582,27 @@ public class AdminOrderController {
             Order order = adminOrderService.getOrderById(id);
             User newAdmin = new User();
             newAdmin.setId(adminId);
-            adminLogService.reassignAdmin(order, admin, newAdmin, request);
+            User assignedUser = userRepository.findById(adminId).orElse(null);
 
-            // Gửi email cho admin/staff được phân công
-            try {
-                User assignedUser = userRepository.findById(adminId).orElse(null);
-                if (assignedUser != null && assignedUser.getEmail() != null && !assignedUser.getEmail().isBlank()) {
-                    final String toEmail      = assignedUser.getEmail();
-                    final String adminName    = assignedUser.getHoTen() != null ? assignedUser.getHoTen() : assignedUser.getEmail();
-                    final String maDon        = order.getMaDon();
-                    final String customerName = order.getSnapTenNguoiNhan() != null ? order.getSnapTenNguoiNhan() : "Khách hàng";
-                    final String assignedBy   = admin.getHoTen() != null ? admin.getHoTen() : admin.getUsername();
-                    log.info("Gửi email phân công đơn {} tới {} <{}>", maDon, adminName, toEmail);
-                    new Thread(() -> {
-                        try {
-                            emailService.sendOrderAssignedEmail(toEmail, adminName, maDon, customerName, assignedBy);
-                            log.info("Email phân công đơn {} gửi thành công tới {}", maDon, toEmail);
-                        } catch (Exception ex) {
-                            log.error("Lỗi gửi email phân công đơn {}: {}", maDon, ex.getMessage(), ex);
-                        }
-                    }).start();
-                } else {
-                    log.warn("Không gửi email phân công: adminId={} không có email hoặc không tìm thấy", adminId);
+            if (assignedUser != null && assignedUser.getEmail() != null && !assignedUser.getEmail().isBlank()) {
+                boolean emailOk = emailService.sendOrderAssignedEmail(
+                        assignedUser.getEmail(),
+                        assignedUser.getHoTen() != null ? assignedUser.getHoTen() : assignedUser.getEmail(),
+                        order.getMaDon(),
+                        order.getSnapTenNguoiNhan() != null ? order.getSnapTenNguoiNhan() : "Khách hàng",
+                        admin.getHoTen() != null ? admin.getHoTen() : admin.getUsername());
+                if (!emailOk) {
+                    ra.addFlashAttribute("errorMsg",
+                            "Không gửi được email phân công cho nhân viên. Việc phân công không được thực hiện.");
+                    return "redirect:/admin/don-hang/" + id;
                 }
-            } catch (Exception emailEx) {
-                log.error("Lỗi khi chuẩn bị email phân công đơn #{}: {}", id, emailEx.getMessage(), emailEx);
+                log.info("Gửi email phân công đơn {} tới {} <{}>", order.getMaDon(),
+                        assignedUser.getHoTen(), assignedUser.getEmail());
+            } else {
+                log.warn("Không gửi email phân công: adminId={} không có email hoặc không tìm thấy", adminId);
             }
 
+            adminLogService.reassignAdmin(order, admin, newAdmin, request);
             ra.addFlashAttribute("successMsg", "Đã phân công lại đơn hàng");
         } catch (Exception e) {
             log.error("Lỗi reassignAdmin đơn #{}: {}", id, e.getMessage(), e);

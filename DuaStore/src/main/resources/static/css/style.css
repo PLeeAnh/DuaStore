@@ -5191,6 +5191,38 @@ a {
     color: var(--ds-primary);
 }
 
+/* ===== §33f2 DYNAMIC HOME SECTIONS (homepage designer) ===== */
+.ds-dynamic-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 4), 1fr);
+    gap: 20px;
+}
+.ds-dynamic-grid .ds-mini-card {
+    flex: none;
+    width: auto;
+}
+.ds-cat-grid .ds-cat-tile {
+    flex: none;
+    width: auto;
+}
+.ds-promo-slide {
+    flex: 0 0 300px;
+}
+.ds-dynamic-grid .vc-card {
+    height: 100%;
+}
+@media (max-width: 768px) {
+    .ds-dynamic-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+}
+@media (max-width: 480px) {
+    .ds-dynamic-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ===== §33g BROWSE PRODUCTS: two-column list + preview (Steam Browse style) ===== */
 .ds-browse {
     margin: 0;

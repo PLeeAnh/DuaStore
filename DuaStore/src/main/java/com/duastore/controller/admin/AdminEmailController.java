@@ -1,5 +1,6 @@
 package com.duastore.controller.admin;
 
+import com.duastore.service.EmailService;
 import com.duastore.service.SiteSettingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -19,9 +20,11 @@ public class AdminEmailController {
     private static final String GROUP = "email";
 
     private final SiteSettingService siteSettingService;
+    private final EmailService emailService;
 
-    public AdminEmailController(SiteSettingService siteSettingService) {
+    public AdminEmailController(SiteSettingService siteSettingService, EmailService emailService) {
         this.siteSettingService = siteSettingService;
+        this.emailService = emailService;
     }
 
     @GetMapping
@@ -40,5 +43,16 @@ public class AdminEmailController {
         siteSettingService.saveGroupFromParams(params, GROUP);
         ra.addFlashAttribute("successMsg", "Cập nhật cấu hình email thành công");
         return "redirect:/admin/email-smtp";
+    }
+
+    @PostMapping("/test")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).EMAIL_SETTING_UPDATE)")
+    @ResponseBody
+    public Map<String, Object> test(@RequestParam MultiValueMap<String, String> params) {
+        siteSettingService.saveGroupFromParams(params, GROUP);
+        boolean ok = emailService.sendTest();
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", ok);
+        return res;
     }
 }
