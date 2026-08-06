@@ -21,7 +21,7 @@
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Inter'}" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
-<link rel="stylesheet" th:href="@{/css/style.css(v=12)}"/>
+<link rel="stylesheet" th:href="@{/css/style.css(v=13)}"/>
 <link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css(v=1)}"/>
 
     <script defer th:src="@{/js/main.js(v=1)}"></script>
@@ -51,7 +51,7 @@
         }
         .ds-ctn-width { max-width: [[${themeSettings.get('theme_container_width') ?: '1280'}]]px !important; margin: 0 auto; }
     </style>
-    <link rel="stylesheet" th:href="@{/css/base-ui.css}"/>
+    <link rel="stylesheet" th:href="@{/css/base-ui.css(v=2)}"/>
 </head>
 <body>
 

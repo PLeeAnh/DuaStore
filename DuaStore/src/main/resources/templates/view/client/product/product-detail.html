@@ -806,19 +806,9 @@
             }
 
             /* ── AJAX review filter ── */
-            document.addEventListener('click', function (e) {
-                var target = e.target.closest('#review-star-filters a, .adm-pagination-btn, .adm-pagination-nav-btn');
-                if (!target) return;
-                e.preventDefault();
+            function reviewReload(params) {
                 var section = document.getElementById('reviews-section');
                 if (!section) return;
-                var isAll = target.getAttribute('data-all') !== null;
-                var rating = target.getAttribute('data-rating');
-                var page = target.getAttribute('data-page');
-                if (!isAll && rating === null && page === null) return;
-                var params = new URLSearchParams();
-                if (rating !== null) params.set('reviewRating', rating);
-                if (page !== null) params.set('reviewPage', page);
                 var url = '/san-pham/' + productId + '/reviews?' + params.toString();
                 section.style.opacity = '.5';
                 fetch(url)
@@ -843,7 +833,30 @@
                     .catch(function () {
                         section.style.opacity = '1';
                     });
+            }
+            document.addEventListener('click', function (e) {
+                var target = e.target.closest('#review-star-filters a, .adm-pagination-btn, .adm-pagination-nav-btn');
+                if (!target) return;
+                e.preventDefault();
+                var isAll = target.getAttribute('data-all') !== null;
+                var rating = target.getAttribute('data-rating');
+                var page = target.getAttribute('data-page');
+                if (!isAll && rating === null && page === null) return;
+                var sizeSel = document.getElementById('reviewSizeSelect');
+                var params = new URLSearchParams();
+                params.set('reviewSize', sizeSel ? sizeSel.value : '10');
+                if (rating !== null) params.set('reviewRating', rating);
+                if (page !== null) params.set('reviewPage', page);
+                reviewReload(params);
             });
+            window.reviewChangeSize = function (size) {
+                var activeStar = document.querySelector('#review-star-filters a.active');
+                var rating = activeStar ? activeStar.getAttribute('data-rating') : null;
+                var params = new URLSearchParams();
+                params.set('reviewSize', size);
+                if (rating !== null) params.set('reviewRating', rating);
+                reviewReload(params);
+            };
         </script>
 
         <!-- Image preview modal -->

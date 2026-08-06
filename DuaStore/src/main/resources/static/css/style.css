@@ -7451,3 +7451,54 @@ body.ds-checkout-page #main-content {
     .ds-hero-v2 { border-radius: 0; }
     .ds-checkout-section-empty { font-size: .85rem; }
 }
+
+/* ════════════════════════════════
+   MOBILE FIXES — product list v2 (card / phân loại / bộ lọc)
+   ════════════════════════════════ */
+/* Touch không có hover: luôn hiện phân loại (variant) trên card, giữ hàng tồn,
+   ẩn hover-preview (300px) tràn khỏi màn hình, bỏ hiệu ứng translate khi chạm */
+@media (max-width: 991.98px) {
+    .ds-product-card .ds-card-actions {
+        max-height: 320px;
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .ds-product-card:hover .ds-stock-qty-row {
+        max-height: none;
+        opacity: 1;
+        margin: 0;
+        padding: 0;
+        min-height: 1.2em;
+        pointer-events: none;
+    }
+    .ds-card-hover-preview {
+        display: none !important;
+    }
+    .ds-product-card:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--ds-border);
+    }
+    .ds-product-card:hover .ds-product-image-wrap img {
+        transform: none;
+    }
+}
+/* Card 2 cột rất hẹp (<576px): thu nhỏ font/giảm padding giữ bố cục gọn */
+@media (max-width: 575.98px) {
+    .ds-product-name {
+        font-size: .72rem;
+    }
+    .ds-stock-info {
+        font-size: .6rem;
+    }
+    .ds-price-btn {
+        min-height: 40px;
+        font-size: .78rem;
+        padding: 0 8px;
+    }
+    .ds-variant-tab,
+    .ds-variant-chip {
+        font-size: .56rem;
+        padding: 2px 5px;
+    }
+}

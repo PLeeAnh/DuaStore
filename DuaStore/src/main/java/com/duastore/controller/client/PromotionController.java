@@ -48,7 +48,11 @@ public class PromotionController {
     public String list(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(defaultValue = "0") int pPage,
+            @RequestParam(defaultValue = "12") int pSize,
             Model model) {
+        if (pSize != 8 && pSize != 12 && pSize != 24 && pSize != 48) {
+            pSize = 12;
+        }
         LocalDateTime now = LocalDateTime.now();
         Page<Promotion> promoPage = promotionRepository.findActiveNow(now, PageRequest.of(page, size));
         model.addAttribute("promotions", promoPage.getContent());
@@ -97,7 +101,7 @@ public class PromotionController {
         model.addAttribute("countdownEnd", countdownEnd);
 
         // ── Sản phẩm đang giảm giá (phân trang riêng) ──
-        int dealSize = 12;
+        int dealSize = pSize;
         Page<Product> dealPage = productRepository.findNewestWithVariants(PageRequest.of(pPage, dealSize));
         List<Integer> dealIds = dealPage.getContent().stream().map(Product::getId).toList();
         Map<Integer, List<ProductVariant>> dealVariantsMap = new HashMap<>();
