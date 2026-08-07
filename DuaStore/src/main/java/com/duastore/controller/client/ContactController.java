@@ -2,8 +2,8 @@ package com.duastore.controller.client;
 
 import com.duastore.model.ContactMessage;
 import com.duastore.model.StoreInfo;
+import com.duastore.service.AsyncEmailService;
 import com.duastore.service.ContactMessageService;
-import com.duastore.service.EmailService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.admin.AdminStoreInfoService;
 import org.springframework.stereotype.Controller;
@@ -18,16 +18,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ContactController {
 
     private final AdminStoreInfoService storeInfoService;
-    private final EmailService emailService;
+    private final AsyncEmailService asyncEmailService;
     private final SiteSettingService siteSettingService;
     private final ContactMessageService contactMessageService;
 
     public ContactController(AdminStoreInfoService storeInfoService,
-            EmailService emailService,
+            AsyncEmailService asyncEmailService,
             SiteSettingService siteSettingService,
             ContactMessageService contactMessageService) {
         this.storeInfoService = storeInfoService;
-        this.emailService = emailService;
+        this.asyncEmailService = asyncEmailService;
         this.siteSettingService = siteSettingService;
         this.contactMessageService = contactMessageService;
     }
@@ -71,7 +71,7 @@ public class ContactController {
                 storeEmail = SiteSettingService.STORE_DEFAULTS.get("store_email");
             }
             if (storeEmail != null && !storeEmail.isBlank()) {
-                emailService.send(storeEmail,
+                asyncEmailService.sendRaw(storeEmail,
                         "[DuaStore][" + loaiLabel + "] Tin nhắn từ " + hoTen.trim(),
                         "<div style=\"font-family:Arial,sans-serif;padding:20px;\">"
                         + "<h3 style=\"color:#1D4ED8;\">Tin nhắn liên hệ mới <small>(" + loaiLabel + ")</small></h3>"
@@ -81,7 +81,7 @@ public class ContactController {
                         + "<p style=\"white-space:pre-wrap;background:#f8fafc;border-left:4px solid #1D4ED8;padding:12px 16px;border-radius:6px;\">"
                         + htmlEscape(noiDung.trim()) + "</p></div>");
             }
-            emailService.send(email.trim(),
+            asyncEmailService.sendRaw(email.trim(),
                     "[DuaStore] Cảm ơn bạn đã liên hệ",
                     "<div style=\"font-family:Arial,sans-serif;padding:20px;\">"
                     + "<h3 style=\"color:#1D4ED8;\">DuaStore</h3>"

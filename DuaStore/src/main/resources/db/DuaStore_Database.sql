@@ -23,13 +23,13 @@
      insert seed du lieu khong bi loi - Hibernate validate KHONG kiem tra
      DEFAULT constraint nen an toan 100%.
 
- File nay tu sinh tu schema.sql (Hibernate xuat truc tiep tu @Entity, dam bao
- khop tuyet doi) + gop lai phan seed data / index / view huu ich cua ban cu.
+File nay la NGUON SCRIPT DUY NHAT cho DB san pham (khong con schema.sql /
+  application-ddlgen.properties). App runtime co
+  spring.jpa.hibernate.ddl-auto=validate nen script phai khop 100% voi @Entity.
 
- QUAN TRONG: Neu sau nay ban SUA/THEM entity (@Column moi, doi kieu du lieu...),
- file nay se LAI BI LECH. Luc do lam lai theo dung huong dan trong
- application-ddlgen.properties (chay profile "ddlgen" de Hibernate tu xuat
- schema.sql moi tu entity, roi generate lai script nay).
+  QUAN TRONG: Neu sau nay ban SUA/THEM entity (@Column moi, doi kieu du lieu...),
+  file nay se LAI BI LECH -> app se bao loi validate khi chay. Luc do nhom lai
+  cac column entity them moi (dung dung camelCase cua entity) va sua script tay.
 
  Tai khoan mac dinh sau khi seed: admin / admin@123 (vai tro SUPER_ADMIN)
 ================================================================================
@@ -89,6 +89,10 @@ DROP TABLE IF EXISTS linked_accounts;
 DROP TABLE IF EXISTS user_auth_providers;
 DROP TABLE IF EXISTS SiteSettings;
 DROP TABLE IF EXISTS store_info;
+DROP TABLE IF EXISTS contact_messages;
+DROP TABLE IF EXISTS popup_banners;
+DROP TABLE IF EXISTS UserActivityLogs;
+DROP TABLE IF EXISTS ProductViews;
 DROP TABLE IF EXISTS users;
 GO
 
@@ -238,7 +242,7 @@ GO
         nguoi_thuc_hien_id int,
         order_id int not null,
         thoi_gian datetime2(7) not null,
-        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
+        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED','REFUND_ORDER'))),
         trang_thai_cu nvarchar(50),
         trang_thai_moi nvarchar(50),
         ghiChu nvarchar(500),
@@ -263,9 +267,11 @@ GO
         trangThaiDon nvarchar(20) default 'CHO_XAC_NHAN' not null,
         trangThaiTT nvarchar(25) default 'CHUA_THANH_TOAN' not null,
         maVanDon nvarchar(50),
+        shippingCarrier nvarchar(30),
         snapTenNguoiNhan nvarchar(100) not null,
         ghiChu nvarchar(500),
         snapDiaChi nvarchar(500) not null,
+        fraudWarning nvarchar(1000),
         primary key (id)
     );
 
@@ -323,6 +329,7 @@ GO
         isActive bit default 1 not null,
         isFeatured bit default 0 not null,
         leadTimeDays int,
+        minPrice numeric(12,0),
         ngayPhatHanh date,
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7),
@@ -389,6 +396,9 @@ GO
         ngayYeuCau datetime2(7) not null,
         lydo nvarchar(2000) not null,
         anhMinhChung nvarchar(255),
+        chuTaiKhoan nvarchar(255),
+        soTaiKhoan nvarchar(255),
+        tenNganHang nvarchar(255),
         ghiChuXuLy nvarchar(255),
         phuongThucHoan nvarchar(255),
         trangThai nvarchar(255) not null,
@@ -402,7 +412,6 @@ GO
         productId int not null,
         userId int not null,
         ngayTao datetime2(7) not null,
-        hinhAnh nvarchar(500),
         binhLuan nvarchar(1000),
         primary key (id)
     );
@@ -471,6 +480,49 @@ GO
         primary key (id)
     );
 
+    create table ProductViews (
+        productId int not null,
+        userId int not null,
+        id bigint identity not null,
+        viewedAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table UserActivityLogs (
+        userId int not null,
+        activityAt datetime2(7) not null,
+        id bigint identity not null,
+        ipAddress nvarchar(45),
+        activityType nvarchar(50) not null,
+        description nvarchar(500),
+        primary key (id)
+    );
+
+    create table contact_messages (
+        id int identity not null,
+        is_read bit not null,
+        is_spam bit not null,
+        created_at datetime2(7) not null,
+        phan_loai nvarchar(30) not null,
+        hoTen nvarchar(150) not null,
+        email nvarchar(200) not null,
+        noiDung nvarchar(2000) not null,
+        primary key (id)
+    );
+
+    create table popup_banners (
+        active bit not null,
+        id int identity not null,
+        interval_minutes int,
+        created_at datetime2(7) not null,
+        updated_at datetime2(7) not null,
+        display_mode nvarchar(20) not null,
+        title nvarchar(200) not null,
+        image_url nvarchar(500) not null,
+        link_url nvarchar(1000),
+        primary key (id)
+    );
+
     create table user_roles (
         role_id int not null,
         user_id int not null,
@@ -490,6 +542,9 @@ GO
         id int identity not null,
         isActive bit default 1 not null,
         phoneVisible bit,
+        ngaySinh date,
+        twoFactorEnabled bit,
+        twoFactorSecret nvarchar(64),
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7) not null,
         resetTokenExpiry datetime2(7),
@@ -565,7 +620,7 @@ GO
         url nvarchar(500) not null,
         display_order int not null,
         is_active bit not null,
-        column_index int not null,
+        columnIndex int not null,
         created_at datetime2(7) not null,
         primary key (id)
     );
@@ -617,6 +672,9 @@ GO
 
     alter table Wishlists
        add constraint UKnyiaslokuixrb7h9fpmo6j4nc unique (userId, productId);
+
+    alter table CartItems 
+       add constraint UK7wqcpmx1ycp3a1sfcdrjnwibr unique (userId, variantId);
 
     alter table CustomerNotes
        add constraint FK_CustomerNotes_userId
@@ -1096,7 +1154,7 @@ GO
 
 PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 39 (gom 2 bang join: role_permissions, user_roles)';
+PRINT ' Tong so bang  : 43 (gom 2 bang join: role_permissions, user_roles)';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
 PRINT '====================================================';

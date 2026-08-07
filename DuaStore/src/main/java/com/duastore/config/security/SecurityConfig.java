@@ -47,6 +47,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/ws/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/wishlist/**", "/api/cart/**", "/address/api/**", "/api/vi-voucher/**", "/api/thong-bao/**", "/api/coupon/**").authenticated()
                 .requestMatchers("/checkout/vnpay/**").permitAll()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()

@@ -6,13 +6,12 @@ import com.duastore.dto.CheckoutRequestDTO;
 import com.duastore.dto.OrderDTO;
 import com.duastore.model.Address;
 import com.duastore.model.Order;
-import com.duastore.model.OrderItem;
 import com.duastore.model.Promotion;
 import com.duastore.model.User;
 import com.duastore.repository.AddressRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.model.OrderEventType;
-import com.duastore.service.EmailService;
+import com.duastore.service.AsyncEmailService;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PaymentService;
 import com.duastore.dto.CarrierQuote;
@@ -55,7 +54,7 @@ public class CheckoutController {
     private final AddressRepository addressRepository;
     private final PromotionRepository promotionRepository;
     private final SecurityUtil securityUtil;
-    private final EmailService emailService;
+    private final AsyncEmailService asyncEmailService;
     private final PaymentService paymentService;
     private final OrderStatusLogService orderStatusLogService;
     private final NotificationHelper notificationHelper;
@@ -76,7 +75,7 @@ public class CheckoutController {
             AddressRepository addressRepository,
             PromotionRepository promotionRepository,
             SecurityUtil securityUtil,
-            EmailService emailService,
+            AsyncEmailService asyncEmailService,
             PaymentService paymentService,
             OrderStatusLogService orderStatusLogService,
             NotificationHelper notificationHelper,
@@ -91,7 +90,7 @@ public class CheckoutController {
         this.addressRepository = addressRepository;
         this.promotionRepository = promotionRepository;
         this.securityUtil = securityUtil;
-        this.emailService = emailService;
+        this.asyncEmailService = asyncEmailService;
         this.paymentService = paymentService;
         this.orderStatusLogService = orderStatusLogService;
         this.notificationHelper = notificationHelper;
@@ -267,12 +266,13 @@ public class CheckoutController {
         try {
             Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
                     ? new HashSet<>(req.getSelectedIds()) : null;
-            Order order = orderService.processCheckout(
+            Order order = orderService.processCheckoutIdempotent(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
                     req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0,
                     selectedSet,
-                    req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN"
+                    req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN",
+                    req.getIdempotencyKey()
             );
 
             fraudDetectionService.analyzeAndPersist(order);
@@ -288,17 +288,10 @@ public class CheckoutController {
                 // notifyStaff đã log lỗi, không break flow chính
             }
 
+            // Email xac nhan gui BAT DONG BO (best-effort) — khong bao gio chan/khong tao
+            // tinh huong "guu don thanh cong nhung vi email loi nen bi huy don" nua.
             if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
-                boolean emailOk = sendOrderSuccessEmailChecked(order);
-                if (!emailOk) {
-                    try {
-                        orderService.cancelOrder(userId, order.getId(),
-                                "Không gửi được email xác nhận đơn hàng, tự động hủy");
-                    } catch (RuntimeException ignored) {
-                    }
-                    throw new RuntimeException(
-                            "Không gửi được email xác nhận đơn hàng. Đơn hàng không thành công, vui lòng kiểm tra hộp thư trước khi thử lại.");
-                }
+                asyncEmailService.sendOrderSuccess(order);
             }
 
             if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
@@ -315,28 +308,6 @@ public class CheckoutController {
             buildCheckoutModel(model, userId, req.getSelectedIds());
             model.addAttribute("error", e.getMessage());
             return "view/client/checkout";
-        }
-    }
-
-    private boolean sendOrderSuccessEmailChecked(Order order) {
-        try {
-            User u = order.getUser();
-            String tt = "CHUYEN_KHOAN".equals(order.getPhuongThucTT()) ? "Chuyển khoản"
-                    : "VNPAY".equals(order.getPhuongThucTT()) ? "VNPay" : "COD";
-            String gh = "GHN".equals(order.getShippingCarrier()) ? "Giao Hàng Nhanh" : "Giao Hàng Tiết Kiệm";
-            String ngayDat = order.getNgayDat().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
-            StringBuilder itemsHtml = new StringBuilder();
-            for (OrderItem item : order.getOrderItems()) {
-                itemsHtml.append("<div style=\"display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0;\">")
-                        .append("<div><div style=\"font-size:14px;color:#424242;\">").append(item.getTenSanPham()).append("</div>")
-                        .append("<div style=\"font-size:12px;color:#9e9e9e;\">").append(item.getTenBienThe()).append(" x ").append(item.getSoLuong()).append("</div></div>")
-                        .append("<div style=\"font-size:14px;font-weight:600;color:#424242;\">").append(PriceUtils.format(item.getThanhTien())).append("</div></div>");
-            }
-            return emailService.sendOrderSuccessEmail(u.getEmail(), u.getHoTen(), order.getMaDon(),
-                    ngayDat, order.getSnapDiaChi(), tt, gh,
-                    PriceUtils.format(order.getTongThanhToan()), itemsHtml.toString());
-        } catch (Exception e) {
-            return false;
         }
     }
 
@@ -438,12 +409,13 @@ public class CheckoutController {
             int pointsToRedeem = req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0;
             Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
                     ? new HashSet<>(req.getSelectedIds()) : null;
-            Order order = orderService.processCheckout(
+            Order order = orderService.processCheckoutIdempotent(
                     userId, req.getAddressId(), req.getPhuongThucTT(),
                     req.getPhuongThucGiaoHang(), req.getMaCode(), req.getGhiChu(),
                     pointsToRedeem,
                     selectedSet,
-                    req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN"
+                    req.getShippingCarrier() != null ? req.getShippingCarrier() : "GHN",
+                    req.getIdempotencyKey()
             );
             fraudDetectionService.analyzeAndPersist(order);
             try {
@@ -547,25 +519,19 @@ public class CheckoutController {
                 return ResponseEntity.ok(res);
             }
 
-            boolean emailOk = sendOrderSuccessEmailChecked(order);
-            if (!emailOk) {
-                res.put("success", false);
-                res.put("message",
-                        "Không gửi được email xác nhận thanh toán. Thanh toán chưa hoàn tất, vui lòng thử lại.");
-                return ResponseEntity.ok(res);
-            }
-
-            orderService.updatePaymentStatus(id, "DA_THANH_TOAN");
-            orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
-
-            try {
-                notificationHelper.notifyStaff(
-                        "Khách hàng đã xác nhận thanh toán cho đơn hàng: " + order.getMaDon(),
-                        "ORDER", order.getId(),
-                        "/admin/don-hang/" + order.getId(),
-                        order.getMaDon()
-                );
-            } catch (Exception ignored) {
+            // Idempotent + loo PESSIMISTIC_WRITE: goi nhieu lan cung key chi xac nhan 1 lan.
+            boolean firstTime = orderService.confirmPaid(id);
+            if (firstTime) {
+                asyncEmailService.sendOrderSuccess(order);
+                try {
+                    notificationHelper.notifyStaff(
+                            "Khách hàng đã xác nhận thanh toán cho đơn hàng: " + order.getMaDon(),
+                            "ORDER", order.getId(),
+                            "/admin/don-hang/" + order.getId(),
+                            order.getMaDon()
+                    );
+                } catch (Exception ignored) {
+                }
             }
 
             res.put("success", true);
@@ -621,7 +587,19 @@ public class CheckoutController {
                 model.addAttribute("error", "Số tiền giao dịch không khớp với đơn hàng");
                 return "view/client/payment-fail";
             }
-            orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+            boolean firstTime = orderService.confirmPaid(orderId);
+            if (firstTime) {
+                asyncEmailService.sendOrderSuccess(order);
+                try {
+                    notificationHelper.notifyStaff(
+                            "Khách hàng đã thanh toán VNPay cho đơn hàng: " + order.getMaDon(),
+                            "ORDER", order.getId(),
+                            "/admin/don-hang/" + order.getId(),
+                            order.getMaDon()
+                    );
+                } catch (Exception ignored) {
+                }
+            }
             order = orderService.getOrderByUserAndId(getUserId(), orderId);
             model.addAttribute("order", orderService.convertToDTO(order));
         } catch (Exception e) {
@@ -648,7 +626,20 @@ public class CheckoutController {
                         response.put("RspCode", "04");
                         response.put("Message", "Amount mismatch");
                     } else {
-                        orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                        // Idempotent: VNPAY co the gui IPN lap nhieu lan, chi xu ly 1 lan.
+                        boolean firstTime = orderService.confirmPaid(orderId);
+                        if (firstTime) {
+                            asyncEmailService.sendOrderSuccess(order);
+                            try {
+                                notificationHelper.notifyStaff(
+                                        "Khách hàng đã thanh toán VNPay: " + order.getMaDon(),
+                                        "ORDER", order.getId(),
+                                        "/admin/don-hang/" + order.getId(),
+                                        order.getMaDon()
+                                );
+                            } catch (Exception ignored) {
+                            }
+                        }
                         response.put("RspCode", "00");
                         response.put("Message", "Confirm Success");
                     }

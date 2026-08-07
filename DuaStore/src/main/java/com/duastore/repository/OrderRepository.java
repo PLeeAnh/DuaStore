@@ -1,9 +1,11 @@
 package com.duastore.repository;
 
 import com.duastore.model.Order;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,6 +21,11 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     Optional<Order> findByMaVanDon(String maVanDon);
 
     Optional<Order> findByMaDon(String maDon);
+
+    /** Khoa bang PESSIMISTIC_WRITE de cap nhat thanh toan / trang thai an toan duoi concurrency. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM Order o WHERE o.id = :id")
+    Optional<Order> findByIdForUpdate(@Param("id") Integer id);
 
     Page<Order> findByUserId(Integer userId, Pageable pageable);
 

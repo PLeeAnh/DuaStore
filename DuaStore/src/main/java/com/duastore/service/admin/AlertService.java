@@ -5,7 +5,7 @@ import com.duastore.model.Order;
 import com.duastore.model.Product;
 import com.duastore.model.User;
 import com.duastore.repository.*;
-import com.duastore.service.EmailService;
+import com.duastore.service.AsyncEmailService;
 import com.duastore.service.NotificationHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class AlertService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final NotificationHelper notificationHelper;
-    private final EmailService emailService;
+    private final AsyncEmailService asyncEmailService;
 
     @Value("${app.url}")
     private String appUrl;
@@ -39,14 +39,14 @@ public class AlertService {
             CartItemRepository cartItemRepository,
             UserRepository userRepository,
             NotificationHelper notificationHelper,
-            EmailService emailService) {
+            AsyncEmailService asyncEmailService) {
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.userRepository = userRepository;
         this.notificationHelper = notificationHelper;
-        this.emailService = emailService;
+        this.asyncEmailService = asyncEmailService;
     }
 
     @Transactional
@@ -121,7 +121,7 @@ public class AlertService {
             String itemSummary = items.stream()
                     .map(i -> i.getProduct() != null ? i.getProduct().getTenSanPham() : "Sản phẩm #" + i.getProductId())
                     .collect(Collectors.joining(", "));
-            emailService.send(u.getEmail(),
+            asyncEmailService.sendRaw(u.getEmail(),
                     "🛒 Bạn còn sản phẩm trong giỏ hàng - DuaStore",
                     "<html><body style='font-family:Arial;padding:20px;'>"
                     + "<h3 style='color:#e53935;'>Bạn còn sản phẩm trong giỏ hàng!</h3>"
