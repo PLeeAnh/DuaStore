@@ -101,10 +101,10 @@
             </a>
 
             <!-- Nội dung (collapsible) -->
-            <div class="adm-nav-section" style="cursor:pointer" onclick="toggleNavSub('navNoiDung', this)">
-                <span>Nội dung</span>
-                <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
-            </div>
+<div class="adm-nav-section adm-nav-toggle" style="cursor:pointer" onclick="toggleNavSub('navNoiDung', this)">
+                    <span>Nội dung</span>
+                    <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
+                </div>
             <div id="navNoiDung" class="adm-nav-sub">
                 <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
                    th:if="${userPermissions.contains('POST_READ')}"
@@ -157,10 +157,10 @@
             </div>
 
             <!-- Cài đặt (collapsible) -->
-            <div class="adm-nav-section" style="cursor:pointer" onclick="toggleNavSub('navCaiDat', this)">
-                <span>Cài đặt</span>
-                <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
-            </div>
+<div class="adm-nav-section adm-nav-toggle" style="cursor:pointer" onclick="toggleNavSub('navCaiDat', this)">
+                    <span>Cài đặt</span>
+                    <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
+                </div>
             <div id="navCaiDat" class="adm-nav-sub">
                 <a class="adm-nav-link" th:href="@{/admin/cua-hang}"
                    th:if="${userPermissions.contains('STORE_READ')}"
