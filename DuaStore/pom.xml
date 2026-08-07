@@ -91,9 +91,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- runtime scope de chay cau hinh local-h2 (khong can SQL Server) -->
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- PostgreSQL -->
