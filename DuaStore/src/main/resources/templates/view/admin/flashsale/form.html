@@ -35,11 +35,14 @@
 
                     <div class="col-md-4">
                         <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
-                        <select th:field="*{productId}" class="form-select searchable-select" required>
-                            <option value="">-- Chọn sản phẩm --</option>
-                            <option th:each="p : ${products}" th:value="${p.id}"
-                                    th:text="${p.tenSanPham} + ' (' + ${p.trangThaiSanPham} + ')'">Sản phẩm</option>
-                        </select>
+                        <input type="text" class="form-control" id="flashSaleProductSearch"
+                               th:value="${productName}"
+                               placeholder="Gõ tên sản phẩm — có gợi ý, Enter để chọn" required
+                               data-ds-autocomplete="/admin/api/search?type=product"
+                               data-ds-map="product"
+                               data-ds-target="#productId"
+                               data-ds-no-recent />
+                        <input type="hidden" th:field="*{productId}" />
                         <div th:if="${#fields.hasErrors('productId')}" th:errors="*{productId}" class="text-danger small"></div>
                     </div>
                     <div class="col-md-4">

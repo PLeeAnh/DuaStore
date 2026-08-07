@@ -47,6 +47,7 @@ public class AdminFlashSaleController {
     public String createForm(Model model) {
         model.addAttribute("flashSale", new FlashSaleFormDTO());
         model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
+        model.addAttribute("productName", "");
         return "view/admin/flashsale/form";
     }
 
@@ -64,6 +65,7 @@ public class AdminFlashSaleController {
             dto.setIsActive(fs.getIsActive());
             model.addAttribute("flashSale", dto);
             model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
+            model.addAttribute("productName", productName(fs.getProductId()));
             return "view/admin/flashsale/form";
         } catch (Exception e) {
             return "redirect:/admin/flash-sale";
@@ -77,6 +79,7 @@ public class AdminFlashSaleController {
             BindingResult result, Model model, RedirectAttributes ra) {
         if (result.hasErrors()) {
             model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
+            model.addAttribute("productName", productName(dto.getProductId()));
             return "view/admin/flashsale/form";
         }
         try {
@@ -92,6 +95,7 @@ public class AdminFlashSaleController {
         } catch (Exception e) {
             model.addAttribute("flashSale", dto);
             model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
+            model.addAttribute("productName", productName(dto.getProductId()));
             model.addAttribute("errorMsg", e.getMessage());
             return "view/admin/flashsale/form";
         }

@@ -29,6 +29,17 @@
             </a>
         </div>
 
+        <div class="mb-3 no-print" style="max-width:440px">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Tìm đơn nhanh theo mã, tên khách, SĐT…"
+                       data-ds-autocomplete="/admin/api/search?type=order"
+                       data-ds-map="order"
+                       data-ds-open-url="/admin/don-hang/{id}"
+                       data-ds-no-recent />
+            </div>
+        </div>
+
         <!-- Fraud Warning Banner -->
         <div th:if="${fraudWarnings != null and not #lists.isEmpty(fraudWarnings)}" class="alert alert-danger alert-dismissible fade show no-print mt-3" role="alert">
             <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>Cảnh báo gian lận</h6>

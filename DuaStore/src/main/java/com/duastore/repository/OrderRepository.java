@@ -133,4 +133,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.snapSoDienThoai = :phone AND o.trangThaiDon = 'DA_HUY' AND o.ngayDat >= :since")
     long countCancelledByPhoneSince(@Param("phone") String phone, @Param("since") LocalDateTime since);
+
+    @Query("SELECT o FROM Order o WHERE "
+            + "(:q IS NULL OR :q = '' OR LOWER(o.maDon) LIKE LOWER(CONCAT('%', :q, '%')) "
+            + "OR LOWER(o.snapTenNguoiNhan) LIKE LOWER(CONCAT('%', :q, '%')) "
+            + "OR LOWER(o.snapSoDienThoai) LIKE LOWER(CONCAT('%', :q, '%'))) "
+            + "ORDER BY o.ngayDat DESC")
+    List<Order> searchOrdersAutocomplete(@Param("q") String q, Pageable pageable);
+
+    @Query("SELECT o.user.id, SUM(o.tongThanhToan) FROM Order o "
+            + "WHERE o.user.id IN :ids AND (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') "
+            + "GROUP BY o.user.id")
+    List<Object[]> sumTotalSpentByUserIds(@Param("ids") List<Integer> ids);
 }

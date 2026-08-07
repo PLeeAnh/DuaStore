@@ -78,4 +78,12 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     @Query("SELECT v.productId, SUM(v.soLuongTon) FROM ProductVariant v WHERE v.isActive = true GROUP BY v.productId HAVING SUM(v.soLuongTon) <= :threshold ORDER BY SUM(v.soLuongTon) ASC")
     List<Object[]> findLowStockProductIds(@Param("threshold") int threshold);
+
+    @Query("SELECT v FROM ProductVariant v JOIN FETCH v.product p "
+            + "WHERE v.isActive = true AND p.isActive = true "
+            + "AND (:q IS NULL OR :q = '' "
+            + "OR LOWER(v.tenBienThe) LIKE LOWER(CONCAT('%', :q, '%')) "
+            + "OR LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :q, '%'))) "
+            + "ORDER BY v.id ASC")
+    List<ProductVariant> searchAutocomplete(@Param("q") String q, Pageable pageable);
 }

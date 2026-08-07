@@ -181,8 +181,8 @@ public class CheckoutController {
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
         paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
-        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
-        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.getOrDefault("payment_bank", "1")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1")));
         model.addAttribute("paymentMethods", paymentMethods);
 
         // Load carrier settings
@@ -210,8 +210,8 @@ public class CheckoutController {
     private void addPaymentMethodsToModel(Model model, Map<String, String> paymentSettings) {
         Map<String, Boolean> paymentMethods = new HashMap<>();
         paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
-        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
-        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.getOrDefault("payment_bank", "1")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1")));
         model.addAttribute("paymentMethods", paymentMethods);
     }
 
@@ -398,8 +398,8 @@ public class CheckoutController {
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
         paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
-        paymentMethods.put("bank", "1".equals(paymentSettings.get("payment_bank")));
-        paymentMethods.put("vnpay", "1".equals(paymentSettings.get("payment_vnpay")));
+        paymentMethods.put("bank", "1".equals(paymentSettings.getOrDefault("payment_bank", "1")));
+        paymentMethods.put("vnpay", "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1")));
         model.addAttribute("paymentMethods", paymentMethods);
 
         Map<String, String> shippingSettings = siteSettingService.getGroup("shipping");

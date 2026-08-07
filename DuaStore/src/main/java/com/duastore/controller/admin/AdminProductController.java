@@ -241,10 +241,14 @@ public class AdminProductController {
 
     @GetMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_CREATE)")
-    public String createForm(Model model) {
+    public String createForm(@RequestParam(required = false) String tenSanPham, Model model) {
         model.addAttribute("title", "san-pham");
         model.addAttribute("productTab", "thong-tin");
-        model.addAttribute("product", new ProductFormDTO());
+        ProductFormDTO dto = new ProductFormDTO();
+        if (tenSanPham != null && !tenSanPham.isBlank()) {
+            dto.setTenSanPham(tenSanPham.trim());
+        }
+        model.addAttribute("product", dto);
         model.addAttribute("categories", productService.getActiveCategories());
         addComboLists(model);
         return "view/admin/product/product-form";

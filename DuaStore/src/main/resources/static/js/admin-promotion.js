@@ -23,6 +23,24 @@ var ts = new TomSelect(targetSelect, {
         targetIdsInput.dispatchEvent(new Event('input', {bubbles: true}));
     }
 });
+window.__promoTomSelect = ts;
+
+window.promoAddProduct = function (id, label) {
+    var typeSel = document.getElementById('targetTypeSelect');
+    var tsOpt = window.__promoTomSelect;
+    if (!tsOpt || !typeSel) return;
+    if (typeSel.value !== 'PRODUCT') {
+        typeSel.value = 'PRODUCT';
+        typeSel.dispatchEvent(new Event('change'));
+    }
+    var idStr = String(id);
+    if (!tsOpt.hasOption(idStr)) {
+        tsOpt.addOption({value: idStr, text: label});
+    }
+    if (!tsOpt.getItem(idStr)) {
+        tsOpt.addItem(idStr);
+    }
+};
 function populateTargetOptions() {
     var type = targetTypeSelect.value;
     var items = targetData[type] || [];
