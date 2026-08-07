@@ -119,14 +119,14 @@
             });
             bhClosed.checked = false;
         } else {
-            var firstDay = null;
-            selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
-            if (firstDay) {
-                ensureDay(firstDay);
-                bhData[firstDay].allDay = false;
-                bhData[firstDay].open = true;
-                bhData[firstDay].slots = [{open:'08:00', close:'19:00'}];
-            }
+            selectedDays.forEach(function(d) {
+                ensureDay(d);
+                bhData[d].allDay = false;
+                bhData[d].open = true;
+                if (!bhData[d].slots || !bhData[d].slots.length) {
+                    bhData[d].slots = [{open:'08:00', close:'19:00'}];
+                }
+            });
             bhClosed.checked = false;
         }
         renderButtons(); renderSelectedLabel(); renderSlots(); saveBH();
@@ -152,13 +152,16 @@
 
     bhAddSlot.addEventListener('click', function() {
         if (selectedDays.size === 0) return;
-        var firstDay = null;
-        selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
-        ensureDay(firstDay);
-        if (!bhData[firstDay].allDay && bhData[firstDay].open) {
-            if (!bhData[firstDay].slots) bhData[firstDay].slots = [];
-            bhData[firstDay].slots.push({open:'', close:''});
-        }
+        var added = false;
+        selectedDays.forEach(function(d) {
+            ensureDay(d);
+            if (!bhData[d].allDay && bhData[d].open) {
+                if (!bhData[d].slots) bhData[d].slots = [];
+                bhData[d].slots.push({open:'', close:''});
+                added = true;
+            }
+        });
+        if (!added) return;
         renderSlots(); saveBH();
     });
 
@@ -166,23 +169,26 @@
         var rmBtn = e.target.closest('.bh-slot-remove');
         if (!rmBtn) return;
         var idx = parseInt(rmBtn.dataset.idx);
-        var firstDay = null;
-        selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
-        if (firstDay && bhData[firstDay] && bhData[firstDay].slots && bhData[firstDay].slots[idx]) {
-            bhData[firstDay].slots.splice(idx, 1);
-        }
+        selectedDays.forEach(function(d) {
+            ensureDay(d);
+            if (bhData[d] && bhData[d].slots && bhData[d].slots[idx]) {
+                bhData[d].slots.splice(idx, 1);
+            }
+        });
         renderSlots(); saveBH();
     });
 
     bhSlots.addEventListener('input', function(e) {
         var idx = parseInt(e.target.dataset.idx);
         var val = e.target.value;
-        var firstDay = null;
-        selectedDays.forEach(function(d) { if (!firstDay) firstDay = d; });
-        if (firstDay && bhData[firstDay] && bhData[firstDay].slots && bhData[firstDay].slots[idx]) {
-            if (e.target.classList.contains('bh-slot-open')) bhData[firstDay].slots[idx].open = val;
-            if (e.target.classList.contains('bh-slot-close')) bhData[firstDay].slots[idx].close = val;
-        }
+        var isOpen = e.target.classList.contains('bh-slot-open');
+        selectedDays.forEach(function(d) {
+            ensureDay(d);
+            if (bhData[d] && bhData[d].slots && bhData[d].slots[idx]) {
+                if (isOpen) bhData[d].slots[idx].open = val;
+                else bhData[d].slots[idx].close = val;
+            }
+        });
         saveBH();
     });
 

@@ -23,6 +23,8 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     long countByIsActiveTrueAndSoLuongTonLessThanEqual(int threshold);
 
+    Page<ProductVariant> findByIsActiveTrueAndSoLuongTonLessThanEqualOrderByIdAsc(int threshold, Pageable pageable);
+
     @Query("SELECT COALESCE(SUM(v.soLuongTon), 0) FROM ProductVariant v WHERE v.isActive = true")
     long sumTotalStock();
 

@@ -55,11 +55,7 @@
                     </form>
 
                     <!-- Empty State -->
-                    <div th:if="${#lists.isEmpty(vouchers)}" class="text-center py-5">
-                        <i class="bi bi-ticket-perforated" style="font-size:3rem;color:#ccc;"></i>
-                        <p class="text-muted mt-3">Chưa có voucher nào.</p>
-                        <a th:href="@{/khuyen-mai}" class="btn btn-primary">Khám phá khuyến mãi</a>
-                    </div>
+                    <div th:if="${#lists.isEmpty(vouchers)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-ticket-perforated', title='Chưa có voucher nào', desc='Các phiếu giảm giá bạn nhận được từ chương trình khuyến mãi sẽ xuất hiện tại đây.', btnText='Khám phá khuyến mãi', btnHref='/khuyen-mai')}"></div>
 
                     <!-- Voucher Cards -->
                     <div th:unless="${#lists.isEmpty(vouchers)}" class="row g-3">
@@ -119,11 +115,10 @@
 
                                 <!-- Bottom row -->
                                 <div class="vc-bottom">
-                                    <button class="vc-btn ds-btn-outline btn-detail" type="button"
+                                    <button class="vc-btn vc-btn-ghost btn-detail" type="button"
                                             th:data-id="${v.promotion.id}">Chi tiết</button>
                                     <th:block th:if="${v.status.name() == 'AVAILABLE'}">
-                                        <button class="vc-btn vc-btn-disabled" type="button"
-                                                class="btn-remove-voucher" type="button"
+                                        <button class="vc-btn vc-btn-disabled btn-remove-voucher" type="button"
                                                 th:data-id="${v.id}">Đã lưu</button>
                                     </th:block>
                                     <th:block th:if="${v.status.name() == 'USED'}">
@@ -155,7 +150,7 @@
             </div>
 
             <!-- Modal phải nằm TRONG layout:fragment="content" mới được ghép vào trang render cuối cùng. -->
-            <th:block th:include="~{fragments/promotion-modal :: promotionModal}"></th:block>
+            <th:block th:insert="~{fragments/promotion-modal :: promotionModal}"></th:block>
         </div>
 
     <th:block layout:fragment="extra-script">

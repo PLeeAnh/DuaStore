@@ -80,29 +80,42 @@
                 </div>
             </div>
         </div>
-        <div th:if="${reviewTotalPages > 1}" class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;">
+        <div class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <small class="text-muted fw-medium" style="font-size:.85rem">
-                Trang <strong th:text="${reviewCurrentPage + 1}">1</strong> / <strong th:text="${reviewTotalPages}">5</strong> · <strong th:text="${reviewTotalItems}">25</strong> đánh giá
-            </small>
-            <nav>
-                <div class="d-flex align-items-center gap-1">
-                    <a th:data-page="${reviewCurrentPage - 1}" href="javascript:void(0)"
-                       class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage == 0} ? 'disabled'"
-                       th:tabindex="${reviewCurrentPage == 0} ? -1">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </a>
-                    <a th:each="i : ${#numbers.sequence(0, reviewTotalPages - 1)}"
-                       th:data-page="${i}" href="javascript:void(0)"
-                       class="adm-pagination-btn" th:classappend="${i == reviewCurrentPage} ? 'active'"
-                       th:text="${i + 1}">1</a>
-                    <a th:data-page="${reviewCurrentPage + 1}" href="javascript:void(0)"
-                       class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage >= reviewTotalPages - 1} ? 'disabled'"
-                       th:tabindex="${reviewCurrentPage >= reviewTotalPages - 1} ? -1">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </a>
-                </div>
-            </nav>
+                <small class="text-muted fw-medium" style="font-size:.85rem;">
+                    Hiển thị
+                    <strong th:text="${reviewTotalItems > 0 ? reviewCurrentPage * reviewSize + 1 : 0}">0</strong>-
+                    <strong th:text="${reviewTotalItems > 0 ? (reviewCurrentPage + 1) * reviewSize < reviewTotalItems ? (reviewCurrentPage + 1) * reviewSize : reviewTotalItems : 0}">0</strong>
+                    trong tổng số <strong th:text="${reviewTotalItems}">0</strong> <span>đánh giá</span>
+                </small>
+            </div>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <select id="reviewSizeSelect" onchange="reviewChangeSize(this.value)"
+                        style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
+                    <option value="5" th:selected="${reviewSize == 5}">Hiển thị 5</option>
+                    <option value="10" th:selected="${reviewSize == 10}">Hiển thị 10</option>
+                    <option value="20" th:selected="${reviewSize == 20}">Hiển thị 20</option>
+                    <option value="50" th:selected="${reviewSize == 50}">Hiển thị 50</option>
+                </select>
+                <nav>
+                    <div class="d-flex align-items-center gap-1">
+                        <a th:data-page="${reviewCurrentPage - 1}" href="javascript:void(0)"
+                           class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage == 0} ? 'disabled'"
+                           th:tabindex="${reviewCurrentPage == 0} ? -1">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </a>
+                        <a th:each="i : ${#numbers.sequence(0, reviewTotalPages - 1)}"
+                           th:data-page="${i}" href="javascript:void(0)"
+                           class="adm-pagination-btn" th:classappend="${i == reviewCurrentPage} ? 'active'"
+                           th:text="${i + 1}">1</a>
+                        <a th:data-page="${reviewCurrentPage + 1}" href="javascript:void(0)"
+                           class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage >= reviewTotalPages - 1} ? 'disabled'"
+                           th:tabindex="${reviewCurrentPage >= reviewTotalPages - 1} ? -1">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+                </nav>
+            </div>
         </div>
     </div>
 <!-- Star rating + review form moved to client-product-detail.js -->

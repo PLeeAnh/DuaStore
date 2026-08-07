@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Tin nhắn liên hệ</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Tin nhắn liên hệ</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Hộp thư liên hệ</h4>
+                        <div class="adm-detail-meta">Tin nhắn từ trang Liên hệ được phân loại tự động. Tin rác sẽ KHÔNG gửi email về hộp thư Gmail của bạn.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+            <a th:href="@{/admin/tin-nhan-lien-he}" class="btn btn-sm"
+               th:classappend="${(bo == null or bo == '') ? 'btn-primary' : 'btn-outline-secondary'}">
+                Tất cả <span class="badge text-bg-light ms-1" th:text="${countAll}">0</span>
+            </a>
+            <a th:href="@{/admin/tin-nhan-lien-he(bo='thuong')}" class="btn btn-sm"
+               th:classappend="${bo == 'thuong'} ? 'btn-primary' : 'btn-outline-secondary'">
+                Tin thật <span class="badge text-bg-light ms-1" th:text="${countThuong}">0</span>
+            </a>
+            <a th:href="@{/admin/tin-nhan-lien-he(bo='rac')}" class="btn btn-sm"
+               th:classappend="${bo == 'rac'} ? 'btn-danger' : 'btn-outline-danger'">
+                Có thể là rác <span class="badge text-bg-light ms-1" th:text="${countRac}">0</span>
+            </a>
+            <a th:href="@{/admin/tin-nhan-lien-he(bo='chua-doc')}" class="btn btn-sm"
+               th:classappend="${bo == 'chua-doc'} ? 'btn-primary' : 'btn-outline-secondary'">
+                Chưa đọc <span class="badge text-bg-light ms-1" th:text="${countChuaDoc}">0</span>
+            </a>
+
+            <select class="form-select form-select-sm ms-auto" style="width:auto"
+                    onchange="if(this.value){location.href='/admin/tin-nhan-lien-he?loai='+encodeURIComponent(this.value)}else{location.href='/admin/tin-nhan-lien-he'}">
+                <option value="">Tất cả phân loại</option>
+                <option th:each="entry : ${labels}" th:value="${entry.key}"
+                        th:text="${entry.value}"
+                        th:selected="${entry.key == loai}">Loại</option>
+            </select>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:90px">Tình trạng</th>
+                            <th style="width:220px">Người gửi</th>
+                            <th>Nội dung</th>
+                            <th style="width:150px">Phân loại</th>
+                            <th style="width:150px">Thời gian</th>
+                            <th class="text-end" style="width:110px">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="m : ${messages}" th:classappend="${!m.isRead} ? 'table-active'">
+                            <td>
+                                <span class="d-inline-block me-2" style="width:10px;height:10px;border-radius:50%"
+                                      th:class="${m.isRead} ? 'bg-secondary' : 'bg-danger'" th:title="${m.isRead ? 'Đã đọc' : 'Chưa đọc'}"></span>
+                                <span th:if="${m.isSpam}" class="badge text-bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Rác</span>
+                            </td>
+                            <td>
+                                <strong class="d-block text-truncate" style="max-width:200px" th:text="${m.hoTen}">Tên</strong>
+                                <small class="text-muted d-block text-truncate" style="max-width:200px" th:text="${m.email}">email</small>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width:420px" th:text="${m.noiDung}">Nội dung</div>
+                                <button class="btn btn-sm btn-link p-0 mt-1" type="button"
+                                        th:attr="data-bs-toggle='modal', data-bs-target='#messageModal', data-nguoi-gui=${m.hoTen + ' - ' + m.email}, data-noi-dung=${m.noiDung}">
+                                    Xem chi tiết
+                                </button>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${m.isSpam} ? 'text-bg-danger' : (${m.phanLoai == 'KHIEU_NAI'} ? 'text-bg-warning' : 'text-bg-success')"
+                                      th:text="${labels.get(m.phanLoaiKey)}">Loại</span>
+                            </td>
+                            <td class="small text-muted" th:text="${#temporals.format(m.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-end text-nowrap">
+                                <form th:action="@{/admin/tin-nhan-lien-he/danh-dau/{id}(id=${m.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                            th:title="${m.isRead ? 'Đánh dấu chưa đọc' : 'Đánh dấu đã đọc'}">
+                                        <i th:class="${m.isRead ? 'bi bi-envelope-open' : 'bi bi-envelope'}"></i>
+                                    </button>
+                                </form>
+                                <form th:action="@{/admin/tin-nhan-lien-he/xoa/{id}(id=${m.id})}" method="post" class="d-inline"
+                                      data-confirm="Xóa tin nhắn này?">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(messages)}">
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                Không có tin nhắn nào.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title" id="messageModalTitle">Chi tiết tin nhắn</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small mb-2" id="messageModalFrom"></p>
+                        <div class="border rounded p-3 bg-light" style="white-space:pre-wrap" id="messageModalBody"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var modal = document.getElementById('messageModal');
+                if (!modal) return;
+                var from = document.getElementById('messageModalFrom');
+                var body = document.getElementById('messageModalBody');
+                document.querySelectorAll('[data-noi-dung]').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        from.textContent = 'Từ: ' + btn.getAttribute('data-nguoi-gui');
+                        body.textContent = btn.getAttribute('data-noi-dung');
+                        bootstrap.Modal.getOrCreateInstance(modal).show();
+                    });
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

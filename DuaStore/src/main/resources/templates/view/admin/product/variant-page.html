@@ -87,6 +87,12 @@
                                placeholder="Tên biến thể..." th:value="${keyword}"
                                data-autosubmit="300" />
                     </div>
+                    <div class="col-md-3">
+                        <select name="lowStock" class="form-select" onchange="this.form.submit()">
+                            <option value="" th:selected="${!lowStock}">Tất cả tồn kho</option>
+                            <option value="1" th:selected="${lowStock}">Tồn kho thấp (≤20)</option>
+                        </select>
+                    </div>
                     <div class="col-md-2 d-flex gap-1">
                         <a th:href="@{/admin/san-pham/bien-the}" class="btn btn-outline-secondary w-100">
                             <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
@@ -127,8 +133,8 @@
         </div>
         <div th:unless="${not #lists.isEmpty(variants)}" class="adm-empty py-5">
             <i class="bi bi-diagram-3 adm-empty-icon"></i>
-            <div class="adm-empty-title">Chưa có biến thể</div>
-            <div class="adm-empty-desc">Thêm biến thể từ màn chi tiết sản phẩm.</div>
+            <div class="adm-empty-title" th:text="${lowStock} ? 'Không có biến thể tồn kho thấp' : 'Chưa có biến thể'">Chưa có biến thể</div>
+            <div class="adm-empty-desc" th:text="${lowStock} ? 'Tất cả biến thể đều có tồn kho trên 20. Hãy thử lại sau.' : 'Thêm biến thể từ màn chi tiết sản phẩm.'">Thêm biến thể từ màn chi tiết sản phẩm.</div>
         </div>
 
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />

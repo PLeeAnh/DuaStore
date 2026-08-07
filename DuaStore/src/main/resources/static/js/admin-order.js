@@ -44,6 +44,7 @@
             node.style.opacity = '0.5';
             postStatus(status).then(function (data) {
                 if (data.success) {
+                    if (window.__dsToastAfterReload) window.__dsToastAfterReload('Đã cập nhật trạng thái đơn hàng');
                     location.reload();
                 } else {
                     if (data.message)
@@ -83,6 +84,7 @@
                 })
                 .then(function (data) {
                     if (data.success) {
+                        if (window.__dsToastAfterReload) window.__dsToastAfterReload('Đã lưu mã vận đơn');
                         location.reload();
                     } else {
                         showErrorToast(data.message || 'Lỗi');

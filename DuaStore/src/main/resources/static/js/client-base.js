@@ -7,20 +7,46 @@
             if (!raw) throw 'no data';
             var data = JSON.parse(raw);
             var dayNames = {mon:'T2',tue:'T3',wed:'T4',thu:'T5',fri:'T6',sat:'T7',sun:'CN'};
-            var parts = [];
-            ['mon','tue','wed','thu','fri','sat','sun'].forEach(function(d) {
-                if (!data[d]) return;
+            var order = ['mon','tue','wed','thu','fri','sat','sun'];
+
+            function daySchedule(d) {
                 var day = data[d];
+                if (!day || !day.open) return 'closed';
+                if (day.allDay) return 'allday';
+                var seen = {};
+                var times = [];
+                (day.slots || []).forEach(function(s) {
+                    if (!s || !s.open || !s.close) return;
+                    if (!/^\d{2}:\d{2}$/.test(s.open) || !/^\d{2}:\d{2}$/.test(s.close)) return;
+                    var k = s.open + ' – ' + s.close;
+                    if (!seen[k]) { seen[k] = true; times.push(k); }
+                });
+                return times.length ? times.join(', ') : 'closed';
+            }
+
+            var groups = [];
+            var cur = null;
+            order.forEach(function(d) {
                 var label = dayNames[d];
-                if (!day.open) { parts.push('<span style="opacity:.55">' + label + ': Đóng cửa</span>'); return; }
-                if (day.allDay) { parts.push(label + ': Mở cả ngày'); return; }
-                if (day.slots && day.slots.length) {
-                    var valid = day.slots.filter(function(s) { return s.open && s.close && /^\d{2}:\d{2}$/.test(s.open) && /^\d{2}:\d{2}$/.test(s.close); });
-                    if (valid.length) {
-                        var times = valid.map(function(s) { return s.open + ' – ' + s.close; }).join(', ');
-                        parts.push(label + ': ' + times);
-                    }
+                var sched = daySchedule(d);
+                if (cur && cur.sched === sched) {
+                    cur.days.push(label);
+                } else {
+                    cur = { days: [label], sched: sched };
+                    groups.push(cur);
                 }
+            });
+
+            function rangeLabel(days) {
+                if (days.length === 1) return days[0];
+                return days[0] + ' – ' + days[days.length - 1];
+            }
+
+            var parts = groups.map(function(g) {
+                var label = rangeLabel(g.days);
+                if (g.sched === 'closed') return '<span style="opacity:.55">' + label + ': Đóng cửa</span>';
+                if (g.sched === 'allday') return label + ': Mở cả ngày';
+                return label + ': ' + g.sched;
             });
             hoursEl.innerHTML = parts.join('<br>') || '<span style="opacity:.55">Chưa cập nhật</span>';
         } catch(e) { hoursEl.style.display = 'none'; }
@@ -120,3 +146,29 @@ document.addEventListener('submit', function(e) {
     var btn = e.target.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...'; }
 });
+
+/* ── Mobile bottom nav: focus search from bottom nav ── */
+function focusMobileSearch() {
+    var i = document.getElementById('searchInput');
+    if (i) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(function () { i.focus(); }, 350);
+    }
+}
+
+/* ── Mobile bottom nav: highlight active item by pathname ── */
+(function () {
+    var path = window.location.pathname;
+    var links = document.querySelectorAll('.ds-mnav-item[href]');
+    var best = null, bestLen = -1;
+    for (var i = 0; i < links.length; i++) {
+        var href = links[i].getAttribute('href');
+        if (!href) continue;
+        if (href === '/') {
+            if (path === '/') { best = links[i]; bestLen = 0; }
+        } else if (path === href || path.indexOf(href + '/') === 0) {
+            if (href.length > bestLen) { best = links[i]; bestLen = href.length; }
+        }
+    }
+    if (best) best.classList.add('active');
+})();

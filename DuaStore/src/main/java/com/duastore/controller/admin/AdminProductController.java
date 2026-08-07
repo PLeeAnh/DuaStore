@@ -158,13 +158,16 @@ public class AdminProductController {
     public String variantPage(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "false") boolean lowStock,
             Model model) {
         model.addAttribute("title", "san-pham");
         model.addAttribute("productTab", "bien-the");
 
-        boolean hasFilter = keyword != null && !keyword.isBlank();
+        boolean hasFilter = (keyword != null && !keyword.isBlank()) || lowStock;
         Page<ProductVariant> variantPage;
-        if (hasFilter) {
+        if (lowStock) {
+            variantPage = productVariantRepository.findByIsActiveTrueAndSoLuongTonLessThanEqualOrderByIdAsc(LOW_STOCK_THRESHOLD, PageRequest.of(page, size));
+        } else if (hasFilter) {
             variantPage = productVariantRepository.searchAllPaged(keyword, PageRequest.of(page, size));
         } else {
             variantPage = productVariantRepository.findByIsActiveTrueOrderByIdAsc(PageRequest.of(page, size));
@@ -180,10 +183,12 @@ public class AdminProductController {
 
         Map<String, Object> filterParams = new HashMap<>();
         if (hasFilter) filterParams.put("keyword", keyword);
+        if (lowStock) filterParams.put("lowStock", "1");
 
         model.addAttribute("variants", variantPage.getContent());
         model.addAttribute("productNames", productNames);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("lowStock", lowStock);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", variantPage.getTotalPages());
         model.addAttribute("totalItems", variantPage.getTotalElements());

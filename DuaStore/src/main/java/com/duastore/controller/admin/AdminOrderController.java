@@ -7,6 +7,8 @@ import com.duastore.dto.OrderStatusDTO;
 import com.duastore.model.Order;
 import com.duastore.model.User;
 import com.duastore.repository.OrderRepository;
+import com.duastore.repository.UserRepository;
+import com.duastore.service.EmailService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminOrderService;
@@ -53,6 +55,8 @@ public class AdminOrderController {
     private final com.duastore.repository.ProductRepository productRepository;
     private final com.duastore.repository.ProductVariantRepository variantRepository;
     private final FraudDetectionService fraudDetectionService;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
 
     public AdminOrderController(AdminOrderService adminOrderService,
             OrderService orderService,
@@ -64,7 +68,9 @@ public class AdminOrderController {
             OrderRepository orderRepository,
             com.duastore.repository.ProductRepository productRepository,
             com.duastore.repository.ProductVariantRepository variantRepository,
-            FraudDetectionService fraudDetectionService) {
+            FraudDetectionService fraudDetectionService,
+            EmailService emailService,
+            UserRepository userRepository) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
@@ -76,6 +82,8 @@ public class AdminOrderController {
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.fraudDetectionService = fraudDetectionService;
+        this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -86,21 +94,26 @@ public class AdminOrderController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String trangThai,
             @RequestParam(name = "trangThaiTT", required = false) String trangThaiTT,
+            @RequestParam(name = "fromDate", required = false) String fromDateStr,
+            @RequestParam(name = "toDate", required = false) String toDateStr,
             Model model) {
         User admin = securityUtil.getCurrentUser();
         if (admin == null) {
-            return "redirect:/login";
+            return "redirect:/dang-nhap";
         }
 
         String query = (q != null && !q.isBlank()) ? q.trim() : null;
-        String filterTT = (trangThai != null && !trangThai.isBlank()) ? trangThai : null;
+        String filterTT = (trangThai != null && !trangThai.isBlank()) ? trangThai : "CHUA_HOAN_THANH";
         String filterTTTT = (trangThaiTT != null && !trangThaiTT.isBlank()) ? trangThaiTT : null;
+
+        java.time.LocalDateTime fromDate = parseDateStart(fromDateStr);
+        java.time.LocalDateTime toDate = parseDateEndExclusive(toDateStr);
 
         Page<Order> orderPage;
         if (tatCa) {
-            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT);
+            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT, fromDate, toDate);
         } else {
-            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT);
+            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT, fromDate, toDate);
         }
         List<OrderDTO> orderDTOs = orderPage.getContent().stream()
                 .map(orderService::convertToDTO)
@@ -124,11 +137,19 @@ public class AdminOrderController {
         if (filterTTTT != null) {
             filterParams.put("trangThaiTT", filterTTTT);
         }
+        if (fromDate != null) {
+            filterParams.put("fromDate", fromDateStr);
+        }
+        if (toDate != null) {
+            filterParams.put("toDate", toDateStr);
+        }
         model.addAttribute("filterParams", filterParams);
         model.addAttribute("tatCa", tatCa);
         model.addAttribute("q", q);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("trangThaiTT", trangThaiTT);
+        model.addAttribute("fromDate", fromDateStr);
+        model.addAttribute("toDate", toDateStr);
         model.addAttribute("title", "don-hang");
         model.addAttribute("orderTab", "don-hang");
 
@@ -137,6 +158,28 @@ public class AdminOrderController {
         model.addAttribute("completedOrdersCount", orderRepository.countByTrangThaiDon("DA_HOAN_THANH"));
         model.addAttribute("cancelledOrdersCount", orderRepository.countByTrangThaiDon("DA_HUY"));
         return "view/admin/order/order-list";
+    }
+
+    private java.time.LocalDateTime parseDateStart(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return null;
+        }
+        try {
+            return java.time.LocalDate.parse(dateStr).atStartOfDay();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private java.time.LocalDateTime parseDateEndExclusive(String dateStr) {
+        if (dateStr == null || dateStr.isBlank()) {
+            return null;
+        }
+        try {
+            return java.time.LocalDate.parse(dateStr).plusDays(1).atStartOfDay();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @GetMapping("/{id}/debug")
@@ -245,6 +288,19 @@ public class AdminOrderController {
 
             boolean wasUnpaid = "CHUA_THANH_TOAN".equals(order.getTrangThaiTT());
             String newStatus = dto.getTrangThaiDon();
+
+            if (!"DA_HUY".equals(newStatus) && order.getUser() != null && order.getUser().getEmail() != null) {
+                String statusName = AdminOrderService.getStatusName(newStatus);
+                boolean emailOk = emailService.sendOrderStatusEmail(
+                        order.getUser().getEmail(), order.getUser().getHoTen(),
+                        order.getMaDon(), statusName);
+                if (!emailOk) {
+                    ra.addFlashAttribute("errorMsg",
+                            "Không gửi được email cập nhật trạng thái cho khách hàng. Trạng thái không được thay đổi.");
+                    return "redirect:/admin/don-hang/" + id;
+                }
+            }
+
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, newStatus, oldStatus, admin, request);
             if (!"DA_HUY".equals(newStatus)) {
                 if (wasUnpaid && "DA_HOAN_THANH".equals(newStatus)) {
@@ -275,8 +331,10 @@ public class AdminOrderController {
             if ("DA_HUY".equals(newStatus)) {
                 return "redirect:/admin/don-hang";
             }
-            if (dto.getTrangThaiTT() != null && !dto.getTrangThaiTT().isBlank() && !dto.getTrangThaiTT().equals(order.getTrangThaiTT())) {
-                adminOrderService.updatePaymentStatusWithLog(id, dto.getTrangThaiTT(), order.getTrangThaiTT(), admin, request);
+            Order updatedOrder = adminOrderService.getOrderById(id);
+            if (dto.getTrangThaiTT() != null && !dto.getTrangThaiTT().isBlank()
+                    && !dto.getTrangThaiTT().equals(updatedOrder.getTrangThaiTT())) {
+                adminOrderService.updatePaymentStatusWithLog(id, dto.getTrangThaiTT(), updatedOrder.getTrangThaiTT(), admin, request);
             }
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
@@ -309,6 +367,19 @@ public class AdminOrderController {
 
             String oldStatus = order.getTrangThaiDon();
             boolean wasUnpaid = "CHUA_THANH_TOAN".equals(order.getTrangThaiTT());
+
+            if (!"DA_HUY".equals(trangThai) && order.getUser() != null && order.getUser().getEmail() != null) {
+                String statusName = AdminOrderService.getStatusName(trangThai);
+                boolean emailOk = emailService.sendOrderStatusEmail(
+                        order.getUser().getEmail(), order.getUser().getHoTen(),
+                        order.getMaDon(), statusName);
+                if (!emailOk) {
+                    result.put("success", false);
+                    result.put("message",
+                            "Không gửi được email cập nhật trạng thái cho khách hàng. Trạng thái không được thay đổi.");
+                    return ResponseEntity.ok(result);
+                }
+            }
 
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, trangThai, oldStatus, admin, request);
             if (!"DA_HUY".equals(trangThai)) {
@@ -387,9 +458,35 @@ public class AdminOrderController {
                 try {
                     Order order = adminOrderService.getOrderById(id);
                     String oldStatus = order.getTrangThaiDon();
+
+                    if (!"DA_HUY".equals(status) && order.getUser() != null
+                            && order.getUser().getEmail() != null && !order.getUser().getEmail().isBlank()) {
+                        boolean emailOk = emailService.sendOrderStatusEmail(
+                                order.getUser().getEmail(), order.getUser().getHoTen(),
+                                order.getMaDon(), AdminOrderService.getStatusName(status));
+                        if (!emailOk) {
+                            errors.add("Đơn #" + id + ": không gửi được email, bỏ qua cập nhật");
+                            continue;
+                        }
+                    }
+
                     String stockMsg = adminOrderService.updateOrderStatusWithLog(id, status, oldStatus, admin, request);
                     updated++;
                     log.info("Batch update order #{}: {} -> {}", id, oldStatus, status);
+
+                    if (!"DA_HUY".equals(status)) {
+                        try {
+                            String statusName = AdminOrderService.getStatusName(status);
+                            notificationHelper.notifyAll(
+                                    "Đơn hàng " + order.getMaDon() + " đã chuyển sang trạng thái: " + statusName,
+                                    "ORDER", order.getId(),
+                                    "/tai-khoan/don-hang/" + order.getId(),
+                                    order.getMaDon(),
+                                    order.getUser() != null ? order.getUser().getId() : null
+                            );
+                        } catch (Exception ignored) {
+                        }
+                    }
                 } catch (Exception e) {
                     log.error("Batch update failed for order #{}: {}", id, e.getMessage());
                     errors.add("Đơn #" + id + ": " + e.getMessage());
@@ -480,14 +577,35 @@ public class AdminOrderController {
         try {
             User admin = securityUtil.getCurrentUser();
             if (admin == null) {
-                return "redirect:/login";
+                return "redirect:/dang-nhap";
             }
             Order order = adminOrderService.getOrderById(id);
             User newAdmin = new User();
             newAdmin.setId(adminId);
+            User assignedUser = userRepository.findById(adminId).orElse(null);
+
+            if (assignedUser != null && assignedUser.getEmail() != null && !assignedUser.getEmail().isBlank()) {
+                boolean emailOk = emailService.sendOrderAssignedEmail(
+                        assignedUser.getEmail(),
+                        assignedUser.getHoTen() != null ? assignedUser.getHoTen() : assignedUser.getEmail(),
+                        order.getMaDon(),
+                        order.getSnapTenNguoiNhan() != null ? order.getSnapTenNguoiNhan() : "Khách hàng",
+                        admin.getHoTen() != null ? admin.getHoTen() : admin.getUsername());
+                if (!emailOk) {
+                    ra.addFlashAttribute("errorMsg",
+                            "Không gửi được email phân công cho nhân viên. Việc phân công không được thực hiện.");
+                    return "redirect:/admin/don-hang/" + id;
+                }
+                log.info("Gửi email phân công đơn {} tới {} <{}>", order.getMaDon(),
+                        assignedUser.getHoTen(), assignedUser.getEmail());
+            } else {
+                log.warn("Không gửi email phân công: adminId={} không có email hoặc không tìm thấy", adminId);
+            }
+
             adminLogService.reassignAdmin(order, admin, newAdmin, request);
             ra.addFlashAttribute("successMsg", "Đã phân công lại đơn hàng");
         } catch (Exception e) {
+            log.error("Lỗi reassignAdmin đơn #{}: {}", id, e.getMessage(), e);
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/admin/don-hang/" + id;

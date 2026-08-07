@@ -68,12 +68,53 @@
                         <input type="password" name="email_password" class="form-control"
                                th:value="${settings.get('email_password')}" />
                     </div>
-                    <div class="col-12">
+                    <div class="col-12 d-flex gap-2">
+                        <button type="button" id="btnTestEmail" class="btn btn-outline-primary">
+                            <i class="bi bi-send me-1"></i>Gửi email thử
+                        </button>
                         <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    <th:block layout:fragment="extra-script">
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var btn = document.getElementById('btnTestEmail');
+                if (!btn) return;
+                var originalHtml = btn.innerHTML;
+                btn.addEventListener('click', function () {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang gửi...';
+                    var form = btn.closest('form');
+                    var fd = new FormData(form);
+                    fetch('/admin/email-smtp/test', {
+                        method: 'POST',
+                        body: fd,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .then(function (r) {
+                            if (!r.ok) throw new Error('HTTP ' + r.status);
+                            return r.json();
+                        })
+                        .then(function (res) {
+                            if (res.success) {
+                                window.dsToast('success', 'Gửi email thử thành công! Hãy kiểm tra hộp thư.');
+                            } else {
+                                window.dsToast('error', 'Gửi email thử thất bại. Kiểm tra lại cấu hình SMTP.');
+                            }
+                        })
+                        .catch(function () {
+                            window.dsToast('error', 'Gửi email thử thất bại. Kiểm tra lại cấu hình SMTP.');
+                        })
+                        .finally(function () {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHtml;
+                        });
+                });
+            });
+        </script>
+    </th:block>
 </body>
 </html>
