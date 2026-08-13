@@ -16,7 +16,7 @@ public class UserAuthProvider {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "userId", nullable = false)
+    @Column(name = "userId", nullable = true)
     private Integer userId;
 
     @Column(name = "provider", nullable = false, length = 20)
@@ -25,11 +25,13 @@ public class UserAuthProvider {
     @Column(name = "provider_sub", length = 255)
     private String providerSub;
 
-    @Column(name = "linkedAt", nullable = false, updatable = false)
+    @Column(name = "linkedAt", nullable = true, updatable = false)
     private LocalDateTime linkedAt;
 
     @PrePersist
     protected void onCreate() {
-        linkedAt = LocalDateTime.now();
+        if (linkedAt == null) {
+            linkedAt = LocalDateTime.now();
+        }
     }
 }
