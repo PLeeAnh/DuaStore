@@ -515,59 +515,31 @@ async function saveAddressFromModal() {
     var tinh = document.getElementById('modalTinhThanh').value;
     var quan = document.getElementById('modalQuanHuyen').value;
     var phuong = document.getElementById('modalPhuongXa').value;
-    // Check if street address matches any location name (exact or substring)
-    function isLocationName(str, name) {
-        if (!str || !name) return false;
-        var s = str.toLowerCase().trim();
-        var n = name.toLowerCase().trim();
-        return s === n || (n.indexOf(s) !== -1) || (s.indexOf(n) !== -1);
+
+    function stripLocPrefix(name) {
+        return name.replace(/^(thành phố|tỉnh|quận|huyện|phường|xã|thị trấn|thị xã)\s+/i, '').trim().toLowerCase();
     }
-    if (isLocationName(dc, tinh) || isLocationName(dc, quan) || isLocationName(dc, phuong)) {
-        DuaStore.toast.warning('Số nhà, đường không được trùng hoặc chứa tên tỉnh/quận/phường');
+    // Block if street address is JUST a location name with no real address
+    var dcLower = dc.toLowerCase().trim();
+    var selTinhStripped = stripLocPrefix(tinh);
+    var selQuanStripped = stripLocPrefix(quan);
+    var selPhuongStripped = stripLocPrefix(phuong);
+    if (dcLower === selTinhStripped || dcLower === selQuanStripped || dcLower === selPhuongStripped) {
+        DuaStore.toast.warning('Vui lòng nhập số nhà, đường cụ thể');
         return;
     }
-    // Also check against all province names
-    for (var i = 0; i < modalProvinces.length; i++) {
-        if (isLocationName(dc, modalProvinces[i].name)) {
-            DuaStore.toast.warning('Số nhà, đường không được nhập tên tỉnh/thành phố');
-            return;
-        }
-    }
-    // Check against loaded districts
-    for (var j = 0; j < modalDistricts.length; j++) {
-        if (isLocationName(dc, modalDistricts[j].name)) {
-            DuaStore.toast.warning('Số nhà, đường không được nhập tên quận/huyện');
-            return;
-        }
-    }
-    // Check against loaded wards
-    for (var k = 0; k < modalWards.length; k++) {
-        if (isLocationName(dc, modalWards[k].name)) {
-            DuaStore.toast.warning('Số nhà, đường không được nhập tên phường/xã');
-            return;
-        }
-    }
-
-    /* ── Validate geocoded location matches selected combo ── */
-    var lat = document.getElementById('modalLatitude').value;
-    var lng = document.getElementById('modalLongitude').value;
-    if (lat && lng) {
-        var geoUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1&accept-language=vi';
-        try {
-            var geoResp = await fetch(geoUrl, { headers: { 'User-Agent': 'DuaStore/1.0' } });
-            if (geoResp.ok) {
-                var geoData = await geoResp.json();
-                if (geoData && !geoData.error) {
-                    var geoProvince = (geoData.address && (geoData.address.state || geoData.address.city || '')) || '';
-                    var selectedProvince = document.getElementById('modalTinhThanh').value || '';
-                    if (geoProvince && selectedProvince && geoProvince.toLowerCase().indexOf(selectedProvince.toLowerCase().replace('thành phố ', '').replace('tỉnh ', '')) === -1
-                            && selectedProvince.toLowerCase().indexOf(geoProvince.toLowerCase().replace('thành phố ', '').replace('tỉnh ', '')) === -1) {
-                        var confirmed = await DuaStore.confirm('Địa chỉ trên bản đồ thuộc "' + geoProvince + '" nhưng bạn đang chọn "' + selectedProvince + '". Vẫn lưu?');
-                        if (!confirmed) return;
-                    }
-                }
+    // Check if street address contains a DIFFERENT province name (potential fraud)
+    if (modalProvinces.length) {
+        for (var i = 0; i < modalProvinces.length; i++) {
+            var pName = modalProvinces[i].name;
+            var pStripped = stripLocPrefix(pName);
+            if (pStripped === selTinhStripped) continue;
+            if (dcLower.indexOf(pStripped) !== -1) {
+                var confirmed = await DuaStore.confirm('Địa chỉ chi tiết có chứa "' + pName + '" nhưng bạn đang chọn "' + tinh + '". Vẫn lưu?');
+                if (!confirmed) return;
+                break;
             }
-        } catch (_) {}
+        }
     }
 
     var formData = new URLSearchParams();
@@ -583,30 +555,17 @@ async function saveAddressFromModal() {
     formData.append('longitude', document.getElementById('modalLongitude').value);
     formData.append('isDefault', document.getElementById('modalIsDefault').checked);
 
-    fetch('/address/api/save', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: formData
-    })
-            .then(function (r) {
-                if (r.status === 401 || r.status === 403) {
-                    if (typeof showLoginPopup === 'function')
-                        showLoginPopup();
-                    return null;
-                }
-                return r.json();
-            })
-            .then(function (data) {
-                if (!data)
+    DuaStore.api.postForm('/address/api/save', formData)
+            .then(function (result) {
+                if (!result.ok) {
+                    if (result.message) DuaStore.toast.error(result.message);
                     return;
-                if (data.success) {
+                }
+                if (result.data.success) {
                     location.reload();
                 } else {
-                    DuaStore.toast.error(data.message || 'Lưu thất bại');
+                    DuaStore.toast.error(result.data.message || 'Lưu thất bại');
                 }
-            })
-            .catch(function () {
-                DuaStore.toast.error('Lỗi kết nối');
             });
 }
 
@@ -633,30 +592,12 @@ function getSelectedAddressId() {
     return sel ? sel.value : null;
 }
 
-function updateShipFee() {
-    var addrId = getSelectedAddressId();
-    if (!addrId) return;
-    DuaStore.api.get('/checkout/shipping-fee?addressId=' + addrId + '&method=SHIP')
-            .then(function (result) {
-                if (result.ok && result.data.success) {
-                    var fee = result.data.fee, days = result.data.deliveryDays;
-                    document.getElementById('shipFeeDisplay').textContent = fee.toLocaleString('vi-VN') + '₫';
-                    var today = new Date();
-                    var minDate = new Date(today); minDate.setDate(today.getDate() + (days || 7));
-                    var maxDate = new Date(today); maxDate.setDate(today.getDate() + (days || 7) + 2);
-                    var el = document.getElementById('estimatedDeliveryEl');
-                    if (el) el.textContent =  minDate.toLocaleDateString('vi-VN') + ' – ' + maxDate.toLocaleDateString('vi-VN');
-                    updateTotal();
-                }
-            });
-}
-
 function updateAllQuotes() {
     var addrId = getSelectedAddressId();
     if (!addrId) return;
     var subtotalEl = document.getElementById('rawSubtotal');
     var subtotal = subtotalEl ? parseInt(subtotalEl.textContent) || 0 : 0;
-    DuaStore.api.get('/checkout/api/quotes?addressId=' + addrId + '&method=SHIP&subtotal=' + subtotal)
+    DuaStore.api.get('/checkout/api/quotes?addressId=' + addrId + '&subtotal=' + subtotal)
             .then(function (result) {
                 if (!result.ok || !result.data.success) return;
                 var quotes = result.data.quotes || [];
@@ -665,28 +606,45 @@ function updateAllQuotes() {
                 var cheapest = null;
                 quotes.forEach(function (q) {
                     var el = document.getElementById('carrier' + q.carrierCode + 'Price');
-                    if (el) el.textContent = q.fee.toLocaleString('vi-VN') + '₫';
-                    var dayEl = document.getElementById('carrier' + q.carrierCode + 'Days');
-                    if (dayEl) dayEl.textContent = q.deliveryDays + ' ngày';
+                    if (el) {
+                        if (q.fee === 0) {
+                            el.textContent = 'Miễn phí';
+                            el.className = 'ds-checkout-radio-price text-success';
+                        } else {
+                            el.textContent = q.fee.toLocaleString('vi-VN') + '₫';
+                            el.className = 'ds-checkout-radio-price';
+                        }
+                    }
                     if (firstFee === null) firstFee = q.fee;
                     if (cheapest === null || q.fee < cheapest.fee) {
                         cheapest = { code: q.carrierCode, fee: q.fee, days: q.deliveryDays };
                     }
                 });
+                function setShipFeeDisplay(fee) {
+                    var el = document.getElementById('shipFeeDisplay');
+                    if (!el) return;
+                    if (fee === 0) {
+                        el.textContent = '✓ Miễn phí';
+                        el.className = 'fw-semibold text-success';
+                    } else {
+                        el.textContent = fee.toLocaleString('vi-VN') + '₫';
+                        el.className = 'fw-semibold';
+                    }
+                }
                 // If no carrier selected, auto-select cheapest
                 if (!selectedCarrier || !document.querySelector('input[name="shippingCarrier"][value="' + selectedCarrier + '"]')) {
                     if (cheapest) {
                         var radio = document.querySelector('input[name="shippingCarrier"][value="' + cheapest.code + '"]');
                         if (radio) { radio.checked = true; }
-                        document.getElementById('shipFeeDisplay').textContent = cheapest.fee.toLocaleString('vi-VN') + '₫';
+                        setShipFeeDisplay(cheapest.fee);
                         updateEstimatedDelivery(cheapest.days);
                     } else if (firstFee !== null) {
-                        document.getElementById('shipFeeDisplay').textContent = firstFee.toLocaleString('vi-VN') + '₫';
+                        setShipFeeDisplay(firstFee);
                     }
                 } else {
                     var selQuote = quotes.find(function (q) { return q.carrierCode === selectedCarrier; });
                     if (selQuote) {
-                        document.getElementById('shipFeeDisplay').textContent = selQuote.fee.toLocaleString('vi-VN') + '₫';
+                        setShipFeeDisplay(selQuote.fee);
                         updateEstimatedDelivery(selQuote.deliveryDays);
                     }
                 }
@@ -812,34 +770,22 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         btn.textContent = 'Đang xử lý...';
         var form = document.getElementById('checkoutForm');
-        var formData = new FormData(form);
-        fetch('/checkout/api/create', {method: 'POST', body: new URLSearchParams(formData)})
-                .then(function (r) {
-                    if (r.status === 401 || r.status === 403) {
-                        if (typeof showLoginPopup === 'function')
-                            showLoginPopup();
-                        return null;
-                    }
-                    return r.json();
-                })
-                .then(function (data) {
-                    if (!data) {
+        var formData = new URLSearchParams(new FormData(form));
+        DuaStore.api.postForm('/checkout/api/create', formData)
+                .then(function (result) {
+                    if (!result.ok || !result.data) {
+                        DuaStore.toast.error(result.message || 'Đặt hàng thất bại');
                         btn.disabled = false;
                         btn.textContent = 'Đã thanh toán';
                         return;
                     }
-                    if (data.success) {
-                        window.location.href = '/checkout/thanh-cong/' + data.orderId;
+                    if (result.data.success) {
+                        window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
                     } else {
-                        DuaStore.toast.error(data.message || 'Đặt hàng thất bại');
+                        DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
                         btn.disabled = false;
                         btn.textContent = 'Đã thanh toán';
                     }
-                })
-                .catch(function () {
-                    DuaStore.toast.error('Lỗi kết nối');
-                    btn.disabled = false;
-                    btn.textContent = 'Đã thanh toán';
                 });
     });
 
@@ -880,41 +826,25 @@ document.addEventListener('DOMContentLoaded', function () {
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
 
             var form = document.getElementById('checkoutForm');
-            var formData = new FormData(form);
+            var formData = new URLSearchParams(new FormData(form));
 
-            fetch('/checkout/api/create', {
-                method: 'POST',
-                body: new URLSearchParams(formData)
-            })
-                    .then(function (r) {
-                        if (r.status === 401 || r.status === 403) {
-                            if (typeof showLoginPopup === 'function')
-                                showLoginPopup();
-                            return null;
-                        }
-                        return r.json();
-                    })
-                    .then(function (data) {
-                        if (!data) {
+            DuaStore.api.postForm('/checkout/api/create', formData)
+                    .then(function (result) {
+                        if (!result.ok || !result.data) {
+                            DuaStore.toast.error(result.message || 'Đặt hàng thất bại');
                             btn._submitted = false;
                             btn.disabled = false;
                             btn.innerHTML = 'Đặt hàng';
                             return;
                         }
-                        if (data.success) {
-                            window.location.href = '/checkout/thanh-cong/' + data.orderId;
+                        if (result.data.success) {
+                            window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
                         } else {
-                            DuaStore.toast.error(data.message || 'Đặt hàng thất bại');
+                            DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
                             btn._submitted = false;
                             btn.disabled = false;
                             btn.innerHTML = 'Đặt hàng';
                         }
-                    })
-                    .catch(function () {
-                        DuaStore.toast.error('Đặt hàng thất bại, vui lòng thử lại');
-                        btn._submitted = false;
-                        btn.disabled = false;
-                        btn.innerHTML = 'Đặt hàng';
                     });
         }
     });
@@ -978,7 +908,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
         if (document.querySelector('input[name="addressId"]:checked')) {
             updateAllQuotes();
-            updateShipFee();
         }
     }, 300);
 });

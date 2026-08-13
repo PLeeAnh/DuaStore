@@ -99,18 +99,29 @@ public class AdminLogService {
             }
         }
 
+        phanDonCho(order, adminChon);
+    }
+
+    public void phanDonCho(Order order, User admin) {
+        if (order == null || admin == null) {
+            return;
+        }
+        if (assignmentRepository.findByOrderId(order.getId()).isPresent()) {
+            return;
+        }
+
         OrderAssignment assignment = new OrderAssignment();
         assignment.setOrder(order);
-        assignment.setAdmin(adminChon);
+        assignment.setAdmin(admin);
         assignment.setTrangThai("DANG_XU_LY");
         assignmentRepository.save(assignment);
 
-        orderStatusLogService.ghiLog(order, OrderEventType.ASSIGN_ADMIN, adminChon, null, null,
-                "Phân cho " + adminChon.getHoTen());
+        orderStatusLogService.ghiLog(order, OrderEventType.ASSIGN_ADMIN, admin, null, null,
+                "Phân cho " + admin.getHoTen());
 
-        ghiLogDonHang(adminChon, order.getId(), "PHAN_DON",
-                null, adminChon.getHoTen(),
-                "Tự động phân đơn cho " + adminChon.getHoTen(), null);
+        ghiLogDonHang(admin, order.getId(), "PHAN_DON",
+                null, admin.getHoTen(),
+                "Tự động phân đơn cho " + admin.getHoTen(), null);
     }
 
     @Transactional(readOnly = true)

@@ -27,16 +27,19 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final CustomAuthenticationSuccessHandler successHandler;
     private final CustomOAuth2UserService oAuth2UserService;
+    private final TwoFactorAuthFilter twoFactorAuthFilter;
 
     @Value("${duastore.remember-me.key}")
     private String rememberMeKey;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
             CustomAuthenticationSuccessHandler successHandler,
-            CustomOAuth2UserService oAuth2UserService) {
+            CustomOAuth2UserService oAuth2UserService,
+            TwoFactorAuthFilter twoFactorAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
         this.oAuth2UserService = oAuth2UserService;
+        this.twoFactorAuthFilter = twoFactorAuthFilter;
     }
 
     @Bean
@@ -90,23 +93,7 @@ public class SecurityConfig {
                         "/api/auth/verify-code",
                         "/admin/thong-bao/api/don-hang-moi",
                         "/admin/thong-bao/api/lien-he-moi",
-                        "/api/thong-bao/chua-doc",
-                        "/api/cart/add-popup",
-                        "/api/cart/remove-item",
-                        "/api/cart/update",
-                        "/api/wishlist/toggle",
-                        "/api/vi-voucher/luu/{promotionId}",
-                        "/api/vi-voucher/xoa/{voucherId}",
-                        "/api/thong-bao/doc/{id}",
-                        "/api/thong-bao/doc-tat-ca",
-                        "/api/coupon/validate",
-                        "/checkout/api/create",
-                        "/checkout/ap-dung-ma",
-                        "/checkout/chuyen-khoan/{id}/xac-nhan",
-                        "/checkout/vnpay/ipn",
-                        "/admin/don-hang/api/{id}/cap-nhat-trang-thai",
-                        "/admin/don-hang/api/batch-cap-nhat-trang-thai",
-                        "/admin/don-hang/api/{id}/cap-nhat-ma-van-don"
+                        "/checkout/vnpay/ipn"
                 ));
 
         http.headers(headers -> headers
@@ -117,7 +104,7 @@ public class SecurityConfig {
                 );
 
         http.addFilterBefore(rateLimitingFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterAfter(twoFactorAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(twoFactorAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -128,13 +115,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public TwoFactorAuthFilter twoFactorAuthFilter() {
-        return new TwoFactorAuthFilter();
+    public FilterRegistrationBean<RateLimitingFilter> rateLimitingRegistration(RateLimitingFilter filter) {
+        FilterRegistrationBean<RateLimitingFilter> reg = new FilterRegistrationBean<>(filter);
+        reg.setEnabled(false);
+        return reg;
     }
 
     @Bean
-    public FilterRegistrationBean<RateLimitingFilter> rateLimitingRegistration(RateLimitingFilter filter) {
-        FilterRegistrationBean<RateLimitingFilter> reg = new FilterRegistrationBean<>(filter);
+    public FilterRegistrationBean<TwoFactorAuthFilter> twoFactorAuthRegistration(TwoFactorAuthFilter filter) {
+        FilterRegistrationBean<TwoFactorAuthFilter> reg = new FilterRegistrationBean<>(filter);
         reg.setEnabled(false);
         return reg;
     }

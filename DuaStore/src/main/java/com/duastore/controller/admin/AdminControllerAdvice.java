@@ -2,6 +2,7 @@ package com.duastore.controller.admin;
 
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.User;
+import com.duastore.service.admin.AdminDashboardService;
 import com.duastore.service.admin.AdminOrderService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,11 +16,14 @@ import java.util.stream.Collectors;
 public class AdminControllerAdvice {
 
     private final AdminOrderService adminOrderService;
+    private final AdminDashboardService adminDashboardService;
     private final SecurityUtil securityUtil;
 
     public AdminControllerAdvice(AdminOrderService adminOrderService,
+            AdminDashboardService adminDashboardService,
             SecurityUtil securityUtil) {
         this.adminOrderService = adminOrderService;
+        this.adminDashboardService = adminDashboardService;
         this.securityUtil = securityUtil;
     }
 
@@ -31,6 +35,19 @@ public class AdminControllerAdvice {
                 return 0;
             }
             return adminOrderService.countMyPendingOrders(admin.getId());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    @ModelAttribute("lowStockCount")
+    public long lowStockCount() {
+        try {
+            User admin = securityUtil.getCurrentUser();
+            if (admin == null) {
+                return 0;
+            }
+            return adminDashboardService.getLowStockCount();
         } catch (Exception e) {
             return 0;
         }

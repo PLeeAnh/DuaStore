@@ -31,7 +31,9 @@ public class AdminStoreController {
     @GetMapping
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).STORE_READ)")
     public String edit(Model model) {
-        model.addAttribute("settings", siteSettingService.getGroup(GROUP));
+        Map<String, String> settings = new java.util.HashMap<>(SiteSettingService.STORE_DEFAULTS);
+        settings.putAll(siteSettingService.getGroup(GROUP));
+        model.addAttribute("settings", settings);
         model.addAttribute("title", "cua-hang");
         return "view/admin/store/form";
     }

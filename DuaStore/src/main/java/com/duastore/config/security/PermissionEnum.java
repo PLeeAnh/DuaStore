@@ -140,4 +140,9 @@ public final class PermissionEnum {
     // ALERT
     public static final String ALERT_READ = "ALERT_READ";
     public static final String ALERT_UPDATE = "ALERT_UPDATE";
+
+    // CONTACT_MESSAGE (Hộp thư liên hệ)
+    public static final String CONTACT_MESSAGE_READ = "CONTACT_MESSAGE_READ";
+    public static final String CONTACT_MESSAGE_UPDATE = "CONTACT_MESSAGE_UPDATE";
+    public static final String CONTACT_MESSAGE_DELETE = "CONTACT_MESSAGE_DELETE";
 }

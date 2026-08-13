@@ -115,8 +115,12 @@ public class ProductController {
             @RequestParam(required = false) BigDecimal priceTo,
             @RequestParam(defaultValue = "newest") String sortBy,
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "24") int size,
             Model model) {
         model.addAttribute("title", "san-pham");
+        if (size != 8 && size != 12 && size != 24 && size != 48) {
+            size = 24;
+        }
 
         if (keyword != null && keyword.isBlank()) {
             keyword = null;
@@ -148,17 +152,17 @@ public class ProductController {
 
         Page<Product> productPage;
         if ("best_selling".equals(sortBy)) {
-            productPage = productService.filterPagedBestSelling(keyword, danhMuc, chatLieu, priceRange, dungTich, page, PAGE_SIZE);
+            productPage = productService.filterPagedBestSelling(keyword, danhMuc, chatLieu, priceRange, dungTich, page, size);
         } else if (hasFilters || keyword != null) {
-            productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, PAGE_SIZE);
+            productPage = productService.filterPaged(keyword, danhMuc, chatLieu, priceRange, dungTich, sortBy, page, size);
         } else if (danhMuc != null) {
             List<Integer> categoryIds = new ArrayList<>();
             categoryIds.add(danhMuc);
             categoryRepository.findByParentIdAndIsActiveTrueOrderByThuTuHienThiAscIdAsc(danhMuc)
                     .forEach(child -> categoryIds.add(child.getId()));
-            productPage = productService.findByCategoriesPaged(categoryIds, page, PAGE_SIZE);
+            productPage = productService.findByCategoriesPaged(categoryIds, page, size);
         } else {
-            productPage = productService.getDangBanPaged(page, PAGE_SIZE);
+            productPage = productService.getDangBanPaged(page, size);
         }
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("categories", categoryRepository.findByParentIsNullAndIsActiveTrueOrderByThuTuHienThiAscIdAsc());
@@ -175,7 +179,7 @@ public class ProductController {
         model.addAttribute("currentPage", productPage.getNumber());
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("totalItems", (int) productPage.getTotalElements());
-        model.addAttribute("pageSize", PAGE_SIZE);
+        model.addAttribute("pageSize", size);
 
         // Build variants map + flash sale map
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
@@ -294,10 +298,15 @@ public class ProductController {
         return "view/client/product/product-list";
     }
 
+    private int clampReviewSize(int size) {
+        return (size == 5 || size == 10 || size == 20 || size == 50) ? size : 10;
+    }
+
     @GetMapping("/san-pham/{id}")
     public String detail(@PathVariable Integer id,
             @RequestParam(defaultValue = "0") int reviewPage,
             @RequestParam(required = false) Integer reviewRating,
+            @RequestParam(defaultValue = "10") int reviewSize,
             Model model) {
         var product = productService.findById(id);
         if (product == null) {
@@ -456,7 +465,7 @@ public class ProductController {
         model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
 
-        int reviewSize = 10;
+        reviewSize = clampReviewSize(reviewSize);
         Integer currentUserId = null;
         try {
             currentUserId = securityUtil.getCurrentUserId();
@@ -467,6 +476,7 @@ public class ProductController {
         model.addAttribute("reviewCurrentPage", reviewPage);
         model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
         model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
+        model.addAttribute("reviewSize", reviewSize);
         model.addAttribute("reviewRating", reviewRating);
         model.addAttribute("ratingDistribution", reviewService.getRatingDistribution(id));
         if (currentUserId != null) {
@@ -545,8 +555,9 @@ public class ProductController {
     public String reviewsFragment(@PathVariable Integer id,
             @RequestParam(defaultValue = "0") int reviewPage,
             @RequestParam(required = false) Integer reviewRating,
+            @RequestParam(defaultValue = "10") int reviewSize,
             Model model) {
-        int reviewSize = 10;
+        reviewSize = clampReviewSize(reviewSize);
         Integer currentUserId = null;
         try {
             currentUserId = securityUtil.getCurrentUserId();
@@ -558,6 +569,7 @@ public class ProductController {
         model.addAttribute("reviewCurrentPage", reviewPage);
         model.addAttribute("reviewTotalPages", reviewPageResult.getTotalPages());
         model.addAttribute("reviewTotalItems", reviewPageResult.getTotalElements());
+        model.addAttribute("reviewSize", reviewSize);
         model.addAttribute("reviewRating", reviewRating);
         model.addAttribute("ratingDistribution", reviewService.getRatingDistribution(id));
         if (currentUserId != null) {

@@ -29,12 +29,29 @@
             <!-- Content constrained to 1200px -->
             <div class="ds-home-content">
 
-                <!-- DANH MỤC (slider 4 cột + arrows + dots) -->
-                <section class="ds-section-card ds-cat-v2 sr-up ds-slider-section" th:if="${themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0'}"
-                         data-items-per-page="4">
-                    <div class="ds-section-header">
-                        <h2 class="ds-section-title-sm">Duyệt theo danh mục</h2>
+                <!-- BANNER MẶC ĐỊNH (khi chưa thêm banner trong admin) -->
+                <section class="sr-up" th:if="${banners == null or #lists.isEmpty(banners)}" style="margin-top:1.5rem;">
+                    <div class="ds-static-banner">
+                        <span class="ds-static-banner-badge"><i class="bi bi-gem me-1"></i>Đồ thủy tinh cao cấp</span>
+                        <h2 class="ds-static-banner-title">Tinh tế từng đường cong thủy tinh</h2>
+                        <p class="ds-static-banner-desc">Khám phá bộ sưu tập ly, bình, ấm trà thủy tinh borosilicate – an toàn, sang trọng cho mọi không gian.</p>
+                        <a class="ds-static-banner-btn" th:href="@{/san-pham}">Khám phá ngay <i class="bi bi-arrow-right ms-1"></i></a>
                     </div>
+                </section>
+
+                <!-- SẮP RA MẮT (khi chưa có sản phẩm nào) -->
+                <section class="sr-up" th:if="${#lists.isEmpty(featuredProducts)}" style="margin-top:1.5rem;">
+                    <div class="ds-coming-soon">
+                        <span class="ds-coming-soon-badge"><i class="bi bi-stars me-1"></i>Sắp ra mắt</span>
+                        <h2 class="ds-coming-soon-title">Hàng mới đang được chuẩn bị</h2>
+                        <p class="ds-coming-soon-desc">DuaStore đang hoàn thiện bộ sưu tập đồ thủy tinh cao cấp đầu tiên. Hãy liên hệ với chúng tôi để nhận thông báo khi mở bán!</p>
+                        <a class="ds-coming-soon-btn" th:href="@{/lien-he}"><i class="bi bi-chat-heart me-1"></i>Liên hệ ngay</a>
+                    </div>
+                </section>
+
+                <!-- DANH MỤC (slider 4 cột + arrows + dots) -->
+                <section class="ds-section-card ds-cat-v2 sr-up ds-slider-section" th:if="${(themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0') and not #lists.isEmpty(featuredCategories)}"
+                         data-items-per-page="4">
                     <div class="ds-slider-wrap">
                         <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                         <div class="ds-slider-viewport">
@@ -55,7 +72,7 @@
                 </section>
 
                 <!-- SẢN PHẨM NỔI BẬT -->
-                <section class="ds-section-card sr-up" th:if="${themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0'}">
+                <section class="ds-section-card sr-up" th:if="${(themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0') and not #lists.isEmpty(featuredProducts)}">
                     <div class="ds-product-grid-v2" th:style="'--cols:' + ${productColumns}">
 
                         <div th:each="p : ${featuredProducts}">
@@ -196,8 +213,8 @@
                         <div>
                             <div class="ds-browse-tabs">
                                 <button th:if="${hasFavProducts}" class="ds-browse-tab active" data-tab="fav">Yêu thích nhất</button>
-                                <button th:if="${hasSoldProducts}" class="ds-browse-tab" data-tab="sold" th:class="${!hasFavProducts ? 'ds-browse-tab active' : 'ds-browse-tab'}">Bán chạy nhất</button>
-                                <button class="ds-browse-tab" data-tab="new" th:class="${!hasFavProducts and !hasSoldProducts ? 'ds-browse-tab active' : 'ds-browse-tab'}">Sắp ra mắt</button>
+                                <button th:if="${hasSoldProducts}" class="ds-browse-tab" data-tab="sold" th:classappend="${!hasFavProducts ? 'active' : ''}">Bán chạy nhất</button>
+                                <button class="ds-browse-tab" data-tab="new" th:classappend="${!hasFavProducts and !hasSoldProducts ? 'active' : ''}">Sắp ra mắt</button>
                             </div>
                             <div class="ds-browse-list" id="browseList">
                                 <div th:each="p, iter : ${browseProducts}"
@@ -278,252 +295,180 @@
                     </div>
                 </section>
             </div><!-- /.ds-home-content -->
+
+            <!-- CÁC SECTION DO ADMIN THÊM (Homepage designer) -->
+            <div class="ds-home-content">
+            <th:block th:each="sec : ${hpSections}">
+                <!-- Section SẢN PHẨM -->
+                <th:block th:if="${sec.type == 'products' and !sec.items.isEmpty()}">
+                    <section class="ds-section-card sr-up"
+                             th:classappend="${sec.style == 'slider'} ? ' ds-slider-section'"
+                             th:if="${sec.style == 'slider'}"
+                             th:attr="data-items-per-page=${sec.cols}">
+                        <div class="ds-section-header" th:if="${sec.title != null and !#strings.isEmpty(sec.title)}">
+                            <h2 class="ds-section-title-sm" th:text="${sec.title}">Sản phẩm</h2>
+                            <a th:if="${sec.linkUrl != null and !#strings.isEmpty(sec.linkUrl)}"
+                               th:href="${sec.linkUrl}"
+                               th:text="${sec.linkLabel != null and !#strings.isEmpty(sec.linkLabel)} ? ${sec.linkLabel} : 'Xem tất cả'"
+                               class="ds-link-more"><i class="bi bi-arrow-right"></i></a>
+                        </div>
+                        <div class="ds-slider-wrap">
+                            <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                            <div class="ds-slider-viewport">
+                                <div class="ds-slider-track">
+                                    <a th:each="p : ${sec.items}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
+                                       th:with="pvList=${variantsMap.get(p.id) != null ? variantsMap.get(p.id) : null},
+                                       v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                                        <div class="ds-mini-card-img">
+                                            <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                        </div>
+                                        <div class="ds-mini-card-body">
+                                            <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                            <span class="ds-mini-card-price" th:if="${v != null}"
+                                                  th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        <div class="ds-slider-dots"></div>
+                    </section>
+                    <section class="ds-section-card sr-up" th:if="${sec.style == 'grid'}">
+                        <div class="ds-section-header" th:if="${sec.title != null and !#strings.isEmpty(sec.title)}">
+                            <h2 class="ds-section-title-sm" th:text="${sec.title}">Sản phẩm</h2>
+                            <a th:if="${sec.linkUrl != null and !#strings.isEmpty(sec.linkUrl)}"
+                               th:href="${sec.linkUrl}"
+                               th:text="${sec.linkLabel != null and !#strings.isEmpty(sec.linkLabel)} ? ${sec.linkLabel} : 'Xem tất cả'"
+                               class="ds-link-more"><i class="bi bi-arrow-right"></i></a>
+                        </div>
+                        <div class="ds-dynamic-grid" th:style="'--cols:' + ${sec.cols}">
+                            <a th:each="p : ${sec.items}" th:href="@{'/san-pham/' + ${p.id}}" class="ds-mini-card"
+                               th:with="pvList=${variantsMap.get(p.id) != null ? variantsMap.get(p.id) : null},
+                               v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
+                                <div class="ds-mini-card-img">
+                                    <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                </div>
+                                <div class="ds-mini-card-body">
+                                    <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                    <span class="ds-mini-card-price" th:if="${v != null}"
+                                          th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+                </th:block>
+
+                <!-- Section DANH MỤC -->
+                <th:block th:if="${sec.type == 'categories' and !sec.items.isEmpty()}">
+                    <section class="ds-section-card sr-up ds-cat-v2"
+                             th:classappend="${sec.style == 'slider'} ? ' ds-slider-section'"
+                             th:if="${sec.style == 'slider'}"
+                             th:attr="data-items-per-page=${sec.cols}">
+                        <div class="ds-section-header" th:if="${sec.title != null and !#strings.isEmpty(sec.title)}">
+                            <h2 class="ds-section-title-sm" th:text="${sec.title}">Danh mục</h2>
+                        </div>
+                        <div class="ds-slider-wrap">
+                            <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                            <div class="ds-slider-viewport">
+                                <div class="ds-slider-track">
+                                    <a th:each="cat : ${sec.items}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                                        <div class="ds-cat-tile-img">
+                                            <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                        </div>
+                                        <div class="ds-cat-tile-overlay">
+                                            <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Danh mục</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        <div class="ds-slider-dots"></div>
+                    </section>
+                    <section class="ds-section-card sr-up" th:if="${sec.style == 'grid'}">
+                        <div class="ds-section-header" th:if="${sec.title != null and !#strings.isEmpty(sec.title)}">
+                            <h2 class="ds-section-title-sm" th:text="${sec.title}">Danh mục</h2>
+                        </div>
+                        <div class="ds-dynamic-grid ds-cat-grid" th:style="'--cols:' + ${sec.cols}">
+                            <a th:each="cat : ${sec.items}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                                <div class="ds-cat-tile-img">
+                                    <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                </div>
+                                <div class="ds-cat-tile-overlay">
+                                    <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Danh mục</span>
+                                </div>
+                            </a>
+                        </div>
+                    </section>
+                </th:block>
+
+                <!-- Section KHUYẾN MÃI -->
+                <th:block th:if="${sec.type == 'promotions' and !sec.items.isEmpty()}">
+                    <section class="ds-section-card sr-up"
+                             th:classappend="${sec.style == 'slider'} ? ' ds-slider-section'"
+                             th:if="${sec.style == 'slider'}"
+                             th:attr="data-items-per-page=${sec.cols}">
+                        <div class="ds-section-header" th:if="${sec.title != null and !#strings.isEmpty(sec.title)}">
+                            <h2 class="ds-section-title-sm" th:text="${sec.title}">Khuyến mãi</h2>
+                            <a th:href="@{/khuyen-mai}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                        <div class="ds-slider-wrap">
+                            <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                            <div class="ds-slider-viewport">
+                                <div class="ds-slider-track">
+                                    <div th:each="pr : ${sec.items}" class="ds-promo-slide">
+                                        <div class="vc-card">
+                                            <div class="vc-discount"
+                                                 th:text="${pr.loaiGiam == 'PHAN_TRAM' ? '-' + #numbers.formatInteger(pr.giaTriGiam, 0, 'POINT') + '%' : '-' + #numbers.formatInteger(pr.giaTriGiam, 0, 'POINT') + 'đ'}">-20%</div>
+                                            <div class="vc-desc" th:text="${pr.tenChuongTrinh}">Khuyến mãi</div>
+                                            <div class="vc-code" th:text="${pr.maCode}">CODE</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        <div class="ds-slider-dots"></div>
+                    </section>
+                    <section class="ds-section-card sr-up" th:if="${sec.style == 'grid'}">
+                        <div class="ds-section-header" th:if="${sec.title != null and !#strings.isEmpty(sec.title)}">
+                            <h2 class="ds-section-title-sm" th:text="${sec.title}">Khuyến mãi</h2>
+                            <a th:href="@{/khuyen-mai}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                        <div class="ds-dynamic-grid" th:style="'--cols:' + ${sec.cols}">
+                            <div th:each="pr : ${sec.items}" class="vc-card">
+                                <div class="vc-discount"
+                                     th:text="${pr.loaiGiam == 'PHAN_TRAM' ? '-' + #numbers.formatInteger(pr.giaTriGiam, 0, 'POINT') + '%' : '-' + #numbers.formatInteger(pr.giaTriGiam, 0, 'POINT') + 'đ'}">-20%</div>
+                                <div class="vc-desc" th:text="${pr.tenChuongTrinh}">Khuyến mãi</div>
+                                <div class="vc-code" th:text="${pr.maCode}">CODE</div>
+                            </div>
+                        </div>
+                    </section>
+                </th:block>
+            </th:block>
+            </div>
         </div>
-    <th:block th:include="~{fragments/promotion-modal :: promotionModal}" />
+
+        <!-- POPUP THÔNG BÁO ẢNH TRANG CHỦ -->
+        <div th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
+             id="dsPromoPopupOverlay" class="ds-promo-popup-overlay"
+             th:data-mode="${popupPromoMode}" th:data-interval="${popupPromoInterval}">
+            <div class="ds-promo-popup-modal">
+                <button type="button" class="ds-promo-popup-close" id="dsPromoPopupClose" aria-label="Đóng">&times;</button>
+                <a th:href="${popupPromoLink != null and !popupPromoLink.isEmpty()} ? ${popupPromoLink} : '#'"
+                   th:target="${popupPromoLink != null and !popupPromoLink.isEmpty()} ? '_blank' : '_self'"
+                   class="ds-promo-popup-img-link">
+                    <img th:src="${popupPromoImage}" alt="Thông báo khuyến mãi" loading="eager" />
+                </a>
+            </div>
+        </div>
+
+    <th:block th:insert="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
-        <script>
-            (function () {
-                // ── Browse Products: tabs + preview panel ──
-                var browseTabs = document.querySelectorAll('.ds-browse-tab');
-                var browseList = document.getElementById('browseList');
-                var browsePreview = document.getElementById('browsePreview');
-                if (browseTabs.length && browseList && browsePreview) {
-                    var browseRows = Array.from(browseList.querySelectorAll('.ds-browse-row'));
-
-                    // Tab switching: sort rows
-                    browseTabs.forEach(function (tab) {
-                        tab.addEventListener('click', function () {
-                            browseTabs.forEach(function (t) {
-                                t.classList.remove('active');
-                            });
-                            tab.classList.add('active');
-                            var key = tab.dataset.tab;
-                            browseRows.sort(function (a, b) {
-                                if (key === 'fav')
-                                    return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
-                                if (key === 'sold')
-                                    return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
-                                if (key === 'new')
-                                    return (b.dataset.daysOld || '').localeCompare(a.dataset.daysOld || '');
-                                return 0;
-                            });
-                            browseRows.forEach(function (r) {
-                                browseList.appendChild(r);
-                            });
-                            if (browseRows.length)
-                                activateBrowseRow(browseRows[0]);
-
-                            // Toggle see-more buttons
-                            var seeMoreBtns = document.querySelectorAll('.ds-see-more-btn');
-                            seeMoreBtns.forEach(function (btn) {
-                                btn.style.display = btn.dataset.tab === key ? 'block' : 'none';
-                            });
-                        });
-                    });
-
-                    // Row hover/click → update preview
-                    var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                    browseRows.forEach(function (row) {
-                        row.addEventListener('mouseenter', function () {
-                            activateBrowseRow(row);
-                        });
-                        if (isTouch) {
-                            var tapped = false;
-                            row.addEventListener('click', function () {
-                                if (tapped) {
-                                    var href = row.dataset.href;
-                                    if (href) window.location.href = href;
-                                } else {
-                                    tapped = true;
-                                    activateBrowseRow(row);
-                                    setTimeout(function () { tapped = false; }, 1500);
-                                }
-                            });
-                        } else {
-                            row.addEventListener('click', function () {
-                                var href = row.dataset.href;
-                                if (href) window.location.href = href;
-                            });
-                        }
-                    });
-
-                    function activateBrowseRow(row) {
-                        browseRows.forEach(function (r) {
-                            r.classList.remove('active');
-                        });
-                        row.classList.add('active');
-                        document.getElementById('browsePreviewName').textContent = row.dataset.name;
-
-                        var link = document.getElementById('browsePreviewLink');
-                        if (link) link.href = row.dataset.href || '#';
-
-                        // Thumbnail
-                        var thumb = document.querySelector('#browsePreviewThumb img');
-                        if (thumb)
-                            thumb.src = row.dataset.img || '/images/no-image.png';
-
-                        // Rating
-                        var ratingVal = row.dataset.rating || '';
-                        var ratingCount = parseInt(row.dataset.ratingCount) || 0;
-                        var ratingLabel = '';
-                        if (ratingCount > 0 && ratingVal) {
-                            var r = parseFloat(ratingVal);
-                            if (r >= 4.5)
-                                ratingLabel = 'Tốt';
-                            else if (r >= 3.5)
-                                ratingLabel = 'Khá';
-                            else if (r >= 2.5)
-                                ratingLabel = 'Bình thường';
-                            else if (r >= 1.5)
-                                ratingLabel = 'Kém';
-                            else
-                                ratingLabel = 'Rất kém';
-                        }
-                        document.getElementById('browsePreviewRatingValue').textContent = ratingCount > 0 ? ratingVal : '';
-                        document.getElementById('browsePreviewRatingLabel').textContent = ratingCount > 0 ? ratingLabel : 'Chưa ai đánh giá';
-                        document.getElementById('browsePreviewRatingCount').textContent = ratingCount > 0 ? '(' + ratingCount + ')' : '(0)';
-
-                        // Tags
-                        var catTag = document.getElementById('browsePreviewCatTag');
-                        if (catTag)
-                            catTag.textContent = row.dataset.cat || '';
-
-                        // Images (gallery from data-gallery attribute)
-                        var container = document.getElementById('browsePreviewImages');
-                        var galleryStr = row.dataset.gallery || '';
-                        var gallery = galleryStr ? galleryStr.split(',').filter(function (s) {
-                            return s.trim();
-                        }) : [];
-                        if (gallery.length === 0)
-                            gallery = [row.dataset.img || '/images/no-image.png'];
-                        container.innerHTML = '';
-                        gallery.slice(0, 6).forEach(function (url) {
-                            var img = document.createElement('img');
-                            img.className = 'ds-browse-preview-img';
-                            img.src = url;
-                            img.alt = '';
-                            img.addEventListener('mouseenter', function () {
-                                if (thumb)
-                                    thumb.src = url;
-                            });
-                            container.appendChild(img);
-                        });
-                    }
-                }
-            })();
-
-            // ── Dot‑nav slider ──
-            // slider
-            (function () {
-                function initSlider(el) {
-                    var viewport = el.querySelector('.ds-slider-viewport');
-                    var track = el.querySelector('.ds-slider-track');
-                    var dots = el.querySelector('.ds-slider-dots');
-                    var wrap = el.querySelector('.ds-slider-wrap');
-                    var prevBtn = wrap ? wrap.querySelector('.ds-slider-arrow-prev') : null;
-                    var nextBtn = wrap ? wrap.querySelector('.ds-slider-arrow-next') : null;
-                    if (!viewport || !track)
-                        return;
-                    var items = Array.from(track.children);
-                    if (items.length === 0)
-                        return;
-                    var currentPage = 0;
-                    var totalPages = 1;
-
-                    function goTo(page) {
-                        if (page < 0 || page >= totalPages || totalPages <= 1)
-                            return;
-                        currentPage = page;
-                        track.style.transform = 'translateX(-' + (page * viewport.offsetWidth) + 'px)';
-                        if (dots) {
-                            var allDots = dots.querySelectorAll('.ds-slider-dot');
-                            for (var j = 0; j < allDots.length; j++) {
-                                allDots[j].classList.toggle('active', j === page);
-                            }
-                        }
-                        if (prevBtn)
-                            prevBtn.style.display = page > 0 ? 'flex' : 'none';
-                        if (nextBtn)
-                            nextBtn.style.display = page < totalPages - 1 ? 'flex' : 'none';
-                    }
-
-                    function recalc() {
-                        var vw = viewport.offsetWidth;
-                        if (!vw)
-                            return;
-                        var gap = 20;
-                        var iw = items[0].offsetWidth;
-                        var targetPerPage = parseInt(el.dataset.itemsPerPage) || 0;
-                        var perPage;
-                        if (targetPerPage > 0) {
-                            perPage = targetPerPage;
-                        } else if (iw) {
-                            perPage = Math.max(1, Math.floor((vw + gap) / (iw + gap)));
-                        } else {
-                            perPage = 1;
-                        }
-                        var basis = 'calc((100% - ' + (gap * (perPage - 1)) + 'px) / ' + perPage + ')';
-                        for (var k = 0; k < items.length; k++) {
-                            items[k].style.flex = '0 0 ' + basis;
-                        }
-                        totalPages = Math.ceil(items.length / perPage);
-                        if (dots)
-                            dots.innerHTML = '';
-                        if (totalPages <= 1) {
-                            track.style.transform = '';
-                            if (prevBtn)
-                                prevBtn.style.display = 'none';
-                            if (nextBtn)
-                                nextBtn.style.display = 'none';
-                            return;
-                        }
-                        for (var i = 0; i < totalPages; i++) {
-                            var dot = document.createElement('button');
-                            dot.className = 'ds-slider-dot' + (i === 0 ? ' active' : '');
-                            dot.setAttribute('aria-label', 'Trang ' + (i + 1));
-                            dot.addEventListener('click', function (p) {
-                                return function () {
-                                    goTo(p);
-                                };
-                            }(i));
-                            if (dots)
-                                dots.appendChild(dot);
-                        }
-                        currentPage = 0;
-                        goTo(0);
-                    }
-
-                    if (prevBtn)
-                        prevBtn.addEventListener('click', function () {
-                            goTo(currentPage - 1);
-                        });
-                    if (nextBtn)
-                        nextBtn.addEventListener('click', function () {
-                            goTo(currentPage + 1);
-                        });
-
-                    recalc();
-                    var timer;
-                    window.addEventListener('resize', function () {
-                        clearTimeout(timer);
-                        timer = setTimeout(recalc, 200);
-                    });
-                }
-                document.querySelectorAll('.ds-slider-section').forEach(initSlider);
-            })();
-
-            // ── Ghi nhớ trạng thái giỏ hàng ──
-            document.addEventListener('DOMContentLoaded', function () {
-                var cartItems = document.querySelectorAll('#cart-items-container .popup-item');
-                var currentCartState = [];
-                cartItems.forEach(function (item) {
-                    var qtyEl = item.querySelector('input[id^="popup-qty-"]');
-                    var qty = qtyEl ? qtyEl.value : '1';
-                    currentCartState.push(item.id + '-qty-' + qty);
-                });
-                var viewedCartState = JSON.parse(localStorage.getItem('viewedCartState') || '[]');
-            });
-        </script>
+        <script th:src="@{/js/client-home.js(v=1)}"></script>
+        <script th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
+                th:src="@{/js/popup-promo.js(v=1)}"></script>
     </th:block>
 </body>
 </html>

@@ -14,9 +14,6 @@
                         <i class="bi bi-arrow-left me-1"></i>Quay lại
                     </a>
 
-                    <div th:if="${successMsg}" class="alert alert-success" th:text="${successMsg}"></div>
-                    <div th:if="${errorMsg}" class="alert alert-danger" th:text="${errorMsg}"></div>
-
                     <div class="ds-card mb-4">
                         <div class="ds-card-body">
                             <div class="d-flex justify-content-between align-items-start">
@@ -137,26 +134,22 @@
                         </div>
                     </div>
 
-                    <script>
-                        function confirmReceived(btn) {
-                            if (!confirm('Xác nhận bạn đã nhận được hàng?')) return;
-                            var orderId = btn.getAttribute('data-order-id');
-                            var token = document.querySelector('meta[name="_csrf"]')?.content || '';
-                            var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
-                            var headers = {};
-                            if (token) headers[header] = token;
-                            fetch('/tai-khoan/don-hang/danh-dau-da-nhan/' + orderId, {
-                                method: 'POST', headers: headers
-                            }).then(function (r) {
-                                if (r.ok) { window.location.reload(); }
-                                else { alert('Có lỗi xảy ra'); }
-                            }).catch(function () {
-                                alert('Lỗi kết nối');
-                            });
-                        }
-                    </script>
+                    <script th:src="@{/js/client-order.js(v=1)}"></script>
                 </div>
             </div>
         </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                /*<![CDATA[*/
+                var sm = [[${successMsg}]];
+                if (sm && window.DuaStore && DuaStore.toast) { DuaStore.toast.success(sm); }
+                var em = [[${errorMsg}]];
+                if (em && window.DuaStore && DuaStore.toast) { DuaStore.toast.error(em); }
+                /*]]>*/
+            });
+        </script>
+    </th:block>
     </body>
 </html>

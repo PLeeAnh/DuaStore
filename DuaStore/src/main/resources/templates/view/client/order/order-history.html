@@ -12,15 +12,6 @@
                 <div class="ds-section-card">
                     <h4 class="fw-bold mb-4">Lịch sử đơn hàng</h4>
 
-                    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show" role="alert">
-                        <span th:text="${successMsg}"></span>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <span th:text="${errorMsg}"></span>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-
                     <div class="d-flex gap-2 mb-4 flex-wrap">
                         <a th:href="@{/tai-khoan/don-hang}" class="ds-btn ds-btn-sm" th:classappend="${trangThai == null} ? 'ds-btn-fill' : 'ds-btn-outline'">Tất cả</a>
                         <a th:href="@{/tai-khoan/don-hang(trangThai='DA_HOAN_THANH')}" class="ds-btn ds-btn-sm" th:classappend="${trangThai == 'DA_HOAN_THANH'} ? 'ds-btn-fill' : 'ds-btn-outline'">Đã hoàn thành</a>
@@ -30,11 +21,7 @@
                         <a th:href="@{/tai-khoan/don-hang(trangThai='DA_HUY')}" class="ds-btn ds-btn-sm" th:classappend="${trangThai == 'DA_HUY'} ? 'ds-btn-fill' : 'ds-btn-outline'">Đã hủy</a>
                     </div>
 
-                    <div th:if="${#lists.isEmpty(orders)}" class="text-center py-5">
-                        <i class="bi bi-clock-history" style="font-size:3rem;color:#ccc;"></i>
-                        <p class="text-muted mt-3">Chưa có đơn hàng nào</p>
-                        <a th:href="@{/}" class="ds-btn ds-btn-fill">Mua sắm ngay</a>
-                    </div>
+                    <div th:if="${#lists.isEmpty(orders)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-clock-history', title='Chưa có đơn hàng nào', desc='Khi bạn đặt hàng, lịch sử đơn hàng sẽ được hiển thị tại đây.', btnText='Mua sắm ngay', btnHref='/san-pham')}"></div>
 
                     <div th:each="o : ${orders}" class="ds-card mb-3">
                         <div class="ds-card-body">
@@ -125,7 +112,20 @@
                     </div>
                 </div>
             </div>
-        </div>
+</div>
+            </div>
 
+    <th:block layout:fragment="extra-script">
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                /*<![CDATA[*/
+                var sm = [[${successMsg}]];
+                if (sm && window.DuaStore && DuaStore.toast) { DuaStore.toast.success(sm); }
+                var em = [[${errorMsg}]];
+                if (em && window.DuaStore && DuaStore.toast) { DuaStore.toast.error(em); }
+                /*]]>*/
+            });
+        </script>
+    </th:block>
     </body>
 </html>

@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,7 @@ public class CartService {
     public List<CartItemDTO> getItems(Integer userId) {
         return cartItemRepository.findByUserIdOrderByNgayThemDesc(userId).stream()
                 .map(this::toDto)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
@@ -186,6 +188,9 @@ public class CartService {
     private CartItemDTO toDto(CartItem item) {
         Product product = item.getProduct();
         ProductVariant variant = item.getVariant();
+        if (product == null || variant == null) {
+            return null;
+        }
         PricingService.PriceResult priced = pricingService.resolvePrice(variant);
         BigDecimal price = priced.finalPrice();
 
@@ -257,13 +262,14 @@ public class CartService {
         List<CartItem> cartItems = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId);
         for (CartItem ci : cartItems) {
             ProductVariant v = ci.getVariant();
-            if (v == null) {
+            Product p = ci.getProduct();
+            if (v == null || p == null) {
                 continue;
             }
             if (!v.isActive() || v.getSoLuongTon() <= 0) {
-                warnings.add(ci.getProduct().getTenSanPham() + " (" + v.getTenBienThe() + ") đã hết hàng");
+                warnings.add(p.getTenSanPham() + " (" + v.getTenBienThe() + ") đã hết hàng");
             } else if (ci.getSoLuong() > v.getSoLuongTon()) {
-                warnings.add(ci.getProduct().getTenSanPham() + " (" + v.getTenBienThe() + ") chỉ còn " + v.getSoLuongTon() + " trong kho");
+                warnings.add(p.getTenSanPham() + " (" + v.getTenBienThe() + ") chỉ còn " + v.getSoLuongTon() + " trong kho");
             }
         }
         return warnings;

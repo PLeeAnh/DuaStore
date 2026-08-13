@@ -46,12 +46,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         try {
             return doLoadUser(userRequest);
+        } catch (OAuth2AuthenticationException e) {
+            throw e;
         } catch (Exception e) {
             log.error("OAuth2 loadUser failed for registrationId={}: {}",
                     userRequest.getClientRegistration().getRegistrationId(), e.getMessage(), e);
             throw new OAuth2AuthenticationException(
                     new OAuth2Error("google_login_failed",
-                            "Đăng nhập Google thất bại: " + e.getMessage(), null), e);
+                            "Dang nhap Google that bai: " + e.getMessage(), null), e);
         }
     }
 
@@ -61,15 +63,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
+        String googleSub = (String) attributes.get("sub");
+
+        log.info("Google OAuth2 login attempt: email={}", email);
 
         if (email == null) {
+            log.warn("Google OAuth2: email is null, returning raw oauth2User");
             return oauth2User;
         }
 
         User user = userRepository.findByEmailWithRoles(email).orElse(null);
-        String googleSub = (String) attributes.get("sub");
 
         if (user == null) {
+            log.info("Google OAuth2: creating new user for email={}", email);
             user = new User();
 
             String rawUsername = email.split("@")[0] + "_" + UUID.randomUUID().toString().substring(0, 4);
@@ -91,35 +97,49 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setRoles(Set.of(userRole));
             user.setIsActive(true);
             userRepository.save(user);
+            log.info("Google OAuth2: new user created with id={}", user.getId());
 
-            UserAuthProvider passProv = new UserAuthProvider();
-            passProv.setUserId(user.getId());
-            passProv.setProvider("PASSWORD");
-            userAuthProviderRepository.save(passProv);
+            try {
+                UserAuthProvider passProv = new UserAuthProvider();
+                passProv.setUserId(user.getId());
+                passProv.setProvider("PASSWORD");
+                userAuthProviderRepository.save(passProv);
+            } catch (Exception ex) {
+                log.warn("Google OAuth2: could not save PASSWORD auth provider (DB may need migration): {}", ex.getMessage());
+            }
+
         } else if (!user.getIsActive()) {
-            return oauth2User;
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("account_locked",
+                            "Tai khoan cua ban da bi khoa. Vui long lien he quan tri vien.", null));
         }
 
-        if (googleSub != null && !userAuthProviderRepository.existsByUserIdAndProvider(user.getId(), "GOOGLE")) {
-            UserAuthProvider googleProv = new UserAuthProvider();
-            googleProv.setUserId(user.getId());
-            googleProv.setProvider("GOOGLE");
-            googleProv.setProviderSub(googleSub);
-            userAuthProviderRepository.save(googleProv);
+        if (googleSub != null) {
+            try {
+                boolean alreadyLinked = userAuthProviderRepository.existsByUserIdAndProvider(user.getId(), "GOOGLE");
+                if (!alreadyLinked) {
+                    UserAuthProvider googleProv = new UserAuthProvider();
+                    googleProv.setUserId(user.getId());
+                    googleProv.setProvider("GOOGLE");
+                    googleProv.setProviderSub(googleSub);
+                    userAuthProviderRepository.save(googleProv);
+                    log.info("Google OAuth2: saved GOOGLE auth provider for userId={}", user.getId());
+                }
+            } catch (Exception ex) {
+                log.warn("Google OAuth2: could not save GOOGLE auth provider (DB may need migration): {}", ex.getMessage());
+            }
         }
 
         Set<GrantedAuthority> authorities = new HashSet<>(oauth2User.getAuthorities());
 
-        boolean isSuperAdmin = false;
-        boolean isAdmin = false;
         for (Role role : user.getRoles()) {
             String rn = role.getName();
             if ("SUPER_ADMIN".equals(rn)) {
-                isSuperAdmin = true;
                 authorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
             } else if ("ADMIN".equals(rn)) {
-                isAdmin = true;
                 authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            } else if ("USER".equals(rn)) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
             }
 
             Set<Permission> perms = role.getPermissions();
@@ -130,6 +150,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
         }
 
+        log.info("Google OAuth2: login successful for email={}", email);
         return new DefaultOAuth2User(authorities, attributes, "email");
     }
 }

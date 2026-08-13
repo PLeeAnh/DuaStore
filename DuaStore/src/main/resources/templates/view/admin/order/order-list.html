@@ -14,7 +14,7 @@
 
         <div class="adm-detail-hero">
             <div class="d-flex align-items-start gap-3">
-                <div style="width:48px;height:48px;border-radius:14px;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">
+                <div class="adm-icon-48">
                     <i class="bi bi-receipt"></i>
                 </div>
                 <div class="flex-grow-1">
@@ -96,19 +96,23 @@
         <div class="adm-filter-bar">
             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                 <div class="adm-tab-nav mb-0">
-                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=false)}"
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=false, fromDate=${fromDate}, toDate=${toDate})}"
                        class="adm-tab" th:classappend="${not tatCa} ? 'active' : ''">
                         <i class="bi bi-person me-1"></i>Của tôi
                     </a>
-                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=true)}"
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=true, fromDate=${fromDate}, toDate=${toDate})}"
                        class="adm-tab" th:classappend="${tatCa} ? 'active' : ''">
                         <i class="bi bi-people me-1"></i>Tất cả
                     </a>
                 </div>
                 <div class="d-flex gap-2">
+                    <input type="date" id="filterFromDate" class="form-control form-control-sm" style="width:auto"
+                           title="Từ ngày" th:value="${fromDate}" />
+                    <input type="date" id="filterToDate" class="form-control form-control-sm" style="width:auto"
+                           title="Đến ngày" th:value="${toDate}" />
                     <input type="text" id="searchQ" class="form-control form-control-sm" style="width:180px" placeholder="Mã đơn, tên KH..." th:value="${q}" />
                     <select id="filterTrangThai" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
-                        <option value="">Trạng thái đơn</option>
+                        <option value="CHUA_HOAN_THANH" th:selected="${trangThai == null or trangThai == '' or trangThai == 'CHUA_HOAN_THANH'}">Chưa hoàn thành</option>
                         <option value="CHO_XAC_NHAN" th:selected="${trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
                         <option value="DA_XAC_NHAN" th:selected="${trangThai == 'DA_XAC_NHAN'}">Đã xác nhận</option>
                         <option value="DANG_GIAO" th:selected="${trangThai == 'DANG_GIAO'}">Đang giao</option>
@@ -219,88 +223,8 @@
     </div>
     <th:block layout:fragment="extra-script">
         <script>var tatCa = [[${tatCa}]];</script>
-        <script th:src="@{/js/admin-filters.js}"></script>
-        <script>
-            function toggleCheckAll(source) {
-                document.querySelectorAll('.order-checkbox').forEach(function (cb) {
-                    cb.checked = source.checked;
-                });
-                updateBatchBar();
-            }
-
-            function updateBatchBar() {
-                var checked = document.querySelectorAll('.order-checkbox:checked');
-                var bar = document.getElementById('batchBar');
-                var count = document.getElementById('batchCount');
-                if (checked.length > 0) {
-                    bar.style.display = 'block';
-                    count.textContent = 'Đã chọn ' + checked.length + ' đơn';
-                } else {
-                    bar.style.display = 'none';
-                }
-            }
-
-            function clearBatchSelection() {
-                document.querySelectorAll('.order-checkbox').forEach(function (cb) {
-                    cb.checked = false;
-                });
-                document.getElementById('checkAll').checked = false;
-                updateBatchBar();
-            }
-
-            function batchUpdateStatus() {
-                if (!confirm('Xác nhận cập nhật trạng thái hàng loạt?')) return;
-                var checked = document.querySelectorAll('.order-checkbox:checked');
-                var status = document.getElementById('batchStatus').value;
-                if (checked.length === 0) {
-                    DuaStore.toast.warning('Vui lòng chọn ít nhất một đơn hàng');
-                    return;
-                }
-                if (!status) {
-                    DuaStore.toast.warning('Vui lòng chọn trạng thái');
-                    return;
-                }
-
-                var ids = Array.from(checked).map(function (cb) {
-                    return parseInt(cb.value, 10);
-                });
-                var btn = document.getElementById('btnBatchUpdate');
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
-
-                var csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-                var csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
-                fetch('/admin/don-hang/api/batch-cap-nhat-trang-thai', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        [csrfHeader]: csrfToken
-                    },
-                    body: JSON.stringify({ ids: ids, status: status })
-                })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (data.success) {
-                        var msg = 'Đã cập nhật ' + data.updated + ' đơn hàng';
-                        if (data.errors && data.errors.length > 0) {
-                            msg += '. Lỗi: ' + data.errors.join('; ');
-                        }
-                        DuaStore.toast.success(msg);
-                        setTimeout(function () { location.reload(); }, 1500);
-                    } else {
-                        DuaStore.toast.error(data.message || 'Cập nhật thất bại');
-                    }
-                })
-                .catch(function () {
-                    DuaStore.toast.error('Lỗi kết nối');
-                })
-                .finally(function () {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Cập nhật';
-                });
-            }
-        </script>
+        <script th:src="@{/js/admin-filters.js(v=2)}"></script>
+        <script th:src="@{/js/admin-order-list.js(v=1)}"></script>
     </th:block>
 </body>
 </html>

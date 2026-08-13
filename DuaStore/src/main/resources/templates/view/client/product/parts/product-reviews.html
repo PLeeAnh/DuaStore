@@ -49,27 +49,7 @@
                     <input type="file" name="hinhAnh" id="hinhAnh" class="form-control" accept="image/*" multiple onchange="previewReviewImages(this)"/>
                     <div id="reviewImagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
                 </div>
-                <script>
-                function previewReviewImages(input) {
-                    var container = document.getElementById('reviewImagePreview');
-                    container.innerHTML = '';
-                    if (!input.files || !input.files.length) return;
-                    Array.from(input.files).forEach(function(file) {
-                        var reader = new FileReader();
-                        reader.onload = function(e) {
-                            var wrap = document.createElement('div');
-                            wrap.className = 'position-relative d-inline-block';
-                            var img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.className = 'rounded border';
-                            img.style.width = '80px'; img.style.height = '80px'; img.style.objectFit = 'cover';
-                            wrap.appendChild(img);
-                            container.appendChild(wrap);
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                }
-                </script>
+<!-- previewReviewImages moved to client-product-detail.js -->
                 <button type="submit" class="btn btn-danger fw-semibold">Gửi đánh giá</button>
             </form>
         </div>
@@ -100,109 +80,43 @@
                 </div>
             </div>
         </div>
-        <div th:if="${reviewTotalPages > 1}" class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;">
+        <div class="bg-white p-4 rounded-3 shadow-sm border mt-3" style="border-color:#f0f0f0;">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <small class="text-muted fw-medium" style="font-size:.85rem">
-                Trang <strong th:text="${reviewCurrentPage + 1}">1</strong> / <strong th:text="${reviewTotalPages}">5</strong> · <strong th:text="${reviewTotalItems}">25</strong> đánh giá
-            </small>
-            <nav>
-                <div class="d-flex align-items-center gap-1">
-                    <a th:data-page="${reviewCurrentPage - 1}" href="javascript:void(0)"
-                       class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage == 0} ? 'disabled'"
-                       th:tabindex="${reviewCurrentPage == 0} ? -1">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </a>
-                    <a th:each="i : ${#numbers.sequence(0, reviewTotalPages - 1)}"
-                       th:data-page="${i}" href="javascript:void(0)"
-                       class="adm-pagination-btn" th:classappend="${i == reviewCurrentPage} ? 'active'"
-                       th:text="${i + 1}">1</a>
-                    <a th:data-page="${reviewCurrentPage + 1}" href="javascript:void(0)"
-                       class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage >= reviewTotalPages - 1} ? 'disabled'"
-                       th:tabindex="${reviewCurrentPage >= reviewTotalPages - 1} ? -1">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </a>
-                </div>
-            </nav>
+                <small class="text-muted fw-medium" style="font-size:.85rem;">
+                    Hiển thị
+                    <strong th:text="${reviewTotalItems > 0 ? reviewCurrentPage * reviewSize + 1 : 0}">0</strong>-
+                    <strong th:text="${reviewTotalItems > 0 ? (reviewCurrentPage + 1) * reviewSize < reviewTotalItems ? (reviewCurrentPage + 1) * reviewSize : reviewTotalItems : 0}">0</strong>
+                    trong tổng số <strong th:text="${reviewTotalItems}">0</strong> <span>đánh giá</span>
+                </small>
+            </div>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <select id="reviewSizeSelect" onchange="reviewChangeSize(this.value)"
+                        style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
+                    <option value="5" th:selected="${reviewSize == 5}">Hiển thị 5</option>
+                    <option value="10" th:selected="${reviewSize == 10}">Hiển thị 10</option>
+                    <option value="20" th:selected="${reviewSize == 20}">Hiển thị 20</option>
+                    <option value="50" th:selected="${reviewSize == 50}">Hiển thị 50</option>
+                </select>
+                <nav>
+                    <div class="d-flex align-items-center gap-1">
+                        <a th:data-page="${reviewCurrentPage - 1}" href="javascript:void(0)"
+                           class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage == 0} ? 'disabled'"
+                           th:tabindex="${reviewCurrentPage == 0} ? -1">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </a>
+                        <a th:each="i : ${#numbers.sequence(0, reviewTotalPages - 1)}"
+                           th:data-page="${i}" href="javascript:void(0)"
+                           class="adm-pagination-btn" th:classappend="${i == reviewCurrentPage} ? 'active'"
+                           th:text="${i + 1}">1</a>
+                        <a th:data-page="${reviewCurrentPage + 1}" href="javascript:void(0)"
+                           class="adm-pagination-nav-btn" th:classappend="${reviewCurrentPage >= reviewTotalPages - 1} ? 'disabled'"
+                           th:tabindex="${reviewCurrentPage >= reviewTotalPages - 1} ? -1">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+                </nav>
+            </div>
         </div>
     </div>
-    <script>
-    (function() {
-        var stars = document.querySelectorAll('#starRatingInput .star');
-        var input = document.getElementById('danhGiaInput');
-        var form = document.getElementById('reviewForm');
-        if (!stars.length || !input || !form) return;
-
-        var selected = 0;
-        stars.forEach(function(s) {
-            s.addEventListener('click', function() {
-                selected = parseInt(this.dataset.value);
-                input.value = selected;
-                stars.forEach(function(x) {
-                    x.textContent = parseInt(x.dataset.value) <= selected ? '★' : '☆';
-                    x.classList.toggle('active', parseInt(x.dataset.value) <= selected);
-                });
-            });
-            s.addEventListener('mouseenter', function() {
-                var val = parseInt(this.dataset.value);
-                stars.forEach(function(x) {
-                    x.textContent = parseInt(x.dataset.value) <= val ? '★' : '☆';
-                });
-            });
-            s.addEventListener('mouseleave', function() {
-                stars.forEach(function(x) {
-                    x.textContent = parseInt(x.dataset.value) <= selected ? '★' : '☆';
-                });
-            });
-        });
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!selected) {
-                if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
-                    DuaStore.toast.error('Vui lòng chọn số sao');
-                }
-                return;
-            }
-            var fd = new FormData(form);
-            var btn = form.querySelector('button[type="submit"]');
-            btn.disabled = true;
-            btn.textContent = 'Đang gửi...';
-            fetch(form.action, {
-                method: 'POST',
-                body: fd,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-                .then(function(r) { return r.json(); })
-                .then(function(res) {
-                    if (res.success) {
-                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
-                            DuaStore.toast.success(res.message || 'Gửi đánh giá thành công!');
-                        }
-                        form.reset();
-                        selected = 0;
-                        stars.forEach(function(x) { x.textContent = '☆'; x.classList.remove('active'); });
-                        input.value = '';
-                        form.style.display = 'none';
-                        var msg = document.createElement('div');
-                        msg.className = 'alert alert-info mb-4';
-                        msg.textContent = 'Bạn đã đánh giá sản phẩm này.';
-                        form.parentNode.insertBefore(msg, form.nextSibling);
-                    } else {
-                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
-                            DuaStore.toast.error(res.message || 'Gửi đánh giá thất bại. Vui lòng thử lại.');
-                        }
-                    }
-                })
-                .catch(function() {
-                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
-                        DuaStore.toast.error('Lỗi kết nối. Vui lòng thử lại.');
-                    }
-                })
-                .finally(function() {
-                    btn.disabled = false;
-                    btn.textContent = 'Gửi đánh giá';
-                });
-        });
-    })();
-    </script>
+<!-- Star rating + review form moved to client-product-detail.js -->
 </div>

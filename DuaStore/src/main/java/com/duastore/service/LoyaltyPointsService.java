@@ -79,6 +79,11 @@ public class LoyaltyPointsService {
 
     @Transactional
     public int redeemPoints(Integer userId, int points, String note) {
+        return redeemPoints(userId, points, null, note);
+    }
+
+    @Transactional
+    public int redeemPoints(Integer userId, int points, Integer orderId, String note) {
         int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
         if (points > currentBalance) {
             throw new IllegalArgumentException("Không đủ điểm. Hiện có: " + currentBalance + ", cần: " + points);
@@ -88,8 +93,31 @@ public class LoyaltyPointsService {
         tx.setPoints(-points);
         tx.setBalance(currentBalance - points);
         tx.setType("REDEEMED");
+        tx.setReferenceId(orderId);
         tx.setNote(note);
         return loyaltyTransactionRepository.save(tx).getBalance();
+    }
+
+    /**
+     * Hoan lai diem da doi cho 1 don hang (dung khi huy don). Vo hai neu don
+     * khong redeem diem nao (khong tim thay giao dich REDEEMED tuong ung).
+     */
+    @Transactional
+    public void refundRedeemedPointsForOrder(Integer userId, Integer orderId) {
+        loyaltyTransactionRepository.findFirstByUserIdAndReferenceIdAndType(userId, orderId, "REDEEMED")
+                .ifPresent(redeemed -> {
+                    int points = -redeemed.getPoints();
+                    if (points <= 0) return;
+                    int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
+                    LoyaltyTransaction refund = new LoyaltyTransaction();
+                    refund.setUserId(userId);
+                    refund.setPoints(points);
+                    refund.setBalance(currentBalance + points);
+                    refund.setType("ADJUSTED");
+                    refund.setReferenceId(orderId);
+                    refund.setNote("Hoàn điểm do hủy đơn #" + orderId);
+                    loyaltyTransactionRepository.save(refund);
+                });
     }
 
     @Transactional

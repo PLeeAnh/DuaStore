@@ -21,7 +21,12 @@ public class RateLimitingFilter extends HttpFilter {
             "/api/auth/send-code",
             "/api/auth/verify-code",
             "/quen-mat-khau",
-            "/dat-lai-mat-khau"
+            "/dat-lai-mat-khau",
+            "/tai-khoan/tai-khoan-lien-ket"
+    );
+
+    private static final Set<String> PROTECTED_PREFIXES = Set.of(
+            "/tai-khoan/chuyen-doi/"
     );
 
     private final ConcurrentHashMap<String, Window> store = new ConcurrentHashMap<>();
@@ -35,7 +40,9 @@ public class RateLimitingFilter extends HttpFilter {
         }
 
         String path = req.getRequestURI();
-        if (!PROTECTED_PATHS.contains(path)) {
+        boolean protectedPath = PROTECTED_PATHS.contains(path)
+                || PROTECTED_PREFIXES.stream().anyMatch(path::startsWith);
+        if (!protectedPath) {
             chain.doFilter(req, res);
             return;
         }
@@ -60,10 +67,9 @@ public class RateLimitingFilter extends HttpFilter {
     }
 
     private String ip(HttpServletRequest req) {
-        String xf = req.getHeader("X-Forwarded-For");
-        if (xf != null && !xf.isBlank()) return xf.split(",")[0].trim();
-        String xri = req.getHeader("X-Real-IP");
-        if (xri != null && !xri.isBlank()) return xri.trim();
+        // Khong tin X-Forwarded-For/X-Real-IP: day la header client tu gui duoc,
+        // ke tan cong co the doi gia tri moi lan request de "reset" bucket va
+        // vo hieu hoa gioi han brute-force. Chi dung dia chi TCP thuc te.
         return req.getRemoteAddr();
     }
 

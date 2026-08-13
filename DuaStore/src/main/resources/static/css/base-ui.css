@@ -75,6 +75,38 @@ input[type=number] {
     margin-left: 4px;
 }
 
+/* ── Filter button (base style — dùng cho cả mobile toggle lẫn drawer) ── */
+.btn-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border: 1px solid var(--ds-border);
+    color: var(--ds-gray-600);
+    background: var(--ds-white);
+    font-size: .82rem;
+    font-weight: 500;
+    padding: .45rem 1rem;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+    white-space: nowrap;
+}
+.btn-filter:hover {
+    border-color: var(--ds-gray-900);
+    color: var(--ds-gray-900);
+    background: var(--ds-gray-50);
+}
+.btn-filter:focus {
+    border-color: var(--ds-gray-900);
+    color: var(--ds-gray-900);
+    background: var(--ds-gray-100);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+}
+.btn-filter i {
+    font-size: .9rem;
+    opacity: .6;
+}
+
 /* ── Clear filters button ── */
 .btn-filter-clear {
     color: #2563EB !important;

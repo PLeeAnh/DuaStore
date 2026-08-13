@@ -73,11 +73,15 @@ document.addEventListener('DOMContentLoaded', function () {
     var qEl = document.getElementById('searchQ');
     var ttEl = document.getElementById('filterTrangThai');
     var tttEl = document.getElementById('filterTrangThaiTT');
-    if (!qEl && !ttEl && !tttEl) return;
+    var fdEl = document.getElementById('filterFromDate');
+    var tdEl = document.getElementById('filterToDate');
+    if (!qEl && !ttEl && !tttEl && !fdEl && !tdEl) return;
     function doFilter() {
         var q = qEl ? qEl.value : '';
         var trangThai = ttEl ? ttEl.value : '';
         var trangThaiTT = tttEl ? tttEl.value : '';
+        var fromDate = fdEl ? fdEl.value : '';
+        var toDate = tdEl ? tdEl.value : '';
         var params = new URLSearchParams();
         if (q)
             params.set('q', q);
@@ -85,11 +89,17 @@ document.addEventListener('DOMContentLoaded', function () {
             params.set('trangThai', trangThai);
         if (trangThaiTT)
             params.set('trangThaiTT', trangThaiTT);
+        if (fromDate)
+            params.set('fromDate', fromDate);
+        if (toDate)
+            params.set('toDate', toDate);
         params.set('tatCa', tatCa);
         window.location.href = '/admin/don-hang?' + params.toString();
     }
     if (ttEl) ttEl.addEventListener('change', doFilter);
     if (tttEl) tttEl.addEventListener('change', doFilter);
+    if (fdEl) fdEl.addEventListener('change', doFilter);
+    if (tdEl) tdEl.addEventListener('change', doFilter);
     if (qEl) {
         var searchTimer;
         qEl.addEventListener('input', function () {

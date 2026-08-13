@@ -40,15 +40,16 @@ public class VerificationCodeController {
         }
 
         String code = codeService.generate(email);
-        log.info("OTP sent to {}", email);
 
-        try {
-            emailService.sendOtpEmail(email, code, "REGISTER");
-            return ResponseEntity.ok(Map.of("success", true));
-        } catch (Exception e) {
-            log.error("Failed to send email to {}", email, e);
-            return ResponseEntity.ok(Map.of("success", false, "error", "Không thể gửi email. Vui lòng thử lại sau."));
+        boolean sent = emailService.sendOtpEmail(email, code, "REGISTER");
+        if (!sent) {
+            log.warn("Không gửi được email OTP tới {}", email);
+            codeService.delete(email);
+            return ResponseEntity.ok(Map.of("success", false, "error",
+                    "Không gửi được email mã xác thực. Vui lòng thử lại sau."));
         }
+        log.info("OTP sent to {}", email);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @PostMapping("/verify-code")

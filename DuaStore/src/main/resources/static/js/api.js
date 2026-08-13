@@ -77,11 +77,35 @@ window.DuaStore.api = window.DuaStore.api || {};
         return fetch(url, opts).then(handleResponse).catch(networkError);
     }
 
+    window.DuaStore.api.getCsrfHeaders = function () {
+        initCsrf();
+        var h = {};
+        if (csrfToken && csrfHeader) {
+            h[csrfHeader] = csrfToken;
+        }
+        return h;
+    };
+
     window.DuaStore.api.get = function (url) {
         return request('GET', url);
     };
     window.DuaStore.api.post = function (url, data) {
         return request('POST', url, data);
+    };
+    window.DuaStore.api.postForm = function (url, formData) {
+        var opts = {
+            method: 'POST',
+            headers: {}
+        };
+        var csrf = getCsrfHeaders();
+        for (var k in csrf) {
+            if (csrf.hasOwnProperty(k))
+                opts.headers[k] = csrf[k];
+        }
+        if (formData !== undefined && formData !== null) {
+            opts.body = formData;
+        }
+        return fetch(url, opts).then(handleResponse).catch(networkError);
     };
     window.DuaStore.api.put = function (url, data) {
         return request('PUT', url, data);

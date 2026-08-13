@@ -17,8 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -65,7 +64,7 @@ class VerificationCodeControllerTest {
 
     @Test
     void sendCode_validEmail_returns200() throws Exception {
-        doNothing().when(emailService).sendOtpEmail(anyString(), anyString(), anyString());
+        when(emailService.sendOtpEmail(anyString(), anyString(), anyString())).thenReturn(true);
 
         String body = "{\"email\":\"test@example.com\"}";
         mockMvc.perform(post("/api/auth/send-code")
@@ -76,8 +75,8 @@ class VerificationCodeControllerTest {
     }
 
     @Test
-    void sendCode_emailServiceThrows_returns200WithError() throws Exception {
-        doThrow(new RuntimeException("SMTP error")).when(emailService).sendOtpEmail(anyString(), anyString(), anyString());
+    void sendCode_emailServiceFails_returns200WithError() throws Exception {
+        when(emailService.sendOtpEmail(anyString(), anyString(), anyString())).thenReturn(false);
 
         String body = "{\"email\":\"test@example.com\"}";
         mockMvc.perform(post("/api/auth/send-code")
@@ -85,7 +84,7 @@ class VerificationCodeControllerTest {
                         .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.error").value("Không thể gửi email. Vui lòng thử lại sau."));
+                .andExpect(jsonPath("$.error").value("Không gửi được email mã xác thực. Vui lòng thử lại sau."));
     }
 
     @Test
