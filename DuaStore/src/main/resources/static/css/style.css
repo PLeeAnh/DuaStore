@@ -1580,6 +1580,32 @@ a {
     font-size: .7rem;
 }
 
+/* ── Flash stock badge (số lượng còn lại trên ảnh, góc phải) ── */
+.ds-badge-flash-stock {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: linear-gradient(135deg, #f97316, #ef4444);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, .35);
+    pointer-events: none;
+}
+.ds-badge-flash-stock b { color: #fff; }
+.ds-badge-flash-stock-hot {
+    background: linear-gradient(135deg, #64748b, #475569);
+    box-shadow: 0 2px 8px rgba(71, 85, 105, .35);
+}
+.ds-badge-flash-stock i { font-size: .7rem; }
+
 
 /* ── Card actions (variants) — thu gọn = card ngắn, hover giãn ra ── */
 .ds-card-actions {

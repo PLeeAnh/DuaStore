@@ -1,13 +1,12 @@
 package com.duastore.service.admin;
 
-import com.duastore.model.FlashSale;
 import com.duastore.model.Order;
 import com.duastore.model.OrderAssignment;
 import com.duastore.model.OrderEventType;
 import com.duastore.model.OrderItem;
 import com.duastore.model.ProductVariant;
 import com.duastore.model.User;
-import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.FlashSaleItemRepository;
 import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
@@ -55,7 +54,7 @@ public class AdminOrderService {
     private final OrderStatusLogService orderStatusLogService;
     private final OrderNoteService orderNoteService;
     private final LoyaltyPointsService loyaltyPointsService;
-    private final FlashSaleRepository flashSaleRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final PricingService pricingService;
     private final UserRepository userRepository;
 
@@ -67,7 +66,7 @@ public class AdminOrderService {
             OrderStatusLogService orderStatusLogService,
             OrderNoteService orderNoteService,
             LoyaltyPointsService loyaltyPointsService,
-            FlashSaleRepository flashSaleRepository,
+            FlashSaleItemRepository flashSaleItemRepository,
             PricingService pricingService,
             UserRepository userRepository) {
         this.orderRepository = orderRepository;
@@ -78,7 +77,7 @@ public class AdminOrderService {
         this.orderStatusLogService = orderStatusLogService;
         this.orderNoteService = orderNoteService;
         this.loyaltyPointsService = loyaltyPointsService;
-        this.flashSaleRepository = flashSaleRepository;
+        this.flashSaleItemRepository = flashSaleItemRepository;
         this.pricingService = pricingService;
         this.userRepository = userRepository;
     }
@@ -268,17 +267,16 @@ public class AdminOrderService {
     private void restoreFlashSaleQuota(Integer orderId) {
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         for (OrderItem item : items) {
-            if (!"FLASH_SALE".equals(item.getLoaiGia())) {
+            if (!"FLASH_SALE".equals(item.getLoaiGia()) || item.getVariantId() == null) {
                 continue;
             }
-            flashSaleRepository.findByProductIdInAndIsActiveTrue(List.of(item.getProductId()))
-                    .stream().findFirst()
-                    .ifPresent(fs -> {
-                        FlashSale lockedFs = flashSaleRepository.findByIdWithLock(fs.getId()).orElse(null);
-                        if (lockedFs != null) {
-                            pricingService.decrementSoldQuantity(lockedFs, item.getSoLuong());
-                            flashSaleRepository.save(lockedFs);
-                        }
+            flashSaleItemRepository.findByVariantId(item.getVariantId())
+                    .stream()
+                    .findFirst()
+                    .flatMap(found -> flashSaleItemRepository.findByIdWithLock(found.getId()))
+                    .ifPresent(lockedItem -> {
+                        pricingService.decrementSoldQuantity(lockedItem, item.getSoLuong());
+                        flashSaleItemRepository.save(lockedItem);
                     });
         }
     }

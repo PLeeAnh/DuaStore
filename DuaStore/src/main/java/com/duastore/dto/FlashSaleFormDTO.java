@@ -1,14 +1,16 @@
 package com.duastore.dto;
 
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -16,12 +18,10 @@ public class FlashSaleFormDTO {
 
     private Integer id;
 
-    @NotNull(message = "Sản phẩm không được để trống")
-    private Integer productId;
+    @NotBlank(message = "Tên chương trình không được để trống")
+    private String tenChuongTrinh;
 
-    @NotNull(message = "Giá trị giảm không được để trống")
-    @DecimalMin(value = "0.01", message = "Giá trị giảm phải lớn hơn 0")
-    private BigDecimal giaTriGiam;
+    private String moTa;
 
     @NotNull(message = "Ngày bắt đầu không được để trống")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
@@ -33,12 +33,13 @@ public class FlashSaleFormDTO {
 
     private Boolean isActive = true;
 
-    private Integer soLuongDaBan;
-
-    private Integer soLuongToiDa;
+    @Min(value = 0, message = "Ưu tiên không hợp lệ")
+    private Integer priority = 0;
 
     @AssertTrue(message = "Ngày bắt đầu phải trước ngày kết thúc")
     public boolean isDateRangeValid() {
         return ngayBatDau == null || ngayKetThuc == null || ngayBatDau.isBefore(ngayKetThuc);
     }
+
+    private List<FlashSaleItemFormDTO> items = new ArrayList<>();
 }

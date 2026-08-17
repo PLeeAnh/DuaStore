@@ -5,6 +5,7 @@ import com.duastore.dto.ReviewRequestDTO;
 import com.duastore.dto.VariantApiDTO;
 import com.duastore.model.Category;
 import com.duastore.model.FlashSale;
+import com.duastore.model.FlashSaleItem;
 import com.duastore.model.Product;
 import com.duastore.model.ProductImage;
 import com.duastore.model.ProductVariant;
@@ -12,6 +13,7 @@ import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.service.PricingService;
+import com.duastore.service.PricingService.FlashSaleOffer;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
@@ -183,14 +185,14 @@ public class ProductController {
 
         // Build variants map + flash sale map
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
-        Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
+        Map<Integer, FlashSaleOffer> flashSaleMap = new HashMap<>();
         List<Product> products = productPage.getContent();
         if (!products.isEmpty()) {
             List<Integer> ids = products.stream().map(Product::getId).collect(Collectors.toList());
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                     .collect(Collectors.groupingBy(ProductVariant::getProductId));
-            flashSaleMap.putAll(pricingService.loadActiveFlashSaleMap(ids));
+            flashSaleMap.putAll(pricingService.loadActiveFlashSaleOffers(ids));
         }
         model.addAttribute("variantsMap", variantsMap);
         model.addAttribute("flashSaleMap", flashSaleMap);
@@ -260,6 +262,60 @@ public class ProductController {
         }
         model.addAttribute("promoPriceMap", promoPriceMap);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
+
+        // Best discount % per product (variant discount + promotion + flash sale)
+        Map<Integer, Integer> bestDiscountMap = new HashMap<>();
+        for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
+            Integer productId = entry.getKey();
+            List<ProductVariant> pvList = entry.getValue();
+            if (pvList.isEmpty()) continue;
+            ProductVariant first = pvList.get(0);
+            BigDecimal giaGoc = first.getGiaGoc();
+            if (giaGoc == null) giaGoc = BigDecimal.ZERO;
+            BigDecimal bestPrice = giaGoc;
+            int bestPct = 0;
+            if (first.getGiaKhuyenMai() != null && first.getGiaKhuyenMai().compareTo(bestPrice) < 0) {
+                bestPrice = first.getGiaKhuyenMai();
+                bestPct = giaGoc.compareTo(BigDecimal.ZERO) > 0
+                        ? giaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
+                                .divide(giaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                        : 0;
+            }
+            if (bestPercentagePromo != null) {
+                BigDecimal promoPrice = bestPrice
+                        .multiply(BigDecimal.valueOf(100).subtract(bestPercentagePromo.getGiaTriGiam()))
+                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                if (bestPercentagePromo.getGiamToiDa() != null) {
+                    BigDecimal actualDiscount = bestPrice.multiply(bestPercentagePromo.getGiaTriGiam())
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                    if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
+                        promoPrice = bestPrice.subtract(bestPercentagePromo.getGiamToiDa());
+                    }
+                }
+                if (promoPrice.compareTo(bestPrice) < 0) {
+                    bestPrice = promoPrice;
+                    bestPct = giaGoc.compareTo(BigDecimal.ZERO) > 0
+                            ? giaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
+                                    .divide(giaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                            : 0;
+                }
+            }
+            FlashSaleOffer offer = flashSaleMap.get(productId);
+            if (offer != null && offer.bestItem() != null) {
+                BigDecimal fsPrice = offer.bestItem().getGiaSale();
+                if (fsPrice.compareTo(bestPrice) < 0) {
+                    BigDecimal fsGiaGoc = offer.bestItem().getGiaGoc() != null
+                            ? offer.bestItem().getGiaGoc() : giaGoc;
+                    int pct = fsGiaGoc.compareTo(BigDecimal.ZERO) > 0
+                            ? fsGiaGoc.subtract(fsPrice).multiply(BigDecimal.valueOf(100))
+                                    .divide(fsGiaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                            : 0;
+                    bestPct = Math.max(bestPct, pct);
+                }
+            }
+            bestDiscountMap.put(productId, bestPct);
+        }
+        model.addAttribute("bestDiscountMap", bestDiscountMap);
 
         // Group variants by cap type for card display
         Map<Integer, Map<String, List<ProductVariant>>> groupedVariantsMap = new HashMap<>();
@@ -331,11 +387,20 @@ public class ProductController {
                     "Xem sản phẩm: " + product.getTenSanPham(), null);
         }
 
-        // Flash sale for this product
-        FlashSale flashSale = null;
-        Map<Integer, FlashSale> fsMap = pricingService.loadActiveFlashSaleMap(List.of(id));
-        if (fsMap != null) flashSale = fsMap.get(id);
-        model.addAttribute("flashSale", flashSale);
+        // Flash sale for this product (variant-level)
+        Map<Integer, FlashSaleItem> variantFlashMap = new HashMap<>();
+        for (ProductVariant v : variants) {
+            FlashSaleItem item = pricingService.findBestActiveItemForVariant(v.getId());
+            if (item != null) {
+                variantFlashMap.put(v.getId(), item);
+            }
+        }
+        FlashSale flashEvent = variantFlashMap.values().stream()
+                .map(FlashSaleItem::getFlashSale)
+                .findFirst()
+                .orElse(null);
+        model.addAttribute("flashEvent", flashEvent);
+        model.addAttribute("variantFlashMap", variantFlashMap);
 
         // Determine default variant: first with isDefault=true, else first in list
         ProductVariant defaultVariant = variants.stream()
@@ -444,15 +509,11 @@ public class ProductController {
             }
 
             // Apply flash sale if available (overrides promotion)
-            if (flashSale != null && pricingService.isFlashSaleUsable(flashSale)) {
-                BigDecimal giaGoc = pv.getGiaGoc();
-                if (giaGoc != null) {
-                    BigDecimal fsPrice = giaGoc.multiply(
-                            BigDecimal.ONE.subtract(flashSale.getGiaTriGiam().divide(BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP))
-                    ).setScale(0, java.math.RoundingMode.HALF_UP);
-                    if (fsPrice.compareTo(bestPrice) < 0) {
-                        bestPrice = fsPrice;
-                    }
+            FlashSaleItem fsItem = variantFlashMap.get(pv.getId());
+            if (fsItem != null && pricingService.isFlashSaleItemUsable(fsItem)) {
+                BigDecimal fsPrice = fsItem.getGiaSale();
+                if (fsPrice != null && fsPrice.compareTo(bestPrice) < 0) {
+                    bestPrice = fsPrice;
                 }
             }
 

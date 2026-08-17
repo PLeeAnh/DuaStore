@@ -45,7 +45,7 @@
                         </div>
                         <div th:if="${#fields.hasErrors('maCode')}" th:errors="*{maCode}" class="text-danger small"></div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label">Loại giảm</label>
                         <select th:field="*{loaiGiam}" class="form-select">
                             <option value="PHAN_TRAM">%</option>
@@ -61,90 +61,36 @@
                         <label class="form-label">Đơn tối thiểu</label>
                         <input type="number" step="1000" th:field="*{donHangToiThieu}" class="form-control" />
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Giảm tối đa</label>
-                        <input type="number" step="1000" th:field="*{giamToiDa}" class="form-control" />
-                    </div>
 
-                    <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-tags me-1"></i>Phân loại</h6>
-                    <div class="col-md-3">
-                        <label class="form-label">Loại voucher</label>
-                        <select th:field="*{voucherType}" class="form-select">
-                            <option value="VOUCHER">Voucher</option>
-                            <option value="FREESHIP">Freeship</option>
-                            <option value="MEMBER">Thành viên</option>
-                            <option value="BIRTHDAY">Sinh nhật</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Ưu tiên</label>
-                        <input type="number" th:field="*{priority}" class="form-control" />
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="form-check form-switch mt-2">
-                            <input class="form-check-input" type="checkbox" th:field="*{stackable}" id="stackable" />
-                            <label class="form-check-label" for="stackable">Có thể gộp</label>
-                        </div>
-                    </div>
-
-                    <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-wallet2 me-1"></i>Giới hạn & Ngân sách</h6>
-                    <div class="col-md-3">
-                        <label class="form-label">Ngân sách</label>
-                        <input type="number" step="1000" th:field="*{budget}" class="form-control" />
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Đã dùng ngân sách</label>
-                        <input type="number" step="1000" th:field="*{usedBudget}" class="form-control" readonly />
-                    </div>
-                    <div class="col-md-3">
+                    <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-wallet2 me-1"></i>Giới hạn sử dụng</h6>
+                    <div class="col-md-6">
                         <label class="form-label">Tổng lượt tối đa</label>
                         <input type="number" th:field="*{maxClaims}" class="form-control" />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         <label class="form-label">Lượt/người</label>
                         <input type="number" th:field="*{maxClaimsPerUser}" class="form-control" />
                     </div>
 
-                    <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-crosshair me-1"></i>Nhắm mục tiêu</h6>
-                    <div class="col-md-3">
-                        <label class="form-label">Loại mục tiêu</label>
-                        <select th:field="*{targetType}" class="form-select" id="targetTypeSelect">
-                            <option value="">Tất cả</option>
-                            <option value="CATEGORY">Danh mục</option>
-                            <option value="PRODUCT">Sản phẩm</option>
-                        </select>
-                    </div>
-                    <div class="col-md-9" id="targetSelectorContainer">
-                        <label class="form-label">Mục tiêu</label>
-                        <select id="targetSelector" class="form-select" multiple style="min-height:120px"></select>
-                        <input type="hidden" th:field="*{targetIds}" id="targetIds" />
-                        <small class="text-muted">Chọn các mục tiêu áp dụng cho khuyến mãi</small>
-                    </div>
-
                     <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-clock me-1"></i>Thời gian & Trạng thái</h6>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
                         <input type="datetime-local" name="tuNgay"
                                th:value="${promotion.tuNgay != null} ? ${#temporals.format(promotion.tuNgay, 'yyyy-MM-dd''T''HH:mm')} : ''"
                                class="form-control" required />
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
                         <input type="datetime-local" name="denNgay"
                                th:value="${promotion.denNgay != null} ? ${#temporals.format(promotion.denNgay, 'yyyy-MM-dd''T''HH:mm')} : ''"
                                class="form-control" required />
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-4">
                         <label class="form-label">Trạng thái</label>
                         <select th:field="*{isActive}" class="form-select">
                             <option value="true">Hoạt động</option>
                             <option value="false">Tạm dừng</option>
                         </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Lượt lưu</label>
-                        <input type="number" class="form-control" th:value="${promotion.savedCount}" readonly />
                     </div>
 
                     <div class="col-12">
@@ -155,15 +101,6 @@
         </div>
     </div>
 
-    <th:block layout:fragment="extra-script">
-        <script th:inline="javascript">
-            window.__promoData = {
-                categories: [[${categories}]],
-                products: [[${products}]],
-                targetIds: '[[${promotion.targetIds}]]'
-            };
-        </script>
-        <script th:src="@{/js/admin-promotion.js(v=1)}"></script>
-    </th:block>
+<th:block layout:fragment="extra-script"></th:block>
 </body>
 </html>

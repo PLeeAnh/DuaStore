@@ -19,6 +19,7 @@ import com.duastore.repository.WishlistRepository;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
 import com.duastore.service.PricingService;
+import com.duastore.service.PricingService.FlashSaleOffer;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
@@ -255,7 +256,7 @@ public class HomeController {
         allSectionProducts.addAll(underPriceProducts);
         allSectionProducts.addAll(browseProducts);
 
-        // ── Các section động do admin thêm trong "Thiết kế trang chủ" ──
+// ── Các section động do admin thêm trong "Thiết kế trang chủ" ──
         List<Map<String, Object>> hpSections = new ArrayList<>();
         List<Product> hpDynamicProducts = new ArrayList<>();
         Map<String, String> hpSettingsMap = siteSettingService.getGroup("appearance");
@@ -339,11 +340,11 @@ public class HomeController {
             allSectionProducts.addAll(hpDynamicProducts);
         }
 
-        Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
+        Map<Integer, FlashSaleOffer> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
         if (!allSectionProducts.isEmpty()) {
             List<Integer> ids = allSectionProducts.stream().map(Product::getId).distinct().collect(Collectors.toList());
-            flashSaleMap = pricingService.loadActiveFlashSaleMap(ids);
+            flashSaleMap = pricingService.loadActiveFlashSaleOffers(ids);
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                     .collect(Collectors.groupingBy(ProductVariant::getProductId));
@@ -437,14 +438,18 @@ public class HomeController {
             }
 
             // 3) Flash sale discount (overrides everything)
-            FlashSale fs = flashSaleMap.get(productId);
-            if (fs != null && pricingService.isFlashSaleUsable(fs)) {
-                BigDecimal fsPrice = giaGoc.multiply(
-                        BigDecimal.ONE.subtract(fs.getGiaTriGiam().divide(BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP))
-                ).setScale(0, java.math.RoundingMode.HALF_UP);
+            FlashSaleOffer offer = flashSaleMap.get(productId);
+            if (offer != null && offer.bestItem() != null) {
+                BigDecimal fsPrice = offer.bestItem().getGiaSale();
                 if (fsPrice.compareTo(bestPrice) < 0) {
+                    BigDecimal fsGiaGoc = offer.bestItem().getGiaGoc() != null
+                            ? offer.bestItem().getGiaGoc() : giaGoc;
+                    int pct = fsGiaGoc.compareTo(BigDecimal.ZERO) > 0
+                            ? fsGiaGoc.subtract(fsPrice).multiply(BigDecimal.valueOf(100))
+                                    .divide(fsGiaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                            : 0;
                     bestPrice = fsPrice;
-                    bestPct = fs.getGiaTriGiam().intValue();
+                    bestPct = Math.max(bestPct, pct);
                 }
             }
 

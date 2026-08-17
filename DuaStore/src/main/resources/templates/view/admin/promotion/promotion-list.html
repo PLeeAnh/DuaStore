@@ -103,7 +103,7 @@
                         <th>Tên CT</th>
                         <th>Mã</th>
                         <th>Giá trị</th>
-                        <th>SL còn</th>
+                        <th>SL voucher còn</th>
                         <th>Đã dùng</th>
                         <th>Ngày BĐ</th>
                         <th>Ngày KT</th>
@@ -120,8 +120,12 @@
                             <button class="btn btn-sm btn-outline-secondary py-0 px-1 ms-1" style="font-size:.7rem"
                                     th:data-code="${p.maCode}" type="button" onclick="copyPromoCode(this)">Copy</button>
                         </td>
-                        <td th:text="${p.loaiGiam == 'PHAN_TRAM' ? p.giaTriGiam + '%' : #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></td>
-                        <td th:text="${p.soLanDung != null ? p.soLanDung - p.daDung : 'Không giới hạn'}"></td>
+                        <td>
+                            <th:block th:if="${p.loaiGiam == 'PHAN_TRAM'}" th:text="${p.giaTriGiam + '%'}"></th:block>
+                            <th:block th:if="${p.loaiGiam == 'SO_TIEN'}" th:text="${#numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></th:block>
+                            <th:block th:if="${p.loaiGiam == 'FREESHIP'}"><i class="bi bi-truck me-1"></i>Miễn phí vận chuyển</th:block>
+                        </td>
+                        <td th:text="${p.maxClaims != null ? (p.maxClaims - (p.savedCount != null ? p.savedCount : 0)) : 'Không giới hạn'}"></td>
                         <td th:text="${usageCounts.get(p.id) != null ? usageCounts.get(p.id) : 0}"></td>
                         <td th:text="${#temporals.format(p.tuNgay, 'dd/MM/yyyy HH:mm')}"></td>
                         <td th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy HH:mm')}"></td>

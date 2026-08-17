@@ -146,13 +146,14 @@ public class AdminPostService {
     }
 
     public void delete(Integer id) {
-        Post post = getPostById(id);
-        post.setTrangThai("AN");
-        postsRepository.save(post);
+        deletePermanent(getPostById(id));
     }
 
     public void deletePermanent(Integer id) {
-        Post post = getPostById(id);
+        deletePermanent(getPostById(id));
+    }
+
+    private void deletePermanent(Post post) {
         if (post.getHinhAnh() != null) {
             fileUploadService.delete(post.getHinhAnh(), "posts");
         }
