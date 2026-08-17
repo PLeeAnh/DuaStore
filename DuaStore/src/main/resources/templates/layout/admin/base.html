@@ -94,10 +94,16 @@
                 <span>Khách hàng</span>
             </a>
             <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
-               th:if="${userPermissions.contains('PROMOTION_READ') or userPermissions.contains('FLASH_SALE_READ')}"
-               th:classappend="${title == 'khuyen-mai' or title == 'flash-sale' ? ' active' : ''}">
+               th:if="${userPermissions.contains('PROMOTION_READ')}"
+               th:classappend="${title == 'khuyen-mai' ? ' active' : ''}">
                 <i class="bi bi-tag"></i>
                 <span>Khuyến mãi</span>
+            </a>
+            <a class="adm-nav-link" th:href="@{/admin/flash-sale}"
+               th:if="${userPermissions.contains('FLASH_SALE_READ')}"
+               th:classappend="${title == 'flash-sale' ? ' active' : ''}">
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span>Flash Sale</span>
             </a>
 
             <!-- Nội dung (collapsible) -->

@@ -131,11 +131,11 @@ public class CheckoutController {
 
         // Auto-apply best promotion
         List<Promotion> activePromotions = getActivePromotions();
-        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal, phiShip);
         BigDecimal tienGiam = BigDecimal.ZERO;
         String autoPromoCode = null;
         if (bestPromo != null) {
-            tienGiam = orderService.calculateDiscount(bestPromo, subtotal);
+            tienGiam = orderService.calculateDiscount(bestPromo, subtotal, phiShip);
             autoPromoCode = bestPromo.getMaCode();
             // Calculate per-item discounted prices
             for (CartItemDTO item : cartItems) {
@@ -352,11 +352,11 @@ public class CheckoutController {
         return promos;
     }
 
-    private BigDecimal calcAutoDiscount(BigDecimal subtotal) {
+    private BigDecimal calcAutoDiscount(BigDecimal subtotal, BigDecimal phiShip) {
         List<Promotion> activePromotions = getActivePromotions();
-        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal, phiShip);
         if (bestPromo != null) {
-            return orderService.calculateDiscount(bestPromo, subtotal);
+            return orderService.calculateDiscount(bestPromo, subtotal, phiShip);
         }
         return BigDecimal.ZERO;
     }
@@ -378,8 +378,8 @@ public class CheckoutController {
         BigDecimal subtotal = cartService.total(cartItems);
         BigDecimal phiShip = addresses.isEmpty()
                 ? new BigDecimal("10000")
-                : multiCarrierShippingService.calculateFeeForCarrier("GHN", addresses.get(0), subtotal);
-        BigDecimal tienGiam = calcAutoDiscount(subtotal);
+: multiCarrierShippingService.calculateFeeForCarrier("GHN", addresses.get(0), subtotal);
+        BigDecimal tienGiam = calcAutoDiscount(subtotal, phiShip);
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("addresses", addresses);
         model.addAttribute("subtotal", subtotal);
@@ -393,7 +393,7 @@ public class CheckoutController {
         model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
         model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
         List<Promotion> activePromotions = getActivePromotions();
-        Promotion bestPromo = findBestPromo(activePromotions, subtotal);
+        Promotion bestPromo = findBestPromo(activePromotions, subtotal, phiShip);
         model.addAttribute("bestPromo", bestPromo);
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
@@ -407,13 +407,14 @@ public class CheckoutController {
         model.addAttribute("carrierGHTKEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghtk_enabled", "1")));
     }
 
-    private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal) {
+    private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal, BigDecimal phiShip) {
         BigDecimal maxPct = new BigDecimal("100");
+        BigDecimal ship = phiShip != null ? phiShip : BigDecimal.ZERO;
         return promos.stream()
                 .filter(p -> p.getDonHangToiThieu() == null || subtotal.compareTo(p.getDonHangToiThieu()) >= 0)
                 .filter(p -> !"PHAN_TRAM".equals(p.getLoaiGiam()) || p.getGiaTriGiam().compareTo(maxPct) <= 0)
                 .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-                .max(Comparator.comparing(p -> orderService.calculateDiscount(p, subtotal)))
+                .max(Comparator.comparing(p -> orderService.calculateDiscount(p, subtotal, ship)))
                 .orElse(null);
     }
 

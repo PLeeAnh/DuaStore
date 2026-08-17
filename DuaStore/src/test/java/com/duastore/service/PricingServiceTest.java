@@ -1,6 +1,7 @@
 package com.duastore.service;
 
 import com.duastore.model.FlashSale;
+import com.duastore.model.FlashSaleItem;
 import com.duastore.model.ProductVariant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,27 @@ class PricingServiceTest {
 
     @Autowired
     private PricingService pricingService;
+
+    private FlashSaleItem activeItem(BigDecimal giaSale, int daBan, int toiDa) {
+        return activeItem(giaSale, daBan, toiDa,
+                LocalDateTime.now().minusDays(1), LocalDateTime.now().plusDays(1));
+    }
+
+    private FlashSaleItem activeItem(BigDecimal giaSale, int daBan, int toiDa,
+            LocalDateTime ngayBatDau, LocalDateTime ngayKetThuc) {
+        FlashSale fs = new FlashSale();
+        fs.setIsActive(true);
+        fs.setNgayBatDau(ngayBatDau);
+        fs.setNgayKetThuc(ngayKetThuc);
+
+        FlashSaleItem item = new FlashSaleItem();
+        fs.addItem(item);
+        item.setIsActive(true);
+        item.setGiaSale(giaSale);
+        item.setSoLuongDaBan(daBan);
+        item.setSoLuongToiDa(toiDa);
+        return item;
+    }
 
     @Test
     void resolvePrice_noFlashNoSale_returnsBasePrice() {
@@ -48,15 +70,9 @@ class PricingServiceTest {
         v.setGiaGoc(new BigDecimal("100000"));
         v.setGiaKhuyenMai(new BigDecimal("80000"));
 
-        FlashSale fs = new FlashSale();
-        fs.setIsActive(true);
-        fs.setGiaTriGiam(new BigDecimal("30")); // 30% off -> 70000
-        fs.setNgayBatDau(LocalDateTime.now().minusDays(1));
-        fs.setNgayKetThuc(LocalDateTime.now().plusDays(1));
-        fs.setSoLuongDaBan(0);
-        fs.setSoLuongToiDa(100);
+        FlashSaleItem item = activeItem(new BigDecimal("70000"), 0, 100);
 
-        PricingService.PriceResult r = pricingService.resolvePrice(v, fs);
+        PricingService.PriceResult r = pricingService.resolvePrice(v, item);
         assertThat(r.finalPrice()).isEqualByComparingTo("70000");
         assertThat(r.source()).isEqualTo(PricingService.PriceSource.FLASH_SALE);
     }
@@ -67,15 +83,9 @@ class PricingServiceTest {
         v.setGiaGoc(new BigDecimal("100000"));
         v.setGiaKhuyenMai(new BigDecimal("80000"));
 
-        FlashSale fs = new FlashSale();
-        fs.setIsActive(true);
-        fs.setGiaTriGiam(new BigDecimal("20")); // 20% off -> 80000 (equals variant sale)
-        fs.setNgayBatDau(LocalDateTime.now().minusDays(1));
-        fs.setNgayKetThuc(LocalDateTime.now().plusDays(1));
-        fs.setSoLuongDaBan(0);
-        fs.setSoLuongToiDa(100);
+        FlashSaleItem item = activeItem(new BigDecimal("80000"), 0, 100);
 
-        PricingService.PriceResult r = pricingService.resolvePrice(v, fs);
+        PricingService.PriceResult r = pricingService.resolvePrice(v, item);
         assertThat(r.finalPrice()).isEqualByComparingTo("80000");
         assertThat(r.source()).isEqualTo(PricingService.PriceSource.VARIANT_SALE);
     }
@@ -86,15 +96,9 @@ class PricingServiceTest {
         v.setGiaGoc(new BigDecimal("100000"));
         v.setGiaKhuyenMai(new BigDecimal("90000"));
 
-        FlashSale fs = new FlashSale();
-        fs.setIsActive(true);
-        fs.setGiaTriGiam(new BigDecimal("50")); // 50% off -> 50000
-        fs.setNgayBatDau(LocalDateTime.now().minusDays(1));
-        fs.setNgayKetThuc(LocalDateTime.now().plusDays(1));
-        fs.setSoLuongDaBan(100);
-        fs.setSoLuongToiDa(100); // hết suất
+        FlashSaleItem item = activeItem(new BigDecimal("50000"), 100, 100);
 
-        PricingService.PriceResult r = pricingService.resolvePrice(v, fs);
+        PricingService.PriceResult r = pricingService.resolvePrice(v, item);
         assertThat(r.finalPrice()).isEqualByComparingTo("90000");
         assertThat(r.source()).isEqualTo(PricingService.PriceSource.VARIANT_SALE);
     }
@@ -104,36 +108,31 @@ class PricingServiceTest {
         ProductVariant v = new ProductVariant();
         v.setGiaGoc(new BigDecimal("100000"));
 
-        FlashSale fs = new FlashSale();
-        fs.setIsActive(true);
-        fs.setGiaTriGiam(new BigDecimal("50"));
-        fs.setNgayBatDau(LocalDateTime.now().plusDays(1)); // chưa bắt đầu
-        fs.setNgayKetThuc(LocalDateTime.now().plusDays(2));
-        fs.setSoLuongDaBan(0);
-        fs.setSoLuongToiDa(100);
+        FlashSaleItem item = activeItem(new BigDecimal("50000"), 0, 100,
+                LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
 
-        PricingService.PriceResult r = pricingService.resolvePrice(v, fs);
+        PricingService.PriceResult r = pricingService.resolvePrice(v, item);
         assertThat(r.finalPrice()).isEqualByComparingTo("100000");
         assertThat(r.source()).isEqualTo(PricingService.PriceSource.BASE);
     }
 
     @Test
     void incrementSoldQuantity_exceeds_returnsFalse() {
-        FlashSale fs = new FlashSale();
-        fs.setSoLuongDaBan(95);
-        fs.setSoLuongToiDa(100);
+        FlashSaleItem item = new FlashSaleItem();
+        item.setSoLuongDaBan(95);
+        item.setSoLuongToiDa(100);
 
-        boolean ok = pricingService.incrementSoldQuantity(fs, 10);
+        boolean ok = pricingService.incrementSoldQuantity(item, 10);
         assertThat(ok).isFalse();
-        assertThat(fs.getSoLuongDaBan()).isEqualTo(95); // unchanged
+        assertThat(item.getSoLuongDaBan()).isEqualTo(95); // unchanged
     }
 
     @Test
     void decrementSoldQuantity_neverNegative() {
-        FlashSale fs = new FlashSale();
-        fs.setSoLuongDaBan(0);
+        FlashSaleItem item = new FlashSaleItem();
+        item.setSoLuongDaBan(0);
 
-        pricingService.decrementSoldQuantity(fs, 5);
-        assertThat(fs.getSoLuongDaBan()).isZero();
+        pricingService.decrementSoldQuantity(item, 5);
+        assertThat(item.getSoLuongDaBan()).isZero();
     }
 }

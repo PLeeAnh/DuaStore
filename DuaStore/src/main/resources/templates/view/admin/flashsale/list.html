@@ -20,7 +20,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <h4>Flash Sale</h4>
-                            <div class="adm-detail-meta">Quản lý các chương trình Flash Sale.</div>
+                            <div class="adm-detail-meta">Quản lý các đợt Flash Sale: thời gian ngắn, số lượng giới hạn theo từng biến thể.</div>
                         </div>
                         <a th:href="@{/admin/flash-sale/create}" class="btn btn-primary btn-sm">
                             <i class="bi bi-plus-lg me-1"></i>Thêm Flash Sale
@@ -45,10 +45,10 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Product ID</th>
-                        <th>Giá trị giảm (%)</th>
-                        <th>SL tối đa</th>
+                        <th>Tên chương trình</th>
+                        <th>Số SP</th>
                         <th>Đã bán</th>
+                        <th>Doanh thu</th>
                         <th>Bắt đầu</th>
                         <th>Kết thúc</th>
                         <th>Trạng thái</th>
@@ -58,15 +58,21 @@
                 <tbody>
                     <tr th:each="fs : ${flashSales}">
                         <td th:text="${fs.id}"></td>
-                        <td th:text="${fs.productId}"></td>
-                        <td th:text="${fs.giaTriGiam} + '%'"></td>
-                        <td th:text="${fs.soLuongToiDa != null ? fs.soLuongToiDa : '—'}"></td>
-                        <td th:text="${fs.soLuongDaBan != null ? fs.soLuongDaBan : 0}"></td>
+                        <td>
+                            <div class="fw-semibold" th:text="${fs.tenChuongTrinh}">Flash Sale</div>
+                            <small class="text-muted" th:if="${fs.moTa}" th:text="${fs.moTa}">Mô tả</small>
+                        </td>
+                        <td th:text="${itemCountMap.get(fs.id) != null ? itemCountMap.get(fs.id) : 0}"></td>
+                        <td th:text="${soldMap.get(fs.id) != null ? soldMap.get(fs.id) : 0}"></td>
+                        <td th:text="${revenueMap.get(fs.id) != null ? #numbers.formatDecimal(revenueMap.get(fs.id), 0, 'POINT', 0, 'POINT') + '₫' : '0₫'}"></td>
                         <td th:text="${#temporals.format(fs.ngayBatDau, 'dd/MM/yyyy HH:mm')}"></td>
                         <td th:text="${#temporals.format(fs.ngayKetThuc, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
-                            <span th:if="${fs.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
-                            <span th:unless="${fs.isActive}" class="status-pill status-TAM_DUNG">Tạm dừng</span>
+                            <span th:if="${statusMap.get(fs.id) == 'DANG_DIEN_RA'}" class="status-pill status-ACTIVE">Đang diễn ra</span>
+                            <span th:if="${statusMap.get(fs.id) == 'SAP_DIEN_RA'}" class="status-pill status-CHO_XAC_NHAN">Sắp diễn ra</span>
+                            <span th:if="${statusMap.get(fs.id) == 'HET_HANG'}" class="status-pill status-HUY">Hết hàng</span>
+                            <span th:if="${statusMap.get(fs.id) == 'DA_KET_THUC'}" class="status-pill status-TAM_DUNG">Đã kết thúc</span>
+                            <span th:if="${statusMap.get(fs.id) == 'TAM_DUNG'}" class="status-pill status-TAM_DUNG">Tạm dừng</span>
                         </td>
                         <td>
                             <a th:href="@{/admin/flash-sale/edit/{id}(id=${fs.id})}" class="btn btn-sm btn-outline-primary me-1">

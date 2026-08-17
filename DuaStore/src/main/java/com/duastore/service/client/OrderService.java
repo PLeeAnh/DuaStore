@@ -46,6 +46,7 @@ public class OrderService {
     private final VNPAYService vnpayService;
     private final PricingService pricingService;
     private final FlashSaleRepository flashSaleRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final LoyaltyPointsService loyaltyPointsService;
     private final MultiCarrierShippingService multiCarrierShippingService;
 
@@ -61,6 +62,7 @@ public class OrderService {
             VNPAYService vnpayService,
             PricingService pricingService,
             FlashSaleRepository flashSaleRepository,
+            FlashSaleItemRepository flashSaleItemRepository,
             LoyaltyPointsService loyaltyPointsService,
             MultiCarrierShippingService multiCarrierShippingService) {
         this.orderRepository = orderRepository;
@@ -78,6 +80,7 @@ public class OrderService {
         this.vnpayService = vnpayService;
         this.pricingService = pricingService;
         this.flashSaleRepository = flashSaleRepository;
+        this.flashSaleItemRepository = flashSaleItemRepository;
         this.loyaltyPointsService = loyaltyPointsService;
         this.multiCarrierShippingService = multiCarrierShippingService;
     }
@@ -122,10 +125,9 @@ public class OrderService {
             throw new RuntimeException("Giỏ hàng trống");
         }
 
-        // Load flash sale map once for all items
-        List<Integer> productIds = cartItems.stream()
-                .map(CartItem::getProductId).distinct().collect(Collectors.toList());
-        Map<Integer, FlashSale> flashSaleMap = pricingService.loadActiveFlashSaleMap(productIds);
+        // Load flash sale item map (by variant) once for all items
+        Map<Integer, FlashSaleItem> flashItemMap = pricingService.loadActiveFlashSaleItemMap(
+                cartItems.stream().map(CartItem::getVariantId).collect(Collectors.toList()));
 
         Order order = new Order();
         order.setMaDon(generateMaDon());
@@ -148,11 +150,10 @@ public class OrderService {
             }
             BigDecimal donGia = ci.getGiaLucThem();
             String loaiGia = "THUONG";
-            if (donGia == null) {
-                PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashSaleMap.get(product.getId()));
-                donGia = priced.finalPrice();
-                loaiGia = priced.source().name();
-            }
+            // Always re-resolve current price so flash-sale quota is tracked correctly
+            PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashItemMap.get(variant.getId()));
+            donGia = priced.finalPrice();
+            loaiGia = priced.source().name();
             BigDecimal thanhTien = donGia.multiply(BigDecimal.valueOf(ci.getSoLuong()));
             tienHang = tienHang.add(thanhTien);
 
@@ -199,7 +200,8 @@ public class OrderService {
                     .collect(Collectors.toMap(Product::getId, p -> p, (a, b) -> a));
             BigDecimal eligibleAmount = resolveEligibleAmount(lockedPromo, order.getOrderItems(), productById);
             validatePromotion(lockedPromo, eligibleAmount);
-            BigDecimal tienGiam = calculateDiscount(lockedPromo, eligibleAmount);
+            BigDecimal tienGiam = calculateDiscount(lockedPromo, eligibleAmount,
+                    order.getPhiVanChuyen() != null ? order.getPhiVanChuyen() : BigDecimal.ZERO);
             order.setTienGiam(tienGiam);
             order.setPromotion(lockedPromo);
             lockedPromo.setDaDung(lockedPromo.getDaDung() + 1);
@@ -278,14 +280,14 @@ public class OrderService {
 
             // Lock and increment flash sale sold count first
             if ("FLASH_SALE".equals(oi.getLoaiGia())) {
-                FlashSale fs = flashSaleMap.get(ci.getProductId());
-                if (fs != null) {
-                    FlashSale lockedFs = flashSaleRepository.findByIdWithLock(fs.getId())
+                FlashSaleItem item = flashItemMap.get(ci.getVariantId());
+                if (item != null) {
+                    FlashSaleItem lockedItem = flashSaleItemRepository.findByIdWithLock(item.getId())
                             .orElseThrow(() -> new RuntimeException("Flash sale không tồn tại"));
-                    if (!pricingService.incrementSoldQuantity(lockedFs, ci.getSoLuong())) {
+                    if (!pricingService.incrementSoldQuantity(lockedItem, ci.getSoLuong())) {
                         throw new RuntimeException("Sản phẩm \"" + oi.getTenSanPham() + "\" đã hết suất Flash Sale");
                     }
-                    flashSaleRepository.save(lockedFs);
+                    flashSaleItemRepository.save(lockedItem);
                 }
             }
 
@@ -394,6 +396,13 @@ public class OrderService {
     }
 
     public BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang) {
+        return calculateDiscount(promo, tienHang, BigDecimal.ZERO);
+    }
+
+    public BigDecimal calculateDiscount(Promotion promo, BigDecimal tienHang, BigDecimal phiVanChuyen) {
+        if ("FREESHIP".equals(promo.getLoaiGiam())) {
+            return phiVanChuyen != null ? phiVanChuyen : BigDecimal.ZERO;
+        }
         BigDecimal discount;
         if ("PHAN_TRAM".equals(promo.getLoaiGiam())) {
             discount = tienHang.multiply(promo.getGiaTriGiam()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
@@ -515,17 +524,16 @@ public class OrderService {
     private void restoreFlashSaleQuota(Integer orderId) {
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         for (OrderItem item : items) {
-            if (!"FLASH_SALE".equals(item.getLoaiGia())) {
+            if (!"FLASH_SALE".equals(item.getLoaiGia()) || item.getVariantId() == null) {
                 continue;
             }
-            flashSaleRepository.findByProductIdInAndIsActiveTrue(List.of(item.getProductId()))
-                    .stream().findFirst()
-                    .ifPresent(fs -> {
-                        FlashSale lockedFs = flashSaleRepository.findByIdWithLock(fs.getId()).orElse(null);
-                        if (lockedFs != null) {
-                            pricingService.decrementSoldQuantity(lockedFs, item.getSoLuong());
-                            flashSaleRepository.save(lockedFs);
-                        }
+            flashSaleItemRepository.findByVariantId(item.getVariantId())
+                    .stream()
+                    .findFirst()
+                    .flatMap(found -> flashSaleItemRepository.findByIdWithLock(found.getId()))
+                    .ifPresent(lockedItem -> {
+                        pricingService.decrementSoldQuantity(lockedItem, item.getSoLuong());
+                        flashSaleItemRepository.save(lockedItem);
                     });
         }
     }

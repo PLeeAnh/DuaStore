@@ -47,10 +47,6 @@
                              class="w-100 rounded"
                              style="max-height:400px;object-fit:cover;" />
                     </div>
-                    <div th:if="${post.tomTat != null}"
-                         class="mb-4 p-3 bg-light rounded fst-italic text-muted"
-                         th:text="${post.tomTat}">
-                    </div>
                     <div class="blog-content" th:utext="${post.noiDung}">
                     </div>
                 </div>
