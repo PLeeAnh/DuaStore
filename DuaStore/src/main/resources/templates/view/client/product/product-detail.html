@@ -188,7 +188,7 @@
                                                 class="variant-chip"
                                                 th:classappend="${(v.soLuongTon <= 0 ? ' out-of-stock' : (v.isDefault ? ' active' : '')) + (#lists.size(entry.value) == 1 ? ' variant-single' : '')}"
                                                 th:data-variant-id="${v.id}"
-                                                th:data-price="${v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc}"
+                                                th:data-price="${variantBestPriceMap.get(v.id)}"
                                                 th:data-original="${v.giaKhuyenMai != null ? v.giaGoc : ''}"
                                                 th:data-promo-price="${variantPromoPriceMap.get(v.id)}"
                                                 th:data-flash-price="${variantFlashMap != null and variantFlashMap.get(v.id) != null ? variantFlashMap.get(v.id).giaSale : ''}"

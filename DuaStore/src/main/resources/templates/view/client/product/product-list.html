@@ -209,18 +209,18 @@
                                                  class="ds-variant-group"
                                                  th:data-group="${groupEntry.key}">
                                                 <div class="ds-variant-row">
-                                                    <button th:each="pv, stat : ${groupEntry.value}"
-                                                             class="ds-variant-chip"
-                                                             th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
-                                                             th:data-variantid="${pv.id}"
-                                                             th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
-                                                             th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
-                                                             th:data-promo-price="${variantPromoPriceMap.get(pv.id)}"
-                                                             th:data-stock="${pv.soLuongTon}"
-                                                             th:data-image="${pv.hinhAnh}"
-                                                             th:disabled="${pv.soLuongTon <= 0}"
-                                                              th:text="${pv.tenBienThe != null and pv.tenBienThe.contains(' - ') ? (pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ').trim()) : (pv.dungTich != null ? pv.dungTich + 'ml' + (pv.tenBienThe != null ? ' - ' + pv.tenBienThe : '') : pv.tenBienThe)}"
-                                                             type="button">50ml</button>
+<button th:each="pv, stat : ${groupEntry.value}"
+                                                              class="ds-variant-chip"
+                                                              th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
+                                                              th:data-variantid="${pv.id}"
+                                                              th:data-price="${variantBestPriceMap.get(pv.id)}"
+                                                              th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
+                                                              th:data-promo-price="${variantPromoPriceMap.get(pv.id)}"
+                                                              th:data-stock="${pv.soLuongTon}"
+                                                              th:data-image="${pv.hinhAnh}"
+                                                              th:disabled="${pv.soLuongTon <= 0}"
+                                                               th:text="${pv.tenBienThe != null and pv.tenBienThe.contains(' - ') ? (pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ').trim()) : (pv.dungTich != null ? pv.dungTich + 'ml' + (pv.tenBienThe != null ? ' - ' + pv.tenBienThe : '') : pv.tenBienThe)}"
+                                                              type="button">50ml</button>
                                                 </div>
                                             </div>
                                         </div>

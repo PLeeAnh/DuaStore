@@ -1,6 +1,8 @@
 package com.duastore.service.admin;
 
 import com.duastore.model.Order;
+import com.duastore.model.OrderAssignment;
+import com.duastore.model.OrderItem;
 import com.duastore.model.Product;
 import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
@@ -106,13 +108,14 @@ public class AdminDashboardService {
     }
 
     public Map<Integer, String> getOrderAssignments(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return Map.of();
+        }
+        List<Integer> orderIds = orders.stream().map(Order::getId).toList();
+        List<OrderAssignment> assignments = orderAssignmentRepository.findByOrderIdIn(orderIds);
         Map<Integer, String> map = new HashMap<>();
-        for (Order o : orders) {
-            try {
-                var ass = orderAssignmentRepository.findByOrderId(o.getId());
-                ass.ifPresent(a -> map.put(o.getId(), a.getAdmin().getHoTen()));
-            } catch (Exception ignored) {
-            }
+        for (OrderAssignment a : assignments) {
+            map.put(a.getOrder().getId(), a.getAdmin().getHoTen());
         }
         return map;
     }
@@ -154,24 +157,27 @@ public class AdminDashboardService {
         LocalDateTime since = LocalDateTime.now().minusDays(30);
         List<Order> orders = orderRepository.findCompletedOrdersSince(
                 List.of("DA_GIAO", "DA_HOAN_THANH"), since);
+        if (orders.isEmpty()) {
+            return List.of();
+        }
+        List<Integer> orderIds = orders.stream().map(Order::getId).toList();
+        List<OrderItem> items = orderItemRepository.findByOrderIdIn(orderIds);
+
         Map<Integer, Map<String, Object>> productMap = new LinkedHashMap<>();
-        for (Order o : orders) {
-            var items = orderItemRepository.findByOrderId(o.getId());
-            for (var item : items) {
-                if (item.getProductId() == null) {
-                    continue;
-                }
-                productMap.computeIfAbsent(item.getProductId(), k -> {
-                    Map<String, Object> m = new LinkedHashMap<>();
-                    m.put("productId", item.getProductId());
-                    m.put("tenSanPham", item.getTenSanPham());
-                    m.put("hinhAnh", item.getHinhAnhSP());
-                    m.put("totalSold", 0);
-                    return m;
-                });
-                productMap.get(item.getProductId()).merge("totalSold", item.getSoLuong(),
-                        (a, b) -> (Integer) a + (Integer) b);
+        for (var item : items) {
+            if (item.getProductId() == null) {
+                continue;
             }
+            productMap.computeIfAbsent(item.getProductId(), k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("productId", item.getProductId());
+                m.put("tenSanPham", item.getTenSanPham());
+                m.put("hinhAnh", item.getHinhAnhSP());
+                m.put("totalSold", 0);
+                return m;
+            });
+            productMap.get(item.getProductId()).merge("totalSold", item.getSoLuong(),
+                    (a, b) -> (Integer) a + (Integer) b);
         }
         return productMap.values().stream()
                 .sorted((a, b) -> Integer.compare((Integer) b.get("totalSold"), (Integer) a.get("totalSold")))
@@ -340,6 +346,7 @@ public class AdminDashboardService {
         for (Object[] r : rows) {
             stockMap.put((Integer) r[0], (Long) r[1]);
         }
+        // Use findAllById to fetch all products in one query
         List<Product> products = productRepository.findAllById(ids);
         List<Map<String, Object>> resultList = new ArrayList<>();
         for (Product p : products) {
@@ -382,22 +389,25 @@ public class AdminDashboardService {
         LocalDateTime since = LocalDateTime.now().minusDays(7);
         List<Order> orders = orderRepository.findCompletedOrdersSince(
                 List.of("DA_GIAO", "DA_HOAN_THANH"), since);
+        if (orders.isEmpty()) {
+            return List.of();
+        }
+        List<Integer> orderIds = orders.stream().map(Order::getId).toList();
+        List<OrderItem> items = orderItemRepository.findByOrderIdIn(orderIds);
+
         Map<Integer, Map<String, Object>> productMap = new LinkedHashMap<>();
-        for (Order o : orders) {
-            var items = orderItemRepository.findByOrderId(o.getId());
-            for (var item : items) {
-                if (item.getProductId() == null) continue;
-                productMap.computeIfAbsent(item.getProductId(), k -> {
-                    Map<String, Object> m = new LinkedHashMap<>();
-                    m.put("productId", item.getProductId());
-                    m.put("tenSanPham", item.getTenSanPham());
-                    m.put("hinhAnh", item.getHinhAnhSP());
-                    m.put("totalSold", 0);
-                    return m;
-                });
-                productMap.get(item.getProductId()).merge("totalSold", item.getSoLuong(),
-                        (a, b) -> (Integer) a + (Integer) b);
-            }
+        for (var item : items) {
+            if (item.getProductId() == null) continue;
+            productMap.computeIfAbsent(item.getProductId(), k -> {
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("productId", item.getProductId());
+                m.put("tenSanPham", item.getTenSanPham());
+                m.put("hinhAnh", item.getHinhAnhSP());
+                m.put("totalSold", 0);
+                return m;
+            });
+            productMap.get(item.getProductId()).merge("totalSold", item.getSoLuong(),
+                    (a, b) -> (Integer) a + (Integer) b);
         }
         return productMap.values().stream()
                 .sorted((a, b) -> Integer.compare((Integer) b.get("totalSold"), (Integer) a.get("totalSold")))

@@ -66,6 +66,12 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findCompletedOrdersSince(@Param("statuses") List<String> statuses,
             @Param("since") LocalDateTime since);
 
+    @Query("SELECT o FROM Order o WHERE o.trangThaiDon = :trangThaiDon "
+            + "AND (o.trangThaiTT IS NULL OR o.trangThaiTT <> 'DA_THANH_TOAN') "
+            + "AND o.ngayDat < :before")
+    List<Order> findPendingUnpaidOrdersBefore(@Param("trangThaiDon") String trangThaiDon,
+            @Param("before") LocalDateTime before);
+
     @Query("SELECT o FROM Order o WHERE "
             + "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND "
             + "(:trangThai IS NULL OR :trangThai = 'CHUA_HOAN_THANH' OR o.trangThaiDon = :trangThai) AND "

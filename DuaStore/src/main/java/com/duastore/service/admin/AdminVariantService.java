@@ -77,6 +77,7 @@ public class AdminVariantService {
         v.setSoLuongTon(dto.getSoLuongTon());
         v.setDefault(dto.isDefault());
 
+        String oldImage = v.getHinhAnh();
         String uploaded = fileUploadService.save(dto.getHinhAnhFile());
         if (uploaded != null) {
             v.setHinhAnh(uploaded);
@@ -94,6 +95,9 @@ public class AdminVariantService {
 
         ProductVariant saved = variantRepository.save(v);
         pricingService.recalculateMinPrice(saved.getProductId());
+        if (uploaded != null && oldImage != null && !oldImage.equals(uploaded)) {
+            fileUploadService.deleteAfterCommit(oldImage);
+        }
 
         if (oldPrice != null && dto.getGiaGoc() != null && oldPrice.compareTo(dto.getGiaGoc()) != 0) {
             priceHistoryService.record(saved.getId(), saved.getTenBienThe(), saved.getProductId(),
@@ -143,9 +147,11 @@ public class AdminVariantService {
         ProductVariant v = variantRepository.findById(id).orElse(null);
         if (v != null) {
             Integer productId = v.getProductId();
+            String imageUrl = v.getHinhAnh();
             v.setActive(false);
             variantRepository.save(v);
             pricingService.recalculateMinPrice(productId);
+            fileUploadService.deleteAfterCommit(imageUrl);
         }
     }
 }

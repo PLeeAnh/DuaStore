@@ -32,11 +32,14 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 @RequestMapping("/admin/san-pham")
 public class AdminProductController {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminProductController.class);
     private static final int LOW_STOCK_THRESHOLD = 20;
 
     private final AdminProductService productService;
@@ -270,7 +273,9 @@ public class AdminProductController {
                         "/san-pham/" + saved.getId(),
                         saved.getTenSanPham()
                 );
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                log.warn("Loi gui thong bao san pham moi: {}", e.getMessage());
+            }
             notificationHelper.notifyStaff(
                     "Admin " + getCurrentAdminName() + " đã thêm sản phẩm mới: " + saved.getTenSanPham(),
                     "PRODUCT", saved.getId(),
@@ -423,6 +428,7 @@ public class AdminProductController {
         Integer productId = img.getProductId();
         img.setActive(false);
         productImageRepository.save(img);
+        fileUploadService.deleteAfterCommit(img.getImageUrl());
         ra.addFlashAttribute("successMsg", "Đã xóa ảnh");
         return "redirect:/admin/san-pham/chi-tiet/" + productId;
     }
@@ -433,8 +439,10 @@ public class AdminProductController {
     public ResponseEntity<?> clearMainImage(@PathVariable Integer id) {
         Product p = productService.findById(id);
         if (p == null) return ResponseEntity.notFound().build();
+        String oldImage = p.getHinhAnhChinh();
         p.setHinhAnhChinh(null);
         productRepository.save(p);
+        fileUploadService.deleteAfterCommit(oldImage);
         return ResponseEntity.ok().build();
     }
 

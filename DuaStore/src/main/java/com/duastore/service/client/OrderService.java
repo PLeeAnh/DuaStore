@@ -148,27 +148,25 @@ public class OrderService {
             if (product == null || variant == null) {
                 throw new RuntimeException("Một sản phẩm trong giỏ hàng đã bị xóa. Vui lòng cập nhật giỏ hàng trước khi đặt.");
             }
-            BigDecimal donGia = ci.getGiaLucThem();
-            String loaiGia = "THUONG";
-            // Always re-resolve current price so flash-sale quota is tracked correctly
-            PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashItemMap.get(variant.getId()));
-            donGia = priced.finalPrice();
-            loaiGia = priced.source().name();
+            FlashSaleItem flashItem = flashItemMap.get(variant.getId());
+            PricingService.PriceResult priced = pricingService.resolvePrice(variant, flashItem);
+            BigDecimal donGia = priced.finalPrice();
+            String loaiGia = priced.source().name();
             BigDecimal thanhTien = donGia.multiply(BigDecimal.valueOf(ci.getSoLuong()));
             tienHang = tienHang.add(thanhTien);
 
-            OrderItem item = new OrderItem();
-            item.setOrder(order);
-            item.setProductId(product.getId());
-            item.setVariantId(variant.getId());
-            item.setTenSanPham(product.getTenSanPham());
-            item.setTenBienThe(variant.getTenBienThe());
-            item.setHinhAnhSP(variant.getHinhAnh() != null ? variant.getHinhAnh() : product.getHinhAnhChinh());
-            item.setDonGia(donGia);
-            item.setSoLuong(ci.getSoLuong());
-            item.setThanhTien(thanhTien);
-            item.setLoaiGia(loaiGia);
-            order.getOrderItems().add(item);
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProductId(product.getId());
+            orderItem.setVariantId(variant.getId());
+            orderItem.setTenSanPham(product.getTenSanPham());
+            orderItem.setTenBienThe(variant.getTenBienThe());
+            orderItem.setHinhAnhSP(variant.getHinhAnh() != null ? variant.getHinhAnh() : product.getHinhAnhChinh());
+            orderItem.setDonGia(donGia);
+            orderItem.setSoLuong(ci.getSoLuong());
+            orderItem.setThanhTien(thanhTien);
+            orderItem.setLoaiGia(loaiGia);
+            order.getOrderItems().add(orderItem);
         }
         order.setTienHang(tienHang);
         order.setPhiVanChuyen(calculateShipFee(address, shippingCarrier, tienHang));
@@ -179,19 +177,20 @@ public class OrderService {
             Promotion lockedPromo = promotionRepository.findByIdWithLock(promo.getId())
                     .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
 
-            // Voucher trong ví: chi duoc dung neu con hieu luc va con luot
+            // Voucher trong ví: bat buoc phai duoc luu vao vi truoc khi dung
             UserVoucher userVoucher = userVoucherRepository.findByUserIdAndPromotionId(userId, lockedPromo.getId())
                     .orElse(null);
-            if (userVoucher != null) {
-                if (userVoucher.getStatus() != VoucherStatus.USED && userVoucher.getStatus() != VoucherStatus.AVAILABLE) {
-                    throw new RuntimeException("Voucher này không còn sử dụng được");
-                }
-                if (userVoucher.getExpiredAt() != null && userVoucher.getExpiredAt().isBefore(LocalDateTime.now())) {
-                    throw new RuntimeException("Voucher đã hết hạn");
-                }
-                if (userVoucher.getRemainingUses() != null && userVoucher.getRemainingUses() <= 0) {
-                    throw new RuntimeException("Voucher đã hết lượt sử dụng");
-                }
+            if (userVoucher == null) {
+                throw new RuntimeException("Bạn chưa lưu voucher này vào ví. Hãy lưu vào ví trước khi sử dụng");
+            }
+            if (userVoucher.getStatus() != VoucherStatus.AVAILABLE) {
+                throw new RuntimeException("Voucher này không còn sử dụng được");
+            }
+            if (userVoucher.getExpiredAt() != null && userVoucher.getExpiredAt().isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("Voucher đã hết hạn");
+            }
+            if (userVoucher.getRemainingUses() == null || userVoucher.getRemainingUses() <= 0) {
+                throw new RuntimeException("Voucher đã hết lượt sử dụng");
             }
 
             Map<Integer, Product> productById = cartItems.stream()
@@ -501,6 +500,9 @@ public class OrderService {
         orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, null,
                 "DA_GIAO", "DA_HOAN_THANH",
                 "Khách hàng xác nhận đã nhận được hàng");
+        if (order.getUser() != null) {
+            loyaltyPointsService.earnPoints(userId, orderId, order.getTongThanhToan());
+        }
     }
 
     @Transactional
@@ -511,6 +513,7 @@ public class OrderService {
         }
         restoreStock(orderId);
         restoreFlashSaleQuota(orderId);
+        restoreVoucher(order);
         loyaltyPointsService.refundRedeemedPointsForOrder(userId, orderId);
         orderAssignmentRepository.findByOrderId(orderId).ifPresent(orderAssignmentRepository::delete);
         order.setTrangThaiDon("DA_HUY");
@@ -519,6 +522,52 @@ public class OrderService {
         orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, null,
                 "CHO_XAC_NHAN", "DA_HUY",
                 lyDo != null && !lyDo.isBlank() ? lyDo : "Khách hàng hủy đơn (không có lý do)");
+    }
+
+    @Transactional
+    public void restoreVoucherForOrder(Integer orderId) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order != null) {
+            restoreVoucher(order);
+        }
+    }
+
+    private void restoreVoucher(Order order) {
+        if (order.getPromotion() == null) {
+            return;
+        }
+        Promotion promo = promotionRepository.findByIdWithLock(order.getPromotion().getId()).orElse(null);
+        if (promo == null) {
+            return;
+        }
+        int daDung = promo.getDaDung() != null ? promo.getDaDung() : 0;
+        promo.setDaDung(Math.max(0, daDung - 1));
+        BigDecimal tienGiam = order.getTienGiam() != null ? order.getTienGiam() : BigDecimal.ZERO;
+        BigDecimal usedBudget = promo.getUsedBudget() != null ? promo.getUsedBudget() : BigDecimal.ZERO;
+        promo.setUsedBudget(usedBudget.subtract(tienGiam).max(BigDecimal.ZERO));
+        promotionRepository.save(promo);
+
+        if (order.getUser() == null) {
+            return;
+        }
+        UserVoucher uv = userVoucherRepository.findByUserIdAndPromotionId(order.getUser().getId(), promo.getId())
+                .orElse(null);
+        if (uv == null) {
+            return;
+        }
+        Integer remaining = uv.getRemainingUses();
+        if (remaining != null) {
+            uv.setRemainingUses(remaining + 1);
+        } else {
+            uv.setRemainingUses(1);
+        }
+        if (uv.getStatus() == VoucherStatus.USED) {
+            uv.setStatus(VoucherStatus.AVAILABLE);
+            uv.setUsedAt(null);
+        }
+        BigDecimal totalSaved = uv.getTotalSaved() != null ? uv.getTotalSaved() : BigDecimal.ZERO;
+        uv.setTotalSaved(totalSaved.subtract(tienGiam).max(BigDecimal.ZERO));
+        userVoucherRepository.save(uv);
     }
 
     private void restoreFlashSaleQuota(Integer orderId) {

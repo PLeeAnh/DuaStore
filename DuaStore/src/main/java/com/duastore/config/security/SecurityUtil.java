@@ -7,6 +7,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class SecurityUtil {
 
@@ -27,18 +29,18 @@ public class SecurityUtil {
     }
 
     public Integer getCurrentUserId() {
+        return getCurrentUserIdOptional().orElse(null);
+    }
+
+    public Optional<Integer> getCurrentUserIdOptional() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return null;
+            return Optional.empty();
         }
         String email = resolveEmail(auth);
-        User user = userRepository.findByEmail(email).orElse(null);
-        if (user != null) {
-            return user.getId();
-        }
-        return userRepository.findByUsername(email)
+        return userRepository.findByEmail(email)
                 .map(User::getId)
-                .orElse(null);
+                .or(() -> userRepository.findByUsername(email).map(User::getId));
     }
 
     public User getCurrentUser() {
@@ -52,6 +54,16 @@ public class SecurityUtil {
             return user;
         }
         return userRepository.findByUsername(email).orElse(null);
+    }
+
+    public Optional<User> getCurrentUserOptional() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return Optional.empty();
+        }
+        String email = resolveEmail(auth);
+        return userRepository.findByEmail(email)
+                .or(() -> userRepository.findByUsername(email));
     }
 
     public boolean isAuthenticated() {

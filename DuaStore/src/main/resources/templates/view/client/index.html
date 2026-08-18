@@ -235,11 +235,12 @@
                                      th:data-rating-count="${ratingCountMap.get(p.id) ?: 0}"
                                      th:data-wishlist="${wishlistCountMap.get(p.id) ?: 0}"
                                      th:data-href="@{'/san-pham/' + ${p.id}}"
-                                     th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                     v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
-                                     fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
-                                     th:data-price="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : ''}"
-                                     th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
+th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                      v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                      fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null},
+                                      bestPrice=${variantBestPriceMap != null ? variantBestPriceMap.get(v != null ? v.id : null) : null}"
+                                      th:data-price="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : '')}"
+                                      th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
                                      th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
                                      th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
                                      th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
@@ -250,10 +251,10 @@
                                         <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
                                     </div>
                                     <div class="ds-browse-row-price">
-                                        <span class="ds-browse-row-price-discount" th:if="${v != null and v.giaKhuyenMai != null}"
-                                              th:text="'-' + ${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)} + '%'">-70%</span>
+                                        <span class="ds-browse-row-price-discount" th:if="${bestPrice != null and v != null and v.giaGoc != null and bestPrice.compareTo(v.giaGoc) < 0}"
+                                              th:text="'-' + ${#numbers.formatDecimal((v.giaGoc - bestPrice) * 100 / v.giaGoc, 0, 0)} + '%'">-70%</span>
                                         <span class="ds-browse-row-price-current"
-                                              th:text="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : ''}">297.000₫</span>
+                                              th:text="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') + '₫' : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : '')}">297.000₫</span>
                                     </div>
                                 </div>
                             </div>

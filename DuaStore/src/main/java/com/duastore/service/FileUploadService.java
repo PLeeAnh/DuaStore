@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -19,7 +21,9 @@ import java.util.Set;
 public class FileUploadService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
     private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
+    private static final Set<String> ALLOWED_VIDEO_TYPES = Set.of("video/mp4", "video/quicktime", "video/webm", "video/x-msvideo");
     private static final List<byte[]> MAGIC_BYTES = Arrays.asList(
             new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF}, // JPEG
             new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47}, // PNG
@@ -60,7 +64,26 @@ public class FileUploadService {
         if (!isValidImageContent(file)) {
             throw new RuntimeException("File không phải là ảnh hợp lệ: " + file.getOriginalFilename());
         }
+        return store(file, directory);
+    }
 
+    public String saveVideo(MultipartFile file, String directory) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        if (file.getSize() > MAX_VIDEO_SIZE) {
+            throw new RuntimeException("Video quá lớn, tối đa 100MB: " + file.getOriginalFilename());
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_VIDEO_TYPES.contains(contentType)) {
+            throw new RuntimeException("Định dạng video không được hỗ trợ: " + contentType
+                    + ". Hỗ trợ: MP4, MOV, WEBM, AVI");
+        }
+        return store(file, directory);
+    }
+
+    private String store(MultipartFile file, String directory) {
         try {
             String original = file.getOriginalFilename();
             String cleanName = (original != null) ? original.replaceAll("[^a-zA-Z0-9._-]", "_") : "image";
@@ -135,6 +158,41 @@ public class FileUploadService {
             return Files.deleteIfExists(target);
         } catch (IOException ignored) {
             return false;
+        }
+    }
+
+    public boolean delete(String urlPath) {
+        if (urlPath == null || urlPath.isBlank()) {
+            return false;
+        }
+        if (!urlPath.startsWith("/uploads/")) {
+            return false;
+        }
+        String relative = urlPath.substring("/uploads/".length());
+        Path target = uploadPath.resolve(relative).normalize();
+        if (!target.startsWith(uploadPath)) {
+            return false;
+        }
+        try {
+            return Files.deleteIfExists(target);
+        } catch (IOException ignored) {
+            return false;
+        }
+    }
+
+    public void deleteAfterCommit(String urlPath) {
+        if (urlPath == null || urlPath.isBlank()) {
+            return;
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    delete(urlPath);
+                }
+            });
+        } else {
+            delete(urlPath);
         }
     }
 }

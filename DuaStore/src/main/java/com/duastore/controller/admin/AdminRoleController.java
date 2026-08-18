@@ -67,13 +67,17 @@ public class AdminRoleController {
             ra.addFlashAttribute("errorMsg", "Tên vai trò không được để trống");
             return "redirect:/admin/vai-tro/them-moi";
         }
-        var saved = roleService.save(null, name.trim().toUpperCase(), moTa, isActive, permissionIds);
-        var admin = securityUtil.getCurrentUser();
-        if (admin != null) {
-            adminLogService.ghiLog(admin, "TAO_ROLE", "ROLE", saved.getId(),
-                    null, saved.getName(), "Tạo vai trò " + saved.getName());
+        try {
+            var saved = roleService.save(null, name.trim().toUpperCase(), moTa, isActive, permissionIds);
+            var admin = securityUtil.getCurrentUser();
+            if (admin != null) {
+                adminLogService.ghiLog(admin, "TAO_ROLE", "ROLE", saved.getId(),
+                        null, saved.getName(), "Tạo vai trò " + saved.getName());
+            }
+            ra.addFlashAttribute("successMsg", "Thêm vai trò thành công");
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
         }
-        ra.addFlashAttribute("successMsg", "Thêm vai trò thành công");
         return "redirect:/admin/vai-tro";
     }
 

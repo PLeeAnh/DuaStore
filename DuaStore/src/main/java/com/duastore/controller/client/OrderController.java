@@ -5,6 +5,8 @@ import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.Order;
 import com.duastore.model.RefundRequest;
+import com.duastore.model.RefundReason;
+import com.duastore.model.RefundType;
 import com.duastore.repository.RefundRequestRepository;
 import com.duastore.service.FileUploadService;
 import com.duastore.service.NotificationHelper;
@@ -19,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/tai-khoan/don-hang")
@@ -76,10 +79,12 @@ public class OrderController {
             Order order = orderService.getOrderByUserAndId(userId, id);
             OrderDTO orderDTO = orderService.convertToDTO(order);
             List<OrderItemDTO> items = orderService.getOrderItemsByOrder(order);
-            boolean hasExistingRefund = refundService.hasRefundRequestByOrderId(id);
+            Optional<RefundRequest> existingRefund = refundService.getActiveRefundByOrderId(id);
+            boolean hasExistingRefund = existingRefund.isPresent();
             model.addAttribute("order", orderDTO);
             model.addAttribute("items", items);
             model.addAttribute("hasExistingRefund", hasExistingRefund);
+            model.addAttribute("refundId", existingRefund.map(RefundRequest::getId).orElse(null));
             model.addAttribute("title", "Chi tiết đơn hàng");
             return "view/client/order/order-detail";
         } catch (Exception e) {
@@ -109,7 +114,9 @@ public class OrderController {
             Order order = orderService.getOrderByUserAndId(userId, id);
             OrderDTO orderDTO = orderService.convertToDTO(order);
             model.addAttribute("order", orderDTO);
-            model.addAttribute("title", "Yêu cầu hoàn tiền");
+            model.addAttribute("refundTypes", RefundType.values());
+            model.addAttribute("refundReasons", RefundReason.values());
+            model.addAttribute("title", "Yêu cầu hoàn tiền / Đổi hàng");
             return "view/client/order/refund-form";
         } catch (Exception e) {
             return "redirect:/tai-khoan/don-hang";
@@ -119,9 +126,12 @@ public class OrderController {
     @PostMapping("/hoan-tien/{id}")
     public String submitRefund(@PathVariable Integer id,
             @RequestParam String lydo,
+            @RequestParam String loaiYeuCau,
+            @RequestParam String lyDoChiTiet,
             @RequestParam BigDecimal soTienHoan,
             @RequestParam String phuongThucHoan,
             @RequestParam(required = false) MultipartFile anhMinhChung,
+            @RequestParam(required = false) MultipartFile videoUnboxing,
             @RequestParam(required = false) String tenNganHang,
             @RequestParam(required = false) String soTaiKhoan,
             @RequestParam(required = false) String chuTaiKhoan,
@@ -135,14 +145,24 @@ public class OrderController {
             if (refundService.hasRefundRequestByOrderId(id)) {
                 throw new RuntimeException("Đơn hàng này đã có yêu cầu hoàn tiền trước đó");
             }
-            if (soTienHoan == null || soTienHoan.compareTo(BigDecimal.ZERO) <= 0
-                    || soTienHoan.compareTo(order.getTongThanhToan()) > 0) {
+            RefundType type = RefundType.fromCode(loaiYeuCau);
+            RefundReason reason = RefundReason.fromCode(lyDoChiTiet);
+
+            if (type == RefundType.HOAN_TIEN && (soTienHoan == null || soTienHoan.compareTo(BigDecimal.ZERO) <= 0
+                    || soTienHoan.compareTo(order.getTongThanhToan()) > 0)) {
                 throw new RuntimeException("Số tiền hoàn không hợp lệ, tối đa " + order.getTongThanhToan() + "đ");
             }
+
+            if (reason.requiresVideoProof() && (videoUnboxing == null || videoUnboxing.isEmpty())) {
+                throw new RuntimeException("Yêu cầu video unboxing cho lý do: " + reason.getDisplayName());
+            }
+
             RefundRequest request = new RefundRequest();
             request.setOrderId(id);
             request.setUserId(userId);
             request.setLydo(lydo);
+            request.setLoaiYeuCau(type.name());
+            request.setLyDoChiTiet(reason.name());
             request.setSoTienHoan(soTienHoan);
             request.setPhuongThucHoan(phuongThucHoan);
             request.setTenNganHang(tenNganHang);
@@ -151,14 +171,17 @@ public class OrderController {
             if (anhMinhChung != null && !anhMinhChung.isEmpty()) {
                 request.setAnhMinhChung(fileUploadService.save(anhMinhChung, "refunds"));
             }
-            RefundRequest savedRefund = refundService.create(request);
+            if (videoUnboxing != null && !videoUnboxing.isEmpty()) {
+                request.setVideoUnboxing(fileUploadService.saveVideo(videoUnboxing, "refunds/videos"));
+            }
+            RefundRequest savedRefund = refundService.submitRefundRequest(request);
             notificationHelper.notifyStaff(
-                    "Khach hang yeu cau hoan tien cho don " + order.getId(),
+                    "Khach hang yeu cau " + type.getDisplayName().toLowerCase() + " cho don " + order.getId(),
                     "ORDER", order.getId(),
                     "/admin/hoan-tien/detail/" + savedRefund.getId(),
                     "Xem yeu cau"
             );
-            ra.addFlashAttribute("successMsg", "Gửi yêu cầu hoàn tiền thành công! Vui lòng chờ xử lý.");
+            ra.addFlashAttribute("successMsg", "Gửi yêu cầu " + type.getDisplayName().toLowerCase() + " thành công! Vui lòng chờ xử lý.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", "Lỗi: " + e.getMessage());
         }
@@ -175,5 +198,40 @@ public class OrderController {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/tai-khoan/don-hang/" + id;
+    }
+
+    @GetMapping("/hoan-tien/theo-doi/{refundId}")
+    public String refundTracking(@PathVariable Integer refundId, Model model) {
+        Integer userId = getUserId();
+        try {
+            RefundRequest refund = refundService.getById(refundId);
+            if (!refund.getUserId().equals(userId)) {
+                return "redirect:/tai-khoan/don-hang";
+            }
+            model.addAttribute("refund", refund);
+            model.addAttribute("title", "Theo dõi hoàn tiền / đổi hàng");
+            return "view/client/order/refund-tracking";
+        } catch (Exception e) {
+            return "redirect:/tai-khoan/don-hang";
+        }
+    }
+
+    @PostMapping("/hoan-tien/update-tracking/{refundId}")
+    public String updateReturnTracking(@PathVariable Integer refundId,
+            @RequestParam String maVanDonTra,
+            RedirectAttributes ra) {
+        Integer userId = getUserId();
+        try {
+            RefundRequest refund = refundService.getById(refundId);
+            if (!refund.getUserId().equals(userId)) {
+                throw new RuntimeException("Không có quyền truy cập");
+            }
+            refund.setMaVanDonTra(maVanDonTra);
+            refundService.create(refund);
+            ra.addFlashAttribute("successMsg", "Đã cập nhật mã vận đơn trả hàng");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/tai-khoan/don-hang/hoan-tien/theo-doi/" + refundId;
     }
 }

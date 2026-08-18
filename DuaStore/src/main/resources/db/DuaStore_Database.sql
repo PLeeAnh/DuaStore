@@ -256,6 +256,7 @@ GO
         userId int not null,
         ngayCapNhat datetime2(7),
         ngayDat datetime2(7) not null,
+        ngayGiao datetime2(7),
         snapSoDienThoai nvarchar(15) not null,
         maDon nvarchar(20) not null,
         phuongThucGiaoHang nvarchar(20) default 'SHIP' not null,
@@ -346,6 +347,7 @@ GO
         id int identity not null,
         isActive bit default 1 not null,
         isDefault bit default 0 not null,
+        isCustom bit default 0 not null,
         productId int not null,
         soLuongTon int default 0 not null,
         hinhAnh nvarchar(255),
@@ -383,14 +385,31 @@ GO
         id int identity not null,
         nguoiXuLyId int,
         orderId int not null,
+        phiShipTraLai numeric(18,2) default 0,
         soTienHoan numeric(18,2) not null,
+        soTienThucTeHoan numeric(18,2),
         userId int not null,
+        variantMoiId int,
+        ngayNhanHangTra datetime2(7),
         ngayXuLy datetime2(7),
         ngayYeuCau datetime2(7) not null,
+        loaiYeuCau nvarchar(30) default 'HOAN_TIEN' not null,          -- HOAN_TIEN | DOI_SIZE | DOI_MAU | DOI_SAN_PHAM_KHAC
+        phuongThucHoanTien nvarchar(30),                               -- CHUYEN_KHOAN | VNPAY_REFUND | TIEN_MAT
+        soTienThucTeHoan numeric(18,2),                                -- So tien that su hoan (tru ship, voucher)
+        videoUnboxing nvarchar(500),                                   -- Link video unboxing (bat buoc voi thuy tinh)
         lydo nvarchar(2000) not null,
+        lyDoChiTiet nvarchar(50),                                      -- LOI_HANG | KHONG_DUNG_MO_TA | DOI_Y | KHAC
+        trangThaiDonHangKhiYeuCau nvarchar(30),                        -- DA_GIAO | DANG_GIAO | CHUA_GIAO
+        daKiemTraHang bit default 0,                                   -- Kho da kiem tra hang tra
+        tinhTrangHangTra nvarchar(30),                                 -- NGUYEN_VINH | VO_VANG | THIEU_PHU_KIEN | CHUA_NHAN
+        maVanDonTra nvarchar(100),                                     -- Ma van don hang tra
+        anhThucTe nvarchar(500),                                       -- Anh hang thuc te khi kho nhan duoc
         anhMinhChung nvarchar(255),
+        chuTaiKhoan nvarchar(255),
         ghiChuXuLy nvarchar(255),
         phuongThucHoan nvarchar(255),
+        soTaiKhoan nvarchar(255),
+        tenNganHang nvarchar(255),
         trangThai nvarchar(255) not null,
         primary key (id)
     );
@@ -802,6 +821,18 @@ CREATE INDEX idx_user_vouchers_user_status  ON UserVouchers (userId, status);
 CREATE INDEX idx_user_vouchers_expired_at   ON UserVouchers (expiredAt);
 CREATE INDEX idx_user_vouchers_promotion_id ON UserVouchers (promotionId);
 CREATE INDEX idx_promotions_code            ON Promotions   (maCode);
+-- V2: Indexes for RefundRequests (glass-specific refund flow)
+CREATE INDEX IX_RefundRequests_OrderId ON RefundRequests (orderId);
+CREATE INDEX IX_RefundRequests_UserId_Status ON RefundRequests (userId, trangThai);
+CREATE INDEX IX_RefundRequests_Status_Date ON RefundRequests (trangThai, ngayYeuCau);
+CREATE INDEX IX_RefundRequests_LoaiYeuCau ON RefundRequests (loaiYeuCau);
+-- V2: Index for custom variants
+CREATE INDEX IX_Variants_Custom ON ProductVariants (isCustom, isActive);
+-- V4: Indexes for admin_action_logs
+CREATE INDEX IX_admin_action_logs_entity_lookup ON admin_action_logs (loaiEntity, entityId, ngayTao DESC);
+CREATE INDEX IX_admin_action_logs_admin_lookup ON admin_action_logs (adminId, ngayTao DESC);
+CREATE INDEX IX_admin_action_logs_ngay_tao ON admin_action_logs (ngayTao DESC);
+CREATE INDEX IX_admin_action_logs_admin_ngay_tao ON admin_action_logs (adminId, ngayTao DESC);
 GO
 
 -- ============================================================
@@ -1032,6 +1063,18 @@ VALUES (N'Banner DuaStore', N'/images/Banner 1 DuaStore.jpg', N'/san-pham', 1, 0
 INSERT INTO store_info (tenCuaHang, soNha, duong, phuongXa, quanHuyen, tinhThanh, soDienThoai, email, isActive, isDefault, createdAt, updatedAt)
 VALUES (N'DuaStore Hai Phong', N'123', N'Tran Hung Dao', N'May To', N'Ngo Quyen', N'Hai Phong',
         '0225.123.4567', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
+GO
+
+-- Refund Policy Settings
+INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt, updatedAt) VALUES
+    (N'refund', N'refund_return_window_days', N'7', GETDATE(), GETDATE()),
+    (N'refund', N'refund_custom_non_refundable', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_flash_sale_exchange_only', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_flash_sale_free_exchange_shipping', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_require_video_proof_glass', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_max_rate_damaged', N'0.8', GETDATE(), GETDATE()),
+    (N'refund', N'refund_auto_approve_days', N'3', GETDATE(), GETDATE()),
+    (N'refund', N'refund_warehouse_address', N'Kho DuaStore - 123 Tran Hung Dao, May To, Ngo Quyen, Hai Phong', GETDATE(), GETDATE());
 GO
 
 PRINT 'Seed du lieu co ban hoan tat!';

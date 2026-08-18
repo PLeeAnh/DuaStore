@@ -89,6 +89,9 @@ public class Order {
     @Column
     private LocalDateTime ngayCapNhat;
 
+    @Column
+    private LocalDateTime ngayGiao;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 

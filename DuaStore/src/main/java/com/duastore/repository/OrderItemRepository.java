@@ -49,4 +49,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
             + "AND oi2.productId != :productId "
             + "AND (oi1.order.trangThaiDon = 'DA_GIAO' OR oi1.order.trangThaiDon = 'DA_HOAN_THANH')")
     List<Integer> findCoPurchasedProductIds(@Param("productId") Integer productId);
+
+    @Query("SELECT oi FROM OrderItem oi WHERE oi.order.id IN :orderIds")
+    List<OrderItem> findByOrderIdIn(@Param("orderIds") List<Integer> orderIds);
 }

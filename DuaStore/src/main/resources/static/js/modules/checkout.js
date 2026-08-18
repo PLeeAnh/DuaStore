@@ -780,7 +780,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         return;
                     }
                     if (result.data.success) {
-                        window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
+                        if (result.data.redirectUrl) {
+                            window.location.href = result.data.redirectUrl;
+                        } else {
+                            window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
+                        }
                     } else {
                         DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
                         btn.disabled = false;
@@ -837,15 +841,21 @@ document.addEventListener('DOMContentLoaded', function () {
                             btn.innerHTML = 'Đặt hàng';
                             return;
                         }
-                        if (result.data.success) {
-                            window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
+                    if (result.data.success) {
+                        if (result.data.vnpayUrl) {
+                            window.location.href = result.data.vnpayUrl;
+                        } else if (result.data.redirectUrl) {
+                            window.location.href = result.data.redirectUrl;
                         } else {
-                            DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
-                            btn._submitted = false;
-                            btn.disabled = false;
-                            btn.innerHTML = 'Đặt hàng';
+                            window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
                         }
-                    });
+                    } else {
+                        DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
+                        btn._submitted = false;
+                        btn.disabled = false;
+                        btn.innerHTML = 'Đặt hàng';
+                    }
+                });
         }
     });
 

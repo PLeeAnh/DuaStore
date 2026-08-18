@@ -40,15 +40,19 @@ public class PricingService {
 
     public record FlashSaleOffer(
             FlashSale event,
-            FlashSaleItem bestItem
-            ) {
-
+            BigDecimal giaSale,
+            BigDecimal giaGoc,
+            Integer soLuongConLai,
+            Integer soLuongToiDa,
+            Integer soLuongDaBan,
+            Integer percentSold
+    ) {
         public Integer getSoLuongConLai() {
-            return bestItem != null ? bestItem.getSoLuongConLai() : 0;
+            return soLuongConLai;
         }
 
         public int getPercentSold() {
-            return bestItem != null ? bestItem.getPercentSold() : 0;
+            return percentSold;
         }
     }
 
@@ -95,8 +99,7 @@ public class PricingService {
                 ? giaGoc.subtract(best).multiply(new BigDecimal("100")).divide(giaGoc, 0, RoundingMode.DOWN).intValue()
                 : 0;
 
-        return new PriceResult(giaGoc, best, pct, src,
-                "FLASH_SALE".equals(src.name()) ? item : null);
+        return new PriceResult(giaGoc, best, pct, src, "FLASH_SALE".equals(src.name()) ? item : null);
     }
 
     public PriceResult resolvePrice(ProductVariant variant) {
@@ -148,7 +151,16 @@ public class PricingService {
         for (Map.Entry<Integer, FlashSaleItem> e : bestByProduct.entrySet()) {
             FlashSale event = e.getValue().getFlashSale();
             if (event != null) {
-                offers.put(e.getKey(), new FlashSaleOffer(event, e.getValue()));
+                FlashSaleItem item = e.getValue();
+                offers.put(e.getKey(), new FlashSaleOffer(
+                        event,
+                        item.getGiaSale(),
+                        item.getGiaGoc(),
+                        item.getSoLuongConLai(),
+                        item.getSoLuongToiDa(),
+                        item.getSoLuongDaBan(),
+                        item.getPercentSold()
+                ));
             }
         }
         return offers;
@@ -157,6 +169,11 @@ public class PricingService {
     public FlashSaleOffer loadBestOfferForProduct(Integer productId) {
         Map<Integer, FlashSaleOffer> map = loadActiveFlashSaleOffers(List.of(productId));
         return map.get(productId);
+    }
+
+    private boolean isWithinTimeWindow(FlashSale event) {
+        LocalDateTime now = LocalDateTime.now();
+        return !now.isBefore(event.getNgayBatDau()) && !now.isAfter(event.getNgayKetThuc());
     }
 
     private boolean hasRemainingQuota(FlashSaleItem item) {
@@ -178,11 +195,6 @@ public class PricingService {
         return isWithinTimeWindow(event) && hasRemainingQuota(item);
     }
 
-    private boolean isWithinTimeWindow(FlashSale event) {
-        LocalDateTime now = LocalDateTime.now();
-        return !now.isBefore(event.getNgayBatDau()) && !now.isAfter(event.getNgayKetThuc());
-    }
-
     public boolean incrementSoldQuantity(FlashSaleItem item, int soLuong) {
         int current = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
         int newSold = current + soLuong;
@@ -197,6 +209,25 @@ public class PricingService {
         int current = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
         item.setSoLuongDaBan(Math.max(0, current - soLuong));
     }
+
+    @Transactional
+    public void recalculateMinPrice(Integer productId) {
+        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActiveTrue(productId);
+        BigDecimal min = variants.stream()
+                .filter(v -> v.getGiaGoc() != null)
+                .map(v -> {
+                    BigDecimal p = v.getGiaKhuyenMai();
+                    return (p != null && p.compareTo(v.getGiaGoc()) < 0) ? p : v.getGiaGoc();
+                })
+                .min(java.util.Comparator.naturalOrder())
+                .orElse(BigDecimal.ZERO);
+        productRepository.findById(productId).ifPresent(p -> {
+            p.setMinPrice(min);
+            productRepository.save(p);
+        });
+    }
+
+    // ===== Methods for AdminFlashSaleController =====
 
     public String getEventStatus(FlashSale event) {
         if (event == null) {
@@ -222,11 +253,6 @@ public class PricingService {
         return "DANG_DIEN_RA";
     }
 
-    private boolean isItemSoldOut(FlashSaleItem item) {
-        int daBan = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
-        return item.getSoLuongToiDa() == null || daBan >= item.getSoLuongToiDa();
-    }
-
     public long sumRevenue(FlashSale event) {
         if (event == null || event.getItems() == null) {
             return 0L;
@@ -248,20 +274,8 @@ public class PricingService {
                 .sum();
     }
 
-    @Transactional
-    public void recalculateMinPrice(Integer productId) {
-        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActiveTrue(productId);
-        BigDecimal min = variants.stream()
-                .filter(v -> v.getGiaGoc() != null)
-                .map(v -> {
-                    BigDecimal p = v.getGiaKhuyenMai();
-                    return (p != null && p.compareTo(v.getGiaGoc()) < 0) ? p : v.getGiaGoc();
-                })
-                .min(java.util.Comparator.naturalOrder())
-                .orElse(BigDecimal.ZERO);
-        productRepository.findById(productId).ifPresent(p -> {
-            p.setMinPrice(min);
-            productRepository.save(p);
-        });
+    private boolean isItemSoldOut(FlashSaleItem item) {
+        int daBan = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
+        return item.getSoLuongToiDa() == null || daBan >= item.getSoLuongToiDa();
     }
 }

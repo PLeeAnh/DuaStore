@@ -6,6 +6,7 @@ import com.duastore.model.Category;
 import com.duastore.model.Product;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.service.FileUploadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -27,10 +28,13 @@ public class AdminCategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final FileUploadService fileUploadService;
 
-    public AdminCategoryService(CategoryRepository categoryRepository, ProductRepository productRepository) {
+    public AdminCategoryService(CategoryRepository categoryRepository, ProductRepository productRepository,
+            FileUploadService fileUploadService) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
+        this.fileUploadService = fileUploadService;
     }
 
     public List<Category> findAll() {
@@ -158,11 +162,13 @@ public class AdminCategoryService {
                 ? new Category()
                 : categoryRepository.findById(dto.getId()).orElse(new Category());
 
+        String oldImageUrl = category.getImageUrl();
+        String newImageUrl = dto.getImageUrl();
         category.setTenDanhMuc(dto.getTenDanhMuc());
         category.setMoTa(com.duastore.util.HtmlSanitizer.sanitize(dto.getMoTa()));
         category.setThuTuHienThi(dto.getThuTuHienThi() == null ? 0 : dto.getThuTuHienThi());
         category.setActive(dto.isActive());
-        category.setImageUrl(dto.getImageUrl());
+        category.setImageUrl(newImageUrl);
 
         // Set parent — validate to prevent circular reference
         if (dto.getParentId() != null) {
@@ -183,15 +189,21 @@ public class AdminCategoryService {
             category.setParent(null);
         }
 
-        return categoryRepository.saveAndFlush(category);
+        Category saved = categoryRepository.saveAndFlush(category);
+        if (oldImageUrl != null && !oldImageUrl.equals(newImageUrl)) {
+            fileUploadService.deleteAfterCommit(oldImageUrl);
+        }
+        return saved;
     }
 
     @Transactional
     public void clearImageUrl(Integer id) {
         Category category = categoryRepository.findById(id).orElse(null);
         if (category != null) {
+            String oldImage = category.getImageUrl();
             category.setImageUrl(null);
             categoryRepository.save(category);
+            fileUploadService.deleteAfterCommit(oldImage);
         }
     }
 

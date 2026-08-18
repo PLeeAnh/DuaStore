@@ -421,7 +421,7 @@ public class CheckoutController {
     @PostMapping("/api/create")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> apiCreateOrder(@Valid @ModelAttribute("checkoutRequest") CheckoutRequestDTO req,
-            BindingResult result) {
+            BindingResult result, jakarta.servlet.http.HttpServletRequest request) {
         Map<String, Object> res = new HashMap<>();
         Integer userId = getUserId();
         if (userId == null) {
@@ -460,6 +460,26 @@ public class CheckoutController {
             res.put("success", true);
             res.put("orderId", order.getId());
             res.put("maDon", order.getMaDon());
+
+            String paymentMethod = req.getPhuongThucTT();
+            if ("VNPAY".equals(paymentMethod)) {
+                String vnpayUrl = vnpayService.createPaymentUrl("DUASTORE" + order.getId(),
+                        order.getTongThanhToan().longValue(),
+                        "Thanh toan don hang " + order.getMaDon(), request);
+                if (vnpayUrl == null) {
+                    res.put("success", false);
+                    res.put("message", "Cổng thanh toán VNPAY chưa được cấu hình, vui lòng liên hệ quản trị viên");
+                    return ResponseEntity.ok(res);
+                }
+                res.put("redirectType", "VNPAY");
+                res.put("vnpayUrl", vnpayUrl);
+            } else if ("CHUYEN_KHOAN".equals(paymentMethod)) {
+                res.put("redirectType", "CHUYEN_KHOAN");
+                res.put("redirectUrl", "/checkout/chuyen-khoan/" + order.getId());
+            } else {
+                res.put("redirectType", "SUCCESS");
+                res.put("redirectUrl", "/checkout/thanh-cong/" + order.getId());
+            }
         } catch (RuntimeException e) {
             res.put("success", false);
             res.put("message", e.getMessage());
@@ -616,15 +636,20 @@ public class CheckoutController {
         }
         try {
             int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-            Order order = orderService.getOrderByUserAndId(getUserId(), orderId);
+            Order order = orderService.getOrderById(orderId);
+            if (!"VNPAY".equals(order.getPhuongThucTT())) {
+                model.addAttribute("error", "Đơn hàng không phải thanh toán qua VNPAY");
+                return "view/client/payment-fail";
+            }
             long expectedAmount = order.getTongThanhToan().longValue() * 100L;
             if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
                 model.addAttribute("error", "Số tiền giao dịch không khớp với đơn hàng");
                 return "view/client/payment-fail";
             }
-            orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
-            order = orderService.getOrderByUserAndId(getUserId(), orderId);
-            model.addAttribute("order", orderService.convertToDTO(order));
+            if (!"DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+            }
         } catch (Exception e) {
             model.addAttribute("error", "Không tìm thấy đơn hàng");
             return "view/client/payment-fail";
@@ -640,29 +665,45 @@ public class CheckoutController {
         if ("true".equals(result.get("success"))
                 && "00".equals(result.get("responseCode"))) {
             String txnRef = result.get("txnRef");
-            if (txnRef != null) {
-                try {
-                    int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-                    Order order = orderService.getOrderById(orderId);
-                    long expectedAmount = order.getTongThanhToan().longValue() * 100L;
-                    if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
-                        response.put("RspCode", "04");
-                        response.put("Message", "Amount mismatch");
-                    } else {
-                        orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
-                        response.put("RspCode", "00");
-                        response.put("Message", "Confirm Success");
-                    }
-                } catch (Exception e) {
-                    response.put("RspCode", "99");
-                    response.put("Message", "Order not found");
-                }
-            } else {
+            if (txnRef == null) {
                 response.put("RspCode", "99");
                 response.put("Message", "Invalid TxnRef");
+                return ResponseEntity.ok(response);
+            }
+            try {
+                int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
+                Order order = orderService.getOrderById(orderId);
+                long expectedAmount = order.getTongThanhToan().longValue() * 100L;
+                if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
+                    response.put("RspCode", "04");
+                    response.put("Message", "Amount mismatch");
+                    return ResponseEntity.ok(response);
+                }
+                if (!"VNPAY".equals(order.getPhuongThucTT())) {
+                    response.put("RspCode", "01");
+                    response.put("Message", "Order not found");
+                    return ResponseEntity.ok(response);
+                }
+                if ("DA_HUY".equals(order.getTrangThaiDon())) {
+                    response.put("RspCode", "09");
+                    response.put("Message", "Order cancelled");
+                    return ResponseEntity.ok(response);
+                }
+                if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                    response.put("RspCode", "02");
+                    response.put("Message", "Order already confirmed");
+                    return ResponseEntity.ok(response);
+                }
+                orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+                response.put("RspCode", "00");
+                response.put("Message", "Confirm Success");
+            } catch (Exception e) {
+                response.put("RspCode", "99");
+                response.put("Message", "Order not found");
             }
         } else {
-            response.put("RspCode", "99");
+            response.put("RspCode", "97");
             response.put("Message", "Invalid signature");
         }
         return ResponseEntity.ok(response);
@@ -695,11 +736,12 @@ public class CheckoutController {
         boolean paymentEnabled = switch (paymentMethod) {
             case "COD" -> "1".equals(paymentSettings.getOrDefault("payment_cod", "1"));
             case "CHUYEN_KHOAN" -> "1".equals(paymentSettings.getOrDefault("payment_bank", "1"));
-            case "VNPAY" -> "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1"));
-            default -> true;
+            case "VNPAY" -> "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1"))
+                    && vnpayService.isConfigured();
+            default -> false;
         };
         if (!paymentEnabled) {
-            throw new RuntimeException("Phương thức thanh toán " + paymentMethod + " hiện đang tạm tắt");
+            throw new RuntimeException("Phương thức thanh toán " + paymentMethod + " hiện không khả dụng");
         }
     }
 }

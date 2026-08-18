@@ -16,7 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -162,8 +162,9 @@ class RefundServiceTest {
 
         RefundRequest req = refundService.create(createRequest(user.getId()));
         refundService.approve(req.getId(), admin.getId(), null);
+        refundService.completeRefund(req.getId(), admin.getId(), "Hoàn tiền");
 
-        LocalDate today = LocalDate.now();
+        LocalDateTime today = LocalDateTime.now();
         assertThat(refundService.getCompletedCount(today.minusDays(1), today.plusDays(1))).isEqualTo(1);
     }
 
