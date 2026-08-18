@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -28,6 +29,12 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Integer> {
 
     @Query("SELECT COALESCE(SUM(oi.soLuong), 0) FROM OrderItem oi WHERE oi.productId = :productId AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH')")
     long sumSoldQuantityByProductId(@Param("productId") Integer productId);
+
+    @Query("SELECT oi.productId, SUM(oi.soLuong) FROM OrderItem oi "
+            + "WHERE oi.productId IN :ids "
+            + "AND (oi.order.trangThaiDon = 'DA_GIAO' OR oi.order.trangThaiDon = 'DA_HOAN_THANH') "
+            + "GROUP BY oi.productId")
+    List<Object[]> sumSoldByProductIds(@Param("ids") Collection<Integer> ids);
 
     @Query("SELECT oi.variantId, SUM(oi.soLuong) FROM OrderItem oi "
             + "WHERE oi.variantId IS NOT NULL "

@@ -146,6 +146,20 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('checkoutCopyPromo').style.display = '';
     }
 
+    /* ── Idempotency: khoa submit 1 lan, kem idempotencyKey cho checkout ── */
+    var keyInput = document.getElementById('checkoutIdempotencyKey');
+    if (keyInput) {
+        keyInput.value = 'ck-' + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+    }
+    var submitBtn = document.getElementById('checkoutSubmitBtn');
+    var form = document.getElementById('checkoutForm');
+    if (submitBtn && form) {
+        form.addEventListener('submit', function () {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Đang xử lý...';
+        });
+    }
+
     document.querySelectorAll('.btn-address-edit').forEach(function (btn) {
         btn.addEventListener('click', function () {
             editAddress(parseInt(this.getAttribute('data-id')));

@@ -150,27 +150,30 @@
 
         <div class="adm-table-wrap">
             <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle mb-0">
+            <table class="table table-sm table-hover align-middle mb-0 adm-order-table">
                 <thead>
                     <tr>
                         <th style="width:40px">
                             <input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)" />
                         </th>
-                        <th>#</th>
-                        <th>Mã ĐH</th>
-                        <th>Khách hàng</th>
-                        <th>Tổng tiền</th>
-                        <th style="min-width:120px">Trạng thái</th>
-                        <th style="min-width:120px">Thanh toán</th>
-                        <th style="width:60px">Cảnh báo</th>
-                        <th>Ngày đặt</th>
-                        <th></th>
+                        <th style="width:40px">#</th>
+                        <th style="width:110px">Mã ĐH</th>
+                        <th style="width:200px">Khách hàng</th>
+                        <th style="width:130px">Tổng tiền</th>
+                        <th style="width:130px">Trạng thái</th>
+                        <th style="width:130px">Thanh toán</th>
+                        <th style="width:90px">Cảnh báo</th>
+                        <th style="width:130px">Ngày đặt</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="o, iter : ${orders}">
+                    <tr th:each="o, iter : ${orders}"
+                        style="cursor:pointer"
+                        th:onclick="|location.href='/admin/don-hang/${o.id}'|"
+                        th:title="'Xem chi tiết đơn ' + ${o.maDon}">
                         <td>
-                            <input type="checkbox" class="order-checkbox" th:value="${o.id}" onchange="updateBatchBar()" />
+                            <input type="checkbox" class="order-checkbox" th:value="${o.id}"
+                                   onclick="event.stopPropagation()" onchange="updateBatchBar()" />
                         </td>
                         <td class="text-muted small" th:text="${iter.index + 1 + currentPage * pageSize}"></td>
                         <td><strong th:text="${o.maDon}"></strong></td>
@@ -199,20 +202,15 @@
                             </span>
                         </td>
                         <td>
-                            <span th:if="${o.fraudWarning != null}"
-                                  class="badge bg-warning text-dark"
-                                  th:title="${o.fraudWarning}"
-                                  style="cursor:help;font-size:11px">
-                                <i class="bi bi-exclamation-triangle me-1"></i>Gian lận
+                            <span th:if="${o.fraudWarning != null}" class="adm-risk-line high"
+                                  th:title="${o.fraudWarning}">
+                                <span class="adm-risk-dot adm-risk-high"></span>Gian lận
                             </span>
                         </td>
                         <td class="small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td>
-                            <a th:href="@{/admin/don-hang/{id}(id=${o.id})}" class="btn btn-sm btn-outline-primary px-2 py-0">Chi tiết</a>
-                        </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(orders)}">
-                        <td colspan="10" class="text-muted text-center py-4">Chưa có đơn hàng</td>
+                        <td colspan="9" class="text-muted text-center py-4">Chưa có đơn hàng</td>
                     </tr>
                 </tbody>
             </table>

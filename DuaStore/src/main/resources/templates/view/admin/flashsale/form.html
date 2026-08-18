@@ -36,7 +36,6 @@
             <div class="adm-card-body">
                 <form th:action="@{/admin/flash-sale/save}" th:object="${flashSale}" method="post" data-dirty-bar class="row g-3">
                     <input type="hidden" th:field="*{id}" />
-
                     <div class="col-md-10">
                         <label class="form-label">Tên chương trình <span class="text-danger">*</span></label>
                         <input type="text" th:field="*{tenChuongTrinh}" class="form-control" required />

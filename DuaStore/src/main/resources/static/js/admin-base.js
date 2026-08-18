@@ -89,11 +89,15 @@ document.addEventListener('click', function(e) {
     });
 })();
 
-/* ── Notification polling ── */
+/* ── Notification: WS realtime (admin-socket.js) + poll fallback 30s khi WS chet ── */
 (function() {
     const badge = document.getElementById('staffNotifBadge');
     if (badge) {
         setInterval(function() {
+            /* Neu WS dang song thi PUSH da cap nhat badge roi, khong can poll. */
+            if (window.DuaAdminNotifSocket && window.DuaAdminNotifSocket.isConnected()) {
+                return;
+            }
             fetch('/admin/thong-bao/api/count')
                 .then(r => r.text())
                 .then(count => {

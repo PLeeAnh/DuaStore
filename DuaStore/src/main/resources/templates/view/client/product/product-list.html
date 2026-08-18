@@ -313,6 +313,8 @@
         </div>
 
 
-    <script th:src="@{/js/client-product-list.js(v=1)}"></script>
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/client-product-list.js(v=1)}"></script>
+    </th:block>
     </body>
 </html>

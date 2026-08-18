@@ -49,6 +49,7 @@ public class OrderService {
     private final FlashSaleItemRepository flashSaleItemRepository;
     private final LoyaltyPointsService loyaltyPointsService;
     private final MultiCarrierShippingService multiCarrierShippingService;
+    private final CheckoutIdempotencyService checkoutIdempotencyService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             CartService cartService, AddressRepository addressRepository,
@@ -64,7 +65,8 @@ public class OrderService {
             FlashSaleRepository flashSaleRepository,
             FlashSaleItemRepository flashSaleItemRepository,
             LoyaltyPointsService loyaltyPointsService,
-            MultiCarrierShippingService multiCarrierShippingService) {
+            MultiCarrierShippingService multiCarrierShippingService,
+            CheckoutIdempotencyService checkoutIdempotencyService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -83,6 +85,40 @@ public class OrderService {
         this.flashSaleItemRepository = flashSaleItemRepository;
         this.loyaltyPointsService = loyaltyPointsService;
         this.multiCarrierShippingService = multiCarrierShippingService;
+        this.checkoutIdempotencyService = checkoutIdempotencyService;
+    }
+
+    /**
+     * Dat hang co idempotency key — chong tao don trung khi khach bam submit nhieu lan
+     * hoac mang chan rui bam lai. Cung key se chi tao 1 don duy nhat.
+     */
+    @Transactional
+    public Order processCheckoutIdempotent(Integer userId, Integer addressId, String phuongThucTT,
+            String phuongThucGiaoHang, String maCode, String ghiChu, int pointsToRedeem,
+            Set<Integer> selectedVariantIds, String shippingCarrier, String idempotencyKey) {
+        return checkoutIdempotencyService.execute(idempotencyKey,
+                () -> processCheckout(userId, addressId, phuongThucTT, phuongThucGiaoHang,
+                        maCode, ghiChu, pointsToRedeem, selectedVariantIds, shippingCarrier));
+    }
+
+    /**
+     * Xac nhan don hang da thanh toan — IDEMPOTENT + lock PESSIMISTIC_WRITE.
+     *
+     * Return true neu lan DAU tien chuyen CHUA_THANH_TOAN -> DA_THANH_TOAN (co log).
+     * Return false neu don da duoc thanh toan truoc do hoac khong hop le — goi lai an toan.
+     * Dieu nay giai quyet tinh huong khach bam "Đã thanh toán" nhieu lan ma chi chay 1 lan.
+     */
+    @Transactional
+    public boolean confirmPaid(Integer orderId) {
+        Order order = orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+            return false;
+        }
+        order.setTrangThaiTT("DA_THANH_TOAN");
+        orderRepository.save(order);
+        orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+        return true;
     }
 
     @Transactional

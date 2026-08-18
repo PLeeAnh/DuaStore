@@ -65,23 +65,34 @@ public class AdminProductService {
     }
 
     public List<String> getDistinctThuongHieu() {
-        return productRepository.findDistinctThuongHieu();
+        return distinctValuesOrderedByUsage(productRepository.findThuongHieuCounts());
     }
 
     public List<String> getDistinctChatLieu() {
-        return productRepository.findDistinctChatLieu();
+        return distinctValuesOrderedByUsage(productRepository.findChatLieuCounts());
     }
 
     public List<String> getDistinctXuatXu() {
-        return productRepository.findDistinctXuatXu();
+        return distinctValuesOrderedByUsage(productRepository.findXuatXuCounts());
     }
 
     public List<String> getDistinctKinhLoai() {
-        return productRepository.findDistinctKinhLoai();
+        return distinctValuesOrderedByUsage(productRepository.findKinhLoaiCounts());
     }
 
     public List<String> getDistinctMucDichSuDung() {
-        return productRepository.findDistinctMucDichSuDung();
+        return distinctValuesOrderedByUsage(productRepository.findMucDichSuDungCounts());
+    }
+
+    private List<String> distinctValuesOrderedByUsage(List<Object[]> rows) {
+        if (rows == null) return new ArrayList<>();
+        List<String> values = new ArrayList<>();
+        for (Object[] row : rows) {
+            if (row[0] != null) {
+                values.add(String.valueOf(row[0]));
+            }
+        }
+        return values;
     }
 
     public Map<Integer, Integer> getTotalStockMap(List<Product> products) {
