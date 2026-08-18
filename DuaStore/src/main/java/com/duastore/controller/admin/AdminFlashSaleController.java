@@ -119,27 +119,53 @@ public class AdminFlashSaleController {
             + "@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_UPDATE)")
     public String save(@Valid @ModelAttribute("flashSale") FlashSaleFormDTO dto,
             BindingResult result, Model model, RedirectAttributes ra) {
+        boolean isNew = dto.getId() == null;
         if (result.hasErrors()) {
-            model.addAttribute("flashSale", dto);
-            model.addAttribute("isNew", dto.getId() == null);
-            model.addAttribute("title", "flash-sale");
+            String firstError = result.getAllErrors().isEmpty() ? null : result.getAllErrors().get(0).getDefaultMessage();
+            if (firstError != null) {
+                model.addAttribute("errorMsg", firstError);
+            }
+            populateFormModel(model, dto, isNew);
             return "view/admin/flashsale/form";
         }
         try {
-            boolean isNew = dto.getId() == null;
             FlashSale saved = flashSaleService.save(dto);
             ra.addFlashAttribute("successMsg", "Lưu Flash Sale thành công");
             if (isNew) {
                 return "redirect:/admin/flash-sale/edit/" + saved.getId();
             }
         } catch (Exception e) {
-            model.addAttribute("flashSale", dto);
-            model.addAttribute("isNew", dto.getId() == null);
             model.addAttribute("errorMsg", e.getMessage());
-            model.addAttribute("title", "flash-sale");
+            populateFormModel(model, dto, isNew);
             return "view/admin/flashsale/form";
         }
         return "redirect:/admin/flash-sale";
+    }
+
+    private void populateFormModel(Model model, FlashSaleFormDTO dto, boolean isNew) {
+        model.addAttribute("flashSale", dto);
+        model.addAttribute("isNew", isNew);
+        model.addAttribute("title", "flash-sale");
+        model.addAttribute("promotionTab", "flash-sale");
+        model.addAttribute("products", productRepository.findByIsActiveTrueOrderByNgayTaoDesc());
+        model.addAttribute("flashSaleItem", new FlashSaleItemFormDTO());
+        if (isNew || dto.getId() == null) {
+            model.addAttribute("items", new ArrayList<FlashSaleItem>());
+            return;
+        }
+        try {
+            FlashSale fs = flashSaleService.getById(dto.getId());
+            model.addAttribute("flashSaleId", fs.getId());
+            model.addAttribute("items", fs.getItems());
+            model.addAttribute("itemProductMap", buildItemProductMap(fs.getItems()));
+            model.addAttribute("itemVariantMap", buildItemVariantMap(fs.getItems()));
+            model.addAttribute("status", pricingService.getEventStatus(fs));
+            model.addAttribute("revenue", pricingService.sumRevenue(fs));
+            model.addAttribute("sold", pricingService.sumSold(fs));
+        } catch (Exception ex) {
+            model.addAttribute("flashSaleId", dto.getId());
+            model.addAttribute("items", new ArrayList<FlashSaleItem>());
+        }
     }
 
     @PostMapping("/{id}/items")

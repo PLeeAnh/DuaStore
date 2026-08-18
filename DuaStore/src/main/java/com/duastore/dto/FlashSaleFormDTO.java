@@ -24,11 +24,11 @@ public class FlashSaleFormDTO {
     private String moTa;
 
     @NotNull(message = "Ngày bắt đầu không được để trống")
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime ngayBatDau;
 
     @NotNull(message = "Ngày kết thúc không được để trống")
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime ngayKetThuc;
 
     private Boolean isActive = true;
