@@ -17,6 +17,7 @@ import com.duastore.service.EmailService;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.RefundPolicyService;
 import com.duastore.service.SiteSettingService;
+import com.duastore.service.VNPAYService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +47,7 @@ public class RefundService {
     private final RefundPolicyService refundPolicyService;
     private final EmailService emailService;
     private final SiteSettingService siteSettingService;
+    private final VNPAYService vnpayService;
 
     public RefundService(RefundRequestRepository refundRequestRepository,
             OrderRepository orderRepository,
@@ -54,7 +57,8 @@ public class RefundService {
             LoyaltyPointsService loyaltyPointsService,
             RefundPolicyService refundPolicyService,
             EmailService emailService,
-            SiteSettingService siteSettingService) {
+            SiteSettingService siteSettingService,
+            VNPAYService vnpayService) {
         this.refundRequestRepository = refundRequestRepository;
         this.orderRepository = orderRepository;
         this.productVariantRepository = productVariantRepository;
@@ -64,6 +68,7 @@ public class RefundService {
         this.refundPolicyService = refundPolicyService;
         this.emailService = emailService;
         this.siteSettingService = siteSettingService;
+        this.vnpayService = vnpayService;
     }
 
     @Transactional(readOnly = true)
@@ -267,15 +272,55 @@ public class RefundService {
 
         BigDecimal actualRefund = request.getSoTienThucTeHoan() != null ? request.getSoTienThucTeHoan() : request.getSoTienHoan();
         request.setSoTienThucTeHoan(actualRefund);
-        request.setPhuongThucHoanTien("CHUYEN_KHOAN");
+        
+        // Nếu thanh toán VNPAY, gọi API refund VNPAY
+        Order order = orderRepository.findById(request.getOrderId()).orElse(null);
+        if (order != null && "VNPAY".equals(order.getPhuongThucTT()) && vnpayService.isConfigured()) {
+            try {
+                // Lấy thông tin giao dịch VNPAY từ order
+                String txnRef = "DUASTORE" + order.getId(); // txnRef format used when creating payment
+                long amount = actualRefund.multiply(BigDecimal.valueOf(100)).longValue(); // VNPAY amount in cents
+                String transactionNo = order.getMaVanDon(); // VNPAY transaction number
+                String transactionDate = order.getNgayDat() != null ? 
+                    new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(java.util.Date.from(order.getNgayDat().atZone(java.time.ZoneId.systemDefault()).toInstant())) 
+                    : new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+                
+                Map<String, String> refundResult = vnpayService.refundTransaction(
+                        txnRef,
+                        amount,
+                        transactionNo != null ? transactionNo : "0",
+                        transactionDate,
+                        "admin",
+                        "Hoan tien don hang #" + order.getId(),
+                        "127.0.0.1"
+                );
+                
+                if ("true".equals(refundResult.get("success")) && "00".equals(refundResult.get("vnp_ResponseCode"))) {
+                    request.setPhuongThucHoanTien("VNPAY_REFUND");
+                    request.setMaVanDonTra(refundResult.get("vnp_TransactionNo"));
+                    log.info("VNPAY refund successful for order {}: {}", order.getMaDon(), refundResult);
+                } else {
+                    log.warn("VNPAY refund failed for order {}: {}", order.getMaDon(), refundResult);
+                    request.setPhuongThucHoanTien("VNPAY_REFUND_FAILED");
+                    request.setGhiChuXuLy(ghiChu + " | VNPAY refund failed: " + refundResult.get("message"));
+                }
+            } catch (Exception e) {
+                log.error("Error calling VNPAY refund for order {}: {}", request.getOrderId(), e.getMessage(), e);
+                request.setPhuongThucHoanTien("VNPAY_REFUND_ERROR");
+                request.setGhiChuXuLy(ghiChu + " | VNPAY refund error: " + e.getMessage());
+            }
+        } else {
+            request.setPhuongThucHoanTien("CHUYEN_KHOAN");
+        }
+        
         refundRequestRepository.save(request);
 
-        orderRepository.findById(request.getOrderId()).ifPresent(order -> {
-            String oldStatus = order.getTrangThaiDon();
-            order.setTrangThaiDon("DA_HOAN_TIEN");
-            orderRepository.save(order);
+        orderRepository.findById(request.getOrderId()).ifPresent(o -> {
+            String oldStatus = o.getTrangThaiDon();
+            o.setTrangThaiDon("DA_HOAN_TIEN");
+            orderRepository.save(o);
             User admin = userRepository.findById(adminId).orElse(null);
-            orderStatusLogService.ghiLog(order, OrderEventType.REFUND_ORDER, admin,
+            orderStatusLogService.ghiLog(o, OrderEventType.REFUND_ORDER, admin,
                     oldStatus, "DA_HOAN_TIEN", "Hoàn tiền: " + actualRefund + " VNĐ. " + ghiChu);
         });
 

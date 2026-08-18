@@ -181,7 +181,31 @@ public class PricingService {
             return false;
         }
         int daBan = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
-        return daBan < item.getSoLuongToiDa();
+        
+        // Check item-level quota
+        if (daBan >= item.getSoLuongToiDa()) {
+            return false;
+        }
+        
+        // Check event-level quota (calculated from items)
+        FlashSale event = item.getFlashSale();
+        if (event != null && event.getItems() != null) {
+            int eventDaBan = event.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongDaBan() == null ? 0 : i.getSoLuongDaBan())
+                    .sum();
+            
+            Integer eventMax = event.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongToiDa() == null ? 0 : i.getSoLuongToiDa())
+                    .sum();
+            
+            if (eventMax != null && eventMax > 0 && eventDaBan >= eventMax) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     public boolean isFlashSaleItemUsable(FlashSaleItem item) {
@@ -196,16 +220,41 @@ public class PricingService {
     }
 
     public boolean incrementSoldQuantity(FlashSaleItem item, int soLuong) {
+        if (item == null) {
+            return false;
+        }
         int current = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
         int newSold = current + soLuong;
         if (newSold > item.getSoLuongToiDa()) {
             return false;
         }
+        
+        // Check event-level quota (calculated from items)
+        FlashSale event = item.getFlashSale();
+        if (event != null && event.getItems() != null) {
+            int eventMax = event.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongToiDa() == null ? 0 : i.getSoLuongToiDa())
+                    .sum();
+            
+            int eventDaBan = event.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongDaBan() == null ? 0 : i.getSoLuongDaBan())
+                    .sum();
+            
+            if (eventMax > 0 && eventDaBan + soLuong > eventMax) {
+                return false;
+            }
+        }
+        
         item.setSoLuongDaBan(newSold);
         return true;
     }
 
     public void decrementSoldQuantity(FlashSaleItem item, int soLuong) {
+        if (item == null) {
+            return;
+        }
         int current = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
         item.setSoLuongDaBan(Math.max(0, current - soLuong));
     }
