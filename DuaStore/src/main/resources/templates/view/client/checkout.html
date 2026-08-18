@@ -35,6 +35,7 @@
                             </div>
 
                             <form th:action="@{/checkout}" th:object="${checkoutRequest}" method="post" id="checkoutForm">
+                                <input type="hidden" name="idempotencyKey" id="checkoutIdempotencyKey" />
 
                                 <!-- Address -->
                                 <div class="card border-0 shadow-sm mb-3">
@@ -236,7 +237,7 @@
                                         <span>Tổng cộng</span>
                                         <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 30000), 0, 'POINT', 0, 'POINT')} + '₫'" id="totalDisplay"></span>
                                     </div>
-                                    <button type="submit" form="checkoutForm" class="ds-btn-checkout w-100">Đặt hàng</button>
+                                    <button type="submit" form="checkoutForm" class="ds-btn-checkout w-100" id="checkoutSubmitBtn">Đặt hàng</button>
                                 </div>
                             </div>
                         </div>

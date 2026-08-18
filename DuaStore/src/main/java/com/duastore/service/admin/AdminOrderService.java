@@ -57,6 +57,7 @@ public class AdminOrderService {
     private final FlashSaleItemRepository flashSaleItemRepository;
     private final PricingService pricingService;
     private final UserRepository userRepository;
+    private final com.duastore.service.client.OrderService clientOrderService;
 
     public AdminOrderService(OrderRepository orderRepository,
             AdminLogService adminLogService,
@@ -68,7 +69,8 @@ public class AdminOrderService {
             LoyaltyPointsService loyaltyPointsService,
             FlashSaleItemRepository flashSaleItemRepository,
             PricingService pricingService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            com.duastore.service.client.OrderService clientOrderService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
@@ -80,6 +82,7 @@ public class AdminOrderService {
         this.flashSaleItemRepository = flashSaleItemRepository;
         this.pricingService = pricingService;
         this.userRepository = userRepository;
+        this.clientOrderService = clientOrderService;
     }
 
     @Transactional
@@ -149,6 +152,9 @@ public class AdminOrderService {
         }
         if ("DA_HOAN_THANH".equals(trangThaiDon)) {
             order.setTrangThaiTT("DA_THANH_TOAN");
+        }
+        if ("DA_GIAO".equals(trangThaiDon) && order.getNgayGiao() == null) {
+            order.setNgayGiao(java.time.LocalDateTime.now());
         }
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
@@ -227,6 +233,7 @@ public class AdminOrderService {
                 loyaltyPointsService.refundRedeemedPointsForOrder(order.getUser().getId(), id);
             }
             restoreFlashSaleQuota(id);
+            clientOrderService.restoreVoucherForOrder(id);
             order.setTrangThaiDon("DA_HUY");
             orderRepository.save(order);
             orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, "DA_HUY",
@@ -245,6 +252,10 @@ public class AdminOrderService {
             adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
                     oldPayment, "DA_THANH_TOAN",
                     "Xác nhận thanh toán khi hoàn thành đơn (admin xác nhận thay khách)", request);
+        }
+
+        if ("DA_GIAO".equals(trangThaiDon) && order.getNgayGiao() == null) {
+            order.setNgayGiao(java.time.LocalDateTime.now());
         }
 
         order.setTrangThaiDon(trangThaiDon);
@@ -288,6 +299,7 @@ public class AdminOrderService {
         Order order = orderRepository.findById(id).orElse(null);
         if (order != null && order.getUser() != null) {
             loyaltyPointsService.refundRedeemedPointsForOrder(order.getUser().getId(), id);
+            clientOrderService.restoreVoucherForOrder(id);
             restoreFlashSaleQuota(id);
         }
         orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, null,

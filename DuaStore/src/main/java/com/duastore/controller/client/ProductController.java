@@ -36,6 +36,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Comparator;
@@ -75,6 +76,60 @@ public class ProductController {
             id = cat.getParent() != null ? cat.getParent().getId() : null;
         }
         return path;
+    }
+
+    /**
+     * Check if a promotion applies to a given product based on targetType and targetIds.
+     * targetType: ALL (or null) -> applies to all products
+     * targetType: CATEGORY -> product's category (or parent) must be in targetIds
+     * targetType: PRODUCT -> product's id must be in targetIds
+     * targetType: USER_GROUP -> requires user context, default to true for now
+     */
+    private boolean isPromotionApplicableToProduct(Promotion promo, Product product) {
+        if (promo == null || product == null) {
+            return false;
+        }
+        String targetType = promo.getTargetType();
+        String targetIds = promo.getTargetIds();
+
+        if (targetType == null || targetType.isBlank() || "ALL".equalsIgnoreCase(targetType)) {
+            return true;
+        }
+        if (targetIds == null || targetIds.isBlank()) {
+            return false;
+        }
+
+        Set<String> targetIdSet = Arrays.stream(targetIds.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+
+        if (targetIdSet.isEmpty()) {
+            return false;
+        }
+
+        switch (targetType.toUpperCase()) {
+            case "CATEGORY":
+                Integer catId = product.getDanhMucId();
+                if (catId != null && targetIdSet.contains(catId.toString())) {
+                    return true;
+                }
+                // Check parent category
+                if (catId != null) {
+                    Category cat = categoryRepository.findById(catId).orElse(null);
+                    if (cat != null && cat.getParent() != null && targetIdSet.contains(cat.getParent().getId().toString())) {
+                        return true;
+                    }
+                }
+                return false;
+            case "PRODUCT":
+                return targetIdSet.contains(product.getId().toString());
+            case "USER_GROUP":
+                // Requires user context, default to applicable
+                return true;
+            default:
+                return false;
+        }
     }
 
     public ProductController(ProductService productService,
@@ -201,6 +256,38 @@ public class ProductController {
         LocalDateTime now = LocalDateTime.now();
         List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
         model.addAttribute("activePromotions", activePromotions);
+
+        // Filter promotions applicable to each product
+        Map<Integer, Promotion> productBestPercentagePromoMap = new HashMap<>();
+        Map<Integer, Promotion> productBestFixedPromoMap = new HashMap<>();
+
+        for (Product product : products) {
+            List<Promotion> applicablePromos = activePromotions.stream()
+                    .filter(p -> isPromotionApplicableToProduct(p, product))
+                    .toList();
+
+            Promotion bestPctPromo = applicablePromos.stream()
+                    .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                    .filter(p -> p.getGiaTriGiam().compareTo(new BigDecimal("100")) <= 0)
+                    .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                    .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                    .orElse(null);
+
+            Promotion bestFixedPromo = applicablePromos.stream()
+                    .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+                    .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                    .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                    .orElse(null);
+
+            if (bestPctPromo != null) {
+                productBestPercentagePromoMap.put(product.getId(), bestPctPromo);
+            }
+            if (bestFixedPromo != null) {
+                productBestFixedPromoMap.put(product.getId(), bestFixedPromo);
+            }
+        }
+
+        // Global best promos (for products without specific match)
         BigDecimal maxPct = new BigDecimal("100");
         Promotion bestPercentagePromo = activePromotions.stream()
                 .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
@@ -215,16 +302,28 @@ public class ProductController {
                 .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
+        model.addAttribute("productBestPercentagePromoMap", productBestPercentagePromoMap);
+        model.addAttribute("productBestFixedPromoMap", productBestFixedPromoMap);
 
-        // Pre‑compute promo discounted price for the first variant per product (for button text)
+        // Pre‑compute promo discounted price per variant (product-specific promos)
         Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
-        if (bestPercentagePromo != null) {
-            BigDecimal discountPct = bestPercentagePromo.getGiaTriGiam();
-            boolean hasGiamToiDa = bestPercentagePromo.getGiamToiDa() != null;
-            for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
-                Integer productId = entry.getKey();
-                List<ProductVariant> pvList = entry.getValue();
+
+        for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
+            Integer productId = entry.getKey();
+            List<ProductVariant> pvList = entry.getValue();
+
+            // Get product-specific best promos
+            Promotion productPctPromo = productBestPercentagePromoMap.get(productId);
+            Promotion productFixedPromo = productBestFixedPromoMap.get(productId);
+
+            // Use global promos as fallback
+            Promotion pctPromo = productPctPromo != null ? productPctPromo : bestPercentagePromo;
+            Promotion fixedPromo = productFixedPromo != null ? productFixedPromo : bestFixedPromo;
+
+            if (pctPromo != null) {
+                BigDecimal discountPct = pctPromo.getGiaTriGiam();
+                boolean hasGiamToiDa = pctPromo.getGiamToiDa() != null;
                 for (ProductVariant pv : pvList) {
                     BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                     if (basePrice != null) {
@@ -234,8 +333,8 @@ public class ProductController {
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
                                     .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                            if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
-                                raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
+                            if (actualDiscount.compareTo(pctPromo.getGiamToiDa()) > 0) {
+                                raw = basePrice.subtract(pctPromo.getGiamToiDa());
                             }
                         }
                         variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
@@ -251,71 +350,40 @@ public class ProductController {
                         if (hasGiamToiDa) {
                             BigDecimal actualDiscount = basePrice.multiply(discountPct)
                                     .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                            if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
-                                raw = basePrice.subtract(bestPercentagePromo.getGiamToiDa());
+                            if (actualDiscount.compareTo(pctPromo.getGiamToiDa()) > 0) {
+                                raw = basePrice.subtract(pctPromo.getGiamToiDa());
                             }
                         }
                         promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
                     }
                 }
             }
+            // TODO: Handle fixed amount promos (SO_TIEN) if needed
         }
         model.addAttribute("promoPriceMap", promoPriceMap);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
 
-        // Best discount % per product (variant discount + promotion + flash sale)
-        Map<Integer, Integer> bestDiscountMap = new HashMap<>();
+        // Pre-compute best price per variant (base, flash sale, promo)
+        Map<Integer, BigDecimal> variantBestPriceMap = new HashMap<>();
         for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
             Integer productId = entry.getKey();
-            List<ProductVariant> pvList = entry.getValue();
-            if (pvList.isEmpty()) continue;
-            ProductVariant first = pvList.get(0);
-            BigDecimal giaGoc = first.getGiaGoc();
-            if (giaGoc == null) giaGoc = BigDecimal.ZERO;
-            BigDecimal bestPrice = giaGoc;
-            int bestPct = 0;
-            if (first.getGiaKhuyenMai() != null && first.getGiaKhuyenMai().compareTo(bestPrice) < 0) {
-                bestPrice = first.getGiaKhuyenMai();
-                bestPct = giaGoc.compareTo(BigDecimal.ZERO) > 0
-                        ? giaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
-                                .divide(giaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
-                        : 0;
-            }
-            if (bestPercentagePromo != null) {
-                BigDecimal promoPrice = bestPrice
-                        .multiply(BigDecimal.valueOf(100).subtract(bestPercentagePromo.getGiaTriGiam()))
-                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                if (bestPercentagePromo.getGiamToiDa() != null) {
-                    BigDecimal actualDiscount = bestPrice.multiply(bestPercentagePromo.getGiaTriGiam())
-                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                    if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
-                        promoPrice = bestPrice.subtract(bestPercentagePromo.getGiamToiDa());
-                    }
+            PricingService.FlashSaleOffer offer = flashSaleMap.get(productId);
+            for (ProductVariant pv : entry.getValue()) {
+                BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
+                if (basePrice == null) continue;
+                BigDecimal best = basePrice;
+                // Flash sale price
+                if (offer != null) {
+                    BigDecimal flashPrice = offer.giaSale();
+                    if (flashPrice.compareTo(best) < 0) best = flashPrice;
                 }
-                if (promoPrice.compareTo(bestPrice) < 0) {
-                    bestPrice = promoPrice;
-                    bestPct = giaGoc.compareTo(BigDecimal.ZERO) > 0
-                            ? giaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
-                                    .divide(giaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
-                            : 0;
-                }
+                // Promo price
+                BigDecimal promoPrice = variantPromoPriceMap.get(pv.getId());
+                if (promoPrice != null && promoPrice.compareTo(best) < 0) best = promoPrice;
+                variantBestPriceMap.put(pv.getId(), best);
             }
-            FlashSaleOffer offer = flashSaleMap.get(productId);
-            if (offer != null && offer.bestItem() != null) {
-                BigDecimal fsPrice = offer.bestItem().getGiaSale();
-                if (fsPrice.compareTo(bestPrice) < 0) {
-                    BigDecimal fsGiaGoc = offer.bestItem().getGiaGoc() != null
-                            ? offer.bestItem().getGiaGoc() : giaGoc;
-                    int pct = fsGiaGoc.compareTo(BigDecimal.ZERO) > 0
-                            ? fsGiaGoc.subtract(fsPrice).multiply(BigDecimal.valueOf(100))
-                                    .divide(fsGiaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
-                            : 0;
-                    bestPct = Math.max(bestPct, pct);
-                }
-            }
-            bestDiscountMap.put(productId, bestPct);
         }
-        model.addAttribute("bestDiscountMap", bestDiscountMap);
+        model.addAttribute("variantBestPriceMap", variantBestPriceMap);
 
         // Group variants by cap type for card display
         Map<Integer, Map<String, List<ProductVariant>>> groupedVariantsMap = new HashMap<>();
@@ -449,13 +517,9 @@ public class ProductController {
         }
         model.addAttribute("groupedVariants", grouped);
 
-        try {
-            Integer userId = securityUtil.getCurrentUserId();
-            if (userId != null) {
-                model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
-            }
-        } catch (Exception e) {
-            log.warn("Loi doc likedIds o trang chi tiet san pham: {}", e.getMessage());
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId != null) {
+            model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
         }
 
         // ── Số liệu xã hội thật: đã bán, lượt yêu thích, đánh giá trung bình ──
@@ -466,21 +530,27 @@ public class ProductController {
         // Active promotions for discount badge
         LocalDateTime now = LocalDateTime.now();
         List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
+
+        // Filter promotions applicable to this product
+        List<Promotion> applicablePromos = activePromotions.stream()
+                .filter(p -> isPromotionApplicableToProduct(p, product))
+                .toList();
+
         BigDecimal maxPct = new BigDecimal("100");
-        Promotion bestPercentagePromo = activePromotions.stream()
+        Promotion bestPercentagePromo = applicablePromos.stream()
                 .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
                 .filter(p -> p.getGiaTriGiam().compareTo(maxPct) <= 0)
                 .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
                 .max(Comparator.comparing(Promotion::getGiaTriGiam))
                 .orElse(null);
-        Promotion bestFixedPromo = activePromotions.stream()
+        Promotion bestFixedPromo = applicablePromos.stream()
                 .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
                 .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
                 .max(Comparator.comparing(Promotion::getGiaTriGiam))
                 .orElse(null);
         model.addAttribute("bestPercentagePromo", bestPercentagePromo);
         model.addAttribute("bestFixedPromo", bestFixedPromo);
-        model.addAttribute("productPromotions", activePromotions);
+        model.addAttribute("productPromotions", applicablePromos);
 
         BigDecimal promoDiscountedPrice = null;
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
@@ -525,13 +595,11 @@ public class ProductController {
         }
         model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
+        model.addAttribute("variantBestPriceMap", variantPromoPriceMap);
 
         reviewSize = clampReviewSize(reviewSize);
         Integer currentUserId = null;
-        try {
-            currentUserId = securityUtil.getCurrentUserId();
-        } catch (Exception e) {
-        }
+        currentUserId = securityUtil.getCurrentUserId();
         var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId, reviewRating);
         model.addAttribute("reviews", reviewPageResult.getContent());
         model.addAttribute("reviewCurrentPage", reviewPage);
@@ -541,13 +609,8 @@ public class ProductController {
         model.addAttribute("reviewRating", reviewRating);
         model.addAttribute("ratingDistribution", reviewService.getRatingDistribution(id));
         if (currentUserId != null) {
-            try {
-                model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
-                model.addAttribute("canReview", reviewService.hasCompletedOrderAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
-            } catch (Exception e) {
-                model.addAttribute("hasReviewed", false);
-                model.addAttribute("canReview", false);
-            }
+            model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
+            model.addAttribute("canReview", reviewService.hasCompletedOrderAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
         } else {
             model.addAttribute("hasReviewed", false);
             model.addAttribute("canReview", false);
@@ -619,11 +682,7 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int reviewSize,
             Model model) {
         reviewSize = clampReviewSize(reviewSize);
-        Integer currentUserId = null;
-        try {
-            currentUserId = securityUtil.getCurrentUserId();
-        } catch (Exception e) {
-        }
+        Integer currentUserId = securityUtil.getCurrentUserId();
         var reviewPageResult = reviewService.getApprovedReviews(id, reviewPage, reviewSize, currentUserId, reviewRating);
         model.addAttribute("productId", id);
         model.addAttribute("reviews", reviewPageResult.getContent());
@@ -634,13 +693,8 @@ public class ProductController {
         model.addAttribute("reviewRating", reviewRating);
         model.addAttribute("ratingDistribution", reviewService.getRatingDistribution(id));
         if (currentUserId != null) {
-            try {
-                model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
-                model.addAttribute("canReview", reviewService.hasCompletedOrderAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
-            } catch (Exception e) {
-                model.addAttribute("hasReviewed", false);
-                model.addAttribute("canReview", false);
-            }
+            model.addAttribute("hasReviewed", reviewService.hasReviewed(currentUserId, id));
+            model.addAttribute("canReview", reviewService.hasCompletedOrderAndPurchased(currentUserId, id) && !reviewService.hasReviewed(currentUserId, id));
         } else {
             model.addAttribute("hasReviewed", false);
             model.addAttribute("canReview", false);

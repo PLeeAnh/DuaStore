@@ -30,7 +30,9 @@ public class AutoDescriptionService {
             try {
                 var cat = categoryRepository.findById(Integer.parseInt(categoryId));
                 if (cat.isPresent()) categoryName = cat.get().getTenDanhMuc();
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                // Category not found or parse error, leave empty
+            }
         }
 
         StringBuilder sb = new StringBuilder();

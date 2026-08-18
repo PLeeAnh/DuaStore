@@ -40,15 +40,19 @@ public class PricingService {
 
     public record FlashSaleOffer(
             FlashSale event,
-            FlashSaleItem bestItem
-            ) {
-
+            BigDecimal giaSale,
+            BigDecimal giaGoc,
+            Integer soLuongConLai,
+            Integer soLuongToiDa,
+            Integer soLuongDaBan,
+            Integer percentSold
+    ) {
         public Integer getSoLuongConLai() {
-            return bestItem != null ? bestItem.getSoLuongConLai() : 0;
+            return soLuongConLai;
         }
 
         public int getPercentSold() {
-            return bestItem != null ? bestItem.getPercentSold() : 0;
+            return percentSold;
         }
     }
 
@@ -95,8 +99,7 @@ public class PricingService {
                 ? giaGoc.subtract(best).multiply(new BigDecimal("100")).divide(giaGoc, 0, RoundingMode.DOWN).intValue()
                 : 0;
 
-        return new PriceResult(giaGoc, best, pct, src,
-                "FLASH_SALE".equals(src.name()) ? item : null);
+        return new PriceResult(giaGoc, best, pct, src, "FLASH_SALE".equals(src.name()) ? item : null);
     }
 
     public PriceResult resolvePrice(ProductVariant variant) {
@@ -148,7 +151,16 @@ public class PricingService {
         for (Map.Entry<Integer, FlashSaleItem> e : bestByProduct.entrySet()) {
             FlashSale event = e.getValue().getFlashSale();
             if (event != null) {
-                offers.put(e.getKey(), new FlashSaleOffer(event, e.getValue()));
+                FlashSaleItem item = e.getValue();
+                offers.put(e.getKey(), new FlashSaleOffer(
+                        event,
+                        item.getGiaSale(),
+                        item.getGiaGoc(),
+                        item.getSoLuongConLai(),
+                        item.getSoLuongToiDa(),
+                        item.getSoLuongDaBan(),
+                        item.getPercentSold()
+                ));
             }
         }
         return offers;
@@ -159,12 +171,45 @@ public class PricingService {
         return map.get(productId);
     }
 
-    private boolean hasRemainingQuota(FlashSaleItem item) {
+    private boolean isWithinTimeWindow(FlashSale event) {
+        LocalDateTime now = LocalDateTime.now();
+        return !now.isBefore(event.getNgayBatDau()) && !now.isAfter(event.getNgayKetThuc());
+    }
+
+    public boolean hasRemainingQuota(FlashSaleItem item) {
         if (item == null || item.getSoLuongToiDa() == null) {
             return false;
         }
+        // Check item isActive
+        if (!Boolean.TRUE.equals(item.getIsActive())) {
+            return false;
+        }
         int daBan = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
-        return daBan < item.getSoLuongToiDa();
+        
+        // Check item-level quota
+        if (daBan >= item.getSoLuongToiDa()) {
+            return false;
+        }
+        
+        // Check event-level quota (calculated from items)
+        FlashSale event = item.getFlashSale();
+        if (event != null && event.getItems() != null) {
+            int eventDaBan = event.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongDaBan() == null ? 0 : i.getSoLuongDaBan())
+                    .sum();
+            
+            Integer eventMax = event.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongToiDa() == null ? 0 : i.getSoLuongToiDa())
+                    .sum();
+            
+            if (eventMax != null && eventMax > 0 && eventDaBan >= eventMax) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     public boolean isFlashSaleItemUsable(FlashSaleItem item) {
@@ -178,25 +223,74 @@ public class PricingService {
         return isWithinTimeWindow(event) && hasRemainingQuota(item);
     }
 
-    private boolean isWithinTimeWindow(FlashSale event) {
-        LocalDateTime now = LocalDateTime.now();
-        return !now.isBefore(event.getNgayBatDau()) && !now.isAfter(event.getNgayKetThuc());
-    }
-
+    @Transactional
     public boolean incrementSoldQuantity(FlashSaleItem item, int soLuong) {
+        if (item == null) {
+            return false;
+        }
+        // Check item isActive
+        if (!Boolean.TRUE.equals(item.getIsActive())) {
+            return false;
+        }
         int current = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
         int newSold = current + soLuong;
         if (newSold > item.getSoLuongToiDa()) {
             return false;
         }
+        
+        // Check event-level quota (calculated from items) - need to lock FlashSale parent
+        FlashSale event = item.getFlashSale();
+        if (event != null && event.getItems() != null) {
+            // Lock FlashSale parent to prevent race condition
+            FlashSale lockedEvent = flashSaleRepository.findByIdWithLock(event.getId()).orElse(null);
+            if (lockedEvent == null) {
+                return false;
+            }
+            int eventMax = lockedEvent.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongToiDa() == null ? 0 : i.getSoLuongToiDa())
+                    .sum();
+            
+            int eventDaBan = lockedEvent.getItems().stream()
+                    .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
+                    .mapToInt(i -> i.getSoLuongDaBan() == null ? 0 : i.getSoLuongDaBan())
+                    .sum();
+            
+            if (eventMax > 0 && eventDaBan + soLuong > eventMax) {
+                return false;
+            }
+        }
+        
         item.setSoLuongDaBan(newSold);
         return true;
     }
 
     public void decrementSoldQuantity(FlashSaleItem item, int soLuong) {
+        if (item == null) {
+            return;
+        }
         int current = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
         item.setSoLuongDaBan(Math.max(0, current - soLuong));
     }
+
+    @Transactional
+    public void recalculateMinPrice(Integer productId) {
+        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActiveTrue(productId);
+        BigDecimal min = variants.stream()
+                .filter(v -> v.getGiaGoc() != null)
+                .map(v -> {
+                    BigDecimal p = v.getGiaKhuyenMai();
+                    return (p != null && p.compareTo(v.getGiaGoc()) < 0) ? p : v.getGiaGoc();
+                })
+                .min(java.util.Comparator.naturalOrder())
+                .orElse(BigDecimal.ZERO);
+        productRepository.findById(productId).ifPresent(p -> {
+            p.setMinPrice(min);
+            productRepository.save(p);
+        });
+    }
+
+    // ===== Methods for AdminFlashSaleController =====
 
     public String getEventStatus(FlashSale event) {
         if (event == null) {
@@ -222,11 +316,6 @@ public class PricingService {
         return "DANG_DIEN_RA";
     }
 
-    private boolean isItemSoldOut(FlashSaleItem item) {
-        int daBan = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
-        return item.getSoLuongToiDa() == null || daBan >= item.getSoLuongToiDa();
-    }
-
     public long sumRevenue(FlashSale event) {
         if (event == null || event.getItems() == null) {
             return 0L;
@@ -248,20 +337,8 @@ public class PricingService {
                 .sum();
     }
 
-    @Transactional
-    public void recalculateMinPrice(Integer productId) {
-        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActiveTrue(productId);
-        BigDecimal min = variants.stream()
-                .filter(v -> v.getGiaGoc() != null)
-                .map(v -> {
-                    BigDecimal p = v.getGiaKhuyenMai();
-                    return (p != null && p.compareTo(v.getGiaGoc()) < 0) ? p : v.getGiaGoc();
-                })
-                .min(java.util.Comparator.naturalOrder())
-                .orElse(BigDecimal.ZERO);
-        productRepository.findById(productId).ifPresent(p -> {
-            p.setMinPrice(min);
-            productRepository.save(p);
-        });
+    private boolean isItemSoldOut(FlashSaleItem item) {
+        int daBan = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
+        return item.getSoLuongToiDa() == null || daBan >= item.getSoLuongToiDa();
     }
 }

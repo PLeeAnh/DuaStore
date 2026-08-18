@@ -27,4 +27,7 @@ public class CheckoutRequestDTO {
     private Integer pointsToRedeem;
 
     private List<Integer> selectedIds;
+
+    /** Idempotency key chong dat hang trung (client phat sinh UUID khi mo trang checkout). */
+    private String idempotencyKey;
 }

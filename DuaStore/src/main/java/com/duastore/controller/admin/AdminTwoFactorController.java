@@ -116,7 +116,6 @@ public class AdminTwoFactorController {
 
         session.setAttribute("2faVerified", true);
         session.setAttribute("2faVerifiedAt", java.time.Instant.now().toString());
-        session.removeAttribute("2faUserId");
         return "redirect:/admin";
     }
 }

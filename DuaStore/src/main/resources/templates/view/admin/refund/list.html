@@ -4,11 +4,11 @@
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
     <head>
-        <title>Quản lý hoàn tiền</title>
+        <title>Quản lý hoàn tiền / đổi hàng</title>
     </head>
     <body>
     <th:block layout:fragment="breadcrumb">
-        <li class="breadcrumb-item active" aria-current="page">Hoàn tiền</li>
+        <li class="breadcrumb-item active" aria-current="page">Hoàn tiền / Đổi hàng</li>
     </th:block>
     <div layout:fragment="content">
         <div class="adm-detail-hero">
@@ -18,8 +18,8 @@
                 </div>
                 <div class="flex-grow-1">
                     <div>
-                        <h4>Hoàn tiền</h4>
-                        <div class="adm-detail-meta">Quản lý yêu cầu hoàn tiền từ khách hàng.</div>
+                        <h4>Hoàn tiền / Đổi hàng</h4>
+                        <div class="adm-detail-meta">Quản lý yêu cầu hoàn tiền, đổi size, màu, sản phẩm từ khách hàng.</div>
                     </div>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                 <i class="bi bi-bag-check"></i>Đơn hàng
             </a>
             <a class="adm-tab" th:classappend="${orderTab == 'hoan-tien' ? ' active' : ''}" th:href="@{/admin/hoan-tien}">
-                <i class="bi bi-arrow-return-left"></i>Hoàn tiền
+                <i class="bi bi-arrow-return-left"></i>Hoàn tiền / Đổi hàng
             </a>
         </div>
 
@@ -41,7 +41,26 @@
                     <div class="fw-bold fs-5 text-warning" th:text="${pendingCount}">0</div>
                 </div>
             </div>
+            <div class="col-md-3">
+                <div class="adm-card text-center">
+                    <div class="text-muted small mb-1">Đã duyệt</div>
+                    <div class="fw-bold fs-5 text-primary" th:text="${approvedCount}">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="adm-card text-center">
+                    <div class="text-muted small mb-1">Đã hoàn tiền</div>
+                    <div class="fw-bold fs-5 text-success" th:text="${completedCount}">0</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="adm-card text-center">
+                    <div class="text-muted small mb-1">Từ chối</div>
+                    <div class="fw-bold fs-5 text-danger" th:text="${rejectedCount}">0</div>
+                </div>
+            </div>
         </div>
+
         <div class="adm-table-wrap">
             <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -49,9 +68,11 @@
                     <tr>
                         <th>ID</th>
                         <th>Mã đơn</th>
-                        <th>Người yêu cầu</th>
-                        <th>Số tiền</th>
+                        <th>Loại</th>
                         <th>Lý do</th>
+                        <th>Người yêu cầu</th>
+                        <th>Số tiền yêu cầu</th>
+                        <th>Số tiền thực hoàn</th>
                         <th>Trạng thái</th>
                         <th>Ngày yêu cầu</th>
                         <th>Hành động</th>
@@ -61,30 +82,38 @@
                     <tr th:each="r : ${refunds}">
                         <td th:text="${r.id}"></td>
                         <td th:text="${r.orderId}"></td>
-                        <td th:text="${r.userId}"></td>
-                        <td th:text="${#numbers.formatDecimal(r.soTienHoan, 0, 'POINT', 0, 'POINT')} + '₫'"></td>
                         <td>
-                            <span th:text="${r.lydo != null and r.lydo.length() > 50 ? r.lydo.substring(0, 50) + '...' : r.lydo}" class="text-muted small"></span>
+                            <span class="badge" th:class="${r.loaiYeuCau == 'HOAN_TIEN' ? 'bg-danger' : (r.loaiYeuCau == 'DOI_SIZE' ? 'bg-primary' : (r.loaiYeuCau == 'DOI_MAU' ? 'bg-info' : 'bg-warning'))}"
+                                  th:text="${r.loaiYeuCau == 'HOAN_TIEN' ? 'Hoàn tiền' : (r.loaiYeuCau == 'DOI_SIZE' ? 'Đổi size' : (r.loaiYeuCau == 'DOI_MAU' ? 'Đổi màu' : 'Đổi SP khác'))}"></span>
                         </td>
+                        <td>
+                            <span class="badge" th:class="${r.lyDoChiTiet == 'LOI_HANG' ? 'bg-danger' : (r.lyDoChiTiet == 'KHONG_DUNG_MO_TA' ? 'bg-warning' : (r.lyDoChiTiet == 'DOI_Y' ? 'bg-secondary' : 'bg-info'))}"
+                                  th:text="${r.lyDoChiTiet == 'LOI_HANG' ? 'Lỗi hàng' : (r.lyDoChiTiet == 'KHONG_DUNG_MO_TA' ? 'Không đúng mô tả' : (r.lyDoChiTiet == 'DOI_Y' ? 'Đổi ý' : 'Khác'))}"></span>
+                        </td>
+                        <td th:text="${customerNames.get(r.userId) != null ? customerNames.get(r.userId) : r.userId}"></td>
+                        <td class="text-danger fw-semibold" th:text="${#numbers.formatDecimal(r.soTienHoan, 0, 'POINT', 0, 'POINT')} + '₫'"></td>
+                        <td th:if="${r.soTienThucTeHoan != null and r.soTienThucTeHoan != 0}" class="text-success fw-semibold" th:text="${#numbers.formatDecimal(r.soTienThucTeHoan, 0, 'POINT', 0, 'POINT')} + '₫'">—</td>
+                        <td th:unless="${r.soTienThucTeHoan != null and r.soTienThucTeHoan != 0}" class="text-muted">—</td>
                         <td>
                             <span th:if="${r.trangThai == 'CHO_DUYET'}" class="status-pill status-CHO_DUYET">Chờ duyệt</span>
                             <span th:if="${r.trangThai == 'DA_DUYET'}" class="status-pill status-DA_DUYET">Đã duyệt</span>
                             <span th:if="${r.trangThai == 'TU_CHOI'}" class="status-pill status-TU_CHOI">Từ chối</span>
+                            <span th:if="${r.trangThai == 'DA_HOAN_TIEN'}" class="status-pill status-DA_HOAN_TIEN">Đã hoàn tiền</span>
                         </td>
                         <td th:text="${#temporals.format(r.ngayYeuCau, 'dd/MM/yyyy HH:mm')}"></td>
                         <td>
                             <a th:href="@{/admin/hoan-tien/detail/{id}(id=${r.id})}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i> Xem chi tiết
+                                <i class="bi bi-eye"></i> Xem
                             </a>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(refunds)}">
-                        <td colspan="8" class="text-muted text-center py-4">Chưa có yêu cầu hoàn tiền nào</td>
+                        <td colspan="10" class="text-muted text-center py-4">Chưa có yêu cầu hoàn tiền / đổi hàng nào</td>
                     </tr>
                 </tbody>
             </table>
             </div>
         </div>
     </div>
-</body>
+    </body>
 </html>

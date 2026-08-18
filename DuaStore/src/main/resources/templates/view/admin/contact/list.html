@@ -76,7 +76,7 @@
                                 <strong class="d-block text-truncate" style="max-width:200px" th:text="${m.hoTen}">Tên</strong>
                                 <small class="text-muted d-block text-truncate" style="max-width:200px" th:text="${m.email}">email</small>
                             </td>
-                            <td>
+                            <td class="adm-cell-text">
                                 <div class="text-truncate" style="max-width:420px" th:text="${m.noiDung}">Nội dung</div>
                                 <button class="btn btn-sm btn-link p-0 mt-1" type="button"
                                         th:attr="data-bs-toggle='modal', data-bs-target='#messageModal', data-nguoi-gui=${m.hoTen + ' - ' + m.email}, data-noi-dung=${m.noiDung}">

@@ -23,25 +23,34 @@
         </div>
 
         <div class="adm-page-header">
-            <h4><i class="bi bi-receipt me-2"></i>Đơn hàng #<span th:text="${order.maDon}"></span></h4>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <h4 class="mb-0"><i class="bi bi-receipt me-2"></i>Đơn hàng #<span th:text="${order.maDon}"></span></h4>
+                <span class="adm-amount-lg" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                <span th:if="${not #lists.isEmpty(fraudWarnings)}" class="adm-risk-line high"
+                      title="Đơn có dấu hiệu gian lận, cần rà soát trước khi xử lý">
+                    <span class="adm-risk-dot adm-risk-high"></span>Rủi ro gian lận
+                </span>
+            </div>
             <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm no-print">
                 <i class="bi bi-arrow-left me-1"></i>Quay lại
             </a>
         </div>
 
-        <!-- Fraud Warning Banner -->
-        <div th:if="${fraudWarnings != null and not #lists.isEmpty(fraudWarnings)}" class="alert alert-danger alert-dismissible fade show no-print mt-3" role="alert">
-            <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>Cảnh báo gian lận</h6>
-            <ul class="mb-0 ps-3">
+        <!-- Fraud warning -->
+        <div th:if="${fraudWarnings != null and not #lists.isEmpty(fraudWarnings)}" class="adm-warn-box no-print mt-3">
+            <div class="adm-warn-box-title">
+                <span class="adm-risk-dot adm-risk-high"></span>Rủi ro gian lận
+            </div>
+            <div class="adm-warn-box-desc">Đơn có dấu hiệu gian lận, cần rà soát trước khi xử lý</div>
+            <ul class="adm-warn-box-list">
                 <li th:each="w : ${fraudWarnings}" th:text="${w}"></li>
             </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
         <!-- TIMELINE - full width -->
         <div th:if="${currentStep > 0}" class="adm-card mt-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="text-uppercase small fw-bold text-muted">Tiến trình đơn hàng dự kiến</span>
+                <span class="adm-section-title mb-0">Tiến trình đơn hàng dự kiến</span>
                 <span class="text-muted small no-print" th:if="${order.trangThaiDon != 'DA_HUY' and order.trangThaiDon != 'DA_HOAN_THANH' and order.trangThaiDon != 'DA_HOAN_TIEN'}">
                     <i class="bi bi-hand-index-thumb me-1"></i>Bấm vào bước tiếp theo để cập nhật
                 </span>

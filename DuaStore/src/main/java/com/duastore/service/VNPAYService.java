@@ -1,6 +1,8 @@
 package com.duastore.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,8 @@ import java.util.*;
 
 @Service
 public class VNPAYService {
+
+    private static final Logger log = LoggerFactory.getLogger(VNPAYService.class);
 
     @Value("${vnpay.tmn-code}")
     private String tmnCode;
@@ -28,9 +32,11 @@ public class VNPAYService {
 
     private static final String VERSION = "2.1.0";
     private static final String COMMAND = "pay";
+    private static final String REFUND_COMMAND = "refund";
     private static final String ORDER_TYPE = "other";
     private static final String CURR_CODE = "VND";
     private static final String LOCALE = "vn";
+    private static final String TRANSACTION_TYPE_REFUND = "02";
 
     public boolean isConfigured() {
         return tmnCode != null && !tmnCode.isBlank()
@@ -95,6 +101,112 @@ public class VNPAYService {
         result.put("bankCode", params.get("vnp_BankCode"));
         result.put("payDate", params.get("vnp_PayDate"));
         return result;
+    }
+
+    public Map<String, String> refundTransaction(
+            String txnRef,
+            long amount,
+            String transactionNo,
+            String transactionDate,
+            String createdBy,
+            String orderInfo,
+            String ipAddr) {
+        if (!isConfigured()) {
+            Map<String, String> result = new HashMap<>();
+            result.put("success", "false");
+            result.put("message", "VNPAY chưa được cấu hình");
+            return result;
+        }
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("vnp_Version", VERSION);
+        params.put("vnp_Command", REFUND_COMMAND);
+        params.put("vnp_TmnCode", tmnCode);
+        params.put("vnp_TransactionType", TRANSACTION_TYPE_REFUND);
+        params.put("vnp_TxnRef", txnRef);
+        params.put("vnp_Amount", String.valueOf(amount));
+        params.put("vnp_OrderInfo", orderInfo);
+        params.put("vnp_TransactionNo", transactionNo);
+        params.put("vnp_TransactionDate", transactionDate);
+        params.put("vnp_CreateBy", createdBy);
+        params.put("vnp_CreateDate", formatDate(new Date()));
+        params.put("vnp_IpAddr", ipAddr);
+        params.put("vnp_OrderType", ORDER_TYPE);
+
+        String hashData = buildHashData(params);
+        String secureHash = hmacSHA512(hashSecret, hashData);
+        params.put("vnp_SecureHash", secureHash);
+
+        String query = buildQuery(params);
+        String refundUrl = payUrl.replace("/vpcpay.html", "/vpcpay.html"); // VNPAY refund endpoint is same URL
+
+        try {
+            // Send POST request to VNPAY refund API
+            java.net.URL url = new java.net.URL(refundUrl);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(30000);
+
+            try (java.io.OutputStream os = conn.getOutputStream()) {
+                byte[] input = buildQuery(params).getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = conn.getResponseCode();
+            StringBuilder response = new StringBuilder();
+            try (java.io.BufferedReader br = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
+            } catch (Exception e) {
+                try (java.io.BufferedReader br = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        response.append(line);
+                    }
+                }
+            }
+
+            Map<String, String> result = new HashMap<>();
+            result.put("success", responseCode == 200 ? "true" : "false");
+            result.put("responseCode", String.valueOf(responseCode));
+            result.put("responseBody", response.toString());
+            result.put("vnp_ResponseCode", extractResponseCode(response.toString()));
+            result.put("vnp_TransactionNo", extractTransactionNo(response.toString()));
+            return result;
+
+        } catch (Exception e) {
+            Map<String, String> result = new HashMap<>();
+            result.put("success", "false");
+            result.put("message", "Lỗi gọi API VNPAY refund: " + e.getMessage());
+            log.error("VNPAY refund error", e);
+            return result;
+        }
+    }
+
+    private String extractResponseCode(String response) {
+        // Extract vnp_ResponseCode from response body
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("vnp_ResponseCode=([^&]+)");
+        java.util.regex.Matcher matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
+    }
+
+    private String extractTransactionNo(String response) {
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("vnp_TransactionNo=([^&]+)");
+        java.util.regex.Matcher matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "";
     }
 
     private String getIpAddress(HttpServletRequest req) {

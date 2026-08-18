@@ -23,13 +23,13 @@
      insert seed du lieu khong bi loi - Hibernate validate KHONG kiem tra
      DEFAULT constraint nen an toan 100%.
 
- File nay tu sinh tu schema.sql (Hibernate xuat truc tiep tu @Entity, dam bao
- khop tuyet doi) + gop lai phan seed data / index / view huu ich cua ban cu.
+File nay la NGUON SCRIPT DUY NHAT cho DB san pham (khong con schema.sql /
+  application-ddlgen.properties). App runtime co
+  spring.jpa.hibernate.ddl-auto=validate nen script phai khop 100% voi @Entity.
 
- QUAN TRONG: Neu sau nay ban SUA/THEM entity (@Column moi, doi kieu du lieu...),
- file nay se LAI BI LECH. Luc do lam lai theo dung huong dan trong
- application-ddlgen.properties (chay profile "ddlgen" de Hibernate tu xuat
- schema.sql moi tu entity, roi generate lai script nay).
+  QUAN TRONG: Neu sau nay ban SUA/THEM entity (@Column moi, doi kieu du lieu...),
+  file nay se LAI BI LECH -> app se bao loi validate khi chay. Luc do nhom lai
+  cac column entity them moi (dung dung camelCase cua entity) va sua script tay.
 
  Tai khoan mac dinh sau khi seed: admin / admin@123 (vai tro SUPER_ADMIN)
 ================================================================================
@@ -89,6 +89,10 @@ DROP TABLE IF EXISTS linked_accounts;
 DROP TABLE IF EXISTS user_auth_providers;
 DROP TABLE IF EXISTS SiteSettings;
 DROP TABLE IF EXISTS store_info;
+DROP TABLE IF EXISTS contact_messages;
+DROP TABLE IF EXISTS popup_banners;
+DROP TABLE IF EXISTS UserActivityLogs;
+DROP TABLE IF EXISTS ProductViews;
 DROP TABLE IF EXISTS users;
 GO
 
@@ -238,7 +242,7 @@ GO
         nguoi_thuc_hien_id int,
         order_id int not null,
         thoi_gian datetime2(7) not null,
-        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
+        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED','REFUND_ORDER'))),
         trang_thai_cu nvarchar(50),
         trang_thai_moi nvarchar(50),
         ghiChu nvarchar(500),
@@ -256,6 +260,7 @@ GO
         userId int not null,
         ngayCapNhat datetime2(7),
         ngayDat datetime2(7) not null,
+        ngayGiao datetime2(7),
         snapSoDienThoai nvarchar(15) not null,
         maDon nvarchar(20) not null,
         phuongThucGiaoHang nvarchar(20) default 'SHIP' not null,
@@ -263,9 +268,11 @@ GO
         trangThaiDon nvarchar(20) default 'CHO_XAC_NHAN' not null,
         trangThaiTT nvarchar(25) default 'CHUA_THANH_TOAN' not null,
         maVanDon nvarchar(50),
+        shippingCarrier nvarchar(30),
         snapTenNguoiNhan nvarchar(100) not null,
         ghiChu nvarchar(500),
         snapDiaChi nvarchar(500) not null,
+        fraudWarning nvarchar(1000),
         primary key (id)
     );
 
@@ -323,6 +330,7 @@ GO
         isActive bit default 1 not null,
         isFeatured bit default 0 not null,
         leadTimeDays int,
+        minPrice numeric(12,0),
         ngayPhatHanh date,
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7),
@@ -346,6 +354,7 @@ GO
         id int identity not null,
         isActive bit default 1 not null,
         isDefault bit default 0 not null,
+        isCustom bit default 0 not null,
         productId int not null,
         soLuongTon int default 0 not null,
         hinhAnh nvarchar(255),
@@ -383,14 +392,31 @@ GO
         id int identity not null,
         nguoiXuLyId int,
         orderId int not null,
+        phiShipTraLai numeric(18,2) default 0,
         soTienHoan numeric(18,2) not null,
+        soTienThucTeHoan numeric(18,2),
         userId int not null,
+        variantMoiId int,
+        ngayNhanHangTra datetime2(7),
         ngayXuLy datetime2(7),
         ngayYeuCau datetime2(7) not null,
+        loaiYeuCau nvarchar(30) default 'HOAN_TIEN' not null,          -- HOAN_TIEN | DOI_SIZE | DOI_MAU | DOI_SAN_PHAM_KHAC
+        phuongThucHoanTien nvarchar(30),                               -- CHUYEN_KHOAN | VNPAY_REFUND | TIEN_MAT
+        soTienThucTeHoan numeric(18,2),                                -- So tien that su hoan (tru ship, voucher)
+        videoUnboxing nvarchar(500),                                   -- Link video unboxing (bat buoc voi thuy tinh)
         lydo nvarchar(2000) not null,
+        lyDoChiTiet nvarchar(50),                                      -- LOI_HANG | KHONG_DUNG_MO_TA | DOI_Y | KHAC
+        trangThaiDonHangKhiYeuCau nvarchar(30),                        -- DA_GIAO | DANG_GIAO | CHUA_GIAO
+        daKiemTraHang bit default 0,                                   -- Kho da kiem tra hang tra
+        tinhTrangHangTra nvarchar(30),                                 -- NGUYEN_VINH | VO_VANG | THIEU_PHU_KIEN | CHUA_NHAN
+        maVanDonTra nvarchar(100),                                     -- Ma van don hang tra
+        anhThucTe nvarchar(500),                                       -- Anh hang thuc te khi kho nhan duoc
         anhMinhChung nvarchar(255),
+        chuTaiKhoan nvarchar(255),
         ghiChuXuLy nvarchar(255),
         phuongThucHoan nvarchar(255),
+        soTaiKhoan nvarchar(255),
+        tenNganHang nvarchar(255),
         trangThai nvarchar(255) not null,
         primary key (id)
     );
@@ -402,7 +428,6 @@ GO
         productId int not null,
         userId int not null,
         ngayTao datetime2(7) not null,
-        hinhAnh nvarchar(500),
         binhLuan nvarchar(1000),
         primary key (id)
     );
@@ -471,6 +496,49 @@ GO
         primary key (id)
     );
 
+    create table ProductViews (
+        productId int not null,
+        userId int not null,
+        id bigint identity not null,
+        viewedAt datetime2(7) not null,
+        primary key (id)
+    );
+
+    create table UserActivityLogs (
+        userId int not null,
+        activityAt datetime2(7) not null,
+        id bigint identity not null,
+        ipAddress nvarchar(45),
+        activityType nvarchar(50) not null,
+        description nvarchar(500),
+        primary key (id)
+    );
+
+    create table contact_messages (
+        id int identity not null,
+        is_read bit not null,
+        is_spam bit not null,
+        created_at datetime2(7) not null,
+        phan_loai nvarchar(30) not null,
+        hoTen nvarchar(150) not null,
+        email nvarchar(200) not null,
+        noiDung nvarchar(2000) not null,
+        primary key (id)
+    );
+
+    create table popup_banners (
+        active bit not null,
+        id int identity not null,
+        interval_minutes int,
+        created_at datetime2(7) not null,
+        updated_at datetime2(7) not null,
+        display_mode nvarchar(20) not null,
+        title nvarchar(200) not null,
+        image_url nvarchar(500) not null,
+        link_url nvarchar(1000),
+        primary key (id)
+    );
+
     create table user_roles (
         role_id int not null,
         user_id int not null,
@@ -490,6 +558,9 @@ GO
         id int identity not null,
         isActive bit default 1 not null,
         phoneVisible bit,
+        ngaySinh date,
+        twoFactorEnabled bit,
+        twoFactorSecret nvarchar(64),
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7) not null,
         resetTokenExpiry datetime2(7),
@@ -565,7 +636,7 @@ GO
         url nvarchar(500) not null,
         display_order int not null,
         is_active bit not null,
-        column_index int not null,
+        columnIndex int not null,
         created_at datetime2(7) not null,
         primary key (id)
     );
@@ -617,6 +688,9 @@ GO
 
     alter table Wishlists
        add constraint UKnyiaslokuixrb7h9fpmo6j4nc unique (userId, productId);
+
+    alter table CartItems 
+       add constraint UK7wqcpmx1ycp3a1sfcdrjnwibr unique (userId, variantId);
 
     alter table CustomerNotes
        add constraint FK_CustomerNotes_userId
@@ -802,6 +876,18 @@ CREATE INDEX idx_user_vouchers_user_status  ON UserVouchers (userId, status);
 CREATE INDEX idx_user_vouchers_expired_at   ON UserVouchers (expiredAt);
 CREATE INDEX idx_user_vouchers_promotion_id ON UserVouchers (promotionId);
 CREATE INDEX idx_promotions_code            ON Promotions   (maCode);
+-- V2: Indexes for RefundRequests (glass-specific refund flow)
+CREATE INDEX IX_RefundRequests_OrderId ON RefundRequests (orderId);
+CREATE INDEX IX_RefundRequests_UserId_Status ON RefundRequests (userId, trangThai);
+CREATE INDEX IX_RefundRequests_Status_Date ON RefundRequests (trangThai, ngayYeuCau);
+CREATE INDEX IX_RefundRequests_LoaiYeuCau ON RefundRequests (loaiYeuCau);
+-- V2: Index for custom variants
+CREATE INDEX IX_Variants_Custom ON ProductVariants (isCustom, isActive);
+-- V4: Indexes for admin_action_logs
+CREATE INDEX IX_admin_action_logs_entity_lookup ON admin_action_logs (loaiEntity, entityId, ngayTao DESC);
+CREATE INDEX IX_admin_action_logs_admin_lookup ON admin_action_logs (adminId, ngayTao DESC);
+CREATE INDEX IX_admin_action_logs_ngay_tao ON admin_action_logs (ngayTao DESC);
+CREATE INDEX IX_admin_action_logs_admin_ngay_tao ON admin_action_logs (adminId, ngayTao DESC);
 GO
 
 -- ============================================================
@@ -1034,6 +1120,18 @@ VALUES (N'DuaStore Hai Phong', N'123', N'Tran Hung Dao', N'May To', N'Ngo Quyen'
         '0225.123.4567', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
 GO
 
+-- Refund Policy Settings
+INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt, updatedAt) VALUES
+    (N'refund', N'refund_return_window_days', N'7', GETDATE(), GETDATE()),
+    (N'refund', N'refund_custom_non_refundable', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_flash_sale_exchange_only', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_flash_sale_free_exchange_shipping', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_require_video_proof_glass', N'true', GETDATE(), GETDATE()),
+    (N'refund', N'refund_max_rate_damaged', N'0.8', GETDATE(), GETDATE()),
+    (N'refund', N'refund_auto_approve_days', N'3', GETDATE(), GETDATE()),
+    (N'refund', N'refund_warehouse_address', N'Kho DuaStore - 123 Tran Hung Dao, May To, Ngo Quyen, Hai Phong', GETDATE(), GETDATE());
+GO
+
 PRINT 'Seed du lieu co ban hoan tat!';
 GO
 
@@ -1096,7 +1194,7 @@ GO
 
 PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 39 (gom 2 bang join: role_permissions, user_roles)';
+PRINT ' Tong so bang  : 43 (gom 2 bang join: role_permissions, user_roles)';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
 PRINT '====================================================';

@@ -158,10 +158,9 @@ public class PromotionController {
                 }
             }
             PricingService.FlashSaleOffer offer = dealFlashSaleMap.get(entry.getKey());
-            if (offer != null && offer.bestItem() != null) {
-                BigDecimal fsPrice = offer.bestItem().getGiaSale();
-                BigDecimal fsGiaGoc = offer.bestItem().getGiaGoc() != null
-                        ? offer.bestItem().getGiaGoc() : giaGoc;
+            if (offer != null) {
+                BigDecimal fsPrice = offer.giaSale();
+                BigDecimal fsGiaGoc = offer.giaGoc();
                 if (fsPrice.compareTo(bestPrice) < 0) {
                     int pct = fsGiaGoc.compareTo(BigDecimal.ZERO) > 0
                             ? fsGiaGoc.subtract(fsPrice).multiply(BigDecimal.valueOf(100))

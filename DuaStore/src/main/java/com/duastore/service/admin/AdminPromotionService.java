@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -87,12 +88,14 @@ public class AdminPromotionService {
             }
         });
 
-        // Nếu sửa: Giữ nguyên số lượt đã dùng
+        // Nếu sửa: Giữ nguyên số lượt đã dùng và ngân sách đã dùng
         if (promotion.getId() != null) {
             Promotion existing = getPromotionById(promotion.getId());
             promotion.setDaDung(existing.getDaDung());
+            promotion.setUsedBudget(existing.getUsedBudget());
         } else {
             promotion.setDaDung(0);
+            promotion.setUsedBudget(BigDecimal.ZERO);
         }
 
         return promotionRepository.save(promotion);

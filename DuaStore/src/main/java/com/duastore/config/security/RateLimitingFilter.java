@@ -22,11 +22,22 @@ public class RateLimitingFilter extends HttpFilter {
             "/api/auth/verify-code",
             "/quen-mat-khau",
             "/dat-lai-mat-khau",
-            "/tai-khoan/tai-khoan-lien-ket"
+            "/tai-khoan/tai-khoan-lien-ket",
+            "/checkout/api/create",
+            "/address/api/save",
+            "/api/vi-voucher/luu",
+            "/api/vi-voucher/xoa",
+            "/api/cart/add-popup",
+            "/api/cart/update",
+            "/api/cart/remove-item",
+            "/api/wishlist/toggle",
+            "/api/coupon/validate"
     );
 
     private static final Set<String> PROTECTED_PREFIXES = Set.of(
-            "/tai-khoan/chuyen-doi/"
+            "/tai-khoan/chuyen-doi/",
+            "/hoan-tien/",
+            "/don-hang/huy/"
     );
 
     private final ConcurrentHashMap<String, Window> store = new ConcurrentHashMap<>();

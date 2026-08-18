@@ -112,8 +112,6 @@ public class DataInitializer implements CommandLineRunner {
 
         User admin = userRepository.findByUsernameOrEmail(adminUsername).orElse(null);
         if (admin != null) {
-            admin.setPassword(passwordEncoder.encode(adminPassword));
-            userRepository.save(admin);
             return;
         }
         admin = new User();
@@ -130,17 +128,6 @@ public class DataInitializer implements CommandLineRunner {
     private void seedPromotions() {
         List<Promotion> existing = promotionRepository.findAll();
         if (!existing.isEmpty()) {
-            for (Promotion p : existing) {
-                p.setDenNgay(LocalDateTime.now().plusMonths(6));
-                p.setTuNgay(LocalDateTime.now().minusDays(1));
-                if (p.getDaDung() == null) {
-                    p.setDaDung(0);
-                }
-                if (p.getIsActive() == null) {
-                    p.setIsActive(true);
-                }
-                promotionRepository.save(p);
-            }
             return;
         }
 

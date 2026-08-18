@@ -3,6 +3,11 @@ package com.duastore.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +16,7 @@ import java.util.List;
 @Entity
 @DynamicUpdate
 @Table(name = "orders")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -83,11 +89,23 @@ public class Order {
     @Column(length = 30)
     private String shippingCarrier;
 
+    @CreatedBy
+    @Column(updatable = false)
+    private Integer createdBy;
+
+    @LastModifiedBy
+    private Integer lastModifiedBy;
+
     @Column(nullable = false, updatable = false)
+    @CreatedDate
     private LocalDateTime ngayDat;
 
     @Column
+    @LastModifiedDate
     private LocalDateTime ngayCapNhat;
+
+    @Column
+    private LocalDateTime ngayGiao;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();

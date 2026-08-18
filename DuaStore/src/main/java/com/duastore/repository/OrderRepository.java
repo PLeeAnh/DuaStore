@@ -1,6 +1,7 @@
 package com.duastore.repository;
 
 import com.duastore.model.Order;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,11 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     Optional<Order> findByMaVanDon(String maVanDon);
 
     Optional<Order> findByMaDon(String maDon);
+
+    /** Khoa bang PESSIMISTIC_WRITE de cap nhat thanh toan / trang thai an toan duoi concurrency. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM Order o WHERE o.id = :id")
+    Optional<Order> findByIdForUpdate(@Param("id") Integer id);
 
     Page<Order> findByUserId(Integer userId, Pageable pageable);
 
@@ -66,6 +72,12 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT o FROM Order o WHERE o.trangThaiDon IN :statuses AND o.ngayDat >= :since")
     List<Order> findCompletedOrdersSince(@Param("statuses") List<String> statuses,
             @Param("since") LocalDateTime since);
+
+    @Query("SELECT o FROM Order o WHERE o.trangThaiDon = :trangThaiDon "
+            + "AND (o.trangThaiTT IS NULL OR o.trangThaiTT <> 'DA_THANH_TOAN') "
+            + "AND o.ngayDat < :before")
+    List<Order> findPendingUnpaidOrdersBefore(@Param("trangThaiDon") String trangThaiDon,
+            @Param("before") LocalDateTime before);
 
     @Query("SELECT o FROM Order o WHERE "
             + "(:q IS NULL OR o.maDon LIKE %:q% OR o.snapTenNguoiNhan LIKE %:q%) AND "
@@ -138,4 +150,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.snapSoDienThoai = :phone AND o.trangThaiDon = 'DA_HUY' AND o.ngayDat >= :since")
     long countCancelledByPhoneSince(@Param("phone") String phone, @Param("since") LocalDateTime since);
+
+    @Query("SELECT o FROM Order o WHERE "
+            + "(:q IS NULL OR :q = '' OR LOWER(o.maDon) LIKE LOWER(CONCAT('%', :q, '%')) "
+            + "OR LOWER(o.snapTenNguoiNhan) LIKE LOWER(CONCAT('%', :q, '%')) "
+            + "OR LOWER(o.snapSoDienThoai) LIKE LOWER(CONCAT('%', :q, '%'))) "
+            + "ORDER BY o.ngayDat DESC")
+    List<Order> searchOrdersAutocomplete(@Param("q") String q, Pageable pageable);
+
+    @Query("SELECT o.user.id, SUM(o.tongThanhToan) FROM Order o "
+            + "WHERE o.user.id IN :ids AND (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') "
+            + "GROUP BY o.user.id")
+    List<Object[]> sumTotalSpentByUserIds(@Param("ids") List<Integer> ids);
 }

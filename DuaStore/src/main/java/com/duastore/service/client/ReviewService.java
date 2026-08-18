@@ -11,7 +11,7 @@ import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.model.Product;
 import com.duastore.model.User;
-import com.duastore.service.EmailService;
+import com.duastore.service.AsyncEmailService;
 import com.duastore.service.FileUploadService;
 import com.duastore.util.HtmlSanitizer;
 import org.springframework.data.domain.Page;
@@ -35,7 +35,7 @@ public class ReviewService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
-    private final EmailService emailService;
+    private final AsyncEmailService asyncEmailService;
     private final FileUploadService fileUploadService;
 
     public ReviewService(ReviewsRepository reviewsRepository,
@@ -43,14 +43,14 @@ public class ReviewService {
             ProductRepository productRepository,
             UserRepository userRepository,
             OrderItemRepository orderItemRepository,
-            EmailService emailService,
+            AsyncEmailService asyncEmailService,
             FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
         this.reviewImageRepository = reviewImageRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
-        this.emailService = emailService;
+        this.asyncEmailService = asyncEmailService;
         this.fileUploadService = fileUploadService;
     }
 
@@ -188,11 +188,11 @@ public class ReviewService {
             }
         }
 
-        // Email notification to admin
+        // Email thong bao cho admin — gui BAT DONG BO (best-effort, khong chan gui review)
         try {
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {
-                emailService.send(
+                asyncEmailService.sendRaw(
                         "nguyenhuydung1506@gmail.com",
                         "[DuaStore] Đánh giá mới từ " + user.getHoTen(),
                         "<p>Sản phẩm #" + request.getProductId() + "</p>"
