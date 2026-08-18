@@ -245,6 +245,18 @@ public class AdminPromotionController {
         }
         return "redirect:/admin/khuyen-mai";
     }
+
+    @PostMapping("/toggle/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_UPDATE)")
+    public String toggleActive(@PathVariable Integer id, RedirectAttributes ra) {
+        try {
+            adminPromotionService.toggleActive(id);
+            ra.addFlashAttribute("successMsg", "Cập nhật trạng thái thành công");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/admin/khuyen-mai";
+    }
     private String formatDiscount(Promotion promotion) {
         if ("PERCENT".equalsIgnoreCase(promotion.getLoaiGiam())
                 || "PHAN_TRAM".equalsIgnoreCase(promotion.getLoaiGiam())) {

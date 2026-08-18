@@ -3,6 +3,7 @@ package com.duastore.service.admin;
 import com.duastore.model.Promotion;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.UserVoucherRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,11 +21,14 @@ public class AdminPromotionService {
 
     private final PromotionRepository promotionRepository;
     private final OrderRepository orderRepository;
+    private final UserVoucherRepository userVoucherRepository;
 
     public AdminPromotionService(PromotionRepository promotionRepository,
-            OrderRepository orderRepository) {
+            OrderRepository orderRepository,
+            UserVoucherRepository userVoucherRepository) {
         this.promotionRepository = promotionRepository;
         this.orderRepository = orderRepository;
+        this.userVoucherRepository = userVoucherRepository;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -99,7 +103,14 @@ public class AdminPromotionService {
 
     public void deletePromotion(Integer id) {
         Promotion p = getPromotionById(id);
-        p.setIsActive(false);
+        userVoucherRepository.deleteByPromotionId(id);
+        orderRepository.clearPromotionReference(id);
+        promotionRepository.delete(p);
+    }
+
+    public void toggleActive(Integer id) {
+        Promotion p = getPromotionById(id);
+        p.setIsActive(!Boolean.TRUE.equals(p.getIsActive()));
         promotionRepository.save(p);
     }
 

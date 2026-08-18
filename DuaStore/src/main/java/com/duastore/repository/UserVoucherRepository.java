@@ -29,6 +29,8 @@ public interface UserVoucherRepository extends JpaRepository<UserVoucher, Intege
 
     boolean existsByUserIdAndPromotionId(Integer userId, Integer promotionId);
 
+    void deleteByPromotionId(Integer promotionId);
+
     long countByUserIdAndStatus(Integer userId, VoucherStatus status);
 
     @Query("SELECT uv FROM UserVoucher uv WHERE uv.userId = :userId "
