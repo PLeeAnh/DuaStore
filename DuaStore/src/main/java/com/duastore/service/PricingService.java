@@ -176,8 +176,12 @@ public class PricingService {
         return !now.isBefore(event.getNgayBatDau()) && !now.isAfter(event.getNgayKetThuc());
     }
 
-    private boolean hasRemainingQuota(FlashSaleItem item) {
+    public boolean hasRemainingQuota(FlashSaleItem item) {
         if (item == null || item.getSoLuongToiDa() == null) {
+            return false;
+        }
+        // Check item isActive
+        if (!Boolean.TRUE.equals(item.getIsActive())) {
             return false;
         }
         int daBan = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
@@ -219,8 +223,13 @@ public class PricingService {
         return isWithinTimeWindow(event) && hasRemainingQuota(item);
     }
 
+    @Transactional
     public boolean incrementSoldQuantity(FlashSaleItem item, int soLuong) {
         if (item == null) {
+            return false;
+        }
+        // Check item isActive
+        if (!Boolean.TRUE.equals(item.getIsActive())) {
             return false;
         }
         int current = item.getSoLuongDaBan() == null ? 0 : item.getSoLuongDaBan();
@@ -229,15 +238,20 @@ public class PricingService {
             return false;
         }
         
-        // Check event-level quota (calculated from items)
+        // Check event-level quota (calculated from items) - need to lock FlashSale parent
         FlashSale event = item.getFlashSale();
         if (event != null && event.getItems() != null) {
-            int eventMax = event.getItems().stream()
+            // Lock FlashSale parent to prevent race condition
+            FlashSale lockedEvent = flashSaleRepository.findByIdWithLock(event.getId()).orElse(null);
+            if (lockedEvent == null) {
+                return false;
+            }
+            int eventMax = lockedEvent.getItems().stream()
                     .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
                     .mapToInt(i -> i.getSoLuongToiDa() == null ? 0 : i.getSoLuongToiDa())
                     .sum();
             
-            int eventDaBan = event.getItems().stream()
+            int eventDaBan = lockedEvent.getItems().stream()
                     .filter(i -> Boolean.TRUE.equals(i.getIsActive()))
                     .mapToInt(i -> i.getSoLuongDaBan() == null ? 0 : i.getSoLuongDaBan())
                     .sum();

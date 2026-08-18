@@ -36,6 +36,14 @@ public class VoucherWalletService {
         if (!Boolean.TRUE.equals(lockedPromo.getIsActive())) {
             throw new RuntimeException("Khuyến mãi không còn hiệu lực");
         }
+        // Validate time range
+        LocalDateTime now = LocalDateTime.now();
+        if (lockedPromo.getTuNgay() != null && lockedPromo.getTuNgay().isAfter(now)) {
+            throw new RuntimeException("Khuyến mãi chưa đến hạn sử dụng");
+        }
+        if (lockedPromo.getDenNgay() != null && lockedPromo.getDenNgay().isBefore(now)) {
+            throw new RuntimeException("Khuyến mãi đã hết hạn");
+        }
         if (userVoucherRepository.existsByUserIdAndPromotionId(userId, promotionId)) {
             throw new RuntimeException("Voucher đã có trong ví");
         }

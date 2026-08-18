@@ -11,6 +11,7 @@ import com.duastore.model.ReturnCondition;
 import com.duastore.model.User;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.RefundRequestRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.EmailService;
@@ -275,7 +276,7 @@ public class RefundService {
         
         // Nếu thanh toán VNPAY, gọi API refund VNPAY
         Order order = orderRepository.findById(request.getOrderId()).orElse(null);
-        if (order != null && "VNPAY".equals(order.getPhuongThucTT()) && vnpayService.isConfigured()) {
+        if (order != null && order.getPhuongThucTT() != null && "VNPAY".equals(order.getPhuongThucTT()) && vnpayService.isConfigured()) {
             try {
                 // Lấy thông tin giao dịch VNPAY từ order
                 String txnRef = "DUASTORE" + order.getId(); // txnRef format used when creating payment
@@ -340,6 +341,14 @@ public class RefundService {
 
         ProductVariant newVariant = productVariantRepository.findById(newVariantId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể mới"));
+        
+        // Check new variant is active and has stock
+        if (!Boolean.TRUE.equals(newVariant.isActive())) {
+            throw new RuntimeException("Biến thể mới không còn hoạt động");
+        }
+        if (newVariant.getSoLuongTon() == null || newVariant.getSoLuongTon() <= 0) {
+            throw new RuntimeException("Biến thể mới đã hết hàng");
+        }
 
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
@@ -358,6 +367,15 @@ public class RefundService {
             request.setPhiShipTraLai(BigDecimal.ZERO);
         }
 
+        // Restore stock for old variant
+        if (oldItem.getVariantId() != null) {
+            ProductVariant oldVariant = productVariantRepository.findById(oldItem.getVariantId()).orElse(null);
+            if (oldVariant != null) {
+                oldVariant.setSoLuongTon(oldVariant.getSoLuongTon() + oldItem.getSoLuong());
+                productVariantRepository.save(oldVariant);
+            }
+        }
+
         request.setVariantMoiId(newVariantId);
         request.setTrangThai("DA_HOAN_TIEN");
         request.setNguoiXuLyId(adminId);
@@ -365,6 +383,10 @@ public class RefundService {
         request.setGhiChuXuLy("Đổi sang: " + newVariant.getTenBienThe() + ". Chênh lệch: " + priceDiff + ". " + ghiChu);
         request.setSoTienThucTeHoan(priceDiff.compareTo(BigDecimal.ZERO) > 0 ? priceDiff : BigDecimal.ZERO);
         refundRequestRepository.save(request);
+
+        // Deduct stock for new variant
+        newVariant.setSoLuongTon(newVariant.getSoLuongTon() - oldItem.getSoLuong());
+        productVariantRepository.save(newVariant);
 
         oldItem.setVariantId(newVariant.getId());
         BigDecimal newPrice = newVariant.getGiaKhuyenMai() != null ? newVariant.getGiaKhuyenMai() : newVariant.getGiaGoc();

@@ -5,15 +5,20 @@ import com.duastore.dto.CartItemDTO;
 import com.duastore.dto.CheckoutRequestDTO;
 import com.duastore.dto.OrderDTO;
 import com.duastore.model.Address;
+import com.duastore.model.FlashSaleItem;
 import com.duastore.model.Order;
+import com.duastore.model.ProductVariant;
 import com.duastore.model.Promotion;
 import com.duastore.model.User;
 import com.duastore.repository.AddressRepository;
+import com.duastore.repository.FlashSaleItemRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.model.OrderEventType;
+import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.AsyncEmailService;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PaymentService;
+import com.duastore.service.PricingService;
 import com.duastore.dto.CarrierQuote;
 import com.duastore.service.MultiCarrierShippingService;
 import com.duastore.service.SiteSettingService;
@@ -33,11 +38,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Collectors;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +77,9 @@ public class CheckoutController {
     private final LoyaltyPointsService loyaltyPointsService;
     private final SiteSettingService siteSettingService;
     private final MultiCarrierShippingService multiCarrierShippingService;
+    private final ProductVariantRepository variantRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
+    private final PricingService pricingService;
 
     @Value("${store.latitude}")
     private double storeLat;
@@ -84,7 +100,10 @@ public class CheckoutController {
             VoucherWalletService voucherWalletService,
             LoyaltyPointsService loyaltyPointsService,
             SiteSettingService siteSettingService,
-            MultiCarrierShippingService multiCarrierShippingService) {
+            MultiCarrierShippingService multiCarrierShippingService,
+            ProductVariantRepository variantRepository,
+            FlashSaleItemRepository flashSaleItemRepository,
+            PricingService pricingService) {
         this.orderService = orderService;
         this.cartService = cartService;
         this.addressRepository = addressRepository;
@@ -100,6 +119,9 @@ public class CheckoutController {
         this.loyaltyPointsService = loyaltyPointsService;
         this.siteSettingService = siteSettingService;
         this.multiCarrierShippingService = multiCarrierShippingService;
+        this.variantRepository = variantRepository;
+        this.flashSaleItemRepository = flashSaleItemRepository;
+        this.pricingService = pricingService;
     }
 
     private Integer getUserId() {
@@ -709,5 +731,32 @@ public class CheckoutController {
         if (!paymentEnabled) {
             throw new RuntimeException("Phương thức thanh toán " + paymentMethod + " hiện không khả dụng");
         }
+
+        // Validate selected variant IDs
+        if (req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()) {
+            List<Integer> variantIds = req.getSelectedIds();
+            // Check if variants exist, are active, and have stock
+            List<ProductVariant> variants = variantRepository.findAllById(variantIds);
+            if (variants.size() != variantIds.size()) {
+                throw new RuntimeException("Một hoặc nhiều biến thể sản phẩm không tồn tại");
+            }
+            for (ProductVariant variant : variants) {
+                if (!Boolean.TRUE.equals(variant.isActive())) {
+                    throw new RuntimeException("Sản phẩm biến thể " + variant.getTenBienThe() + " không còn hoạt động");
+                }
+                if (variant.getSoLuongTon() == null || variant.getSoLuongTon() <= 0) {
+                    throw new RuntimeException("Sản phẩm " + variant.getTenBienThe() + " đã hết hàng");
+                }
+                // Check flash sale quota if applicable
+                FlashSaleItem flashItem = flashSaleItemRepository.findBestActiveByVariantId(variant.getId(), LocalDateTime.now())
+                        .orElse(null);
+                if (flashItem != null) {
+                    if (!pricingService.hasRemainingQuota(flashItem)) {
+                        throw new RuntimeException("Sản phẩm " + variant.getTenBienThe() + " đã hết suất Flash Sale");
+                    }
+                }
+            }
+        }
     }
 }
+

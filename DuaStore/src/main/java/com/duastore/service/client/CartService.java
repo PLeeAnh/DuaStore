@@ -3,11 +3,13 @@ package com.duastore.service.client;
 import com.duastore.dto.CartItemDTO;
 import com.duastore.model.CartItem;
 import com.duastore.model.FlashSale;
+import com.duastore.model.FlashSaleItem;
 import com.duastore.model.Order;
 import com.duastore.model.OrderItem;
 import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
 import com.duastore.repository.CartItemRepository;
+import com.duastore.repository.FlashSaleItemRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductRepository;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,19 +36,22 @@ public class CartService {
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
     private final PricingService pricingService;
+    private final FlashSaleItemRepository flashSaleItemRepository;
 
     public CartService(CartItemRepository cartItemRepository,
             ProductRepository productRepository,
             ProductVariantRepository variantRepository,
             OrderItemRepository orderItemRepository,
             OrderRepository orderRepository,
-            PricingService pricingService) {
+            PricingService pricingService,
+            FlashSaleItemRepository flashSaleItemRepository) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.orderItemRepository = orderItemRepository;
         this.orderRepository = orderRepository;
         this.pricingService = pricingService;
+        this.flashSaleItemRepository = flashSaleItemRepository;
     }
 
     public List<CartItemDTO> getItems(Integer userId) {
@@ -67,6 +73,13 @@ public class CartService {
         }
         if (variant.getSoLuongTon() <= 0) {
             return CartResult.fail("San pham da het hang");
+        }
+
+        // Check flash sale quota
+        FlashSaleItem flashItem = flashSaleItemRepository.findBestActiveByVariantId(variantId, LocalDateTime.now())
+                .orElse(null);
+        if (flashItem != null && !pricingService.hasRemainingQuota(flashItem)) {
+            return CartResult.fail("San pham da het sua Flash Sale");
         }
 
         int finalQty = Math.min(qty, variant.getSoLuongTon());
