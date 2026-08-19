@@ -154,6 +154,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT DISTINCT p.mucDichSuDung FROM Product p WHERE p.isActive = true AND p.mucDichSuDung IS NOT NULL ORDER BY p.mucDichSuDung ASC")
     List<String> findDistinctMucDichSuDung();
 
+    @Query("SELECT DISTINCT p.hinhDang FROM Product p WHERE p.isActive = true AND p.hinhDang IS NOT NULL ORDER BY p.hinhDang ASC")
+    List<String> findDistinctHinhDang();
+
     @Query("SELECT p.thuongHieu, COUNT(p) FROM Product p WHERE p.isActive = true AND p.thuongHieu IS NOT NULL "
             + "GROUP BY p.thuongHieu ORDER BY COUNT(p) DESC, p.thuongHieu ASC")
     List<Object[]> findThuongHieuCounts();

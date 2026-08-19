@@ -114,6 +114,12 @@ public class ProductService {
         return new PageImpl<>(pageContent, PageRequest.of(page, size), total);
     }
 
+    @Cacheable("productShapes")
+    public List<String> getDistinctShapes() {
+        return productRepository.findDistinctHinhDang();
+    }
+
+    @Cacheable("productMaterials")
     public List<String> getDistinctChatLieu() {
         return productRepository.findDistinctChatLieu();
     }
@@ -184,8 +190,26 @@ public class ProductService {
         return PageRequest.of(page, size, sort);
     }
 
+    @Cacheable("productVolumes")
     public List<Integer> getDistinctVolumes() {
         return variantRepository.findDistinctDungTich();
+    }
+
+    @Cacheable("productCapTypes")
+    public List<String> getDistinctCapTypes() {
+        List<String> tenBienTheList = variantRepository.findDistinctTenBienThe();
+        Set<String> kieuNaps = new LinkedHashSet<>();
+        for (String name : tenBienTheList) {
+            if (name != null && name.contains(" - ")) {
+                String[] parts = name.split("\\s*-\\s*");
+                if (parts.length >= 2) {
+                    String cap = parts[1].trim();
+                    if (cap.toLowerCase(java.util.Locale.ROOT).contains("nắp"))
+                        kieuNaps.add(cap);
+                }
+            }
+        }
+        return new ArrayList<>(kieuNaps);
     }
 
     public Product findById(Integer id) {
