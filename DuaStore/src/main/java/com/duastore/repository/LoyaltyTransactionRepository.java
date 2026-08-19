@@ -13,7 +13,7 @@ public interface LoyaltyTransactionRepository extends JpaRepository<LoyaltyTrans
 
     List<LoyaltyTransaction> findByUserIdOrderByCreatedAtDesc(Integer userId);
 
-    @Query("SELECT COALESCE(MAX(t.balance), 0) FROM LoyaltyTransaction t WHERE t.userId = :userId")
+    @Query("SELECT COALESCE((SELECT t.balance FROM LoyaltyTransaction t WHERE t.userId = :userId ORDER BY t.id DESC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY), 0)")
     int findCurrentBalanceByUserId(@Param("userId") Integer userId);
 
     Optional<LoyaltyTransaction> findFirstByUserIdAndReferenceIdAndType(Integer userId, Integer referenceId, String type);

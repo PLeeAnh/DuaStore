@@ -13,9 +13,16 @@
                         <div class="swiper-wrapper">
                             <div th:each="banner : ${banners}" class="swiper-slide">
                                 <a th:href="${banner.linkUrl != null ? banner.linkUrl : '#'}" class="ds-hero-v2-banner">
-<img th:src="${banner.imageUrl}"
-                                                     onerror="this.src='/images/no-image.png'"
-                                                     th:alt="${banner.title}" loading="lazy">
+                                    <img th:src="${banner.imageUrl}"
+                                                         onerror="this.src='/images/no-image.png'"
+                                                         th:alt="${banner.title}" loading="lazy">
+                                    <div class="ds-hero-v2-overlay">
+                                        <div class="ds-hero-v2-overlay-inner">
+                                            <span class="ds-hero-v2-eyebrow" th:if="${banner.description != null and !#strings.isEmpty(banner.description)}" th:text="${banner.description}">DuaStore</span>
+                                            <h2 class="ds-hero-v2-title" th:if="${banner.title != null and !#strings.isEmpty(banner.title)}" th:text="${banner.title}">Tiêu đề banner</h2>
+                                            <span class="ds-hero-v2-btn">Khám phá ngay <i class="bi bi-arrow-right"></i></span>
+                                        </div>
+                                    </div>
                                 </a>
                             </div>
                         </div>
@@ -49,9 +56,9 @@
                     </div>
                 </section>
 
-                <!-- DANH MỤC (slider 4 cột + arrows + dots) -->
+                <!-- DANH MỤC (slider 6 cột kiểu Harum.io: ảnh vuông + tên dưới) -->
                 <section class="ds-section-card ds-cat-v2 sr-up ds-slider-section" th:if="${(themeSettings.get('hp_4_active') == null or themeSettings.get('hp_4_active') != '0') and not #lists.isEmpty(featuredCategories)}"
-                         data-items-per-page="4">
+                         data-items-per-page="10">
                     <div class="ds-slider-wrap">
                         <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                         <div class="ds-slider-viewport">
@@ -60,8 +67,8 @@
                                     <div class="ds-cat-tile-img">
                                         <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'">
                                     </div>
-                                    <div class="ds-cat-tile-overlay">
-                                        <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Category</span>
+                                    <div class="ds-cat-tile-label">
+                                        <span th:text="${cat.tenDanhMuc}">Category</span><i class="bi bi-arrow-right"></i>
                                     </div>
                                 </a>
                             </div>
@@ -69,6 +76,99 @@
                         <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
                     </div>
                     <div class="ds-slider-dots"></div>
+                </section>
+
+                <!-- CHIẾN DỊCH KHUYẾN MÃI (kiểu DLsite) -->
+                <section class="ds-section-card ds-discount-section sr-up ds-slider-section"
+                         th:if="${not #lists.isEmpty(discountedProducts)}" data-items-per-page="6">
+                    <div class="ds-discount-header">
+                        <h2 class="ds-discount-title"><i class="bi bi-fire"></i> Đang diễn ra chiến dịch khuyến mãi</h2>
+                        <a th:href="@{/khuyen-mai}" class="ds-link-more">Xem tất cả sản phẩm đang giảm giá <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                    <div class="ds-discount-banner">
+                        <span class="ds-discount-tag"><i class="bi bi-tag-fill me-1"></i>Giảm giá hấp dẫn</span>
+                        <span class="ds-discount-period"><i class="bi bi-clock me-1"></i>Chương trình có hạn — nhanh tay sở hữu</span>
+                    </div>
+                    <div class="ds-slider-wrap">
+                        <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                        <div class="ds-slider-viewport">
+                            <div class="ds-slider-track">
+
+                                <div th:each="p : ${discountedProducts}" class="ds-discount-item">
+                                    <div class="ds-product-card" th:data-productid="${p.id}"
+                                         th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                         v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                         fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
+                                         th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''"
+                                         th:onclick="|window.location.href='/san-pham/${p.id}'|">
+
+                                        <button th:classappend="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
+                                                th:onclick="|event.stopPropagation(); toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
+                                            <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                        </button>
+
+                                        <div class="ds-product-image-wrap">
+                                            <a th:href="@{'/san-pham/' + ${p.id}}">
+<img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+<img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                                 <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
+                                                <span class="ds-discount-badge-img"
+                                                      th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                                      th:text="|-${bestDiscountMap.get(p.id)}%|">-15%</span>
+                                                <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
+                                                <div class="ds-flash-timer" th:if="${fs != null}"
+                                                     th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
+                                                    <i class="bi bi-clock"></i>
+                                                    <span class="flash-countdown">--:--:--</span>
+                                                </div>
+                                                <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
+                                            </a>
+                                        </div>
+
+                                        <div class="ds-card-hover-preview">
+                                            <div class="ds-card-hover-thumb" th:if="${p.hinhAnhChinh != null or (v != null and v.hinhAnh != null)}">
+                                                <img th:src="@{${p.hinhAnhChinh != null ? p.hinhAnhChinh : v.hinhAnh}}" alt="" loading="lazy"/>
+                                            </div>
+                                            <div class="ds-card-hover-body">
+                                                <div class="ds-card-hover-name" th:text="${p.tenSanPham}">Tên sản phẩm</div>
+                                                <div class="ds-card-hover-desc" th:if="${p.moTa != null}" th:text="${#strings.abbreviate(#strings.unescapeJava(#strings.replace(p.moTa, '<[^>]*>', '')), 100)}">Mô tả ngắn...</div>
+                                                <div class="ds-card-hover-meta">
+                                                    <span th:if="${p.thuongHieu != null}" th:text="${p.thuongHieu}">Thương hiệu</span>
+                                                    <span th:if="${p.xuatXu != null}" th:text="${p.xuatXu}">Xuất xứ</span>
+                                                </div>
+                                                <div class="ds-card-hover-tags">
+                                                    <span class="ds-card-hover-tag" th:if="${p.chatLieu != null}" th:text="${p.chatLieu}">Chất liệu</span>
+                                                    <span class="ds-card-hover-tag" th:if="${p.kinhLoai != null}" th:text="${p.kinhLoai}">Loại kính</span>
+                                                    <span class="ds-card-hover-tag" th:if="${p.hinhDang != null}" th:text="${p.hinhDang}">Hình dạng</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="ds-card-body">
+                                            <div class="ds-card-price">
+                                                <span class="ds-card-price-badge"
+                                                      th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                                      th:text="|-${bestDiscountMap.get(p.id)}%|">-15%</span>
+                                                <div class="ds-card-price-values">
+                                                    <span class="ds-card-price-old"
+                                                          th:if="${v != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                                          th:text="${#numbers.formatInteger(v.giaGoc, 0, 'POINT')} + '₫'">15.000₫</span>
+                                                    <span class="ds-card-price-current"
+                                                          th:text="${#numbers.formatInteger(promoPriceMap.get(p.id) != null ? promoPriceMap.get(p.id) : (v != null and v.giaKhuyenMai != null ? v.giaKhuyenMai : (v != null ? v.giaGoc : 0)), 0, 'POINT')} + '₫'">12.750₫</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                    <div class="ds-discount-footer">
+                        <div class="ds-slider-dots"></div>
+                        <span class="ds-slider-pagination-text">Trang: <b class="ds-pg-current">1</b> / <b class="ds-pg-total">1</b></span>
+                    </div>
                 </section>
 
                 <!-- SẢN PHẨM NỔI BẬT -->
@@ -145,7 +245,7 @@
 
                 <!-- SẢN PHẨM MỚI (slider 4 cột + arrows + dots) -->
                 <section class="ds-section-card ds-scroll-section sr-up ds-slider-section" th:if="${not #lists.isEmpty(newestProducts)}"
-                         data-items-per-page="4">
+                         data-items-per-page="6">
                     <div class="ds-section-header">
                         <h2 class="ds-section-title-sm">Sản phẩm mới</h2>
                         <a th:href="@{/san-pham(sortBy='newest')}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
@@ -175,7 +275,7 @@
 
                 <!-- DƯỚI 300.000Đ (slider 4 cột + arrows + dots) -->
                 <section class="ds-section-card ds-scroll-section sr-up ds-slider-section" th:if="${not #lists.isEmpty(underPriceProducts)}"
-                         data-items-per-page="4">
+                         data-items-per-page="6">
                     <div class="ds-section-header">
                         <h2 class="ds-section-title-sm">Dưới 300.000đ</h2>
                         <a th:href="@{/san-pham(priceRange='0-300000')}" class="ds-link-more">Xem tất cả <i class="bi bi-arrow-right"></i></a>
@@ -376,8 +476,8 @@
                                         <div class="ds-cat-tile-img">
                                             <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         </div>
-                                        <div class="ds-cat-tile-overlay">
-                                            <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Danh mục</span>
+                                        <div class="ds-cat-tile-label">
+                                            <span th:text="${cat.tenDanhMuc}">Danh mục</span><i class="bi bi-arrow-right"></i>
                                         </div>
                                     </a>
                                 </div>
@@ -395,8 +495,8 @@
                                 <div class="ds-cat-tile-img">
                                     <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                 </div>
-                                <div class="ds-cat-tile-overlay">
-                                    <span class="ds-cat-tile-label" th:text="${cat.tenDanhMuc}">Danh mục</span>
+                                <div class="ds-cat-tile-label">
+                                    <span th:text="${cat.tenDanhMuc}">Danh mục</span><i class="bi bi-arrow-right"></i>
                                 </div>
                             </a>
                         </div>
@@ -466,7 +566,7 @@
 
     <th:block th:insert="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
-        <script th:src="@{/js/client-home.js(v=1)}"></script>
+        <script th:src="@{/js/client-home.js(v=2)}"></script>
         <script th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
                 th:src="@{/js/popup-promo.js(v=1)}"></script>
     </th:block>

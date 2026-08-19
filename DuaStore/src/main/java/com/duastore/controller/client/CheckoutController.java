@@ -169,6 +169,7 @@ public class CheckoutController {
         model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
         model.addAttribute("checkoutRequest", checkoutRequest);
         model.addAttribute("title", "Thanh toán");
+        model.addAttribute("bodyClass", "ds-checkout-page");
         model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
         model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
@@ -388,6 +389,7 @@ public class CheckoutController {
         model.addAttribute("tongTam", subtotal.add(phiShip).subtract(tienGiam));
         model.addAttribute("checkoutRequest", new com.duastore.dto.CheckoutRequestDTO());
         model.addAttribute("title", "Thanh toán");
+        model.addAttribute("bodyClass", "ds-checkout-page");
         model.addAttribute("loyaltyBalance", userId != null ? loyaltyPointsService.getBalance(userId) : 0);
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
         model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());

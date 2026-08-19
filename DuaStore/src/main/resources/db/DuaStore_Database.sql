@@ -1100,3 +1100,63 @@ PRINT ' Tong so bang  : 39 (gom 2 bang join: role_permissions, user_roles)';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
 PRINT '====================================================';
+
+-- ============================================================
+-- NANG CAP DB CU (chi chay khi DB da tao TU BAN SCRIPT CU):
+-- Bang user_auth_providers truoc day dat cot snake_case
+-- (user_id, created_at) trong khi @Entity UserAuthProvider dung
+-- camelCase (userId, linkedAt) -> Hibernate validate bao loi
+-- -> dang nhap Google (OAuth2) bi loi 500. Doan nay chuyen
+-- sang camelCase. VO HAI khi chay tren DB moi (guard kiem tra
+-- tung cot truoc khi doi).
+-- ============================================================
+IF OBJECT_ID('user_auth_providers') IS NOT NULL
+BEGIN
+    -- 1) Cot userId (camelCase), backfill tu user_id
+    IF COL_LENGTH('user_auth_providers', 'userId') IS NULL
+    BEGIN
+        ALTER TABLE user_auth_providers ADD userId int NULL;
+        IF COL_LENGTH('user_auth_providers', 'user_id') IS NOT NULL
+        BEGIN
+            EXEC('UPDATE user_auth_providers SET userId = user_id');
+        END
+    END
+    IF COL_LENGTH('user_auth_providers', 'user_id') IS NOT NULL
+    BEGIN
+        EXEC('ALTER TABLE user_auth_providers DROP COLUMN user_id');
+    END
+
+    -- 2) Cot linkedAt (camelCase), backfill tu created_at
+    IF COL_LENGTH('user_auth_providers', 'linkedAt') IS NULL
+    BEGIN
+        ALTER TABLE user_auth_providers ADD linkedAt datetime2(7) NULL;
+        IF COL_LENGTH('user_auth_providers', 'created_at') IS NOT NULL
+        BEGIN
+            EXEC('UPDATE user_auth_providers SET linkedAt = created_at');
+        END
+    END
+    IF COL_LENGTH('user_auth_providers', 'linkedAt') IS NOT NULL
+    BEGIN
+        EXEC('UPDATE user_auth_providers SET linkedAt = SYSUTCDATETIME() WHERE linkedAt IS NULL');
+    END
+    IF COL_LENGTH('user_auth_providers', 'created_at') IS NOT NULL
+    BEGIN
+        EXEC('ALTER TABLE user_auth_providers DROP COLUMN created_at');
+    END
+
+    -- 3) Rang buoc NOT NULL + FK
+    ALTER TABLE user_auth_providers ALTER COLUMN userId int NOT NULL;
+    ALTER TABLE user_auth_providers ALTER COLUMN linkedAt datetime2(7) NOT NULL;
+    IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_user_auth_providers_userId')
+    BEGIN
+        ALTER TABLE user_auth_providers ADD CONSTRAINT FK_user_auth_providers_userId
+            FOREIGN KEY (userId) REFERENCES users;
+    END
+
+    PRINT 'user_auth_providers: da nang cap sang cot camelCase (userId, linkedAt)';
+END
+ELSE
+BEGIN
+    PRINT 'user_auth_providers: khong ton tai (bo qua buoc nang cap)';
+END
+GO

@@ -117,6 +117,8 @@ public class SecurityConfig {
     @Bean
     public FilterRegistrationBean<RateLimitingFilter> rateLimitingRegistration(RateLimitingFilter filter) {
         FilterRegistrationBean<RateLimitingFilter> reg = new FilterRegistrationBean<>(filter);
+        // KHONG TAT filter: chi chan dang ky trung qua servlet container.
+        // Filter thuc su chay trong security chain (http.addFilterBefore).
         reg.setEnabled(false);
         return reg;
     }
@@ -124,6 +126,8 @@ public class SecurityConfig {
     @Bean
     public FilterRegistrationBean<TwoFactorAuthFilter> twoFactorAuthRegistration(TwoFactorAuthFilter filter) {
         FilterRegistrationBean<TwoFactorAuthFilter> reg = new FilterRegistrationBean<>(filter);
+        // KHONG TAT filter: chi chan dang ky trung qua servlet container.
+        // Filter thuc su chay trong security chain (http.addFilterAfter).
         reg.setEnabled(false);
         return reg;
     }

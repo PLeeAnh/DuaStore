@@ -165,6 +165,10 @@ public class HomeController {
         List<Product> underPriceProducts = productRepository.findUnderPrice(new BigDecimal("300000"), PageRequest.of(0, 10));
         model.addAttribute("underPriceProducts", underPriceProducts);
 
+        // ─ Đang giảm giá (chiến dịch khuyến mãi) ─
+        List<Product> discountedProducts = productRepository.findDiscountedWithVariants(PageRequest.of(0, 10));
+        model.addAttribute("discountedProducts", discountedProducts);
+
         // ─ Duyệt sản phẩm (Browse) - sản phẩm nổi bật cho section hai cột ─
         List<Product> browseProducts = featured.stream().limit(10).toList();
         model.addAttribute("browseProducts", browseProducts);
@@ -253,6 +257,7 @@ public class HomeController {
         allSectionProducts.addAll(topSellers);
         allSectionProducts.addAll(newestProducts);
         allSectionProducts.addAll(underPriceProducts);
+        allSectionProducts.addAll(discountedProducts);
         allSectionProducts.addAll(browseProducts);
 
         // ── Các section động do admin thêm trong "Thiết kế trang chủ" ──

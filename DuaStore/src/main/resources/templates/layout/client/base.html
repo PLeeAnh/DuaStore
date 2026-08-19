@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout">
@@ -17,11 +17,13 @@
     <meta name="description" content="DuaStore - Đồ Thủy Tinh Cao Cấp. Chuyên cung cấp các sản phẩm thủy tinh chất lượng cao."/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&amp;display=swap"/>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin="anonymous"/>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Inter'}" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
-<link rel="stylesheet" th:href="@{/css/style.css(v=13)}"/>
+<link rel="stylesheet" th:href="@{/css/style.css(v=27)}"/>
 <link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css(v=1)}"/>
 
     <script defer th:src="@{/js/main.js(v=1)}"></script>
@@ -43,7 +45,7 @@
             --ds-primary: [[${themeSettings.get('theme_primary_color') ?: '#0EA5E9'}]];
             --ds-primary-hover: [[${themeSettings.get('theme_secondary_color') ?: '#0284C7'}]];
             --ds-header-bg: [[${themeSettings.get('theme_header_bg') ?: '#ffffff'}]];
-            --font-body: '[[${themeSettings.get('theme_font') ?: 'DM Sans'}]]', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-body: 'Be Vietnam Pro', '[[${themeSettings.get('theme_font') ?: 'Be Vietnam Pro'}]]', -apple-system, BlinkMacSystemFont, sans-serif;
             --ds-r-sm: [[${themeSettings.get('theme_border_radius') ?: '8'}]]px;
             --ds-r: [[${themeSettings.get('theme_border_radius') ?: '14'}]]px;
             --ds-r-lg: [[${themeSettings.get('theme_border_radius') ?: '20'}]]px;
@@ -53,27 +55,29 @@
     </style>
     <link rel="stylesheet" th:href="@{/css/base-ui.css(v=2)}"/>
 </head>
-<body>
+<body th:classappend="${bodyClass} ?: ''">
 
 <div class="ds-bg-gradient" style="position:fixed;inset:0;z-index:-3;min-height:0;pointer-events:none;"></div>
 
 <nav class="ds-navbar navbar navbar-expand-lg ds-nav-glass">
     <div class="container-xl ds-ctn-width">
-        <div class="d-flex align-items-center w-100 gap-2">
+        <div class="ds-header-top">
 
-            <button class="navbar-toggler d-lg-none border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#dsNavMobile" aria-controls="dsNavMobile" aria-expanded="false" aria-label="Menu">
-                <i class="bi bi-list" style="font-size:1.6rem;"></i>
-            </button>
+            <div class="ds-header-top-left">
+                <button class="navbar-toggler d-lg-none border-0 p-1" type="button" data-bs-toggle="collapse" data-bs-target="#dsNavMobile" aria-controls="dsNavMobile" aria-expanded="false" aria-label="Menu">
+                    <i class="bi bi-list" style="font-size:1.6rem;"></i>
+                </button>
 
-            <a class="ds-logo me-auto" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}"><img class="ds-logo-img" th:src="@{/images/logo.png}" alt="DuaStore logo"/><span>DuaStore</span></a>
+                <a class="ds-logo" th:href="@{/}" th:if="${themeSettings.get('header_logo') != '0' or themeSettings.get('header_logo') == null}"><img class="ds-logo-img" th:src="@{/images/logo.png}" alt="DuaStore logo"/><span>DuaStore</span></a>
 
-            <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavDesktop">
-                <th:block th:each="i : ${#numbers.sequence(1,10)}">
-                    <th:block th:if="${themeSettings.containsKey('menu_' + i + '_label') and themeSettings.get('menu_' + i + '_active') != '0'}">
-                        <li><a class="ds-nav-link-desktop" th:href="${themeSettings.get('menu_' + i + '_url') ?: '/'}" th:text="${themeSettings.get('menu_' + i + '_label')}">Menu</a></li>
-                    </th:block>
-                </th:block>
-            </ul>
+                <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavChips" aria-label="Menu chính">
+                    <li><a class="ds-nav-link-desktop" th:href="@{/}">Trang chủ</a></li>
+                    <li><a class="ds-nav-link-desktop" th:href="@{/san-pham}">Sản phẩm</a></li>
+                    <li><a class="ds-nav-link-desktop" th:href="@{/khuyen-mai}">Khuyến mãi</a></li>
+                    <li><a class="ds-nav-link-desktop" th:href="@{/bai-viet}">Bài viết</a></li>
+                    <li><a class="ds-nav-link-desktop" th:href="@{/lien-he}">Liên hệ</a></li>
+                </ul>
+            </div>
 
             <div class="ds-nav-right d-flex align-items-center gap-2">
                 <div th:if="${themeSettings.get('header_search') != '0'}" class="ds-search-wrap">
@@ -294,6 +298,7 @@
 
             </div>
         </div>
+        </div>
 
         <!-- Mobile collapse nav -->
         <div class="collapse navbar-collapse d-lg-none" id="dsNavMobile"
@@ -306,10 +311,85 @@
                         </li>
                     </th:block>
                 </th:block>
+                <th:block th:each="cat : ${navCategories}">
+                    <li class="nav-item">
+                        <a class="nav-link py-2 fw-medium" style="font-size:1rem;" th:href="@{/san-pham(danhMuc=${cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
+                    </li>
+                    <li class="nav-item" th:each="child : ${cat.children}">
+                        <a class="nav-link py-1 ps-4" style="font-size:.9rem;color:var(--ds-gray-500);" th:href="@{/san-pham(danhMuc=${child.id})}" th:text="${child.tenDanhMuc}">Nhóm</a>
+                    </li>
+                </th:block>
             </ul>
-        </div>
 
     </div>
+
+    <!-- HÀNG 2: danh mục + mega menu (kiểu harum.io) -->
+    <div class="ds-navbar-bottom">
+        <div class="container-xl ds-ctn-width">
+            <nav class="ds-navbar-menu" role="navigation" aria-label="Danh mục">
+                <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavDesktop">
+                    <th:block th:each="cat : ${navCategories}">
+                        <li class="ds-nav-mega">
+                            <a class="ds-nav-link-desktop ds-nav-mega-toggle" th:href="@{/san-pham(danhMuc=${cat.id})}">
+                                <span th:text="${cat.tenDanhMuc}">Danh mục</span>
+                                <svg class="ds-nav-caret" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </a>
+                            <div class="ds-mega-panel">
+                                <div class="ds-mega-inner container-xl ds-ctn-width" th:with="children=${cat.children}">
+                                    <div class="ds-mega-sidebar" th:if="${not #lists.isEmpty(children)}">
+                                        <span class="ds-mega-sidebar-title" th:text="${cat.tenDanhMuc}">Danh mục</span>
+                                        <th:block th:each="child, st : ${children}">
+                                            <a class="ds-mega-sidebar-item" th:classappend="${st.index == 0} ? ' active' : ''"
+                                               th:href="@{/san-pham(danhMuc=${child.id})}"
+                                               th:attr="data-target='mega-panel-' + ${cat.id} + '-' + ${child.id}">
+                                                <span th:text="${child.tenDanhMuc}">Nhóm sản phẩm</span>
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </th:block>
+                                        <a class="ds-mega-sidebar-all" th:href="@{/san-pham(danhMuc=${cat.id})}">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                                    </div>
+                                    <div class="ds-mega-products">
+                                        <th:block th:if="${not #lists.isEmpty(children)}">
+                                            <th:block th:each="child, st : ${children}">
+                                                <div class="ds-mega-product-group" th:id="'mega-panel-' + ${cat.id} + '-' + ${child.id}"
+                                                     th:classappend="${st.index == 0} ? ' active' : ''">
+                                                    <a class="ds-mega-product-card" th:each="p : ${child.products}"
+                                                       th:href="@{'/san-pham/' + ${p.id}}">
+                                                        <div class="ds-mega-product-img">
+                                                            <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                                        </div>
+                                                        <span class="ds-mega-product-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                                    </a>
+                                                    <span class="ds-mega-product-empty" th:if="${#lists.isEmpty(child.products)}">Chưa có sản phẩm trong nhóm này</span>
+                                                    <a class="ds-mega-product-more" th:if="${not #lists.isEmpty(child.products)}"
+                                                       th:href="@{/san-pham(danhMuc=${child.id})}">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                                                </div>
+                                            </th:block>
+                                        </th:block>
+                                        <th:block th:if="${#lists.isEmpty(children)}">
+                                            <div class="ds-mega-product-group active">
+                                                <a class="ds-mega-product-card" th:each="p : ${cat.products}"
+                                                   th:href="@{'/san-pham/' + ${p.id}}">
+                                                    <div class="ds-mega-product-img">
+                                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                                    </div>
+                                                    <span class="ds-mega-product-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                                </a>
+                                                <span class="ds-mega-product-empty" th:if="${#lists.isEmpty(cat.products)}">Chưa có sản phẩm trong danh mục này</span>
+                                                <a class="ds-mega-product-more" th:if="${not #lists.isEmpty(cat.products)}"
+                                                   th:href="@{/san-pham(danhMuc=${cat.id})}">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                                            </div>
+                                        </th:block>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </th:block>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <script th:src="@{/js/mega-menu.js(v=2)}"></script>
 </nav>
 
 <main id="main-content">

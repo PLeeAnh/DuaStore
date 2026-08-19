@@ -18,6 +18,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     List<Product> findByDanhMucIdAndIsActiveTrue(Integer danhMucId);
 
+    List<Product> findByDanhMucIdAndIsActiveTrueOrderByNgayTaoDesc(Integer danhMucId, org.springframework.data.domain.Pageable pageable);
+
     @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.danhMucId IN :danhMucIds AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true)")
     List<Product> findByDanhMucIdInAndIsActiveTrue(@Param("danhMucIds") List<Integer> danhMucIds);
 
@@ -161,4 +163,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND COALESCE(v.giaKhuyenMai, v.giaGoc) <= :maxPrice) "
             + "ORDER BY p.ngayTao DESC")
     List<Product> findUnderPrice(@Param("maxPrice") BigDecimal maxPrice, Pageable pageable);
+
+    @Query("SELECT DISTINCT p FROM Product p WHERE p.isActive = true AND p.trangThaiSanPham = 'DANG_BAN' "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id AND v.isActive = true AND v.giaKhuyenMai IS NOT NULL AND v.giaKhuyenMai < v.giaGoc) "
+            + "ORDER BY p.ngayTao DESC")
+    List<Product> findDiscountedWithVariants(Pageable pageable);
 }

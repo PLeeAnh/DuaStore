@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
             new Swiper('.hero-banner-swiper', {
                 loop: true,
                 slidesPerView: 1,
-                autoplay: {delay: 4000, disableOnInteraction: false},
+                autoplay: {delay: 6000, disableOnInteraction: false},
                 pagination: {el: '.hero-banner-swiper .swiper-pagination', clickable: true},
                 navigation: {nextEl: '.hero-banner-swiper .swiper-button-next', prevEl: '.hero-banner-swiper .swiper-button-prev'}
             });

@@ -15,7 +15,7 @@
                         <small class="text-muted fw-normal ms-2" th:text="${#lists.size(notifications)} + ' thông báo'"></small>
                     </h5>
 
-                    <div th:if="${#lists.isEmpty(notifications)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-bell-slash', title='Chưa có thông báo nào', desc='Thông báo về đơn hàng, khuyến mãi và tài khoản sẽ hiển thị tại đây.')}"></div>
+                    <div th:if="${#lists.isEmpty(notifications)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-bell-slash', title='Chưa có thông báo nào', desc='Thông báo về đơn hàng, khuyến mãi và tài khoản sẽ hiển thị tại đây.', btnText=${null}, btnHref=${null})}"></div>
 
                     <div th:unless="${#lists.isEmpty(newNotifs)}" class="mb-4">
                         <h6 class="text-uppercase small fw-bold text-muted mb-3 d-flex align-items-center">

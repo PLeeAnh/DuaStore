@@ -117,6 +117,9 @@
         var wrap = el.querySelector('.ds-slider-wrap');
         var prevBtn = wrap ? wrap.querySelector('.ds-slider-arrow-prev') : null;
         var nextBtn = wrap ? wrap.querySelector('.ds-slider-arrow-next') : null;
+        var pageText = el.querySelector('.ds-slider-pagination-text');
+        var pgCurrent = pageText ? pageText.querySelector('.ds-pg-current') : null;
+        var pgTotal = pageText ? pageText.querySelector('.ds-pg-total') : null;
         if (!viewport || !track) return;
         var items = Array.from(track.children);
         if (items.length === 0) return;
@@ -133,6 +136,7 @@
             }
             if (prevBtn) prevBtn.style.display = page > 0 ? 'flex' : 'none';
             if (nextBtn) nextBtn.style.display = page < totalPages - 1 ? 'flex' : 'none';
+            if (pgCurrent) pgCurrent.textContent = page + 1;
         }
 
         function recalc() {
@@ -148,13 +152,17 @@
             var basis = 'calc((100% - ' + (gap * (perPage - 1)) + 'px) / ' + perPage + ')';
             for (var k = 0; k < items.length; k++) { items[k].style.flex = '0 0 ' + basis; }
             totalPages = Math.ceil(items.length / perPage);
+            el.classList.toggle('ds-slider-single', totalPages <= 1);
             if (dots) dots.innerHTML = '';
             if (totalPages <= 1) {
                 track.style.transform = '';
                 if (prevBtn) prevBtn.style.display = 'none';
                 if (nextBtn) nextBtn.style.display = 'none';
+                if (pgCurrent) pgCurrent.textContent = '1';
+                if (pgTotal) pgTotal.textContent = '1';
                 return;
             }
+            if (pgTotal) pgTotal.textContent = totalPages;
             for (var i = 0; i < totalPages; i++) {
                 var dot = document.createElement('button');
                 dot.className = 'ds-slider-dot' + (i === 0 ? ' active' : '');
