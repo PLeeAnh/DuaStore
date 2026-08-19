@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.Set;
 
@@ -50,8 +51,13 @@ public class AuthController {
     }
 
     @GetMapping("/dang-nhap")
-    public String login(Model model) {
+    public String login(Model model, HttpSession session) {
         model.addAttribute("title", "Đăng nhập");
+        String error = (String) session.getAttribute("loginErrorMessage");
+        if (error != null) {
+            model.addAttribute("loginErrorMessage", error);
+            session.removeAttribute("loginErrorMessage");
+        }
         return "view/auth/login";
     }
 

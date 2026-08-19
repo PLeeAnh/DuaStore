@@ -53,6 +53,12 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
         }
 
         if (user != null) {
+            if (user.getFailedAttempts() != null && user.getFailedAttempts() > 0
+                    || user.getLockedUntil() != null) {
+                user.setFailedAttempts(0);
+                user.setLockedUntil(null);
+                userRepository.save(user);
+            }
             session.setAttribute("loggedIn", true);
             session.setAttribute("userId", user.getId());
             session.setAttribute("userName", user.getHoTen());

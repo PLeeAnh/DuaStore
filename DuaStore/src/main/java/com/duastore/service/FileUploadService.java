@@ -30,6 +30,11 @@ public class FileUploadService {
             new byte[]{(byte) 0x52, (byte) 0x49, (byte) 0x46, (byte) 0x46}, // WEBP (RIFF...WEBP)
             new byte[]{(byte) 0x47, (byte) 0x49, (byte) 0x46, (byte) 0x38} // GIF
     );
+    private static final List<byte[]> MAGIC_VIDEO_BYTES = Arrays.asList(
+            new byte[]{(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x18, (byte) 0x66, (byte) 0x74, (byte) 0x79, (byte) 0x70}, // MP4/MOV (ISO_BMFF)
+            new byte[]{(byte) 0x1A, (byte) 0x45, (byte) 0xDF, (byte) 0xA3}, // WEBM/MKV (EBML)
+            new byte[]{(byte) 0x52, (byte) 0x49, (byte) 0x46, (byte) 0x46} // AVI (RIFF....AVI )
+    );
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
@@ -80,13 +85,26 @@ public class FileUploadService {
             throw new RuntimeException("Định dạng video không được hỗ trợ: " + contentType
                     + ". Hỗ trợ: MP4, MOV, WEBM, AVI");
         }
-        return store(file, directory);
+        String ext = detectVideoExtension(file);
+        if (ext == null) {
+            throw new RuntimeException("File không phải là video hợp lệ: " + file.getOriginalFilename());
+        }
+        return store(file, directory, ext);
     }
 
     private String store(MultipartFile file, String directory) {
+        return store(file, directory, null);
+    }
+
+    private String store(MultipartFile file, String directory, String forcedExtension) {
         try {
             String original = file.getOriginalFilename();
             String cleanName = (original != null) ? original.replaceAll("[^a-zA-Z0-9._-]", "_") : "image";
+            if (forcedExtension != null) {
+                int dot = cleanName.lastIndexOf('.');
+                String base = dot > 0 ? cleanName.substring(0, dot) : cleanName;
+                cleanName = base + "." + forcedExtension;
+            }
             String fileName = System.currentTimeMillis() + "_" + cleanName;
 
             Path dirPath = (directory != null && !directory.isBlank())
@@ -106,6 +124,30 @@ public class FileUploadService {
             return urlPath;
         } catch (IOException e) {
             throw new RuntimeException("Không thể lưu file: " + file.getOriginalFilename(), e);
+        }
+    }
+
+    private String detectVideoExtension(MultipartFile file) {
+        try (InputStream is = file.getInputStream()) {
+            byte[] header = new byte[12];
+            int read = is.read(header, 0, 12);
+            if (read < 4) {
+                return null;
+            }
+            if (startsWith(header, MAGIC_VIDEO_BYTES.get(1))) {
+                return "webm";
+            }
+            if (startsWith(header, MAGIC_VIDEO_BYTES.get(0))) {
+                return "mp4";
+            }
+            if (startsWith(header, MAGIC_VIDEO_BYTES.get(2))
+                    && read >= 12
+                    && header[8] == 'A' && header[9] == 'V' && header[10] == 'I' && header[11] == ' ') {
+                return "avi";
+            }
+            return null;
+        } catch (IOException e) {
+            return null;
         }
     }
 

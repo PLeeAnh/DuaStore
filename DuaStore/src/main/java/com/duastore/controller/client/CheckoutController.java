@@ -629,6 +629,10 @@ public class CheckoutController {
                 model.addAttribute("error", "Đơn hàng không phải thanh toán qua VNPAY");
                 return "view/client/payment-fail";
             }
+            if ("DA_HUY".equals(order.getTrangThaiDon())) {
+                model.addAttribute("error", "Đơn hàng đã bị hủy trước khi thanh toán. Liên hệ hỗ trợ để được hoàn tiền nếu giao dịch đã trừ tiền");
+                return "view/client/payment-fail";
+            }
             long expectedAmount = order.getTongThanhToan().longValue() * 100L;
             if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
                 model.addAttribute("error", "Số tiền giao dịch không khớp với đơn hàng");
@@ -636,6 +640,7 @@ public class CheckoutController {
             }
             if (!"DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
                 orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                orderService.updateVnpayTransactionNo(orderId, result.get("transactionNo"));
                 orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
             }
         } catch (Exception e) {
@@ -683,6 +688,7 @@ public class CheckoutController {
                     return ResponseEntity.ok(response);
                 }
                 orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
+                orderService.updateVnpayTransactionNo(orderId, result.get("transactionNo"));
                 orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
                 response.put("RspCode", "00");
                 response.put("Message", "Confirm Success");

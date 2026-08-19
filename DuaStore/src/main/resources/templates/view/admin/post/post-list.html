@@ -55,6 +55,7 @@
                         <option value="XUAT_BAN">Xuất bản</option>
                         <option value="NHAP">Nháp</option>
                         <option value="AN">Ẩn</option>
+                        <option value="DA_XOA">Đã xóa</option>
                     </select>
                 </div>
             </div>
@@ -96,6 +97,7 @@
                             <span th:if="${p.trangThai == 'XUAT_BAN'}" class="status-pill status-XUAT_BAN">Xuất bản</span>
                             <span th:if="${p.trangThai == 'NHAP'}" class="status-pill status-NHAP">Nháp</span>
                             <span th:if="${p.trangThai == 'AN'}" class="status-pill status-AN">Ẩn</span>
+                            <span th:if="${p.trangThai == 'DA_XOA'}" class="status-pill status-AN">Đã xóa</span>
                         </td>
                         <td>
                             <span th:if="${p.featured}" class="text-success"><i class="bi bi-star-fill"></i></span>
@@ -107,10 +109,16 @@
                             <a th:href="@{/admin/bai-viet/sua/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form th:action="@{/admin/bai-viet/xoa/{id}(id=${p.id})}" method="post" style="display:inline"
-                                  onsubmit="return confirm('Xóa bài viết này?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <form th:if="${p.trangThai != 'DA_XOA'}" th:action="@{/admin/bai-viet/xoa/{id}(id=${p.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Xóa bài viết này? (có thể khôi phục từ bộ lọc "Đã xóa")');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
                                     <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            <form th:if="${p.trangThai == 'DA_XOA'}" th:action="@{/admin/bai-viet/xoa-vinh-vien/{id}(id=${p.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Xóa VĨNH VIỄN bài viết này? Hành động này không thể hoàn tác!');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa vĩnh viễn">
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </form>
                         </td>

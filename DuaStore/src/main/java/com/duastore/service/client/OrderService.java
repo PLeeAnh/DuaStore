@@ -422,10 +422,15 @@ public class OrderService {
         if (promo.getSoLanDung() != null && promo.getDaDung() >= promo.getSoLanDung()) {
             throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng");
         }
-        if (tienHang.compareTo(promo.getDonHangToiThieu()) < 0) {
+        if ("PHAN_TRAM".equals(promo.getLoaiGiam()) && promo.getGiaTriGiam() != null
+                && promo.getGiaTriGiam().compareTo(new BigDecimal("100")) > 0) {
+            throw new RuntimeException("Mã giảm giá không hợp lệ (phần trăm vượt quá 100%)");
+        }
+        if (promo.getDonHangToiThieu() != null && tienHang.compareTo(promo.getDonHangToiThieu()) < 0) {
             throw new RuntimeException("Đơn hàng tối thiểu " + PriceUtils.format(promo.getDonHangToiThieu()) + " để áp dụng mã");
         }
-        if (promo.getBudget() != null && promo.getUsedBudget().compareTo(promo.getBudget()) >= 0) {
+        if (promo.getBudget() != null && promo.getUsedBudget() != null
+                && promo.getUsedBudget().compareTo(promo.getBudget()) >= 0) {
             throw new RuntimeException("Mã giảm giá đã hết ngân sách");
         }
     }
@@ -440,7 +445,11 @@ public class OrderService {
         }
         BigDecimal discount;
         if ("PHAN_TRAM".equals(promo.getLoaiGiam())) {
-            discount = tienHang.multiply(promo.getGiaTriGiam()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            BigDecimal pct = promo.getGiaTriGiam() != null ? promo.getGiaTriGiam() : BigDecimal.ZERO;
+            if (pct.compareTo(new BigDecimal("100")) > 0) {
+                pct = new BigDecimal("100");
+            }
+            discount = tienHang.multiply(pct).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
             if (promo.getGiamToiDa() != null && discount.compareTo(promo.getGiamToiDa()) > 0) {
                 discount = promo.getGiamToiDa();
             }
@@ -521,6 +530,16 @@ public class OrderService {
     public void updatePaymentStatus(Integer orderId, String trangThaiTT) {
         Order order = getOrderById(orderId);
         order.setTrangThaiTT(trangThaiTT);
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void updateVnpayTransactionNo(Integer orderId, String txnNo) {
+        if (txnNo == null || txnNo.isBlank()) {
+            return;
+        }
+        Order order = getOrderById(orderId);
+        order.setVnpTransactionNo(txnNo);
         orderRepository.save(order);
     }
 

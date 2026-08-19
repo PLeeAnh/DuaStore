@@ -281,7 +281,7 @@ public class RefundService {
                 // Lấy thông tin giao dịch VNPAY từ order
                 String txnRef = "DUASTORE" + order.getId(); // txnRef format used when creating payment
                 long amount = actualRefund.multiply(BigDecimal.valueOf(100)).longValue(); // VNPAY amount in cents
-                String transactionNo = order.getMaVanDon(); // VNPAY transaction number
+                String transactionNo = order.getVnpTransactionNo(); // VNPAY transaction number
                 String transactionDate = order.getNgayDat() != null ? 
                     new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(java.util.Date.from(order.getNgayDat().atZone(java.time.ZoneId.systemDefault()).toInstant())) 
                     : new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(new Date());

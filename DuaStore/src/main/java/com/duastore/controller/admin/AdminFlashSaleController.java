@@ -244,6 +244,7 @@ public class AdminFlashSaleController {
 
     @GetMapping("/variants")
     @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).FLASH_SALE_READ)")
     public List<Map<String, Object>> variantsByProduct(@RequestParam Integer productId) {
         List<Map<String, Object>> result = new ArrayList<>();
         variantRepository.findByProductIdAndIsActiveTrue(productId)

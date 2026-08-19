@@ -5,6 +5,7 @@ import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,6 +34,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         if (!user.getIsActive()) {
             throw new DisabledException("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        }
+
+        if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(java.time.LocalDateTime.now())) {
+            throw new LockedException("Tài khoản tạm khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau 15 phút.");
         }
 
         boolean hasActiveRole = user.getRoles().stream().anyMatch(Role::getIsActive);

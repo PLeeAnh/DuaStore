@@ -81,6 +81,17 @@ public class AdminPromotionService {
             throw new RuntimeException("Ngày bắt đầu phải trước ngày kết thúc");
         }
 
+        if ("PHAN_TRAM".equals(promotion.getLoaiGiam())) {
+            if (promotion.getGiaTriGiam() == null
+                    || promotion.getGiaTriGiam().compareTo(BigDecimal.ZERO) <= 0
+                    || promotion.getGiaTriGiam().compareTo(new BigDecimal("100")) > 0) {
+                throw new RuntimeException("Giá trị giảm theo phần trăm phải trong khoảng 1-100");
+            }
+        } else if (promotion.getGiaTriGiam() == null
+                || promotion.getGiaTriGiam().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Giá trị giảm phải lớn hơn hoặc bằng 0");
+        }
+
         // Check trùng mã bằng DB (bỏ qua chính nó nếu là sửa)
         promotionRepository.findByMaCodeIgnoreCase(code).ifPresent(p -> {
             if (promotion.getId() == null || !promotion.getId().equals(p.getId())) {
@@ -93,9 +104,11 @@ public class AdminPromotionService {
             Promotion existing = getPromotionById(promotion.getId());
             promotion.setDaDung(existing.getDaDung());
             promotion.setUsedBudget(existing.getUsedBudget());
+            promotion.setSavedCount(existing.getSavedCount());
         } else {
             promotion.setDaDung(0);
             promotion.setUsedBudget(BigDecimal.ZERO);
+            promotion.setSavedCount(0);
         }
 
         return promotionRepository.save(promotion);

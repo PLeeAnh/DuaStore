@@ -25,8 +25,6 @@ public class RateLimitingFilter extends HttpFilter {
             "/tai-khoan/tai-khoan-lien-ket",
             "/checkout/api/create",
             "/address/api/save",
-            "/api/vi-voucher/luu",
-            "/api/vi-voucher/xoa",
             "/api/cart/add-popup",
             "/api/cart/update",
             "/api/cart/remove-item",
@@ -37,7 +35,9 @@ public class RateLimitingFilter extends HttpFilter {
     private static final Set<String> PROTECTED_PREFIXES = Set.of(
             "/tai-khoan/chuyen-doi/",
             "/hoan-tien/",
-            "/don-hang/huy/"
+            "/don-hang/huy/",
+            "/api/vi-voucher/luu/",
+            "/api/vi-voucher/xoa/"
     );
 
     private final ConcurrentHashMap<String, Window> store = new ConcurrentHashMap<>();
@@ -60,6 +60,10 @@ public class RateLimitingFilter extends HttpFilter {
 
         String key = ip(req) + ":" + path;
         long now = System.currentTimeMillis();
+
+        if (store.size() > 10_000) {
+            store.entrySet().removeIf(e -> now - e.getValue().start > WINDOW_MS);
+        }
 
         Window w = store.compute(key, (k, v) -> {
             if (v == null || now - v.start > WINDOW_MS) return new Window(now, 1);

@@ -283,6 +283,7 @@ GO
         trangThaiDon nvarchar(20) default 'CHO_XAC_NHAN' not null,
         trangThaiTT nvarchar(25) default 'CHUA_THANH_TOAN' not null,
         maVanDon nvarchar(50),
+        vnpTransactionNo nvarchar(100),
         shippingCarrier nvarchar(30),
         snapTenNguoiNhan nvarchar(100) not null,
         ghiChu nvarchar(500),
@@ -344,7 +345,6 @@ GO
         id int identity not null,
         isActive bit default 1 not null,
         isFeatured bit default 0 not null,
-        isCustom bit default 0 not null,
         leadTimeDays int,
         minPrice numeric(12,0),
         ngayPhatHanh date,
@@ -580,6 +580,8 @@ GO
         ngayCapNhat datetime2(7),
         ngayTao datetime2(7) not null,
         resetTokenExpiry datetime2(7),
+        failedAttempts int not null default 0,
+        lockedUntil datetime2(7),
         soDienThoai nvarchar(15),
         status nvarchar(20),
         username nvarchar(50) not null,
@@ -919,7 +921,8 @@ GO
 -- ============================================================
 -- SEED: RBAC (roles / permissions / role_permissions / user_roles)
 -- ============================================================
--- Danh sach permission khop CHINH XAC voi PermissionEnum.java trong code.
+-- Danh sach permission khop CHINH XAC 1:1 voi PermissionEnum.java trong code
+-- (83 quyen: moi module/action trong enum deu co dong INSERT tuong ung).
 -- ============================================================
 INSERT INTO roles (name, moTa, ngayTao) VALUES
     (N'SUPER_ADMIN', N'Toan quyen he thong (bypass moi kiem tra quyen)', GETDATE()),
@@ -937,6 +940,7 @@ INSERT INTO permissions (module, action, moTa, ngayTao) VALUES
     (N'ORDER', N'UPDATE', N'Cap nhat don hang', GETDATE()),
     (N'USER', N'READ',   N'Xem nguoi dung', GETDATE()),
     (N'USER', N'UPDATE', N'Sua nguoi dung', GETDATE()),
+    (N'USER', N'CREATE', N'Them nguoi dung', GETDATE()),
     (N'CATEGORY', N'CREATE', N'Them danh muc', GETDATE()),
     (N'CATEGORY', N'READ',   N'Xem danh muc', GETDATE()),
     (N'CATEGORY', N'UPDATE', N'Sua danh muc', GETDATE()),
@@ -986,7 +990,30 @@ INSERT INTO permissions (module, action, moTa, ngayTao) VALUES
     (N'PAYMENT_SETTING', N'READ',   N'Xem cau hinh thanh toan', GETDATE()),
     (N'PAYMENT_SETTING', N'UPDATE', N'Sua cau hinh thanh toan', GETDATE()),
     (N'SHIPPING_SETTING', N'READ',   N'Xem cau hinh van chuyen', GETDATE()),
-    (N'SHIPPING_SETTING', N'UPDATE', N'Sua cau hinh van chuyen', GETDATE());
+    (N'SHIPPING_SETTING', N'UPDATE', N'Sua cau hinh van chuyen', GETDATE()),
+    (N'POST_CATEGORY', N'CREATE', N'Them danh muc bai viet', GETDATE()),
+    (N'POST_CATEGORY', N'READ',   N'Xem danh muc bai viet', GETDATE()),
+    (N'POST_CATEGORY', N'UPDATE', N'Sua danh muc bai viet', GETDATE()),
+    (N'POST_CATEGORY', N'DELETE', N'Xoa danh muc bai viet', GETDATE()),
+    (N'FLASH_SALE', N'CREATE', N'Them chuong trinh flash sale', GETDATE()),
+    (N'FLASH_SALE', N'READ',   N'Xem chuong trinh flash sale', GETDATE()),
+    (N'FLASH_SALE', N'UPDATE', N'Sua chuong trinh flash sale', GETDATE()),
+    (N'FLASH_SALE', N'DELETE', N'Xoa chuong trinh flash sale', GETDATE()),
+    (N'REFUND', N'READ',   N'Xem yeu cau hoan tien', GETDATE()),
+    (N'REFUND', N'UPDATE', N'Cap nhat yeu cau hoan tien', GETDATE()),
+    (N'REFUND', N'APPROVE', N'Duyet yeu cau hoan tien', GETDATE()),
+    (N'FOOTER_LINK', N'CREATE', N'Them link chan trang', GETDATE()),
+    (N'FOOTER_LINK', N'READ',   N'Xem link chan trang', GETDATE()),
+    (N'FOOTER_LINK', N'UPDATE', N'Sua link chan trang', GETDATE()),
+    (N'FOOTER_LINK', N'DELETE', N'Xoa link chan trang', GETDATE()),
+    (N'PRICE_HISTORY', N'READ', N'Xem lich su gia', GETDATE()),
+    (N'LOYALTY', N'READ',   N'Xem tich diem khach hang', GETDATE()),
+    (N'LOYALTY', N'UPDATE', N'Sua tich diem khach hang', GETDATE()),
+    (N'ALERT', N'READ',   N'Xem canh bao', GETDATE()),
+    (N'ALERT', N'UPDATE', N'Sua canh bao', GETDATE()),
+    (N'CONTACT_MESSAGE', N'READ',   N'Xem tin nhan lien he', GETDATE()),
+    (N'CONTACT_MESSAGE', N'UPDATE', N'Sua tin nhan lien he', GETDATE()),
+    (N'CONTACT_MESSAGE', N'DELETE', N'Xoa tin nhan lien he', GETDATE());
 GO
 
 -- ADMIN (vai tro thuong, khong bypass) duoc gan TOAN BO permission ben tren

@@ -112,6 +112,7 @@ public class SiteSettingService {
     }
 
     @Transactional
+    @CacheEvict(value = "siteSettings", allEntries = true)
     public void deleteByPrefix(String prefix) {
         siteSettingRepository.findBySettingKeyStartingWith(prefix)
                 .forEach(siteSettingRepository::delete);

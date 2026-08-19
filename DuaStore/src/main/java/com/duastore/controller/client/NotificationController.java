@@ -102,10 +102,13 @@ public class NotificationController {
     @PostMapping("/api/thong-bao/xoa/{id}")
     @ResponseBody
     public String deleteNotif(@PathVariable Integer id) {
-        notificationRepository.findById(id).ifPresent(n -> {
-            n.setIsActive(false);
-            notificationRepository.save(n);
-        });
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId != null) {
+            notificationRepository.findByIdAndUserId(id, userId).ifPresent(n -> {
+                n.setIsActive(false);
+                notificationRepository.save(n);
+            });
+        }
         return "ok";
     }
 

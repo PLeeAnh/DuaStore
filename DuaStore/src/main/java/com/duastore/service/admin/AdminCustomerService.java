@@ -68,8 +68,9 @@ public class AdminCustomerService {
 
     public Map<Integer, Integer> getLoyaltyBalanceMap(List<Integer> userIds) {
         Map<Integer, Integer> map = new HashMap<>();
-        for (Integer uid : userIds) {
-            map.put(uid, loyaltyTransactionRepository.findCurrentBalanceByUserId(uid));
+        if (!userIds.isEmpty()) {
+            loyaltyTransactionRepository.findCurrentBalanceByUserIds(userIds)
+                    .forEach(row -> map.put((Integer) row[0], ((Number) row[1]).intValue()));
         }
         return map;
     }

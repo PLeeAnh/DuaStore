@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +34,11 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private final SecurityUtil securityUtil;
+    private final Environment environment;
 
-    public GlobalExceptionHandler(SecurityUtil securityUtil) {
+    public GlobalExceptionHandler(SecurityUtil securityUtil, Environment environment) {
         this.securityUtil = securityUtil;
+        this.environment = environment;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -128,7 +132,7 @@ public class GlobalExceptionHandler {
             EntityNotFoundException ex, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
-        response.put("message", ex.getMessage());
+        response.put("message", "Không tìm thấy tài nguyên");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
@@ -171,7 +175,7 @@ public class GlobalExceptionHandler {
         response.put("message", "Lỗi hệ thống, vui lòng thử lại sau");
         
         // Chỉ log stack trace trong môi trường dev
-        boolean isDev = System.getProperty("spring.profiles.active", "").contains("local");
+        boolean isDev = environment.acceptsProfiles(Profiles.of("local"));
         if (isDev) {
             response.put("error", ex.getClass().getSimpleName());
             response.put("message", ex.getMessage());

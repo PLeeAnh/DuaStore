@@ -54,7 +54,7 @@ public class AdminPostService {
     @Transactional(readOnly = true)
     public Page<Post> getAllPosts(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "ngayTao"));
-        return postsRepository.findAll(pageable);
+        return postsRepository.findAllByTrangThaiNot("DA_XOA", pageable);
     }
 
     @Transactional(readOnly = true)
@@ -76,7 +76,8 @@ public class AdminPostService {
             }
             return postsRepository.findByDanhMucId(danhMucId, pageable);
         }
-        return postsRepository.findByTieuDeContainingIgnoreCase(hasKeyword ? keyword : "", pageable);
+        return postsRepository.findByTrangThaiNotAndTieuDeContainingIgnoreCase("DA_XOA",
+                hasKeyword ? keyword : "", pageable);
     }
 
     @Transactional(readOnly = true)
@@ -146,7 +147,9 @@ public class AdminPostService {
     }
 
     public void delete(Integer id) {
-        deletePermanent(getPostById(id));
+        Post post = getPostById(id);
+        post.setTrangThai("DA_XOA");
+        postsRepository.save(post);
     }
 
     public void deletePermanent(Integer id) {

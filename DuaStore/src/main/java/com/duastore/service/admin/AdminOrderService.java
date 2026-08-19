@@ -292,30 +292,6 @@ public class AdminOrderService {
         }
     }
 
-    public String deleteOrderWithLog(Integer id, String oldStatus,
-            com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
-        String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
-
-        Order order = orderRepository.findById(id).orElse(null);
-        if (order != null && order.getUser() != null) {
-            loyaltyPointsService.refundRedeemedPointsForOrder(order.getUser().getId(), id);
-            clientOrderService.restoreVoucherForOrder(id);
-            restoreFlashSaleQuota(id);
-        }
-        orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, null,
-                "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""));
-
-        adminLogService.ghiLogDonHang(admin, id, "XOA_DON_HANG",
-                oldStatus, null,
-                "Xóa đơn hàng (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""),
-                request);
-        assignmentRepository.findByOrderId(id).ifPresent(assignmentRepository::delete);
-        orderStatusLogService.deleteByOrderId(id);
-        orderNoteService.deleteByOrderId(id);
-        orderRepository.deleteById(id);
-        return stockMsg;
-    }
-
     public void updatePaymentStatusWithLog(Integer id, String trangThaiTT, String oldPayment,
             com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
         updatePaymentStatus(id, trangThaiTT);

@@ -1,6 +1,7 @@
 package com.duastore.controller.admin;
 
 import com.duastore.service.DuplicateDetectionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,9 @@ public class AdminDuplicateController {
     }
 
     @GetMapping("/kiem-tra-trung")
+    @PreAuthorize("isAuthenticated() and ("
+            + "@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PRODUCT_READ)"
+            + " or @sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CATEGORY_READ))")
     public Map<String, Object> checkDuplicate(
             @RequestParam String type,
             @RequestParam String name,

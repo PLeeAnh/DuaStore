@@ -19,6 +19,10 @@ public interface PostsRepository extends JpaRepository<Post, Integer> {
 
     Page<Post> findByTrangThai(String trangThai, Pageable pageable);
 
+    Page<Post> findAllByTrangThaiNot(String trangThai, Pageable pageable);
+
+    Page<Post> findByTrangThaiNotAndTieuDeContainingIgnoreCase(String trangThai, String keyword, Pageable pageable);
+
     Page<Post> findByTrangThaiAndTieuDeContainingIgnoreCase(String trangThai, String keyword, Pageable pageable);
 
     Page<Post> findByTieuDeContainingIgnoreCase(String keyword, Pageable pageable);

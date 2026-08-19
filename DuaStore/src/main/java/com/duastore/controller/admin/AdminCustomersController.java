@@ -5,6 +5,8 @@ import com.duastore.model.*;
 import com.duastore.repository.*;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminCustomerService;
+import com.duastore.service.admin.AdminLogService;
+import com.duastore.service.admin.AdminUserService;
 import com.duastore.service.LoyaltyPointsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +39,8 @@ public class AdminCustomersController {
     private final LoyaltyPointsService loyaltyPointsService;
     private final NotificationHelper notificationHelper;
     private final SecurityUtil securityUtil;
+    private final AdminUserService adminUserService;
+    private final AdminLogService adminLogService;
 
     public AdminCustomersController(AdminCustomerService adminCustomerService,
             UserRepository userRepository,
@@ -48,7 +52,9 @@ public class AdminCustomersController {
             OrderItemRepository orderItemRepository,
             LoyaltyPointsService loyaltyPointsService,
             NotificationHelper notificationHelper,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil,
+            AdminUserService adminUserService,
+            AdminLogService adminLogService) {
         this.adminCustomerService = adminCustomerService;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
@@ -60,6 +66,8 @@ public class AdminCustomersController {
         this.loyaltyPointsService = loyaltyPointsService;
         this.notificationHelper = notificationHelper;
         this.securityUtil = securityUtil;
+        this.adminUserService = adminUserService;
+        this.adminLogService = adminLogService;
     }
 
     @GetMapping
@@ -218,10 +226,24 @@ public class AdminCustomersController {
             ra.addFlashAttribute("errorMsg", "Không tìm thấy khách hàng");
             return "redirect:/admin/khach-hang";
         }
-        user.setIsActive(!user.getIsActive());
-        userRepository.save(user);
-        boolean nowActive = user.getIsActive();
+        User currentAdmin;
+        try {
+            currentAdmin = securityUtil.getCurrentUser();
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "Không xác định được người thao tác");
+            return "redirect:/admin/khach-hang";
+        }
+        try {
+            adminUserService.toggleStatus(id, currentAdmin);
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+            return "redirect:/admin/khach-hang";
+        }
+        boolean nowActive = !user.getIsActive();
         String statusMsg = nowActive ? "đã được kích hoạt" : "đã bị khóa";
+        adminLogService.ghiLog(currentAdmin,
+                "Khóa/kích hoạt tài khoản khách hàng #" + id,
+                "CUSTOMER", id, null, null, statusMsg);
         notificationHelper.notifyAll(
                 "Tài khoản của bạn " + statusMsg,
                 null, null, null, null,
@@ -239,7 +261,7 @@ public class AdminCustomersController {
                 "/admin/khach-hang/" + user.getId(),
                 "Xem khách hàng"
         );
-        ra.addFlashAttribute("successMsg", user.getIsActive() ? "Đã kích hoạt khách hàng" : "Đã khóa khách hàng");
+        ra.addFlashAttribute("successMsg", nowActive ? "Đã kích hoạt khách hàng" : "Đã khóa khách hàng");
         return "redirect:/admin/khach-hang";
     }
 

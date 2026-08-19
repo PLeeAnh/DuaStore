@@ -109,7 +109,7 @@
                                     <span class="small text-danger fw-semibold">
                                         <th:block th:with="dItem=${defaultVariant != null ? variantFlashMap.get(defaultVariant.id) : null}">
                                             <th:block th:if="${dItem != null}">
-                                                Giảm <span th:text="${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 0)}">99</span>% – Còn <span th:text="${dItem.soLuongConLai}">0</span> suất
+                                                Giảm <span th:text="${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 'POINT')}">99</span>% – Còn <span th:text="${dItem.soLuongConLai}">0</span> suất
                                             </th:block>
                                             <th:block th:unless="${dItem != null}">Đang diễn ra trên một số biến thể</th:block>
                                         </th:block>
@@ -135,7 +135,7 @@
                                                 </th:block>
                                             </span>
                                             <span th:if="${dItem != null}" class="badge ms-2" style="background:#2563EB;font-size:.75rem;vertical-align:middle;"
-                                                  th:text="'-' + ${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 0)} + '%'">-99%</span>
+                                                  th:text="'-' + ${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 'POINT')} + '%'">-99%</span>
                                         </th:block>
                                     </th:block>
                                     <th:block th:if="${flashEvent == null and bestPercentagePromo != null and minPrice != null and maxPrice != null}">

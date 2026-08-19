@@ -26,6 +26,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final CustomAuthenticationSuccessHandler successHandler;
+    private final CustomAuthenticationFailureHandler failureHandler;
     private final CustomOAuth2UserService oAuth2UserService;
     private final TwoFactorAuthFilter twoFactorAuthFilter;
 
@@ -34,10 +35,12 @@ public class SecurityConfig {
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
             CustomAuthenticationSuccessHandler successHandler,
+            CustomAuthenticationFailureHandler failureHandler,
             CustomOAuth2UserService oAuth2UserService,
             TwoFactorAuthFilter twoFactorAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
         this.oAuth2UserService = oAuth2UserService;
         this.twoFactorAuthFilter = twoFactorAuthFilter;
     }
@@ -57,7 +60,7 @@ public class SecurityConfig {
                 .loginPage("/dang-nhap")
                 .loginProcessingUrl("/dang-nhap")
                 .successHandler(successHandler)
-                .failureUrl("/?loginError=true")
+                .failureHandler(failureHandler)
                 .permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2

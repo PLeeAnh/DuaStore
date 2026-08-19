@@ -149,6 +149,7 @@ public class AdminPromotionController {
             return "view/admin/promotion/promotion-form";
         }
         try {
+            promotion.setId(null);
             Promotion saved = adminPromotionService.savePromotion(promotion);
             notificationHelper.notifyAll(
                     "🔥 Khuyến mãi mới: " + saved.getTenChuongTrinh() + " — giảm " + formatDiscount(saved),

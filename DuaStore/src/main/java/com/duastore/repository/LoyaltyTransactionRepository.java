@@ -17,6 +17,10 @@ public interface LoyaltyTransactionRepository extends JpaRepository<LoyaltyTrans
     @Query("SELECT COALESCE(MAX(t.balance), 0) FROM LoyaltyTransaction t WHERE t.userId = :userId")
     int findCurrentBalanceByUserId(@Param("userId") Integer userId);
 
+    @Query("SELECT t.userId, COALESCE(MAX(t.balance), 0) FROM LoyaltyTransaction t "
+            + "WHERE t.userId IN :userIds GROUP BY t.userId")
+    List<Object[]> findCurrentBalanceByUserIds(@Param("userIds") List<Integer> userIds);
+
     Optional<LoyaltyTransaction> findFirstByUserIdAndReferenceIdAndType(Integer userId, Integer referenceId, String type);
 
     @Query("SELECT t FROM LoyaltyTransaction t WHERE t.userId = :userId AND t.type = 'EARNED' AND t.createdAt < :threshold AND t.points > 0 ORDER BY t.createdAt ASC")

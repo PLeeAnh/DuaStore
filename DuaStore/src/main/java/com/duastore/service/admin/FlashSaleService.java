@@ -77,6 +77,9 @@ public class FlashSaleService {
             throw new RuntimeException("Biến thể này đã có trong Flash Sale");
         }
         BigDecimal giaGoc = variant.getGiaGoc() != null ? variant.getGiaGoc() : BigDecimal.ZERO;
+        if (dto.getGiaSale() == null || dto.getGiaSale().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Giá sale không được âm");
+        }
         if (dto.getGiaSale().compareTo(giaGoc) > 0) {
             throw new RuntimeException("Giá sale không được lớn hơn giá gốc");
         }

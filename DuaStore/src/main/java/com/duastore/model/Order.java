@@ -83,6 +83,9 @@ public class Order {
     @Column(length = 50)
     private String maVanDon;
 
+    @Column(length = 100)
+    private String vnpTransactionNo;
+
     @Column(length = 1000)
     private String fraudWarning;
 
