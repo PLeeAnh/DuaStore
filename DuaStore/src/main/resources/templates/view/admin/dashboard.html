@@ -274,6 +274,7 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                         <h6 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Đơn hàng gần đây</h6>
                         <a th:href="@{/admin/don-hang}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
                     </div>
+                    <div class="table-responsive">
                     <table class="table">
                         <thead>
                             <tr>
@@ -310,6 +311,7 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                             </tr>
                         </tbody>
                     </table>
+                    </div>
                     <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, '/admin', null)}" />
                 </div>
             </div>

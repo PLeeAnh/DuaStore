@@ -502,7 +502,8 @@ body.adm-body {
     overflow: visible;
 }
 
-.adm-table-wrap .table-responsive {
+.adm-table-wrap .table-responsive,
+.adm-card .table-responsive {
     overflow: visible;
 }
 
@@ -520,16 +521,22 @@ body.adm-body {
     text-transform: uppercase;
     letter-spacing: .05em;
     color: var(--muted);
-    padding: .85rem 1.25rem;
+    padding: .7rem 1rem;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 3;
 }
 
+@media (min-width: 768px) {
+    .adm-table-wrap .table th {
+        top: var(--header-h);
+    }
+}
+
 .adm-table-wrap .table td,
 .adm-card .table:not(.table-sm):not(.table-borderless) td {
-    padding: .85rem 1.25rem;
+    padding: .7rem 1rem;
     vertical-align: middle;
     font-size: .875rem;
     border-bottom: 1px solid var(--border);
@@ -1434,6 +1441,7 @@ body.adm-body {
 
 /* ── 34. Image Management Cards ── */
 .adm-image-card {
+    position: relative;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--card-radius);

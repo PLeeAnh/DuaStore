@@ -784,8 +784,7 @@ document.addEventListener('submit', function(e) {
         e.preventDefault();
         var username = document.getElementById('linkUsername').value.trim();
         var password = document.getElementById('linkPassword').value.trim();
-        var errDiv = document.getElementById('linkAccountError');
-        if (!username || !password) { errDiv.textContent = 'Vui lòng nhập đầy đủ thông tin'; errDiv.classList.remove('d-none'); return; }
+        if (!username || !password) { if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.warning('Vui lòng nhập đầy đủ thông tin'); } return; }
 var fd = new FormData();
         fd.append('username', username);
         fd.append('password', password);
@@ -797,8 +796,7 @@ var fd = new FormData();
                 bootstrap.Modal.getInstance(document.getElementById('linkAccountModal'))?.hide();
                 loadLinkedAccounts();
                 } else {
-        errDiv.textContent = data.message || 'Liên kết thất bại';
-                errDiv.classList.remove('d-none');
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Liên kết thất bại'); }
                 }
         });
 });

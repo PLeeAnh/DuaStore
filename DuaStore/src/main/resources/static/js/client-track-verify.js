@@ -1,11 +1,9 @@
 function doVerify() {
     var maDon = document.getElementById('inputMaDon').value.trim();
     var phone = document.getElementById('inputPhone').value.trim();
-    var errEl = document.getElementById('verifyError');
     var btn = document.getElementById('verifyBtn');
-    if (!maDon) { errEl.textContent = 'Vui lòng nhập mã đơn hàng'; errEl.classList.remove('d-none'); return; }
-    if (!phone) { errEl.textContent = 'Vui lòng nhập SĐT'; errEl.classList.remove('d-none'); return; }
-    errEl.classList.add('d-none');
+    if (!maDon) { if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.warning('Vui lòng nhập mã đơn hàng'); } return; }
+    if (!phone) { if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.warning('Vui lòng nhập SĐT'); } return; }
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang kiểm tra...';
     var csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
@@ -23,14 +21,12 @@ function doVerify() {
             document.getElementById('verifySuccess').classList.remove('d-none');
             window.location.href = data.redirect;
         } else {
-            errEl.textContent = data.message || 'Không tìm thấy đơn hàng';
-            errEl.classList.remove('d-none');
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Không tìm thấy đơn hàng'); }
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-search me-1"></i>Tra cứu';
         }
     }).catch(function () {
-        errEl.textContent = 'Lỗi kết nối, vui lòng thử lại';
-        errEl.classList.remove('d-none');
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Lỗi kết nối, vui lòng thử lại'); }
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-search me-1"></i>Tra cứu';
     });

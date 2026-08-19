@@ -19,6 +19,10 @@ import java.util.Optional;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
+    @Modifying
+    @Query("UPDATE Order o SET o.fraudWarning = :warning WHERE o.id = :id")
+    void setFraudWarning(@Param("id") Integer id, @Param("warning") String warning);
+
     Optional<Order> findByMaVanDon(String maVanDon);
 
     Optional<Order> findByMaDon(String maDon);
@@ -86,12 +90,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "(:trangThai IS NULL OR :trangThai <> 'CHUA_HOAN_THANH' OR o.trangThaiDon <> 'DA_HOAN_THANH') AND "
             + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) AND "
             + "(:fromDate IS NULL OR o.ngayDat >= :fromDate) AND "
-            + "(:toDate IS NULL OR o.ngayDat < :toDate) "
+            + "(:toDate IS NULL OR o.ngayDat < :toDate) AND "
+            + "(:chuaGan IS NULL OR :chuaGan = false OR NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)) AND "
+            + "(:assignedAdminId IS NULL OR EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id AND a.admin.id = :assignedAdminId)) "
             + "ORDER BY o.ngayDat ASC")
     Page<Order> searchOrders(@Param("q") String q, @Param("trangThai") String trangThai,
             @Param("trangThaiTT") String trangThaiTT,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
+            @Param("chuaGan") Boolean chuaGan,
+            @Param("assignedAdminId") Integer assignedAdminId,
             Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE o.id IN :ids AND "
@@ -100,7 +108,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "(:trangThai IS NULL OR :trangThai <> 'CHUA_HOAN_THANH' OR o.trangThaiDon <> 'DA_HOAN_THANH') AND "
             + "(:trangThaiTT IS NULL OR o.trangThaiTT = :trangThaiTT) AND "
             + "(:fromDate IS NULL OR o.ngayDat >= :fromDate) AND "
-            + "(:toDate IS NULL OR o.ngayDat < :toDate) "
+            + "(:toDate IS NULL OR o.ngayDat < :toDate) AND "
+            + "(:chuaGan IS NULL OR :chuaGan = false OR NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)) AND "
+            + "(:assignedAdminId IS NULL OR EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id AND a.admin.id = :assignedAdminId)) "
             + "ORDER BY o.ngayDat ASC")
     Page<Order> searchOrdersByIds(@Param("ids") List<Integer> ids,
             @Param("q") String q,
@@ -108,10 +118,15 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             @Param("trangThaiTT") String trangThaiTT,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
+            @Param("chuaGan") Boolean chuaGan,
+            @Param("assignedAdminId") Integer assignedAdminId,
             Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)")
     List<Order> findUnassignedOrders();
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)")
+    long countUnassignedOrders();
 
     @Query("SELECT o.user.id, COUNT(o) FROM Order o WHERE o.user.id IN :userIds GROUP BY o.user.id")
     List<Object[]> countByUserIds(@Param("userIds") List<Integer> userIds);

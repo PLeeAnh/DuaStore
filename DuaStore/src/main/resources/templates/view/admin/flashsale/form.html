@@ -145,7 +145,7 @@
             <div class="adm-card-body">
                 <form th:if="${!isNew}" th:action="@{/admin/flash-sale/{id}/items(id=${flashSaleId})}" th:object="${flashSaleItem}" method="post" class="row g-3" id="fsAddItemForm">
                     <input type="hidden" th:field="*{flashSaleId}" th:value="${flashSaleId}" />
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Sản phẩm</label>
                         <select id="itemProductSelect" class="form-select">
                             <option value="">-- Chọn sản phẩm --</option>
@@ -169,12 +169,12 @@
                         <input type="number" min="1" th:field="*{soLuongToiDa}" class="form-control" required />
                         <div th:if="${#fields.hasErrors('soLuongToiDa')}" th:errors="*{soLuongToiDa}" class="text-danger small"></div>
                     </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i></button>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" style="white-space:nowrap"><i class="bi bi-plus-lg"></i>Thêm</button>
                     </div>
                 </form>
                 <div th:if="${isNew}" class="row g-3" id="fsInlineAdd">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Sản phẩm</label>
                         <select id="itemProductSelect" class="form-select">
                             <option value="">-- Chọn sản phẩm --</option>
@@ -195,8 +195,8 @@
                         <label class="form-label">Số lượng <span class="text-danger">*</span></label>
                         <input type="number" min="1" id="inlineSoLuong" class="form-control" placeholder="0" />
                     </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="button" class="btn btn-outline-primary w-100" onclick="addInlineItem()"><i class="bi bi-plus-lg"></i></button>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-primary w-100" style="white-space:nowrap" onclick="addInlineItem()"><i class="bi bi-plus-lg"></i>Thêm</button>
                     </div>
                 </div>
                 <small class="text-muted mt-2 d-block" th:if="${isNew}">Chọn sản phẩm, biến thể, nhập giá sale và số lượng rồi bấm + để thêm vào danh sách bên trên. Lưu đợt Flash Sale sẽ tạo luôn các sản phẩm này.</small>

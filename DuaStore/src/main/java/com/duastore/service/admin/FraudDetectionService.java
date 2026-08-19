@@ -40,11 +40,8 @@ public class FraudDetectionService {
 
     @Transactional
     public void analyzeAndPersist(Order order) {
-        orderRepository.findById(order.getId()).ifPresent(o -> {
-            String warnings = analyzeOrder(o);
-            o.setFraudWarning(warnings);
-            orderRepository.save(o);
-        });
+        String warnings = analyzeOrder(order);
+        orderRepository.setFraudWarning(order.getId(), warnings);
     }
 
     private String checkFakeAddress(Order order) {

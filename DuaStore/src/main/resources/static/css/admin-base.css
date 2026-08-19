@@ -328,6 +328,14 @@
 }
 .adm-table-wrap .table th:first-child,
 .adm-table-wrap .table td:first-child { overflow: visible; }
+/* Ô chứa dropdown/kebab không được cắt, nếu không menu sẽ bị ẩn */
+.adm-table-wrap .table th:has(.dropdown),
+.adm-table-wrap .table td:has(.dropdown),
+.adm-table-wrap .table td:has(.adm-kebab-btn),
+.adm-table-wrap .table td:has(.dropdown-toggle) {
+    overflow: visible;
+    text-overflow: clip;
+}
 .adm-table-wrap .table .adm-risk-line,
 .adm-table-wrap .table .status-pill { white-space: nowrap; }
 

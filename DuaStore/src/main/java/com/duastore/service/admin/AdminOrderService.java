@@ -11,7 +11,6 @@ import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.ProductVariantRepository;
-import com.duastore.repository.UserRepository;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.PricingService;
 import org.springframework.data.domain.Page;
@@ -56,7 +55,6 @@ public class AdminOrderService {
     private final LoyaltyPointsService loyaltyPointsService;
     private final FlashSaleItemRepository flashSaleItemRepository;
     private final PricingService pricingService;
-    private final UserRepository userRepository;
     private final com.duastore.service.client.OrderService clientOrderService;
 
     public AdminOrderService(OrderRepository orderRepository,
@@ -69,7 +67,6 @@ public class AdminOrderService {
             LoyaltyPointsService loyaltyPointsService,
             FlashSaleItemRepository flashSaleItemRepository,
             PricingService pricingService,
-            UserRepository userRepository,
             com.duastore.service.client.OrderService clientOrderService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
@@ -81,15 +78,14 @@ public class AdminOrderService {
         this.loyaltyPointsService = loyaltyPointsService;
         this.flashSaleItemRepository = flashSaleItemRepository;
         this.pricingService = pricingService;
-        this.userRepository = userRepository;
         this.clientOrderService = clientOrderService;
     }
 
     @Transactional
     public Page<Order> getAllOrders(int page, int size, String q, String trangThai, String trangThaiTT,
-            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate) {
+            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, Boolean chuaGan, Integer assignedAdminId) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Order> orders = orderRepository.searchOrders(q, trangThai, trangThaiTT, fromDate, toDate, pageable);
+        Page<Order> orders = orderRepository.searchOrders(q, trangThai, trangThaiTT, fromDate, toDate, chuaGan, assignedAdminId, pageable);
         for (Order o : orders.getContent()) {
             adminLogService.tuDongPhanDon(o);
         }
@@ -98,15 +94,9 @@ public class AdminOrderService {
 
     @Transactional
     public Page<Order> getMyOrders(Integer adminId, int page, int size, String q, String trangThai, String trangThaiTT,
-            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate) {
-        // Tự động phân những đơn chưa được gán cho ai về admin đang xem, để
-        // tab "Của tôi" không bị trống dù đơn hàng vẫn tồn tại ở tab "Tất cả".
-        User current = userRepository.findById(adminId).orElse(null);
-        if (current != null) {
-            for (Order o : orderRepository.findUnassignedOrders()) {
-                adminLogService.phanDonCho(o, current);
-            }
-        }
+            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, Boolean chuaGan, Integer assignedAdminId) {
+        // Chỉ hiển thị các đơn thực sự được gán cho admin này.
+        // Đơn chưa gán sẽ được tự động chia đều (tuDongPhanDon) khi ai đó mở tab "Tất cả".
         List<OrderAssignment> assignments = assignmentRepository.findActiveByAdminId(adminId, "DANG_XU_LY");
         if (assignments.isEmpty()) {
             return Page.empty();
@@ -116,7 +106,7 @@ public class AdminOrderService {
                 .collect(Collectors.toList());
 
         Pageable pageable = PageRequest.of(page, size);
-        return orderRepository.searchOrdersByIds(ids, q, trangThai, trangThaiTT, fromDate, toDate, pageable);
+        return orderRepository.searchOrdersByIds(ids, q, trangThai, trangThaiTT, fromDate, toDate, chuaGan, assignedAdminId, pageable);
     }
 
     @Transactional(readOnly = true)

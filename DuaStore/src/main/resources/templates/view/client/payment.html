@@ -73,20 +73,6 @@
                                         <span class="text-muted small">Đang xử lý...</span>
                                     </div>
 
-                                    <div id="confirm-success" class="d-none mt-3">
-                                        <div class="alert alert-success py-2 mb-0">
-                                            <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                            <span>Xác nhận thành công! Đang chuyển trang...</span>
-                                        </div>
-                                    </div>
-
-                                    <div id="confirm-error" class="d-none mt-3">
-                                        <div class="alert alert-danger py-2 mb-0">
-                                            <i class="bi bi-exclamation-triangle text-danger me-1"></i>
-                                            <span id="confirm-error-msg">Có lỗi xảy ra, vui lòng thử lại.</span>
-                                        </div>
-                                    </div>
-
                                     <div class="mt-3">
                                         <a th:href="@{/}" class="text-muted small">Quay lại trang chủ</a>
                                     </div>
@@ -110,9 +96,7 @@
                 function updateCountdown() {
                     if (countdownSeconds <= 0) {
                         timerEl.textContent = '00:00';
-                        document.getElementById('countdown-box').className = 'alert alert-danger small py-2 mb-3';
-                        document.getElementById('countdown-box').innerHTML =
-                            '<i class="bi bi-clock me-1"></i>Phiên thanh toán đã hết hạn. Vui lòng quay lại giỏ hàng.';
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Phiên thanh toán đã hết hạn. Vui lòng quay lại giỏ hàng.'); }
                         document.getElementById('btn-confirm').disabled = true;
                         stopPolling();
                         return;
@@ -127,9 +111,6 @@
                 // ── AJAX Confirm ─────────────────────────────
                 var btnConfirm = document.getElementById('btn-confirm');
                 var loadingEl = document.getElementById('confirm-loading');
-                var successEl = document.getElementById('confirm-success');
-                var errorEl = document.getElementById('confirm-error');
-                var errorMsgEl = document.getElementById('confirm-error-msg');
                 var confirming = false;
 
                 btnConfirm.addEventListener('click', function () {
@@ -138,8 +119,6 @@
 
                     btnConfirm.classList.add('d-none');
                     loadingEl.classList.remove('d-none');
-                    errorEl.classList.add('d-none');
-                    successEl.classList.add('d-none');
 
                     fetch('/checkout/chuyen-khoan/' + orderId + '/xac-nhan', {
                         method: 'POST',
@@ -153,22 +132,20 @@
                     .then(function (data) {
                         loadingEl.classList.add('d-none');
                         if (data.success) {
-                            successEl.classList.remove('d-none');
+                            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Xác nhận thành công! Đang chuyển trang...'); }
                             stopPolling();
                             setTimeout(function () {
                                 window.location.href = data.redirectUrl || '/checkout/thanh-cong/' + orderId;
                             }, 1500);
                         } else {
-                            errorMsgEl.textContent = data.message || 'Có lỗi xảy ra, vui lòng thử lại.';
-                            errorEl.classList.remove('d-none');
+                            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Có lỗi xảy ra, vui lòng thử lại.'); }
                             btnConfirm.classList.remove('d-none');
                             confirming = false;
                         }
                     })
                     .catch(function () {
                         loadingEl.classList.add('d-none');
-                        errorMsgEl.textContent = 'Lỗi kết nối, vui lòng thử lại.';
-                        errorEl.classList.remove('d-none');
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Lỗi kết nối, vui lòng thử lại.'); }
                         btnConfirm.classList.remove('d-none');
                         confirming = false;
                     });
@@ -182,9 +159,8 @@
                             .then(function (data) {
                                 if (data.paid && data.redirectUrl) {
                                     stopPolling();
-                                    successEl.classList.remove('d-none');
+                                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã nhận được thanh toán! Đang chuyển trang...'); }
                                     loadingEl.classList.add('d-none');
-                                    errorEl.classList.add('d-none');
                                     setTimeout(function () {
                                         window.location.href = data.redirectUrl;
                                     }, 1000);

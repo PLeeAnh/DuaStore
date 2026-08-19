@@ -5,7 +5,9 @@ import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.dto.OrderStatusDTO;
 import com.duastore.model.Order;
+import com.duastore.model.OrderAssignment;
 import com.duastore.model.User;
+import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.AsyncEmailService;
@@ -57,6 +59,7 @@ public class AdminOrderController {
     private final FraudDetectionService fraudDetectionService;
     private final AsyncEmailService asyncEmailService;
     private final UserRepository userRepository;
+    private final OrderAssignmentRepository assignmentRepository;
 
     public AdminOrderController(AdminOrderService adminOrderService,
             OrderService orderService,
@@ -70,7 +73,8 @@ public class AdminOrderController {
             com.duastore.repository.ProductVariantRepository variantRepository,
             FraudDetectionService fraudDetectionService,
             AsyncEmailService asyncEmailService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            OrderAssignmentRepository assignmentRepository) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
         this.adminLogService = adminLogService;
@@ -84,6 +88,7 @@ public class AdminOrderController {
         this.fraudDetectionService = fraudDetectionService;
         this.asyncEmailService = asyncEmailService;
         this.userRepository = userRepository;
+        this.assignmentRepository = assignmentRepository;
     }
 
     @GetMapping
@@ -91,6 +96,8 @@ public class AdminOrderController {
     public String listOrders(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "false") boolean tatCa,
+            @RequestParam(defaultValue = "false") boolean chuaGan,
+            @RequestParam(required = false) Integer assignedAdminId,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String trangThai,
             @RequestParam(name = "trangThaiTT", required = false) String trangThaiTT,
@@ -111,13 +118,43 @@ public class AdminOrderController {
 
         Page<Order> orderPage;
         if (tatCa) {
-            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT, fromDate, toDate);
+            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT, fromDate, toDate, chuaGan, assignedAdminId);
         } else {
-            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT, fromDate, toDate);
+            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT, fromDate, toDate, chuaGan, assignedAdminId);
         }
         List<OrderDTO> orderDTOs = orderPage.getContent().stream()
                 .map(orderService::convertToDTO)
                 .collect(Collectors.toList());
+
+        // Bản đồ orderId → nhân viên phụ trách để hiển thị trong bảng
+        Map<Integer, OrderAssignment> assignmentMap = new HashMap<>();
+        if (!orderDTOs.isEmpty()) {
+            List<Integer> ids = orderDTOs.stream().map(OrderDTO::getId).collect(Collectors.toList());
+            for (OrderAssignment a : assignmentRepository.findByOrderIdIn(ids)) {
+                assignmentMap.put(a.getOrder().getId(), a);
+            }
+        }
+        model.addAttribute("assignmentMap", assignmentMap);
+        model.addAttribute("currentAdminId", admin.getId());
+
+        // Thống kê khối lượng công việc từng nhân viên (đơn đang xử lý)
+        Map<Integer, Long> staffLoad = new HashMap<>();
+        Map<Integer, User> staffUsers = new HashMap<>();
+        List<Object[]> loadRows = assignmentRepository.countActiveByAdmin();
+        List<Integer> staffIds = loadRows.stream()
+                .map(r -> ((Number) r[0]).intValue())
+                .collect(Collectors.toList());
+        if (!staffIds.isEmpty()) {
+            for (User u : userRepository.findAllById(staffIds)) {
+                staffUsers.put(u.getId(), u);
+            }
+        }
+        for (Object[] r : loadRows) {
+            staffLoad.put(((Number) r[0]).intValue(), ((Number) r[1]).longValue());
+        }
+        model.addAttribute("staffLoad", staffLoad);
+        model.addAttribute("staffUsers", staffUsers);
+        model.addAttribute("unassignedCount", orderRepository.countUnassignedOrders());
 
         model.addAttribute("orders", orderDTOs);
         model.addAttribute("currentPage", page);
@@ -143,8 +180,16 @@ public class AdminOrderController {
         if (toDate != null) {
             filterParams.put("toDate", toDateStr);
         }
+        if (chuaGan) {
+            filterParams.put("chuaGan", true);
+        }
+        if (assignedAdminId != null) {
+            filterParams.put("assignedAdminId", assignedAdminId);
+        }
         model.addAttribute("filterParams", filterParams);
         model.addAttribute("tatCa", tatCa);
+        model.addAttribute("chuaGan", chuaGan);
+        model.addAttribute("assignedAdminId", assignedAdminId);
         model.addAttribute("q", q);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("trangThaiTT", trangThaiTT);

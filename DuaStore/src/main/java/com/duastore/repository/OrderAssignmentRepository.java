@@ -29,6 +29,9 @@ public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment
     @Query("SELECT oa.admin.id, COUNT(oa) FROM OrderAssignment oa WHERE oa.trangThai = 'DANG_XU_LY' GROUP BY oa.admin.id ORDER BY COUNT(oa) ASC")
     List<Object[]> findAdminLoadAsc();
 
+    @Query("SELECT oa.admin.id, COUNT(oa) FROM OrderAssignment oa WHERE oa.trangThai = 'DANG_XU_LY' GROUP BY oa.admin.id ORDER BY COUNT(oa) DESC")
+    List<Object[]> countActiveByAdmin();
+
     @Query("SELECT oa FROM OrderAssignment oa JOIN FETCH oa.admin JOIN FETCH oa.order WHERE oa.order.id IN :orderIds")
     List<OrderAssignment> findByOrderIdIn(@Param("orderIds") List<Integer> orderIds);
 }

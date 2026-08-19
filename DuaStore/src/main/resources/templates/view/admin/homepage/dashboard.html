@@ -5,7 +5,6 @@
       layout:decorate="~{layout/admin/base}">
     <head>
         <title>Quản lý Homepage</title>
-        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     </head>
     <body>
     <th:block layout:fragment="breadcrumb">
@@ -41,6 +40,7 @@
     </div>
 
     <th:block layout:fragment="extra-script">
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
         <script th:src="@{/js/admin-dashboard.js}"></script>
     </th:block>
 </body>

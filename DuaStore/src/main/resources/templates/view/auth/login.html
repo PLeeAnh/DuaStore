@@ -13,6 +13,7 @@
         <link rel="stylesheet"
               href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
         <link rel="stylesheet" th:href="@{/css/style.css}"/>
+        <script defer th:src="@{/js/toast.js(v=2)}"></script>
     </head>
     <body class="ds-auth-page-body">
         <div class="ds-auth-wrapper">
@@ -21,19 +22,6 @@
                 <div class="ds-card-body">
                     <div class="ds-auth-title">Đăng nhập</div>
                     <div class="ds-auth-sub">Đăng nhập để mua sắm và quản lý đơn hàng</div>
-
-                    <div th:if="${loginErrorMessage}" class="alert alert-danger mb-3 py-2">
-                        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${loginErrorMessage}"></span>
-                    </div>
-                    <div th:if="${!param.isEmpty() and param.containsKey('error') and loginErrorMessage == null}" class="alert alert-danger mb-3 py-2">
-                        <i class="bi bi-exclamation-triangle me-2"></i>Sai tên đăng nhập hoặc mật khẩu
-                    </div>
-                    <div th:if="${!param.isEmpty() and param.containsKey('expired')}" class="alert alert-danger mb-3 py-2">
-                        <i class="bi bi-clock me-2"></i>Phiên đăng nhập đã hết hạn
-                    </div>
-                    <div th:if="${successMsg}" class="alert alert-success mb-3 py-2">
-                        <i class="bi bi-check-circle me-2"></i><span th:text="${successMsg}"></span>
-                    </div>
 
                     <form th:action="@{/dang-nhap}" method="post">
                         <div class="mb-3">
@@ -70,5 +58,14 @@
                 </div>
             </div>
         </div>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof DuaStore === 'undefined' || !DuaStore.toast) return;
+                [[${loginErrorMessage}]] ? DuaStore.toast.error([[${loginErrorMessage}]]) : null;
+                [[${!param.isEmpty() and param.containsKey('error') and loginErrorMessage == null}]] ? DuaStore.toast.error('Sai tên đăng nhập hoặc mật khẩu') : null;
+                [[${!param.isEmpty() and param.containsKey('expired')}]] ? DuaStore.toast.warning('Phiên đăng nhập đã hết hạn') : null;
+                [[${successMsg}]] ? DuaStore.toast.success([[${successMsg}]]) : null;
+            });
+        </script>
     </body>
 </html>

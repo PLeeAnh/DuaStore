@@ -75,13 +75,15 @@ document.addEventListener('DOMContentLoaded', function () {
     var tttEl = document.getElementById('filterTrangThaiTT');
     var fdEl = document.getElementById('filterFromDate');
     var tdEl = document.getElementById('filterToDate');
-    if (!qEl && !ttEl && !tttEl && !fdEl && !tdEl) return;
+    var assEl = document.getElementById('filterAssigned');
+    if (!qEl && !ttEl && !tttEl && !fdEl && !tdEl && !assEl) return;
     function doFilter() {
         var q = qEl ? qEl.value : '';
         var trangThai = ttEl ? ttEl.value : '';
         var trangThaiTT = tttEl ? tttEl.value : '';
         var fromDate = fdEl ? fdEl.value : '';
         var toDate = tdEl ? tdEl.value : '';
+        var assigned = assEl ? assEl.value : '';
         var params = new URLSearchParams();
         if (q)
             params.set('q', q);
@@ -93,13 +95,22 @@ document.addEventListener('DOMContentLoaded', function () {
             params.set('fromDate', fromDate);
         if (toDate)
             params.set('toDate', toDate);
-        params.set('tatCa', tatCa);
+        if (assigned === 'CHUA_GAN') {
+            params.set('chuaGan', true);
+            params.set('tatCa', true);
+        } else if (assigned) {
+            params.set('assignedAdminId', assigned);
+            params.set('tatCa', true);
+        } else {
+            params.set('tatCa', tatCa);
+        }
         window.location.href = '/admin/don-hang?' + params.toString();
     }
     if (ttEl) ttEl.addEventListener('change', doFilter);
     if (tttEl) tttEl.addEventListener('change', doFilter);
     if (fdEl) fdEl.addEventListener('change', doFilter);
     if (tdEl) tdEl.addEventListener('change', doFilter);
+    if (assEl) assEl.addEventListener('change', doFilter);
     if (qEl) {
         var searchTimer;
         qEl.addEventListener('input', function () {
