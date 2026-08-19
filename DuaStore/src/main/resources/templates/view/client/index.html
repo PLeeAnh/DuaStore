@@ -63,7 +63,7 @@
                         <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                         <div class="ds-slider-viewport">
                             <div class="ds-slider-track">
-                                <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                                <a th:each="cat : ${featuredCategories}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" class="ds-cat-tile">
                                     <div class="ds-cat-tile-img">
                                         <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'">
                                     </div>
@@ -195,10 +195,16 @@
                                          <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
                                         <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                         <div class="ds-flash-timer" th:if="${fs != null}"
-                                             th:data-end="${#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
+                                             th:data-end="${#temporals.format(fs.event.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
                                             <i class="bi bi-clock"></i>
                                             <span class="flash-countdown">--:--:--</span>
                                         </div>
+                                        <span class="ds-badge-flash-stock" th:if="${fs != null and fs.soLuongConLai > 0}">
+                                            <i class="bi bi-fire"></i> Chỉ còn <b th:text="${fs.soLuongConLai}">30</b> sản phẩm
+                                        </span>
+                                        <span class="ds-badge-flash-stock ds-badge-flash-stock-hot" th:if="${fs != null and fs.soLuongConLai <= 0}">
+                                            <i class="bi bi-fire"></i> Hết suất Flash Sale
+                                        </span>
                                         <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
                                     </a>
                                 </div>
@@ -329,11 +335,12 @@
                                      th:data-rating-count="${ratingCountMap.get(p.id) ?: 0}"
                                      th:data-wishlist="${wishlistCountMap.get(p.id) ?: 0}"
                                      th:data-href="@{'/san-pham/' + ${p.id}}"
-                                     th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                     v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
-                                     fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
-                                     th:data-price="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : ''}"
-                                     th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
+th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                      v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                      fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null},
+                                      bestPrice=${variantBestPriceMap != null ? variantBestPriceMap.get(v != null ? v.id : null) : null}"
+                                      th:data-price="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : '')}"
+                                      th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
                                      th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
                                      th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
                                      th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
@@ -344,10 +351,10 @@
                                         <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
                                     </div>
                                     <div class="ds-browse-row-price">
-                                        <span class="ds-browse-row-price-discount" th:if="${v != null and v.giaKhuyenMai != null}"
-                                              th:text="'-' + ${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)} + '%'">-70%</span>
+                                        <span class="ds-browse-row-price-discount" th:if="${bestPrice != null and v != null and v.giaGoc != null and bestPrice.compareTo(v.giaGoc) < 0}"
+                                              th:text="'-' + ${#numbers.formatDecimal((v.giaGoc - bestPrice) * 100 / v.giaGoc, 0, 0)} + '%'">-70%</span>
                                         <span class="ds-browse-row-price-current"
-                                              th:text="${v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : ''}">297.000₫</span>
+                                              th:text="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') + '₫' : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : '')}">297.000₫</span>
                                     </div>
                                 </div>
                             </div>
@@ -472,7 +479,7 @@
                             <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                             <div class="ds-slider-viewport">
                                 <div class="ds-slider-track">
-                                    <a th:each="cat : ${sec.items}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                                    <a th:each="cat : ${sec.items}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" class="ds-cat-tile">
                                         <div class="ds-cat-tile-img">
                                             <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         </div>
@@ -491,7 +498,7 @@
                             <h2 class="ds-section-title-sm" th:text="${sec.title}">Danh mục</h2>
                         </div>
                         <div class="ds-dynamic-grid ds-cat-grid" th:style="'--cols:' + ${sec.cols}">
-                            <a th:each="cat : ${sec.items}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                            <a th:each="cat : ${sec.items}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" class="ds-cat-tile">
                                 <div class="ds-cat-tile-img">
                                     <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                 </div>

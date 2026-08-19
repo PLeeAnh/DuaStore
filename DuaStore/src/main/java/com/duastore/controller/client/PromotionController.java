@@ -105,11 +105,11 @@ public class PromotionController {
         Page<Product> dealPage = productRepository.findNewestWithVariants(PageRequest.of(pPage, dealSize));
         List<Integer> dealIds = dealPage.getContent().stream().map(Product::getId).toList();
         Map<Integer, List<ProductVariant>> dealVariantsMap = new HashMap<>();
-        Map<Integer, FlashSale> dealFlashSaleMap = new HashMap<>();
+        Map<Integer, PricingService.FlashSaleOffer> dealFlashSaleMap = new HashMap<>();
         if (!dealIds.isEmpty()) {
             dealVariantsMap = variantRepository.findByProductIdInAndIsActiveTrue(dealIds).stream()
                     .collect(Collectors.groupingBy(ProductVariant::getProductId));
-            dealFlashSaleMap.putAll(pricingService.loadActiveFlashSaleMap(dealIds));
+            dealFlashSaleMap.putAll(pricingService.loadActiveFlashSaleOffers(dealIds));
         }
 
         BigDecimal maxPct = new BigDecimal("100");
@@ -157,14 +157,17 @@ public class PromotionController {
                     bestPct = Math.max(bestPct, pct);
                 }
             }
-            FlashSale fs = dealFlashSaleMap.get(entry.getKey());
-            if (fs != null && pricingService.isFlashSaleUsable(fs)) {
-                BigDecimal fsPrice = giaGoc.multiply(
-                        BigDecimal.ONE.subtract(fs.getGiaTriGiam().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)))
-                        .setScale(0, RoundingMode.HALF_UP);
+            PricingService.FlashSaleOffer offer = dealFlashSaleMap.get(entry.getKey());
+            if (offer != null) {
+                BigDecimal fsPrice = offer.giaSale();
+                BigDecimal fsGiaGoc = offer.giaGoc();
                 if (fsPrice.compareTo(bestPrice) < 0) {
+                    int pct = fsGiaGoc.compareTo(BigDecimal.ZERO) > 0
+                            ? fsGiaGoc.subtract(fsPrice).multiply(BigDecimal.valueOf(100))
+                                    .divide(fsGiaGoc, 0, RoundingMode.HALF_UP).intValue()
+                            : 0;
                     bestPrice = fsPrice;
-                    bestPct = fs.getGiaTriGiam().intValue();
+                    bestPct = Math.max(bestPct, pct);
                 }
             }
             dealPriceMap.put(entry.getKey(), bestPrice);

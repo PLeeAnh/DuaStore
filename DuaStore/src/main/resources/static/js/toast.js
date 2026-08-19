@@ -107,6 +107,12 @@ window.DuaStore.toast = window.DuaStore.toast || {};
             '    </div>' +
             '    <div class="modal-body pt-2 pb-3">' +
             '      <p class="mb-0 small" id="duastoreConfirmMessage"></p>' +
+            '      <div class="form-check mb-0">' +
+            '        <input class="form-check-input" type="checkbox" id="duastoreConfirmDontShow">' +
+            '        <label class="form-check-label small text-muted" for="duastoreConfirmDontShow">' +
+            '          Không hiển thị giao diện này nữa' +
+            '        </label>' +
+            '      </div>' +
             '    </div>' +
             '    <div class="modal-footer border-0 pt-0 d-flex gap-2 justify-content-center">' +
             '      <button type="button" class="ds-btn ds-btn-outline ds-btn-sm flex-fill" id="duastoreConfirmCancel">Huỷ</button>' +
@@ -127,12 +133,30 @@ window.DuaStore.toast = window.DuaStore.toast || {};
         }
         confirmEl.addEventListener('hidden.bs.modal', function () { cleanup(false); });
         document.getElementById('duastoreConfirmCancel').addEventListener('click', function () { cleanup(false); });
-        document.getElementById('duastoreConfirmOk').addEventListener('click', function () { cleanup(true); });
+        document.getElementById('duastoreConfirmOk').addEventListener('click', function () { 
+            var chk = document.getElementById('duastoreConfirmDontShow');
+            if (chk && chk.checked) {
+                var confirmKey = 'default';
+                sessionStorage.setItem('ds_confirm_dont_show_' + confirmKey, 'true');
+            }
+            cleanup(true); 
+        });
     }
 
     window.DuaStore.confirm = function (message) {
         createConfirmEl();
         document.getElementById('duastoreConfirmMessage').textContent = message;
+        
+        // Check if user has checked "don't show again" for this message
+        var confirmKey = 'default';
+        if (sessionStorage.getItem('ds_confirm_dont_show_' + confirmKey) === 'true') {
+            return Promise.resolve(true);
+        }
+        
+        // Reset checkbox
+        var chk = document.getElementById('duastoreConfirmDontShow');
+        if (chk) chk.checked = false;
+        
         if (bsModal) bsModal.show();
         return new Promise(function (resolve) { pendingResolve = resolve; });
     };

@@ -22,7 +22,7 @@
           href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.bootstrap5.min.css"/>
     <link rel="stylesheet" th:href="@{/css/admin.css}"/>
-    <link rel="stylesheet" th:href="@{/css/admin-v2.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin-v2.css(v=2)}"/>
     <link rel="stylesheet" th:href="@{/css/admin-base.css}"/>
 
     <th:block layout:fragment="extra-head">
@@ -94,17 +94,23 @@
                 <span>Khách hàng</span>
             </a>
             <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
-               th:if="${userPermissions.contains('PROMOTION_READ') or userPermissions.contains('FLASH_SALE_READ')}"
-               th:classappend="${title == 'khuyen-mai' or title == 'flash-sale' ? ' active' : ''}">
+               th:if="${userPermissions.contains('PROMOTION_READ')}"
+               th:classappend="${title == 'khuyen-mai' ? ' active' : ''}">
                 <i class="bi bi-tag"></i>
                 <span>Khuyến mãi</span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/flash-sale}"
+               th:if="${userPermissions.contains('FLASH_SALE_READ')}"
+               th:classappend="${title == 'flash-sale' ? ' active' : ''}">
+                <i class="bi bi-lightning-charge-fill"></i>
+                <span>Flash Sale</span>
+            </a>
 
             <!-- Nội dung (collapsible) -->
-            <div class="adm-nav-section" style="cursor:pointer" onclick="toggleNavSub('navNoiDung', this)">
-                <span>Nội dung</span>
-                <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
-            </div>
+<div class="adm-nav-section adm-nav-toggle" style="cursor:pointer" onclick="toggleNavSub('navNoiDung', this)">
+                    <span>Nội dung</span>
+                    <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
+                </div>
             <div id="navNoiDung" class="adm-nav-sub">
                 <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
                    th:if="${userPermissions.contains('POST_READ')}"
@@ -157,10 +163,10 @@
             </div>
 
             <!-- Cài đặt (collapsible) -->
-            <div class="adm-nav-section" style="cursor:pointer" onclick="toggleNavSub('navCaiDat', this)">
-                <span>Cài đặt</span>
-                <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
-            </div>
+<div class="adm-nav-section adm-nav-toggle" style="cursor:pointer" onclick="toggleNavSub('navCaiDat', this)">
+                    <span>Cài đặt</span>
+                    <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
+                </div>
             <div id="navCaiDat" class="adm-nav-sub">
                 <a class="adm-nav-link" th:href="@{/admin/cua-hang}"
                    th:if="${userPermissions.contains('STORE_READ')}"
@@ -400,10 +406,24 @@
                         <label class="form-label">Vai trò</label>
                         <input type="text" th:value="${session.userRole}" class="form-control" disabled/>
                     </div>
+                    <div class="mb-2">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="emailVisible" id="adminEpEmailVisible" th:checked="${session.userEmailVisible == true}">
+                            <label class="form-check-label" for="adminEpEmailVisible">Hiển thị email trên hồ sơ</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="phoneVisible" id="adminEpPhoneVisible" th:checked="${session.userPhoneVisible == true}">
+                            <label class="form-check-label" for="adminEpPhoneVisible">Hiển thị số điện thoại trên hồ sơ</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="emailMarketing" id="adminEpEmailMarketing" th:checked="${session.userEmailMarketing != false}">
+                            <label class="form-check-label" for="adminEpEmailMarketing">Nhận email khuyến mãi</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer justify-content-end">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" disabled>Lưu thay đổi</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             </form>
         </div>
@@ -453,7 +473,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0 small" id="confirmModalMessage">Xác nhận thực hiện thao tác này?</p>
+                <p class="mb-2 small" id="confirmModalMessage">Xác nhận thực hiện thao tác này?</p>
+                <!-- Checkbox "Không hiển thị giao diện này nữa" -->
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="confirmModalDontShow">
+                    <label class="form-check-label small text-muted" for="confirmModalDontShow">
+                        Không hiển thị giao diện này nữa
+                    </label>
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Huỷ</button>
@@ -486,6 +513,8 @@
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2/dist/js/tom-select.complete.min.js"></script>
 <script th:src="@{/js/admin.js}"></script>
 <script th:src="@{/js/admin-base.js}"></script>
+<script th:src="@{/js/admin-socket.js(v=1)}"></script>
+<script th:src="@{/js/admin-autocomplete.js}"></script>
 <script th:src="@{/js/toast.js(v=2)}"></script>
 <script th:src="@{/js/api.js(v=1)}"></script>
 <script th:src="@{/js/utils.js(v=1)}"></script>

@@ -13,7 +13,7 @@
                         <li class="breadcrumb-item"><a th:href="@{/san-pham}">Sản phẩm</a></li>
                         <th:block th:if="${categoryBreadcrumb != null}" th:each="cat, stat : ${categoryBreadcrumb}">
                             <li class="breadcrumb-item" th:classappend="${stat.last} ? 'active' : ''">
-                                <a th:if="${!stat.last}" th:href="@{/san-pham(danhMuc=${cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
+                                <a th:if="${!stat.last}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
                                 <span th:if="${stat.last}" th:text="${cat.tenDanhMuc}">Danh mục</span>
                             </li>
                         </th:block>
@@ -164,16 +164,20 @@
                                         <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         <img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
-                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai != null}"
-                                              th:text="|-${#numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0)}%|">-15%</span>
-                                        <span class="ds-badge-sale" th:if="${v != null and v.giaKhuyenMai == null and bestPercentagePromo != null}"
-                                              th:text="|-${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 0)}%|">-15%</span>
+                                        <span class="ds-badge-sale" th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                              th:text="|-${bestDiscountMap.get(p.id)}%|">-15%</span>
                                         <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
                                         <div class="ds-flash-timer" th:if="${fs != null}"
-                                             th:data-end="${#strings.concat(#temporals.format(fs.ngayKetThuc, 'yyyy-MM-dd'), 'T', #temporals.format(fs.ngayKetThuc, 'HH:mm:ss'))}">
+                                             th:data-end="${#strings.concat(#temporals.format(fs.event.ngayKetThuc, 'yyyy-MM-dd'), 'T', #temporals.format(fs.event.ngayKetThuc, 'HH:mm:ss'))}">
                                             <i class="bi bi-clock"></i>
                                             <span class="flash-countdown">--:--:--</span>
                                         </div>
+                                        <span class="ds-badge-flash-stock" th:if="${fs != null and fs.soLuongConLai > 0}">
+                                            <i class="bi bi-fire"></i> Chỉ còn <b th:text="${fs.soLuongConLai}">30</b> sản phẩm
+                                        </span>
+                                        <span class="ds-badge-flash-stock ds-badge-flash-stock-hot" th:if="${fs != null and fs.soLuongConLai <= 0}">
+                                            <i class="bi bi-fire"></i> Hết suất Flash Sale
+                                        </span>
                                         <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên SP</div>
                                     </a>
                                     <div class="ds-qty-row ds-qty-row-image">
@@ -205,18 +209,18 @@
                                                  class="ds-variant-group"
                                                  th:data-group="${groupEntry.key}">
                                                 <div class="ds-variant-row">
-                                                    <button th:each="pv, stat : ${groupEntry.value}"
-                                                             class="ds-variant-chip"
-                                                             th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
-                                                             th:data-variantid="${pv.id}"
-                                                             th:data-price="${pv.giaKhuyenMai != null ? pv.giaKhuyenMai : pv.giaGoc}"
-                                                             th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
-                                                             th:data-promo-price="${variantPromoPriceMap.get(pv.id)}"
-                                                             th:data-stock="${pv.soLuongTon}"
-                                                             th:data-image="${pv.hinhAnh}"
-                                                             th:disabled="${pv.soLuongTon <= 0}"
-                                                              th:text="${pv.tenBienThe != null and pv.tenBienThe.contains(' - ') ? (pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ').trim()) : (pv.dungTich != null ? pv.dungTich + 'ml' + (pv.tenBienThe != null ? ' - ' + pv.tenBienThe : '') : pv.tenBienThe)}"
-                                                             type="button">50ml</button>
+<button th:each="pv, stat : ${groupEntry.value}"
+                                                              class="ds-variant-chip"
+                                                              th:classappend="(${pv.id == v.id} ? 'active' : '') + (${pv.soLuongTon <= 0} ? ' oos' : '')"
+                                                              th:data-variantid="${pv.id}"
+                                                              th:data-price="${variantBestPriceMap.get(pv.id)}"
+                                                              th:data-original="${pv.giaKhuyenMai != null ? pv.giaGoc : ''}"
+                                                              th:data-promo-price="${variantPromoPriceMap.get(pv.id)}"
+                                                              th:data-stock="${pv.soLuongTon}"
+                                                              th:data-image="${pv.hinhAnh}"
+                                                              th:disabled="${pv.soLuongTon <= 0}"
+                                                               th:text="${pv.tenBienThe != null and pv.tenBienThe.contains(' - ') ? (pv.dungTich != null ? pv.dungTich + 'ml' : #strings.substringBefore(pv.tenBienThe, ' - ').trim()) : (pv.dungTich != null ? pv.dungTich + 'ml' + (pv.tenBienThe != null ? ' - ' + pv.tenBienThe : '') : pv.tenBienThe)}"
+                                                              type="button">50ml</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -309,6 +313,8 @@
         </div>
 
 
-    <script th:src="@{/js/client-product-list.js(v=1)}"></script>
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/client-product-list.js(v=1)}"></script>
+    </th:block>
     </body>
 </html>

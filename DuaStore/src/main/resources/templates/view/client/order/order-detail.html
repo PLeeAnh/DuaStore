@@ -38,11 +38,11 @@
                                             <i class="bi bi-check-circle me-1"></i>Đã nhận được hàng
                                         </button>
                                         <a th:if="${!hasExistingRefund}" th:href="@{'/tai-khoan/don-hang/hoan-tien/' + ${order.id}}" class="ds-btn ds-btn-outline ds-btn-sm text-danger">
-                                            <i class="bi bi-arrow-return-left me-1"></i>Yêu cầu hoàn tiền
+                                            <i class="bi bi-arrow-return-left me-1"></i>Yêu cầu hoàn tiền / Đổi hàng
                                         </a>
-                                        <span th:if="${hasExistingRefund}" class="badge bg-secondary fs-6">
-                                            <i class="bi bi-check-circle me-1"></i>Đã yêu cầu hoàn tiền
-                                        </span>
+                                        <a th:if="${hasExistingRefund}" th:href="@{'/tai-khoan/don-hang/hoan-tien/theo-doi/' + ${refundId}}" class="ds-btn ds-btn-outline ds-btn-sm text-primary">
+                                            <i class="bi bi-truck me-1"></i>Theo dõi yêu cầu
+                                        </a>
                                     </th:block>
                                     <th:block th:if="${order.trangThaiDon == 'DA_HOAN_THANH'}">
                                         <form th:action="@{'/gio-hang/mua-lai/' + ${order.id}}" method="post" class="d-inline">

@@ -85,6 +85,12 @@ public class User {
     @Column
     private LocalDateTime resetTokenExpiry;
 
+    @Column(nullable = false)
+    private Integer failedAttempts = 0;
+
+    @Column
+    private LocalDateTime lockedUntil;
+
     @PrePersist
     protected void onCreate() {
         ngayTao = LocalDateTime.now();

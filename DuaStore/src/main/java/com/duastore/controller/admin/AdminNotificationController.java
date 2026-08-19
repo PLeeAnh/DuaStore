@@ -155,6 +155,7 @@ public class AdminNotificationController {
 
     @GetMapping("/api/count")
     @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).NOTIFICATION_READ)")
     public String countUnread(HttpSession session) {
         try {
             Integer readMaxId = (Integer) session.getAttribute("staffNotifReadMaxId");

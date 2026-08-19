@@ -32,14 +32,17 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'email=' + encodeURIComponent(email)
-        }).then(function () {
+        }).then(function (r) {
             hidePopup();
             var toast = document.getElementById('dsToast');
-            if (toast) {
+            if (!toast) return;
+            if (r.ok) {
                 toast.textContent = 'Đăng ký thành công! Cảm ơn bạn.';
-                toast.style.opacity = '1';
-                setTimeout(function () { toast.style.opacity = '0'; }, 3000);
+            } else {
+                toast.textContent = 'Không thể đăng ký. Vui lòng thử lại sau.';
             }
+            toast.style.opacity = '1';
+            setTimeout(function () { toast.style.opacity = '0'; }, 3000);
         }).catch(function () {
             hidePopup();
         });

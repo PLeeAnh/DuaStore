@@ -39,6 +39,9 @@ public class Category {
     @Column(length = 500)
     private String imageUrl;
 
+    @Column(length = 500)
+    private String slug;
+
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
 

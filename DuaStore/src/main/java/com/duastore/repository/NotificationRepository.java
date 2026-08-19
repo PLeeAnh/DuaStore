@@ -18,6 +18,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     Optional<Notification> findTopByIsActiveTrueOrderByIdDesc();
 
+    Optional<Notification> findByIdAndUserId(Integer id, Integer userId);
+
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole IS NULL AND (n.userId IS NULL OR n.userId = :userId) ORDER BY n.createdAt DESC")
     List<Notification> findCustomerNotifications(@Param("userId") Integer userId);
 

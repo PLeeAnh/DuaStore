@@ -26,6 +26,7 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final CustomAuthenticationSuccessHandler successHandler;
+    private final CustomAuthenticationFailureHandler failureHandler;
     private final CustomOAuth2UserService oAuth2UserService;
     private final TwoFactorAuthFilter twoFactorAuthFilter;
 
@@ -34,10 +35,12 @@ public class SecurityConfig {
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
             CustomAuthenticationSuccessHandler successHandler,
+            CustomAuthenticationFailureHandler failureHandler,
             CustomOAuth2UserService oAuth2UserService,
             TwoFactorAuthFilter twoFactorAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
+        this.failureHandler = failureHandler;
         this.oAuth2UserService = oAuth2UserService;
         this.twoFactorAuthFilter = twoFactorAuthFilter;
     }
@@ -47,6 +50,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/ws/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/api/wishlist/**", "/api/cart/**", "/address/api/**", "/api/vi-voucher/**", "/api/thong-bao/**", "/api/coupon/**").authenticated()
                 .requestMatchers("/checkout/vnpay/**").permitAll()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()
@@ -56,7 +60,7 @@ public class SecurityConfig {
                 .loginPage("/dang-nhap")
                 .loginProcessingUrl("/dang-nhap")
                 .successHandler(successHandler)
-                .failureUrl("/?loginError=true")
+                .failureHandler(failureHandler)
                 .permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2

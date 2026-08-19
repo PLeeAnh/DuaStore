@@ -19,6 +19,7 @@ import com.duastore.repository.WishlistRepository;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
 import com.duastore.service.PricingService;
+import com.duastore.service.PricingService.FlashSaleOffer;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
@@ -87,6 +88,60 @@ public class HomeController {
         this.productImageRepository = productImageRepository;
     }
 
+    /**
+     * Check if a promotion applies to a given product based on targetType and targetIds.
+     * targetType: ALL (or null) -> applies to all products
+     * targetType: CATEGORY -> product's category (or parent) must be in targetIds
+     * targetType: PRODUCT -> product's id must be in targetIds
+     * targetType: USER_GROUP -> requires user context, default to true for now
+     */
+    private boolean isPromotionApplicableToProduct(Promotion promo, Product product) {
+        if (promo == null || product == null) {
+            return false;
+        }
+        String targetType = promo.getTargetType();
+        String targetIds = promo.getTargetIds();
+
+        if (targetType == null || targetType.isBlank() || "ALL".equalsIgnoreCase(targetType)) {
+            return true;
+        }
+        if (targetIds == null || targetIds.isBlank()) {
+            return false;
+        }
+
+        Set<String> targetIdSet = Arrays.stream(targetIds.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
+
+        if (targetIdSet.isEmpty()) {
+            return false;
+        }
+
+        switch (targetType.toUpperCase()) {
+            case "CATEGORY":
+                Integer catId = product.getDanhMucId();
+                if (catId != null && targetIdSet.contains(catId.toString())) {
+                    return true;
+                }
+                // Check parent category
+                if (catId != null) {
+                    Category cat = categoryRepository.findById(catId).orElse(null);
+                    if (cat != null && cat.getParent() != null && targetIdSet.contains(cat.getParent().getId().toString())) {
+                        return true;
+                    }
+                }
+                return false;
+            case "PRODUCT":
+                return targetIdSet.contains(product.getId().toString());
+            case "USER_GROUP":
+                // Requires user context, default to applicable
+                return true;
+            default:
+                return false;
+        }
+    }
+
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "Trang chủ");
@@ -125,11 +180,7 @@ public class HomeController {
         model.addAttribute("featuredPromotions", featuredPromos);
 
         // Available voucher count for logged-in user
-        Integer currentUserId = null;
-        try {
-            currentUserId = securityUtil.getCurrentUserId();
-        } catch (Exception ignored) {
-        }
+        Integer currentUserId = securityUtil.getCurrentUserId();
         if (currentUserId != null) {
             model.addAttribute("voucherCount", userVoucherRepository.countByUserIdAndStatus(currentUserId, VoucherStatus.AVAILABLE));
         }
@@ -260,7 +311,7 @@ public class HomeController {
         allSectionProducts.addAll(discountedProducts);
         allSectionProducts.addAll(browseProducts);
 
-        // ── Các section động do admin thêm trong "Thiết kế trang chủ" ──
+// ── Các section động do admin thêm trong "Thiết kế trang chủ" ──
         List<Map<String, Object>> hpSections = new ArrayList<>();
         List<Product> hpDynamicProducts = new ArrayList<>();
         Map<String, String> hpSettingsMap = siteSettingService.getGroup("appearance");
@@ -344,11 +395,11 @@ public class HomeController {
             allSectionProducts.addAll(hpDynamicProducts);
         }
 
-        Map<Integer, FlashSale> flashSaleMap = new HashMap<>();
+        Map<Integer, FlashSaleOffer> flashSaleMap = new HashMap<>();
         Map<Integer, List<ProductVariant>> variantsMap = new HashMap<>();
         if (!allSectionProducts.isEmpty()) {
             List<Integer> ids = allSectionProducts.stream().map(Product::getId).distinct().collect(Collectors.toList());
-            flashSaleMap = pricingService.loadActiveFlashSaleMap(ids);
+            flashSaleMap = pricingService.loadActiveFlashSaleOffers(ids);
             List<ProductVariant> allVariants = variantRepository.findByProductIdInAndIsActiveTrue(ids);
             variantsMap = allVariants.stream()
                     .collect(Collectors.groupingBy(ProductVariant::getProductId));
@@ -376,10 +427,42 @@ public class HomeController {
         }
         model.addAttribute("groupedVariantsMap", groupedVariantsMap);
 
-        // Active promotions for homepage
+        // Active promotions for homepage - filter by targetType/targetIds per product
         LocalDateTime now = LocalDateTime.now();
         List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
         model.addAttribute("activePromotions", activePromotions);
+
+        // Filter promotions applicable to each product
+        Map<Integer, Promotion> productBestPercentagePromoMap = new HashMap<>();
+        Map<Integer, Promotion> productBestFixedPromoMap = new HashMap<>();
+
+        for (Product product : allSectionProducts) {
+            List<Promotion> applicablePromos = activePromotions.stream()
+                    .filter(p -> isPromotionApplicableToProduct(p, product))
+                    .toList();
+
+            Promotion bestPctPromo = applicablePromos.stream()
+                    .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                    .filter(p -> p.getGiaTriGiam().compareTo(new BigDecimal("100")) <= 0)
+                    .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                    .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                    .orElse(null);
+
+            Promotion bestFixedPromo = applicablePromos.stream()
+                    .filter(p -> "SO_TIEN".equals(p.getLoaiGiam()))
+                    .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
+                    .max(Comparator.comparing(Promotion::getGiaTriGiam))
+                    .orElse(null);
+
+            if (bestPctPromo != null) {
+                productBestPercentagePromoMap.put(product.getId(), bestPctPromo);
+            }
+            if (bestFixedPromo != null) {
+                productBestFixedPromoMap.put(product.getId(), bestFixedPromo);
+            }
+        }
+
+        // Global best promos (for products without specific match)
         BigDecimal maxPct = new BigDecimal("100");
         Promotion bestPercentagePromo = activePromotions.stream()
                 .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
@@ -392,8 +475,8 @@ public class HomeController {
                 .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
                 .max(Comparator.comparing(Promotion::getGiaTriGiam))
                 .orElse(null);
-        model.addAttribute("bestPercentagePromo", bestPercentagePromo);
-        model.addAttribute("bestFixedPromo", bestFixedPromo);
+        model.addAttribute("productBestPercentagePromoMap", productBestPercentagePromoMap);
+        model.addAttribute("productBestFixedPromoMap", productBestFixedPromoMap);
 
         // Pre‑compute best price & discount per product (variant discount + promotion + flash sale)
         Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
@@ -420,17 +503,20 @@ public class HomeController {
                         .divide(giaGoc, 0, java.math.RoundingMode.HALF_UP).intValue();
             }
 
-            // 2) Promotion discount (bestPercentagePromo)
-            if (bestPercentagePromo != null) {
-                BigDecimal promoDiscountPct = bestPercentagePromo.getGiaTriGiam();
+            // 2) Promotion discount (product-specific bestPercentagePromo)
+            Promotion productPctPromo = productBestPercentagePromoMap.get(productId);
+            Promotion pctPromo = productPctPromo != null ? productPctPromo : bestPercentagePromo;
+
+            if (pctPromo != null) {
+                BigDecimal promoDiscountPct = pctPromo.getGiaTriGiam();
                 BigDecimal promoPrice = bestPrice
                         .multiply(BigDecimal.valueOf(100).subtract(promoDiscountPct))
                         .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                if (bestPercentagePromo.getGiamToiDa() != null) {
+                if (pctPromo.getGiamToiDa() != null) {
                     BigDecimal actualDiscount = bestPrice.multiply(promoDiscountPct)
                             .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                    if (actualDiscount.compareTo(bestPercentagePromo.getGiamToiDa()) > 0) {
-                        promoPrice = bestPrice.subtract(bestPercentagePromo.getGiamToiDa());
+                    if (actualDiscount.compareTo(pctPromo.getGiamToiDa()) > 0) {
+                        promoPrice = bestPrice.subtract(pctPromo.getGiamToiDa());
                     }
                 }
                 if (promoPrice.compareTo(bestPrice) < 0) {
@@ -442,14 +528,17 @@ public class HomeController {
             }
 
             // 3) Flash sale discount (overrides everything)
-            FlashSale fs = flashSaleMap.get(productId);
-            if (fs != null && pricingService.isFlashSaleUsable(fs)) {
-                BigDecimal fsPrice = giaGoc.multiply(
-                        BigDecimal.ONE.subtract(fs.getGiaTriGiam().divide(BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP))
-                ).setScale(0, java.math.RoundingMode.HALF_UP);
+            PricingService.FlashSaleOffer offer = flashSaleMap.get(productId);
+            if (offer != null) {
+                BigDecimal fsPrice = offer.giaSale();
                 if (fsPrice.compareTo(bestPrice) < 0) {
+                    BigDecimal fsGiaGoc = offer.giaGoc();
+                    int pct = fsGiaGoc.compareTo(BigDecimal.ZERO) > 0
+                            ? fsGiaGoc.subtract(fsPrice).multiply(BigDecimal.valueOf(100))
+                                    .divide(fsGiaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                            : 0;
                     bestPrice = fsPrice;
-                    bestPct = fs.getGiaTriGiam().intValue();
+                    bestPct = Math.max(bestPct, pct);
                 }
             }
 
@@ -482,6 +571,28 @@ public class HomeController {
         model.addAttribute("promoPriceMap", promoPriceMap);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
         model.addAttribute("bestDiscountMap", bestDiscountMap);
+
+        // Per-variant best price (flash sale + promo + base)
+        Map<Integer, BigDecimal> variantBestPriceMap = new HashMap<>();
+        for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
+            Integer productId = entry.getKey();
+            PricingService.FlashSaleOffer offer = flashSaleMap.get(productId);
+            for (ProductVariant pv : entry.getValue()) {
+                BigDecimal pvBase = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
+                if (pvBase == null) continue;
+                BigDecimal best = pvBase;
+                // Flash sale
+                if (offer != null) {
+                    BigDecimal fsPrice = offer.giaSale();
+                    if (fsPrice.compareTo(best) < 0) best = fsPrice;
+                }
+                // Promo
+                BigDecimal promoPrice = variantPromoPriceMap.get(pv.getId());
+                if (promoPrice != null && promoPrice.compareTo(best) < 0) best = promoPrice;
+                variantBestPriceMap.put(pv.getId(), best);
+            }
+        }
+        model.addAttribute("variantBestPriceMap", variantBestPriceMap);
 
         // Popup thông báo ảnh trang chủ
         model.addAttribute("popupPromoActive",   siteSettingService.getValue("popup_promo_active",   "0"));

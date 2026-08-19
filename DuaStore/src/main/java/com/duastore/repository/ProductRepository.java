@@ -154,6 +154,30 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT DISTINCT p.mucDichSuDung FROM Product p WHERE p.isActive = true AND p.mucDichSuDung IS NOT NULL ORDER BY p.mucDichSuDung ASC")
     List<String> findDistinctMucDichSuDung();
 
+    @Query("SELECT p.thuongHieu, COUNT(p) FROM Product p WHERE p.isActive = true AND p.thuongHieu IS NOT NULL "
+            + "GROUP BY p.thuongHieu ORDER BY COUNT(p) DESC, p.thuongHieu ASC")
+    List<Object[]> findThuongHieuCounts();
+
+    @Query("SELECT p.chatLieu, COUNT(p) FROM Product p WHERE p.isActive = true AND p.chatLieu IS NOT NULL "
+            + "GROUP BY p.chatLieu ORDER BY COUNT(p) DESC, p.chatLieu ASC")
+    List<Object[]> findChatLieuCounts();
+
+    @Query("SELECT p.xuatXu, COUNT(p) FROM Product p WHERE p.isActive = true AND p.xuatXu IS NOT NULL "
+            + "GROUP BY p.xuatXu ORDER BY COUNT(p) DESC, p.xuatXu ASC")
+    List<Object[]> findXuatXuCounts();
+
+    @Query("SELECT p.kinhLoai, COUNT(p) FROM Product p WHERE p.isActive = true AND p.kinhLoai IS NOT NULL "
+            + "GROUP BY p.kinhLoai ORDER BY COUNT(p) DESC, p.kinhLoai ASC")
+    List<Object[]> findKinhLoaiCounts();
+
+    @Query("SELECT p.mucDichSuDung, COUNT(p) FROM Product p WHERE p.isActive = true AND p.mucDichSuDung IS NOT NULL "
+            + "GROUP BY p.mucDichSuDung ORDER BY COUNT(p) DESC, p.mucDichSuDung ASC")
+    List<Object[]> findMucDichSuDungCounts();
+
+    @Query("SELECT p.hinhDang, COUNT(p) FROM Product p WHERE p.isActive = true AND p.hinhDang IS NOT NULL "
+            + "GROUP BY p.hinhDang ORDER BY COUNT(p) DESC, p.hinhDang ASC")
+    List<Object[]> findHinhDangCounts();
+
     long countByDanhMucIdAndIsActiveTrue(Integer danhMucId);
 
     @Query("SELECT p.danhMucId, COUNT(p) FROM Product p WHERE p.isActive = true GROUP BY p.danhMucId")

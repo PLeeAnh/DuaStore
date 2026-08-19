@@ -12,10 +12,11 @@ public class VerificationCodeService {
     private final SecureRandom random = new SecureRandom();
 
     private static final long TTL_MILLIS = 5 * 60 * 1000;
+    private static final int MAX_ATTEMPTS = 5;
 
     public String generate(String email) {
         String code = String.format("%06d", random.nextInt(1000000));
-        codes.put(email, new CodeEntry(code, System.currentTimeMillis() + TTL_MILLIS));
+        codes.put(email, new CodeEntry(code, System.currentTimeMillis() + TTL_MILLIS, 0));
         return code;
     }
 
@@ -29,6 +30,10 @@ public class VerificationCodeService {
             return false;
         }
         if (!entry.code().equals(code)) {
+            codes.computeIfPresent(email, (k, e) -> {
+                CodeEntry next = e.recordFailedAttempt();
+                return next.attempts() >= MAX_ATTEMPTS ? null : next;
+            });
             return false;
         }
         return true;
@@ -38,7 +43,14 @@ public class VerificationCodeService {
         codes.remove(email);
     }
 
-    private record CodeEntry(String code, long expiry) {
+    private record CodeEntry(String code, long expiry, int attempts) {
 
+        CodeEntry(String code, long expiry) {
+            this(code, expiry, 0);
+        }
+
+        CodeEntry recordFailedAttempt() {
+            return new CodeEntry(code, expiry, attempts + 1);
+        }
     }
 }

@@ -171,9 +171,23 @@ document.addEventListener('DOMContentLoaded', () => {
             var form = btn.closest('form');
             if (!form) return;
             e.preventDefault();
+            
+            // Check if user has checked "don't show again" for this specific action
+            var confirmKey = btn.getAttribute('data-confirm-key') || 'default';
+            var storageKey = 'ds_confirm_dont_show_' + confirmKey;
+            if (sessionStorage.getItem('ds_confirm_dont_show_' + confirmKey) === 'true') {
+                dsSubmitFormWithFeedback(form); // Auto submit, don't show modal
+                return;
+            }
+            
             window.__dsConfirmForm = form;
             var msgEl = document.getElementById('confirmModalMessage');
             if (msgEl) msgEl.textContent = msg;
+            
+            // Reset checkbox
+            var chk = document.getElementById('confirmModalDontShow');
+            if (chk) chk.checked = false;
+            
             confirmModal.show();
         }
 
@@ -195,6 +209,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         var confirmBtn = document.getElementById('confirmModalConfirm');
         if (confirmBtn) confirmBtn.addEventListener('click', () => {
+            var chk = document.getElementById('confirmModalDontShow');
+            if (chk && chk.checked) {
+                var form = window.__dsConfirmForm;
+                if (form) {
+                    var btn = form.querySelector('[data-confirm]');
+                    var confirmKey = btn?.getAttribute('data-confirm-key') || 'default';
+                    sessionStorage.setItem('ds_confirm_dont_show_' + confirmKey, 'true');
+                }
+            }
+            
             if (window.__dsConfirmForm) {
                 dsSubmitFormWithFeedback(window.__dsConfirmForm);
                 window.__dsConfirmForm = null;

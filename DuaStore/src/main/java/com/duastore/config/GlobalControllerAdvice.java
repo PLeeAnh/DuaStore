@@ -74,16 +74,11 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("cartCount")
     public int cartCount() {
-        try {
-            Integer userId = securityUtil.getCurrentUserId();
-            if (userId == null) {
-                return 0;
-            }
-            return cartService.count(userId);
-        } catch (Exception e) {
-            log.warn("Loi cartCount: {}", e.getMessage());
+        Integer userId = securityUtil.getCurrentUserId();
+        if (userId == null) {
             return 0;
         }
+        return cartService.count(userId);
     }
 
     @ModelAttribute("requestURI")

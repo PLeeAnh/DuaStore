@@ -8,7 +8,7 @@ import com.duastore.model.Order;
 import com.duastore.model.User;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.UserRepository;
-import com.duastore.service.EmailService;
+import com.duastore.service.AsyncEmailService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminOrderService;
@@ -55,7 +55,7 @@ public class AdminOrderController {
     private final com.duastore.repository.ProductRepository productRepository;
     private final com.duastore.repository.ProductVariantRepository variantRepository;
     private final FraudDetectionService fraudDetectionService;
-    private final EmailService emailService;
+    private final AsyncEmailService asyncEmailService;
     private final UserRepository userRepository;
 
     public AdminOrderController(AdminOrderService adminOrderService,
@@ -69,7 +69,7 @@ public class AdminOrderController {
             com.duastore.repository.ProductRepository productRepository,
             com.duastore.repository.ProductVariantRepository variantRepository,
             FraudDetectionService fraudDetectionService,
-            EmailService emailService,
+            AsyncEmailService asyncEmailService,
             UserRepository userRepository) {
         this.adminOrderService = adminOrderService;
         this.orderService = orderService;
@@ -82,7 +82,7 @@ public class AdminOrderController {
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.fraudDetectionService = fraudDetectionService;
-        this.emailService = emailService;
+        this.asyncEmailService = asyncEmailService;
         this.userRepository = userRepository;
     }
 
@@ -291,14 +291,10 @@ public class AdminOrderController {
 
             if (!"DA_HUY".equals(newStatus) && order.getUser() != null && order.getUser().getEmail() != null) {
                 String statusName = AdminOrderService.getStatusName(newStatus);
-                boolean emailOk = emailService.sendOrderStatusEmail(
+                // Email gui async, khong chan thao tac cap nhat trang thai.
+                asyncEmailService.sendOrderStatus(
                         order.getUser().getEmail(), order.getUser().getHoTen(),
                         order.getMaDon(), statusName);
-                if (!emailOk) {
-                    ra.addFlashAttribute("errorMsg",
-                            "Không gửi được email cập nhật trạng thái cho khách hàng. Trạng thái không được thay đổi.");
-                    return "redirect:/admin/don-hang/" + id;
-                }
             }
 
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, newStatus, oldStatus, admin, request);
@@ -370,15 +366,9 @@ public class AdminOrderController {
 
             if (!"DA_HUY".equals(trangThai) && order.getUser() != null && order.getUser().getEmail() != null) {
                 String statusName = AdminOrderService.getStatusName(trangThai);
-                boolean emailOk = emailService.sendOrderStatusEmail(
+                asyncEmailService.sendOrderStatus(
                         order.getUser().getEmail(), order.getUser().getHoTen(),
                         order.getMaDon(), statusName);
-                if (!emailOk) {
-                    result.put("success", false);
-                    result.put("message",
-                            "Không gửi được email cập nhật trạng thái cho khách hàng. Trạng thái không được thay đổi.");
-                    return ResponseEntity.ok(result);
-                }
             }
 
             String stockMsg = adminOrderService.updateOrderStatusWithLog(id, trangThai, oldStatus, admin, request);
@@ -461,13 +451,9 @@ public class AdminOrderController {
 
                     if (!"DA_HUY".equals(status) && order.getUser() != null
                             && order.getUser().getEmail() != null && !order.getUser().getEmail().isBlank()) {
-                        boolean emailOk = emailService.sendOrderStatusEmail(
+                        asyncEmailService.sendOrderStatus(
                                 order.getUser().getEmail(), order.getUser().getHoTen(),
                                 order.getMaDon(), AdminOrderService.getStatusName(status));
-                        if (!emailOk) {
-                            errors.add("Đơn #" + id + ": không gửi được email, bỏ qua cập nhật");
-                            continue;
-                        }
                     }
 
                     String stockMsg = adminOrderService.updateOrderStatusWithLog(id, status, oldStatus, admin, request);
@@ -585,17 +571,12 @@ public class AdminOrderController {
             User assignedUser = userRepository.findById(adminId).orElse(null);
 
             if (assignedUser != null && assignedUser.getEmail() != null && !assignedUser.getEmail().isBlank()) {
-                boolean emailOk = emailService.sendOrderAssignedEmail(
+                asyncEmailService.sendOrderAssigned(
                         assignedUser.getEmail(),
                         assignedUser.getHoTen() != null ? assignedUser.getHoTen() : assignedUser.getEmail(),
                         order.getMaDon(),
                         order.getSnapTenNguoiNhan() != null ? order.getSnapTenNguoiNhan() : "Khách hàng",
                         admin.getHoTen() != null ? admin.getHoTen() : admin.getUsername());
-                if (!emailOk) {
-                    ra.addFlashAttribute("errorMsg",
-                            "Không gửi được email phân công cho nhân viên. Việc phân công không được thực hiện.");
-                    return "redirect:/admin/don-hang/" + id;
-                }
                 log.info("Gửi email phân công đơn {} tới {} <{}>", order.getMaDon(),
                         assignedUser.getHoTen(), assignedUser.getEmail());
             } else {

@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class LoyaltyPointsService {
@@ -34,6 +36,19 @@ public class LoyaltyPointsService {
         } catch (NumberFormatException e) {
             return 10000;
         }
+    }
+
+    public int getPointsExpiryMonths() {
+        String months = siteSettingService.getValue("loyalty_expiry_months", "12");
+        try {
+            return Integer.parseInt(months);
+        } catch (NumberFormatException e) {
+            return 12;
+        }
+    }
+
+    public void setPointsExpiryMonths(int months) {
+        siteSettingService.save("loyalty_expiry_months", String.valueOf(months), "loyalty");
     }
 
     public int getPointsRedeemRate() {
@@ -136,5 +151,71 @@ public class LoyaltyPointsService {
 
     public int getBalance(Integer userId) {
         return loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
+    }
+
+    @Transactional
+    public void expireOldPoints() {
+        int months = getPointsExpiryMonths();
+        LocalDateTime threshold = LocalDateTime.now().minusMonths(months);
+
+        List<Integer> userIds = loyaltyTransactionRepository.findUserIdsWithOldEarnedTransactions(threshold);
+
+        for (Integer userId : userIds) {
+            try {
+                expireOldPointsForUser(userId, threshold);
+            } catch (Exception e) {
+                log.warn("Loi het han diem cho user {}: {}", userId, e.getMessage());
+            }
+        }
+    }
+
+    @Transactional
+    public void expireOldPointsForUser(Integer userId, LocalDateTime threshold) {
+        List<LoyaltyTransaction> oldTransactions = loyaltyTransactionRepository
+                .findOldEarnedTransactionsForExpiry(userId, threshold);
+
+        if (oldTransactions.isEmpty()) {
+            return;
+        }
+
+        int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
+        int pointsToExpire = 0;
+
+        for (LoyaltyTransaction tx : oldTransactions) {
+            // Only expire points that haven't been used/redeemed yet
+            // We check if there's enough balance to cover this transaction
+            if (currentBalance >= tx.getPoints()) {
+                pointsToExpire += tx.getPoints();
+                currentBalance -= tx.getPoints();
+
+                // Mark the transaction as expired
+                tx.setType("EXPIRED");
+                tx.setNote("Hết hạn sau " + getPointsExpiryMonths() + " tháng không hoạt động");
+                loyaltyTransactionRepository.save(tx);
+            } else {
+                // Not enough balance to expire this transaction fully
+                break;
+            }
+        }
+
+        if (pointsToExpire > 0) {
+            // Record the expiry as an adjustment
+            LoyaltyTransaction expiryTx = new LoyaltyTransaction();
+            expiryTx.setUserId(userId);
+            expiryTx.setPoints(-pointsToExpire);
+            expiryTx.setBalance(currentBalance);
+            expiryTx.setType("EXPIRED");
+            expiryTx.setNote("Hết hạn " + pointsToExpire + " điểm sau " + getPointsExpiryMonths() + " tháng không hoạt động");
+            loyaltyTransactionRepository.save(expiryTx);
+        }
+    }
+
+    public void setPointsExpiryEnabled(boolean enabled) {
+        siteSettingService.save("loyalty_expiry_enabled", String.valueOf(enabled), "loyalty");
+    }
+
+    public boolean isPointsExpiryEnabled() {
+        String val = siteSettingService.getValue("loyalty_expiry_enabled", "true");
+        return Boolean.parseBoolean(val);
     }
 }

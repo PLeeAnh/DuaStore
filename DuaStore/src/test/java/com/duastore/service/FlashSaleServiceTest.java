@@ -1,12 +1,17 @@
 package com.duastore.service;
 
 import com.duastore.dto.FlashSaleFormDTO;
+import com.duastore.dto.FlashSaleItemFormDTO;
 import com.duastore.model.Category;
 import com.duastore.model.FlashSale;
+import com.duastore.model.FlashSaleItem;
 import com.duastore.model.Product;
+import com.duastore.model.ProductVariant;
 import com.duastore.repository.CategoryRepository;
+import com.duastore.repository.FlashSaleItemRepository;
 import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ProductVariantRepository;
 import com.duastore.service.admin.FlashSaleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,12 +39,20 @@ class FlashSaleServiceTest {
     private FlashSaleRepository flashSaleRepository;
 
     @Autowired
+    private FlashSaleItemRepository flashSaleItemRepository;
+
+    @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private ProductVariantRepository variantRepository;
 
     @Autowired
     private CategoryRepository categoryRepository;
 
     private Product product;
+
+    private ProductVariant variant;
 
     @BeforeEach
     void setUp() {
@@ -54,6 +67,14 @@ class FlashSaleServiceTest {
         product.setActive(true);
         product.setDanhMucId(cat.getId());
         product = productRepository.save(product);
+
+        variant = new ProductVariant();
+        variant.setProductId(product.getId());
+        variant.setTenBienThe("Flash Sale Variant");
+        variant.setGiaGoc(new BigDecimal("100000"));
+        variant.setSoLuongTon(1000);
+        variant.setActive(true);
+        variant = variantRepository.save(variant);
     }
 
     @Test
@@ -73,11 +94,15 @@ class FlashSaleServiceTest {
         FlashSale saved = flashSaleService.save(dto);
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getProductId()).isEqualTo(product.getId());
-        assertThat(saved.getGiaTriGiam()).isEqualByComparingTo(new BigDecimal("20.00"));
         assertThat(saved.getIsActive()).isTrue();
-        assertThat(saved.getSoLuongDaBan()).isZero();
-        assertThat(saved.getSoLuongToiDa()).isEqualTo(100);
+
+        List<FlashSaleItem> items = flashSaleItemRepository.findByFlashSaleId(saved.getId());
+        assertThat(items).hasSize(1);
+        FlashSaleItem item = items.get(0);
+        assertThat(item.getVariantId()).isEqualTo(variant.getId());
+        assertThat(item.getGiaSale()).isEqualByComparingTo(new BigDecimal("70000"));
+        assertThat(item.getSoLuongDaBan()).isZero();
+        assertThat(item.getSoLuongToiDa()).isEqualTo(100);
     }
 
     @Test
@@ -86,28 +111,25 @@ class FlashSaleServiceTest {
 
         FlashSaleFormDTO updateDTO = new FlashSaleFormDTO();
         updateDTO.setId(created.getId());
-        updateDTO.setProductId(product.getId());
-        updateDTO.setGiaTriGiam(new BigDecimal("30.00"));
-        updateDTO.setNgayBatDau(LocalDateTime.now().plusDays(1));
-        updateDTO.setNgayKetThuc(LocalDateTime.now().plusDays(10));
+        updateDTO.setTenChuongTrinh("Updated Flash Sale");
+        updateDTO.setNgayBatDau(LocalDateTime.now().plusDays(2));
+        updateDTO.setNgayKetThuc(LocalDateTime.now().plusDays(12));
         updateDTO.setIsActive(false);
-        updateDTO.setSoLuongToiDa(50);
 
         FlashSale updated = flashSaleService.save(updateDTO);
 
         assertThat(updated.getId()).isEqualTo(created.getId());
-        assertThat(updated.getGiaTriGiam()).isEqualByComparingTo(new BigDecimal("30.00"));
         assertThat(updated.getIsActive()).isFalse();
-        assertThat(updated.getSoLuongToiDa()).isEqualTo(50);
+        assertThat(updated.getTenChuongTrinh()).isEqualTo("Updated Flash Sale");
     }
 
     @Test
-    void save_productNotFound_throwsException() {
+    void save_variantNotFound_throwsException() {
         FlashSaleFormDTO dto = createDTO();
-        dto.setProductId(99999);
+        dto.getItems().get(0).setVariantId(99999);
 
         assertThatThrownBy(() -> flashSaleService.save(dto))
-                .hasMessageContaining("Sản phẩm không tồn tại");
+                .hasMessageContaining("Biến thể không tồn tại");
     }
 
     @Test
@@ -158,13 +180,16 @@ class FlashSaleServiceTest {
 
     private FlashSaleFormDTO createDTO() {
         FlashSaleFormDTO dto = new FlashSaleFormDTO();
-        dto.setProductId(product.getId());
-        dto.setGiaTriGiam(new BigDecimal("20.00"));
+        dto.setTenChuongTrinh("Flash Sale Test");
         dto.setNgayBatDau(LocalDateTime.now().plusDays(1));
         dto.setNgayKetThuc(LocalDateTime.now().plusDays(7));
         dto.setIsActive(true);
-        dto.setSoLuongDaBan(0);
-        dto.setSoLuongToiDa(100);
+
+        FlashSaleItemFormDTO item = new FlashSaleItemFormDTO();
+        item.setVariantId(variant.getId());
+        item.setGiaSale(new BigDecimal("70000"));
+        item.setSoLuongToiDa(100);
+        dto.getItems().add(item);
         return dto;
     }
 }

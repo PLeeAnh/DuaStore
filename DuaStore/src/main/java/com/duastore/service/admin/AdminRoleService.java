@@ -48,13 +48,25 @@ public class AdminRoleService {
         return grouped;
     }
 
+    private static final Set<String> PROTECTED_NAMES = Set.of("SUPER_ADMIN", "ADMIN", "USER");
+
     @Transactional
     public Role save(Integer id, String name, String moTa, Boolean isActive, List<Integer> permissionIds) {
         Role role = (id != null) ? roleRepository.findById(id).orElse(new Role()) : new Role();
-        if ("SUPER_ADMIN".equals(role.getName()) && !"SUPER_ADMIN".equals(name)) {
+        String newName = name != null ? name.trim().toUpperCase() : null;
+        if ("SUPER_ADMIN".equals(role.getName()) && !"SUPER_ADMIN".equals(newName)) {
             throw new IllegalArgumentException("Không thể đổi tên vai trò SUPER_ADMIN");
         }
-        role.setName(name);
+        if (newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("Tên vai trò không được để trống");
+        }
+        if (PROTECTED_NAMES.contains(newName)) {
+            throw new IllegalArgumentException("Không thể tạo hoặc đổi tên vai trò hệ thống: " + newName);
+        }
+        if (role.getId() == null && roleRepository.findByName(newName) != null) {
+            throw new IllegalArgumentException("Vai trò \"" + newName + "\" đã tồn tại");
+        }
+        role.setName(newName);
         role.setMoTa(com.duastore.util.HtmlSanitizer.sanitize(moTa));
         if (isActive != null) {
             role.setIsActive(isActive);

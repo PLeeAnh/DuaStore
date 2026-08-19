@@ -36,6 +36,7 @@ public class ProductVariant {
     private String hinhAnh;
     private boolean isDefault = false;
     private boolean isActive = true;
+    private boolean isCustom = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "productId", insertable = false, updatable = false)

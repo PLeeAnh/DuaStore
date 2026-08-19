@@ -112,6 +112,9 @@ public class AccountController {
         session.setAttribute("userName", user.getHoTen());
         session.setAttribute("userPhone", user.getSoDienThoai());
         session.setAttribute("userNickname", user.getNickname());
+        session.setAttribute("userEmailVisible", user.getEmailVisible());
+        session.setAttribute("userPhoneVisible", user.getPhoneVisible());
+        session.setAttribute("userEmailMarketing", user.getEmailMarketing());
         session.setAttribute("userInitial", user.getHoTen() != null && !user.getHoTen().isEmpty()
                 ? String.valueOf(user.getHoTen().charAt(0)).toUpperCase() : "U");
         ra.addFlashAttribute("successMsg", "Cập nhật thành công");

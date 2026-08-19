@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @ControllerAdvice(basePackages = "com.duastore.controller.client")
 public class ClientNavbarAdvice {
@@ -84,32 +85,44 @@ public class ClientNavbarAdvice {
     @SuppressWarnings("unchecked")
     @ModelAttribute
     public void addGlobalAttributes(Model model, HttpSession session) {
-        model.addAttribute("myCart", java.util.List.of());
-        model.addAttribute("myWishlist", java.util.List.of());
-        model.addAttribute("likedIds", java.util.List.of());
-        model.addAttribute("recentNotifs", java.util.List.of());
-        model.addAttribute("notifCount", 0L);
+        Integer userId = securityUtil.getCurrentUserId();
 
-            try {
-                Integer userId = securityUtil.getCurrentUserId();
-                if (userId != null) {
-                    model.addAttribute("myCart", cartService.getItems(userId));
-                    model.addAttribute("cartCount", cartService.count(userId));
-                    model.addAttribute("myWishlist", wishlistService.getWishlistByUser(userId));
-                    model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
+        if (userId != null) {
+            model.addAttribute("myCart", cartService.getItems(userId));
+            model.addAttribute("cartCount", cartService.count(userId));
+            model.addAttribute("myWishlist", wishlistService.getWishlistByUser(userId));
+            model.addAttribute("likedIds", wishlistService.getLikedProductIds(userId));
 
-                    Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
-                    final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
-                    List<Notification> allNotifs = notificationRepository.findCustomerNotifications(userId);
+            Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("notifReadIds");
+            final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
+            List<Notification> allNotifs = notificationRepository.findCustomerNotifications(userId);
 
-                    List<Notification> unread = allNotifs.stream()
-                            .filter(n -> !readIds.contains(n.getId()))
-                            .toList();
-                    model.addAttribute("recentNotifs", unread);
-                    model.addAttribute("notifCount", (long) unread.size());
-                }
-            } catch (Exception e) {
-            log.warn("Loi ClientNavbarAdvice: {}", e.getMessage());
+            List<Notification> unread = allNotifs.stream()
+                    .filter(n -> !readIds.contains(n.getId()))
+                    .toList();
+            model.addAttribute("recentNotifs", unread);
+            model.addAttribute("notifCount", (long) unread.size());
+        } else {
+            // Guest user: load cart from session
+            String GUEST_CART_SESSION_KEY = "guestCart";
+            Map<Integer, Integer> guestCart = (Map<Integer, Integer>) session.getAttribute(GUEST_CART_SESSION_KEY);
+            if (guestCart == null) {
+                guestCart = new HashMap<>();
+            }
+            List<com.duastore.dto.CartItemDTO> guestItems = guestCart.entrySet().stream()
+                    .map(entry -> {
+                        com.duastore.dto.CartItemDTO dto = new com.duastore.dto.CartItemDTO();
+                        dto.setVariantId(entry.getKey());
+                        dto.setSoLuong(entry.getValue());
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+            model.addAttribute("myCart", guestItems);
+            model.addAttribute("cartCount", guestCart.size());
+            model.addAttribute("myWishlist", java.util.List.of());
+            model.addAttribute("likedIds", java.util.List.of());
+            model.addAttribute("recentNotifs", java.util.List.of());
+            model.addAttribute("notifCount", 0L);
         }
 
         // Inject appearance settings

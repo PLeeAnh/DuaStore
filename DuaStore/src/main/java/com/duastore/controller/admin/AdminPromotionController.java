@@ -149,6 +149,7 @@ public class AdminPromotionController {
             return "view/admin/promotion/promotion-form";
         }
         try {
+            promotion.setId(null);
             Promotion saved = adminPromotionService.savePromotion(promotion);
             notificationHelper.notifyAll(
                     "🔥 Khuyến mãi mới: " + saved.getTenChuongTrinh() + " — giảm " + formatDiscount(saved),
@@ -240,6 +241,18 @@ public class AdminPromotionController {
         try {
             adminPromotionService.deletePromotion(id);
             ra.addFlashAttribute("successMsg", "Xóa khuyến mãi thành công");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", e.getMessage());
+        }
+        return "redirect:/admin/khuyen-mai";
+    }
+
+    @PostMapping("/toggle/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).PROMOTION_UPDATE)")
+    public String toggleActive(@PathVariable Integer id, RedirectAttributes ra) {
+        try {
+            adminPromotionService.toggleActive(id);
+            ra.addFlashAttribute("successMsg", "Cập nhật trạng thái thành công");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }

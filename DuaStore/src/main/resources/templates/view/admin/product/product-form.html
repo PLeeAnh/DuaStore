@@ -57,7 +57,11 @@
                             <div class="row g-3">
                                 <div class="col-md-8">
                                     <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
-                                    <input type="text" th:field="*{tenSanPham}" class="form-control" required />
+                                    <input type="text" th:field="*{tenSanPham}" class="form-control" required
+                                           data-ds-autocomplete="/admin/api/search?type=product"
+                                           data-ds-map="product"
+                                           data-ds-create-url="/admin/san-pham/them-moi?tenSanPham={value}"
+                                           th:placeholder="${product.id == null} ? 'Gõ tên — có gợi ý, Enter để chọn' : 'Tên sản phẩm'"/>
                                     <div th:if="${#fields.hasErrors('tenSanPham')}" th:errors="*{tenSanPham}" class="text-danger small"></div>
                                 </div>
                                 <div class="col-md-4">
@@ -105,16 +109,6 @@
                                                 <option th:each="p : ${purposes}" th:value="${p}" th:text="${p}">Purpose</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-2">
-                                            <label class="form-label">Lead time (ngày)</label>
-                                            <input type="number" th:field="*{leadTimeDays}" class="form-control" min="0" inputmode="numeric" />
-                                        </div>
-                                        <div class="col-md-2 d-flex align-items-end">
-                                            <div class="form-check">
-                                                <input type="checkbox" th:field="*{featured}" class="form-check-input" id="featured" />
-                                                <label class="form-check-label" for="featured">Nổi bật</label>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                 <div class="col-12">
@@ -144,9 +138,29 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-md-6 col-lg-4">
-                                    <label class="form-label">Ngày phát hành</label>
-                                    <input type="date" th:field="*{ngayPhatHanh}" class="form-control" />
+                                <div class="col-12">
+                                    <details class="ds-advanced">
+                                        <summary>
+                                            <i class="bi bi-sliders me-1"></i>Thông tin nâng cao
+                                            <span class="chev"><i class="bi bi-chevron-down"></i></span>
+                                        </summary>
+                                        <div class="ds-advanced-body row g-3 mt-0">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Lead time (ngày)</label>
+                                                <input type="number" th:field="*{leadTimeDays}" class="form-control" min="0" inputmode="numeric" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Ngày phát hành</label>
+                                                <input type="date" th:field="*{ngayPhatHanh}" class="form-control" />
+                                            </div>
+                                            <div class="col-md-4 d-flex align-items-end">
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" th:field="*{featured}" class="form-check-input" id="featured" />
+                                                    <label class="form-check-label" for="featured">Nổi bật</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </details>
                                 </div>
                             </div>
                         </div>

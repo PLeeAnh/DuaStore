@@ -1,13 +1,12 @@
 package com.duastore.service.admin;
 
-import com.duastore.model.FlashSale;
 import com.duastore.model.Order;
 import com.duastore.model.OrderAssignment;
 import com.duastore.model.OrderEventType;
 import com.duastore.model.OrderItem;
 import com.duastore.model.ProductVariant;
 import com.duastore.model.User;
-import com.duastore.repository.FlashSaleRepository;
+import com.duastore.repository.FlashSaleItemRepository;
 import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.OrderRepository;
@@ -55,9 +54,10 @@ public class AdminOrderService {
     private final OrderStatusLogService orderStatusLogService;
     private final OrderNoteService orderNoteService;
     private final LoyaltyPointsService loyaltyPointsService;
-    private final FlashSaleRepository flashSaleRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final PricingService pricingService;
     private final UserRepository userRepository;
+    private final com.duastore.service.client.OrderService clientOrderService;
 
     public AdminOrderService(OrderRepository orderRepository,
             AdminLogService adminLogService,
@@ -67,9 +67,10 @@ public class AdminOrderService {
             OrderStatusLogService orderStatusLogService,
             OrderNoteService orderNoteService,
             LoyaltyPointsService loyaltyPointsService,
-            FlashSaleRepository flashSaleRepository,
+            FlashSaleItemRepository flashSaleItemRepository,
             PricingService pricingService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            com.duastore.service.client.OrderService clientOrderService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
@@ -78,9 +79,10 @@ public class AdminOrderService {
         this.orderStatusLogService = orderStatusLogService;
         this.orderNoteService = orderNoteService;
         this.loyaltyPointsService = loyaltyPointsService;
-        this.flashSaleRepository = flashSaleRepository;
+        this.flashSaleItemRepository = flashSaleItemRepository;
         this.pricingService = pricingService;
         this.userRepository = userRepository;
+        this.clientOrderService = clientOrderService;
     }
 
     @Transactional
@@ -150,6 +152,9 @@ public class AdminOrderService {
         }
         if ("DA_HOAN_THANH".equals(trangThaiDon)) {
             order.setTrangThaiTT("DA_THANH_TOAN");
+        }
+        if ("DA_GIAO".equals(trangThaiDon) && order.getNgayGiao() == null) {
+            order.setNgayGiao(java.time.LocalDateTime.now());
         }
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
@@ -228,6 +233,7 @@ public class AdminOrderService {
                 loyaltyPointsService.refundRedeemedPointsForOrder(order.getUser().getId(), id);
             }
             restoreFlashSaleQuota(id);
+            clientOrderService.restoreVoucherForOrder(id);
             order.setTrangThaiDon("DA_HUY");
             orderRepository.save(order);
             orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, "DA_HUY",
@@ -246,6 +252,10 @@ public class AdminOrderService {
             adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_TT",
                     oldPayment, "DA_THANH_TOAN",
                     "Xác nhận thanh toán khi hoàn thành đơn (admin xác nhận thay khách)", request);
+        }
+
+        if ("DA_GIAO".equals(trangThaiDon) && order.getNgayGiao() == null) {
+            order.setNgayGiao(java.time.LocalDateTime.now());
         }
 
         order.setTrangThaiDon(trangThaiDon);
@@ -268,42 +278,18 @@ public class AdminOrderService {
     private void restoreFlashSaleQuota(Integer orderId) {
         List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
         for (OrderItem item : items) {
-            if (!"FLASH_SALE".equals(item.getLoaiGia())) {
+            if (!"FLASH_SALE".equals(item.getLoaiGia()) || item.getVariantId() == null) {
                 continue;
             }
-            flashSaleRepository.findByProductIdInAndIsActiveTrue(List.of(item.getProductId()))
-                    .stream().findFirst()
-                    .ifPresent(fs -> {
-                        FlashSale lockedFs = flashSaleRepository.findByIdWithLock(fs.getId()).orElse(null);
-                        if (lockedFs != null) {
-                            pricingService.decrementSoldQuantity(lockedFs, item.getSoLuong());
-                            flashSaleRepository.save(lockedFs);
-                        }
+            flashSaleItemRepository.findByVariantId(item.getVariantId())
+                    .stream()
+                    .findFirst()
+                    .flatMap(found -> flashSaleItemRepository.findByIdWithLock(found.getId()))
+                    .ifPresent(lockedItem -> {
+                        pricingService.decrementSoldQuantity(lockedItem, item.getSoLuong());
+                        flashSaleItemRepository.save(lockedItem);
                     });
         }
-    }
-
-    public String deleteOrderWithLog(Integer id, String oldStatus,
-            com.duastore.model.User admin, jakarta.servlet.http.HttpServletRequest request) {
-        String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
-
-        Order order = orderRepository.findById(id).orElse(null);
-        if (order != null && order.getUser() != null) {
-            loyaltyPointsService.refundRedeemedPointsForOrder(order.getUser().getId(), id);
-            restoreFlashSaleQuota(id);
-        }
-        orderStatusLogService.ghiLog(order, OrderEventType.CANCEL_ORDER, admin, oldStatus, null,
-                "Đã hủy đơn (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""));
-
-        adminLogService.ghiLogDonHang(admin, id, "XOA_DON_HANG",
-                oldStatus, null,
-                "Xóa đơn hàng (trạng thái cũ: " + oldStatus + ")" + (stockMsg != null ? ". " + stockMsg : ""),
-                request);
-        assignmentRepository.findByOrderId(id).ifPresent(assignmentRepository::delete);
-        orderStatusLogService.deleteByOrderId(id);
-        orderNoteService.deleteByOrderId(id);
-        orderRepository.deleteById(id);
-        return stockMsg;
     }
 
     public void updatePaymentStatusWithLog(Integer id, String trangThaiTT, String oldPayment,

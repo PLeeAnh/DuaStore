@@ -211,7 +211,7 @@ public class AdminPostController {
     public String delete(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             adminPostService.delete(id);
-            ra.addFlashAttribute("successMsg", "Xóa bài viết thành công");
+            ra.addFlashAttribute("successMsg", "Đã xóa bài viết (có thể khôi phục từ bộ lọc \"Đã xóa\")");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }

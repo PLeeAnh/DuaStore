@@ -21,7 +21,9 @@
                                     <span th:text="${user.hoTen}">User</span>
                                     <small th:if="${user.nickname}" class="text-muted fw-normal" th:text="'(@' + ${user.nickname} + ')'">(@nick)</small>
                                 </div>
-                                <small class="text-muted" th:text="${user.email}">user@email.com</small>
+                                <small class="text-muted" th:if="${user.emailVisible == true}" th:text="${user.email}">user@email.com</small>
+                                <small class="text-muted fst-italic" th:unless="${user.emailVisible == true}"><i class="bi bi-shield-lock me-1"></i>Email riêng tư</small>
+                                <small class="text-muted d-block" th:if="${user.phoneVisible == true and user.soDienThoai != null}" th:text="${user.soDienThoai}">0901234567</small>
                             </div>
                             <a href="#" class="btn btn-outline-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                                 <i class="bi bi-pencil"></i> Sửa

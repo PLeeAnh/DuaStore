@@ -11,7 +11,7 @@
                         <li class="breadcrumb-item"><a th:href="@{/san-pham}">Sản phẩm</a></li>
                         <th:block th:if="${categoryBreadcrumb != null}" th:each="cat, stat : ${categoryBreadcrumb}">
                             <li class="breadcrumb-item">
-                                <a th:href="@{/san-pham(danhMuc=${cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
+                                <a th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
                             </li>
                         </th:block>
                         <li class="breadcrumb-item active" th:text="${product.tenSanPham}">Tên SP</li>
@@ -102,35 +102,43 @@
 
                             <div class="mb-2">
                                 <!-- Flash sale banner -->
-                                <div th:if="${flashSale != null}" class="d-flex align-items-center gap-2 mb-2">
+                                <div th:if="${flashEvent != null}" class="d-flex align-items-center gap-2 mb-2">
                                     <span class="badge" style="background:#2563EB;font-size:.8rem;padding:4px 10px;">
                                         <i class="bi bi-lightning-charge-fill me-1"></i>FLASH SALE
                                     </span>
                                     <span class="small text-danger fw-semibold">
-                                        Giảm <span th:text="${#numbers.formatDecimal(flashSale.giaTriGiam, 0, 'POINT', 0, 'POINT')}">99</span>% – Còn <span th:text="${flashSale.soLuongToiDa - flashSale.soLuongDaBan}">0</span> suất
+                                        <th:block th:with="dItem=${defaultVariant != null ? variantFlashMap.get(defaultVariant.id) : null}">
+                                            <th:block th:if="${dItem != null}">
+                                                Giảm <span th:text="${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 'POINT')}">99</span>% – Còn <span th:text="${dItem.soLuongConLai}">0</span> suất
+                                            </th:block>
+                                            <th:block th:unless="${dItem != null}">Đang diễn ra trên một số biến thể</th:block>
+                                        </th:block>
                                     </span>
-                                    <div class="ds-flash-timer" th:data-end="${#strings.concat(#temporals.format(flashSale.ngayKetThuc, 'yyyy-MM-dd'), 'T', #temporals.format(flashSale.ngayKetThuc, 'HH:mm:ss'))}"
+                                    <div class="ds-flash-timer" th:data-end="${#strings.concat(#temporals.format(flashEvent.ngayKetThuc, 'yyyy-MM-dd'), 'T', #temporals.format(flashEvent.ngayKetThuc, 'HH:mm:ss'))}"
                                          style="position:static;display:inline-flex;font-size:.75rem;padding:2px 10px;">
                                         <i class="bi bi-clock me-1"></i>
                                         <span class="flash-countdown">--:--:--</span>
                                     </div>
                                 </div>
                                 <span id="productPrice" class="fw-bold" style="font-size:1.85rem;color:#2563eb;letter-spacing:-.02em">
-                                    <th:block th:if="${flashSale != null and minPrice != null and maxPrice != null}">
-                                    <th:block th:if="${minPrice == maxPrice}"
-                                                   th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
-                                        <th:block th:unless="${minPrice == maxPrice}">
-                                            <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')}">12.750</span>₫
-                                        </th:block>
-                                        <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">
-                                            <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
+                                    <th:block th:if="${flashEvent != null and minPrice != null and maxPrice != null}">
+                                        <th:block th:with="dItem=${defaultVariant != null ? variantFlashMap.get(defaultVariant.id) : null}">
+                                            <th:block th:if="${minPrice == maxPrice}"
+                                                       th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
                                             <th:block th:unless="${minPrice == maxPrice}">
-                                                <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
+                                                <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')}">12.750</span>₫
                                             </th:block>
-                                        </span>
-                                        <span class="badge ms-2" style="background:#2563EB;font-size:.75rem;vertical-align:middle;" th:text="'-' + ${#numbers.formatDecimal(flashSale.giaTriGiam, 0, 'POINT', 0, 'POINT')} + '%'">-99%</span>
+                                            <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">
+                                                <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
+                                                <th:block th:unless="${minPrice == maxPrice}">
+                                                    <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
+                                                </th:block>
+                                            </span>
+                                            <span th:if="${dItem != null}" class="badge ms-2" style="background:#2563EB;font-size:.75rem;vertical-align:middle;"
+                                                  th:text="'-' + ${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 'POINT')} + '%'">-99%</span>
+                                        </th:block>
                                     </th:block>
-                                    <th:block th:if="${flashSale == null and bestPercentagePromo != null and minPrice != null and maxPrice != null}">
+                                    <th:block th:if="${flashEvent == null and bestPercentagePromo != null and minPrice != null and maxPrice != null}">
                                         <th:block th:if="${minPrice == maxPrice}"
                                                    th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
                                         <th:block th:unless="${minPrice == maxPrice}">
@@ -144,7 +152,7 @@
                                         </span>
                                         <span class="badge ms-2" style="background:#8b5cf6;font-size:.75rem;vertical-align:middle;" th:text="'-' + ${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 'POINT', 0, 'POINT')} + '%'">-15%</span>
                                     </th:block>
-                                    <th:block th:if="${flashSale == null and bestPercentagePromo == null and minPrice != null and maxPrice != null}">
+                                    <th:block th:if="${flashEvent == null and bestPercentagePromo == null and minPrice != null and maxPrice != null}">
                                         <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
                                         <th:block th:unless="${minPrice == maxPrice}">
                                             <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
@@ -180,9 +188,10 @@
                                                 class="variant-chip"
                                                 th:classappend="${(v.soLuongTon <= 0 ? ' out-of-stock' : (v.isDefault ? ' active' : '')) + (#lists.size(entry.value) == 1 ? ' variant-single' : '')}"
                                                 th:data-variant-id="${v.id}"
-                                                th:data-price="${v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc}"
+                                                th:data-price="${variantBestPriceMap.get(v.id)}"
                                                 th:data-original="${v.giaKhuyenMai != null ? v.giaGoc : ''}"
                                                 th:data-promo-price="${variantPromoPriceMap.get(v.id)}"
+                                                th:data-flash-price="${variantFlashMap != null and variantFlashMap.get(v.id) != null ? variantFlashMap.get(v.id).giaSale : ''}"
                                                 th:data-image="${v.hinhAnh ?: product.hinhAnhChinh}"
                                                 th:data-stock="${v.soLuongTon}"
                                                 th:data-volume="${v.dungTich}"
@@ -444,8 +453,6 @@
                     ]];
                     const promoPct = [[${bestPercentagePromo != null ? bestPercentagePromo.giaTriGiam : 0}
                     ]];
-                    const flashSalePct = [[${flashSale != null ? flashSale.giaTriGiam : 0}
-                    ]];
 
             const firstDefault = document.querySelector('.variant-chip.active:not(.out-of-stock)')
                     || document.querySelector('.variant-chip:not(.out-of-stock)')
@@ -514,21 +521,23 @@
                 }
 
                 // Update price (promo-discounted / flash-sale if applicable)
-                const hasFlash = flashSalePct > 0;
+                const flashPrice = el.dataset.flashPrice ? parseInt(el.dataset.flashPrice) : 0;
+                const hasFlash = flashPrice > 0 && flashPrice < selectedPrice;
                 const hasPromo = promoPct > 0;
                 const effectivePrice = hasFlash
-                    ? (el.dataset.promoPrice ? parseInt(el.dataset.promoPrice) : Math.round(parseInt(el.dataset.price) * (100 - flashSalePct) / 100))
+                    ? flashPrice
                     : hasPromo
                         ? (el.dataset.promoPrice ? parseInt(el.dataset.promoPrice) : Math.round(selectedPrice * (100 - promoPct) / 100))
                         : selectedPrice;
                 const priceEl = document.getElementById('productPrice');
                 if (priceEl) {
                     if (hasFlash) {
+                        const flashPct = Math.round((selectedPrice - flashPrice) * 100 / selectedPrice);
                         priceEl.innerHTML = effectivePrice.toLocaleString('vi-VN') + '₫'
                                 + ' <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">'
                                 + selectedPrice.toLocaleString('vi-VN') + '₫</span>'
                                 + ' <span class="badge" style="background:#dc2626;font-size:.75rem;vertical-align:middle;">-'
-                                + flashSalePct + '%</span>';
+                                + flashPct + '%</span>';
                     } else if (hasPromo) {
                         priceEl.innerHTML = effectivePrice.toLocaleString('vi-VN') + '₫'
                                 + ' <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">'

@@ -86,7 +86,11 @@
         <div class="adm-table-wrap p-3 mb-4">
             <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
                 <div class="d-flex gap-2 flex-wrap">
-                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:180px" placeholder="Tìm tên, email..." th:value="${keyword}" />
+                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm tên, email..." th:value="${keyword}"
+                           data-ds-autocomplete="/admin/api/search?type=customer"
+                           data-ds-map="customer"
+                           data-ds-open-url="/admin/khach-hang/{id}"
+                           data-ds-no-recent />
                     <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto">
                         <option value="">Tất cả trạng thái</option>
                         <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
