@@ -159,27 +159,10 @@
                                     </div>
                                 </section>
 
-                                <!-- ── 4. Mã giảm giá + Ghi chú ── -->
-                                <section class="shp-section" aria-label="Mã giảm giá">
-                                    <h2 class="shp-section-title">Mã giảm giá</h2>
+                                <!-- ── 4. Ghi chú đơn hàng ── -->
+                                <section class="shp-section" aria-label="Ghi chú đơn hàng">
                                     <input type="hidden" name="maCode" id="checkoutPromoInput" th:value="${checkoutRequest.maCode}" />
-                                    <div class="ds-promo-picker mb-2" id="checkoutPromoPicker" onclick="openPromoModal()">
-                                        <div class="ds-promo-picker-left">
-                                            <i class="bi bi-ticket-perforated-fill"></i>
-                                            <span id="checkoutPromoLabel" th:text="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? ${checkoutRequest.maCode} : 'Chọn hoặc nhập mã giảm giá'"
-                                                  th:classappend="${checkoutRequest.maCode != null and checkoutRequest.maCode != ''} ? 'ds-promo-picker-applied'"></span>
-                                        </div>
-                                        <div class="ds-promo-picker-right">
-                                            <button class="ds-promo-copy-btn" type="button" id="checkoutCopyPromo"
-                                                    onclick="event.stopPropagation(); copyCheckoutPromo()" style="display:none"><i class="bi bi-clipboard"></i></button>
-                                            <i class="bi bi-chevron-right"></i>
-                                        </div>
-                                    </div>
-                                    <div id="checkoutPromoMsg" class="small mb-3">
-                                        <span class="text-primary" th:if="${bestPromo != null and tienGiam > 0}"
-                                              th:text="${'PHAN_TRAM'.equals(bestPromo.loaiGiam) ? 'Đã áp dụng mã ' + bestPromo.maCode + ' (giảm ' + #numbers.formatDecimal(bestPromo.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%)' : 'Đã áp dụng mã ' + bestPromo.maCode}">
-                                        </span>
-                                    </div>
+                                    <h2 class="shp-section-title">Ghi chú đơn hàng</h2>
                                     <div>
                                         <label class="shp-field-label" for="checkoutNote">Ghi chú đơn hàng</label>
                                         <textarea name="ghiChu" id="checkoutNote" class="shp-input shp-textarea" rows="2" placeholder="Ghi chú (không bắt buộc)"></textarea>

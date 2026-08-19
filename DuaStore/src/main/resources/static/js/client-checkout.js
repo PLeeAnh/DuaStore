@@ -38,6 +38,7 @@ function selectPromo(el) {
 }
 function copyCheckoutPromo() {
     var labelEl = document.getElementById('checkoutPromoLabel');
+    if (!labelEl) return;
     var code = labelEl.textContent.trim();
     if (!code || code === 'Chọn hoặc nhập mã giảm giá') return;
     navigator.clipboard.writeText(code).then(function () {
@@ -55,13 +56,13 @@ function applyVoucherInput() {
 function applyPromoCode(code) {
     var labelEl = document.getElementById('checkoutPromoLabel');
     var msgEl = document.getElementById('checkoutPromoMsg');
+    var copyBtn = document.getElementById('checkoutCopyPromo');
     var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
     var csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
     var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
     document.getElementById('checkoutPromoInput').value = code;
-    labelEl.textContent = code;
-    labelEl.className = 'ds-promo-picker-applied';
-    msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
+    if (labelEl) { labelEl.textContent = code; labelEl.className = 'ds-promo-picker-applied'; }
+    if (msgEl) msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
     closePromoModal();
     var headers = {'Content-Type': 'application/json'};
     if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
@@ -78,25 +79,23 @@ function applyPromoCode(code) {
     }).then(function (data) {
         if (!data) return;
         if (data.valid) {
-            msgEl.innerHTML = '<span class="text-primary">&#10003; ' + data.message + '</span>';
+            if (msgEl) msgEl.innerHTML = '<span class="text-primary">&#10003; ' + data.message + '</span>';
             window.appliedDiscount = parseInt(data.discount) || 0;
             document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + 'đ';
             document.getElementById('discountDisplay').className = 'text-danger';
-            document.getElementById('checkoutCopyPromo').style.display = '';
+            if (copyBtn) copyBtn.style.display = '';
         } else {
-            msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
+            if (msgEl) msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
             window.appliedDiscount = 0;
             document.getElementById('discountDisplay').textContent = '0đ';
             document.getElementById('discountDisplay').className = '';
-            document.getElementById('checkoutCopyPromo').style.display = 'none';
-            labelEl.textContent = 'Chọn hoặc nhập mã giảm giá';
-            labelEl.className = '';
+            if (copyBtn) copyBtn.style.display = 'none';
+            if (labelEl) { labelEl.textContent = 'Chọn hoặc nhập mã giảm giá'; labelEl.className = ''; }
         }
         updateTotal();
     }).catch(function () {
-        msgEl.innerHTML = '<span class="text-danger">Lỗi kết nối, vui lòng thử lại</span>';
-        labelEl.textContent = 'Chọn hoặc nhập mã giảm giá';
-        labelEl.className = '';
+        if (msgEl) msgEl.innerHTML = '<span class="text-danger">Lỗi kết nối, vui lòng thử lại</span>';
+        if (labelEl) { labelEl.textContent = 'Chọn hoặc nhập mã giảm giá'; labelEl.className = ''; }
     });
 }
 
@@ -143,7 +142,8 @@ document.addEventListener('DOMContentLoaded', function () {
     window.appliedDiscount = parseInt(document.getElementById('rawDiscount').textContent) || 0;
     window.pointsDiscount = 0;
     if (window.appliedDiscount > 0) {
-        document.getElementById('checkoutCopyPromo').style.display = '';
+        var copyBtn = document.getElementById('checkoutCopyPromo');
+        if (copyBtn) copyBtn.style.display = '';
     }
 
     /* ── Idempotency: khoa submit 1 lan, kem idempotencyKey cho checkout ── */

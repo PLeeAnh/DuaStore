@@ -123,7 +123,7 @@
                         <div th:if="${#lists.isEmpty(dealProducts)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-tag', title='Chưa có sản phẩm giảm giá', desc='Hiện chưa có chương trình khuyến mãi nào đang diễn ra. Ghé thăm trang sản phẩm để xem hàng mới nhé!', btnText='Xem sản phẩm mới', btnHref='/san-pham')}"></div>
 
                         <div th:unless="${#lists.isEmpty(dealProducts)}" class="row g-3">
-                            <div th:each="p : ${dealProducts}" class="col-xl-3 col-lg-4 col-sm-6 col-6"
+                            <div th:each="p : ${dealProducts}" class="col-xxl-2 col-xl-3 col-lg-4 col-md-6 col-6"
                                  th:with="pv=${dealVariantsMap.get(p.id) != null and !dealVariantsMap.get(p.id).isEmpty()} ? ${dealVariantsMap.get(p.id)[0]} : null">
                                 <div class="ds-product-card ds-promo-product-card">
                                     <div class="ds-product-image-wrap">

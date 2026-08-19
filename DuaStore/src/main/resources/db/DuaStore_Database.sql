@@ -418,7 +418,6 @@ GO
         ngayYeuCau datetime2(7) not null,
         loaiYeuCau nvarchar(30) default 'HOAN_TIEN' not null,          -- HOAN_TIEN | DOI_SIZE | DOI_MAU | DOI_SAN_PHAM_KHAC
         phuongThucHoanTien nvarchar(30),                               -- CHUYEN_KHOAN | VNPAY_REFUND | TIEN_MAT
-        soTienThucTeHoan numeric(18,2),                                -- So tien that su hoan (tru ship, voucher)
         videoUnboxing nvarchar(500),                                   -- Link video unboxing (bat buoc voi thuy tinh)
         lydo nvarchar(2000) not null,
         lyDoChiTiet nvarchar(50),                                      -- LOI_HANG | KHONG_DUNG_MO_TA | DOI_Y | KHAC

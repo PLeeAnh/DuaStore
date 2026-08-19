@@ -51,7 +51,11 @@
             --ds-r-lg: [[${themeSettings.get('theme_border_radius') ?: '20'}]]px;
             --ds-r-xl: [[${themeSettings.get('theme_border_radius') ?: '24'}]]px;
         }
-        .ds-ctn-width { max-width: [[${themeSettings.get('theme_container_width') ?: '1280'}]]px !important; margin: 0 auto; }
+        .ds-ctn-width { max-width: [[${themeSettings.get('theme_container_width') ?: '1700'}]]px !important; margin: 0 auto; }
+        body.ds-checkout-page .ds-float-zalo,
+        body.ds-checkout-page .ds-float-messenger,
+        body.ds-checkout-page .ds-float-call,
+        body.ds-checkout-page #ai-chat-widget { display: none !important; }
     </style>
     <link rel="stylesheet" th:href="@{/css/base-ui.css(v=2)}"/>
 </head>
@@ -297,7 +301,6 @@
                 </div>
 
             </div>
-        </div>
         </div>
 
         <!-- Mobile collapse nav -->

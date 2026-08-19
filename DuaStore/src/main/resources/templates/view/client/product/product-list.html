@@ -145,7 +145,7 @@
                     <div th:if="${#lists.isEmpty(products)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-search', title='Không tìm thấy sản phẩm', desc='Không có sản phẩm nào khớp với bộ lọc của bạn. Hãy thử xoá bộ lọc hoặc tìm kiếm từ khóa khác.', btnText='Xoá bộ lọc', btnHref='/san-pham')}"></div>
 
                     <div th:unless="${#lists.isEmpty(products)}" class="row g-3">
-                        <div th:each="p : ${products}" class="col-xl-3 col-lg-4 col-sm-6 col-6">
+                        <div th:each="p : ${products}" class="col-xxl-2 col-xl-3 col-lg-4 col-md-6 col-6">
                             <div class="ds-product-card" th:data-productid="${p.id}"
                                  th:with="pVariants=${variantsMap != null ? variantsMap.get(p.id) : null},
                                  v=${pVariants != null and !pVariants.isEmpty()} ? ${pVariants[0]} : null,

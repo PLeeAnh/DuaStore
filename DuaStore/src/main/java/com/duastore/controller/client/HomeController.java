@@ -432,6 +432,25 @@ public class HomeController {
         List<Promotion> activePromotions = promotionRepository.findActiveNow(now);
         model.addAttribute("activePromotions", activePromotions);
 
+        // ─ Chiến dịch khuyến mãi: nhóm sản phẩm theo từng chiến dịch (4 cột) ─
+        // Chỉ các chiến dịch giảm giá sản phẩm (PHAN_TRAM) mới hiển thị sản phẩm;
+        // voucher theo đơn hàng (FREESHIP/SO_TIEN...) không gán sản phẩm.
+        List<Promotion> campaignPromotions = activePromotions.stream()
+                .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                .limit(8)
+                .toList();
+        model.addAttribute("campaignPromotions", campaignPromotions);
+        model.addAttribute("campaignItemsPerPage", Math.min(4, Math.max(campaignPromotions.size(), 1)));
+        Map<Integer, List<Product>> campaignProductsMap = new HashMap<>();
+        for (Promotion promo : campaignPromotions) {
+            List<Product> prods = discountedProducts.stream()
+                    .filter(p -> isPromotionApplicableToProduct(promo, p))
+                    .limit(4)
+                    .toList();
+            campaignProductsMap.put(promo.getId(), prods);
+        }
+        model.addAttribute("campaignProductsMap", campaignProductsMap);
+
         // Filter promotions applicable to each product
         Map<Integer, Promotion> productBestPercentagePromoMap = new HashMap<>();
         Map<Integer, Promotion> productBestFixedPromoMap = new HashMap<>();
