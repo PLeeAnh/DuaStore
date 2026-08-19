@@ -92,6 +92,11 @@
                             <option value="false">Tạm dừng</option>
                         </select>
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ưu tiên hiển thị</label>
+                        <input type="number" th:field="*{priority}" class="form-control" min="0" />
+                        <div class="form-text">Số càng lớn càng hiển thị trước (mặc định 0).</div>
+                    </div>
 
                     <div class="col-12">
                         <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>

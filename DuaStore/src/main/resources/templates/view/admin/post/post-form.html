@@ -61,6 +61,12 @@
                         <option value="AN">Ẩn</option>
                     </select>
                 </div>
+                <div class="col-md-6 d-flex align-items-end pb-1">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" th:field="*{featured}" id="postFeatured" />
+                        <label class="form-check-label" for="postFeatured">Bài viết nổi bật <small class="text-muted">(hiển thị mục nổi bật trên trang blog)</small></label>
+                    </div>
+                </div>
                 <div class="col-12">
                     <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
                 </div>

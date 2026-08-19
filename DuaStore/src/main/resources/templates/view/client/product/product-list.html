@@ -13,7 +13,7 @@
                         <li class="breadcrumb-item"><a th:href="@{/san-pham}">Sản phẩm</a></li>
                         <th:block th:if="${categoryBreadcrumb != null}" th:each="cat, stat : ${categoryBreadcrumb}">
                             <li class="breadcrumb-item" th:classappend="${stat.last} ? 'active' : ''">
-                                <a th:if="${!stat.last}" th:href="@{/san-pham(danhMuc=${cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
+                                <a th:if="${!stat.last}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
                                 <span th:if="${stat.last}" th:text="${cat.tenDanhMuc}">Danh mục</span>
                             </li>
                         </th:block>

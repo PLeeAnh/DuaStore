@@ -66,6 +66,12 @@
                                     <label class="form-label">Thứ tự hiển thị</label>
                                     <input type="number" th:field="*{thuTuHienThi}" class="form-control" min="0" max="9999" />
                                 </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Slug (URL thân thiện)</label>
+                                    <input type="text" th:field="*{slug}" class="form-control" maxlength="500"
+                                           placeholder="Tự động tạo từ tên danh mục nếu để trống" />
+                                    <div class="form-text small">VD: /danh-muc/chai-thuy-tinh — bỏ trống để tự sinh từ tên danh mục.</div>
+                                </div>
                                 <div class="col-md-6 d-flex align-items-end">
                                     <div class="d-flex gap-3">
                                         <div class="form-check">

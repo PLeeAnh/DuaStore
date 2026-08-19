@@ -162,6 +162,32 @@ public class ProductController {
         this.activityAnalyticsService = activityAnalyticsService;
     }
 
+    @GetMapping("/danh-muc/{slug}")
+    public String listBySlug(@PathVariable String slug,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer dungTich,
+            @RequestParam(required = false) String chatLieu,
+            @RequestParam(required = false) String priceRange,
+            @RequestParam(required = false) BigDecimal priceFrom,
+            @RequestParam(required = false) BigDecimal priceTo,
+            @RequestParam(defaultValue = "newest") String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "24") int size,
+            Model model) {
+        Category cat = categoryRepository.findBySlug(slug).orElse(null);
+        if (cat == null) {
+            try {
+                cat = categoryRepository.findById(Integer.parseInt(slug)).orElse(null);
+            } catch (NumberFormatException ignored) {
+                // not an id
+            }
+        }
+        if (cat == null) {
+            return "redirect:/san-pham";
+        }
+        return list(cat.getId(), keyword, dungTich, chatLieu, priceRange, priceFrom, priceTo, sortBy, page, size, model);
+    }
+
     @GetMapping("/san-pham")
     public String list(@RequestParam(required = false) Integer danhMuc,
             @RequestParam(required = false) String keyword,

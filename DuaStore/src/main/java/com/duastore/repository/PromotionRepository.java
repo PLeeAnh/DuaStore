@@ -26,10 +26,10 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
 
     List<Promotion> findByIsActiveTrueAndDenNgayBefore(LocalDateTime now);
 
-    @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND (p.tuNgay IS NULL OR p.tuNgay <= :now) AND (p.denNgay IS NULL OR p.denNgay >= :now)")
+    @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND (p.tuNgay IS NULL OR p.tuNgay <= :now) AND (p.denNgay IS NULL OR p.denNgay >= :now) ORDER BY p.priority DESC, p.id DESC")
     List<Promotion> findActiveNow(LocalDateTime now);
 
-    @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND (p.tuNgay IS NULL OR p.tuNgay <= :now) AND (p.denNgay IS NULL OR p.denNgay >= :now)")
+    @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND (p.tuNgay IS NULL OR p.tuNgay <= :now) AND (p.denNgay IS NULL OR p.denNgay >= :now) ORDER BY p.priority DESC, p.id DESC")
     Page<Promotion> findActiveNow(LocalDateTime now, Pageable pageable);
 
     List<Promotion> findByIsActiveTrue();
@@ -46,7 +46,7 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
 
     Page<Promotion> findByVoucherType(VoucherType voucherType, Pageable pageable);
 
-    @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND p.denNgay >= :now ORDER BY p.savedCount DESC")
+    @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND p.denNgay >= :now ORDER BY p.priority DESC, p.savedCount DESC")
     List<Promotion> findFeaturedPromotions(@Param("now") LocalDateTime now, Pageable pageable);
 
     long countByIsActiveTrue();

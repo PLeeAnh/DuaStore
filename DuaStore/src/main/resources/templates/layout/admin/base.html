@@ -406,10 +406,24 @@
                         <label class="form-label">Vai trò</label>
                         <input type="text" th:value="${session.userRole}" class="form-control" disabled/>
                     </div>
+                    <div class="mb-2">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="emailVisible" id="adminEpEmailVisible" th:checked="${session.userEmailVisible == true}">
+                            <label class="form-check-label" for="adminEpEmailVisible">Hiển thị email trên hồ sơ</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="phoneVisible" id="adminEpPhoneVisible" th:checked="${session.userPhoneVisible == true}">
+                            <label class="form-check-label" for="adminEpPhoneVisible">Hiển thị số điện thoại trên hồ sơ</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="emailMarketing" id="adminEpEmailMarketing" th:checked="${session.userEmailMarketing != false}">
+                            <label class="form-check-label" for="adminEpEmailMarketing">Nhận email khuyến mãi</label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer justify-content-end">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" disabled>Lưu thay đổi</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             </form>
         </div>

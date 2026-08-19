@@ -11,7 +11,7 @@
                         <li class="breadcrumb-item"><a th:href="@{/san-pham}">Sản phẩm</a></li>
                         <th:block th:if="${categoryBreadcrumb != null}" th:each="cat, stat : ${categoryBreadcrumb}">
                             <li class="breadcrumb-item">
-                                <a th:href="@{/san-pham(danhMuc=${cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
+                                <a th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" th:text="${cat.tenDanhMuc}">Danh mục</a>
                             </li>
                         </th:block>
                         <li class="breadcrumb-item active" th:text="${product.tenSanPham}">Tên SP</li>

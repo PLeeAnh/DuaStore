@@ -56,7 +56,7 @@
                         <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                         <div class="ds-slider-viewport">
                             <div class="ds-slider-track">
-                                <a th:each="cat : ${featuredCategories}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                                <a th:each="cat : ${featuredCategories}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" class="ds-cat-tile">
                                     <div class="ds-cat-tile-img">
                                         <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'">
                                     </div>
@@ -379,7 +379,7 @@ th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                             <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                             <div class="ds-slider-viewport">
                                 <div class="ds-slider-track">
-                                    <a th:each="cat : ${sec.items}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                                    <a th:each="cat : ${sec.items}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" class="ds-cat-tile">
                                         <div class="ds-cat-tile-img">
                                             <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         </div>
@@ -398,7 +398,7 @@ th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                             <h2 class="ds-section-title-sm" th:text="${sec.title}">Danh mục</h2>
                         </div>
                         <div class="ds-dynamic-grid ds-cat-grid" th:style="'--cols:' + ${sec.cols}">
-                            <a th:each="cat : ${sec.items}" th:href="@{/san-pham(danhMuc=${cat.id})}" class="ds-cat-tile">
+                            <a th:each="cat : ${sec.items}" th:href="@{/danh-muc/{slug}(slug=${cat.slug != null ? cat.slug : cat.id})}" class="ds-cat-tile">
                                 <div class="ds-cat-tile-img">
                                     <img th:src="${cat.imageUrl} ?: '/images/no-image.png'" th:alt="${cat.tenDanhMuc}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                 </div>
