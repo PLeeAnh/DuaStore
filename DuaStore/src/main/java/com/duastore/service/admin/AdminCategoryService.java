@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,11 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 public class AdminCategoryService {
+
+    private static final Pattern SLUG_PATTERN = Pattern.compile("[^a-z0-9\\-]+");
+    private static final Pattern MULTIPLE_HYPHENS_PATTERN = Pattern.compile("-+");
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
@@ -35,6 +40,41 @@ public class AdminCategoryService {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
         this.fileUploadService = fileUploadService;
+    }
+
+    // ===== Slug Generation Helper Methods =====
+
+    public static String generateSlug(String input) {
+        if (input == null || input.isBlank()) {
+            return "";
+        }
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        String ascii = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        String slug = ascii.toLowerCase();
+        slug = SLUG_PATTERN.matcher(slug).replaceAll("-");
+        slug = MULTIPLE_HYPHENS_PATTERN.matcher(slug).replaceAll("-");
+        slug = slug.replaceAll("^-+|-+$", "");
+        return slug;
+    }
+
+    private String generateUniqueSlug(String baseSlug, Integer excludeId) {
+        if (baseSlug.isBlank()) {
+            return "danh-muc";
+        }
+        String slug = baseSlug;
+        int counter = 1;
+        while (true) {
+            boolean conflict = categoryRepository.existsBySlug(slug);
+            if (conflict && excludeId != null) {
+                Category existing = categoryRepository.findBySlug(slug).orElse(null);
+                conflict = existing != null && !existing.getId().equals(excludeId);
+            }
+            if (!conflict) {
+                return slug;
+            }
+            counter++;
+            slug = baseSlug + "-" + counter;
+        }
     }
 
     public List<Category> findAll() {
@@ -147,6 +187,7 @@ public class AdminCategoryService {
         dto.setThuTuHienThi(category.getThuTuHienThi());
         dto.setActive(category.isActive());
         dto.setImageUrl(category.getImageUrl());
+        dto.setSlug(category.getSlug());
         dto.setNgayTao(category.getNgayTao());
         dto.setNgayCapNhat(category.getNgayCapNhat());
         if (category.getParent() != null) {
@@ -165,6 +206,10 @@ public class AdminCategoryService {
         String oldImageUrl = category.getImageUrl();
         String newImageUrl = dto.getImageUrl();
         category.setTenDanhMuc(dto.getTenDanhMuc());
+        String baseSlug = dto.getSlug() != null && !dto.getSlug().isBlank()
+                ? generateSlug(dto.getSlug())
+                : generateSlug(dto.getTenDanhMuc());
+        category.setSlug(generateUniqueSlug(baseSlug, dto.getId()));
         category.setMoTa(com.duastore.util.HtmlSanitizer.sanitize(dto.getMoTa()));
         category.setThuTuHienThi(dto.getThuTuHienThi() == null ? 0 : dto.getThuTuHienThi());
         category.setActive(dto.isActive());

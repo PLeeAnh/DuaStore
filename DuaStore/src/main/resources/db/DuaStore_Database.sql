@@ -73,6 +73,7 @@ DROP TABLE IF EXISTS CartItems;
 DROP TABLE IF EXISTS Reviews;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS FlashSaleItems;
 DROP TABLE IF EXISTS FlashSales;
 DROP TABLE IF EXISTS Promotions;
 DROP TABLE IF EXISTS Addresses;
@@ -166,18 +167,30 @@ GO
         imageUrl nvarchar(500),
         moTa nvarchar(255),
         tenDanhMuc nvarchar(255) not null,
+        slug nvarchar(500),
         primary key (id)
     );
 
     create table FlashSales (
-        giaTriGiam numeric(5,2) not null,
         id int identity not null,
         isActive bit default 1 not null,
-        productId int not null,
-        soLuongDaBan int not null,
-        soLuongToiDa int not null,
+        priority int default 0,
         ngayBatDau datetime2(7) not null,
         ngayKetThuc datetime2(7) not null,
+        tenChuongTrinh nvarchar(200) not null,
+        moTa nvarchar(500),
+        primary key (id)
+    );
+
+    create table FlashSaleItems (
+        id int identity not null,
+        flashSaleId int not null,
+        variantId int not null,
+        giaGoc numeric(12,0) not null,
+        giaSale numeric(12,0) not null,
+        soLuongToiDa int default 0 not null,
+        soLuongDaBan int default 0 not null,
+        isActive bit default 1 not null,
         primary key (id)
     );
 
@@ -258,6 +271,8 @@ GO
         tienHang numeric(12,0) not null,
         tongThanhToan numeric(12,0) not null,
         userId int not null,
+        createdBy int,
+        lastModifiedBy int,
         ngayCapNhat datetime2(7),
         ngayDat datetime2(7) not null,
         ngayGiao datetime2(7),
@@ -329,6 +344,7 @@ GO
         id int identity not null,
         isActive bit default 1 not null,
         isFeatured bit default 0 not null,
+        isCustom bit default 0 not null,
         leadTimeDays int,
         minPrice numeric(12,0),
         ngayPhatHanh date,
@@ -489,7 +505,7 @@ GO
 
     create table user_auth_providers (
         id int identity not null,
-        userId int not null,
+        userId int,
         linkedAt datetime2(7) not null,
         provider nvarchar(20) not null,
         provider_sub nvarchar(255),
@@ -851,6 +867,11 @@ GO
        add constraint FK_ReviewImages_reviewId
        foreign key (reviewId)
        references Reviews;
+
+    alter table FlashSaleItems
+       add constraint FK_FlashSaleItems_flashSaleId
+       foreign key (flashSaleId)
+       references FlashSales;
 GO
 
 -- ============================================================
@@ -888,6 +909,9 @@ CREATE INDEX IX_admin_action_logs_entity_lookup ON admin_action_logs (loaiEntity
 CREATE INDEX IX_admin_action_logs_admin_lookup ON admin_action_logs (adminId, ngayTao DESC);
 CREATE INDEX IX_admin_action_logs_ngay_tao ON admin_action_logs (ngayTao DESC);
 CREATE INDEX IX_admin_action_logs_admin_ngay_tao ON admin_action_logs (adminId, ngayTao DESC);
+-- Flash sale items
+CREATE INDEX IX_FlashSaleItems_FlashSale ON FlashSaleItems (flashSaleId, isActive);
+CREATE INDEX IX_FlashSaleItems_Variant ON FlashSaleItems (variantId);
 GO
 
 -- ============================================================
@@ -1194,7 +1218,7 @@ GO
 
 PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 43 (gom 2 bang join: role_permissions, user_roles)';
+PRINT ' Tong so bang  : 44 (gom 2 bang join: role_permissions, user_roles)';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
 PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
 PRINT '====================================================';

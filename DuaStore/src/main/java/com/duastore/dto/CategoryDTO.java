@@ -26,6 +26,8 @@ public class CategoryDTO {
 
     private String imageUrl;
 
+    private String slug;
+
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
 

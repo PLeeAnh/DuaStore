@@ -459,7 +459,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-0 small" id="confirmModalMessage">Xác nhận thực hiện thao tác này?</p>
+                <p class="mb-2 small" id="confirmModalMessage">Xác nhận thực hiện thao tác này?</p>
+                <!-- Checkbox "Không hiển thị giao diện này nữa" -->
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="confirmModalDontShow">
+                    <label class="form-check-label small text-muted" for="confirmModalDontShow">
+                        Không hiển thị giao diện này nữa
+                    </label>
+                </div>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Huỷ</button>
