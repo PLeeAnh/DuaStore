@@ -55,48 +55,69 @@
                     </div>
 
                     <div th:unless="${#lists.isEmpty(promotions)}" class="row g-3 ds-promo-grid" id="ds-promo-grid">
-                        <div th:each="p : ${promotions}" class="col-lg-6 col-12 ds-promo-item"
+                        <div th:each="p : ${promotions}" class="col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12 ds-promo-item"
                              th:data-loai="${p.loaiGiam}"
-                             th:data-end="${p.denNgay != null ? #temporals.format(p.denNgay, 'yyyy-MM-dd') : ''}">
-                            <div class="vc2-card">
-                                <div class="vc2-left" th:classappend="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'vc2-pct' : 'vc2-money'">
-                                    <div class="vc2-discount">
-                                        <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                              th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">GIẢM 15%</span>
-                                        <span th:if="${'SO_TIEN'.equals(p.loaiGiam)}"
-                                              th:text="${'GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}">GIẢM 30.000đ</span>
+                             th:data-end="${p.denNgay != null ? #temporals.format(p.denNgay, 'yyyy-MM-dd') : ''}"
+                             th:data-id="${p.id}"
+                             th:data-ten="${p.tenChuongTrinh}"
+                             th:data-ma="${p.maCode}"
+                             th:data-giatri="${p.giaTriGiam}"
+                             th:data-loaigiam="${p.loaiGiam}"
+                             th:data-min="${p.donHangToiThieu}"
+                             th:data-max="${p.giamToiDa}"
+                             th:data-tu="${p.tuNgay != null ? #temporals.format(p.tuNgay, 'dd/MM/yyyy') : ''}"
+                             th:data-den="${p.denNgay != null ? #temporals.format(p.denNgay, 'dd/MM/yyyy') : ''}"
+                             th:data-solandalung="${p.soLanDung}"
+                             th:data-dadung="${p.daDung}"
+                             onclick="openPromoDetail(this)">
+                            <div class="ds-campaign-card h-100">
+                                <div class="dc_work_group">
+                                    <div class="dc_work_group_title">
+                                        <i class="bi bi-ticket-perforated" style="color:var(--ds-primary);font-size:.95rem;"></i>
+                                        <h3 th:text="${p.tenChuongTrinh}">Tên chương trình</h3>
                                     </div>
-                                    <div class="vc2-max" th:if="${p.giamToiDa != null}"
-                                         th:text="${'TỐI ĐA ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">TỐI ĐA 100.000đ</div>
-                                    <div class="vc2-label" th:text="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'Voucher giảm %' : 'Voucher giảm tiền'">Voucher</div>
-                                </div>
-                                <div class="vc2-notch"></div>
-                                <div class="vc2-body">
-                                    <div class="vc2-name" th:text="${p.tenChuongTrinh}">Tên chương trình</div>
-                                    <div class="vc2-conds">
-                                        <span class="vc2-cond" th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}">
-                                            <i class="bi bi-cart3"></i> Đơn từ <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
-                                        </span>
-                                        <span class="vc2-cond">
-                                            <i class="bi bi-calendar3"></i> HSD: <strong th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}">31/12/2026</strong>
-                                        </span>
-                                        <span class="vc2-cond" th:if="${p.savedCount != null and p.savedCount > 0}">
-                                            <i class="bi bi-people"></i> <strong th:text="${p.savedCount}">120</strong> người lưu
-                                        </span>
-                                    </div>
-                                    <div class="vc2-code-row">
-                                        <span class="vc2-code" th:text="${p.maCode}">CODE</span>
-                                        <button type="button" class="vc2-copy" th:data-code="${p.maCode}">Sao chép</button>
-                                    </div>
-                                    <div class="vc2-actions">
-                                        <button class="vc-btn ds-btn-outline btn-detail" type="button"
-                                                th:data-id="${p.id}">Chi tiết</button>
-                                        <button class="vc2-get btn-save-voucher" type="button"
-                                                th:data-id="${p.id}">Nhận</button>
+                                    <div class="ds-browse-list ds-promo-body">
+                                        <div class="ds-promo-value" th:classappend="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'ds-promo-value-pct' : 'ds-promo-value-money'">
+                                            <span class="ds-promo-value-main">
+                                                <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                                                      th:text="${'- ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">-15%</span>
+                                                <span th:unless="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                                                      th:text="${'- ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}">-50.000đ</span>
+                                            </span>
+                                            <span class="ds-promo-value-max" th:if="${p.giamToiDa != null}"
+                                                  th:text="${'Giảm tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">Giảm tối đa 100.000đ</span>
+                                            <span class="ds-promo-value-type" th:text="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'Voucher giảm %' : 'Voucher giảm tiền'">Voucher</span>
+                                        </div>
+                                        <div class="ds-promo-conds">
+                                            <span class="ds-promo-cond" th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}">
+                                                <i class="bi bi-cart3"></i> Đơn từ <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                            </span>
+                                            <span class="ds-promo-cond">
+                                                <i class="bi bi-calendar3"></i> HSD: <strong th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}">31/12/2026</strong>
+                                            </span>
+                                            <span class="ds-promo-cond" th:if="${p.savedCount != null and p.savedCount > 0}">
+                                                <i class="bi bi-people"></i> <strong th:text="${p.savedCount}">120</strong> người lưu
+                                            </span>
+                                        </div>
+                                        <div class="ds-promo-code-row">
+                                            <span class="vc2-code" th:text="${p.maCode}">CODE</span>
+                                            <button type="button" class="vc2-copy" th:data-code="${p.maCode}" onclick="event.stopPropagation()">Sao chép</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Phân trang voucher < > -->
+                    <div th:unless="${#lists.isEmpty(promotions)}" class="ds-promo-pager" id="ds-promo-pager" style="display:none;">
+                        <button type="button" class="ds-promo-pager-btn" id="promoPrev" onclick="promoPage(-1)">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span class="ds-promo-pager-info" id="promoPagerInfo">1/1</span>
+                        <button type="button" class="ds-promo-pager-btn" id="promoNext" onclick="promoPage(1)">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
                     </div>
 
                     <nav th:if="${totalPages > 1}" class="mt-4">

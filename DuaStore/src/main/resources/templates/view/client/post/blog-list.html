@@ -8,140 +8,148 @@
     </head>
     <body>
         <div layout:fragment="content">
-            <div class="ds-ctn-wide py-5">
-                <div class="ds-section-card mb-4">
-                    <h4 class="fw-bold mb-0"><i class="bi bi-newspaper me-2"></i>Bài viết</h4>
+            <div class="container-xl ds-ctn-width py-4">
+
+                <div class="ds-blog-hero mb-4">
+                    <div class="ds-blog-hero-deco ds-blog-hero-deco-1"></div>
+                    <div class="ds-blog-hero-deco ds-blog-hero-deco-2"></div>
+                    <span class="ds-blog-hero-badge"><i class="bi bi-newspaper me-1"></i>BÀI VIẾT</span>
+                    <h1 class="ds-blog-hero-title">Cẩm nang thủy tinh decor</h1>
+                    <p class="ds-blog-hero-sub">Mẹo sử dụng, cách chăm sóc và những ý tưởng trang trí không gian sống với đồ thủy tinh.</p>
                 </div>
 
                 <div th:if="${not #lists.isEmpty(featuredPosts)}" class="mb-5">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-star-fill text-warning me-2"></i>Bài viết nổi bật</h5>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <h5 class="fw-bold mb-0">Bài viết nổi bật</h5>
+                        <span class="ds-section-badge">NỔI BẬT</span>
+                    </div>
                     <div class="row g-3">
-                        <div th:each="fp : ${featuredPosts}" class="col-md-4 col-6">
-                            <div class="card h-100 border-0 shadow-sm">
-                                <div class="position-relative overflow-hidden" style="aspect-ratio:16/9;">
-                                    <img th:if="${fp.hinhAnh != null}"
-                                         th:src="@{${fp.hinhAnh}}" alt=""
-                                         class="card-img-top"
-                                         style="width:100%;height:100%;object-fit:cover;" />
-                                    <div th:unless="${fp.hinhAnh != null}"
-                                         class="d-flex align-items-center justify-content-center h-100 bg-light"
-                                         style="color:#ccc;font-size:2.5rem;">
+                        <div th:each="fp, st : ${featuredPosts}" class="col-lg-4 col-md-6 col-12"
+                             th:classappend="${st.index == 0} ? 'col-lg-8' : ''">
+                            <a th:href="@{/blog/{slug}(slug=${fp.slug != null ? fp.slug : fp.id})}"
+                               class="ds-blog-card h-100 text-decoration-none"
+                               th:classappend="${st.index == 0} ? 'ds-blog-card-lg' : ''">
+                                <div class="ds-blog-card-img">
+                                    <img th:if="${fp.hinhAnh != null}" th:src="@{${fp.hinhAnh}}" alt=""
+                                         loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                    <div th:unless="${fp.hinhAnh != null}" class="ds-blog-card-img-ph">
                                         <i class="bi bi-image"></i>
                                     </div>
-                                    <span class="position-absolute top-0 start-0 badge bg-warning text-dark m-2">
-                                        <i class="bi bi-star-fill me-1"></i>Nổi bật
-                                    </span>
+                                    <span class="ds-blog-card-cat" th:if="${fp.danhMuc != null}"
+                                          th:text="${fp.danhMuc.tenDanhMuc}">Danh mục</span>
                                 </div>
-                                <div class="card-body p-3">
-                                    <small class="text-muted d-block" th:text="${#temporals.format(fp.ngayTao, 'dd/MM/yyyy')}"></small>
-                                    <h6 class="mt-1" style="font-size:0.85rem;">
-                                        <a th:href="@{/blog/{slug}(slug=${fp.slug != null ? fp.slug : fp.id})}"
-                                           th:text="${fp.tieuDe}"
-                                           class="text-decoration-none text-dark stretched-link"></a>
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="ds-section-card">
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-5">
-                            <form th:action="@{/blog}" method="get" class="input-group">
-                                <input type="text" name="keyword" class="form-control" placeholder="Tìm bài viết..."
-                                       th:value="${keyword}" />
-                                <input type="hidden" name="danhMuc" th:value="${danhMuc}" th:if="${danhMuc != null}" />
-                                <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
-                            </form>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" onchange="if (this.value)
-                                window.location.href = '/blog?danhMuc=' + this.value + (this.value ? '' : '');
-                            else
-                                window.location.href = '/blog';">
-                                <option value="">Tất cả danh mục</option>
-                                <option th:each="cat : ${postCategories}"
-                                        th:value="${cat.id}"
-                                        th:text="${cat.tenDanhMuc}"
-                                        th:selected="${danhMuc != null and danhMuc == cat.id}"></option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <a th:href="@{/blog}" class="btn btn-outline-secondary w-100" th:if="${keyword != null or danhMuc != null}">Xóa lọc</a>
-                        </div>
-                    </div>
-
-                    <div th:if="${#lists.isEmpty(posts)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-newspaper', title='Chưa có bài viết nào', desc='Các bài viết về mẹo sử dụng và chăm sóc đồ thủy tinh sẽ sớm được đăng tải.', btnText='Về trang chủ', btnHref='/')}"></div>
-
-                    <div th:unless="${#lists.isEmpty(posts)}" class="row g-4">
-                        <div th:each="p : ${posts}" class="col-md-4 col-6">
-                            <div class="card blog-card h-100 border-0 shadow-sm">
-                                <div class="position-relative overflow-hidden" style="aspect-ratio:16/9;">
-                                    <img th:if="${p.hinhAnh != null}"
-                                         th:src="@{${p.hinhAnh}}" alt=""
-                                         class="card-img-top"
-                                         style="width:100%;height:100%;object-fit:cover;" />
-                                    <div th:unless="${p.hinhAnh != null}"
-                                         class="d-flex align-items-center justify-content-center h-100 bg-light"
-                                         style="color:#ccc;font-size:2.5rem;">
-                                        <i class="bi bi-image"></i>
-                                    </div>
-                                    <span th:if="${p.featured}"
-                                          class="position-absolute top-0 start-0 badge bg-warning text-dark m-2">
-                                        <i class="bi bi-star-fill me-1"></i>Nổi bật
-                                    </span>
-                                </div>
-                                <div class="card-body d-flex flex-column p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <small class="text-muted" th:text="${#temporals.format(p.ngayTao, 'dd/MM/yyyy')}"></small>
-                                        <small th:if="${p.danhMuc != null}" class="text-primary fw-medium">
-                                            <span th:text="${p.danhMuc.tenDanhMuc}"></span>
+                                <div class="ds-blog-card-body">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <small class="ds-blog-card-date">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            <span th:text="${#temporals.format(fp.ngayTao, 'dd/MM/yyyy')}">20/08/2026</span>
+                                        </small>
+                                        <small class="ds-blog-card-views" th:if="${fp.luotXem != null and fp.luotXem > 0}">
+                                            <i class="bi bi-eye me-1"></i><span th:text="${fp.luotXem}">100</span>
                                         </small>
                                     </div>
-                                    <h6 class="card-title mb-2" style="font-size:0.95rem;">
-                                        <a th:href="@{/blog/{slug}(slug=${p.slug != null ? p.slug : p.id})}"
-                                           th:text="${p.tieuDe}"
-                                           class="text-decoration-none text-dark stretched-link">Tieu de</a>
-                                    </h6>
+                                    <h4 class="ds-blog-card-title" th:text="${fp.tieuDe}">Tiêu đề bài viết</h4>
+                                    <span class="ds-blog-card-more">Đọc tiếp <i class="bi bi-arrow-right"></i></span>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
-
-                    <div class="bg-white p-3 rounded-3 shadow-sm border mt-4" style="border-color:#f0f0f0;">
-                        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
-                            <small class="text-muted fw-medium" style="font-size:.85rem;">
-                                Hiển thị <strong th:text="${currentPage * pageSize + 1}">1</strong>-<strong th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">12</strong> trong tổng số <strong th:text="${totalItems}">0</strong> <span>bài viết</span>
-                            </small>
-                            <form th:action="@{/blog}" method="get" class="d-inline">
-                                <input type="hidden" name="keyword" th:value="${keyword}" th:if="${keyword != null}" />
-                                <input type="hidden" name="danhMuc" th:value="${danhMuc}" th:if="${danhMuc != null}" />
-                                <input type="hidden" name="page" value="0" />
-                                <select name="size" onchange="this.form.submit()" style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
-                                    <option value="6" th:selected="${pageSize == 6}">Hiển thị 6</option>
-                                    <option value="12" th:selected="${pageSize == 12}">Hiển thị 12</option>
-                                    <option value="24" th:selected="${pageSize == 24}">Hiển thị 24</option>
-                                    <option value="48" th:selected="${pageSize == 48}">Hiển thị 48</option>
-                                </select>
-                            </form>
-                        </div>
-                    </div>
-
-                    <nav th:if="${totalPages > 1}" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                <a class="page-link" th:href="@{/blog(page=${currentPage - 1}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword})}">Trước</a>
-                            </li>
-                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
-                                <a class="page-link" th:href="@{/blog(page=${i}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword})}" th:text="${i + 1}">1</a>
-                            </li>
-                            <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                                <a class="page-link" th:href="@{/blog(page=${currentPage + 1}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword})}">Sau</a>
-                            </li>
-                        </ul>
-                    </nav>
                 </div>
+
+                <div class="ds-blog-toolbar mb-4">
+                    <div class="ds-blog-toolbar-title">
+                        <i class="bi bi-grid me-2" style="color:var(--ds-primary);"></i>
+                        Tất cả bài viết
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <form th:action="@{/blog}" method="get" class="ds-blog-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" name="keyword" placeholder="Tìm bài viết..." th:value="${keyword}"/>
+                            <input type="hidden" name="danhMuc" th:value="${danhMuc}" th:if="${danhMuc != null}"/>
+                            <button type="submit" class="ds-blog-search-btn" aria-label="Tìm kiếm">Tìm</button>
+                        </form>
+                        <select class="ds-blog-select" onchange="if (this.value)
+                                window.location.href = '/blog?danhMuc=' + this.value;
+                            else
+                                window.location.href = '/blog';">
+                            <option value="">Tất cả danh mục</option>
+                            <option th:each="cat : ${postCategories}"
+                                    th:value="${cat.id}"
+                                    th:text="${cat.tenDanhMuc}"
+                                    th:selected="${danhMuc != null and danhMuc == cat.id}"></option>
+                        </select>
+                        <a th:href="@{/blog}" class="ds-blog-clear" th:if="${keyword != null or danhMuc != null}">
+                            <i class="bi bi-x-lg me-1"></i>Xóa lọc
+                        </a>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(posts)}"
+                     th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-newspaper', title='Chưa có bài viết nào', desc='Các bài viết về mẹo sử dụng và chăm sóc đồ thủy tinh sẽ sớm được đăng tải.', btnText='Về trang chủ', btnHref='/')}"></div>
+
+                <div th:unless="${#lists.isEmpty(posts)}" class="row g-3 mb-4">
+                    <div th:each="p : ${posts}" class="col-lg-4 col-md-6 col-12">
+                        <a th:href="@{/blog/{slug}(slug=${p.slug != null ? p.slug : p.id})}"
+                           class="ds-blog-card h-100 text-decoration-none">
+                            <div class="ds-blog-card-img">
+                                <img th:if="${p.hinhAnh != null}" th:src="@{${p.hinhAnh}}" alt=""
+                                     loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                <div th:unless="${p.hinhAnh != null}" class="ds-blog-card-img-ph">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                                <span class="ds-blog-card-cat" th:if="${p.danhMuc != null}"
+                                      th:text="${p.danhMuc.tenDanhMuc}">Danh mục</span>
+                            </div>
+                            <div class="ds-blog-card-body">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <small class="ds-blog-card-date">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        <span th:text="${#temporals.format(p.ngayTao, 'dd/MM/yyyy')}">20/08/2026</span>
+                                    </small>
+                                    <small class="ds-blog-card-views" th:if="${p.luotXem != null and p.luotXem > 0}">
+                                        <i class="bi bi-eye me-1"></i><span th:text="${p.luotXem}">100</span>
+                                    </small>
+                                </div>
+                                <h4 class="ds-blog-card-title" th:text="${p.tieuDe}">Tiêu đề bài viết</h4>
+                                <span class="ds-blog-card-more">Đọc tiếp <i class="bi bi-arrow-right"></i></span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div th:unless="${#lists.isEmpty(posts)}"
+                     class="bg-white p-3 rounded-3 shadow-sm border mb-4" style="border-color:#f0f0f0;">
+                    <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                        <small class="text-muted fw-medium" style="font-size:.85rem;">
+                            Hiển thị <strong th:text="${currentPage * pageSize + 1}">1</strong>-<strong th:text="${(currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize}">12</strong> trong tổng số <strong th:text="${totalItems}">0</strong> <span>bài viết</span>
+                        </small>
+                        <form th:action="@{/blog}" method="get" class="d-inline">
+                            <input type="hidden" name="keyword" th:value="${keyword}" th:if="${keyword != null}"/>
+                            <input type="hidden" name="danhMuc" th:value="${danhMuc}" th:if="${danhMuc != null}"/>
+                            <input type="hidden" name="page" value="0"/>
+                            <select name="size" onchange="this.form.submit()" style="width:auto;border-radius:8px;border:1px solid #e5e7eb;font-size:.85rem;font-weight:500;cursor:pointer;padding:4px 28px 4px 10px;">
+                                <option value="6" th:selected="${pageSize == 6}">Hiển thị 6</option>
+                                <option value="12" th:selected="${pageSize == 12}">Hiển thị 12</option>
+                                <option value="24" th:selected="${pageSize == 24}">Hiển thị 24</option>
+                                <option value="48" th:selected="${pageSize == 48}">Hiển thị 48</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+
+                <nav th:if="${totalPages > 1}" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/blog(page=${currentPage - 1}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword})}">Trước</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/blog(page=${i}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/blog(page=${currentPage + 1}, size=${pageSize}, danhMuc=${danhMuc}, keyword=${keyword})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </body>

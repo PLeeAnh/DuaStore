@@ -327,7 +327,7 @@
     </div>
 
     <!-- HÀNG 2: danh mục + mega menu (kiểu harum.io) -->
-    <div class="ds-navbar-bottom">
+    <div class="ds-navbar-bottom" th:if="${not #lists.isEmpty(navCategories)}">
         <div class="container-xl ds-ctn-width">
             <nav class="ds-navbar-menu" role="navigation" aria-label="Danh mục">
                 <ul class="ds-nav-list-desktop d-none d-lg-flex" id="dsNavDesktop">
