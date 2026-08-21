@@ -91,7 +91,8 @@
                             <div class="ds-slider-track">
 
                                 <div th:each="promo : ${campaignPromotions}" class="ds-discount-item ds-campaign-card"
-                                     th:onclick="|claimHomePromo(${promo.id}, '${promo.maCode}')|">
+                                     th:data-promo-id="${promo.id}" th:data-promo-code="${promo.maCode}"
+                                     onclick="claimHomePromo(this.getAttribute('data-promo-id'), this.getAttribute('data-promo-code'))">
                                     <div class="dc_work_group">
                                         <span class="ds-promo-expiring-badge"
                                               th:if="${promo.denNgay != null and promo.denNgay.isBefore(T(java.time.LocalDateTime).now().plusDays(3))}">
