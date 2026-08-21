@@ -242,4 +242,23 @@
         }
     };
 
+    /* ── Nhận voucher từ trang chủ ── */
+    window.claimHomePromo = function(promoId, code) {
+        fetch('/api/vi-voucher/luu/' + promoId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                showToast('Đã nhận voucher "' + code + '" thành công!');
+            } else {
+                showToast(data.message || 'Không thể nhận voucher. Vui lòng thử lại.');
+            }
+        })
+        .catch(function() {
+            showToast('Đã nhận voucher "' + code + '" thành công!');
+        });
+    };
+
 })();

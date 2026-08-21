@@ -1125,10 +1125,12 @@ GO
 INSERT INTO Addresses (userId, tenNguoiNhan, soDienThoai, tinhThanh, quanHuyen, phuongXa, diaChiCuThe, isDefault) VALUES
     (2, N'Nguyen Van An', '0912345678', N'Hai Phong', N'Ngo Quyen', N'May To', N'123 Tran Hung Dao', 1);
 
-INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToiThieu, giamToiDa, soLanDung, tuNgay, denNgay) VALUES
-    ('KHAIHANG', N'Khai truong DuaStore Hai Phong', 'PHAN_TRAM', 15, 200000, 100000, 200, '2026-01-01', '2026-12-31'),
-    ('FREESHIP',  N'Mien phi van chuyen don tu 500k', 'SO_TIEN',  30000, 500000, NULL, NULL, '2026-01-01', '2026-12-31'),
-    ('DECO50K',   N'Giam 50k don tu 300k',           'SO_TIEN',  50000, 300000, NULL,  100, '2026-01-01', '2026-12-31');
+INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToiThieu, giamToiDa, soLanDung, tuNgay, denNgay, targetType, targetIds) VALUES
+    ('KHAIHANG', N'Khai truong DuaStore Hai Phong', 'PHAN_TRAM', 15, 200000, 100000, 200, '2026-01-01', '2026-12-31', NULL, NULL),
+    ('FREESHIP',  N'Mien phi van chuyen don tu 500k', 'SO_TIEN',  30000, 500000, NULL, NULL, '2026-01-01', '2026-12-31', NULL, NULL),
+    ('DECO50K',   N'Giam 50k don tu 300k',           'SO_TIEN',  50000, 300000, NULL,  100, '2026-01-01', '2026-12-31', NULL, NULL),
+    ('SUMMER50',  N'Summer Sale - Giam 50%',           'PHAN_TRAM', 50, 500000, 200000, 500, '2026-06-01', '2026-08-31', 'PRODUCT', '1,2,3,4,5'),
+    ('NEWUSER',   N'Uu dai nguoi moi - Giam 20%',      'PHAN_TRAM', 20, 100000, 50000,  1000, '2026-01-01', '2026-12-31', 'ALL', NULL);
 
 INSERT INTO orders (maDon, userId, addressId, snapTenNguoiNhan, snapSoDienThoai, snapDiaChi,
     tienHang, phiVanChuyen, tienGiam, tongThanhToan,
