@@ -5911,7 +5911,7 @@ a {
     background: #fff;
     border: 1px solid var(--ds-border);
     border-radius: var(--ds-r);
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
     transition: box-shadow .25s, transform .25s;
 }
@@ -5932,14 +5932,15 @@ a {
     font-size: .98rem;
     font-weight: 800;
     color: var(--ds-primary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    word-wrap: break-word;
 }
 .ds-campaign-card .ds-browse-list {
-    max-height: 340px;
+    max-height: 264px;
     flex: 1;
-    padding: 6px 0;
+    padding: 0;
 }
 .ds-campaign-empty {
     padding: 28px 16px;
@@ -5949,17 +5950,21 @@ a {
 }
 .ds-campaign-card .ds-browse-row {
     display: grid;
-    grid-template-columns: 64px 1fr;
+    grid-template-columns: 48px 1fr;
     grid-template-rows: auto auto auto;
-    gap: 0 10px;
-    padding: 10px 12px;
+    gap: 0 8px;
+    padding: 6px 12px;
     align-items: center;
     overflow: hidden;
+    border-bottom: 1px solid var(--ds-border);
+}
+.ds-campaign-card .ds-browse-row:last-child {
+    border-bottom: none;
 }
 .ds-campaign-card .ds-browse-row-img {
     grid-row: 1 / 4;
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
     border-radius: 6px;
     object-fit: cover;
     background: var(--ds-gray-100);
@@ -5968,13 +5973,13 @@ a {
 .ds-campaign-card .ds-browse-row-detail {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 1px;
     min-width: 0;
     overflow: hidden;
 }
 .ds-campaign-card .ds-browse-row-name {
     font-weight: 600;
-    font-size: .82rem;
+    font-size: .78rem;
     color: var(--ds-gray-900);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5984,11 +5989,11 @@ a {
 .ds-campaign-card .ds-browse-row-tag {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    font-size: .7rem;
+    gap: 3px;
+    font-size: .65rem;
     color: var(--ds-gray-400);
     background: var(--ds-gray-100);
-    padding: 2px 8px;
+    padding: 1px 6px;
     border-radius: 100px;
     width: fit-content;
     max-width: 100%;
@@ -5999,11 +6004,11 @@ a {
 .ds-campaign-card .ds-browse-row-price {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
 }
 .ds-campaign-card .ds-browse-row-price-current {
     font-weight: 700;
-    font-size: .85rem;
+    font-size: .78rem;
     color: var(--ds-primary);
 }
 .ds-campaign-card .ds-browse-row-price-discount {
@@ -6016,12 +6021,13 @@ a {
     flex-shrink: 0;
 }
 .ds-campaign-card .dc_work_group_title {
-    overflow: hidden;
+    overflow: visible;
 }
 .ds-campaign-card .dc_work_group_title h3 {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+    word-wrap: break-word;
 }
 .dc_work_group_footer {
     padding: 12px 16px;

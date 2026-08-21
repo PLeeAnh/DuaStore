@@ -447,7 +447,7 @@ public class HomeController {
         for (Promotion promo : campaignPromotions) {
             List<Product> prods = discountedProducts.stream()
                     .filter(p -> isPromotionApplicableToProduct(promo, p))
-                    .limit(4)
+                    .limit(3)
                     .toList();
             campaignProductsMap.put(promo.getId(), prods);
         }
