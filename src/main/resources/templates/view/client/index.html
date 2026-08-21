@@ -93,7 +93,7 @@
                                 <div th:each="promo : ${campaignPromotions}" class="ds-discount-item ds-campaign-card">
                                     <div class="dc_work_group">
                                         <div class="dc_work_group_title">
-                                            <h3 th:text="'Giảm đến ' + ${#numbers.formatInteger(promo.giaTriGiam, 0)} + '%'">Giảm đến 0%</h3>
+                                            <h3 th:text="${promo.tenChuongTrinh} + ' - Giảm ' + ${#numbers.formatInteger(promo.giaTriGiam, 0)} + '%'">Tên - Giảm 0%</h3>
                                         </div>
                                         <div class="ds-browse-list">
                                             <div th:each="p, iter : ${campaignProductsMap.get(promo.id)}"

@@ -5954,6 +5954,7 @@ a {
     gap: 0 10px;
     padding: 10px 12px;
     align-items: center;
+    overflow: hidden;
 }
 .ds-campaign-card .ds-browse-row-img {
     grid-row: 1 / 4;
@@ -5962,12 +5963,14 @@ a {
     border-radius: 6px;
     object-fit: cover;
     background: var(--ds-gray-100);
+    flex-shrink: 0;
 }
 .ds-campaign-card .ds-browse-row-detail {
     display: flex;
     flex-direction: column;
     gap: 3px;
     min-width: 0;
+    overflow: hidden;
 }
 .ds-campaign-card .ds-browse-row-name {
     font-weight: 600;
@@ -5976,6 +5979,7 @@ a {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
 }
 .ds-campaign-card .ds-browse-row-tag {
     display: inline-flex;
@@ -5987,6 +5991,10 @@ a {
     padding: 2px 8px;
     border-radius: 100px;
     width: fit-content;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .ds-campaign-card .ds-browse-row-price {
     display: flex;
@@ -6005,6 +6013,15 @@ a {
     background: var(--ds-primary);
     padding: 2px 6px;
     border-radius: 4px;
+    flex-shrink: 0;
+}
+.ds-campaign-card .dc_work_group_title {
+    overflow: hidden;
+}
+.ds-campaign-card .dc_work_group_title h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .dc_work_group_footer {
     padding: 12px 16px;
