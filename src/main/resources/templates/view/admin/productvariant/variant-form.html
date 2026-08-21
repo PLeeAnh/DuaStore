@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head><title th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Biến thể — Form</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
+        <li class="breadcrumb-item active" th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+
+        <!-- ═══════ HERO HEADER ═══════ -->
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <div class="adm-icon-48">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <div>
+                    <h4><span th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Sửa biến thể</span></h4>
+                    <div class="adm-detail-meta" th:if="${variant.id != null}">
+                        SKU: #<span th:text="${variant.id}">1</span>
+                        <span class="mx-2">|</span>
+                        Sản phẩm: <span th:text="${productName}">Tên SP</span>
+                    </div>
+                    <div class="adm-detail-meta" th:unless="${variant.id != null}">
+                        Tạo biến thể mới cho sản phẩm.
+                    </div>
+                </div>
+            </div>
+            <div class="adm-detail-actions">
+                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Quay lại
+                </a>
+            </div>
+        </div>
+
+        <!-- ═══════ FORM ═══════ -->
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form id="variantForm"
+                      th:action="${variant.id != null} ? @{/admin/bien-the/sua/{id}(id=${variant.id})} : @{/admin/bien-the/them-moi}"
+                      th:object="${variant}" method="post" data-dirty-bar enctype="multipart/form-data" class="row g-3">
+                    <input type="hidden" th:field="*{id}" />
+                    <input type="hidden" th:field="*{productId}" />
+
+                    <div class="col-12">
+                        <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-info-circle me-2"></i>Thông tin biến thể</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên biến thể <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{tenBienThe}" class="form-control" required />
+                        <div th:if="${#fields.hasErrors('tenBienThe')}" th:errors="*{tenBienThe}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Dung tích (ml)</label>
+                        <select th:field="*{dungTich}" class="form-select searchable-select" data-create>
+                            <option value="">— Chọn dung tích —</option>
+                            <option th:each="c : ${capacities}" th:value="${c}" th:text="${c} + ' ml'">Cap</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tồn kho</label>
+                        <input type="number" th:field="*{soLuongTon}" class="form-control" min="0" />
+                        <div th:if="${#fields.hasErrors('soLuongTon')}" th:errors="*{soLuongTon}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Giá gốc <span class="text-danger">*</span></label>
+                        <input type="number" th:field="*{giaGoc}" class="form-control" required min="0" step="1" id="giaGoc" />
+                        <div th:if="${#fields.hasErrors('giaGoc')}" th:errors="*{giaGoc}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Giá khuyến mãi</label>
+                        <input type="number" th:field="*{giaKhuyenMai}" class="form-control" min="0" step="1" id="giaKhuyenMai" />
+                    </div>
+                    <div class="col-12" id="pricingSuggestion"></div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check">
+                            <input type="checkbox" th:field="*{default}" class="form-check-input" id="isDefault" />
+                            <label class="form-check-label" for="isDefault">Biến thể mặc định</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-3">
+                        <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-image me-2"></i>Hình ảnh</h6>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Ảnh biến thể</label>
+                        <input type="file" th:name="hinhAnhFile" class="form-control" accept="image/*" />
+                        <div th:if="${variant.hinhAnh}" class="mt-2">
+                            <img th:src="@{${variant.hinhAnh}}" alt="preview" style="width:100px;height:100px;object-fit:cover;border-radius:6px;" />
+                            <input type="hidden" th:field="*{hinhAnh}" />
+                        </div>
+                    </div>
+
+                    <div class="col-12 border-top pt-3 mt-3">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/admin-duplicate.js}"></script>
+        <script th:src="@{/js/admin-dynamic-pricing.js}"></script>
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof initDuplicateCheck === 'function') {
+                    initDuplicateCheck('variant', {
+                        productId: /*[[${variant.productId}]]*/ null,
+                        excludeId: /*[[${variant.id}]]*/ null
+                    });
+                }
+                if (/*[[${variant.id}]]*/ null != null) {
+                    if (typeof initDynamicPricingVariant === 'function') {
+                        initDynamicPricingVariant(/*[[${variant.id}]]*/ null);
+                    }
+                }
+            });
+            /*]]>*/
+        </script>
+    </th:block>
+</body>
+</html>

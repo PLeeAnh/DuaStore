@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý đánh giá</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Đánh giá</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-star"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Đánh giá sản phẩm</h4>
+                            <div class="adm-detail-meta">Quản lý đánh giá của khách hàng về sản phẩm.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
+                            <div class="adm-stat-label">Tổng đánh giá</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-filter-bar">
+            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                <div class="d-flex gap-2">
+                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm sản phẩm, khách hàng..." />
+                    <select id="filterApproved" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="true">Đã duyệt</option>
+                        <option value="false">Chờ duyệt</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Sản phẩm</th>
+                        <th>Khách hàng</th>
+                        <th>Đánh giá</th>
+                        <th>Bình luận</th>
+                        <th>Hình ảnh</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r, iter : ${reviews}">
+                        <td th:text="${iter.index + 1 + currentPage * pageSize}"></td>
+                        <td th:text="${productNames.get(r.productId)}"></td>
+                        <td th:text="${userNames.get(r.userId)}"></td>
+                        <td>
+                            <span class="review-admin-stars" th:data-score="${r.danhGia}"></span>
+                        </td>
+                        <td class="adm-cell-text">
+                            <span th:text="${r.binhLuan != null ? r.binhLuan : '—'}" class="text-muted"></span>
+                        </td>
+                        <td>
+                            <img th:if="${r.hinhAnh != null}" th:src="@{${r.hinhAnh}}" alt="" style="width:50px;height:50px;object-fit:cover;border-radius:4px;" />
+                            <span th:unless="${r.hinhAnh != null}" class="text-muted">—</span>
+                        </td>
+                        <td>
+                            <span th:if="${r.isApproved}" class="status-pill status-DA_DUYET">Đã duyệt</span>
+                            <span th:unless="${r.isApproved}" class="status-pill status-CHO_DUYET">Chờ duyệt</span>
+                        </td>
+                        <td th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}"></td>
+                        <td>
+                            <form th:if="${!r.isApproved}" th:action="@{/admin/danh-gia/duyet/{id}(id=${r.id})}" method="post" style="display:inline">
+                                <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Duyệt">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+                            <form th:if="${r.isApproved}" th:action="@{/admin/danh-gia/an/{id}(id=${r.id})}" method="post" style="display:inline">
+                                <button type="submit" class="btn btn-sm btn-outline-warning me-1" title="Ẩn">
+                                    <i class="bi bi-eye-slash"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/danh-gia/xoa/{id}(id=${r.id})}" method="post" style="display:inline"
+                                  onsubmit="return confirm('Xóa đánh giá này?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(reviews)}">
+                        <td colspan="9" class="text-muted text-center py-4">Chưa có đánh giá nào</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/admin-review.js}"></script>
+    </th:block>
+</body>
+</html>

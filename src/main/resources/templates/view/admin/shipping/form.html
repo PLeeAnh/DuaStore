@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Cấu hình vận chuyển</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Vận chuyển</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Cấu hình vận chuyển</h4>
+                        <div class="adm-detail-meta">Cấu hình tùy chọn vận chuyển và tích hợp GHN.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form th:action="@{/admin/van-chuyen}" method="post" data-dirty-bar class="row g-3">
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-toggles me-1"></i>Tùy chọn vận chuyển</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="carrier_ghn_enabled" value="0" />
+                            <input class="form-check-input" type="checkbox" name="carrier_ghn_enabled" value="1"
+                                   id="carrierGHNEnabled" th:checked="${settings.get('carrier_ghn_enabled') == '1'}" />
+                            <label class="form-check-label" for="carrierGHNEnabled">GHN (Giao Hàng Nhanh)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="carrier_ghtk_enabled" value="0" />
+                            <input class="form-check-input" type="checkbox" name="carrier_ghtk_enabled" value="1"
+                                   id="carrierGHTKEnabled" th:checked="${settings.get('carrier_ghtk_enabled') == '1'}" />
+                            <label class="form-check-label" for="carrierGHTKEnabled">GHTK (Giao Hàng Tiết Kiệm)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="shipping_free" value="0" />
+                            <input class="form-check-input" type="checkbox" name="shipping_free" value="1"
+                                   id="shippingFree" th:checked="${settings.get('shipping_free') == '1'}" />
+                            <label class="form-check-label" for="shippingFree">Miễn phí vận chuyển</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-cash me-1"></i>Phí vận chuyển</h6>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Miễn phí khi đơn tối thiểu</label>
+                        <input type="number" name="shipping_free_min" class="form-control"
+                               th:value="${settings.get('shipping_free_min')}" placeholder="500000" />
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-4">
+                            <i class="bi bi-truck me-1"></i>Đơn vị vận chuyển
+                        </h6>
+                    </div>
+                    <!-- GHN -->
+                    <div class="col-12 mt-2"><strong>GHN (Giao Hàng Nhanh)</strong></div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí cơ bản</label>
+                        <input type="number" name="carrier_ghn_base_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghn_base_fee')}" placeholder="15000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí/km</label>
+                        <input type="number" name="carrier_ghn_rate_km" class="form-control"
+                               th:value="${settings.get('carrier_ghn_rate_km')}" placeholder="220" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí tối thiểu</label>
+                        <input type="number" name="carrier_ghn_min_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghn_min_fee')}" placeholder="10000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao</label>
+                        <input type="number" name="carrier_ghn_days" class="form-control"
+                               th:value="${settings.get('carrier_ghn_days')}" placeholder="3" />
+                    </div>
+                    <!-- GHN API -->
+                    <div class="col-md-6">
+                        <label class="form-label">GHN Token
+                            <small class="text-muted">(<a href="https://ghn.vn" target="_blank">Đăng ký</a>)</small></label>
+                        <input type="text" name="ghn_token" class="form-control font-monospace"
+                               th:value="${settings.get('ghn_token')}" placeholder="Token từ GHN" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Shop ID</label>
+                        <input type="number" name="ghn_shop_id" class="form-control"
+                               th:value="${settings.get('ghn_shop_id')}" placeholder="Số shop" />
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check form-switch mt-4">
+                            <input type="hidden" name="ghn_test_mode" value="false" />
+                            <input class="form-check-input" type="checkbox" name="ghn_test_mode" value="true"
+                                   id="ghnTestMode" th:checked="${settings.get('ghn_test_mode') != 'false'}" />
+                            <label class="form-check-label" for="ghnTestMode">Chế độ thử nghiệm (DEV)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mã quận/huyện mặc định</label>
+                        <input type="number" name="ghn_default_district_id" class="form-control"
+                               th:value="${settings.get('ghn_default_district_id')}" placeholder="1444" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mã phường/xã mặc định</label>
+                        <input type="text" name="ghn_default_ward_code" class="form-control"
+                               th:value="${settings.get('ghn_default_ward_code')}" placeholder="21012" inputmode="numeric" pattern="[0-9]+" title="Chỉ nhập số" />
+                    </div>
+                    <!-- GHTK -->
+                    <div class="col-12 mt-3"><strong>GHTK (Giao Hàng Tiết Kiệm)</strong></div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí cơ bản</label>
+                        <input type="number" name="carrier_ghtk_base_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_base_fee')}" placeholder="12000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí/km</label>
+                        <input type="number" name="carrier_ghtk_rate_km" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_rate_km')}" placeholder="200" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Phí tối thiểu</label>
+                        <input type="number" name="carrier_ghtk_min_fee" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_min_fee')}" placeholder="10000" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số ngày giao</label>
+                        <input type="number" name="carrier_ghtk_days" class="form-control"
+                               th:value="${settings.get('carrier_ghtk_days')}" placeholder="4" />
+                    </div>
+                    <div class="col-12 mt-2">
+                        <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

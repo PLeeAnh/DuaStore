@@ -1,0 +1,109 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head><title>Địa chỉ — DuaStore</title></head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container-xl py-5" style="max-width:700px;">
+                <div class="ds-section-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0"><i class="bi bi-geo-alt me-2"></i>Địa chỉ của tôi</h4>
+                        <button type="button" class="ds-btn ds-btn-fill ds-btn-sm" onclick="showAddressModal()">
+                            <i class="bi bi-plus-lg"></i> Thêm địa chỉ
+                        </button>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(addresses)}" class="text-center text-muted py-5">
+                        <i class="bi bi-map" style="font-size:3rem;"></i>
+                        <p class="mt-3">Bạn chưa có địa chỉ nào.</p>
+                        <button type="button" class="ds-btn ds-btn-fill" onclick="showAddressModal()">Thêm địa chỉ mới</button>
+                    </div>
+
+                    <div th:each="addr : ${addresses}" class="ds-card mb-3">
+                        <div class="ds-card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">
+                                        <span th:text="${addr.tenNguoiNhan}"></span>
+                                        <span class="mx-2 text-muted">|</span>
+                                        <span th:text="${addr.soDienThoai}"></span>
+                                        <span th:if="${addr.isDefault}" class="badge bg-primary ms-2" style="font-size:0.6rem;">Mặc định</span>
+                                    </div>
+                                    <p class="mb-1 text-muted small" th:text="${addr.diaChiCuThe} + ', ' + ${addr.phuongXa} + ', ' + ${addr.quanHuyen} + ', ' + ${addr.tinhThanh}"></p>
+                                </div>
+                                <div class="d-flex gap-2 flex-shrink-0">
+                                    <button type="button" class="ds-btn ds-btn-outline ds-btn-xs" th:if="${!addr.isDefault}" onclick="setDefaultAddress(${addr.id})">Đặt mặc định</button>
+                                    <button type="button" class="ds-btn ds-btn-outline ds-btn-xs" onclick="editAddress(${addr.id})">Sửa</button>
+                                    <button type="button" class="ds-btn ds-btn-outline ds-btn-xs text-danger" th:if="${!addr.isDefault}" onclick="deleteAddress(${addr.id})">Xóa</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Modal -->
+        <div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content shadow-sm">
+                    <div class="modal-header">
+                        <h5 class="fw-bold" id="addressModalTitle">Thêm địa chỉ mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="addressForm">
+                        <input type="hidden" name="id" id="addressId"/>
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-secondary">Người nhận <span class="text-danger">*</span></label>
+                                    <input type="text" name="tenNguoiNhan" id="inputTen" class="form-control" required/>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-secondary">Số điện thoại <span class="text-danger">*</span></label>
+                                    <input type="text" name="soDienThoai" id="inputSDT" class="form-control" required/>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-secondary">Tỉnh/Thành <span class="text-danger">*</span></label>
+                                    <select name="tinhThanh" id="inputTinh" class="form-select" required onchange="loadDistricts(this.value)">
+                                        <option value="">Chọn tỉnh/thành</option>
+                                        <option th:each="p : ${provinces}" th:value="${p.name}" th:text="${p.name}" th:attr="data-code=${p.code}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-secondary">Quận/Huyện <span class="text-danger">*</span></label>
+                                    <select name="quanHuyen" id="inputQuan" class="form-select" required onchange="loadWards(this.value)">
+                                        <option value="">Chọn quận/huyện</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small text-secondary">Phường/Xã <span class="text-danger">*</span></label>
+                                    <select name="phuongXa" id="inputPhuong" class="form-select" required>
+                                        <option value="">Chọn phường/xã</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small text-secondary">Địa chỉ cụ thể <span class="text-danger">*</span></label>
+                                    <input type="text" name="diaChiCuThe" id="inputDiaChi" class="form-control" required placeholder="Số nhà, tên đường"/>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" name="isDefault" id="inputDefault" value="true"/>
+                                        <label class="form-check-label small" for="inputDefault">Đặt làm địa chỉ mặc định</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-dark px-4 py-2 fw-semibold" id="addressSubmitBtn">Lưu</button>
+                            <button type="button" class="btn btn-outline-secondary px-4 py-2 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script th:src="@{/js/client-address.js(v=1)}"></script>
+    </body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Cấu hình thanh toán</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Thanh toán</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Cấu hình thanh toán</h4>
+                        <div class="adm-detail-meta">Cấu hình các phương thức thanh toán cho cửa hàng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form th:action="@{/admin/thanh-toan}" method="post" data-dirty-bar class="row g-3">
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-credit-card me-1"></i>Phương thức thanh toán</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="payment_cod" value="0" />
+                            <input class="form-check-input" type="checkbox" name="payment_cod" value="1"
+                                   id="paymentCod" th:checked="${settings.get('payment_cod') == '1'}" />
+                            <label class="form-check-label" for="paymentCod">Thanh toán khi nhận hàng (COD)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="payment_bank" value="0" />
+                            <input class="form-check-input" type="checkbox" name="payment_bank" value="1"
+                                   id="paymentBank" th:checked="${settings.get('payment_bank') == '1'}" />
+                            <label class="form-check-label" for="paymentBank">Chuyển khoản ngân hàng</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="payment_vnpay" value="0" />
+                            <input class="form-check-input" type="checkbox" name="payment_vnpay" value="1"
+                                   id="paymentVnpay" th:checked="${settings.get('payment_vnpay') == '1'}" />
+                            <label class="form-check-label" for="paymentVnpay">VNPay</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-bank me-1"></i>Thông tin tài khoản ngân hàng</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ngân hàng</label>
+                        <input type="text" name="payment_bank_name" class="form-control"
+                               th:value="${settings.get('payment_bank_name')}" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Số tài khoản</label>
+                        <input type="text" name="payment_bank_account" class="form-control"
+                               th:value="${settings.get('payment_bank_account')}" inputmode="numeric" pattern="[0-9]+" title="Chỉ nhập số" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Chủ tài khoản</label>
+                        <input type="text" name="payment_bank_holder" class="form-control"
+                               th:value="${settings.get('payment_bank_holder')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Chi nhánh</label>
+                        <input type="text" name="payment_bank_branch" class="form-control"
+                               th:value="${settings.get('payment_bank_branch')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mã QR (URL ảnh)</label>
+                        <input type="url" name="payment_qr_url" class="form-control"
+                               th:value="${settings.get('payment_qr_url')}" />
+                    </div>
+                    <div class="col-12">
+                        <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

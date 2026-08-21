@@ -1,0 +1,10 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="emptyState(icon, title, desc, btnText, btnHref)" class="ds-empty-state">
+    <div class="ds-empty-state-icon"><i th:class="${icon} ?: 'bi bi-inbox'"></i></div>
+    <h3 class="ds-empty-state-title" th:text="${title} ?: 'Chưa có dữ liệu'">Chưa có dữ liệu</h3>
+    <p class="ds-empty-state-desc" th:if="${desc}" th:text="${desc}">Mô tả ngắn</p>
+    <a th:if="${btnText}" th:href="${btnHref} ?: '/san-pham'" class="ds-empty-state-btn" th:text="${btnText}">Xem sản phẩm</a>
+</div>
+</body>
+</html>

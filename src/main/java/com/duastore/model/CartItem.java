@@ -1,0 +1,62 @@
+package com.duastore.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+@ToString(exclude = {"product", "variant", "user"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@Table(name = "CartItems", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"userId", "variantId"})
+})
+/**
+ * Entity ánh xạ dữ liệu giỏ hàng.
+ */
+public class CartItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Integer id;
+
+    @Column(nullable = false)
+    private Integer userId;
+
+    @Column(nullable = false)
+    private Integer productId;
+
+    @Column(nullable = false)
+    private Integer variantId;
+
+    @Column(nullable = false)
+    private Integer soLuong = 1;
+
+    @Column(precision = 12, scale = 0)
+    private BigDecimal giaLucThem;
+
+    @Column(updatable = false)
+    private LocalDateTime ngayThem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "productId", insertable = false, updatable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variantId", insertable = false, updatable = false)
+    private ProductVariant variant;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId", insertable = false, updatable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private User user;
+
+    @PrePersist
+    protected void onCreate() {
+        if (ngayThem == null) {
+            ngayThem = LocalDateTime.now();
+        }
+    }
+}

@@ -1,0 +1,106 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head><title>Yêu cầu hoàn tiền / Đổi hàng — DuaStore</title></head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container-xl py-4" style="max-width:700px;">
+                <div class="ds-section-card">
+                    <a th:href="@{'/tai-khoan/don-hang/' + ${order.id}}" class="text-decoration-none text-muted mb-3 d-inline-block">
+                        <i class="bi bi-arrow-left"></i> Quay lại đơn hàng
+                    </a>
+
+                    <div class="ds-card p-4">
+                        <h5 class="fw-bold mb-1">Yêu cầu hoàn tiền / Đổi hàng</h5>
+                        <p class="text-muted small mb-4">Mã đơn: <strong th:text="${order.maDon}"></strong> — <span th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></span></p>
+
+                        <div class="alert alert-info mb-4">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-info-circle"></i> Chính sách đổi trả đồ thủy tinh:</h6>
+                            <ul class="mb-0 small">
+                                <li>Thời hạn: <strong>7 ngày</strong> kể từ ngày nhận hàng</li>
+                                <li><strong>Lỗi hàng / Sai mô tả:</strong> Shop chịu 100% phí ship, hoàn toàn bộ tiền</li>
+                                <li><strong>Đổi ý (size, màu, không thích):</strong> Khách chịu phí ship trả, trừ điểm tích lũy</li>
+                                <li><strong>Sản phẩm custom (đặt riêng):</strong> Không hỗ trợ hoàn tiền, chỉ được đổi size/màu</li>
+                                <li><strong>Flash sale:</strong> Chỉ được đổi size (miễn phí ship 1 lần)</li>
+                                <li><strong>Bắt buộc video unboxing</strong> khi hàng lỗi hoặc không đúng mô tả</li>
+                            </ul>
+                        </div>
+
+                        <form th:action="@{'/tai-khoan/don-hang/hoan-tien/' + ${order.id}}" method="post" enctype="multipart/form-data">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Loại yêu cầu <span class="text-danger">*</span></label>
+                                    <select name="loaiYeuCau" class="form-select" required id="refundType" onchange="onRefundTypeChange()">
+                                        <option th:each="type : ${refundTypes}" th:value="${type.name()}" th:text="${type.displayName}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Lý do chi tiết <span class="text-danger">*</span></label>
+                                    <select name="lyDoChiTiet" class="form-select" required id="refundReason">
+                                        <option th:each="reason : ${refundReasons}" th:value="${reason.name()}" th:text="${reason.displayName}"></option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
+                                <textarea name="lydo" class="form-control" rows="4" required placeholder="Vui lòng mô tả chi tiết lý do bạn muốn hoàn tiền / đổi hàng..."></textarea>
+                            </div>
+
+                            <div class="mb-3" id="exchangeFields" style="display:none;">
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-info-circle"></i> <strong>Quy trình đổi hàng:</strong> Sau khi admin duyệt, bạn gửi hàng về kho → kho kiểm tra → admin chọn sản phẩm thay thế (chênh lệch giá sẽ được xác nhận qua email).
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Số tiền yêu cầu <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" name="soTienHoan" class="form-control" required
+                                           th:value="${order.tongThanhToan}"
+                                           th:attr="max=${order.tongThanhToan}" step="1000" min="0"/>
+                                    <span class="input-group-text">₫</span>
+                                </div>
+                                <div class="form-text">Tối đa <strong th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></strong></div>
+                            </div>
+
+                            <div class="mb-3" id="videoUnboxingField" style="display:none;">
+                                <label class="form-label fw-semibold">Video unboxing <span class="text-danger">*</span></label>
+                                <input type="file" name="videoUnboxing" class="form-control" accept="video/*" id="videoUnboxingInput" />
+                                <div class="form-text">Bắt buộc cho lý do "Lỗi hàng" hoặc "Không đúng mô tả". Định dạng: MP4, MOV. Tối đa 100MB.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Phương thức nhận tiền <span class="text-danger">*</span></label>
+                                <select name="phuongThucHoan" class="form-select" required id="refundMethod" onchange="toggleBankFields()">
+                                    <option value="CHUYEN_KHOAN">Chuyển khoản ngân hàng</option>
+                                    <option value="TIEN_MAT">Tiền mặt (tại cửa hàng)</option>
+                                </select>
+                            </div>
+
+                            <div id="bankFields" class="mb-3">
+                                <label class="form-label fw-semibold">Thông tin tài khoản ngân hàng <span class="text-danger">*</span></label>
+                                <input type="text" name="tenNganHang" class="form-control mb-2" placeholder="Tên ngân hàng (VD: Techcombank)" />
+                                <input type="text" name="soTaiKhoan" class="form-control mb-2" placeholder="Số tài khoản" />
+                                <input type="text" name="chuTaiKhoan" class="form-control" placeholder="Chủ tài khoản" />
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Ảnh minh chứng (tùy chọn)</label>
+                                <input type="file" name="anhMinhChung" class="form-control" accept="image/*" id="refundImageInput" onchange="previewRefundImage(this)"/>
+                                <div id="refundImagePreview" class="mt-2 d-none">
+                                    <img class="rounded border" style="max-width:200px;max-height:200px;object-fit:cover;" alt="Xem trước"/>
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="clearRefundImage()">Xóa ảnh</button>
+                                </div>
+                            </div>
+
+                            <script th:src="@{/js/client-refund.js(v=2)}"></script>
+
+                            <button type="submit" class="btn btn-danger w-100 fw-semibold py-2">Gửi yêu cầu</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Thông tin cửa hàng</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Cửa hàng</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Thông tin cửa hàng</h4>
+                        <div class="adm-detail-meta">Cấu hình thông tin và vị trí cửa hàng.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form th:action="@{/admin/cua-hang}" method="post" data-dirty-bar class="row g-3">
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-info-circle me-1"></i>Thông tin cơ bản</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên cửa hàng</label>
+                        <input type="text" name="store_name" class="form-control"
+                               th:value="${settings.get('store_name')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" name="store_phone" class="form-control"
+                               th:value="${settings.get('store_phone')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="store_email" class="form-control"
+                               th:value="${settings.get('store_email')}" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Địa chỉ <small class="text-muted">(Gõ địa chỉ để tìm kiếm)</small></label>
+                        <input type="text" id="storeAddress" name="store_address" class="form-control"
+                               th:value="${settings.get('store_address')}"
+                               placeholder="Nhập địa chỉ cửa hàng..." autocomplete="off" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Vĩ độ (Latitude)</label>
+                        <input type="number" id="storeLatitude" name="store_latitude" class="form-control"
+                               th:value="${settings.get('store_latitude')}" step="any" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Kinh độ (Longitude)</label>
+                        <input type="number" id="storeLongitude" name="store_longitude" class="form-control"
+                               th:value="${settings.get('store_longitude')}" step="any" readonly />
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-geo-alt me-1"></i>Vị trí trên bản đồ</h6>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Bản đồ</label>
+                        <div id="map" style="width:100%;height:350px;border-radius:8px;border:1px solid var(--ef-border);background:#e9ecef"></div>
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-clock me-1"></i>Giờ hoạt động</h6>
+                    </div>
+                    <div class="col-12">
+                        <input type="hidden" name="store_business_hours" id="businessHoursInput"
+                               th:value="${settings.get('store_business_hours')}" />
+                        <div id="businessHoursEditor">
+                            <div class="d-flex gap-2 mb-3 flex-wrap" id="bhDayBtns">
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="mon" style="width:40px;height:40px" title="Thứ Hai">T2</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="tue" style="width:40px;height:40px" title="Thứ Ba">T3</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="wed" style="width:40px;height:40px" title="Thứ Tư">T4</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="thu" style="width:40px;height:40px" title="Thứ Năm">T5</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="fri" style="width:40px;height:40px" title="Thứ Sáu">T6</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="sat" style="width:40px;height:40px" title="Thứ Bảy">T7</button>
+                                <button type="button" class="btn btn-sm rounded-circle bh-day-btn" data-day="sun" style="width:40px;height:40px" title="Chủ Nhật">CN</button>
+                            </div>
+                            <div id="bhDayPanel" style="display:none" class="border rounded-3 p-3 mb-3">
+                                <div class="d-flex align-items-center gap-4 mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="bhAllDay" />
+                                        <label class="form-check-label" for="bhAllDay">Mở cả ngày</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="bhClosed" />
+                                        <label class="form-check-label" for="bhClosed">Đóng cửa</label>
+                                    </div>
+                                </div>
+                                <div id="bhSlots"></div>
+                                <a href="javascript:void(0)" id="bhAddSlot" class="small text-primary fw-semibold">Thêm giờ hoạt động</a>
+                            </div>
+                            <div id="bhSelectedDays" class="small text-muted mb-2"></div>
+                        </div>
+
+                    </div>
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-images me-1"></i>Ảnh cửa hàng</h6>
+                    </div>
+                    <div class="col-12">
+                        <div class="gallery-upload-zone" id="storeImagesZone" style="cursor:pointer">
+                            <input type="file" accept="image/*" multiple hidden id="storeImagesFile" />
+                            <div class="gallery-upload-content">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                <p>Click để thêm ảnh vào bộ sưu tập</p>
+                                <small class="text-muted">Hỗ trợ JPG, PNG, WEBP</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="store_images" id="storeImagesInput"
+                               th:value="${settings.get('store_images')}" />
+                        <div id="storeGalleryGrid" class="adm-gallery-grid mt-3">
+                            <th:block th:if="${settings.get('store_images') != null and settings.get('store_images') != ''}">
+                                <th:block th:each="img : ${#strings.listSplit(settings.get('store_images'), ',')}">
+                                    <div class="adm-gallery-item store-img-item" th:data-url="${#strings.trim(img)}">
+                                        <img th:src="${#strings.trim(img)}" alt="Ảnh cửa hàng" />
+                                        <div class="adm-gallery-action">
+                                            <button type="button" class="btn btn-sm btn-danger btn-icon store-img-remove" style="width:28px;height:28px;font-size:12px"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+        <div id="leaflet-container">
+            <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+            <script th:src="@{/js/admin-store.js(v=2)}"></script>
+        </div>
+    </th:block>
+</body>
+</html>

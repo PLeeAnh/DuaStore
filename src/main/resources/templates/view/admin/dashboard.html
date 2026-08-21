@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+
+    <head>
+        <title>Dashboard</title>
+    </head>
+
+    <body>
+
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+    </th:block>
+
+    <div layout:fragment="content">
+
+        <div class="adm-card p-4 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#FF6B00,rgba(255,107,0,0.7));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i class="bi bi-speedometer2" style="font-size:1.5rem;color:#fff"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0" style="font-size:1.35rem">Dashboard</h4>
+                    <p class="mb-0" style="font-size:.82rem;color:var(--ef-text-muted)">Tổng quan cửa hàng</p>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${dashboardError}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            <span th:text="${dashboardError}"></span>
+            <hr class="my-2"/>
+            <div class="small">
+                <strong>Khắc phục:</strong> Chạy lệnh SQL sau trong SQL Server:
+                <pre class="mt-1 mb-0 bg-light p-2 rounded" style="font-size:11px;overflow-x:auto;">
+ALTER TABLE orders ADD fraudWarning VARCHAR(1000) NULL;
+ALTER TABLE orders ADD shippingCarrier VARCHAR(30) NULL;
+ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
+                </pre>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- ═════ CẢNH BÁO ═════ -->
+        <div class="row g-3 mb-4" th:if="${urgentOrderCount > 0 or smartAlertCount > 0}">
+            <div class="col-12">
+                <div class="adm-card p-3" style="border-left:4px solid #dc3545;background:#fff5f5;">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:1.3rem"></i>
+                        <span class="fw-bold">Cần xử lý ngay:</span>
+                        <a th:href="@{/admin/don-hang}" class="text-decoration-none" th:if="${urgentOrderCount > 0}">
+                            <span class="badge bg-danger fs-6 me-2" th:text="${urgentOrderCount}"></span> đơn chờ xác nhận trên 48h
+                        </a>
+                        <a th:href="@{/admin/phan-tich?period=this-month#products}" class="text-decoration-none" th:if="${smartAlertCount > 0}">
+                            <span class="badge bg-warning text-dark fs-6 me-2" th:text="${smartAlertCount}"></span> biến thể cần nhập hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-6 col-xl-2">
+                <div class="adm-stat p-3" style="border-left:3px solid var(--ef-primary)">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="adm-stat-lbl">Đơn chờ</span>
+                        <div class="adm-stat-icon" style="background:rgba(255,107,0,0.1);color:var(--ef-primary)">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                    </div>
+                    <div class="adm-stat-val" th:text="${totalPendingOrders} ?: 0" style="color:var(--ef-primary)">0</div>
+                    <div style="font-size:.75rem;color:var(--ef-text-muted)">
+                        <a th:href="@{/admin/don-hang}" class="text-decoration-none">Xem đơn hàng</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl-2">
+                <div class="adm-stat p-3" style="border-left:3px solid #10b981">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="adm-stat-lbl">Đơn hôm nay</span>
+                        <div class="adm-stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981">
+                            <i class="bi bi-bag-check"></i>
+                        </div>
+                    </div>
+                    <div class="adm-stat-val" th:text="${todayOrders} ?: 0" style="color:#10b981">0</div>
+                    <div style="font-size:.75rem;color:var(--ef-text-muted)">
+                        <span>Chờ: <span th:text="${totalPendingOrders} ?: 0"></span></span>
+                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.todayOrdersChange, '+')} ? 'text-success' : 'text-danger'" class="ms-1">
+                            <span th:text="${statComparison.todayOrdersChange}"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl-2">
+                <div class="adm-stat p-3" style="border-left:3px solid #7c3aed">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="adm-stat-lbl">Đơn tháng</span>
+                        <div class="adm-stat-icon" style="background:rgba(124,58,237,0.1);color:#7c3aed">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                    </div>
+                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.ordersThisMonth : totalOrders} ?: 0" style="color:#7c3aed">0</div>
+                    <div style="font-size:.75rem;color:var(--ef-text-muted)">
+                        <span>Đã giao: <span th:text="${deliveredOrders} ?: 0"></span></span>
+                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.ordersChange, '+')} ? 'text-success' : 'text-danger'" class="ms-1">
+                            <span th:text="${statComparison.ordersChange}"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl-2">
+                <div class="adm-stat p-3" style="border-left:3px solid #2563eb">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="adm-stat-lbl">Doanh thu tháng</span>
+                        <div class="adm-stat-icon" style="background:rgba(37,99,235,0.1);color:#2563eb">
+                            <i class="bi bi-currency-exchange"></i>
+                        </div>
+                    </div>
+                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.revenueThisMonth : monthlyRevenue} ?: '--'" style="color:#2563eb">--</div>
+                    <div style="font-size:.75rem;color:var(--ef-text-muted)">
+                        <span th:text="${revenueGrowth}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl-2">
+                <div class="adm-stat p-3" style="border-left:3px solid #38bdf8">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="adm-stat-lbl">Khách mới</span>
+                        <div class="adm-stat-icon" style="background:rgba(56,189,248,0.1);color:#38bdf8">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.newCustomersThisMonth : totalCustomers} ?: 0" style="color:#38bdf8">0</div>
+                    <div style="font-size:.75rem;color:var(--ef-text-muted)">
+                        <span>Tổng: <span th:text="${totalCustomers}"></span></span>
+                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.customersChange, '+')} ? 'text-success' : 'text-danger'" class="ms-1">
+                            <span th:text="${statComparison.customersChange}"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-xl-2">
+                <div class="adm-stat p-3" style="border-left:3px solid #f97316">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="adm-stat-lbl">Khuyến mãi</span>
+                        <div class="adm-stat-icon" style="background:rgba(249,115,22,0.1);color:#f97316">
+                            <i class="bi bi-tag"></i>
+                        </div>
+                    </div>
+                    <div class="adm-stat-val" th:text="${activePromotions} ?: 0" style="color:#f97316">0</div>
+                    <div style="font-size:.75rem;color:var(--ef-text-muted)">Đang diễn ra</div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-8">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2"></i>Doanh thu 7 ngày</h6>
+                        <div class="d-flex align-items-center gap-3" style="font-size:.75rem">
+                            <span><span class="badge" style="background:rgba(255,107,0,0.8)">&nbsp;</span> Tuần này</span>
+                            <span><span class="badge" style="background:rgba(148,112,219,0.8)">&nbsp;</span> Tuần trước</span>
+                        </div>
+                    </div>
+                    <div style="position:relative;height:260px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top sản phẩm (tháng)</h6>
+                    </div>
+                    <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(topProducts)}">
+                        <div th:each="tp, iter : ${topProducts}" class="d-flex align-items-center gap-2">
+                            <span class="fw-bold text-muted" style="min-width:20px" th:text="${iter.index + 1}">1</span>
+                            <img th:if="${tp.hinhAnh != null}" th:src="@{${tp.hinhAnh}}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:4px;" />
+                            <img th:unless="${tp.hinhAnh != null}" src="https://placehold.co/36x36/e9ecef/999?text=N/A" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:4px;" />
+                            <div class="flex-grow-1" style="font-size:.85rem" th:text="${tp.tenSanPham}">Product</div>
+                            <span class="badge bg-danger" th:text="${tp.totalSold}">0</span>
+                        </div>
+                    </div>
+                    <p th:if="${#lists.isEmpty(topProducts)}" class="text-muted small mb-0">Chưa có dữ liệu</p>
+                </div>
+
+                <!-- ═════ DỰ BÁO TỒN KHO THÔNG MINH ═════ -->
+                <div class="adm-table-wrap p-3 mt-3" th:if="${not #lists.isEmpty(smartAlerts)}">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold text-warning"><i class="bi bi-graph-up-arrow me-2"></i>Dự báo tồn kho thông minh</h6>
+                        <a th:href="@{/admin/phan-tich?period=this-month#products}" class="small">Chi tiết</a>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div th:each="s : ${smartAlerts}" class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--ef-bg)">
+                            <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0"
+                                 th:classappend="${s.daysUntilEmpty < 7} ? 'bg-danger' : (${s.daysUntilEmpty < 14} ? 'bg-warning' : 'bg-info')"></div>
+                            <div class="flex-grow-1">
+                                <div style="font-size:.82rem">
+                                    <span class="fw-semibold" th:text="${s.variantName}">Variant</span>
+                                    <span class="text-muted" th:text="'· ' + ${s.productName}"></span>
+                                </div>
+                                <div style="font-size:.75rem;color:var(--ef-text-muted)">
+                                    Tồn: <span th:text="${s.stock}">0</span>
+                                    · Bán: <span th:text="${s.sold}">0</span>/30d
+                                    · <span th:if="${s.daysUntilEmpty < 30}" class="fw-semibold text-danger" th:text="${s.daysUntilEmpty + ' ngày'}">0</span>
+                                    <span th:unless="${s.daysUntilEmpty < 30}" th:text="'&gt; 30 ngày'"></span>
+                                </div>
+                            </div>
+                            <a th:href="@{/admin/san-pham/chi-tiet/{id}(id=${s.productId})}" class="btn btn-sm btn-outline-primary" style="font-size:.75rem">Nhập</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-4">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i>Phương thức thanh toán</h6>
+                    </div>
+                    <div style="position:relative;height:220px;">
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar-range me-2"></i>Doanh thu theo tháng</h6>
+                    </div>
+                    <div style="position:relative;height:220px;">
+                        <canvas id="monthlyRevenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-4">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart-steps me-2"></i>Kênh chuyển đổi đơn hàng</h6>
+                    </div>
+                    <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(salesFunnel)}">
+                        <div th:each="stage : ${salesFunnel}" class="d-flex align-items-center gap-2">
+                            <div style="min-width:100px;font-size:.82rem" th:text="${stage.label}">Stage</div>
+                            <div class="flex-grow-1" style="height:24px;background:var(--ef-border);border-radius:4px;overflow:hidden">
+                                <div th:style="${'width:' + stage.widthPct + '%;height:100%;border-radius:4px;background:' + stage.color}"
+                                     style="transition:width .6s ease"></div>
+                            </div>
+                            <span class="badge bg-secondary" style="min-width:36px" th:text="${stage.count}">0</span>
+                            <span th:if="${!stage.isFirst}" class="small text-muted" style="min-width:40px;font-size:.7rem"
+                                  th:text="${#numbers.formatDecimal(stage.convRate, 0, 'COMMA', 1, 'POINT')} + '%'"></span>
+                            <span th:if="${stage.isFirst}" class="small text-muted" style="min-width:40px;font-size:.7rem">100%</span>
+                        </div>
+                    </div>
+                    <p th:if="${#lists.isEmpty(salesFunnel)}" class="text-muted small mb-0">Chưa có dữ liệu</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-8">
+                <div class="adm-table-wrap">
+                    <div class="card-header d-flex align-items-center justify-content-between" style="background:#fff;border-bottom:1px solid var(--ef-border);padding:12px 16px">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Đơn hàng gần đây</h6>
+                        <a th:href="@{/admin/don-hang}" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                    </div>
+                    <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Phụ trách</th>
+                                <th>Ngày đặt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="o : ${recentOrders}" th:unless="${#lists.isEmpty(recentOrders)}">
+                                <td><a th:href="@{/admin/don-hang/{id}(id=${o.id})}" th:text="${o.maDon}">#DH001</a></td>
+                                <td th:text="${o.snapTenNguoiNhan}">Nguyễn Văn A</td>
+                                <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'">1.000.000₫</td>
+                                <td>
+                                    <span th:if="${o.trangThaiDon == 'CHO_XAC_NHAN'}" class="status-cho-xac-nhan">Chờ xác nhận</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_XAC_NHAN'}" class="status-da-xac-nhan">Đã xác nhận</span>
+                                    <span th:if="${o.trangThaiDon == 'DANG_GIAO'}" class="status-dang-giao">Đang giao</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_GIAO'}" class="status-da-giao">Đã giao</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_HOAN_THANH'}" class="status-da-hoan-thanh">Đã hoàn thành</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_HUY'}" class="status-da-huy">Đã hủy</span>
+                                    <span th:if="${o.trangThaiDon == 'DA_HOAN_TIEN'}" class="status-da-huy">Đã hoàn tiền</span>
+                                </td>
+                                <td>
+                                    <span th:if="${orderAssignments.containsKey(o.id)}" class="small" th:text="${orderAssignments.get(o.id)}"></span>
+                                    <span th:unless="${orderAssignments.containsKey(o.id)}" class="small text-muted">—</span>
+                                </td>
+                                <td style="font-size:.82rem;color:var(--ef-text-muted)" th:text="${#temporals.format(o.ngayDat, 'dd/MM HH:mm')}">01/01 12:00</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(recentOrders)}">
+                                <td colspan="6" class="text-center text-muted py-3">Chưa có đơn hàng nào</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, '/admin', null)}" />
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+                <div class="adm-table-wrap p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2"></i>Thống kê trạng thái</h6>
+                    </div>
+                    <div class="mt-3 d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Chờ xác nhận</span>
+                            <span class="badge bg-warning" th:text="${totalPendingOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã xác nhận</span>
+                            <span class="badge bg-secondary" th:text="${confirmedOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đang giao</span>
+                            <span class="badge bg-secondary" th:text="${shippingOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã giao</span>
+                            <span class="badge bg-success" th:text="${deliveredOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã hoàn thành</span>
+                            <span class="badge bg-primary" th:text="${completedOrders} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã hủy</span>
+                            <span class="badge bg-danger" th:text="${cancelledOrders} ?: 0">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="adm-table-wrap p-3 mt-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-exclamation-circle me-2"></i>Đơn hủy / hoàn tiền</h6>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã hủy</span>
+                            <span class="badge bg-danger" th:text="${cancelRefundRate.cancelled} ?: 0">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size:.82rem">Đã hoàn tiền</span>
+                            <span class="badge bg-danger" th:text="${cancelRefundRate.refunded} ?: 0">0</span>
+                        </div>
+                        <hr class="my-1"/>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold" style="font-size:.82rem">Tỉ lệ</span>
+                            <span class="badge" th:classappend="${cancelRefundRate.cancelled + cancelRefundRate.refunded > 0} ? 'bg-danger' : 'bg-success'"
+                                  th:text="${cancelRefundRate.rate} ?: '0%'">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <th:block layout:fragment="extra-script">
+    <div id="dashboard-extra">
+        <div id="revenueData" class="d-none">
+            <span th:each="dr : ${dailyRevenue}"
+                  th:attr="data-label=${dr.date}, data-value=${dr.revenue}"></span>
+        </div>
+        <div id="prevRevenueData" class="d-none">
+            <span th:each="pr : ${previousWeekRevenue}"
+                  th:attr="data-label=${pr.date}, data-value=${pr.revenue}"></span>
+        </div>
+        <div id="paymentData" class="d-none">
+            <span th:each="pm : ${paymentMethodDistribution}"
+                  th:attr="data-method=${pm.key}, data-count=${pm.value}"></span>
+        </div>
+        <div id="monthlyRevenueData" class="d-none">
+            <span th:each="mr : ${monthlyRevenueData}"
+                  th:attr="data-label=${mr.label}, data-value=${mr.revenue}"></span>
+        </div>
+        <script th:src="@{/js/admin-dashboard.js}"></script>
+    </div>
+    </th:block>
+
+</body>
+</html>

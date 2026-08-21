@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+
+    <head>
+        <title>Quản lý người dùng</title>
+    </head>
+
+    <body>
+
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Người dùng</li>
+    </th:block>
+
+    <div layout:fragment="content">
+
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Người dùng</h4>
+                            <div class="adm-detail-meta">Quản lý tất cả người dùng trong hệ thống.</div>
+                        </div>
+                        <a th:href="@{/admin/nguoi-dung/tao-moi}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>Tạo mới
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${userTab == 'nguoi-dung' ? ' active' : ''}" th:href="@{/admin/nguoi-dung}">
+                <i class="bi bi-people"></i>Người dùng
+            </a>
+            <a class="adm-tab" th:classappend="${userTab == 'phan-quyen' ? ' active' : ''}" th:href="@{/admin/vai-tro}">
+                <i class="bi bi-shield-lock"></i>Phân quyền
+            </a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
+                            <div class="adm-stat-label">Tổng người dùng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
+                            <i class="bi bi-shield-fill"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${superAdminCount}">0</div>
+                            <div class="adm-stat-label">SUPER_ADMIN</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#F3E8FF;color:#9333EA">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${adminCount}">0</div>
+                            <div class="adm-stat-label">ADMIN</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${userCount}">0</div>
+                            <div class="adm-stat-label">USER</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
+                <div class="d-flex align-items-center gap-2">
+                    <form class="d-flex align-items-center gap-2" method="get">
+                        <select name="role" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
+                            <option value="">Tất cả</option>
+                            <option th:each="r : ${allRoles}" th:value="${r.name}" th:selected="${role == r.name}" th:text="${r.name}">ROLE</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
+                    </form>
+                </div>
+            </div>
+            <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên đăng nhập</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Vai trò</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}" th:unless="${#lists.isEmpty(users)}">
+                        <td th:text="${u.id}">1</td>
+                        <td><strong th:text="${u.username}">admin</strong></td>
+                        <td th:text="${u.hoTen}">Admin</td>
+                        <td th:text="${u.email}">admin@duastore.com</td>
+                        <td th:text="${u.soDienThoai} ?: '--'">0900000000</td>
+                        <td>
+                            <span th:each="role : ${u.roles}">
+                                <span th:if="${role.name == 'SUPER_ADMIN'}" class="status-pill status-SUPER_ADMIN me-1">SUPER_ADMIN</span>
+                                <span th:if="${role.name == 'ADMIN'}" class="status-pill status-ADMIN me-1">Admin</span>
+                                <span th:if="${role.name == 'USER'}" class="status-pill status-USER me-1">Khách hàng</span>
+                                <span th:unless="${role.name == 'SUPER_ADMIN' or role.name == 'ADMIN' or role.name == 'USER'}" class="badge bg-info me-1" th:text="${role.name}">ROLE</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${u.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
+                            <span th:unless="${u.isActive}" class="status-pill status-KHOA">Khóa</span>
+                        </td>
+                        <td style="font-size:.82rem;color:var(--ef-text-muted)" th:text="${#temporals.format(u.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
+                        <td>
+                            <a th:href="@{/admin/nguoi-dung/sua/{id}(id=${u.id})}" class="btn btn-outline-primary btn-sm me-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" th:action="@{/admin/nguoi-dung/toggle-status}" style="display:inline">
+                                <input type="hidden" name="id" th:value="${u.id}"/>
+                                <button type="submit" class="btn btn-sm"
+                                        th:classappend="${u.isActive} ? 'btn-outline-danger' : 'btn-outline-success'"
+                                        th:text="${u.isActive} ? 'Khóa' : 'Kích hoạt'"></button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(users)}">
+                        <td colspan="9" class="text-center text-muted py-3">Không có người dùng nào</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+
+    </div>
+
+</body>
+</html>

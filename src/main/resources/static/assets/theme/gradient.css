@@ -1,0 +1,10 @@
+.ds-bg-gradient {
+  background:
+    url('/assets/pattern.svg?v=5') repeat 0 0/1200px 900px,
+    linear-gradient(180deg,
+      #F0FBFF 0%,
+      #E0F7FF 40%,
+      #BAE6FD 100%
+    );
+  min-height: 100vh;
+}

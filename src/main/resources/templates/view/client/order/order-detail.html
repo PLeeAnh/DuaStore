@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Chi tiết đơn hàng — DuaStore</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container-xl py-5">
+                <div class="ds-section-card">
+                    <a th:href="@{/tai-khoan/don-hang}" class="ds-btn ds-btn-outline ds-btn-sm mb-3">
+                        <i class="bi bi-arrow-left me-1"></i>Quay lại
+                    </a>
+
+                    <div class="ds-card mb-4">
+                        <div class="ds-card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="fw-bold mb-1">Mã đơn: <span th:text="${order.maDon}"></span></h5>
+                                    <small class="text-muted" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></small>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button th:if="${order.trangThaiDon == 'CHO_XAC_NHAN'}" type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-toggle="modal" data-bs-target="#cancelReasonModal">
+                                        <i class="bi bi-x-circle me-1"></i>Hủy đơn
+                                    </button>
+                                    <a th:href="@{/tracking/{maDon}(maDon=${order.maDon})}" class="ds-btn ds-btn-outline ds-btn-sm">
+                                        <i class="bi bi-truck me-1"></i>Theo dõi vận chuyển
+                                    </a>
+                                    <th:block th:if="${order.trangThaiDon == 'DA_GIAO'}">
+                                        <form th:action="@{'/gio-hang/mua-lai/' + ${order.id}}" method="post" class="d-inline">
+                                            <button type="submit" class="ds-btn ds-btn-outline ds-btn-sm">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Mua lại
+                                            </button>
+                                        </form>
+                                        <button th:if="${order.trangThaiDon == 'DA_GIAO'}" type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="confirmReceived(this)" th:data-order-id="${order.id}">
+                                            <i class="bi bi-check-circle me-1"></i>Đã nhận được hàng
+                                        </button>
+                                        <a th:if="${!hasExistingRefund}" th:href="@{'/tai-khoan/don-hang/hoan-tien/' + ${order.id}}" class="ds-btn ds-btn-outline ds-btn-sm text-danger">
+                                            <i class="bi bi-arrow-return-left me-1"></i>Yêu cầu hoàn tiền / Đổi hàng
+                                        </a>
+                                        <a th:if="${hasExistingRefund}" th:href="@{'/tai-khoan/don-hang/hoan-tien/theo-doi/' + ${refundId}}" class="ds-btn ds-btn-outline ds-btn-sm text-primary">
+                                            <i class="bi bi-truck me-1"></i>Theo dõi yêu cầu
+                                        </a>
+                                    </th:block>
+                                    <th:block th:if="${order.trangThaiDon == 'DA_HOAN_THANH'}">
+                                        <form th:action="@{'/gio-hang/mua-lai/' + ${order.id}}" method="post" class="d-inline">
+                                            <button type="submit" class="ds-btn ds-btn-outline ds-btn-sm">
+                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Mua lại
+                                            </button>
+                                        </form>
+                                    </th:block>
+                                    <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
+                                          th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon == 'DA_HOAN_TIEN' ? 'Đã hoàn tiền' : order.trangThaiDon}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ds-card mb-4">
+                        <div class="ds-card-body">
+                            <h6 class="fw-bold">Thông tin giao hàng</h6>
+                            <p class="mb-1"><strong th:text="${order.tenNguoiNhan}"></strong> — <span th:text="${order.soDienThoai}"></span></p>
+                            <p class="mb-0 text-muted" th:text="${order.diaChi}"></p>
+                        </div>
+                    </div>
+
+                    <div class="ds-card mb-4">
+                        <div class="ds-card-body">
+                            <h6 class="fw-bold mb-3">Sản phẩm</h6>
+                            <div th:each="item : ${items}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                                <img th:src="@{${item.hinhAnhSP}}" th:alt="${item.tenSanPham}" class="rounded" style="width:70px;height:70px;object-fit:cover" loading="lazy" onerror="this.src='/images/no-image.png'" />
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold" th:text="${item.tenSanPham}"></div>
+                                    <span th:if="${item.loaiGia == 'FLASH_SALE'}" class="badge bg-danger" style="font-size:.6rem">Flash Sale</span>
+                                    <div class="small text-muted" th:text="${item.tenBienThe}"></div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fmt-price" th:text="${#numbers.formatDecimal(item.donGia, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                                            <span class="badge bg-secondary rounded-1 px-2" style="font-size:.7rem">×<span th:text="${item.soLuong}"></span></span>
+                                        </div>
+                                        <span class="fw-semibold fmt-price" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ds-card">
+                        <div class="ds-card-body">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Tạm tính</span>
+                                <span class="fmt-price" th:text="${#numbers.formatDecimal(order.tienHang, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Phí vận chuyển</span>
+                                <span class="fmt-price" th:text="${#numbers.formatDecimal(order.phiVanChuyen, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                            </div>
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted">Giảm giá</span>
+                                <span class="fmt-price" style="color:#2563eb;" th:text="${#numbers.formatDecimal(order.tienGiam, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                            </div>
+                            <hr class="ds-checkout-divider" />
+                            <div class="d-flex justify-content-between fw-bold align-items-baseline">
+                                <span>Tổng cộng</span>
+                                <span class="text-danger fs-5 text-nowrap" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                            </div>
+                            <div class="mt-3 small text-muted" th:if="${order.ghiChu}">
+                                Ghi chú: <span th:text="${order.ghiChu}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cancel Reason Modal -->
+                    <div class="modal fade" id="cancelReasonModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form th:action="@{/tai-khoan/don-hang/huy/{id}(id=${order.id})}" method="post">
+                                    <div class="modal-header border-0">
+                                        <h6 class="modal-title"><i class="bi bi-x-circle me-2"></i>Hủy đơn hàng</h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="small text-muted">Vui lòng cho chúng tôi biết lý do bạn hủy đơn hàng này:</p>
+                                        <textarea name="lyDo" class="form-control" rows="3" placeholder="Nhập lý do hủy..." required maxlength="500"></textarea>
+                                    </div>
+                                    <div class="modal-footer border-0">
+                                        <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-dismiss="modal">Đóng</button>
+                                        <button type="submit" class="ds-btn ds-btn-fill ds-btn-sm">Xác nhận hủy</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script th:src="@{/js/client-order.js(v=1)}"></script>
+                </div>
+            </div>
+        </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                /*<![CDATA[*/
+                var sm = [[${successMsg}]];
+                if (sm && window.DuaStore && DuaStore.toast) { DuaStore.toast.success(sm); }
+                var em = [[${errorMsg}]];
+                if (em && window.DuaStore && DuaStore.toast) { DuaStore.toast.error(em); }
+                /*]]>*/
+            });
+        </script>
+    </th:block>
+    </body>
+</html>

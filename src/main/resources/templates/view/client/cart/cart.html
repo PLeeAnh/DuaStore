@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>SHOPPING CART - DuaStore</title>
+    </head>
+    <body>
+
+
+
+        <div layout:fragment="content" class="py-5">
+            <div class="container-xl">
+                <h5 class="fw-bold mb-4" style="font-size:1.1rem;color:#0F172A">
+                    <i class="bi bi-bag me-2"></i>Giỏ hàng của bạn
+                </h5>
+
+                    <!-- Cart expiration warning -->
+                    <div th:if="${hasOutOfStock}" class="ds-expired-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Một số sản phẩm trong giỏ đã hết hàng hoặc ngừng bán. Vui lòng xóa hoặc cập nhật số lượng.</span>
+                    </div>
+
+                    <!-- Price change warning -->
+                    <div th:if="${hasPriceChanges}" class="ds-stock-warning" style="background:#fff3cd;border-color:#ffc107;color:#856404;">
+                        <i class="bi bi-arrow-return-left"></i>
+                        <span>Một số sản phẩm đã thay đổi giá so với lúc bạn thêm vào giỏ. Giá mới sẽ được áp dụng khi thanh toán.</span>
+                    </div>
+
+                    <!-- Stock warnings -->
+                    <div th:if="${!#lists.isEmpty(stockWarnings)}">
+                        <div th:each="warn : ${stockWarnings}" class="ds-stock-warning">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            <span th:text="${warn}"></span>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(myCart)}" class="ds-cart-empty">
+                        <i class="bi bi-cart3 ds-cart-empty-icon"></i>
+                        <h2 class="ds-cart-empty-title">Giỏ hàng trống</h2>
+                        <p class="ds-cart-empty-desc">Bạn chưa có sản phẩm nào trong giỏ hàng.</p>
+                        <a th:href="@{/san-pham}" class="ds-cart-empty-btn">Tiếp tục mua sắm</a>
+
+                        <!-- Cross-sell suggestions when cart is empty -->
+                        <div th:if="${!#lists.isEmpty(suggestions)}" class="mt-5" style="max-width:800px;margin-left:auto;margin-right:auto;">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-stars me-1"></i>Gợi ý cho bạn</h5>
+                            <div class="row g-3">
+                                <div th:each="p : ${suggestions}" class="col-6 col-md-3">
+                                    <a th:href="@{/san-pham/{id}(id=${p.id})}" class="text-decoration-none">
+                                        <div class="ds-suggest-card">
+                                            <img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" />
+                                            <div class="mt-2 text-dark fw-semibold" style="font-size:0.85rem;" th:text="${#strings.abbreviate(p.tenSanPham, 30)}"></div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(myCart)}">
+                        <div class="row g-5">
+                            <div class="col-12 col-lg-8">
+                                <div class="ds-card p-4">
+                                    <div class="ds-cart-header-row d-none d-lg-flex">
+                                        <div class="ds-cart-header-cell" style="width:40px;flex:0 0 40px;">
+                                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" checked />
+                                        </div>
+                                        <div class="ds-cart-header-cell ds-cart-header-product">Sản phẩm</div>
+                                        <div class="ds-cart-header-cell ds-cart-header-price">Đơn giá</div>
+                                        <div class="ds-cart-header-cell ds-cart-header-qty">Số lượng</div>
+                                        <div class="ds-cart-header-cell ds-cart-header-total">Tạm tính</div>
+                                    </div>
+
+                                    <div th:each="item : ${myCart}" class="ds-cart-item" th:id="'cart-item-' + ${item.variantId}"
+                                         th:data-stock="${item.soLuongTon}" th:data-qty="${item.soLuong}">
+                                        <div class="ds-cart-checkbox-col d-flex align-items-center justify-content-center" style="width:40px;flex:0 0 40px;">
+                                            <input type="checkbox" class="cart-item-checkbox" th:attr="data-variant-id=${item.variantId}" onchange="updateSelectedTotal()" checked />
+                                        </div>
+                                        <div class="ds-cart-item-left">
+                                            <img class="ds-cart-image"
+                                                 th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}"
+                                                 th:alt="${item.tenSanPham}" />
+                                            <div class="ds-cart-item-info">
+                                                <a class="ds-cart-item-name"
+                                                   th:href="@{/san-pham/{id}(id=${item.productId})}"
+                                                   th:text="${item.tenSanPham}">Tên SP</a>
+                                                <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="badge bg-danger ms-1" style="font-size:.65rem">Flash Sale</span>
+                                                <div class="ds-cart-item-variant" th:text="${item.tenBienThe}">Biến thể</div>
+                                                <div class="d-flex gap-2">
+                                                    <button class="ds-cart-remove"
+                                                            th:onclick="'removeCartItem(' + ${item.variantId} + ')'" style="font-size:0.8rem;">
+                                                        <i class="bi bi-trash"></i> Xóa
+                                                    </button>
+                                                    <button class="ds-cart-remove" style="font-size:0.8rem;color:#0d6efd;"
+                                                            th:onclick="'saveForLater(' + ${item.variantId} + ')'">
+                                                        <i class="bi bi-bookmark"></i> Lưu lại sau
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="ds-cart-unit-price">
+                                            <span class="ds-mobile-label text-muted small">Đơn giá: </span>
+                                            <span th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'">250.000₫</span>
+                                        </div>
+
+                                        <div class="ds-qty-selector">
+                                            <button class="ds-qty-btn ds-qty-minus" type="button"
+                                                    th:onclick="'updateQty(' + ${item.variantId} + ', -1)'">
+                                                <svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                            <input type="text" class="ds-qty-val"
+                                                   th:value="${item.soLuong}" th:attr="data-stock=${item.soLuongTon}"
+                                                   th:onchange="'setQty(' + ${item.variantId} + ', this)'" />
+                                            <button class="ds-qty-btn ds-qty-plus" type="button"
+                                                    th:onclick="'updateQty(' + ${item.variantId} + ', 1)'">
+                                                <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="ds-cart-total-price"
+                                             th:text="${#numbers.formatDecimal(item.giaBan * item.soLuong, 0, 'POINT', 0, 'POINT')} + '₫'">
+                                            250.000₫
+                                        </div>
+                                    </div>
+
+                                <!-- Saved for later -->
+                                <div th:if="${!#lists.isEmpty(savedItems)}" class="mt-3 pt-3 border-top">
+                                    <h6 class="fw-bold mb-2 text-muted small"><i class="bi bi-bookmark me-1"></i>Đã lưu để mua sau (<span th:text="${savedCount}"></span>)</h6>
+                                    <div th:each="item : ${savedItems}" class="d-flex align-items-center gap-3 py-2 border-bottom" th:id="'saved-item-' + ${item.id}">
+                                        <div style="width:50px;flex-shrink:0;">
+                                            <img th:src="${item.hinhAnh != null ? item.hinhAnh : '/images/no-image.png'}" th:alt="${item.tenSanPham}" style="width:100%;border-radius:6px;" loading="lazy" />
+                                        </div>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-dark fw-semibold text-decoration-none" style="font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;" th:text="${item.tenSanPham}"></a>
+                                            <div class="text-muted" style="font-size:0.75rem;" th:text="${item.tenBienThe}"></div>
+                                            <div class="text-primary fw-semibold" style="font-size:0.85rem;" th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'"></div>
+                                        </div>
+                                        <div class="d-flex gap-1 flex-shrink-0">
+                                            <button class="btn btn-outline-primary btn-sm py-0 px-2" style="font-size:0.75rem;"
+                                                    th:onclick="'moveToCart(' + ${item.id} + ')'">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size:0.75rem;"
+                                                    th:onclick="'removeSaved(' + ${item.id} + ')'">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cross-sell suggestions -->
+                                <div th:if="${!#lists.isEmpty(suggestions)}" class="mt-4 pt-3 border-top">
+                                    <h5 class="fw-bold mb-3"><i class="bi bi-stars me-1"></i>Gợi ý thêm cho bạn</h5>
+                                    <div class="row g-3">
+                                        <div th:each="p : ${suggestions}" class="col-6 col-md-3">
+                                            <a th:href="@{/san-pham/{id}(id=${p.id})}" class="text-decoration-none">
+                                                <div class="ds-suggest-card">
+                                                    <img th:src="${p.hinhAnhChinh != null ? p.hinhAnhChinh : '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" />
+                                                    <div class="mt-2 text-dark fw-semibold" style="font-size:0.85rem;" th:text="${#strings.abbreviate(p.tenSanPham, 30)}"></div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT: Order summary -->
+                            <div class="col-12 col-lg-4">
+                                <div class="ds-card p-4 ds-cart-summary">
+                                        <h3 class="ds-cart-summary-title">Tóm tắt đơn hàng</h3>
+
+                                        <div class="ds-cart-summary-row">
+                                            <span>Tạm tính</span>
+                                            <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
+                                        </div>
+                                        <div class="ds-cart-summary-row">
+                                            <span>Giảm giá</span>
+                                            <span class="text-muted">0₫</span>
+                                        </div>
+                                        <div class="ds-cart-summary-row">
+                                            <span>Phí vận chuyển</span>
+                                            <span class="text-muted">Tính khi thanh toán</span>
+                                        </div>
+
+                                        <!-- Promo messaging -->
+                                        <div class="ds-promo-hint" id="promoHint" style="display:none;">
+                                            <i class="bi bi-gift-fill"></i>
+                                            <span id="promoHintText"></span>
+                                        </div>
+
+                                        <div class="ds-cart-summary-delivery">
+                                            <strong>Giao hàng dự kiến</strong>
+                                            <span>2 - 4 ngày làm việc</span>
+                                        </div>
+
+                                        <hr class="ds-cart-summary-divider" />
+
+                                        <div class="ds-cart-summary-total">
+                                            <span>Tổng cộng</span>
+                                            <span th:text="${#numbers.formatDecimal(totalPrice != null ? totalPrice : 0, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</span>
+                                        </div>
+
+                                        <button type="button" class="ds-btn-checkout mt-3" onclick="checkoutSelected()">
+                                            Thanh toán <i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+
+                                        <a th:href="@{/san-pham}" class="d-block text-center mt-3 small text-muted" style="text-decoration:none;">
+                                            <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua sắm
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/client-cart.js(v=1)}"></script>
+    </th:block>
+</body>
+</html>

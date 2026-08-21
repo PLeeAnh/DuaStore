@@ -1,0 +1,10 @@
+﻿@import url('tokens.css');
+@import url('gradient.css');
+
+.ds-section-card {
+  border-radius: 20px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(2, 132, 199, 0.16);
+  box-shadow: 0 4px 24px rgba(2, 132, 199, 0.08);
+}

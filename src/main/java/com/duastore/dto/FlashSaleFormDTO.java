@@ -1,0 +1,48 @@
+package com.duastore.dto;
+
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+/**
+ * DTO (Data Transfer Object) dùng để truyền dữ liệu flash sale (giảm giá chớp nhoáng) giữa các tầng controller/service/view.
+ */
+public class FlashSaleFormDTO {
+
+    private Integer id;
+
+    @NotBlank(message = "Tên chương trình không được để trống")
+    private String tenChuongTrinh;
+
+    private String moTa;
+
+    @NotNull(message = "Ngày bắt đầu không được để trống")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime ngayBatDau;
+
+    @NotNull(message = "Ngày kết thúc không được để trống")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    private LocalDateTime ngayKetThuc;
+
+    private Boolean isActive = true;
+
+    @Min(value = 0, message = "Ưu tiên không hợp lệ")
+    private Integer priority = 0;
+
+    @AssertTrue(message = "Ngày bắt đầu phải trước ngày kết thúc")
+    public boolean isDateRangeValid() {
+        return ngayBatDau == null || ngayKetThuc == null || ngayBatDau.isBefore(ngayKetThuc);
+    }
+
+    private List<FlashSaleItemFormDTO> items = new ArrayList<>();
+}

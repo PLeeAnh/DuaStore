@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+
+    <head>
+        <title>Nhật ký hoạt động</title>
+    </head>
+
+    <body>
+
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Nhật ký</li>
+    </th:block>
+
+    <div layout:fragment="content">
+
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Nhật ký hoạt động</h4>
+                        <div class="adm-detail-meta">Theo dõi tất cả hoạt động của admin trong hệ thống.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultsContainer" data-ajax-container="true">
+            <div class="adm-table-wrap">
+                <div class="table-responsive">
+                <table class="table table-hover align-middle adm-table-log">
+                    <thead>
+                        <tr>
+                            <th style="width:150px">Thời gian</th>
+                            <th style="width:150px">Admin</th>
+                            <th style="width:185px">Hành động</th>
+                            <th style="width:90px">Entity</th>
+                            <th>Mô tả</th>
+                            <th style="width:60px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <th:block th:each="log : ${logs}">
+                        <tr>
+                            <td style="font-size:.82rem;white-space:nowrap" th:text="${#temporals.format(log.ngayTao, 'dd/MM/yyyy HH:mm')}">20/06/2026 12:30</td>
+                            <td><span class="status-pill status-ACTIVE" th:text="${log.admin.hoTen}">Admin</span></td>
+                            <td><code class="adm-log-code" th:text="${log.hanhDong}">ACTION</code></td>
+                            <td><span class="badge bg-info" th:text="${log.loaiEntity}">ENTITY</span></td>
+                            <td class="adm-cell-text" style="font-size:.85rem;color:var(--ef-text-muted)" th:text="${log.moTa}">description</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" type="button"
+                                        th:attr="data-log-id=${log.id}"
+                                        th:if="${log.giaTriCu != null or log.giaTriMoi != null}"
+                                        onclick="toggleDetail(this)">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:attr="id='detail-' + ${log.id}" style="display:none">
+                            <td colspan="6" class="bg-light p-3">
+                                <div class="row g-2">
+                                    <div class="col-md-6" th:if="${log.giaTriCu != null}">
+                                        <small class="text-muted d-block mb-1">Giá trị cũ:</small>
+                                        <code class="p-2 bg-white d-block rounded border" style="white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto" th:text="${log.giaTriCu}">OLD</code>
+                                    </div>
+                                    <div class="col-md-6" th:if="${log.giaTriMoi != null}">
+                                        <small class="text-muted d-block mb-1">Giá trị mới:</small>
+                                        <code class="p-2 bg-white d-block rounded border" style="white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto" th:text="${log.giaTriMoi}">NEW</code>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </th:block>
+                    <tr th:if="${#lists.isEmpty(logs)}">
+                        <td colspan="6" class="text-center text-muted py-3">Chưa có nhật ký nào</td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+        </div>
+
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/admin-audit.js}"></script>
+    </th:block>
+
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Thanh toán — DuaStore</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="ds-checkout-shp" id="dsCheckoutShp">
+
+                <!-- ══════════ HEADER (Shopify style) ══════════ -->
+                <header class="shp-header">
+                    <div class="shp-header-inner">
+                        <a class="shp-logo" th:href="@{/}" title="Về trang chủ DuaStore">
+                            <img class="shp-logo-img" th:src="@{/images/logo.png}" alt="DuaStore logo" />
+                            <span class="shp-logo-name">DuaStore</span>
+                        </a>
+                        <span class="shp-secure">
+                            <i class="bi bi-lock-fill"></i>
+                            <span>Thanh toán an toàn &amp; mã hóa</span>
+                        </span>
+                    </div>
+                </header>
+
+                <!-- ══════════ BODY: form + summary ══════════ -->
+                <div class="shp-body">
+
+                    <!-- ── LEFT: FORM ── -->
+                    <main class="shp-main">
+                        <div class="shp-main-inner">
+
+                            <a class="shp-back" th:href="@{/gio-hang}">
+                                <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
+                            </a>
+
+                            <div th:if="${error}" class="ds-checkout-error" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                                <span th:text="${error}"></span>
+                            </div>
+
+                            <form th:action="@{/checkout}" th:object="${checkoutRequest}" method="post" id="checkoutForm" novalidate>
+                                <input type="hidden" name="idempotencyKey" id="checkoutIdempotencyKey" />
+
+                                <!-- ── 1. Địa chỉ giao hàng ── -->
+                                <section class="shp-section" aria-label="Địa chỉ giao hàng">
+                                    <div class="shp-section-head">
+                                        <h2 class="shp-section-title">Địa chỉ giao hàng</h2>
+                                        <button type="button" class="shp-link-btn" onclick="openAddressModal()">
+                                            <i class="bi bi-pencil"></i> Quản lý địa chỉ
+                                        </button>
+                                    </div>
+
+                                    <div th:if="${#lists.isEmpty(addresses)}" class="ds-checkout-section-empty">
+                                        Chưa có địa chỉ. <a href="#" onclick="openAddressModal();return false">Thêm địa chỉ mới</a>
+                                    </div>
+
+                                    <div th:if="${not #lists.isEmpty(addresses)}" class="shp-address-list">
+                                        <label class="ds-address-card"
+                                               th:classappend="${a.isDefault} ? 'active'"
+                                               th:data-lat="${a.latitude}" th:data-lng="${a.longitude}"
+                                               th:each="a : ${addresses}">
+                                            <input type="radio" name="addressId" th:value="${a.id}"
+                                                   th:checked="${a.isDefault}" class="ds-address-card-radio" />
+                                            <span class="ds-address-card-radio-ui"></span>
+                                            <div class="ds-address-card-body">
+                                                <div class="ds-address-card-title">
+                                                    <strong th:text="${a.tenNguoiNhan}"></strong>
+                                                    <span class="ds-address-card-meta" th:text="${a.soDienThoai}"></span>
+                                                    <span th:if="${a.isDefault}" class="ds-address-card-badge">Mặc định</span>
+                                                </div>
+                                                <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </section>
+
+                                <!-- ── 2. Vận chuyển ── -->
+                                <section class="shp-section" aria-label="Vận chuyển">
+                                    <h2 class="shp-section-title">Vận chuyển</h2>
+
+                                    <div th:if="${subtotal != null and shippingFreeMin != null and subtotal.compareTo(shippingFreeMin) >= 0}" class="shp-notice shp-notice-free">
+                                        <i class="bi bi-truck"></i>
+                                        <span>Miễn phí vận chuyển — đơn của bạn đạt mức <strong th:text="${#numbers.formatDecimal(shippingFreeMin, 0, 'POINT', 0, 'POINT')} + '₫'"></strong></span>
+                                    </div>
+                                    <div th:if="${shippingFreeMin == null or subtotal == null or subtotal.compareTo(shippingFreeMin) < 0}" class="shp-notice">
+                                        <i class="bi bi-info-circle"></i>
+                                        <span>Miễn phí ship cho đơn từ <strong th:text="${shippingFreeMin != null ? #numbers.formatDecimal(shippingFreeMin, 0, 'POINT', 0, 'POINT') + '₫' : ''}"></strong></span>
+                                    </div>
+
+                                    <div class="ds-checkout-radio-group" id="carrierOptions">
+                                        <div class="ds-checkout-radio" th:if="${carrierGHNEnabled}">
+                                            <input type="radio" name="shippingCarrier" id="carrierGHN" value="GHN" checked />
+                                            <label for="carrierGHN" class="ds-pay-option">
+                                                <span class="ds-carrier-badge ghn">GHN</span>
+                                                <span class="ds-pay-body">
+                                                    <strong class="ds-pay-title">Giao Hàng Nhanh</strong>
+                                                    <span class="ds-pay-desc">Giao nhanh trong 1-3 ngày</span>
+                                                </span>
+                                                <span class="ds-checkout-radio-price" id="carrierGHNPrice">---</span>
+                                            </label>
+                                        </div>
+                                        <div class="ds-checkout-radio" th:if="${carrierGHTKEnabled}">
+                                            <input type="radio" name="shippingCarrier" id="carrierGHTK" value="GHTK" />
+                                            <label for="carrierGHTK" class="ds-pay-option">
+                                                <span class="ds-carrier-badge ghtk">GHTK</span>
+                                                <span class="ds-pay-body">
+                                                    <strong class="ds-pay-title">Giao Hàng Tiết Kiệm</strong>
+                                                    <span class="ds-pay-desc">Tiết kiệm chi phí, giao trong 3-5 ngày</span>
+                                                </span>
+                                                <span class="ds-checkout-radio-price" id="carrierGHTKPrice">---</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div th:if="${!carrierGHNEnabled and !carrierGHTKEnabled}" class="text-muted small">
+                                        <i class="bi bi-exclamation-circle me-1"></i>Hiện không có đơn vị vận chuyển nào. Vui lòng liên hệ shop.
+                                    </div>
+                                </section>
+
+                                <!-- ── 3. Thanh toán ── -->
+                                <section class="shp-section" aria-label="Thanh toán">
+                                    <h2 class="shp-section-title">Thanh toán</h2>
+                                    <p class="shp-secure-note">
+                                        <i class="bi bi-shield-lock-fill"></i> Giao dịch an toàn và được mã hóa
+                                    </p>
+                                    <div class="ds-checkout-radio-group">
+                                        <div class="ds-checkout-radio" th:if="${paymentMethods.cod}">
+                                            <input type="radio" name="phuongThucTT" id="ttCOD" value="COD" th:checked="${paymentMethods.cod}" required />
+                                            <label for="ttCOD" class="ds-pay-option">
+                                                <span class="ds-pay-icon"><i class="bi bi-cash-coin"></i></span>
+                                                <span class="ds-pay-body">
+                                                    <strong class="ds-pay-title">Thanh toán khi nhận hàng (COD)</strong>
+                                                    <span class="ds-pay-desc">Trả tiền mặt cho nhân viên giao hàng</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div class="ds-checkout-radio" th:if="${paymentMethods.bank}">
+                                            <input type="radio" name="phuongThucTT" id="ttCK" value="CHUYEN_KHOAN" />
+                                            <label for="ttCK" class="ds-pay-option">
+                                                <span class="ds-pay-icon"><i class="bi bi-bank2"></i></span>
+                                                <span class="ds-pay-body">
+                                                    <strong class="ds-pay-title">Chuyển khoản ngân hàng</strong>
+                                                    <span class="ds-pay-desc">Quét mã QR thanh toán sau khi đặt hàng</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div class="ds-checkout-radio" th:if="${paymentMethods.vnpay}">
+                                            <input type="radio" name="phuongThucTT" id="ttVNPAY" value="VNPAY" />
+                                            <label for="ttVNPAY" class="ds-pay-option">
+                                                <span class="ds-pay-icon"><i class="bi bi-wallet2"></i></span>
+                                                <span class="ds-pay-body">
+                                                    <strong class="ds-pay-title">VNPAY</strong>
+                                                    <span class="ds-pay-desc">Thanh toán qua cổng VNPAY (ATM, Visa, QR)</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <!-- ── 4. Ghi chú đơn hàng ── -->
+                                <section class="shp-section" aria-label="Ghi chú đơn hàng">
+                                    <input type="hidden" name="maCode" id="checkoutPromoInput" th:value="${checkoutRequest.maCode}" />
+                                    <h2 class="shp-section-title">Ghi chú đơn hàng</h2>
+                                    <div>
+                                        <label class="shp-field-label" for="checkoutNote">Ghi chú đơn hàng</label>
+                                        <textarea name="ghiChu" id="checkoutNote" class="shp-input shp-textarea" rows="2" placeholder="Ghi chú (không bắt buộc)"></textarea>
+                                    </div>
+                                </section>
+
+                                <th:block th:if="${selectedIds != null}">
+                                    <input type="hidden" name="selectedIds" th:each="id : ${selectedIds}" th:value="${id}"/>
+                                </th:block>
+                            </form>
+
+                            <!-- Nút đặt hàng dành riêng mobile -->
+                            <button type="submit" form="checkoutForm" class="shp-pay-btn shp-pay-btn-mobile" id="checkoutSubmitBtnMobile">Đặt hàng</button>
+                        </div>
+                    </main>
+
+                    <!-- ── RIGHT: ORDER SUMMARY ── -->
+                    <aside class="shp-aside">
+                        <div class="shp-aside-inner">
+                            <button type="button" class="shp-aside-toggle" id="shpSummaryToggle" aria-expanded="false" aria-controls="shpSummaryBody">
+                                <span class="shp-aside-toggle-label">Tóm tắt đơn hàng</span>
+                                <span class="shp-aside-toggle-total" th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 30000), 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+
+                            <div class="shp-summary" id="shpSummaryBody">
+                                <h2 class="shp-summary-title">Tóm tắt đơn hàng</h2>
+
+                                <div class="shp-items">
+                                    <div th:each="item : ${cartItems}" class="ds-summary-item">
+                                        <img th:src="@{${item.hinhAnh}}" th:alt="${item.tenSanPham}" class="ds-summary-img" loading="lazy" onerror="this.src='/images/no-image.png'" />
+                                        <div class="ds-summary-info">
+                                            <div class="ds-summary-name" th:text="${item.tenSanPham}"></div>
+                                            <div class="ds-summary-variant">
+                                                <span th:text="${item.tenBienThe}"></span>
+                                                <span th:if="${item.nguonGia == 'FLASH_SALE'}" class="ds-summary-flash">Flash Sale</span>
+                                            </div>
+                                            <div class="ds-summary-qty-price">
+                                                <div>
+                                                    <span th:if="${item.giaBanSauGiam == null}"
+                                                          class="ds-summary-price"
+                                                          th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                                                    <span th:if="${item.giaBanSauGiam != null}"
+                                                          class="ds-summary-price text-primary fw-semibold me-1"
+                                                          th:text="${#numbers.formatDecimal(item.giaBanSauGiam, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                                                    <small th:if="${item.giaBanSauGiam != null}"
+                                                           class="text-decoration-line-through text-muted"
+                                                           th:text="${#numbers.formatDecimal(item.giaBan, 0, 'POINT', 0, 'POINT')} + '₫'"></small>
+                                                </div>
+                                                <span class="ds-summary-qty">x<span th:text="${item.soLuong}"></span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="shp-discount-link" onclick="openPromoModal()">
+                                    <i class="bi bi-ticket-perforated-fill"></i> Thêm mã giảm giá
+                                </button>
+
+                                <div class="shp-cost">
+                                    <div class="shp-cost-row">
+                                        <span>Tạm tính</span>
+                                        <span th:text="${#numbers.formatDecimal(subtotal, 0, 'POINT', 0, 'POINT')} + '₫'" id="subtotalDisplay"></span>
+                                    </div>
+                                    <div class="shp-cost-row">
+                                        <span>Vận chuyển</span>
+                                        <span id="shipFeeDisplay" class="fw-semibold"
+                                              th:classappend="${phiVanChuyen != null and phiVanChuyen.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? '' : 'text-success'"
+                                              th:text="${phiVanChuyen != null and phiVanChuyen.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? ${#numbers.formatDecimal(phiVanChuyen, 0, 'POINT', 0, 'POINT')} + '₫' : '✓ Miễn phí'"></span>
+                                    </div>
+                                    <div class="shp-cost-row shp-cost-row-delivery">
+                                        <span><i class="bi bi-truck me-1"></i>Dự kiến giao hàng</span>
+                                        <span class="shp-cost-delivery-value" id="estimatedDeliveryEl" th:text="${estimatedDeliveryDate != null ? estimatedDeliveryDate : '3-7 ngày làm việc'}">3-7 ngày làm việc</span>
+                                    </div>
+                                    <div class="shp-cost-row">
+                                        <span>Giảm giá</span>
+                                        <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 'POINT', 0, 'POINT') + '₫' : '0₫'}" id="discountDisplay"
+                                              th:classappend="${tienGiam != null and tienGiam > 0} ? 'text-primary' : ''"></span>
+                                    </div>
+                                    <div th:if="${loyaltyBalance != null and loyaltyBalance > 0}" class="shp-points">
+                                        <div class="shp-cost-row">
+                                            <span><i class="bi bi-star-fill me-1"></i>Điểm tích lũy</span>
+                                            <span class="text-primary fw-semibold" th:text="${loyaltyBalance} + ' điểm'"></span>
+                                        </div>
+                                        <div class="shp-points-input">
+                                            <input type="number" class="shp-input" id="pointsToRedeem"
+                                                   name="pointsToRedeem" min="0" th:attr="max=${loyaltyBalance}" value="0"
+                                                   placeholder="0" onchange="updatePointsDiscount()" />
+                                            <button type="button" class="shp-points-max" onclick="useMaxPoints()">Dùng tất cả</button>
+                                        </div>
+                                        <div class="shp-cost-row shp-cost-row-delivery">
+                                            <span class="text-muted" th:text="${loyaltyRedeemRate != null ? '100 điểm = ' + #numbers.formatDecimal(loyaltyRedeemRate * 100, 0, 'POINT', 0, 'POINT') + '₫' : ''}"></span>
+                                            <span id="pointsDiscountDisplay">Giảm 0₫</span>
+                                        </div>
+                                    </div>
+                                    <div class="shp-cost-total">
+                                        <span>Tổng cộng</span>
+                                        <span th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 30000), 0, 'POINT', 0, 'POINT')} + '₫'" id="totalDisplay"></span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" form="checkoutForm" class="shp-pay-btn" id="checkoutSubmitBtn">Đặt hàng</button>
+
+                                <div class="shp-perks">
+                                    <div class="shp-perks-head">
+                                        <span class="shp-perks-icon"><i class="bi bi-gift"></i></span>
+                                        <strong>Đặc quyền khi mua tại DuaStore</strong>
+                                    </div>
+                                    <ul class="shp-perks-list">
+                                        <li><i class="bi bi-check2"></i> Miễn phí vận chuyển cho đơn từ <strong th:text="${shippingFreeMin != null ? #numbers.formatDecimal(shippingFreeMin, 0, 'POINT', 0, 'POINT') + '₫' : '500.000₫'}"></strong></li>
+                                        <li><i class="bi bi-check2"></i> Hoàn trả &amp; đổi trả trong 7 ngày</li>
+                                        <li><i class="bi bi-check2"></i> Tích lũy điểm mỗi đơn hàng</li>
+                                        <li><i class="bi bi-check2"></i> Hỗ trợ qua chat trực tuyến 24/7</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <!-- ══════════ FOOTER ══════════ -->
+                <footer class="shp-footer">
+                    <div class="shp-footer-inner">
+                        <span>© 2026 DuaStore</span>
+                        <span class="shp-footer-dot">•</span>
+                        <span><i class="bi bi-shield-lock"></i> Thanh toán an toàn &amp; mã hóa</span>
+                        <span class="shp-footer-dot">•</span>
+                        <a th:href="@{/lien-he}">Liên hệ hỗ trợ</a>
+                    </div>
+                </footer>
+            </div>
+
+            <!-- Modal QR Payment -->
+            <div class="modal fade" id="qrPaymentModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="fw-bold modal-title">Quét mã QR để thanh toán</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body pt-3 text-center">
+                            <div class="mb-3">
+                                <img id="qrPaymentImage" src="" alt="QR thanh toán"
+                                     class="img-fluid rounded-3 border" style="max-width:260px;width:100%" />
+                            </div>
+                            <div class="bg-light rounded-3 p-3 mb-3 text-start small">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Ngân hàng</span>
+                                    <span class="fw-medium">Techcombank</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Số tài khoản</span>
+                                    <span class="fw-medium" id="qrAccountNumber"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-muted">Chủ tài khoản</span>
+                                    <span class="fw-medium" id="qrAccountName"></span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">Số tiền</span>
+                                    <span class="fw-bold text-primary" id="qrAmount"></span>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning small py-2 mb-3">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Sau khi chuyển khoản, bấm <strong>"Đã thanh toán"</strong> để hoàn tất.
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-secondary rounded-pill flex-fill" data-bs-dismiss="modal">Đóng</button>
+                                <button type="button" class="btn btn-success rounded-pill flex-fill fw-semibold" id="qrConfirmBtn">
+                                    <i class="bi bi-check-circle me-1"></i>Đã thanh toán
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Address Management -->
+            <div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="fw-bold modal-title" id="addressModalTitle">Quản lý địa chỉ</h5>
+                            <button type="button" id="addressAddBtn" class="ds-btn ds-btn-fill ds-btn-sm ms-auto" onclick="showAddressForm()">
+                                <i class="bi bi-plus-lg"></i> Thêm địa chỉ mới
+                            </button>
+                        </div>
+                        <div class="modal-body pt-3">
+                            <div id="addressModalList">
+                                <div th:if="${#lists.isEmpty(addresses)}" class="text-center text-muted py-4">
+                                    <i class="bi bi-geo-alt display-6 d-block mb-2 opacity-50"></i>
+                                    Bạn chưa có địa chỉ nào
+                                </div>
+                                <div th:each="a : ${addresses}" class="ds-address-card" th:classappend="${a.isDefault} ? 'is-default'">
+                                    <div class="ds-address-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                                    <div class="ds-address-card-body" th:data-id="${a.id}">
+                                        <div class="ds-address-card-info">
+                                            <div class="ds-address-card-top">
+                                                <strong th:text="${a.tenNguoiNhan}"></strong>
+                                                <span class="text-muted" th:text="${a.soDienThoai}"></span>
+                                                <span th:if="${a.isDefault}" class="ds-address-badge">Mặc định</span>
+                                            </div>
+                                            <div class="ds-address-card-detail" th:text="${a.diaChiCuThe} + ', ' + ${a.phuongXa} + ', ' + ${a.quanHuyen} + ', ' + ${a.tinhThanh}"></div>
+                                        </div>
+                                        <div class="dropdown ds-address-card-actions">
+                                            <button class="ds-kebab-btn" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-label="Thao tác">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end ds-kebab-menu">
+                                                <li th:unless="${a.isDefault}">
+                                                    <a class="dropdown-item btn-address-default" th:data-id="${a.id}" href="#"><i class="bi bi-check-circle"></i>Mặc định</a>
+                                                </li>
+                                                <li><a class="dropdown-item btn-address-edit" th:data-id="${a.id}" href="#"><i class="bi bi-eye"></i>Chi tiết</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger btn-address-delete" th:data-id="${a.id}" href="#"><i class="bi bi-trash"></i>Xoá</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="addressModalForm" style="display:none;">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium small">Địa chỉ trên bản đồ</label>
+                                    <div class="position-relative mb-1">
+                                        <div class="ds-combo-search" style="border:1.5px solid var(--ds-border,#dee2e6);border-radius:10px;border-bottom:1.5px solid var(--ds-border,#dee2e6);">
+                                            <i class="bi bi-search"></i>
+                                            <input type="text" id="modalDiaChiCuThe" class="ds-combo-search-input" placeholder="Nhập địa chỉ..." autocomplete="off" />
+                                            <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalSearchMap()" style="flex-shrink:0;">Tìm</button>
+                                        </div>
+                                        <div id="modalSuggestionBox" class="list-group position-absolute w-100 shadow-sm"
+                                             style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;border-radius:10px;"></div>
+                                    </div>
+                                    <div id="modalMapContainer" style="border-radius:8px;overflow:hidden;">
+                                        <div id="checkoutMap" style="width:100%;height:220px;border-radius:8px;"></div>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-1">
+                                        <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalGetMyLocation()">
+                                            <i class="bi bi-crosshair me-1"></i>Vị trí hiện tại
+                                        </button>
+                                        <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="modalClearMap()">
+                                            <i class="bi bi-x-circle me-1"></i>Xoá
+                                        </button>
+                                    </div>
+                                    <div id="modalMapStatus" class="form-text small text-muted mt-1"></div>
+                                    <input type="hidden" id="modalLatitude" />
+                                    <input type="hidden" id="modalLongitude" />
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium small">Họ và tên <span class="text-danger">*</span></label>
+                                        <input type="text" id="modalTenNguoiNhan" class="form-control form-control-sm rounded-3" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium small">SĐT <span class="text-danger">*</span></label>
+                                        <input type="tel" id="modalSoDienThoai" class="form-control form-control-sm rounded-3" required />
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label fw-medium small">Số nhà, đường <span class="text-danger">*</span></label>
+                                        <input type="text" id="modalDiaChiCuTheText" class="form-control form-control-sm rounded-3" required placeholder="Số 1, Đại Cồ Việt" />
+                                        <input type="hidden" id="modalDiaChiCuTheHidden" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium small">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                        <div class="ds-combo" id="modalTinhThanhCombo" data-selected-code="">
+                                            <button type="button" class="ds-combo-toggle">
+                                                <i class="bi bi-geo-alt ds-combo-icon"></i>
+                                                <span class="ds-combo-label">Chọn tỉnh/thành</span>
+                                                <i class="bi bi-chevron-down ds-combo-chevron"></i>
+                                            </button>
+                                            <div class="ds-combo-panel">
+                                                <div class="ds-combo-search">
+                                                    <i class="bi bi-search"></i>
+                                                    <input type="text" class="ds-combo-search-input" placeholder="Tìm tỉnh/thành..." autocomplete="off" />
+                                                </div>
+                                                <div class="ds-combo-list"></div>
+                                            </div>
+                                            <input type="hidden" id="modalTinhThanh" required />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium small">Quận/Huyện <span class="text-danger">*</span></label>
+                                        <div class="ds-combo" id="modalQuanHuyenCombo" data-selected-code="">
+                                            <button type="button" class="ds-combo-toggle">
+                                                <i class="bi bi-signpost-split ds-combo-icon"></i>
+                                                <span class="ds-combo-label">Chọn quận/huyện</span>
+                                                <i class="bi bi-chevron-down ds-combo-chevron"></i>
+                                            </button>
+                                            <div class="ds-combo-panel">
+                                                <div class="ds-combo-search">
+                                                    <i class="bi bi-search"></i>
+                                                    <input type="text" class="ds-combo-search-input" placeholder="Tìm quận/huyện..." autocomplete="off" />
+                                                </div>
+                                                <div class="ds-combo-list"></div>
+                                            </div>
+                                            <input type="hidden" id="modalQuanHuyen" required />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium small">Phường/Xã <span class="text-danger">*</span></label>
+                                        <div class="ds-combo" id="modalPhuongXaCombo" data-selected-code="">
+                                            <button type="button" class="ds-combo-toggle">
+                                                <i class="bi bi-house-door ds-combo-icon"></i>
+                                                <span class="ds-combo-label">Chọn phường/xã</span>
+                                                <i class="bi bi-chevron-down ds-combo-chevron"></i>
+                                            </button>
+                                            <div class="ds-combo-panel">
+                                                <div class="ds-combo-search">
+                                                    <i class="bi bi-search"></i>
+                                                    <input type="text" class="ds-combo-search-input" placeholder="Tìm phường/xã..." autocomplete="off" />
+                                                </div>
+                                                <div class="ds-combo-list"></div>
+                                            </div>
+                                            <input type="hidden" id="modalPhuongXa" required />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="modalIsDefault" />
+                                    <label class="form-check-label small" for="modalIsDefault">Đặt làm địa chỉ mặc định</label>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="showAddressList()">Hủy</button>
+                                    <button type="button" class="ds-btn ds-btn-fill ds-btn-sm" onclick="saveAddressFromModal()">Lưu địa chỉ</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal chọn mã giảm giá -->
+            <div class="modal fade" id="promoModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-sm" style="border-radius:14px;">
+                        <div class="modal-header border-0 pb-0 px-4 pt-4">
+                            <h5 class="fw-bold modal-title" style="font-size:1rem;">Chọn mã giảm giá</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body px-4 pt-3 pb-4">
+                            <div class="d-flex gap-2 mb-3">
+                                <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" style="border-radius:var(--ds-r);" />
+                                <button class="ds-btn ds-btn-outline flex-shrink-0" type="button" onclick="applyVoucherInput()">Áp dụng</button>
+                            </div>
+                            <div th:if="${#lists.isEmpty(userVouchers)}" class="text-muted text-center py-4">Bạn chưa lưu mã giảm giá nào</div>
+                            <div th:each="uv : ${userVouchers}" class="promo-item d-flex align-items-stretch mb-2"
+                                 th:data-code="${uv.promotion.maCode}"
+                                 th:data-loai="${uv.promotion.loaiGiam}"
+                                 th:data-giatri="${uv.promotion.giaTriGiam}"
+                                 th:data-min="${uv.promotion.donHangToiThieu}"
+                                 th:data-maxgiam="${uv.promotion.giamToiDa}"
+                                 th:data-ten="${uv.promotion.tenChuongTrinh}"
+                                 onclick="selectPromo(this)" style="cursor:pointer;">
+                                <div class="bg-danger rounded-start" style="width:5px;flex-shrink:0;"></div>
+                                <div class="border border-start-0 rounded-end p-3 w-100" style="border-color:#e5e7eb!important;">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="text-primary fw-bold" style="font-size:1.05rem;"
+                                                  th:if="${'PHAN_TRAM'.equals(uv.promotion.loaiGiam)}"
+                                                  th:text="${'-' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                                            <span class="text-primary fw-bold" style="font-size:1.05rem;"
+                                                  th:if="${'SO_TIEN'.equals(uv.promotion.loaiGiam)}"
+                                                  th:text="${'Giảm ' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                            <span class="badge bg-light text-dark border font-monospace" style="font-size:.7rem;letter-spacing:.5px;" th:text="${uv.promotion.maCode}"></span>
+                                            <button class="btn btn-sm py-0 px-1 border-0" style="font-size:.6rem;color:#6b7280;" type="button"
+                                                    th:data-code="${uv.promotion.maCode}" onclick="event.stopPropagation();copyCode(this)">Copy</button>
+                                        </div>
+                                        <span class="badge bg-danger rounded-pill" style="font-size:.55rem;font-weight:500;">Giảm giá</span>
+                                        <span th:if="${uv.remainingUses != null}" class="badge bg-secondary rounded-pill ms-1" style="font-size:.55rem;font-weight:500;">Còn ${uv.remainingUses} lượt</span>
+                                    </div>
+                                    <div class="text-muted" style="font-size:.75rem;" th:text="${uv.promotion.tenChuongTrinh}"></div>
+                                    <div class="d-flex flex-wrap gap-x-3 gap-y-1 small text-muted mt-1" style="font-size:.7rem!important;">
+                                        <span th:if="${uv.promotion.donHangToiThieu != null and uv.promotion.donHangToiThieu > 0}"
+                                              th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(uv.promotion.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                        <span th:if="${uv.promotion.giamToiDa != null}"
+                                              th:text="${'Giảm tối đa ' + #numbers.formatDecimal(uv.promotion.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
+                                        <span th:if="${uv.promotion.denNgay != null}" class="ds-promo-timer"
+                                              th:data-end="${#strings.concat(#temporals.format(uv.promotion.denNgay, 'yyyy-MM-dd'), 'T', #temporals.format(uv.promotion.denNgay, 'HH:mm:ss'))}">
+                                            HSD: <span class="promo-countdown" th:text="${#temporals.format(uv.promotion.denNgay, 'dd/MM/yyyy')}"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <th:block layout:fragment="extra-script">
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
+<span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
+<span id="rawRedeemRate" style="display:none" th:text="${loyaltyRedeemRate}"></span>
+                <script th:src="@{/js/client-checkout.js(v=1)}"></script>
+                <script>
+                    window.storeLat = [[${storeLat}]];
+                    window.storeLng = [[${storeLng}]];
+                </script>
+                <script>
+                    (function () {
+                        /* Mobile: toggle order summary */
+                        var toggle = document.getElementById('shpSummaryToggle');
+                        if (toggle) {
+                            toggle.addEventListener('click', function () {
+                                var body = document.getElementById('shpSummaryBody');
+                                var open = body.classList.toggle('open');
+                                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                                var chevron = toggle.querySelector('i.bi-chevron-down');
+                                if (chevron) chevron.style.transform = open ? 'rotate(180deg)' : '';
+                            });
+                        }
+                        /* Mobile: lock submit button (idempotency) */
+                        var btnMobile = document.getElementById('checkoutSubmitBtnMobile');
+                        var form = document.getElementById('checkoutForm');
+                        if (btnMobile && form) {
+                            form.addEventListener('submit', function () {
+                                btnMobile.disabled = true;
+                                btnMobile.textContent = 'Đang xử lý...';
+                            });
+                        }
+                    })();
+                </script>
+            </th:block>
+            </body>
+            </html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Giao diện</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15/dist/nouislider.min.css"/>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Giao diện</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-palette"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Giao diện</h4>
+                        <div class="adm-detail-meta">Tùy chỉnh giao diện và bố cục website.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="appearanceTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-theme" data-bs-toggle="tab" data-bs-target="#theme" type="button" role="tab">
+                    <i class="bi bi-palette me-1"></i>Theme
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-header" data-bs-toggle="tab" data-bs-target="#header" type="button" role="tab">
+                    <i class="bi bi-layout-three-columns me-1"></i>Header
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-menu" data-bs-toggle="tab" data-bs-target="#menu" type="button" role="tab">
+                    <i class="bi bi-list me-1"></i>Menu
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-footer" data-bs-toggle="tab" data-bs-target="#footer" type="button" role="tab">
+                    <i class="bi bi-window me-1"></i>Footer
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-widget" data-bs-toggle="tab" data-bs-target="#widget" type="button" role="tab">
+                    <i class="bi bi-puzzle me-1"></i>Widget
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-css" data-bs-toggle="tab" data-bs-target="#customCss" type="button" role="tab">
+                    <i class="bi bi-code-slash me-1"></i>CSS
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-homepage" data-bs-toggle="tab" data-bs-target="#homepage" type="button" role="tab">
+                    <i class="bi bi-house-gear me-1"></i>Homepage
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="appearanceTabContent">
+            <!-- THEME -->
+            <div class="tab-pane fade show active" id="theme" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post" data-dirty-bar>
+                    <div class="adm-form-wrap">
+                        <h6 class="text-muted border-bottom pb-2">Màu sắc & Font chữ</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Màu chủ đạo</label>
+                                <div class="input-group">
+                                    <input type="color" name="theme_primary_color" class="form-control form-control-color"
+                                           th:value="${settings.get('theme_primary_color') ?: '#0ea5e9'}" />
+                                    <input type="text" name="theme_primary_color_text" class="form-control"
+                                           th:value="${settings.get('theme_primary_color') ?: '#0ea5e9'}"
+                                           style="max-width:120px" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Màu phụ</label>
+                                <div class="input-group">
+                                    <input type="color" name="theme_secondary_color" class="form-control form-control-color"
+                                           th:value="${settings.get('theme_secondary_color') ?: '#0284c7'}" />
+                                    <input type="text" name="theme_secondary_color_text" class="form-control"
+                                           th:value="${settings.get('theme_secondary_color') ?: '#0284c7'}"
+                                           style="max-width:120px" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Màu nền header</label>
+                                <div class="input-group">
+                                    <input type="color" name="theme_header_bg" class="form-control form-control-color"
+                                           th:value="${settings.get('theme_header_bg') ?: '#ffffff'}" />
+                                    <input type="text" name="theme_header_bg_text" class="form-control"
+                                           th:value="${settings.get('theme_header_bg') ?: '#ffffff'}"
+                                           style="max-width:120px" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Font chữ</label>
+                                <select name="theme_font" class="form-select">
+                                    <option value="system-ui" th:selected="${settings.get('theme_font') == 'system-ui'}">System UI</option>
+                                    <option value="DM Sans" th:selected="${settings.get('theme_font') == 'DM Sans'}">DM Sans</option>
+                                    <option value="Inter" th:selected="${settings.get('theme_font') == 'Inter'}">Inter</option>
+                                    <option value="Roboto" th:selected="${settings.get('theme_font') == 'Roboto'}">Roboto</option>
+                                    <option value="Be Vietnam Pro" th:selected="${settings.get('theme_font') == 'Be Vietnam Pro'}">Be Vietnam Pro</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Border radius (px)</label>
+                                <input type="number" name="theme_border_radius" class="form-control"
+                                       th:value="${settings.get('theme_border_radius') ?: '12'}" min="0" max="50" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Container max-width (px)</label>
+                                <input type="number" name="theme_container_width" class="form-control"
+                                       th:value="${settings.get('theme_container_width') ?: '1700'}" min="1024" step="10" />
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- HEADER -->
+            <div class="tab-pane fade" id="header" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post" data-dirty-bar>
+                    <div class="adm-form-wrap">
+                        <h6 class="text-muted border-bottom pb-2">Hiển thị thành phần trên Header</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="header_logo" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="header_logo" value="1"
+                                           id="headerLogo" th:checked="${settings.get('header_logo') == '1' or settings.get('header_logo') == null}" />
+                                    <label class="form-check-label" for="headerLogo">Logo</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="header_hotline" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="header_hotline" value="1"
+                                           id="headerHotline" th:checked="${settings.get('header_hotline') == '1' or settings.get('header_hotline') == null}" />
+                                    <label class="form-check-label" for="headerHotline">Hotline</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="header_search" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="header_search" value="1"
+                                           id="headerSearch" th:checked="${settings.get('header_search') == '1' or settings.get('header_search') == null}" />
+                                    <label class="form-check-label" for="headerSearch">Tìm kiếm</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="header_cart" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="header_cart" value="1"
+                                           id="headerCart" th:checked="${settings.get('header_cart') == '1' or settings.get('header_cart') == null}" />
+                                    <label class="form-check-label" for="headerCart">Giỏ hàng</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="header_account" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="header_account" value="1"
+                                           id="headerAccount" th:checked="${settings.get('header_account') == '1' or settings.get('header_account') == null}" />
+                                    <label class="form-check-label" for="headerAccount">Tài khoản</label>
+                                </div>
+                            </div>
+                        </div>
+                        <h6 class="text-muted border-bottom pb-2 mt-4">Logo</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">URL Logo</label>
+                                <input type="url" name="header_logo_url" class="form-control"
+                                       th:value="${settings.get('header_logo_url')}" placeholder="/images/logo.png" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Chiều cao logo (px)</label>
+                                <input type="number" name="header_logo_height" class="form-control"
+                                       th:value="${settings.get('header_logo_height') ?: '40'}" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Chiều rộng logo (px)</label>
+                                <input type="number" name="header_logo_width" class="form-control"
+                                       th:value="${settings.get('header_logo_width') ?: '120'}" />
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- MENU -->
+            <div class="tab-pane fade" id="menu" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post" data-dirty-bar>
+                    <div class="adm-form-wrap">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="text-muted border-bottom pb-0 mb-0">Menu điều hướng</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMenuItem()">
+                                <i class="bi bi-plus-lg"></i> Thêm mục menu
+                            </button>
+                        </div>
+                        <p class="text-muted small">Kéo thả để sắp xếp thứ tự các mục menu.</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle" id="menuTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:40px"></th>
+                                        <th>Tên menu</th>
+                                        <th>Đường dẫn</th>
+                                        <th style="width:70px">Bật</th>
+                                        <th style="width:50px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="menu-sortable">
+                                    <tr th:each="i : ${#numbers.sequence(1,5)}" th:with="idx=${i}">
+                                        <td class="text-center"><i class="bi bi-grip-vertical text-muted"></i></td>
+                                        <td>
+                                            <input type="text" th:name="'menu_' + ${idx} + '_label'" class="form-control form-control-sm"
+                                                   th:value="${settings.get('menu_' + idx + '_label') ?: (idx == 1 ? 'Trang chủ' : (idx == 2 ? 'Sản phẩm' : (idx == 3 ? 'Khuyến mãi' : (idx == 4 ? 'Bài viết' : 'Liên hệ'))))}" />
+                                        </td>
+                                        <td>
+<input type="url" th:name="'menu_' + ${idx} + '_url'" class="form-control form-control-sm"
+                                                    th:value="${settings.get('menu_' + idx + '_url') ?: (idx == 1 ? '/' : (idx == 2 ? '/san-pham' : (idx == 3 ? '/khuyen-mai' : (idx == 4 ? '/bai-viet' : '/lien-he'))))}" />
+                                        </td>
+                                        <td class="text-center">
+                                            <input type="hidden" th:name="'menu_' + ${idx} + '_active'" value="0" />
+                                            <input type="checkbox" th:name="'menu_' + ${idx} + '_active'" value="1"
+                                                   th:checked="${settings.get('menu_' + idx + '_active') != '0'}" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMenuItem(this)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="tab-pane fade" id="footer" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post" data-dirty-bar>
+                    <input type="hidden" name="_footer_form" value="1" />
+                    <div class="adm-form-wrap">
+                        <h6 class="text-muted border-bottom pb-2">Cột Footer</h6>
+                        <p class="text-muted small">Quản lý các cột hiển thị ở footer. Mỗi cột có tiêu đề và nội dung riêng. Mỗi dòng trong nội dung là một link. Dùng định dạng <code>Tiêu đề | https://example.com</code> để tạo link có đường dẫn tùy chỉnh.</p>
+                        <div id="footerColumns">
+                            <div class="card mb-3 footer-col">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">Cột 1</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFooterColumn(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <input type="text" name="footer_col_1_title" class="form-control form-control-sm"
+                                                   placeholder="Tiêu đề" th:value="${settings.get('footer_col_1_title') ?: 'Về chúng tôi'}" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <textarea name="footer_col_1_content" class="form-control form-control-sm" rows="3"
+                                                      placeholder="Nội dung" th:text="${settings.get('footer_col_1_content')}">Giới thiệu về cửa hàng
+ Liên hệ | lien-he</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mb-3 footer-col">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">Cột 2</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFooterColumn(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <input type="text" name="footer_col_2_title" class="form-control form-control-sm"
+                                                   placeholder="Tiêu đề" th:value="${settings.get('footer_col_2_title') ?: 'Chính sách'}" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <textarea name="footer_col_2_content" class="form-control form-control-sm" rows="3"
+                                                      placeholder="Nội dung" th:text="${settings.get('footer_col_2_content')}">Chính sách đổi trả
+ Chính sách bảo mật
+ Chính sách vận chuyển</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mb-3 footer-col">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">Cột 3</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFooterColumn(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <input type="text" name="footer_col_3_title" class="form-control form-control-sm"
+                                                   placeholder="Tiêu đề" th:value="${settings.get('footer_col_3_title') ?: 'Liên hệ'}" />
+                                        </div>
+                                        <div class="col-md-8">
+                                            <textarea name="footer_col_3_content" class="form-control form-control-sm" rows="3"
+                                                      placeholder="Nội dung" th:text="${settings.get('footer_col_3_content')}">Địa chỉ: ...
+SĐT: 1900...
+Email: ...</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-3" onclick="addFooterColumn()">
+                            <i class="bi bi-plus-lg"></i> Thêm cột
+                        </button>
+                        <h6 class="text-muted border-bottom pb-2 mt-3">Bản quyền</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nội dung copyright</label>
+                                <input type="text" name="footer_copyright" class="form-control"
+                                       th:value="${settings.get('footer_copyright') ?: '© 2026 DuaStore. Tất cả quyền được bảo lưu.'}" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Facebook URL</label>
+                                <input type="url" name="footer_facebook" class="form-control"
+                                       th:value="${settings.get('footer_facebook')}" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Instagram URL</label>
+                                <input type="url" name="footer_instagram" class="form-control"
+                                       th:value="${settings.get('footer_instagram')}" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">TikTok URL</label>
+                                <input type="url" name="footer_tiktok" class="form-control"
+                                       th:value="${settings.get('footer_tiktok')}" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">YouTube URL</label>
+                                <input type="url" name="footer_youtube" class="form-control"
+                                       th:value="${settings.get('footer_youtube')}" />
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- WIDGET -->
+            <div class="tab-pane fade" id="widget" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post" data-dirty-bar>
+                    <div class="adm-form-wrap">
+                        <h6 class="text-muted border-bottom pb-2">Tiện ích</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="widget_messenger" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="widget_messenger" value="1"
+                                           id="widgetMessenger" th:checked="${settings.get('widget_messenger') == '1'}" />
+                                    <label class="form-check-label" for="widgetMessenger">Chat Messenger</label>
+                                </div>
+                                <div class="mt-2" id="messengerConfig" style="display:none">
+                                    <input type="text" name="widget_messenger_page_id" class="form-control form-control-sm mt-1"
+                                           placeholder="Facebook Page ID" th:value="${settings.get('widget_messenger_page_id')}" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="widget_zalo" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="widget_zalo" value="1"
+                                           id="widgetZalo" th:checked="${settings.get('widget_zalo') == '1'}" />
+                                    <label class="form-check-label" for="widgetZalo">Zalo OA</label>
+                                </div>
+                                <div class="mt-2" id="zaloConfig" style="display:none">
+<input type="tel" name="widget_zalo_phone" class="form-control form-control-sm mt-1"
+                                            placeholder="Số điện thoại Zalo" th:value="${settings.get('widget_zalo_phone')}" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="widget_call" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="widget_call" value="1"
+                                           id="widgetCall" th:checked="${settings.get('widget_call') == '1'}" />
+                                    <label class="form-check-label" for="widgetCall">Nút gọi điện</label>
+                                </div>
+                                <div class="mt-2" id="callConfig" style="display:none">
+<input type="tel" name="widget_call_phone" class="form-control form-control-sm mt-1"
+                                            placeholder="Số điện thoại" th:value="${settings.get('widget_call_phone')}" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="widget_chatbot" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="widget_chatbot" value="1"
+                                           id="widgetChatbot" th:checked="${settings.get('widget_chatbot') == '1' or settings.get('widget_chatbot') == null}" />
+                                    <label class="form-check-label" for="widgetChatbot">Chat FAQ</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="widget_backtotop" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="widget_backtotop" value="1"
+                                           id="widgetBacktotop" th:checked="${settings.get('widget_backtotop') == '1' or settings.get('widget_backtotop') == null}" />
+                                    <label class="form-check-label" for="widgetBacktotop">Back to top</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="widget_popup" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="widget_popup" value="1"
+                                           id="widgetPopup" th:checked="${settings.get('widget_popup') == '1'}" />
+                                    <label class="form-check-label" for="widgetPopup">Popup đăng ký</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- POPUP THÔNG BÁO ẢNH TRANG CHỦ -->
+                        <hr class="my-3" />
+                        <h6 class="text-muted border-bottom pb-2"><i class="bi bi-image me-1"></i>Popup thông báo ảnh (Trang chủ)</h6>
+                        <p class="text-muted small mb-3">Hiện popup ảnh quảng cáo khi khách vào trang chủ. Giống các shop lớn.</p>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input type="hidden" name="popup_promo_active" value="0" />
+                                    <input class="form-check-input" type="checkbox" name="popup_promo_active" value="1"
+                                           id="popupPromoActive" th:checked="${settings.get('popup_promo_active') == '1'}" />
+                                    <label class="form-check-label fw-semibold" for="popupPromoActive">Bật popup ảnh</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="popupPromoConfig" class="mt-3" style="display:none">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">URL ảnh popup <span class="text-danger">*</span></label>
+                                    <input type="url" name="popup_promo_image" class="form-control form-control-sm" id="popupPromoImage"
+                                           placeholder="https://example.com/banner.jpg"
+                                           th:value="${settings.get('popup_promo_image')}" />
+                                    <div class="form-text">Hỗ trợ JPG, PNG, GIF, WebP. Nên dùng ảnh tỷ lệ dọc hoặc vuông.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold">Xem trước</label>
+                                    <div id="popupPromoPreview" style="width:100%;max-height:160px;border:1px dashed #d1d5db;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f9fafb">
+                                        <img th:if="${settings.get('popup_promo_image') != null and !settings.get('popup_promo_image').isEmpty()}"
+                                             th:src="${settings.get('popup_promo_image')}" style="max-width:100%;max-height:160px;object-fit:contain" alt="Preview" />
+                                        <span th:if="${settings.get('popup_promo_image') == null or settings.get('popup_promo_image').isEmpty()}"
+                                              class="text-muted small">Chưa có ảnh</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold">Link khi click ảnh</label>
+                                    <input type="url" name="popup_promo_link" class="form-control form-control-sm"
+                                           placeholder="https://example.com/khuyen-mai (bỏ trống nếu không cần)"
+                                           th:value="${settings.get('popup_promo_link')}" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-semibold">Chế độ hiển thị</label>
+                                    <select name="popup_promo_mode" class="form-select form-select-sm" id="popupPromoMode">
+                                        <option value="once"   th:selected="${settings.get('popup_promo_mode') == 'once'   or settings.get('popup_promo_mode') == null}">Hiện 1 lần</option>
+                                        <option value="always" th:selected="${settings.get('popup_promo_mode') == 'always'}">Mỗi lần quay lại</option>
+                                        <option value="timed"  th:selected="${settings.get('popup_promo_mode') == 'timed'}">Theo thời gian</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="popupPromoIntervalWrap" style="display:none">
+                                    <label class="form-label small fw-semibold">Hiện lại sau (phút)</label>
+                                    <input type="number" name="popup_promo_interval" class="form-control form-control-sm"
+                                           min="1" max="10080" placeholder="60"
+                                            th:value="${settings.get('popup_promo_interval') ?: '60'}" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CSS -->
+            <div class="tab-pane fade" id="customCss" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post" data-dirty-bar>
+                    <div class="adm-form-wrap">
+                        <h6 class="text-muted border-bottom pb-2">CSS tùy chỉnh</h6>
+                        <p class="text-muted small">Nhập CSS để tùy chỉnh giao diện website. Không cần thẻ &lt;style&gt;.</p>
+                        <textarea name="custom_css" class="form-control font-monospace" rows="15"
+                                  style="font-size:0.85rem" th:text="${settings.get('custom_css')}"></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <!-- HOMEPAGE DESIGNER -->
+            <div class="tab-pane fade" id="homepage" role="tabpanel">
+                <form th:action="@{/admin/giao-dien}" method="post" data-dirty-bar>
+                    <div class="adm-form-wrap">
+                        <h6 class="text-muted border-bottom pb-2">Thiết kế trang chủ</h6>
+                        <p class="text-muted small">Kéo thả các section để sắp xếp thứ tự. Nhấp vào section để mở rộng tùy chỉnh layout và nội dung.</p>
+                        <div id="homepageSections" class="mb-3"></div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <select id="hpAddType" class="form-select form-select-sm" style="max-width:220px">
+                                <option value="products">+ Sản phẩm</option>
+                                <option value="categories">+ Danh mục</option>
+                                <option value="promotions">+ Khuyến mãi / Voucher</option>
+                                <option value="custom">+ HTML tùy chỉnh</option>
+                            </select>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addHomepageSection(document.getElementById('hpAddType').value)">
+                                <i class="bi bi-plus-lg"></i> Thêm section
+                            </button>
+                        </div>
+                        <div class="alert alert-info small">
+                            <i class="bi bi-info-circle me-1"></i>Hero Banner Slider luôn đứng đầu trang chủ. Dùng nút <b>Thêm section</b> để thêm khối Sản phẩm, Danh mục, Khuyến mãi hoặc HTML tùy chỉnh — chọn nguồn dữ liệu, kiểu hiển thị (lưới / slide ngang), số cột và số item. Kéo thả để sắp xếp thứ tự.
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+        <script th:inline="javascript">
+            var hpSettings = /*[[${settings}]]*/ {};
+        </script>
+        <script th:src="@{/js/admin-appearance.js(v=2)}"></script>
+    </th:block>
+</body>
+</html>

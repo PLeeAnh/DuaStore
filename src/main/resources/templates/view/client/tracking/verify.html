@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Tra cứu đơn hàng — DuaStore</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container-xl py-5">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-6 col-lg-5">
+                        <div class="ds-section-card text-center">
+                            <i class="bi bi-truck" style="font-size:3rem;color:var(--ds-primary,#2563EB);"></i>
+                            <h5 class="fw-bold mt-3">Tra cứu đơn hàng</h5>
+                            <p class="small text-muted mb-4">Nhập mã đơn hàng và SĐT để theo dõi tình trạng vận chuyển</p>
+
+                            <div id="verifyForm">
+                                <div class="mb-3 text-start">
+                                    <label class="form-label small fw-medium">Mã đơn hàng <span class="text-danger">*</span></label>
+                                    <input type="text" id="inputMaDon" class="form-control form-control-lg rounded-3"
+                                           placeholder="VD: DH-20260718-XXXXX" autocomplete="off" />
+                                </div>
+                                <div class="mb-4 text-start">
+                                    <label class="form-label small fw-medium">Số điện thoại <span class="text-danger">*</span></label>
+                                    <input type="tel" id="inputPhone" class="form-control form-control-lg rounded-3"
+                                           placeholder="SĐT đã đặt hàng" autocomplete="off" />
+                                </div>
+                                <button type="button" class="ds-btn ds-btn-fill w-100 py-2" id="verifyBtn" onclick="doVerify()">
+                                    <i class="bi bi-search me-1"></i>Tra cứu
+                                </button>
+                            </div>
+
+                            <div id="verifySuccess" class="d-none">
+                                <div class="py-3">
+                                    <i class="bi bi-check-circle text-success" style="font-size:2.5rem;"></i>
+                                    <p class="text-muted small mt-2">Đang chuyển hướng...</p>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+                            <p class="small text-muted mb-0">
+                                <i class="bi bi-shield-lock me-1"></i>
+                                Thông tin của bạn được bảo mật, chỉ dùng để tra cứu đơn hàng
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="extra-script">
+            <script th:src="@{/js/client-track-verify.js(v=1)}"></script>
+        </th:block>
+    </body>
+</html>

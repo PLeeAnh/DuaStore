@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý Flash Sale — Form</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/flash-sale}">Flash Sale</a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            <span th:if="${!isNew}">Chỉnh sửa</span>
+            <span th:if="${isNew}">Thêm mới</span>
+        </li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4><span th:if="${!isNew}">Chỉnh sửa Flash Sale</span><span th:if="${isNew}">Thêm Flash Sale</span></h4>
+                        <div class="adm-detail-meta">Thiết lập đợt giảm giá chớp nhoáng, giới hạn số lượng cho từng biến thể.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${errorMsg}" class="alert alert-danger mt-3" th:text="${errorMsg}"></div>
+        <div th:if="${successMsg}" class="alert alert-success mt-3" th:text="${successMsg}"></div>
+
+        <div class="adm-card mt-3">
+            <div class="adm-card-body">
+                <form th:action="@{/admin/flash-sale/save}" th:object="${flashSale}" method="post" data-dirty-bar class="row g-3">
+                    <input type="hidden" th:field="*{id}" />
+                    <div class="col-md-10">
+                        <label class="form-label">Tên chương trình <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{tenChuongTrinh}" class="form-control" required />
+                        <div th:if="${#fields.hasErrors('tenChuongTrinh')}" th:errors="*{tenChuongTrinh}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" th:field="*{isActive}" id="isActive" />
+                            <label class="form-check-label" for="isActive">Kích hoạt</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                        <input type="datetime-local" th:field="*{ngayBatDau}" class="form-control" required />
+                        <div th:if="${#fields.hasErrors('ngayBatDau')}" th:errors="*{ngayBatDau}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày kết thúc <span class="text-danger">*</span></label>
+                        <input type="datetime-local" th:field="*{ngayKetThuc}" class="form-control" required />
+                        <div th:if="${#fields.hasErrors('ngayKetThuc')}" th:errors="*{ngayKetThuc}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">Lưu đợt Flash Sale</button>
+                        <a th:href="@{/admin/flash-sale}" class="btn btn-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${!isNew}" class="row g-3 mt-1 mb-2">
+            <div class="col-md-3"><div class="adm-stat"><div class="adm-stat-value" th:text="${sold}">0</div><div class="adm-stat-label">Đã bán</div></div></div>
+            <div class="col-md-3"><div class="adm-stat"><div class="adm-stat-value" th:text="${#numbers.formatDecimal(revenue, 0, 'POINT', 0, 'POINT') + '₫'}">0</div><div class="adm-stat-label">Doanh thu</div></div></div>
+            <div class="col-md-3"><div class="adm-stat"><div class="adm-stat-value" th:text="${items == null ? 0 : #lists.size(items)}">0</div><div class="adm-stat-label">Sản phẩm tham gia</div></div></div>
+            <div class="col-md-3"><div class="adm-stat"><div class="adm-stat-value" th:text="${status == 'DANG_DIEN_RA' ? 'Đang diễn ra' : status == 'SAP_DIEN_RA' ? 'Sắp diễn ra' : status == 'HET_HANG' ? 'Hết hàng' : status == 'TAM_DUNG' ? 'Tạm dừng' : 'Đã kết thúc'}">-</div><div class="adm-stat-label">Trạng thái</div></div></div>
+        </div>
+
+        <div class="adm-card mt-3">
+            <div class="adm-card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-lightning me-1"></i>Danh sách sản phẩm</span>
+                <span class="badge text-bg-primary" th:text="${items == null ? 0 : #lists.size(items)} + ' sản phẩm'">0</span>
+            </div>
+            <div class="adm-card-body">
+                <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Biến thể</th>
+                            <th>Giá gốc</th>
+                            <th>Giá sale</th>
+                            <th>SL tối đa</th>
+                            <th>Đã bán</th>
+                            <th>Tiến trình</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fsItemTableBody">
+                        <tr th:each="item : ${items}">
+                            <td th:text="${itemProductMap.get(item.id) != null ? itemProductMap.get(item.id).tenSanPham : '#' + item.variantId}"></td>
+                            <td th:text="${itemVariantMap.get(item.id) != null ? itemVariantMap.get(item.id).tenBienThe : '#' + item.variantId}"></td>
+                            <td th:text="${#numbers.formatDecimal(item.giaGoc, 0, 'POINT', 0, 'POINT') + '₫'}"></td>
+                            <td th:text="${#numbers.formatDecimal(item.giaSale, 0, 'POINT', 0, 'POINT') + '₫'}"></td>
+                            <td th:text="${item.soLuongToiDa}"></td>
+                            <td th:text="${item.soLuongDaBan}"></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress" style="width:80px;height:8px">
+                                        <div class="progress-bar" th:style="'width:' + ${item.percentSold} + '%'"></div>
+                                    </div>
+                                    <small class="text-muted" th:text="${item.percentSold} + '%'"></small>
+                                </div>
+                            </td>
+                            <td>
+                                <span th:if="${item.soldOut}" class="status-pill status-HUY">Hết hàng</span>
+                                <span th:if="${!item.soldOut and item.isActive}" class="status-pill status-ACTIVE">Kích hoạt</span>
+                                <span th:if="${!item.soldOut and !item.isActive}" class="status-pill status-TAM_DUNG">Tạm dừng</span>
+                            </td>
+                            <td>
+                                <form th:if="${!isNew}" th:action="@{/admin/flash-sale/items/{itemId}/toggle(itemId=${item.id})}" method="post" style="display:inline">
+                                    <input type="hidden" name="flashSaleId" th:value="${flashSaleId}" />
+                                    <button type="submit" class="btn btn-sm btn-outline-warning me-1" th:title="${item.isActive} ? 'Tạm dừng' : 'Kích hoạt'">
+                                        <i class="bi" th:class="${item.isActive} ? 'bi-pause-fill' : 'bi-play-fill'"></i>
+                                    </button>
+                                </form>
+                                <form th:if="${!isNew}" th:action="@{/admin/flash-sale/items/{itemId}/delete(itemId=${item.id})}" method="post" style="display:inline"
+                                      onsubmit="return confirm('Xóa sản phẩm này khỏi Flash Sale?');">
+                                    <input type="hidden" name="flashSaleId" th:value="${flashSaleId}" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${items == null or #lists.isEmpty(items)}">
+                            <td colspan="9" class="text-muted text-center py-3">Chưa có sản phẩm nào. Thêm bên dưới.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-card mt-3">
+            <div class="adm-card-header"><span><i class="bi bi-plus-circle me-1"></i>Thêm sản phẩm</span></div>
+            <div class="adm-card-body">
+                <form th:if="${!isNew}" th:action="@{/admin/flash-sale/{id}/items(id=${flashSaleId})}" th:object="${flashSaleItem}" method="post" class="row g-3" id="fsAddItemForm">
+                    <input type="hidden" th:field="*{flashSaleId}" th:value="${flashSaleId}" />
+                    <div class="col-md-3">
+                        <label class="form-label">Sản phẩm</label>
+                        <select id="itemProductSelect" class="form-select">
+                            <option value="">-- Chọn sản phẩm --</option>
+                            <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.tenSanPham}">Sản phẩm</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Biến thể <span class="text-danger">*</span></label>
+                        <select th:field="*{variantId}" id="itemVariantSelect" class="form-select" required>
+                            <option value="">-- Chọn biến thể --</option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('variantId')}" th:errors="*{variantId}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Giá sale (₫) <span class="text-danger">*</span></label>
+                        <input type="number" step="1000" th:field="*{giaSale}" class="form-control" required />
+                        <div th:if="${#fields.hasErrors('giaSale')}" th:errors="*{giaSale}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Số lượng <span class="text-danger">*</span></label>
+                        <input type="number" min="1" th:field="*{soLuongToiDa}" class="form-control" required />
+                        <div th:if="${#fields.hasErrors('soLuongToiDa')}" th:errors="*{soLuongToiDa}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100" style="white-space:nowrap"><i class="bi bi-plus-lg"></i>Thêm</button>
+                    </div>
+                </form>
+                <div th:if="${isNew}" class="row g-3" id="fsInlineAdd">
+                    <div class="col-md-3">
+                        <label class="form-label">Sản phẩm</label>
+                        <select id="itemProductSelect" class="form-select">
+                            <option value="">-- Chọn sản phẩm --</option>
+                            <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.tenSanPham}">Sản phẩm</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Biến thể <span class="text-danger">*</span></label>
+                        <select id="itemVariantSelect" class="form-select">
+                            <option value="">-- Chọn biến thể --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Giá sale (₫) <span class="text-danger">*</span></label>
+                        <input type="number" step="1000" id="inlineGiaSale" class="form-control" placeholder="0" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Số lượng <span class="text-danger">*</span></label>
+                        <input type="number" min="1" id="inlineSoLuong" class="form-control" placeholder="0" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-primary w-100" style="white-space:nowrap" onclick="addInlineItem()"><i class="bi bi-plus-lg"></i>Thêm</button>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block" th:if="${isNew}">Chọn sản phẩm, biến thể, nhập giá sale và số lượng rồi bấm + để thêm vào danh sách bên trên. Lưu đợt Flash Sale sẽ tạo luôn các sản phẩm này.</small>
+                <small class="text-muted mt-2 d-block" th:if="${!isNew}">Chọn sản phẩm rồi chọn biến thể. Giá gốc sẽ được tự động chụp theo biến thể.</small>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="extra-script">
+        <script th:inline="javascript">
+            var fsVariantsUrl = [[@{/admin/flash-sale/variants}]];
+            var fsVariantData = {};
+            function loadVariants(productId, variantSel) {
+                variantSel.innerHTML = '<option value="">-- Chọn biến thể --</option>';
+                if (!productId) return;
+                fsVariantData = {};
+                fetch(fsVariantsUrl + '?productId=' + productId)
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        data.forEach(function (v) {
+                            fsVariantData[v.id] = v;
+                            var opt = document.createElement('option');
+                            opt.value = v.id;
+                            opt.textContent = v.tenBienThe + ' (' + v.giaGoc + '₫' + (v.stock > 0 ? ' - còn ' + v.stock : ' - hết hàng') + ')';
+                            variantSel.appendChild(opt);
+                        });
+                    });
+            }
+            function wireVariantLoad(prodSel, variantSel) {
+                if (!prodSel) return;
+                if (prodSel.tomselect) {
+                    prodSel.tomselect.on('change', function (val) {
+                        loadVariants(val, variantSel);
+                    });
+                } else {
+                    prodSel.addEventListener('change', function (e) {
+                        loadVariants(e.target.value, variantSel);
+                    });
+                }
+            }
+            wireVariantLoad(document.getElementById('itemProductSelect'), document.getElementById('itemVariantSelect'));
+
+            var inlineIdx = [[${items == null ? 0 : #lists.size(items)}]];
+            function addInlineItem() {
+                var variantId = document.getElementById('itemVariantSelect').value;
+                var giaSale = document.getElementById('inlineGiaSale').value;
+                var soLuong = document.getElementById('inlineSoLuong').value;
+                var prodSel = document.getElementById('itemProductSelect');
+                var variantSel = document.getElementById('itemVariantSelect');
+                if (!variantId || !giaSale || !soLuong) {
+                    alert('Vui lòng chọn biến thể, nhập giá sale và số lượng.');
+                    return;
+                }
+                var body = document.getElementById('fsItemTableBody');
+                var emptyRow = body.querySelector('td[colspan]');
+                if (emptyRow) emptyRow.closest('tr').remove();
+
+                var idx = inlineIdx;
+                var form = document.querySelector('form[data-dirty-bar]');
+
+                var hiddenVariant = document.createElement('input');
+                hiddenVariant.type = 'hidden';
+                hiddenVariant.name = 'items[' + idx + '].variantId';
+                hiddenVariant.value = variantId;
+                hiddenVariant.setAttribute('data-fs-item', idx);
+                form.appendChild(hiddenVariant);
+
+                var hiddenGia = document.createElement('input');
+                hiddenGia.type = 'hidden';
+                hiddenGia.name = 'items[' + idx + '].giaSale';
+                hiddenGia.value = giaSale;
+                hiddenGia.setAttribute('data-fs-item', idx);
+                form.appendChild(hiddenGia);
+
+                var hiddenSL = document.createElement('input');
+                hiddenSL.type = 'hidden';
+                hiddenSL.name = 'items[' + idx + '].soLuongToiDa';
+                hiddenSL.value = soLuong;
+                hiddenSL.setAttribute('data-fs-item', idx);
+                form.appendChild(hiddenSL);
+
+                var prodName = prodSel.selectedOptions.length ? prodSel.selectedOptions[0].textContent : '';
+                var vData = fsVariantData[variantId];
+                var varName = vData ? vData.tenBienThe
+                        : (variantSel.selectedOptions.length ? variantSel.selectedOptions[0].textContent : '#' + variantId);
+                var giaGocText = vData ? Number(vData.giaGoc).toLocaleString('vi-VN') + '₫' : '';
+
+                var tr = document.createElement('tr');
+                tr.dataset.fsItem = idx;
+                tr.innerHTML = '<td>' + prodName + '</td>'
+                    + '<td>' + varName + '</td>'
+                    + '<td>' + giaGocText + '</td>'
+                    + '<td>' + Number(giaSale).toLocaleString('vi-VN') + '₫</td>'
+                    + '<td>' + soLuong + '</td>'
+                    + '<td>0</td>'
+                    + '<td><div class="d-flex align-items-center gap-2"><div class="progress" style="width:80px;height:8px"><div class="progress-bar" style="width:0%"></div></div><small class="text-muted">0%</small></div></td>'
+                    + '<td><span class="status-pill status-ACTIVE">Chờ lưu</span></td>'
+                    + '<td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeInlineItem(this,' + idx + ')"><i class="bi bi-trash"></i></button></td>';
+                body.appendChild(tr);
+                inlineIdx++;
+                prodSel.value = '';
+                variantSel.innerHTML = '<option value="">-- Chọn biến thể --</option>';
+                document.getElementById('inlineGiaSale').value = '';
+                document.getElementById('inlineSoLuong').value = '';
+                var badge = document.querySelector('.adm-card-header .badge');
+                if (badge) badge.textContent = inlineIdx + ' sản phẩm';
+            }
+            function removeInlineItem(btn, idx) {
+                document.querySelectorAll('[data-fs-item="' + idx + '"]').forEach(function (el) { el.remove(); });
+                var tr = btn.closest('tr');
+                if (tr) tr.remove();
+            }
+        </script>
+    </th:block>
+</body>
+</html>
+</html>

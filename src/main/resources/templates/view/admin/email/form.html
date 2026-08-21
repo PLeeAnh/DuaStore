@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Cấu hình Email/SMTP</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Email/SMTP</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4>Cấu hình Email/SMTP</h4>
+                        <div class="adm-detail-meta">Cấu hình máy chủ SMTP để gửi email từ hệ thống.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form th:action="@{/admin/email-smtp}" method="post" data-dirty-bar class="row g-3">
+                    <div class="col-12">
+                        <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-server me-1"></i>SMTP Server</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">SMTP Host</label>
+                        <input type="text" name="email_host" class="form-control"
+                               th:value="${settings.get('email_host')}" placeholder="smtp.gmail.com" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Cổng</label>
+                        <input type="number" name="email_port" class="form-control"
+                               th:value="${settings.get('email_port')}" placeholder="587" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mã hóa</label>
+                        <select name="email_encryption" class="form-select">
+                            <option value="tls" th:selected="${settings.get('email_encryption') == 'tls'}">TLS</option>
+                            <option value="ssl" th:selected="${settings.get('email_encryption') == 'ssl'}">SSL</option>
+                            <option value="none" th:selected="${settings.get('email_encryption') == 'none'}">Không</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email gửi</label>
+                        <input type="email" name="email_from" class="form-control"
+                               th:value="${settings.get('email_from')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên hiển thị</label>
+                        <input type="text" name="email_from_name" class="form-control"
+                               th:value="${settings.get('email_from_name')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" name="email_username" class="form-control"
+                               th:value="${settings.get('email_username')}" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" name="email_password" class="form-control"
+                               th:value="${settings.get('email_password')}" />
+                    </div>
+                    <div class="col-12 d-flex gap-2">
+                        <button type="button" id="btnTestEmail" class="btn btn-outline-primary">
+                            <i class="bi bi-send me-1"></i>Gửi email thử
+                        </button>
+                        <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="extra-script">
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var btn = document.getElementById('btnTestEmail');
+                if (!btn) return;
+                var originalHtml = btn.innerHTML;
+                btn.addEventListener('click', function () {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang gửi...';
+                    var form = btn.closest('form');
+                    var fd = new FormData(form);
+                    fetch('/admin/email-smtp/test', {
+                        method: 'POST',
+                        body: fd,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .then(function (r) {
+                            if (!r.ok) throw new Error('HTTP ' + r.status);
+                            return r.json();
+                        })
+                        .then(function (res) {
+                            if (res.success) {
+                                window.dsToast('success', 'Gửi email thử thành công! Hãy kiểm tra hộp thư.');
+                            } else {
+                                window.dsToast('error', 'Gửi email thử thất bại. Kiểm tra lại cấu hình SMTP.');
+                            }
+                        })
+                        .catch(function () {
+                            window.dsToast('error', 'Gửi email thử thất bại. Kiểm tra lại cấu hình SMTP.');
+                        })
+                        .finally(function () {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHtml;
+                        });
+                });
+            });
+        </script>
+    </th:block>
+</body>
+</html>

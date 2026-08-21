@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title th:text="${post.tieuDe} + ' — DuaStore'">Bài viết — DuaStore</title>
+        <meta th:if="${post.metaDescription != null}" name="description" th:content="${post.metaDescription}" />
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container-xl ds-ctn-width py-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/blog}">Bài viết</a></li>
+                        <li class="breadcrumb-item active" th:text="${post.tieuDe}">Tieu de</li>
+                    </ol>
+                </nav>
+
+                <!-- Card: danh mục + tiêu đề + tác giả/ngày/lượt xem -->
+                <div class="ds-section-card mb-4">
+                    <div class="ds-blog-detail-top">
+                        <span class="ds-blog-detail-cat" th:if="${post.danhMuc != null}">
+                            <i class="bi bi-folder2"></i><span th:text="${post.danhMuc.tenDanhMuc}">Danh mục</span>
+                        </span>
+                        <span class="ds-blog-detail-featured" th:if="${post.featured}">
+                            <i class="bi bi-star-fill"></i>Bài viết nổi bật
+                        </span>
+                    </div>
+
+                    <h1 class="ds-blog-detail-title" th:text="${post.tieuDe}">Tiêu đề bài viết</h1>
+
+                    <div class="ds-blog-detail-meta">
+                        <span class="ds-blog-detail-meta-item" th:if="${tacGia != null}">
+                            <span class="ds-blog-author-avatar" th:text="${#strings.substring(tacGia, 0, 1)}">A</span>
+                            <span th:text="${tacGia}">Tác giả</span>
+                        </span>
+                        <span class="ds-blog-detail-meta-item">
+                            <i class="bi bi-calendar3"></i>
+                            <span th:text="${#temporals.format(post.ngayTao, 'dd/MM/yyyy')}">20/08/2026</span>
+                        </span>
+                        <span class="ds-blog-detail-meta-item">
+                            <i class="bi bi-eye"></i>
+                            <span th:text="${post.luotXem} + ' lượt xem'">0 lượt xem</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Ảnh bìa + nội dung bài viết -->
+                <div class="ds-section-card mb-4">
+                    <div th:if="${post.hinhAnh != null}" class="ds-blog-detail-cover">
+                        <img th:src="@{${post.hinhAnh}}" alt="" loading="lazy" />
+                    </div>
+                    <p th:if="${post.tomTat != null and post.tomTat != ''}"
+                       class="fw-medium mb-4" style="font-size:1.05rem;color:var(--ds-gray-700,#334155);border-left:3px solid var(--ds-primary);padding-left:.9rem;"
+                       th:text="${post.tomTat}">Tóm tắt bài viết</p>
+                    <div class="blog-content" th:utext="${post.noiDung}">
+                    </div>
+                </div>
+
+                <!-- Chia sẻ + quay lại -->
+                <div class="ds-section-card mb-4">
+                    <div class="ds-blog-share-bar mb-3">
+                        <span class="ds-blog-share-label">Chia sẻ bài viết:</span>
+                        <a th:href="@{https://www.facebook.com/sharer/sharer.php?u=https://duastore.vn/blog/{slug}(slug=${post.slug != null ? post.slug : post.id})}"
+                           target="_blank" rel="noopener" class="ds-blog-share-btn" aria-label="Chia sẻ Facebook"><i class="bi bi-facebook"></i></a>
+                        <a th:href="@{https://twitter.com/intent/tweet?text={text}&url=https://duastore.vn/blog/{slug}(text=${post.tieuDe}, slug=${post.slug != null ? post.slug : post.id})}"
+                           target="_blank" rel="noopener" class="ds-blog-share-btn" aria-label="Chia sẻ X"><i class="bi bi-twitter-x"></i></a>
+                        <a th:href="@{https://www.linkedin.com/shareArticle?mini=true&url=https://duastore.vn/blog/{slug}(slug=${post.slug != null ? post.slug : post.id})}"
+                           target="_blank" rel="noopener" class="ds-blog-share-btn" aria-label="Chia sẻ LinkedIn"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                    <div class="pt-3 border-top" style="border-color:var(--ds-border) !important;">
+                        <a th:href="@{/blog}" class="ds-blog-back-btn">
+                            <i class="bi bi-arrow-left"></i>Quay lại danh sách bài viết
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Bài viết liên quan -->
+                <div class="ds-section-card" th:if="${not #lists.isEmpty(relatedPosts)}">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <h5 class="fw-bold mb-0">Bài viết liên quan</h5>
+                        <span class="ds-section-badge">CÙNG CHỦ ĐỀ</span>
+                    </div>
+                    <div class="row g-3">
+                        <div th:each="rp : ${relatedPosts}" class="col-lg-3 col-md-6 col-12">
+                            <a th:href="@{/blog/{slug}(slug=${rp.slug != null ? rp.slug : rp.id})}"
+                               class="ds-blog-card h-100 text-decoration-none">
+                                <div class="ds-blog-card-img">
+                                    <img th:if="${rp.hinhAnh != null}" th:src="@{${rp.hinhAnh}}" alt=""
+                                         loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                    <div th:unless="${rp.hinhAnh != null}" class="ds-blog-card-img-ph">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                </div>
+                                <div class="ds-blog-card-body">
+                                    <small class="ds-blog-card-date">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        <span th:text="${#temporals.format(rp.ngayTao, 'dd/MM/yyyy')}">20/08/2026</span>
+                                    </small>
+                                    <h4 class="ds-blog-card-title" style="font-size:.85rem;" th:text="${rp.tieuDe}">Tiêu đề</h4>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

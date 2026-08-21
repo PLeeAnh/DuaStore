@@ -1,0 +1,21 @@
+package com.duastore.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+/**
+ * DTO (Data Transfer Object) dùng để truyền dữ liệu thông báo giữa các tầng controller/service/view.
+ */
+public class AdminNotificationDTO {
+
+    private Integer id;
+
+    @NotBlank(message = "Nội dung không được để trống")
+    private String content;
+
+    private Integer productId;
+    private Integer promotionId;
+}

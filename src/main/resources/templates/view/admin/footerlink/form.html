@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Liên kết chân trang — Form</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/footer-links}">Liên kết chân trang</a></li>
+        <li class="breadcrumb-item active" aria-current="page" th:text="${link.id == null ? 'Thêm mới' : 'Chỉnh sửa'}"></li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-link-45deg"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4><span th:if="${link.id != null}">Sửa liên kết</span><span th:unless="${link.id != null}">Thêm liên kết</span></h4>
+                        <div class="adm-detail-meta">Quản lý các liên kết hiển thị ở chân trang website.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="adm-card">
+            <div class="adm-card-body">
+                <form th:action="@{${formAction}}" th:object="${link}" method="post" data-dirty-bar class="row g-3">
+                    <input type="hidden" th:field="*{id}" />
+
+                    <div th:if="${#fields.hasGlobalErrors()}" class="col-12">
+                        <div class="alert alert-danger mb-0" th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" th:field="*{title}" class="form-control" maxlength="200" required />
+                        <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Thứ tự hiển thị</label>
+                        <input type="number" th:field="*{displayOrder}" class="form-control" min="0" />
+                        <div th:if="${#fields.hasErrors('displayOrder')}" th:errors="*{displayOrder}" class="text-danger small"></div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label">Đường dẫn <span class="text-danger">*</span></label>
+                        <input type="url" th:field="*{url}" class="form-control" maxlength="500" required placeholder="/lien-he hoặc https://example.com" />
+                        <div th:if="${#fields.hasErrors('url')}" th:errors="*{url}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Cột <span class="text-danger">*</span></label>
+                        <select th:field="*{columnIndex}" class="form-select">
+                            <option value="1">Cột 1</option>
+                            <option value="2">Cột 2</option>
+                            <option value="3">Cột 3</option>
+                            <option value="4">Cột 4</option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('columnIndex')}" th:errors="*{columnIndex}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="form-check form-switch mt-2">
+                            <input type="checkbox" th:field="*{isActive}" class="form-check-input" role="switch" id="isActive" />
+                            <label class="form-check-label" for="isActive">Hoạt động</label>
+                        </div>
+                    </div>
+
+                    <div class="col-12 pt-2">
+                        <a th:href="@{/admin/footer-links}" class="btn btn-secondary">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+package com.duastore.repository;
+
+import com.duastore.model.OrderAssignment;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+/**
+ * Repository (Spring Data JPA) truy vấn/thao tác dữ liệu đơn hàng.
+ */
+public interface OrderAssignmentRepository extends JpaRepository<OrderAssignment, Integer> {
+
+    @Query("SELECT oa FROM OrderAssignment oa JOIN FETCH oa.admin WHERE oa.order.id = ?1")
+    Optional<OrderAssignment> findByOrderId(Integer orderId);
+
+    List<OrderAssignment> findByAdminId(Integer adminId, Sort sort);
+
+    List<OrderAssignment> findByAdminIdAndTrangThai(Integer adminId, String trangThai);
+
+    long countByAdminIdAndTrangThai(Integer adminId, String trangThai);
+
+    @Query("SELECT oa FROM OrderAssignment oa WHERE oa.admin.id = :adminId AND oa.trangThai = :trangThai")
+    List<OrderAssignment> findActiveByAdminId(@Param("adminId") Integer adminId, @Param("trangThai") String trangThai);
+
+    @Query("SELECT oa.admin.id, COUNT(oa) FROM OrderAssignment oa WHERE oa.trangThai = 'DANG_XU_LY' GROUP BY oa.admin.id ORDER BY COUNT(oa) ASC")
+    List<Object[]> findAdminLoadAsc();
+
+    @Query("SELECT oa.admin.id, COUNT(oa) FROM OrderAssignment oa WHERE oa.trangThai = 'DANG_XU_LY' GROUP BY oa.admin.id ORDER BY COUNT(oa) DESC")
+    List<Object[]> countActiveByAdmin();
+
+    @Query("SELECT oa FROM OrderAssignment oa JOIN FETCH oa.admin JOIN FETCH oa.order WHERE oa.order.id IN :orderIds")
+    List<OrderAssignment> findByOrderIdIn(@Param("orderIds") List<Integer> orderIds);
+}

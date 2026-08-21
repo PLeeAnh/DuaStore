@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý đơn hàng</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
+    </th:block>
+    <div layout:fragment="content">
+
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Đơn hàng</h4>
+                            <div class="adm-detail-meta">Quản lý tất cả đơn hàng trong cửa hàng.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:classappend="${orderTab == 'don-hang' ? ' active' : ''}" th:href="@{/admin/don-hang}">
+                <i class="bi bi-bag-check"></i>Đơn hàng
+            </a>
+            <a class="adm-tab" th:classappend="${orderTab == 'hoan-tien' ? ' active' : ''}" th:href="@{/admin/hoan-tien}">
+                <i class="bi bi-arrow-return-left"></i>Hoàn tiền
+            </a>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalOrders}">0</div>
+                            <div class="adm-stat-label">Tổng đơn hàng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat adm-stat-warning">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${pendingOrdersCount}">0</div>
+                            <div class="adm-stat-label">Chờ xác nhận</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${completedOrdersCount}">0</div>
+                            <div class="adm-stat-label">Hoàn thành</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563eb">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${cancelledOrdersCount}">0</div>
+                            <div class="adm-stat-label">Đã huỷ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-filter-bar">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="adm-tab-nav mb-0 me-1">
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=false, fromDate=${fromDate}, toDate=${toDate})}"
+                       class="adm-tab" th:classappend="${not tatCa} ? 'active' : ''">
+                        <i class="bi bi-person me-1"></i>Tôi
+                    </a>
+                    <a th:href="@{/admin/don-hang(q=${q}, trangThai=${trangThai}, tatCa=true, fromDate=${fromDate}, toDate=${toDate}, chuaGan=${chuaGan}, assignedAdminId=${assignedAdminId})}"
+                       class="adm-tab" th:classappend="${tatCa} ? 'active' : ''">
+                        <i class="bi bi-people me-1"></i>Tất cả
+                    </a>
+                </div>
+                <input type="text" id="searchQ" class="form-control form-control-sm" style="width:220px" placeholder="Mã đơn, tên KH..." th:value="${q}" />
+                <select id="filterTrangThai" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
+                    <option value="CHUA_HOAN_THANH" th:selected="${trangThai == null or trangThai == '' or trangThai == 'CHUA_HOAN_THANH'}">Chưa hoàn thành</option>
+                    <option value="CHO_XAC_NHAN" th:selected="${trangThai == 'CHO_XAC_NHAN'}">Chờ xác nhận</option>
+                    <option value="DA_XAC_NHAN" th:selected="${trangThai == 'DA_XAC_NHAN'}">Đã xác nhận</option>
+                    <option value="DANG_GIAO" th:selected="${trangThai == 'DANG_GIAO'}">Đang giao</option>
+                    <option value="DA_GIAO" th:selected="${trangThai == 'DA_GIAO'}">Đã giao</option>
+                    <option value="DA_HOAN_THANH" th:selected="${trangThai == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
+                    <option value="DA_HUY" th:selected="${trangThai == 'DA_HUY'}">Đã hủy</option>
+                </select>
+                <select id="filterTrangThaiTT" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit placeholder="Thanh toán">
+                    <option value="">Thanh toán</option>
+                    <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
+                    <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
+                </select>
+                <select id="filterAssigned" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit placeholder="Phân công">
+                    <option value="">Phân công</option>
+                    <option value="CHUA_GAN" th:selected="${chuaGan}">Chưa gán</option>
+                    <th:block th:each="entry : ${staffLoad}">
+                        <option th:value="${entry.key}" th:selected="${assignedAdminId == entry.key}"
+                                th:text="${staffUsers.get(entry.key).hoTen} + ' (' + ${entry.value} + ' đơn)'"></option>
+                    </th:block>
+                </select>
+                <input type="date" id="filterFromDate" class="form-control form-control-sm" style="width:auto"
+                       title="Từ ngày" th:value="${fromDate}" />
+                <input type="date" id="filterToDate" class="form-control form-control-sm" style="width:auto"
+                       title="Đến ngày" th:value="${toDate}" />
+            </div>
+        </div>
+
+        <div class="adm-batch-bar" id="batchBar" style="display:none">
+            <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted" id="batchCount">Đã chọn 0 đơn</span>
+                <select id="batchStatus" class="form-select form-select-sm" style="width:auto">
+                    <option value="">Chọn trạng thái</option>
+                    <option value="CHO_XAC_NHAN">Chờ xác nhận</option>
+                    <option value="DA_XAC_NHAN">Đã xác nhận</option>
+                    <option value="DANG_GIAO">Đang giao</option>
+                    <option value="DA_GIAO">Đã giao</option>
+                    <option value="DA_HOAN_THANH">Đã hoàn thành</option>
+                    <option value="DA_HUY">Đã hủy</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="btnBatchUpdate" onclick="batchUpdateStatus()">
+                    <i class="bi bi-check2-circle me-1"></i>Cập nhật
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearBatchSelection()">Bỏ chọn</button>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0 adm-order-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px">
+                            <input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)" />
+                        </th>
+                        <th style="width:40px">#</th>
+                        <th style="width:105px">Mã ĐH</th>
+                        <th style="width:160px">Khách hàng</th>
+                        <th style="width:115px">Tổng tiền</th>
+                        <th style="width:140px">Nhân viên phụ trách</th>
+                        <th style="width:120px">Trạng thái</th>
+                        <th style="width:120px">Thanh toán</th>
+                        <th style="width:85px">Cảnh báo</th>
+                        <th style="width:110px">Ngày đặt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="o, iter : ${orders}"
+                        style="cursor:pointer"
+                        th:onclick="|location.href='/admin/don-hang/${o.id}'|"
+                        th:title="'Xem chi tiết đơn ' + ${o.maDon}">
+                        <td>
+                            <input type="checkbox" class="order-checkbox" th:value="${o.id}"
+                                   onclick="event.stopPropagation()" onchange="updateBatchBar()" />
+                        </td>
+                        <td class="text-muted small" th:text="${iter.index + 1 + currentPage * pageSize}"></td>
+                        <td><strong th:text="${o.maDon}"></strong></td>
+                        <td>
+                            <span th:text="${o.tenNguoiNhan}"></span>
+                            <small class="text-muted d-block" th:text="${o.soDienThoai}"></small>
+                        </td>
+                        <td th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'" class="fw-semibold"></td>
+                        <td>
+                            <th:block th:if="${assignmentMap != null and assignmentMap.get(o.id) != null}">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="oms-admin-avatar"
+                                          th:text="${#strings.substring(assignmentMap.get(o.id).admin.hoTen, 0, 1)}">N</span>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="small fw-semibold" th:text="${assignmentMap.get(o.id).admin.hoTen}">Nhân viên</span>
+                                            <span class="badge text-bg-primary" style="font-size:.65rem;"
+                                                  th:if="${assignmentMap.get(o.id).admin.id == currentAdminId}">Tôi</span>
+                                        </div>
+                                        <small class="text-muted d-block" style="font-size:.72rem;"
+                                               th:text="${assignmentMap.get(o.id).trangThai == 'DANG_XU_LY'} ? 'Đang xử lý' : ${assignmentMap.get(o.id).trangThai}">Đang xử lý</small>
+                                    </div>
+                                </div>
+                            </th:block>
+                            <span th:if="${assignmentMap == null or assignmentMap.get(o.id) == null}" class="small text-muted">
+                                <i class="bi bi-person-dash me-1"></i>Chưa gán
+                            </span>
+                        </td>
+                        <td>
+                            <span th:switch="${o.trangThaiDon}" class="status-pill">
+                                <span th:case="'CHO_XAC_NHAN'" class="status-pill status-cho-xac-nhan">Chờ xác nhận</span>
+                                <span th:case="'DA_XAC_NHAN'" class="status-pill status-da-xac-nhan">Đã xác nhận</span>
+                                <span th:case="'DANG_GIAO'" class="status-pill status-dang-giao">Đang giao</span>
+                                <span th:case="'DA_GIAO'" class="status-pill status-da-giao">Đã giao</span>
+                                <span th:case="'DA_HOAN_THANH'" class="status-pill status-da-hoan-thanh">Đã hoàn thành</span>
+                                <span th:case="'DA_HUY'" class="status-pill status-da-huy">Đã hủy</span>
+                                <span th:case="'DA_HOAN_TIEN'" class="status-pill status-da-huy">Đã hoàn tiền</span>
+                                <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiDon}"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:switch="${o.trangThaiTT}" class="status-pill">
+                                <span th:case="'DA_THANH_TOAN'" class="status-pill status-da-thanh-toan">Đã thanh toán</span>
+                                <span th:case="'CHUA_THANH_TOAN'" class="status-pill status-chua-thanh-toan">Chưa thanh toán</span>
+                                <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiTT}"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${o.fraudWarning != null}" class="adm-risk-line high"
+                                  th:title="${o.fraudWarning}">
+                                <span class="adm-risk-dot adm-risk-high"></span>Gian lận
+                            </span>
+                        </td>
+                        <td class="small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(orders)}">
+                        <td colspan="10" class="text-center py-4">
+                            <div th:if="${not tatCa}">
+                                <div class="text-muted mb-1"><i class="bi bi-inbox me-1"></i>Chưa có đơn nào được phân công cho bạn</div>
+                                <a th:href="@{/admin/don-hang(tatCa=true)}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-people me-1"></i>Xem tất cả đơn
+                                </a>
+                            </div>
+                            <div th:if="${tatCa}" class="text-muted">Chưa có đơn hàng</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+    </div>
+    <th:block layout:fragment="extra-script">
+        <script>var tatCa = [[${tatCa}]];</script>
+        <script th:src="@{/js/admin-filters.js(v=2)}"></script>
+        <script th:src="@{/js/admin-order-list.js(v=1)}"></script>
+    </th:block>
+</body>
+</html>

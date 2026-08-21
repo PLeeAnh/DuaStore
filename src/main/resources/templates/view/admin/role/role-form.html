@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head><title>Phân quyền - Form</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/vai-tro}">Phân quyền</a></li>
+        <li class="breadcrumb-item active" th:text="${role.id != null} ? 'Sửa vai trò' : 'Thêm vai trò'">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div>
+                        <h4><span th:text="${role.id != null} ? 'Sửa vai trò' : 'Thêm vai trò'">Form</span></h4>
+                        <div class="adm-detail-meta" th:text="${role.id != null} ? 'Chỉnh sửa thông tin vai trò.' : 'Tạo vai trò mới cho hệ thống.'">Meta</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-form-wrap">
+            <form method="post" data-dirty-bar
+                  th:action="${role.id != null} ? @{/admin/vai-tro/sua/{id}(id=${role.id})} : @{/admin/vai-tro/them-moi}"
+                  class="row g-3">
+                <input type="hidden" name="id" th:value="${role.id}" />
+
+                <div class="col-md-6">
+                    <label class="form-label">Tên vai trò <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control"
+                           th:value="${role.name}" required maxlength="50"
+                           placeholder="VD: MANAGER, EDITOR" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Mô tả</label>
+                    <input type="text" name="moTa" class="form-control"
+                           th:value="${role.moTa}" maxlength="200"
+                           placeholder="Mô tả ngắn về vai trò" />
+                </div>
+
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input type="checkbox" class="form-check-input" name="isActive" value="true"
+                               id="isActive" th:checked="${role.isActive != null ? role.isActive : true}" />
+                        <label class="form-check-label" for="isActive">Kích hoạt</label>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold mb-3" style="font-size:1.05rem;">Danh sách quyền</label>
+                    <p class="text-muted small mb-3">Tick các thao tác mà vai trò này được phép sử dụng.</p>
+
+                    <div class="row g-4" id="permissionGrid">
+                        <div class="col-md-6" th:each="entry : ${groupedPermissions}">
+                            <div class="perm-group-card">
+                                <div class="perm-group-header">
+                                    <input type="checkbox" class="form-check-input module-checkbox me-2"
+                                           data-module="${entry.key}"
+                                           th:id="'ck-module-' + ${entry.key}" />
+                                    <span class="perm-group-title" th:text="${moduleLabels.get(entry.key) ?: entry.key}">MODULE</span>
+                                </div>
+                                <div class="perm-group-body">
+                                    <div class="perm-item" th:each="perm : ${entry.value}">
+                                        <label class="perm-item-label">
+                                            <input type="checkbox" class="form-check-input perm-checkbox"
+                                                   name="permissionIds" th:value="${perm.id}"
+                                                   th:attr="data-module=${entry.key}"
+                                                   th:id="'perm-' + ${perm.id}"
+                                                   th:checked="${role.permissions != null and role.permissions.contains(perm)}" />
+                                            <span class="perm-item-text">
+                                                <span class="perm-item-name" th:text="${permLabels.get(entry.key + ':' + perm.action) ?: perm.action}">ACTION</span>
+                                                <span class="perm-item-code" th:text="${entry.key.toLowerCase() + '.' + perm.action.toLowerCase()}">module.action</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 border-top pt-3">
+                    <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <link rel="stylesheet" th:href="@{/css/admin-base.css}" />
+
+    <script th:src="@{/js/admin-role.js}"></script>
+</body>
+</html>

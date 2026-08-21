@@ -1,0 +1,148 @@
+.notif-item {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background .15s;
+}
+.notif-item:hover {
+    background: #f8f9fa;
+}
+.notif-item:last-child {
+    border-bottom: none;
+}
+.notif-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .85rem;
+}
+.notif-text {
+    font-size: .82rem;
+    color: #333;
+    line-height: 1.4;
+}
+.notif-link {
+    font-size: .78rem;
+    color: #0d6efd;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+.notif-link:hover {
+    text-decoration: underline;
+}
+.notif-time {
+    font-size: .72rem;
+    color: #999;
+    display: block;
+    margin-top: 2px;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* ── Mobile font-size boost ── */
+@media (max-width: 767.98px) {
+    .notif-text { font-size: 16px !important; }
+    .notif-link { font-size: 14px !important; }
+    .notif-time { font-size: 13px !important; }
+    .notif-icon { font-size: 1rem !important; }
+}
+
+/* ── Filter badge ── */
+.ds-filter-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #2563EB;
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    margin-left: 4px;
+}
+
+/* ── Filter button (base style — dùng cho cả mobile toggle lẫn drawer) ── */
+.btn-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    border: 1px solid var(--ds-border);
+    color: var(--ds-gray-600);
+    background: var(--ds-white);
+    font-size: .82rem;
+    font-weight: 500;
+    padding: .45rem 1rem;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+    white-space: nowrap;
+}
+.btn-filter:hover {
+    border-color: var(--ds-gray-900);
+    color: var(--ds-gray-900);
+    background: var(--ds-gray-50);
+}
+.btn-filter:focus {
+    border-color: var(--ds-gray-900);
+    color: var(--ds-gray-900);
+    background: var(--ds-gray-100);
+    box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+}
+.btn-filter i {
+    font-size: .9rem;
+    opacity: .6;
+}
+
+/* ── Clear filters button ── */
+.btn-filter-clear {
+    color: #2563EB !important;
+    text-decoration: none;
+}
+.btn-filter-clear:hover {
+    background: #DBEAFE !important;
+}
+
+/* ── Mobile filter drawer ── */
+@media (max-width: 991.98px) {
+    #dsFilterBar {
+        display: none;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        margin-bottom: 12px;
+    }
+    #dsFilterBar.ds-filter-bar-open {
+        display: flex;
+    }
+    #dsFilterBar .dropdown {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 0;
+    }
+    #dsFilterBar .btn-filter {
+        width: 100%;
+        font-size: 13px;
+        padding: 6px 10px;
+        justify-content: space-between;
+    }
+    #dsFilterBar .dropdown-menu {
+        width: 100%;
+        min-width: 0;
+    }
+}

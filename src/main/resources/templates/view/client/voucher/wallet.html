@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Ví Voucher — DuaStore</title>
+
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="ds-container py-4">
+                <div class="ds-section-card">
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <i class="bi bi-wallet2 fs-3 text-danger"></i>
+                        <h4 class="fw-bold mb-0">Ví Voucher</h4>
+                    </div>
+
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs mb-4">
+                        <li class="nav-item">
+                            <a class="nav-link" th:classappend="${tab == '' or tab == 'available' ? 'active' : ''}"
+                               th:href="@{/vi-voucher(tab='available', keyword=${keyword}, sort=${sort})}">
+                                Khả dụng <span th:if="${availableCount > 0}" class="badge bg-danger ms-1" th:text="${availableCount}">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:classappend="${tab == 'used' ? 'active' : ''}"
+                               th:href="@{/vi-voucher(tab='used', keyword=${keyword}, sort=${sort})}">Đã dùng</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:classappend="${tab == 'expired' ? 'active' : ''}"
+                               th:href="@{/vi-voucher(tab='expired', keyword=${keyword}, sort=${sort})}">Hết hạn</a>
+                        </li>
+                    </ul>
+
+                    <!-- Search + Sort Bar -->
+                    <form th:action="@{/vi-voucher}" method="get" class="row g-2 mb-4">
+                        <input type="hidden" name="tab" th:value="${tab}">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control" name="keyword" th:value="${keyword}"
+                                       placeholder="Tìm tên voucher hoặc mã ưu đãi...">
+                                <button class="btn btn-outline-secondary" type="submit">Tìm</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="sort" class="form-select" onchange="this.form.submit()">
+                                <option value="default" th:selected="${sort == 'default'}">Mặc định</option>
+                                <option value="expiry" th:selected="${sort == 'expiry'}">Hạn dùng gần nhất</option>
+                                <option value="saved" th:selected="${sort == 'saved'}">Mới lưu nhất</option>
+                            </select>
+                        </div>
+                    </form>
+
+                    <!-- Empty State -->
+                    <div th:if="${#lists.isEmpty(vouchers)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-ticket-perforated', title='Chưa có voucher nào', desc='Các phiếu giảm giá bạn nhận được từ chương trình khuyến mãi sẽ xuất hiện tại đây.', btnText='Khám phá khuyến mãi', btnHref='/khuyen-mai')}"></div>
+
+                    <!-- Voucher Cards -->
+                    <div th:unless="${#lists.isEmpty(vouchers)}" class="row g-3">
+                        <div th:each="v : ${vouchers}" class="col-md-6 col-lg-4">
+                            <div class="vc-card h-100" th:data-id="${v.promotion.id}" th:data-status="${v.status.name()}">
+
+                                <!-- Top row: status -->
+                                <div class="d-flex justify-content-end align-items-center mb-2">
+                                    <span class="vc-status">
+                                        <span th:if="${v.status.name() == 'AVAILABLE'}" class="vc-dot green"></span>
+                                        <span th:if="${v.status.name() == 'AVAILABLE'}">Đã lưu</span>
+                                        <span th:if="${v.status.name() == 'USED'}" class="vc-dot gray"></span>
+                                        <span th:if="${v.status.name() == 'USED'}">Đã dùng hết</span>
+                                        <span th:if="${v.status.name() == 'EXPIRED'}" class="vc-dot gray"></span>
+                                        <span th:if="${v.status.name() == 'EXPIRED'}">Hết hạn sử dụng</span>
+                                        <span th:if="${v.status.name() == 'AVAILABLE' and v.remainingUses != null and v.remainingUses > 0}" class="ms-1">
+                                            <span class="vc-dot yellow"></span> <span th:text="'Còn ' + ${v.remainingUses} + ' lượt'"></span>
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <!-- Discount -->
+                                <div class="vc-discount">
+                                    <span th:if="${'PHAN_TRAM'.equals(v.promotion.loaiGiam)}"
+                                          th:text="${'GIẢM ' + #numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
+                                    <span th:if="${'SO_TIEN'.equals(v.promotion.loaiGiam)}"
+                                          th:text="${'GIẢM ' + #numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="vc-desc" th:text="${v.promotion.tenChuongTrinh}">Tên chương trình</div>
+
+                                <!-- Code pill -->
+                                <span class="vc-code">Mã: <span th:text="${v.promotion.maCode}">CODE</span></span>
+
+                                <!-- Conditions grid -->
+                                <div class="vc-grid">
+                                    <div class="vc-grid-item" th:if="${v.promotion.donHangToiThieu != null and v.promotion.donHangToiThieu > 0}">
+                                        <span>&#x1F6D2;</span> Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(v.promotion.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                    </div>
+                                    <div class="vc-grid-item" th:if="${v.promotion.giamToiDa != null}">
+                                        <span>&#x1F4B0;</span> Giảm tối đa: <strong th:text="${#numbers.formatDecimal(v.promotion.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                    </div>
+                                    <div class="vc-grid-item">
+                                        <span>&#x1F4C5;</span> Hạn sử dụng:
+                                        <th:block th:if="${v.expiredAt != null}">
+                                            <span th:if="${v.status.name() == 'EXPIRED'}">Đã hết hạn</span>
+                                            <span th:if="${v.status.name() != 'EXPIRED'}">
+                                                <span th:text="${#temporals.format(v.expiredAt, 'dd/MM/yyyy')}">01/01/2026</span>
+                                            </span>
+                                        </th:block>
+                                    </div>
+                                    <div class="vc-grid-item" th:if="${v.totalSaved != null and v.totalSaved.compareTo(java.math.BigDecimal.ZERO) > 0}">
+                                        <span>&#x1F4B8;</span> Đã tiết kiệm: <strong class="text-danger" th:text="${#numbers.formatDecimal(v.totalSaved, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom row -->
+                                <div class="vc-bottom">
+                                    <button class="vc-btn vc-btn-ghost btn-detail" type="button"
+                                            th:data-id="${v.promotion.id}">Chi tiết</button>
+                                    <th:block th:if="${v.status.name() == 'AVAILABLE'}">
+                                        <button class="vc-btn vc-btn-disabled btn-remove-voucher" type="button"
+                                                th:data-id="${v.id}">Đã lưu</button>
+                                    </th:block>
+                                    <th:block th:if="${v.status.name() == 'USED'}">
+                                        <span class="vc-btn vc-btn-cta-used">Đã dùng hết</span>
+                                    </th:block>
+                                    <th:block th:if="${v.status.name() == 'EXPIRED'}">
+                                        <span class="vc-btn vc-btn-disabled">Hết hạn</span>
+                                    </th:block>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav th:if="${totalPages > 1}" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/vi-voucher(page=${currentPage - 1}, size=${pageSize}, tab=${tab}, keyword=${keyword}, sort=${sort})}">Trước</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link" th:href="@{/vi-voucher(page=${i}, size=${pageSize}, tab=${tab}, keyword=${keyword}, sort=${sort})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                <a class="page-link" th:href="@{/vi-voucher(page=${currentPage + 1}, size=${pageSize}, tab=${tab}, keyword=${keyword}, sort=${sort})}">Sau</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Modal phải nằm TRONG layout:fragment="content" mới được ghép vào trang render cuối cùng. -->
+            <th:block th:insert="~{fragments/promotion-modal :: promotionModal}"></th:block>
+        </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/client-voucher.js}"></script>
+    </th:block>
+</body>
+</html>

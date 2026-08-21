@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head><title th:text="${store.id != null} ? 'Sửa địa chỉ' : 'Thêm địa chỉ'">Form</title></head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/dia-chi}">Địa chỉ cửa hàng</a></li>
+        <li class="breadcrumb-item active" th:text="${store.id != null} ? 'Sửa địa chỉ' : 'Thêm địa chỉ'">Form</li>
+    </th:block>
+    <div layout:fragment="content">
+
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4><span th:text="${store.id != null} ? 'Sửa địa chỉ' : 'Thêm địa chỉ'">Thêm địa chỉ</span></h4>
+                            <div class="adm-detail-meta" th:text="${store.id != null} ? 'Chỉnh sửa thông tin cửa hàng.' : 'Thêm địa chỉ cửa hàng mới.'">Sub</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-x-lg me-1"></i>Hủy
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="storeForm"
+              th:action="${store.id != null} ? @{/admin/dia-chi/sua/{id}(id=${store.id})} : @{/admin/dia-chi/them-moi}"
+              th:object="${store}" method="post" data-dirty-bar>
+            <input type="hidden" th:field="*{id}" />
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="adm-card">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-info-circle me-2"></i>Thông tin cửa hàng</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên cửa hàng <span class="text-danger">*</span></label>
+                                    <input type="text" th:field="*{tenCuaHang}" class="form-control" required maxlength="200" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Số điện thoại</label>
+                                    <input type="tel" th:field="*{soDienThoai}" class="form-control" maxlength="20" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Số nhà</label>
+                                    <input type="text" th:field="*{soNha}" class="form-control" maxlength="100" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Đường</label>
+                                    <input type="text" th:field="*{duong}" class="form-control" maxlength="200" />
+                                </div>
+                                <div class="col-md-4 position-relative">
+                                    <label class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="tinhThanhInput" placeholder="Gõ tên tỉnh/thành..." autocomplete="off" />
+                                    <input type="hidden" th:field="*{tinhThanh}" id="tinhThanh" />
+                                    <div id="tinhThanhSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                                </div>
+                                <div class="col-md-4 position-relative">
+                                    <label class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="quanHuyenInput" placeholder="Gõ tên quận/huyện..." autocomplete="off" />
+                                    <input type="hidden" th:field="*{quanHuyen}" id="quanHuyen" />
+                                    <div id="quanHuyenSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                                </div>
+                                <div class="col-md-4 position-relative">
+                                    <label class="form-label">Phường/Xã <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="phuongXaInput" placeholder="Gõ tên phường/xã..." autocomplete="off" />
+                                    <input type="hidden" th:field="*{phuongXa}" id="phuongXa" />
+                                    <div id="phuongXaSuggest" class="list-group position-absolute w-100 shadow-sm rounded-3" style="z-index:9999;top:100%;display:none;max-height:200px;overflow-y:auto;"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" th:field="*{email}" class="form-control" maxlength="100" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Vĩ độ (Latitude)</label>
+                                    <input type="number" th:field="*{latitude}" class="form-control" placeholder="21.028511" step="any" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Kinh độ (Longitude)</label>
+                                    <input type="number" th:field="*{longitude}" class="form-control" placeholder="105.854170" step="any" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="adm-card">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-gear me-2"></i>Trạng thái</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="form-check form-switch mb-3">
+                                <input type="checkbox" class="form-check-input" th:field="*{isActive}" id="isActiveCheck" />
+                                <label class="form-check-label" for="isActiveCheck">Hoạt động</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" th:field="*{isDefault}" id="isDefaultCheck" />
+                                <label class="form-check-label" for="isDefaultCheck">Đặt làm mặc định</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script th:src="@{/js/admin-store-location.js(v=1)}"></script>
+    </th:block>
+</body>
+</html>

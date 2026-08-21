@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý Homepage</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Homepage</li>
+    </th:block>
+    <div layout:fragment="content">
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-house-gear"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Quản lý nội dung trang chủ</h4>
+                            <div class="adm-detail-meta">Kéo thả để sắp xếp thứ tự các khu vực hiển thị trên trang chủ</div>
+                        </div>
+                        <button class="btn btn-primary" id="btnSaveOrder" onclick="saveSectionOrder()">
+                            <i class="bi bi-floppy me-1"></i>Lưu thứ tự
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="homepageSectionList" class="row g-3"></div>
+
+        <div class="text-center mt-3" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="extra-script">
+        <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+        <script th:src="@{/js/admin-dashboard.js}"></script>
+    </th:block>
+</body>
+</html>

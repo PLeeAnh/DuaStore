@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+<head>
+    <title>Xác thực hai yếu tố</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-shield-lock" style="font-size:3rem;color:var(--primary)"></i>
+                    </div>
+                    <h5 class="fw-bold">Xác thực hai yếu tố</h5>
+                    <p class="text-muted small">Vui lòng nhập mã 6 chữ số từ ứng dụng xác thực của bạn.</p>
+                    <form th:action="@{/admin/2fa/challenge}" method="post">
+                        <div class="mb-3">
+                            <input type="text" name="code" class="form-control text-center form-control-lg"
+                                   placeholder="000000" maxlength="6" pattern="[0-9]{6}" required
+                                   autocomplete="off" inputmode="numeric" />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Xác thực</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
