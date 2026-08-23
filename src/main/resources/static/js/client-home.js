@@ -1,4 +1,12 @@
 (function () {
+    /* Điểm "đánh giá cao nhất": ưu tiên sản phẩm vừa có rating cao vừa có
+       nhiều lượt đánh giá (rating cao nhưng chỉ 1 lượt sẽ không thắng
+       rating thấp hơn nhưng có rất nhiều lượt đánh giá thật). */
+    function ratingScore(row) {
+        var rating = parseFloat(row.dataset.rating) || 0;
+        var count = parseInt(row.dataset.ratingCount) || 0;
+        return rating * Math.log(1 + count);
+    }
     var browseTabs = document.querySelectorAll('.ds-browse-tab');
     var browseList = document.getElementById('browseList');
     var browsePreview = document.getElementById('browsePreview');
@@ -13,7 +21,7 @@
                 browseRows.sort(function (a, b) {
                     if (key === 'fav') return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
                     if (key === 'sold') return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
-                    if (key === 'new') return (b.dataset.daysOld || '').localeCompare(a.dataset.daysOld || '');
+                    if (key === 'rating') return ratingScore(b) - ratingScore(a);
                     return 0;
                 });
                 browseRows.forEach(function (r) { browseList.appendChild(r); });
@@ -30,7 +38,7 @@
             browseRows.sort(function (a, b) {
                 if (initKey === 'fav') return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
                 if (initKey === 'sold') return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
-                if (initKey === 'new') return (b.dataset.daysOld || '').localeCompare(a.dataset.daysOld || '');
+                if (initKey === 'rating') return ratingScore(b) - ratingScore(a);
                 return 0;
             });
             browseRows.forEach(function (r) { browseList.appendChild(r); });

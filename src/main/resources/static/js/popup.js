@@ -34,15 +34,12 @@
             body: 'email=' + encodeURIComponent(email)
         }).then(function (r) {
             hidePopup();
-            var toast = document.getElementById('dsToast');
-            if (!toast) return;
+            if (typeof DuaStore === 'undefined' || !DuaStore.toast) return;
             if (r.ok) {
-                toast.textContent = 'Đăng ký thành công! Cảm ơn bạn.';
+                DuaStore.toast.success('Đăng ký thành công! Cảm ơn bạn.');
             } else {
-                toast.textContent = 'Không thể đăng ký. Vui lòng thử lại sau.';
+                DuaStore.toast.error('Không thể đăng ký. Vui lòng thử lại sau.');
             }
-            toast.style.opacity = '1';
-            setTimeout(function () { toast.style.opacity = '0'; }, 3000);
         }).catch(function () {
             hidePopup();
         });

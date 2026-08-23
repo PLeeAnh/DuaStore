@@ -58,6 +58,7 @@
         body.ds-checkout-page #ai-chat-widget { display: none !important; }
     </style>
     <link rel="stylesheet" th:href="@{/css/base-ui.css(v=2)}"/>
+    <link rel="stylesheet" th:href="@{/css/ds-buttons.css(v=1)}"/>
 </head>
 <body th:classappend="${bodyClass} ?: ''">
 
@@ -1038,10 +1039,6 @@
 
 <script th:src="@{/js/base-ui.js(v=8)}"></script>
 <script th:src="@{/js/popup-banner.js}"></script>
-<div id="dsToast"
-     class="position-fixed bottom-0 start-50 translate-middle-x mb-4 px-4 py-2 bg-dark text-white rounded-pill shadow-lg z-3"
-     style="transition:opacity .3s;opacity:0;pointer-events:none;z-index:99999;"></div>
-
 <!-- Save Bar -->
 <div id="dsSaveBar" class="ds-save-bar" style="display: none;">
     <div class="ds-save-bar-msg"><i class="bi bi-info-circle-fill"></i> Đừng quên lưu!</div>

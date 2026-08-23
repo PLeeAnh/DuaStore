@@ -5911,7 +5911,7 @@ a {
     background: #fff;
     border: 1px solid var(--ds-border);
     border-radius: var(--ds-r);
-    overflow: visible;
+    overflow: hidden;
     box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
     transition: box-shadow .25s, transform .25s;
 }
@@ -5932,15 +5932,14 @@ a {
     font-size: .98rem;
     font-weight: 800;
     color: var(--ds-primary);
-    overflow: visible;
-    text-overflow: unset;
-    white-space: normal;
-    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .ds-campaign-card .ds-browse-list {
-    max-height: 264px;
+    max-height: 340px;
     flex: 1;
-    padding: 0;
+    padding: 6px 0;
 }
 .ds-campaign-empty {
     padding: 28px 16px;
@@ -5950,21 +5949,17 @@ a {
 }
 .ds-campaign-card .ds-browse-row {
     display: grid;
-    grid-template-columns: 48px 1fr;
+    grid-template-columns: 64px 1fr;
     grid-template-rows: auto auto auto;
-    gap: 0 8px;
-    padding: 6px 12px;
+    gap: 0 10px;
+    padding: 10px 12px;
     align-items: center;
     overflow: hidden;
-    border-bottom: 1px solid var(--ds-border);
-}
-.ds-campaign-card .ds-browse-row:last-child {
-    border-bottom: none;
 }
 .ds-campaign-card .ds-browse-row-img {
     grid-row: 1 / 4;
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     border-radius: 6px;
     object-fit: cover;
     background: var(--ds-gray-100);
@@ -5973,13 +5968,13 @@ a {
 .ds-campaign-card .ds-browse-row-detail {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 3px;
     min-width: 0;
     overflow: hidden;
 }
 .ds-campaign-card .ds-browse-row-name {
     font-weight: 600;
-    font-size: .78rem;
+    font-size: .82rem;
     color: var(--ds-gray-900);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5989,11 +5984,11 @@ a {
 .ds-campaign-card .ds-browse-row-tag {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    font-size: .65rem;
+    gap: 4px;
+    font-size: .7rem;
     color: var(--ds-gray-400);
     background: var(--ds-gray-100);
-    padding: 1px 6px;
+    padding: 2px 8px;
     border-radius: 100px;
     width: fit-content;
     max-width: 100%;
@@ -6004,11 +5999,11 @@ a {
 .ds-campaign-card .ds-browse-row-price {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 .ds-campaign-card .ds-browse-row-price-current {
     font-weight: 700;
-    font-size: .78rem;
+    font-size: .85rem;
     color: var(--ds-primary);
 }
 .ds-campaign-card .ds-browse-row-price-discount {
@@ -6021,13 +6016,12 @@ a {
     flex-shrink: 0;
 }
 .ds-campaign-card .dc_work_group_title {
-    overflow: visible;
+    overflow: hidden;
 }
 .ds-campaign-card .dc_work_group_title h3 {
-    overflow: visible;
-    text-overflow: unset;
-    white-space: normal;
-    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .dc_work_group_footer {
     padding: 12px 16px;
@@ -7842,6 +7836,16 @@ body.ds-checkout-page #main-content {
     to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* ── Breadcrumb: bỏ gạch chân link (theo yêu cầu) ── */
+.breadcrumb .breadcrumb-item a,
+.breadcrumb-item a {
+    text-decoration: none !important;
+}
+.breadcrumb .breadcrumb-item a:hover,
+.breadcrumb-item a:hover {
+    text-decoration: none !important;
+}
+
 /* ── Mobile font-size boost for 40+ readability ── */
 @media (max-width: 767.98px) {
     body, p, span, div, li, a, label, input, select, textarea,
@@ -8231,9 +8235,10 @@ body.ds-checkout-page #main-content {
 .ds-promo-item { cursor: pointer; }
 .ds-promo-item:hover .ds-campaign-card { box-shadow: 0 4px 16px color-mix(in srgb, var(--ds-primary) 12%, transparent); }
 
-/* Toast notification */
-.ds-toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: #1e293b; color: #fff; padding: .7rem 1.4rem; border-radius: 100px; font-size: .85rem; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,.18); opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; z-index: 99999; white-space: nowrap; }
-.ds-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+/* Toast notification: ĐÃ XÓA style pill đen cũ (từng đè lên style .ds-toast
+   dùng chung ở mục "26. TOAST / NOTIFICATION" phía trên, khiến toast client
+   hiện thành pill đen ở giữa dưới màn hình thay vì đúng kiểu thẻ như bên
+   admin). Giờ toast client dùng chung 100% CSS + JS (DuaStore.toast) với admin. */
 
 /* Blog card fixes: badge inside image */
 .ds-blog-card-cat { position: absolute; top: 10px; left: 10px; z-index: 2; }
