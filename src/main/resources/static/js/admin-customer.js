@@ -9,7 +9,7 @@ function addTag() {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'tag=' + encodeURIComponent(tag)
     }).then(function(r) { return r.json(); }).then(function(d) {
-        if (d.error) { alert(d.error); return; }
+        if (d.error) { if (window.dsToast) dsToast('error', d.error); return; }
         var list = document.getElementById('tagList');
         var span = document.createElement('span');
         span.className = 'badge rounded-pill text-bg-primary d-inline-flex align-items-center gap-1';

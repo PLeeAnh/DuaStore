@@ -30,14 +30,7 @@
             </div>
         </div>
 
-        <div class="adm-tab-nav">
-            <a class="adm-tab" th:classappend="${promotionTab == 'khuyen-mai' ? ' active' : ''}" th:href="@{/admin/khuyen-mai}">
-                <i class="bi bi-tag"></i>Khuyến mãi
-            </a>
-            <a class="adm-tab" th:classappend="${promotionTab == 'flash-sale' ? ' active' : ''}" th:href="@{/admin/flash-sale}">
-                <i class="bi bi-lightning"></i>Flash Sale
-            </a>
-        </div>
+        <!-- Đã bỏ tab-nav Khuyến mãi/Flash Sale vì sidebar đã có sẵn 2 mục này -->
 
         <div class="adm-table-wrap">
             <div class="table-responsive">

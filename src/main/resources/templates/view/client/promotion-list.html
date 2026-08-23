@@ -40,13 +40,7 @@
                         <a class="ds-promo-hero-cta" href="#ds-promo-grid">Khám phá ngay</a>
                     </div>
 
-                    <!-- ── Tab lọc ── -->
-                    <div class="ds-promo-tabs" id="promoTabs">
-                        <button type="button" class="ds-promo-tab active" data-filter="all"><i class="bi bi-grid"></i>Tất cả</button>
-                        <button type="button" class="ds-promo-tab" data-filter="PHAN_TRAM"><i class="bi bi-percent"></i>Giảm %</button>
-                        <button type="button" class="ds-promo-tab" data-filter="SO_TIEN"><i class="bi bi-cash-coin"></i>Giảm tiền</button>
-                        <button type="button" class="ds-promo-tab" data-filter="expiring"><i class="bi bi-hourglass-split"></i>Sắp hết hạn</button>
-                    </div>
+                    <!-- Đã bỏ tab lọc theo yêu cầu -->
 
                     <!-- ── Voucher ── -->
                     <div th:if="${#lists.isEmpty(promotions)}" class="text-center py-5 text-muted">

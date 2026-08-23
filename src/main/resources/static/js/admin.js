@@ -29,21 +29,15 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     /* ── Global toast helper ── */
+    /* Dùng chung 1 kiểu toast duy nhất cho cả admin và client:
+       ủy quyền cho DuaStore.toast (toast.js) thay vì tự vẽ lại,
+       tránh 2 style toast khác nhau tồn tại song song. */
     window.dsToast = function (type, msg) {
-        var icons = {success: 'bi-check-circle-fill', error: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', info: 'bi-info-circle-fill'};
-        var tc = document.getElementById('toastContainer');
-        if (!tc) return;
-        var el = document.createElement('div');
-        el.className = 'ds-toast ds-toast-' + type;
-        el.innerHTML = '<i class="bi ' + (icons[type] || icons.success) + '"></i><span>' + msg + '</span><button class="ds-toast-close">&times;</button>';
-        tc.appendChild(el);
-        el.querySelector('.ds-toast-close').addEventListener('click', function () { el.remove(); });
-        setTimeout(function () {
-            if (el.parentNode) {
-                el.style.animation = 'ds-toast-fade-out .3s ease forwards';
-                setTimeout(function () { el.remove(); }, 300);
-            }
-        }, 3000);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast && DuaStore.toast[type]) {
+            DuaStore.toast[type](msg);
+        } else if (typeof DuaStore !== 'undefined' && DuaStore.toast && DuaStore.toast.info) {
+            DuaStore.toast.info(msg);
+        }
     };
 
     /* ── Toast sau reload (sessionStorage) ── */
@@ -386,21 +380,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ── Confirm leaving with unsaved changes ── */
     window.__pendingNav = null;
-    document.getElementById('unsavedModalConfirm').addEventListener('click', function () {
-        var nav = window.__pendingNav;
-        window.__pendingNav = null;
-        var modal = bootstrap.Modal.getInstance(document.getElementById('unsavedModal'));
-        if (modal) modal.hide();
-        if (typeof nav === 'function') {
-            nav();
-        } else if (typeof window.__loadAdminPage === 'function') {
-            // No pending navigation: discard changes and reload current main area via AJAX
-            window.__loadAdminPage(window.location.pathname + window.location.search);
-        }
-    });
-    document.getElementById('unsavedModal').addEventListener('hidden.bs.modal', function () {
-        window.__pendingNav = null;
-    });
+    var unsavedModalConfirmEl = document.getElementById('unsavedModalConfirm');
+    var unsavedModalEl = document.getElementById('unsavedModal');
+    if (unsavedModalConfirmEl) {
+        unsavedModalConfirmEl.addEventListener('click', function () {
+            var nav = window.__pendingNav;
+            window.__pendingNav = null;
+            var modal = unsavedModalEl ? bootstrap.Modal.getInstance(unsavedModalEl) : null;
+            if (modal) modal.hide();
+            if (typeof nav === 'function') {
+                nav();
+            } else if (typeof window.__loadAdminPage === 'function') {
+                // No pending navigation: discard changes and reload current main area via AJAX
+                window.__loadAdminPage(window.location.pathname + window.location.search);
+            }
+        });
+    }
+    if (unsavedModalEl) {
+        unsavedModalEl.addEventListener('hidden.bs.modal', function () {
+            window.__pendingNav = null;
+        });
+    }
     window.addEventListener('beforeunload', function (e) {
         var forms = document.querySelectorAll('form[data-dirty-bar]');
         for (var i = 0; i < forms.length; i++) {

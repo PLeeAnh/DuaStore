@@ -37,11 +37,6 @@ window.DuaStore.api = window.DuaStore.api || {};
     };
 
     function handleResponse(res) {
-        var message = statusMessages[res.status] || 'Yêu cầu thất bại';
-        if (res.status === 401 || res.status === 403) {
-            if (typeof showLoginPopup === 'function')
-                showLoginPopup();
-        }
         if (res.ok) {
             return res.json().then(function (data) {
                 return {ok: true, data: data};
@@ -49,6 +44,27 @@ window.DuaStore.api = window.DuaStore.api || {};
                 return {ok: true, data: null};
             });
         }
+        if (res.status === 401) {
+            if (typeof showLoginPopup === 'function')
+                showLoginPopup();
+            return {ok: false, message: statusMessages[401]};
+        }
+        if (res.status === 403) {
+            // 403 có thể là CSRF (phiên hết hạn) hoặc thật sự không đủ quyền —
+            // chỉ hiện popup đăng nhập khi CSRF, còn lại hiện thông báo đúng lý do
+            // để tránh việc đã đăng nhập rồi vẫn bị bắt đăng nhập lại.
+            return res.json().then(function (data) {
+                if (data && data.reason === 'CSRF') {
+                    if (typeof showLoginPopup === 'function')
+                        showLoginPopup();
+                    return {ok: false, message: data.message || statusMessages[403]};
+                }
+                return {ok: false, message: (data && data.message) || statusMessages[403]};
+            }).catch(function () {
+                return {ok: false, message: statusMessages[403]};
+            });
+        }
+        var message = statusMessages[res.status] || 'Yêu cầu thất bại';
         return {ok: false, message: message};
     }
 
