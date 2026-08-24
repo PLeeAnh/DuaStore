@@ -4,8 +4,6 @@
  Bảng màu: chỉ xanh nước biển (--ds-btn-blue), trắng, đen.
  Áp dụng đè lên các class Bootstrap sẵn có (btn-primary, btn-danger, ...)
  để không phải sửa lại HTML từng trang.
- NGOẠI LỆ: nút "Mua ngay" dạng sóng (.ds-price-btn.ds-card-add-cart với
- svg.btn-wave-svg) giữ nguyên 100%, không bị ảnh hưởng bởi file này.
  File này được load SAU CÙNG trong cả admin/base.html và client/base.html
  để chắc chắn thắng cascade.
  ===================================================== */
@@ -133,20 +131,6 @@
 .ds-btn:focus-visible {
     outline: 2px solid var(--ds-btn-blue) !important;
     outline-offset: 2px;
-}
-
-/* ══════════════════════════════════════════════════════════
-   NGOẠI LỆ BẮT BUỘC: nút "Mua ngay" dạng sóng — giữ nguyên,
-   không áp bất kỳ rule nào ở trên lên phần tử này.
-   ══════════════════════════════════════════════════════════ */
-.ds-price-btn.ds-card-add-cart,
-.ds-price-btn.ds-card-add-cart:hover,
-.ds-price-btn.ds-card-add-cart:focus,
-.ds-price-btn.ds-card-add-cart:active {
-    all: revert;
-}
-.ds-price-btn.ds-card-add-cart * {
-    all: revert;
 }
 
 /* ── Kebab dropdown menu: z-index phòng thủ, tránh bị che/kẹt bởi

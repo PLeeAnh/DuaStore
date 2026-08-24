@@ -6,6 +6,7 @@ import com.duastore.service.AsyncEmailService;
 import com.duastore.service.ContactMessageService;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.admin.AdminStoreInfoService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -25,6 +26,12 @@ public class ContactController {
     private final SiteSettingService siteSettingService;
     private final ContactMessageService contactMessageService;
 
+    @Value("${store.latitude}")
+    private double defaultStoreLat;
+
+    @Value("${store.longitude}")
+    private double defaultStoreLng;
+
     public ContactController(AdminStoreInfoService storeInfoService,
             AsyncEmailService asyncEmailService,
             SiteSettingService siteSettingService,
@@ -41,9 +48,11 @@ public class ContactController {
         StoreInfo store = storeInfoService.findDefault();
         if (store != null) {
             model.addAttribute("store", store);
-            model.addAttribute("storeLat", store.getLatitude());
-            model.addAttribute("storeLng", store.getLongitude());
         }
+        Double lat = store != null ? store.getLatitude() : null;
+        Double lng = store != null ? store.getLongitude() : null;
+        model.addAttribute("storeLat", lat != null ? lat : defaultStoreLat);
+        model.addAttribute("storeLng", lng != null ? lng : defaultStoreLng);
         return "view/client/contact";
     }
 

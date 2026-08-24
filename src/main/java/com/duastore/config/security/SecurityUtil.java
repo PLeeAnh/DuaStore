@@ -8,6 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +19,8 @@ import java.util.Optional;
  * Lớp tiện ích (utility) hỗ trợ xử lý bảo mật/phân quyền.
  */
 public class SecurityUtil {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityUtil.class);
 
     private final UserRepository userRepository;
 
@@ -50,15 +54,16 @@ public class SecurityUtil {
         String email = resolveEmail(auth);
         // Use native query to avoid triggering Hibernate auto-flush during auditing callbacks
         try {
-            List<Object[]> rows = entityManager.createNativeQuery(
-                    "SELECT id FROM users WHERE email = :val OR username = :val LIMIT 1")
+            List<Object> rows = entityManager.createNativeQuery(
+                    "SELECT id FROM users WHERE email = :val OR username = :val")
                     .setParameter("val", email)
                     .setMaxResults(1)
                     .getResultList();
             if (!rows.isEmpty()) {
-                return Optional.of(((Number) rows.get(0)[0]).intValue());
+                return Optional.of(((Number) rows.get(0)).intValue());
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("getCurrentUserIdOptional: lookup failed for principal", e);
         }
         return Optional.empty();
     }
