@@ -538,7 +538,7 @@ th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
 
     <th:block th:insert="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
-        <script th:src="@{/js/client-home.js(v=2)}"></script>
+        <script th:src="@{/js/client-home.js(v=3)}"></script>
         <script th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
                 th:src="@{/js/popup-promo.js(v=1)}"></script>
     </th:block>

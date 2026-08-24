@@ -83,16 +83,17 @@
     }
 
     /* ── Sao chép mã ── */
-    document.querySelectorAll('.vc2-copy').forEach(function(btn) {
+    document.querySelectorAll('.ds-voucher-copy, .vc2-copy').forEach(function(btn) {
+        var originalHtml = btn.innerHTML;
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             var code = btn.getAttribute('data-code');
             if (!code) return;
             function done() {
-                btn.textContent = 'Đã chép';
+                btn.innerHTML = '<i class="bi bi-check2"></i> Đã chép';
                 btn.classList.add('copied');
                 setTimeout(function() {
-                    btn.textContent = 'Sao chép';
+                    btn.innerHTML = originalHtml;
                     btn.classList.remove('copied');
                 }, 1500);
             }

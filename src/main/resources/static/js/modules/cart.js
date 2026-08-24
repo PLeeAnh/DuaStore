@@ -110,6 +110,21 @@ document.addEventListener('click', function (e) {
 function addToCart(productId, variantId, quantity) {
     var card = document.querySelector('.ds-product-card[data-productid="' + productId + '"]');
     var btnAdd = card ? card.querySelector('.ds-card-add-cart') : null;
+
+    // Khách chưa đăng nhập vẫn thêm được vào giỏ — lưu tạm ở localStorage,
+    // không gọi API (API yêu cầu đăng nhập), chỉ bắt đăng nhập khi thanh toán.
+    if (typeof DuaStore !== 'undefined' && DuaStore.guestCart && !DuaStore.guestCart.isLoggedIn()) {
+        DuaStore.guestCart.add(variantId, quantity);
+        if (btnAdd) btnAdd.classList.add('added');
+        if (typeof markCartBadgeUnread === 'function') markCartBadgeUnread();
+        if (typeof updateCartBadge === 'function') updateCartBadge(DuaStore.guestCart.count(), true);
+        if (card) addCartPopupItem(card, productId, variantId, quantity);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.success('Đã thêm vào giỏ hàng');
+        }
+        return;
+    }
+
     fetch('/api/cart/add-popup', {
         method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({productId: productId, variantId: variantId, quantity: quantity})
@@ -244,6 +259,21 @@ function addToCartFromCard(btn) {
             || card.querySelector('.ds-variant-chip:not(.oos)')
             || card.querySelector('.ds-variant-chip');
     var variantId = activeChip ? parseInt(activeChip.getAttribute('data-variantid')) : null;
+
+    // Khách chưa đăng nhập vẫn thêm được vào giỏ (lưu tạm localStorage) —
+    // chỉ bắt đăng nhập khi vào trang giỏ hàng/thanh toán.
+    if (typeof DuaStore !== 'undefined' && DuaStore.guestCart && !DuaStore.guestCart.isLoggedIn()) {
+        DuaStore.guestCart.add(variantId, qty);
+        btn.classList.add('added');
+        if (typeof markCartBadgeUnread === 'function') markCartBadgeUnread();
+        if (typeof updateCartBadge === 'function') updateCartBadge(DuaStore.guestCart.count(), true);
+        addCartPopupItem(card, productId, variantId, qty);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.success('Đã thêm vào giỏ hàng');
+        }
+        return;
+    }
+
     fetch('/api/cart/add-popup', {
         method: 'POST',
         headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),

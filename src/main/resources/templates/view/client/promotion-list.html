@@ -42,14 +42,21 @@
 
                     <!-- Đã bỏ tab lọc theo yêu cầu -->
 
-                    <!-- ── Voucher ── -->
+                    <!-- ── Voucher nổi bật ── -->
+                    <div class="ds-voucher-section-head">
+                        <div>
+                            <h2 class="ds-voucher-section-title"><i class="bi bi-fire"></i> Voucher nổi bật</h2>
+                            <p class="ds-voucher-section-sub">Những voucher được nhiều khách hàng săn đón nhất</p>
+                        </div>
+                    </div>
+
                     <div th:if="${#lists.isEmpty(promotions)}" class="text-center py-5 text-muted">
                         <i class="bi bi-ticket-perforated" style="font-size: 3rem;"></i>
                         <p class="mt-3">Hiện chưa có chương trình khuyến mãi nào</p>
                     </div>
 
-                    <div th:unless="${#lists.isEmpty(promotions)}" class="row g-3 ds-promo-grid" id="ds-promo-grid">
-                        <div th:each="p : ${promotions}" class="col-xxl-3 col-xl-3 col-lg-4 col-md-6 col-12 ds-promo-item"
+                    <div th:unless="${#lists.isEmpty(promotions)}" class="ds-voucher-grid" id="ds-promo-grid">
+                        <div th:each="p, pIter : ${promotions}" class="ds-promo-item"
                              th:data-loai="${p.loaiGiam}"
                              th:data-end="${p.denNgay != null ? #temporals.format(p.denNgay, 'yyyy-MM-dd') : ''}"
                              th:data-id="${p.id}"
@@ -64,44 +71,42 @@
                              th:data-solandalung="${p.soLanDung}"
                              th:data-dadung="${p.daDung}"
                              onclick="openPromoDetail(this)">
-                            <div class="ds-campaign-card h-100">
-                                <span class="ds-promo-expiring-badge"
+                            <div class="ds-voucher-card"
+                                 th:classappend="${p.donHangToiThieu == null or p.donHangToiThieu == 0}
+                                     ? 'ds-vc-freeship'
+                                     : (${'PHAN_TRAM'.equals(p.loaiGiam)} ? (${pIter.index % 2 == 0} ? 'ds-vc-purple' : 'ds-vc-orange') : 'ds-vc-green')">
+                                <span class="ds-voucher-expiring"
                                       th:if="${p.denNgay != null and p.denNgay.isBefore(T(java.time.LocalDateTime).now().plusDays(3))}">
                                     <i class="bi bi-hourglass-split"></i>Sắp hết hạn
                                 </span>
-                                <div class="dc_work_group">
-                                    <div class="dc_work_group_title">
-                                        <i class="bi bi-ticket-perforated" style="color:var(--ds-primary);font-size:.95rem;"></i>
-                                        <h3 th:text="${p.tenChuongTrinh}">Tên chương trình</h3>
-                                    </div>
-                                    <div class="ds-browse-list ds-promo-body">
-                                        <div class="ds-promo-value" th:classappend="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'ds-promo-value-pct' : 'ds-promo-value-money'">
-                                            <span class="ds-promo-value-main">
-                                                <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                                      th:text="${'- ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">-15%</span>
-                                                <span th:unless="${'PHAN_TRAM'.equals(p.loaiGiam)}"
-                                                      th:text="${'- ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}">-50.000đ</span>
-                                            </span>
-                                            <span class="ds-promo-value-max" th:if="${p.giamToiDa != null}"
-                                                  th:text="${'Giảm tối đa ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">Giảm tối đa 100.000đ</span>
-                                            <span class="ds-promo-value-type" th:text="${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'Voucher giảm %' : 'Voucher giảm tiền'">Voucher</span>
-                                        </div>
-                                        <div class="ds-promo-conds">
-                                            <span class="ds-promo-cond" th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}">
-                                                <i class="bi bi-cart3"></i> Đơn từ <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
-                                            </span>
-                                            <span class="ds-promo-cond">
-                                                <i class="bi bi-calendar3"></i> HSD: <strong th:text="${#temporals.format(p.denNgay, 'dd/MM/yyyy')}">31/12/2026</strong>
-                                            </span>
-                                            <span class="ds-promo-cond" th:if="${p.savedCount != null and p.savedCount > 0}">
-                                                <i class="bi bi-people"></i> <strong th:text="${p.savedCount}">120</strong> người lưu
-                                            </span>
-                                        </div>
-                                        <div class="ds-promo-code-row">
-                                            <span class="vc2-code" th:text="${p.maCode}">CODE</span>
-                                            <button type="button" class="vc2-copy" th:data-code="${p.maCode}" onclick="event.stopPropagation()">Sao chép</button>
-                                        </div>
-                                    </div>
+                                <div class="ds-voucher-label"
+                                     th:text="${p.donHangToiThieu == null or p.donHangToiThieu == 0}
+                                         ? 'Miễn phí vận chuyển'
+                                         : (${'PHAN_TRAM'.equals(p.loaiGiam)} ? 'Giảm giá' : 'Giảm giá')">Giảm giá</div>
+                                <div class="ds-voucher-value" th:unless="${p.donHangToiThieu == null or p.donHangToiThieu == 0}">
+                                    <span th:if="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                                          th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">-15%</span>
+                                    <span th:unless="${'PHAN_TRAM'.equals(p.loaiGiam)}"
+                                          th:text="${'-' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT')} + 'K'">-50K</span>
+                                </div>
+                                <div class="ds-voucher-value ds-voucher-value-lg" th:if="${p.donHangToiThieu == null or p.donHangToiThieu == 0}">FREESHIP</div>
+                                <div class="ds-voucher-cond">
+                                    <span th:if="${p.giamToiDa != null and p.giamToiDa > 0}"
+                                          th:text="${'TỐI ĐA ' + #numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">TỐI ĐA 100.000đ</span>
+                                    <span th:if="${p.donHangToiThieu != null and p.donHangToiThieu > 0}"
+                                          th:text="${'Cho đơn từ ' + #numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">Cho đơn từ 200.000đ</span>
+                                    <span th:if="${p.donHangToiThieu == null or p.donHangToiThieu == 0}">Toàn quốc</span>
+                                </div>
+                                <div class="ds-voucher-code-row">
+                                    <span class="ds-voucher-code" th:text="${p.maCode}">CODE</span>
+                                    <button type="button" class="ds-voucher-copy" th:data-code="${p.maCode}" onclick="event.stopPropagation()">
+                                        <i class="bi bi-clipboard"></i> Sao chép
+                                    </button>
+                                </div>
+                                <div class="ds-voucher-footer">
+                                    <span th:text="${'HSD: ' + (p.denNgay != null ? #temporals.format(p.denNgay, 'dd/MM/yyyy') : 'Không giới hạn')}">HSD: 31/12/2026</span>
+                                    <span th:if="${p.soLanDung != null and p.soLanDung > 0}"
+                                          th:text="${'Còn ' + (p.soLanDung - (p.daDung ?: 0)) + ' lượt'}">Còn 1.234 lượt</span>
                                 </div>
                             </div>
                         </div>
@@ -217,7 +222,7 @@
         </div>
 
     <th:block layout:fragment="extra-script">
-        <script th:src="@{/js/client-promo.js(v=1)}"></script>
+        <script th:src="@{/js/client-promo.js(v=2)}"></script>
     </th:block>
 </body>
 </html>
