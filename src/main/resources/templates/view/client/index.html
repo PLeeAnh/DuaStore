@@ -78,53 +78,54 @@
                     <div class="ds-slider-dots"></div>
                 </section>
 
-                <!-- CHIẾN DỊCH KHUYẾN MÃI (4 cột theo chiến dịch) -->
-                <section class="ds-section-card ds-discount-section sr-up ds-slider-section"
+                <!-- CHIẾN DỊCH KHUYẾN MÃI (voucher cards) -->
+                <section class="ds-section-card ds-discount-section sr-up ds-slider-section ds-slider-single"
                          th:if="${not #lists.isEmpty(campaignPromotions)}" data-items-per-page="4">
                     <div class="ds-discount-header">
                         <h2 class="ds-discount-title"><i class="bi bi-fire"></i> Đang diễn ra chiến dịch khuyến mãi</h2>
-                        <a th:href="@{/khuyen-mai}" class="ds-link-more">Xem tất cả sản phẩm đang giảm giá <i class="bi bi-arrow-right"></i></a>
+                        <a th:href="@{/khuyen-mai}" class="ds-link-more">Xem tất cả voucher <i class="bi bi-arrow-right"></i></a>
                     </div>
                     <div class="ds-slider-wrap">
                         <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
                         <div class="ds-slider-viewport">
                             <div class="ds-slider-track">
 
-                                <div th:each="promo : ${campaignPromotions}" class="ds-discount-item ds-campaign-card">
+                                <div th:each="promo : ${campaignPromotions}" class="ds-discount-item ds-campaign-card"
+                                     th:data-promo-id="${promo.id}" th:data-promo-code="${promo.maCode}"
+                                     onclick="claimHomePromo(this.getAttribute('data-promo-id'), this.getAttribute('data-promo-code'))">
                                     <div class="dc_work_group">
+                                        <span class="ds-promo-expiring-badge"
+                                              th:if="${promo.denNgay != null and promo.denNgay.isBefore(T(java.time.LocalDateTime).now().plusDays(3))}">
+                                            <i class="bi bi-hourglass-split"></i>Sắp hết hạn
+                                        </span>
                                         <div class="dc_work_group_title">
-                                            <h3 th:text="${promo.tenChuongTrinh} + ' - Giảm ' + ${#numbers.formatInteger(promo.giaTriGiam, 0)} + '%'">Tên - Giảm 0%</h3>
+                                            <i class="bi bi-ticket-perforated" style="color:var(--ds-primary);font-size:.95rem;"></i>
+                                            <h3 th:text="${promo.tenChuongTrinh}">Tên chương trình</h3>
                                         </div>
-                                        <div class="ds-browse-list">
-                                            <div th:each="p, iter : ${campaignProductsMap.get(promo.id)}"
-                                                 class="ds-browse-row"
-                                                 th:data-index="${iter.index}"
-                                                 th:data-id="${p.id}"
-                                                 th:data-name="${p.tenSanPham}"
-                                                 th:data-img="${p.hinhAnhChinh ?: '/images/no-image.png'}"
-                                                 th:data-cat="${categoryNameMap.get(p.danhMucId) ?: ''}"
-                                                 th:data-href="@{'/san-pham/' + ${p.id}}"
-                                                 th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                                          v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
-                                                <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
-                                                <div class="ds-browse-row-detail">
-                                                    <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
-                                                    <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
-                                                    <div class="ds-browse-row-price">
-                                                        <span class="ds-browse-row-price-discount"
-                                                              th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
-                                                              th:text="'-' + ${bestDiscountMap.get(p.id)} + '%'">-15%</span>
-                                                        <span class="ds-browse-row-price-current"
-                                                              th:text="${promoPriceMap.get(p.id) != null ? #numbers.formatInteger(promoPriceMap.get(p.id), 0, 'POINT') + '₫' : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : '')}">382.500₫</span>
-                                                    </div>
-                                                </div>
+                                        <div class="ds-browse-list ds-promo-body">
+                                            <div class="ds-promo-value" th:classappend="${'PHAN_TRAM'.equals(promo.loaiGiam)} ? 'ds-promo-value-pct' : 'ds-promo-value-money'">
+                                                <span class="ds-promo-value-main">
+                                                    <span th:if="${'PHAN_TRAM'.equals(promo.loaiGiam)}"
+                                                          th:text="${'- ' + #numbers.formatDecimal(promo.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">-15%</span>
+                                                    <span th:unless="${'PHAN_TRAM'.equals(promo.loaiGiam)}"
+                                                          th:text="${'- ' + #numbers.formatDecimal(promo.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}">-50.000đ</span>
+                                                </span>
+                                                <span class="ds-promo-value-max" th:if="${promo.giamToiDa != null}"
+                                                      th:text="${'Giảm tối đa ' + #numbers.formatDecimal(promo.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">Giảm tối đa 100.000đ</span>
+                                                <span class="ds-promo-value-type" th:text="${'PHAN_TRAM'.equals(promo.loaiGiam)} ? 'Voucher giảm %' : 'Voucher giảm tiền'">Voucher</span>
                                             </div>
-                                            <div class="ds-campaign-empty" th:if="${#lists.isEmpty(campaignProductsMap.get(promo.id))}">
-                                                Chưa có sản phẩm nào
+                                            <div class="ds-promo-conds">
+                                                <span class="ds-promo-cond" th:if="${promo.donHangToiThieu != null and promo.donHangToiThieu > 0}">
+                                                    <i class="bi bi-cart3"></i> Đơn từ <strong th:text="${#numbers.formatDecimal(promo.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                                </span>
+                                                <span class="ds-promo-cond">
+                                                    <i class="bi bi-calendar3"></i> HSD: <strong th:text="${#temporals.format(promo.denNgay, 'dd/MM/yyyy')}">31/12/2026</strong>
+                                                </span>
                                             </div>
-                                        </div>
-                                        <div class="dc_work_group_footer">
-                                            <a th:href="@{/khuyen-mai}" class="dc_btn_more">Xem thêm</a>
+                                            <div class="ds-promo-code-row">
+                                                <span class="vc2-code" th:text="${promo.maCode}">CODE</span>
+                                                <button type="button" class="vc2-copy" th:data-code="${promo.maCode}" onclick="event.stopPropagation(); copyDetailCode()">Sao chép</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -195,98 +196,6 @@
                     <div class="ds-slider-dots"></div>
                 </section>
 
-                <!-- DUYỆT SẢN PHẨM (Browse: hai cột list + preview) -->
-                <section class="ds-section-card ds-browse sr-up" th:if="${not #lists.isEmpty(browseProducts)}">
-                    <div class="ds-section-header">
-                        <h2 class="ds-section-title-sm">Duyệt sản phẩm</h2>
-                    </div>
-                    <div class="ds-browse-wrap">
-                        <!-- Cột trái: tabs + list -->
-                        <div>
-                            <div class="ds-browse-tabs">
-                                <button th:if="${hasFavProducts}" class="ds-browse-tab active" data-tab="fav">Yêu thích nhất</button>
-                                <button th:if="${hasSoldProducts}" class="ds-browse-tab" data-tab="sold" th:classappend="${!hasFavProducts ? 'active' : ''}">Bán chạy nhất</button>
-                                <button class="ds-browse-tab" data-tab="new" th:classappend="${!hasFavProducts and !hasSoldProducts ? 'active' : ''}">Sắp ra mắt</button>
-                            </div>
-                            <div class="ds-browse-list" id="browseList">
-                                <div th:each="p, iter : ${browseProducts}"
-                                     class="ds-browse-row" th:classappend="${iter.index == 0} ? 'active'"
-                                     th:data-index="${iter.index}"
-                                     th:data-id="${p.id}"
-                                     th:data-name="${p.tenSanPham}"
-                                     th:data-img="${p.hinhAnhChinh ?: '/images/no-image.png'}"
-                                     th:data-desc="${p.moTa != null ? (#strings.length(p.moTa) > 140 ? #strings.substring(p.moTa,0,140) + '…' : p.moTa) : ''}"
-                                     th:data-cat="${categoryNameMap.get(p.danhMucId) ?: ''}"
-                                     th:data-rating="${ratingMap.get(p.id) != null ? #numbers.formatDecimal(ratingMap.get(p.id), 1, 1) : ''}"
-                                     th:data-rating-count="${ratingCountMap.get(p.id) ?: 0}"
-                                     th:data-wishlist="${wishlistCountMap.get(p.id) ?: 0}"
-                                     th:data-href="@{'/san-pham/' + ${p.id}}"
-th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                      v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
-                                      fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null},
-                                      bestPrice=${variantBestPriceMap != null ? variantBestPriceMap.get(v != null ? v.id : null) : null}"
-                                      th:data-price="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : '')}"
-                                      th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
-                                     th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
-                                     th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
-                                     th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
-                                     th:data-gallery="${#strings.listJoin(browseGalleryMap.get(p.id) ?: java.util.Collections.emptyList(), ',')}">
-                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
-                                    <div class="ds-browse-row-info">
-                                        <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
-                                        <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
-                                    </div>
-                                    <div class="ds-browse-row-price">
-                                        <span class="ds-browse-row-price-discount" th:if="${bestPrice != null and v != null and v.giaGoc != null and bestPrice.compareTo(v.giaGoc) < 0}"
-                                              th:text="'-' + ${#numbers.formatDecimal((v.giaGoc - bestPrice) * 100 / v.giaGoc, 0, 0)} + '%'">-70%</span>
-                                        <span class="ds-browse-row-price-current"
-                                              th:text="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') + '₫' : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') + '₫' : '')}">297.000₫</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="ds-see-more-link">
-                                <span>Xem thêm:</span>
-                                <div th:if="${hasFavProducts}" class="ds-see-more-btn" data-tab="fav" style="display:block">
-                                    <a th:href="@{/san-pham(sortBy='yêu thích')}" class="ds-see-more-btn-inner">Yêu thích nhất</a>
-                                </div>
-                                <div th:if="${hasSoldProducts}" class="ds-see-more-btn" data-tab="sold" th:style="${!hasFavProducts ? 'display:block' : 'display:none'}">
-                                    <a th:href="@{/san-pham(sortBy='bán chạy')}" class="ds-see-more-btn-inner">Bán chạy nhất</a>
-                                </div>
-                                <div class="ds-see-more-btn" data-tab="new" th:style="${!hasFavProducts and !hasSoldProducts ? 'display:block' : 'display:none'}">
-                                    <a th:href="@{/san-pham(sortBy='mới nhất')}" class="ds-see-more-btn-inner">Sắp ra mắt</a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Cột phải: preview panel (Steam-style) -->
-                        <div class="ds-browse-preview" id="browsePreview">
-                            <div class="ds-browse-preview-thumb" id="browsePreviewThumb">
-<img th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${browseProducts[0].tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
-                             </div>
-                             <div class="ds-browse-preview-header">
-                                <h4 class="ds-browse-preview-name" id="browsePreviewName" th:text="${browseProducts[0].tenSanPham}">Tên sản phẩm</h4>
-                                <div class="ds-browse-preview-rating" id="browsePreviewRating">
-                                    <i class="bi bi-star-fill"></i>
-                                    <span id="browsePreviewRatingValue" th:text="${ratingMap.get(browseProducts[0].id) != null ? #numbers.formatDecimal(ratingMap.get(browseProducts[0].id), 1, 1) : ''}">4.2</span>
-                                    <span class="ds-browse-preview-rating-label" id="browsePreviewRatingLabel"
-                                          th:text="${ratingMap.get(browseProducts[0].id) != null ? (ratingMap.get(browseProducts[0].id) >= 4.5 ? 'Tốt' : (ratingMap.get(browseProducts[0].id) >= 3.5 ? 'Khá' : (ratingMap.get(browseProducts[0].id) >= 2.5 ? 'Bình thường' : 'Kém'))) : 'Chưa ai đánh giá'}">Khá</span>
-                                    <span class="ds-browse-preview-rating-count" id="browsePreviewRatingCount">(0)</span>
-                                </div>
-                            </div>
-                            <div class="ds-browse-preview-tags" id="browsePreviewTags">
-                                <span class="ds-browse-preview-tag" id="browsePreviewCatTag" th:text="${categoryNameMap.get(browseProducts[0].danhMucId) ?: ''}">Danh mục</span>
-                            </div>
-                            <a class="ds-browse-preview-link" id="browsePreviewLink" th:href="'/san-pham/' + ${browseProducts[0].id}">Xem chi tiết <i class="bi bi-arrow-right"></i></a>
-                            <div class="ds-browse-preview-images" id="browsePreviewImages">
-                                <th:block th:each="img, imgIter : ${browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()}">
-                                     <img class="ds-browse-preview-img" th:src="${img}" th:alt="${browseProducts[0].tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'" th:if="${imgIter.index < 6}"/>
-                                </th:block>
-                                <th:block th:if="${(browseGalleryMap.get(browseProducts[0].id) ?: java.util.Collections.emptyList()).isEmpty()}">
-                                    <img class="ds-browse-preview-img" th:src="${browseProducts[0].hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${browseProducts[0].tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
-                                </th:block>
-                            </div>
-                        </div>
-                    </div>
-                </section>
             </div><!-- /.ds-home-content -->
 
             <!-- CÁC SECTION DO ADMIN THÊM (Homepage designer) -->
@@ -459,7 +368,7 @@ th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
 
     <th:block th:insert="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
-        <script th:src="@{/js/client-home.js(v=2)}"></script>
+        <script th:src="@{/js/client-home.js(v=3)}"></script>
         <script th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
                 th:src="@{/js/popup-promo.js(v=1)}"></script>
     </th:block>

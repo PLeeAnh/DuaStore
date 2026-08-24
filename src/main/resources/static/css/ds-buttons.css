@@ -1,0 +1,151 @@
+/* =====================================================
+ DuaStore — Unified Button System (admin + client)
+ Mục tiêu: CHỈ 1 kiểu button duy nhất cho toàn site.
+ Bảng màu: chỉ xanh nước biển (--ds-btn-blue), trắng, đen.
+ Áp dụng đè lên các class Bootstrap sẵn có (btn-primary, btn-danger, ...)
+ để không phải sửa lại HTML từng trang.
+ File này được load SAU CÙNG trong cả admin/base.html và client/base.html
+ để chắc chắn thắng cascade.
+ ===================================================== */
+
+:root {
+    --ds-btn-blue: #1D6FE0;
+    --ds-btn-blue-dark: #1657B8;
+    --ds-btn-blue-light: #EAF2FE;
+    --ds-btn-white: #FFFFFF;
+    --ds-btn-black: #111318;
+    --ds-btn-black-dark: #000000;
+}
+
+/* ── Base shape: pill, đơn giản ── */
+.btn,
+.ds-btn {
+    border-radius: 999px !important;
+    font-weight: 600;
+    letter-spacing: .01em;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .1s ease;
+    box-shadow: none !important;
+}
+
+.btn:active,
+.ds-btn:active {
+    transform: translateY(1px);
+}
+
+/* Nút chỉ icon (kebab, close, ...) vẫn tròn/vuông theo layout riêng, không ép pill toàn phần */
+.btn-icon,
+.adm-kebab-btn,
+.btn-close {
+    padding: 0 !important;
+}
+
+/* ── PRIMARY: nền xanh, chữ trắng ── */
+.btn-primary,
+.btn-success,
+.ds-btn-fill {
+    background-color: var(--ds-btn-blue) !important;
+    border-color: var(--ds-btn-blue) !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-primary:hover, .btn-primary:focus,
+.btn-success:hover, .btn-success:focus,
+.ds-btn-fill:hover, .ds-btn-fill:focus {
+    background-color: var(--ds-btn-blue-dark) !important;
+    border-color: var(--ds-btn-blue-dark) !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-primary:disabled, .btn-primary.disabled,
+.btn-success:disabled, .btn-success.disabled,
+.ds-btn-fill:disabled, .ds-btn-fill.disabled {
+    background-color: #A9C6EF !important;
+    border-color: #A9C6EF !important;
+    color: var(--ds-btn-white) !important;
+    opacity: 1 !important;
+}
+
+/* ── SECONDARY: nền trắng, viền + chữ xanh ── */
+.btn-secondary,
+.btn-info,
+.btn-warning,
+.btn-light,
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-info,
+.btn-outline-warning,
+.btn-outline-success,
+.ds-btn-outline {
+    background-color: var(--ds-btn-white) !important;
+    border: 1.5px solid var(--ds-btn-blue) !important;
+    color: var(--ds-btn-blue) !important;
+}
+.btn-secondary:hover, .btn-secondary:focus,
+.btn-info:hover, .btn-info:focus,
+.btn-warning:hover, .btn-warning:focus,
+.btn-light:hover, .btn-light:focus,
+.btn-outline-primary:hover, .btn-outline-primary:focus,
+.btn-outline-secondary:hover, .btn-outline-secondary:focus,
+.btn-outline-info:hover, .btn-outline-info:focus,
+.btn-outline-warning:hover, .btn-outline-warning:focus,
+.btn-outline-success:hover, .btn-outline-success:focus,
+.ds-btn-outline:hover, .ds-btn-outline:focus {
+    background-color: var(--ds-btn-blue-light) !important;
+    border-color: var(--ds-btn-blue-dark) !important;
+    color: var(--ds-btn-blue-dark) !important;
+}
+.btn-secondary:disabled, .btn-secondary.disabled,
+.btn-outline-primary:disabled, .btn-outline-primary.disabled,
+.ds-btn-outline:disabled, .ds-btn-outline.disabled {
+    border-color: #CBD5E1 !important;
+    color: #94A3B8 !important;
+    background-color: var(--ds-btn-white) !important;
+    opacity: 1 !important;
+}
+
+/* ── DESTRUCTIVE: nền đen, chữ trắng ── */
+.btn-danger,
+.btn-dark,
+.btn-outline-danger,
+.ds-btn-danger {
+    background-color: var(--ds-btn-black) !important;
+    border-color: var(--ds-btn-black) !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-danger:hover, .btn-danger:focus,
+.btn-dark:hover, .btn-dark:focus,
+.btn-outline-danger:hover, .btn-outline-danger:focus,
+.ds-btn-danger:hover, .ds-btn-danger:focus {
+    background-color: var(--ds-btn-black-dark) !important;
+    border-color: var(--ds-btn-black-dark) !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-danger:disabled, .btn-danger.disabled,
+.ds-btn-danger:disabled, .ds-btn-danger.disabled {
+    background-color: #B8BCC6 !important;
+    border-color: #B8BCC6 !important;
+    color: var(--ds-btn-white) !important;
+    opacity: 1 !important;
+}
+
+/* ── Focus ring: chỉ xanh, không dùng màu Bootstrap mặc định ── */
+.btn:focus-visible,
+.ds-btn:focus-visible {
+    outline: 2px solid var(--ds-btn-blue) !important;
+    outline-offset: 2px;
+}
+
+/* ── Kebab dropdown menu: z-index phòng thủ, tránh bị che/kẹt bởi
+   stacking context của .adm-card / .adm-table-wrap trên mọi trang admin ── */
+.adm-kebab-menu,
+.adm-kebab-menu.show,
+.dropdown-menu.adm-kebab-menu {
+    z-index: 3050 !important;
+}
+
+/* ── Cột thao tác (3 chấm) trên MỌI bảng admin: đủ rộng để nút 32px +
+   padding không bị sát mép, đồng bộ cho tất cả trang chứ không riêng
+   trang Sản phẩm. Không cho bất kỳ template nào set width hẹp hơn. ── */
+.adm-table-wrap .table th.adm-kebab-col,
+.adm-table-wrap .table td:has(.adm-kebab-btn) {
+    width: 64px !important;
+    min-width: 64px !important;
+}

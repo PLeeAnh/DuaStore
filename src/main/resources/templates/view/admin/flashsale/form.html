@@ -58,10 +58,8 @@
                         <input type="datetime-local" th:field="*{ngayKetThuc}" class="form-control" required />
                         <div th:if="${#fields.hasErrors('ngayKetThuc')}" th:errors="*{ngayKetThuc}" class="text-danger small"></div>
                     </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary me-2">Lưu đợt Flash Sale</button>
-                        <a th:href="@{/admin/flash-sale}" class="btn btn-secondary">Hủy</a>
-                    </div>
+                    <!-- Lưu/Hủy giờ dùng chung 1 chỗ duy nhất: thanh dsSaveBar nổi ở dưới
+                         (nút Lưu tự submit form này qua JS, nút Đặt lại/Rời khỏi thay cho Hủy) -->
                 </form>
             </div>
         </div>

@@ -402,38 +402,6 @@
                 </div>
             </div>
 
-            <!-- ═══ PROMOTIONS ═══ -->
-            <div class="container-xl py-4" th:if="${not #lists.isEmpty(productPromotions)}">
-                <div class="ds-card p-4">
-                    <h5 class="fw-bold mb-4" style="font-size:1rem;color:#0F172A">Khuyến mãi áp dụng</h5>
-                    <div class="row g-3">
-                        <div class="col-6 col-md-4" th:each="p : ${productPromotions}">
-                            <div class="vc-card h-100">
-                                <div class="vc-discount"
-                                     th:text="${p.loaiGiam == 'PHAN_TRAM' ? ('GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%') : ('GIẢM ' + #numbers.formatDecimal(p.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ')}">GIẢM 15%</div>
-                                <div class="vc-desc" th:text="${p.tenChuongTrinh}">Mô tả</div>
-                                <span class="vc-code">Mã: <span th:text="${p.maCode}">CODE</span></span>
-                                <div class="vc-grid">
-                                    <div class="vc-grid-item" th:if="${p.donHangToiThieu > 0}">
-                                        <span>&#x1F6D2;</span> Tối thiểu: <strong th:text="${#numbers.formatDecimal(p.donHangToiThieu, 0, 'POINT', 0, 'POINT')} + 'đ'">200.000đ</strong>
-                                    </div>
-                                    <div class="vc-grid-item" th:if="${p.giamToiDa > 0 and p.loaiGiam == 'PHAN_TRAM'}">
-                                        <span>&#x1F4B0;</span> Tối đa: <strong th:text="${#numbers.formatDecimal(p.giamToiDa, 0, 'POINT', 0, 'POINT')} + 'đ'">100.000đ</strong>
-                                    </div>
-                                    <div class="vc-grid-item">
-                                        <span>&#x1F4C5;</span> HSD: <span th:text="${p.denNgay != null ? #temporals.format(p.denNgay, 'dd/MM/yyyy') : 'Không giới hạn'}">01/01/2027</span>
-                                    </div>
-                                </div>
-                                <div class="vc-bottom">
-                                    <button class="vc-btn vc-btn-ghost btn-detail" type="button" th:data-id="${p.id}">Chi tiết</button>
-                                    <button class="vc-btn vc-btn-cta btn-save-voucher" type="button" th:data-id="${p.id}">Nhận</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- ═══ REVIEWS ═══ -->
             <div th:replace="~{view/client/product/parts/product-reviews :: reviews}"></div>
 
@@ -449,10 +417,8 @@
             let selectedVariantId = null;
             let selectedPrice = null;
             let selectedStock = 0;
-                    const productId = [[${product.id}
-                    ]];
-                    const promoPct = [[${bestPercentagePromo != null ? bestPercentagePromo.giaTriGiam : 0}
-                    ]];
+                    const productId = [[${product.id}]];
+                    const promoPct = [[${bestPercentagePromo != null ? bestPercentagePromo.giaTriGiam : 0}]];
 
             const firstDefault = document.querySelector('.variant-chip.active:not(.out-of-stock)')
                     || document.querySelector('.variant-chip:not(.out-of-stock)')
@@ -679,14 +645,30 @@
                 if (!selectedVariantId)
                     return;
                 const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+
+                // Khách chưa đăng nhập vẫn thêm được vào giỏ (lưu tạm localStorage);
+                // chỉ bắt đăng nhập khi vào trang giỏ hàng (đã yêu cầu đăng nhập sẵn).
+                if (typeof DuaStore !== 'undefined' && DuaStore.guestCart && !DuaStore.guestCart.isLoggedIn()) {
+                    DuaStore.guestCart.add(selectedVariantId, qty);
+                    window.location.href = '/gio-hang';
+                    return;
+                }
+
                 fetch('/api/cart/add-popup', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: Object.assign({'Content-Type': 'application/json'}, (typeof DuaStore !== 'undefined' && DuaStore.api ? DuaStore.api.getCsrfHeaders() : {})),
                     body: JSON.stringify({productId: productId, variantId: selectedVariantId, quantity: qty})
                 }).then(function (r) {
-                    if (r.status === 401 || r.status === 403) {
+                    if (r.status === 401) {
                         showLoginPopup();
                         return null;
+                    }
+                    if (r.status === 403) {
+                        return r.json().then(function (data) {
+                            if (!data || data.reason === 'CSRF') { showLoginPopup(); }
+                            else if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Bạn không có quyền thực hiện thao tác này.'); }
+                            return null;
+                        }).catch(function () { showLoginPopup(); return null; });
                     }
                     return r.json();
                 }).then(function (data) {
@@ -721,14 +703,34 @@
                 const imgSrc = document.getElementById('mainImage')?.getAttribute('src') || '';
                 const validImgSrc = imgSrc && !imgSrc.startsWith('data:') && imgSrc !== window.location.href ? imgSrc : '';
 
+                // Khách chưa đăng nhập vẫn thêm được vào giỏ (lưu tạm localStorage);
+                // chỉ bắt đăng nhập khi vào trang giỏ hàng/thanh toán.
+                if (typeof DuaStore !== 'undefined' && DuaStore.guestCart && !DuaStore.guestCart.isLoggedIn()) {
+                    DuaStore.guestCart.add(variantId, qty);
+                    if (typeof markCartBadgeUnread === 'function') markCartBadgeUnread();
+                    if (typeof updateCartBadge === 'function') updateCartBadge(DuaStore.guestCart.count(), true);
+                    addCartPopupItemFromDetail(productId, variantId, qty, productName, validImgSrc, variantName, rawPrice, selectedStock);
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.success('Đã thêm vào giỏ hàng');
+                    }
+                    return;
+                }
+
                 fetch('/api/cart/add-popup', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: Object.assign({'Content-Type': 'application/json'}, (typeof DuaStore !== 'undefined' && DuaStore.api ? DuaStore.api.getCsrfHeaders() : {})),
                     body: JSON.stringify({productId: productId, variantId: variantId, quantity: qty})
                 }).then(function (r) {
-                    if (r.status === 401 || r.status === 403) {
+                    if (r.status === 401) {
                         showLoginPopup();
                         return null;
+                    }
+                    if (r.status === 403) {
+                        return r.json().then(function (data) {
+                            if (!data || data.reason === 'CSRF') { showLoginPopup(); }
+                            else if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Bạn không có quyền thực hiện thao tác này.'); }
+                            return null;
+                        }).catch(function () { showLoginPopup(); return null; });
                     }
                     return r.json();
                 }).then(function (data) {

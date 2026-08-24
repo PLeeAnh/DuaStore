@@ -9,6 +9,6 @@ function confirmReceived(btn) {
         method: 'POST', headers: headers
     }).then(function (r) {
         if (r.ok) { window.location.reload(); }
-        else { alert('Có lỗi xảy ra'); }
-    }).catch(function () { alert('Lỗi kết nối'); });
+        else if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Có lỗi xảy ra'); }
+    }).catch(function () { if (typeof DuaStore !== 'undefined' && DuaStore.toast) DuaStore.toast.error('Lỗi kết nối'); });
 }

@@ -52,7 +52,8 @@ public class TwoFactorAuthFilter extends OncePerRequestFilter {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
                         || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
-        if (isAdmin && path.startsWith("/admin/")) {
+        boolean isAdminGatedPath = path.startsWith("/admin/") || path.startsWith("/ws/");
+        if (isAdmin && isAdminGatedPath) {
             boolean skip = SKIP_PATHS.stream().anyMatch(p -> {
                 if (p.endsWith("/")) {
                     return path.startsWith(p);

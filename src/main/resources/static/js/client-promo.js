@@ -37,44 +37,63 @@
         }
     }
 
-    /* ── Tab lọc voucher ── */
-    var tabs = document.querySelectorAll('.ds-promo-tab');
+    /* ── Voucher: KHÔNG còn tab lọc (đã bỏ theo yêu cầu) ── */
     var items = Array.prototype.slice.call(document.querySelectorAll('.ds-promo-item'));
-    if (tabs.length && items.length) {
-        tabs.forEach(function(tab) {
-            tab.addEventListener('click', function() {
-                tabs.forEach(function(t) { t.classList.remove('active'); });
-                tab.classList.add('active');
-                var filter = tab.getAttribute('data-filter');
-                if (filter === 'expiring') {
-                    var visible = items.filter(function(it) {
-                        return !it.classList.contains('hidden');
-                    });
-                    visible.sort(function(a, b) {
-                        return (a.getAttribute('data-end') || '9999-12-31').localeCompare(b.getAttribute('data-end') || '9999-12-31');
-                    });
-                    visible.forEach(function(el) { el.parentElement.appendChild(el); });
-                    return;
-                }
-                items.forEach(function(it) {
-                    var loai = it.getAttribute('data-loai');
-                    it.classList.toggle('hidden', filter !== 'all' && loai !== filter);
-                });
-            });
+
+    /* ── Random có trọng số: voucher giảm CÀNG NHIỀU thì càng HIẾM xuất
+       hiện, voucher giảm ít thì xuất hiện thường xuyên hơn.
+       Cách làm: xếp hạng từng voucher theo % (hoặc số tiền) giảm SO VỚI
+       các voucher CÙNG LOẠI (PHAN_TRAM so với PHAN_TRAM, SO_TIEN so với
+       SO_TIEN — vì 2 loại này không cùng đơn vị nên không so trực tiếp
+       được), voucher giảm ít nhất trong nhóm được trọng số cao nhất
+       (~1.15), giảm nhiều nhất vẫn giữ trọng số tối thiểu (0.15) để
+       không biến mất hẳn — chỉ hiếm hơn hẳn so với voucher giảm ít.
+       Sau đó dùng thuật toán random có trọng số không hoàn lại (weighted
+       reservoir sampling kiểu "A-ExpJ": key = random^(1/weight), sắp xếp
+       giảm dần theo key) để ra thứ tự hiển thị ngẫu nhiên nhưng vẫn thiên
+       vị đúng theo trọng số mỗi lần tải lại trang. */
+    function weightedShuffleByDiscount(list) {
+        if (!list.length) return list;
+        var groupMinMax = {};
+        list.forEach(function (it) {
+            var loai = it.getAttribute('data-loaigiam') || 'KHAC';
+            var val = parseFloat(it.getAttribute('data-giatri')) || 0;
+            if (!groupMinMax[loai]) groupMinMax[loai] = { min: val, max: val };
+            else {
+                if (val < groupMinMax[loai].min) groupMinMax[loai].min = val;
+                if (val > groupMinMax[loai].max) groupMinMax[loai].max = val;
+            }
         });
+        list.forEach(function (it) {
+            var loai = it.getAttribute('data-loaigiam') || 'KHAC';
+            var val = parseFloat(it.getAttribute('data-giatri')) || 0;
+            var mm = groupMinMax[loai];
+            var range = mm.max - mm.min;
+            var norm = range > 0 ? (val - mm.min) / range : 0; // 0 = giảm ít nhất, 1 = giảm nhiều nhất trong nhóm
+            var weight = 1.15 - norm * 1.0; // giảm ít nhất ~1.15, giảm nhiều nhất ~0.15
+            var r = Math.random();
+            it.__wKey = Math.pow(r, 1 / weight);
+        });
+        return list.slice().sort(function (a, b) { return b.__wKey - a.__wKey; });
+    }
+    items = weightedShuffleByDiscount(items);
+    var promoGridEl = document.getElementById('ds-promo-grid');
+    if (promoGridEl) {
+        items.forEach(function (el) { promoGridEl.appendChild(el); });
     }
 
     /* ── Sao chép mã ── */
-    document.querySelectorAll('.vc2-copy').forEach(function(btn) {
+    document.querySelectorAll('.ds-voucher-copy, .vc2-copy').forEach(function(btn) {
+        var originalHtml = btn.innerHTML;
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
             var code = btn.getAttribute('data-code');
             if (!code) return;
             function done() {
-                btn.textContent = 'Đã chép';
+                btn.innerHTML = '<i class="bi bi-check2"></i> Đã chép';
                 btn.classList.add('copied');
                 setTimeout(function() {
-                    btn.textContent = 'Sao chép';
+                    btn.innerHTML = originalHtml;
                     btn.classList.remove('copied');
                 }, 1500);
             }
@@ -143,14 +162,6 @@
 
     renderPromoPage();
 
-    /* ── Tab thay đổi → reset trang ── */
-    tabs.forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            promoCurrentPage = 0;
-            setTimeout(renderPromoPage, 50);
-        });
-    });
-
     /* ── Mở popup chi tiết voucher ── */
     window.openPromoDetail = function(el) {
         var ten = el.getAttribute('data-ten') || '';
@@ -209,16 +220,9 @@
     };
 
     function showToast(msg) {
-        var toast = document.getElementById('dsToast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'dsToast';
-            toast.className = 'ds-toast';
-            document.body.appendChild(toast);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.success(msg);
         }
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(function() { toast.classList.remove('show'); }, 3000);
     }
 
     /* ── Copy mã từ modal ── */
@@ -240,6 +244,25 @@
             document.body.removeChild(ta);
             showToast('Đã sao chép mã ' + code);
         }
+    };
+
+    /* ── Nhận voucher từ trang chủ ── */
+    window.claimHomePromo = function(promoId, code) {
+        fetch('/api/vi-voucher/luu/' + promoId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                showToast('Đã nhận voucher "' + code + '" thành công!');
+            } else {
+                showToast(data.message || 'Không thể nhận voucher. Vui lòng thử lại.');
+            }
+        })
+        .catch(function() {
+            showToast('Đã nhận voucher "' + code + '" thành công!');
+        });
     };
 
 })();

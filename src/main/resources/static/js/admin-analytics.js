@@ -57,7 +57,9 @@
     var chartInstances = [];
 
     window.initAnalyticsCharts = function (data) {
-        if (!data || typeof Chart === 'undefined') return;
+        if (!data) { console.warn('[analytics] Không có dữ liệu (window.__analyticsData rỗng/null) — chart sẽ không hiện.'); return; }
+        if (typeof Chart === 'undefined') { console.error('[analytics] Thư viện Chart.js chưa load được — kiểm tra kết nối mạng/CDN bị chặn.'); return; }
+        try {
         // Destroy previously created charts so re-init (AJAX navigation) doesn't
         // throw "Canvas is already in use".
         chartInstances.forEach(function (c) { if (c) c.destroy(); });
@@ -137,9 +139,16 @@
                 showEmptyState(pmCanvas);
             }
         }
+        } catch (err) {
+            console.error('[analytics] Lỗi khi vẽ chart:', err);
+        }
     };
 
-    if (window.__analyticsData) window.initAnalyticsCharts(window.__analyticsData);
+    if (window.__analyticsData) {
+        window.initAnalyticsCharts(window.__analyticsData);
+    } else {
+        console.warn('[analytics] window.__analyticsData chưa được gán trước khi admin-analytics.js chạy — có thể do điều hướng AJAX không chạy đúng script trang này.');
+    }
 
     // Chart init khi tab dang an (display:none) co the cho kich thuoc 0;
     // khi tab duoc mo thi resize lai de chart hien dung.

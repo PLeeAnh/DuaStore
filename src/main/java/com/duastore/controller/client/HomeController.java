@@ -437,8 +437,18 @@ public class HomeController {
         // ─ Chiến dịch khuyến mãi: nhóm sản phẩm theo từng chiến dịch (4 cột) ─
         // Chỉ các chiến dịch giảm giá sản phẩm (PHAN_TRAM) mới hiển thị sản phẩm;
         // voucher theo đơn hàng (FREESHIP/SO_TIEN...) không gán sản phẩm.
+        // QUAN TRỌNG: chỉ coi là "chiến dịch có chủ đề" (hiện thành card riêng)
+        // những khuyến mãi có targetType = CATEGORY/PRODUCT (admin đã chọn rõ
+        // sản phẩm/danh mục áp dụng). Khuyến mãi targetType = ALL/trống áp dụng
+        // cho MỌI sản phẩm đang giảm giá — không có chủ đề thật sự, nên đưa vào
+        // đây sẽ khiến tiêu đề chiến dịch (vd "Khai trương ... giảm 15%") bị gán
+        // nhầm với các sản phẩm không liên quan gì đến chủ đề đó.
         List<Promotion> campaignPromotions = activePromotions.stream()
                 .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
+                .filter(p -> p.getTargetType() != null
+                        && !p.getTargetType().isBlank()
+                        && !"ALL".equalsIgnoreCase(p.getTargetType())
+                        && p.getTargetIds() != null && !p.getTargetIds().isBlank())
                 .limit(8)
                 .toList();
         model.addAttribute("campaignPromotions", campaignPromotions);
@@ -447,7 +457,7 @@ public class HomeController {
         for (Promotion promo : campaignPromotions) {
             List<Product> prods = discountedProducts.stream()
                     .filter(p -> isPromotionApplicableToProduct(promo, p))
-                    .limit(3)
+                    .limit(4)
                     .toList();
             campaignProductsMap.put(promo.getId(), prods);
         }

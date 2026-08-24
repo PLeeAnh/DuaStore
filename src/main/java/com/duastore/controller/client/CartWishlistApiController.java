@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -80,6 +81,37 @@ public class CartWishlistApiController {
 
             response.put("success", true);
             response.put("cartCount", result.cartCount());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /* Khách chưa đăng nhập được thêm giỏ hàng lưu tạm ở localStorage (client-side);
+       khi đăng nhập xong, client gọi API này 1 lần để gộp giỏ hàng tạm đó vào
+       giỏ hàng thật trong DB của tài khoản, tránh mất giỏ hàng sau khi đăng nhập. */
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/cart/merge-guest")
+    public ResponseEntity<Map<String, Object>> mergeGuestCart(@RequestBody List<Map<String, Integer>> items) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer userId = getUserId();
+            int merged = 0;
+            if (items != null) {
+                for (Map<String, Integer> item : items) {
+                    Integer variantId = item.get("variantId");
+                    Integer quantity = item.get("quantity");
+                    if (variantId == null) continue;
+                    if (quantity == null || quantity < 1) quantity = 1;
+                    CartService.CartResult r = cartService.add(userId, variantId, quantity);
+                    if (r.success()) merged++;
+                }
+            }
+            response.put("success", true);
+            response.put("merged", merged);
+            response.put("cartCount", cartService.count(userId));
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);

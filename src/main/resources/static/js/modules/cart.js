@@ -9,6 +9,35 @@ function csrfHeaders() {
     return h ? {[h]: t} : {};
 }
 
+/* Xử lý response chung cho các API giỏ hàng:
+   - 401 (chưa đăng nhập) → hiện popup đăng nhập
+   - 403 CSRF (phiên hết hạn) → hiện popup đăng nhập
+   - 403 thật (không đủ quyền, dù đã đăng nhập) → KHÔNG hiện popup đăng nhập,
+     chỉ báo lỗi đúng lý do — tránh bug "đã đăng nhập vẫn báo yêu cầu thất bại + đòi đăng nhập lại" */
+function handleCartApiResponse(r) {
+    if (r.status === 401) {
+        if (typeof showLoginPopup === 'function')
+            showLoginPopup();
+        return null;
+    }
+    if (r.status === 403) {
+        return r.json().then(function (data) {
+            if (!data || data.reason === 'CSRF') {
+                if (typeof showLoginPopup === 'function')
+                    showLoginPopup();
+            } else if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.error((data && data.message) || 'Bạn không có quyền thực hiện thao tác này.');
+            }
+            return null;
+        }).catch(function () {
+            if (typeof showLoginPopup === 'function')
+                showLoginPopup();
+            return null;
+        });
+    }
+    return r.json();
+}
+
 /* ═══ UPDATE CART BADGE ═══ */
 function updateCartBadge(count, forceVisible) {
     var badge = document.getElementById('cartBadge');
@@ -81,17 +110,25 @@ document.addEventListener('click', function (e) {
 function addToCart(productId, variantId, quantity) {
     var card = document.querySelector('.ds-product-card[data-productid="' + productId + '"]');
     var btnAdd = card ? card.querySelector('.ds-card-add-cart') : null;
+
+    // Khách chưa đăng nhập vẫn thêm được vào giỏ — lưu tạm ở localStorage,
+    // không gọi API (API yêu cầu đăng nhập), chỉ bắt đăng nhập khi thanh toán.
+    if (typeof DuaStore !== 'undefined' && DuaStore.guestCart && !DuaStore.guestCart.isLoggedIn()) {
+        DuaStore.guestCart.add(variantId, quantity);
+        if (btnAdd) btnAdd.classList.add('added');
+        if (typeof markCartBadgeUnread === 'function') markCartBadgeUnread();
+        if (typeof updateCartBadge === 'function') updateCartBadge(DuaStore.guestCart.count(), true);
+        if (card) addCartPopupItem(card, productId, variantId, quantity);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.success('Đã thêm vào giỏ hàng');
+        }
+        return;
+    }
+
     fetch('/api/cart/add-popup', {
         method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({productId: productId, variantId: variantId, quantity: quantity})
-    }).then(function (r) {
-        if (r.status === 401 || r.status === 403) {
-            if (typeof showLoginPopup === 'function')
-                showLoginPopup();
-            return null;
-        }
-        return r.json();
-    }).then(function (data) {
+    }).then(handleCartApiResponse).then(function (data) {
         if (!data)
             return;
         if (data.success) {
@@ -122,14 +159,7 @@ function addToCartFromWishlist(productId, variantId) {
     fetch('/api/cart/add-popup', {
         method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({productId: productId, variantId: variantId || null, quantity: 1})
-    }).then(function (r) {
-        if (r.status === 401 || r.status === 403) {
-            if (typeof showLoginPopup === 'function')
-                showLoginPopup();
-            return null;
-        }
-        return r.json();
-    }).then(function (data) {
+    }).then(handleCartApiResponse).then(function (data) {
         if (!data)
             return;
         if (data.success) {
@@ -229,18 +259,26 @@ function addToCartFromCard(btn) {
             || card.querySelector('.ds-variant-chip:not(.oos)')
             || card.querySelector('.ds-variant-chip');
     var variantId = activeChip ? parseInt(activeChip.getAttribute('data-variantid')) : null;
+
+    // Khách chưa đăng nhập vẫn thêm được vào giỏ (lưu tạm localStorage) —
+    // chỉ bắt đăng nhập khi vào trang giỏ hàng/thanh toán.
+    if (typeof DuaStore !== 'undefined' && DuaStore.guestCart && !DuaStore.guestCart.isLoggedIn()) {
+        DuaStore.guestCart.add(variantId, qty);
+        btn.classList.add('added');
+        if (typeof markCartBadgeUnread === 'function') markCartBadgeUnread();
+        if (typeof updateCartBadge === 'function') updateCartBadge(DuaStore.guestCart.count(), true);
+        addCartPopupItem(card, productId, variantId, qty);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.success('Đã thêm vào giỏ hàng');
+        }
+        return;
+    }
+
     fetch('/api/cart/add-popup', {
         method: 'POST',
         headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({productId: parseInt(productId), variantId: variantId, quantity: qty})
-    }).then(function (r) {
-        if (r.status === 401 || r.status === 403) {
-            if (typeof showLoginPopup === 'function')
-                showLoginPopup();
-            return null;
-        }
-        return r.json();
-    }).then(function (data) {
+    }).then(handleCartApiResponse).then(function (data) {
         if (!data)
             return;
         if (data.success) {
@@ -291,14 +329,7 @@ function removeCartItem(cartItemId) {
     fetch('/api/cart/remove-item', {
         method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({variantId: cartItemId})
-    }).then(function (r) {
-        if (r.status === 401 || r.status === 403) {
-            if (typeof showLoginPopup === 'function')
-                showLoginPopup();
-            return null;
-        }
-        return r.json();
-    }).then(function (data) {
+    }).then(handleCartApiResponse).then(function (data) {
         if (!data)
             return;
         if (data.success) {
@@ -361,14 +392,7 @@ function updatePopupQty(variantId, delta) {
     fetch('/api/cart/update', {
         method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({variantId: variantId, soLuong: next})
-    }).then(function (r) {
-        if (r.status === 401 || r.status === 403) {
-            if (typeof showLoginPopup === 'function')
-                showLoginPopup();
-            return null;
-        }
-        return r.json();
-    }).then(function (data) {
+    }).then(handleCartApiResponse).then(function (data) {
         if (!data)
             return;
         if (data.success) {
@@ -418,14 +442,7 @@ function setPopupQty(variantId) {
     fetch('/api/cart/update', {
         method: 'POST', headers: Object.assign({'Content-Type': 'application/json'}, csrfHeaders()),
         body: JSON.stringify({variantId: variantId, soLuong: val})
-    }).then(function (r) {
-        if (r.status === 401 || r.status === 403) {
-            if (typeof showLoginPopup === 'function')
-                showLoginPopup();
-            return null;
-        }
-        return r.json();
-    }).then(function (data) {
+    }).then(handleCartApiResponse).then(function (data) {
         if (data && data.success && typeof updateCartBadge === 'function') {
             updateCartBadge(data.cartCount);
         }
