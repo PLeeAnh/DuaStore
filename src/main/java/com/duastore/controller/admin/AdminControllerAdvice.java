@@ -76,7 +76,7 @@ public class AdminControllerAdvice {
                     "NOTIFICATION_READ", "ANALYTICS_READ", "CUSTOMER_READ",
                     "HOMEPAGE_READ", "STORE_READ", "APPEARANCE_READ",
                     "EMAIL_SETTING_READ", "PAYMENT_SETTING_READ", "SHIPPING_SETTING_READ",
-                    "BANNER_READ", "FLASH_SALE_READ", "REFUND_READ",
+                    "BANNER_READ", "FLASH_SALE_READ",
                     "VARIANT_READ", "PRICE_HISTORY_READ");
         }
 

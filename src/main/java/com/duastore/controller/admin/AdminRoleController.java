@@ -171,7 +171,6 @@ public class AdminRoleController {
         labels.put("STORE", "Cửa hàng");
         labels.put("ANALYTICS", "Phân tích");
         labels.put("FLASH_SALE", "Flash Sale");
-        labels.put("REFUND", "Hoàn tiền");
         labels.put("CONTACT_MESSAGE", "Tin nhắn liên hệ");
         return labels;
     }
@@ -244,9 +243,6 @@ public class AdminRoleController {
         labels.put("FLASH_SALE:READ", "Xem flash sale");
         labels.put("FLASH_SALE:UPDATE", "Sửa flash sale");
         labels.put("FLASH_SALE:DELETE", "Xóa flash sale");
-        labels.put("REFUND:READ", "Xem hoàn tiền");
-        labels.put("REFUND:UPDATE", "Xử lý hoàn tiền");
-        labels.put("REFUND:APPROVE", "Duyệt hoàn tiền");
         labels.put("CONTACT_MESSAGE:READ", "Xem tin nhắn liên hệ");
         labels.put("CONTACT_MESSAGE:UPDATE", "Đánh dấu / xử lý tin nhắn");
         labels.put("CONTACT_MESSAGE:DELETE", "Xóa tin nhắn");

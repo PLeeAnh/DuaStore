@@ -80,8 +80,8 @@
                 <span>Danh mục</span>
             </a>
             <a class="adm-nav-link" th:href="@{/admin/don-hang}"
-               th:if="${userPermissions.contains('ORDER_READ') or userPermissions.contains('REFUND_READ')}"
-               th:classappend="${title == 'don-hang' or title == 'hoan-tien' ? ' active' : ''}">
+               th:if="${userPermissions.contains('ORDER_READ')}"
+               th:classappend="${title == 'don-hang' ? ' active' : ''}">
                 <i class="bi bi-bag-check"></i>
                 <span>Đơn hàng</span>
                 <span class="badge bg-danger ms-auto" th:if="${pendingOrders > 0}" th:text="${pendingOrders}"></span>
