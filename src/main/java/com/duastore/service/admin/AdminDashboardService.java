@@ -335,14 +335,12 @@ public class AdminDashboardService {
         return (growth.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "") + growth + "%";
     }
 
-    private static final int LOW_STOCK_THRESHOLD = 20;
-
     public long getLowStockCount() {
-        return productVariantRepository.countLowStockProducts(LOW_STOCK_THRESHOLD);
+        return productVariantRepository.countLowStockProducts();
     }
 
     public List<Map<String, Object>> getLowStockProducts(int limit) {
-        List<Object[]> rows = productVariantRepository.findLowStockProductIds(LOW_STOCK_THRESHOLD);
+        List<Object[]> rows = productVariantRepository.findLowStockProductIds();
         List<Integer> ids = rows.stream().map(r -> (Integer) r[0]).collect(Collectors.toList());
         if (ids.isEmpty()) return List.of();
         Map<Integer, Long> stockMap = new HashMap<>();

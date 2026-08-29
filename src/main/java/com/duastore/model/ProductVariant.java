@@ -36,6 +36,13 @@ public class ProductVariant {
     @Column(nullable = false)
     private Integer soLuongTon = 0;
 
+    /** Ngưỡng tồn kho cảnh báo (mặc định 20) */
+    private Integer lowStockThreshold = 20;
+
+    /** Giá vốn (cost price) - dùng tính margin */
+    @Column(precision = 12, scale = 0)
+    private BigDecimal giaVon;
+
     private String hinhAnh;
     private boolean isDefault = false;
     private boolean isActive = true;

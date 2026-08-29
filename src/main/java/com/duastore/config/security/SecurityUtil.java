@@ -103,6 +103,7 @@ public class SecurityUtil {
         }
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
-                || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                || a.getAuthority().equals("ROLE_PRODUCT_OWNER")
+                || a.getAuthority().equals("ROLE_STAFF"));
     }
 }

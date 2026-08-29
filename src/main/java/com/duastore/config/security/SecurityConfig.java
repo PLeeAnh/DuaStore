@@ -52,8 +52,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
-                .requestMatchers("/ws/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                .requestMatchers("/admin/**").hasAnyRole("ADMIN", "PRODUCT_OWNER", "STAFF")
+                .requestMatchers("/ws/**").hasAnyRole("ADMIN", "PRODUCT_OWNER", "STAFF")
                 .requestMatchers("/api/wishlist/**", "/api/cart/**", "/address/api/**", "/api/vi-voucher/**", "/api/thong-bao/**", "/api/coupon/**").authenticated()
                 .requestMatchers("/checkout/vnpay/**").permitAll()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()

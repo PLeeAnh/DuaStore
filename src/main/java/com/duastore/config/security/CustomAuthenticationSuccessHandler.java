@@ -87,7 +87,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             }
 
             boolean isAdmin = user.getRoles().stream()
-                    .anyMatch(r -> Set.of("ADMIN", "SUPER_ADMIN").contains(r.getName()));
+                    .anyMatch(r -> Set.of("ADMIN", "PRODUCT_OWNER", "STAFF").contains(r.getName()));
             Boolean twoFactorEnabled = user.getTwoFactorEnabled();
             if (isAdmin && Boolean.TRUE.equals(twoFactorEnabled)) {
                 session.setAttribute("2faUserId", user.getId());

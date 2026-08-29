@@ -39,7 +39,7 @@ class AdminProductControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"ROLE_SUPER_ADMIN"})
+    @WithMockUser(authorities = {"ROLE_PRODUCT_OWNER"})
     void getProductList_asSuperAdmin_returns200() throws Exception {
         mockMvc.perform(get("/admin/san-pham"))
                 .andExpect(status().isOk());

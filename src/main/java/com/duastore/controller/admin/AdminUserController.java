@@ -72,8 +72,9 @@ public class AdminUserController {
         model.addAttribute("filterParams", filterParams);
         model.addAttribute("role", role);
         model.addAttribute("allRoles", adminUserService.getAllRoles());
-        model.addAttribute("superAdminCount", adminUserService.countActiveByRole("SUPER_ADMIN"));
+        model.addAttribute("productOwnerCount", adminUserService.countActiveByRole("PRODUCT_OWNER"));
         model.addAttribute("adminCount", adminUserService.countActiveByRole("ADMIN"));
+        model.addAttribute("staffCount", adminUserService.countActiveByRole("STAFF"));
         model.addAttribute("userCount", adminUserService.countActiveByRole("USER"));
         return "view/admin/user/user-list";
     }

@@ -137,10 +137,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         for (Role role : user.getRoles()) {
             String rn = role.getName();
-            if ("SUPER_ADMIN".equals(rn)) {
-                authorities.add(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+            if ("PRODUCT_OWNER".equals(rn)) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_PRODUCT_OWNER"));
             } else if ("ADMIN".equals(rn)) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            } else if ("STAFF".equals(rn)) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_STAFF"));
             } else if ("USER".equals(rn)) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
             }

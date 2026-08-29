@@ -18,13 +18,23 @@ import java.util.Optional;
  */
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Integer> {
 
-    @Query("SELECT COUNT(DISTINCT v.productId) FROM ProductVariant v WHERE v.isActive = true AND v.productId IN "
-            + "(SELECT v2.productId FROM ProductVariant v2 WHERE v2.isActive = true GROUP BY v2.productId HAVING SUM(v2.soLuongTon) <= :threshold)")
-    long countLowStockProducts(@Param("threshold") int threshold);
+    @Query("SELECT COUNT(DISTINCT v.productId) FROM ProductVariant v WHERE v.isActive = true "
+            + "AND EXISTS (SELECT 1 FROM ProductVariant v2 WHERE v2.productId = v.productId AND v2.isActive = true "
+            + "AND v2.soLuongTon <= COALESCE(v2.lowStockThreshold, 20))")
+    long countLowStockProducts();
 
     long countByIsActiveTrue();
 
     long countByIsActiveTrueAndSoLuongTonLessThanEqual(int threshold);
+
+    /** Variants where stock is below their individual lowStockThreshold */
+    @Query("SELECT v FROM ProductVariant v WHERE v.isActive = true "
+            + "AND v.soLuongTon <= COALESCE(v.lowStockThreshold, 20) ORDER BY v.id ASC")
+    Page<ProductVariant> findLowStockVariants(Pageable pageable);
+
+    @Query("SELECT COUNT(v) FROM ProductVariant v WHERE v.isActive = true "
+            + "AND v.soLuongTon <= COALESCE(v.lowStockThreshold, 20)")
+    long countLowStockVariants();
 
     Page<ProductVariant> findByIsActiveTrueAndSoLuongTonLessThanEqualOrderByIdAsc(int threshold, Pageable pageable);
 
@@ -79,8 +89,10 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Query("SELECT DISTINCT v.tenBienThe FROM ProductVariant v WHERE v.isActive = true AND v.tenBienThe IS NOT NULL ORDER BY v.tenBienThe ASC")
     List<String> findDistinctTenBienThe();
 
-    @Query("SELECT v.productId, SUM(v.soLuongTon) FROM ProductVariant v WHERE v.isActive = true GROUP BY v.productId HAVING SUM(v.soLuongTon) <= :threshold ORDER BY SUM(v.soLuongTon) ASC")
-    List<Object[]> findLowStockProductIds(@Param("threshold") int threshold);
+    @Query("SELECT v.productId, SUM(v.soLuongTon) FROM ProductVariant v "
+            + "WHERE v.isActive = true AND v.soLuongTon <= COALESCE(v.lowStockThreshold, 20) "
+            + "GROUP BY v.productId ORDER BY SUM(v.soLuongTon) ASC")
+    List<Object[]> findLowStockProductIds();
 
     @Query("SELECT v FROM ProductVariant v JOIN FETCH v.product p "
             + "WHERE v.isActive = true AND p.isActive = true "

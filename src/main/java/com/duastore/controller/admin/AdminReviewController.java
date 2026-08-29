@@ -1,12 +1,16 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.Product;
 import com.duastore.model.Review;
+import com.duastore.model.ReviewReply;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ReviewReplyRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminReviewService;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,15 +31,21 @@ public class AdminReviewController {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final NotificationHelper notificationHelper;
+    private final ReviewReplyRepository reviewReplyRepository;
+    private final SecurityUtil securityUtil;
 
     public AdminReviewController(AdminReviewService adminReviewService,
             ProductRepository productRepository,
             UserRepository userRepository,
-            NotificationHelper notificationHelper) {
+            NotificationHelper notificationHelper,
+            ReviewReplyRepository reviewReplyRepository,
+            SecurityUtil securityUtil) {
         this.adminReviewService = adminReviewService;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.notificationHelper = notificationHelper;
+        this.reviewReplyRepository = reviewReplyRepository;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping
@@ -52,9 +62,20 @@ public class AdminReviewController {
         productRepository.findAllById(productIds).forEach(p -> productNames.put(p.getId(), p.getTenSanPham()));
         userRepository.findAllById(userIds).forEach(u -> userNames.put(u.getId(), u.getHoTen()));
 
+        // Đếm reply cho mỗi review
+        Map<Integer, Long> replyCountMap = new HashMap<>();
+        Map<Integer, List<ReviewReply>> repliesMap = new HashMap<>();
+        for (Review r : reviewPage.getContent()) {
+            List<ReviewReply> replies = reviewReplyRepository.findByReviewIdOrderByCreatedAtAsc(r.getId());
+            repliesMap.put(r.getId(), replies);
+            replyCountMap.put(r.getId(), (long) replies.size());
+        }
+
         model.addAttribute("reviews", reviewPage.getContent());
         model.addAttribute("productNames", productNames);
         model.addAttribute("userNames", userNames);
+        model.addAttribute("replyCountMap", replyCountMap);
+        model.addAttribute("repliesMap", repliesMap);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", reviewPage.getTotalPages());
         model.addAttribute("totalItems", reviewPage.getTotalElements());
@@ -105,6 +126,37 @@ public class AdminReviewController {
         }
         return "redirect:/admin/danh-gia";
     }
+
+    /** API phản hồi đánh giá — AJAX */
+    @PostMapping("/{id}/tra-loi")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).REVIEW_APPROVE)")
+    @ResponseBody
+    public ResponseEntity<?> reply(@PathVariable Integer id, @RequestParam String content) {
+        if (content == null || content.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Nội dung không được để trống"));
+        }
+        Review review = adminReviewService.getReviewById(id);
+        if (review == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Integer adminId = securityUtil.getCurrentUserId();
+        String adminName = securityUtil.getCurrentUser().getHoTen();
+
+        ReviewReply reply = ReviewReply.builder()
+                .reviewId(id)
+                .content(content.trim())
+                .createdBy(adminId)
+                .build();
+        reviewReplyRepository.save(reply);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", reply.getId());
+        result.put("content", reply.getContent());
+        result.put("adminName", adminName);
+        result.put("createdAt", reply.getCreatedAt().toString());
+        return ResponseEntity.ok(result);
+    }
+
     private void notifyReviewAuthor(Review review, boolean approved) {
         String productName = productRepository.findById(review.getProductId())
                 .map(Product::getTenSanPham)

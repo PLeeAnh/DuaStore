@@ -133,6 +133,18 @@ public class AdminVariantService {
                     v.setSoLuongTon(((Number) soLuongObj).intValue());
                 }
             }
+            if (entry.containsKey("giaVon")) {
+                Object giaVonObj = entry.get("giaVon");
+                if (giaVonObj instanceof Number) {
+                    v.setGiaVon(new BigDecimal(((Number) giaVonObj).doubleValue()));
+                }
+            }
+            if (entry.containsKey("lowStockThreshold")) {
+                Object thresholdObj = entry.get("lowStockThreshold");
+                if (thresholdObj instanceof Number) {
+                    v.setLowStockThreshold(((Number) thresholdObj).intValue());
+                }
+            }
 
             variantRepository.save(v);
             pricingService.recalculateMinPrice(v.getProductId());

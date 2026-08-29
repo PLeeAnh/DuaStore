@@ -23,7 +23,7 @@ public class AdminAlertScheduler {
     @Scheduled(cron = "0 0 7 * * *")
     public void checkLowStock() {
         log.info("Checking low stock...");
-        alertService.checkLowStock(20);
+        alertService.checkLowStock();
     }
 
     @Scheduled(cron = "0 30 7 * * *")

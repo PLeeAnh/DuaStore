@@ -307,7 +307,7 @@
                                         <div th:style="'height:100%;width:' + ${stage.widthPct} + '%;background:' + ${stage.color} + ';border-radius:6px;transition:width .5s'"></div>
                                         <span style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:.78rem;font-weight:600;color:#fff" th:text="${stage.count}">0</span>
                                     </div>
-                                    <span style="width:60px;font-size:.75rem;color:#6b7280;flex-shrink:0" th:if="${!stage.isFirst}" th:text="'~' + ${#numbers.formatDecimal(stage.convRate, 1, 'COMMA')} + '%'"></span>
+                                    <span style="width:60px;font-size:.75rem;color:#6b7280;flex-shrink:0" th:if="${!stage.isFirst}" th:text="'~' + ${#numbers.formatDecimal(stage.convRate, 0, 1)} + '%'"></span>
                                     <span style="width:60px;flex-shrink:0" th:if="${stage.isFirst}"></span>
                                 </div>
                             </div>

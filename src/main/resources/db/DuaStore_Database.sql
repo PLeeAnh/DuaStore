@@ -23,6 +23,10 @@
      insert seed du lieu khong bi loi - Hibernate validate KHONG kiem tra
      DEFAULT constraint nen an toan 100%.
 
+  V10: Them 3 bang moi (StockMovements, ReviewReplies, ContactReplies) va cot
+       severity cho CustomerNotes. Xoa bang RefundRequests (tinh nang refund da bo).
+
+
 File nay la NGUON SCRIPT DUY NHAT cho DB san pham (khong con schema.sql /
   application-ddlgen.properties). App runtime co
   spring.jpa.hibernate.ddl-auto=validate nen script phai khop 100% voi @Entity.
@@ -31,7 +35,7 @@ File nay la NGUON SCRIPT DUY NHAT cho DB san pham (khong con schema.sql /
   file nay se LAI BI LECH -> app se bao loi validate khi chay. Luc do nhom lai
   cac column entity them moi (dung dung camelCase cua entity) va sua script tay.
 
- Tai khoan mac dinh sau khi seed: admin / admin@123 (vai tro SUPER_ADMIN)
+ Tai khoan mac dinh sau khi seed: admin / admin@123 (vai tro PRODUCT_OWNER)
 ================================================================================
 */
 
@@ -51,7 +55,9 @@ DROP VIEW IF EXISTS vw_PostsPublished;
 DROP VIEW IF EXISTS vw_ProductPrice;
 DROP VIEW IF EXISTS vw_DoanhThu;
 GO
-DROP TABLE IF EXISTS RefundRequests;
+DROP TABLE IF EXISTS StockMovements;
+DROP TABLE IF EXISTS ReviewReplies;
+DROP TABLE IF EXISTS ContactReplies;
 DROP TABLE IF EXISTS admin_action_logs;
 DROP TABLE IF EXISTS order_status_logs;
 DROP TABLE IF EXISTS order_notes;
@@ -367,10 +373,12 @@ GO
         dungTich int,
         giaGoc numeric(12,0) not null,
         giaKhuyenMai numeric(12,0),
+        giaVon numeric(12,0),
         id int identity not null,
         isActive bit default 1 not null,
         isDefault bit default 0 not null,
         isCustom bit default 0 not null,
+        lowStockThreshold int default 20 not null,
         productId int not null,
         soLuongTon int default 0 not null,
         hinhAnh nvarchar(255),
@@ -401,38 +409,6 @@ GO
         maCode nvarchar(50) not null,
         tenChuongTrinh nvarchar(200) not null,
         targetIds nvarchar(500),
-        primary key (id)
-    );
-
-    create table RefundRequests (
-        id int identity not null,
-        nguoiXuLyId int,
-        orderId int not null,
-        phiShipTraLai numeric(18,2) default 0,
-        soTienHoan numeric(18,2) not null,
-        soTienThucTeHoan numeric(18,2),
-        userId int not null,
-        variantMoiId int,
-        ngayNhanHangTra datetime2(7),
-        ngayXuLy datetime2(7),
-        ngayYeuCau datetime2(7) not null,
-        loaiYeuCau nvarchar(30) default 'HOAN_TIEN' not null,          -- HOAN_TIEN | DOI_SIZE | DOI_MAU | DOI_SAN_PHAM_KHAC
-        phuongThucHoanTien nvarchar(30),                               -- CHUYEN_KHOAN | VNPAY_REFUND | TIEN_MAT
-        videoUnboxing nvarchar(500),                                   -- Link video unboxing (bat buoc voi thuy tinh)
-        lydo nvarchar(2000) not null,
-        lyDoChiTiet nvarchar(50),                                      -- LOI_HANG | KHONG_DUNG_MO_TA | DOI_Y | KHAC
-        trangThaiDonHangKhiYeuCau nvarchar(30),                        -- DA_GIAO | DANG_GIAO | CHUA_GIAO
-        daKiemTraHang bit default 0,                                   -- Kho da kiem tra hang tra
-        tinhTrangHangTra nvarchar(30),                                 -- NGUYEN_VINH | VO_VANG | THIEU_PHU_KIEN | CHUA_NHAN
-        maVanDonTra nvarchar(100),                                     -- Ma van don hang tra
-        anhThucTe nvarchar(500),                                       -- Anh hang thuc te khi kho nhan duoc
-        anhMinhChung nvarchar(255),
-        chuTaiKhoan nvarchar(255),
-        ghiChuXuLy nvarchar(255),
-        phuongThucHoan nvarchar(255),
-        soTaiKhoan nvarchar(255),
-        tenNganHang nvarchar(255),
-        trangThai nvarchar(255) not null,
         primary key (id)
     );
 
@@ -898,11 +874,6 @@ CREATE INDEX idx_user_vouchers_user_status  ON UserVouchers (userId, status);
 CREATE INDEX idx_user_vouchers_expired_at   ON UserVouchers (expiredAt);
 CREATE INDEX idx_user_vouchers_promotion_id ON UserVouchers (promotionId);
 CREATE INDEX idx_promotions_code            ON Promotions   (maCode);
--- V2: Indexes for RefundRequests (glass-specific refund flow)
-CREATE INDEX IX_RefundRequests_OrderId ON RefundRequests (orderId);
-CREATE INDEX IX_RefundRequests_UserId_Status ON RefundRequests (userId, trangThai);
-CREATE INDEX IX_RefundRequests_Status_Date ON RefundRequests (trangThai, ngayYeuCau);
-CREATE INDEX IX_RefundRequests_LoaiYeuCau ON RefundRequests (loaiYeuCau);
 -- V2: Index for custom variants
 CREATE INDEX IX_Variants_Custom ON ProductVariants (isCustom, isActive);
 -- V4: Indexes for admin_action_logs
@@ -924,8 +895,9 @@ GO
 -- (83 quyen: moi module/action trong enum deu co dong INSERT tuong ung).
 -- ============================================================
 INSERT INTO roles (name, moTa, ngayTao) VALUES
-    (N'SUPER_ADMIN', N'Toan quyen he thong (bypass moi kiem tra quyen)', GETDATE()),
+    (N'PRODUCT_OWNER', N'Chu so huu san pham - toan quyen he thong', GETDATE()),
     (N'ADMIN',       N'Quan tri vien duoc gan quyen cu the', GETDATE()),
+    (N'STAFF',       N'Nhan vien xu ly don hang, san pham, danh gia', GETDATE()),
     (N'USER',        N'Khach hang', GETDATE());
 GO
 
@@ -998,9 +970,6 @@ INSERT INTO permissions (module, action, moTa, ngayTao) VALUES
     (N'FLASH_SALE', N'READ',   N'Xem chuong trinh flash sale', GETDATE()),
     (N'FLASH_SALE', N'UPDATE', N'Sua chuong trinh flash sale', GETDATE()),
     (N'FLASH_SALE', N'DELETE', N'Xoa chuong trinh flash sale', GETDATE()),
-    (N'REFUND', N'READ',   N'Xem yeu cau hoan tien', GETDATE()),
-    (N'REFUND', N'UPDATE', N'Cap nhat yeu cau hoan tien', GETDATE()),
-    (N'REFUND', N'APPROVE', N'Duyet yeu cau hoan tien', GETDATE()),
     (N'FOOTER_LINK', N'CREATE', N'Them link chan trang', GETDATE()),
     (N'FOOTER_LINK', N'READ',   N'Xem link chan trang', GETDATE()),
     (N'FOOTER_LINK', N'UPDATE', N'Sua link chan trang', GETDATE()),
@@ -1015,9 +984,25 @@ INSERT INTO permissions (module, action, moTa, ngayTao) VALUES
     (N'CONTACT_MESSAGE', N'DELETE', N'Xoa tin nhan lien he', GETDATE());
 GO
 
--- ADMIN (vai tro thuong, khong bypass) duoc gan TOAN BO permission ben tren
+-- PRODUCT_OWNER (chu so huu) duoc gan TOAN BO permission (bypass)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT (SELECT id FROM roles WHERE name = N'PRODUCT_OWNER'), id FROM permissions;
+GO
+
+-- ADMIN duoc gan TOAN BO permission (khong bypass)
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT (SELECT id FROM roles WHERE name = N'ADMIN'), id FROM permissions;
+GO
+
+-- STAFF duoc gan quyen xu ly don hang, san pham, danh gia, khach hang, tin nhan
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT (SELECT id FROM roles WHERE name = N'STAFF'), id FROM permissions
+WHERE (module IN ('DASHBOARD','ORDER','PRODUCT','VARIANT','REVIEW','CUSTOMER','CONTACT_MESSAGE','CATEGORY')
+       AND action IN ('READ','UPDATE'))
+   OR (module = 'PRODUCT' AND action = 'CREATE')
+   OR (module = 'VARIANT' AND action = 'CREATE')
+   OR (module = 'REVIEW' AND action IN ('APPROVE','HIDE'))
+   OR (module = 'ORDER' AND action = 'UPDATE');
 GO
 
 -- Tai khoan mac dinh
@@ -1032,9 +1017,9 @@ INSERT INTO users (username, email, password, hoTen, soDienThoai, isActive, ngay
      N'Nguyen Van An', '0912345678', 1, GETDATE());
 GO
 
--- Gan vai tro: admin -> SUPER_ADMIN (toan quyen), nguyenvan -> USER
+-- Gan vai tro: admin -> PRODUCT_OWNER (toan quyen), nguyenvan -> USER
 INSERT INTO user_roles (user_id, role_id) VALUES
-    ((SELECT id FROM users WHERE username = 'admin'),     (SELECT id FROM roles WHERE name = N'SUPER_ADMIN')),
+    ((SELECT id FROM users WHERE username = 'admin'),     (SELECT id FROM roles WHERE name = N'PRODUCT_OWNER')),
     ((SELECT id FROM users WHERE username = 'nguyenvan'), (SELECT id FROM roles WHERE name = N'USER'));
 GO
 
@@ -1172,18 +1157,6 @@ VALUES (N'DuaStore Hai Phong', N'123', N'Tran Hung Dao', N'May To', N'Ngo Quyen'
         '0225.123.4567', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
 GO
 
--- Refund Policy Settings
-INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt, updatedAt) VALUES
-    (N'refund', N'refund_return_window_days', N'7', GETDATE(), GETDATE()),
-    (N'refund', N'refund_custom_non_refundable', N'true', GETDATE(), GETDATE()),
-    (N'refund', N'refund_flash_sale_exchange_only', N'true', GETDATE(), GETDATE()),
-    (N'refund', N'refund_flash_sale_free_exchange_shipping', N'true', GETDATE(), GETDATE()),
-    (N'refund', N'refund_require_video_proof_glass', N'true', GETDATE(), GETDATE()),
-    (N'refund', N'refund_max_rate_damaged', N'0.8', GETDATE(), GETDATE()),
-    (N'refund', N'refund_auto_approve_days', N'3', GETDATE(), GETDATE()),
-    (N'refund', N'refund_warehouse_address', N'Kho DuaStore - 123 Tran Hung Dao, May To, Ngo Quyen, Hai Phong', GETDATE(), GETDATE());
-GO
-
 PRINT 'Seed du lieu co ban hoan tat!';
 GO
 
@@ -1248,7 +1221,8 @@ PRINT '====================================================';
 PRINT ' DuaStore Database - San sang su dung!';
 PRINT ' Tong so bang  : 44 (gom 2 bang join: role_permissions, user_roles)';
 PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
-PRINT ' Tai khoan admin: admin / admin@123 (vai tro SUPER_ADMIN)';
+PRINT ' 4 vai tro     : PRODUCT_OWNER, ADMIN, STAFF, USER';
+PRINT ' Tai khoan admin: admin / admin@123 (vai tro PRODUCT_OWNER)';
 PRINT '====================================================';
 
 -- ============================================================
@@ -1308,5 +1282,88 @@ END
 ELSE
 BEGIN
     PRINT 'user_auth_providers: khong ton tai (bo qua buoc nang cap)';
+END
+GO
+
+-- ============================================================
+-- CAP NHAT: Them cot severity vao CustomerNotes
+-- ============================================================
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'CustomerNotes')
+    AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('CustomerNotes') AND name = 'severity')
+BEGIN
+    ALTER TABLE CustomerNotes ADD severity nvarchar(20) NOT NULL DEFAULT 'INFO';
+    PRINT 'CustomerNotes: da them cot severity';
+END
+GO
+
+-- ============================================================
+-- BANG MOI: StockMovements (Lich su xuat nhap kho)
+-- ============================================================
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'StockMovements')
+BEGIN
+    CREATE TABLE StockMovements (
+        id int identity not null,
+        variantId int not null,
+        quantity int not null,
+        type nvarchar(20) not null,
+        orderId int null,
+        userId int not null,
+        note nvarchar(500) null,
+        stockBefore int not null,
+        stockAfter int not null,
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+    ALTER TABLE StockMovements ADD CONSTRAINT FK_StockMovements_variantId
+        FOREIGN KEY (variantId) REFERENCES ProductVariants;
+    ALTER TABLE StockMovements ADD CONSTRAINT FK_StockMovements_userId
+        FOREIGN KEY (userId) REFERENCES users;
+    CREATE INDEX IX_StockMovements_variantId ON StockMovements(variantId);
+    CREATE INDEX IX_StockMovements_createdAt ON StockMovements(createdAt);
+    PRINT 'StockMovements: da tao bang';
+END
+GO
+
+-- ============================================================
+-- BANG MOI: ReviewReplies (Phan hoi danh gia)
+-- ============================================================
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ReviewReplies')
+BEGIN
+    CREATE TABLE ReviewReplies (
+        id int identity not null,
+        reviewId int not null,
+        content nvarchar(max) not null,
+        createdBy int not null,
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+    ALTER TABLE ReviewReplies ADD CONSTRAINT FK_ReviewReplies_reviewId
+        FOREIGN KEY (reviewId) REFERENCES Reviews;
+    ALTER TABLE ReviewReplies ADD CONSTRAINT FK_ReviewReplies_createdBy
+        FOREIGN KEY (createdBy) REFERENCES users;
+    CREATE INDEX IX_ReviewReplies_reviewId ON ReviewReplies(reviewId);
+    PRINT 'ReviewReplies: da tao bang';
+END
+GO
+
+-- ============================================================
+-- BANG MOI: ContactReplies (Phan hoi tin nhan lien he)
+-- ============================================================
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ContactReplies')
+BEGIN
+    CREATE TABLE ContactReplies (
+        id int identity not null,
+        contactId int not null,
+        content nvarchar(max) not null,
+        createdBy int not null,
+        createdAt datetime2(7) not null,
+        primary key (id)
+    );
+    ALTER TABLE ContactReplies ADD CONSTRAINT FK_ContactReplies_contactId
+        FOREIGN KEY (contactId) REFERENCES contact_messages;
+    ALTER TABLE ContactReplies ADD CONSTRAINT FK_ContactReplies_createdBy
+        FOREIGN KEY (createdBy) REFERENCES users;
+    CREATE INDEX IX_ContactReplies_contactId ON ContactReplies(contactId);
+    PRINT 'ContactReplies: da tao bang';
 END
 GO

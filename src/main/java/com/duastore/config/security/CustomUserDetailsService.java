@@ -79,7 +79,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
             authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
 
-            if ("SUPER_ADMIN".equals(role.getName())) {
+            if ("PRODUCT_OWNER".equals(role.getName())) {
                 continue;
             }
 

@@ -103,6 +103,13 @@
                                     <i class="bi bi-eye-slash"></i>
                                 </button>
                             </form>
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1" title="Phản hồi"
+                                    onclick="toggleReplyForm(this)" th:data-review-id="${r.id}">
+                                <i class="bi bi-reply"></i>
+                                <span th:if="${replyCountMap.get(r.id) != null && replyCountMap.get(r.id) > 0}"
+                                      class="badge bg-primary rounded-pill ms-1" style="font-size:.6rem"
+                                      th:text="${replyCountMap.get(r.id)}"></span>
+                            </button>
                             <form th:action="@{/admin/danh-gia/xoa/{id}(id=${r.id})}" method="post" style="display:inline"
                                   onsubmit="return confirm('Xóa đánh giá này?');">
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
@@ -118,10 +125,73 @@
             </table>
             </div>
         </div>
+
+        <!-- Hidden reply forms — hiện khi bấm nút phản hồi -->
+        <div th:each="r : ${reviews}" th:id="'reply-section-' + ${r.id}" style="display:none">
+            <div class="adm-card p-3 mt-2 mb-3" style="border-left:3px solid var(--ef-primary)">
+                <strong style="font-size:.85rem">
+                    <i class="bi bi-reply me-1"></i>Phản hồi cho đánh giá #<span th:text="${r.id}"></span>
+                    — <span th:text="${productNames.get(r.productId)}"></span>
+                </strong>
+                <!-- Danh sách reply đã có -->
+                <div th:if="${repliesMap.get(r.id) != null && !repliesMap.get(r.id).isEmpty()}" class="mt-2 mb-2">
+                    <div th:each="rep : ${repliesMap.get(r.id)}" class="p-2 mb-1 rounded" style="background:#f8fafc;font-size:.82rem">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-semibold" th:text="${rep.content}"></span>
+                            <small class="text-muted" th:text="${#temporals.format(rep.createdAt, 'dd/MM HH:mm')}"></small>
+                        </div>
+                    </div>
+                </div>
+                <!-- Form reply mới -->
+                <div class="d-flex gap-2 mt-2">
+                    <textarea class="form-control form-control-sm" rows="2" placeholder="Nhập nội dung phản hồi..."
+                              th:id="'reply-content-' + ${r.id}" style="font-size:.82rem"></textarea>
+                    <button type="button" class="btn btn-sm btn-primary align-self-end"
+                            th:onclick="'submitReply(' + ${r.id} + ')'"
+                            style="white-space:nowrap">
+                        <i class="bi bi-send me-1"></i>Gửi
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
 
     <th:block layout:fragment="extra-script">
+        <script th:inline="javascript">
+            function toggleReplyForm(btn) {
+                var reviewId = btn.getAttribute('data-review-id');
+                var section = document.getElementById('reply-section-' + reviewId);
+                if (section) {
+                    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+                }
+            }
+
+            function submitReply(reviewId) {
+                var textarea = document.getElementById('reply-content-' + reviewId);
+                var content = textarea ? textarea.value.trim() : '';
+                if (!content) { alert('Vui lòng nhập nội dung'); return; }
+
+                var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').getAttribute('content') : null;
+                var csrfHeader = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').getAttribute('content') : null;
+                var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+                if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+                fetch('/admin/danh-gia/' + reviewId + '/tra-loi', {
+                    method: 'POST',
+                    headers: headers,
+                    body: 'content=' + encodeURIComponent(content)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) { alert(data.error); return; }
+                    textarea.value = '';
+                    location.reload();
+                })
+                .catch(function() { alert('Lỗi kết nối'); });
+            }
+        </script>
         <script th:src="@{/js/admin-review.js}"></script>
     </th:block>
 </body>

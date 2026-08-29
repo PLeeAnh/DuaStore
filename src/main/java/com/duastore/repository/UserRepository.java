@@ -40,7 +40,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.name = :role")
     Page<User> findByRole(@Param("role") String role, Pageable pageable);
 
-    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name IN ('ADMIN', 'SUPER_ADMIN') AND u.isActive = true")
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name IN ('ADMIN', 'PRODUCT_OWNER', 'STAFF') AND u.isActive = true")
     java.util.List<User> findAllActiveAdmins();
 
     @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.isActive = true")

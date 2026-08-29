@@ -277,9 +277,7 @@ public class AdminAnalyticsService {
     }
 
     public long getLowStockProducts() {
-        return productVariantRepository.findAll().stream()
-                .filter(v -> v.isActive() && v.getSoLuongTon() != null && v.getSoLuongTon() < 5)
-                .count();
+        return productVariantRepository.countLowStockVariants();
     }
 
     public long getTotalStock() {

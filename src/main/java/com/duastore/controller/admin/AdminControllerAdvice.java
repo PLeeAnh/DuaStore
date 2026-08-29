@@ -62,14 +62,14 @@ public class AdminControllerAdvice {
             return Set.of();
         }
 
-        Set<String> roleAuthorities = Set.of("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_USER");
+        Set<String> roleAuthorities = Set.of("ROLE_PRODUCT_OWNER", "ROLE_ADMIN", "ROLE_STAFF", "ROLE_USER");
         Set<String> perms = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(a -> !roleAuthorities.contains(a))
                 .collect(Collectors.toSet());
 
         if (auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_SUPER_ADMIN".equals(a.getAuthority()))) {
+                .anyMatch(a -> "ROLE_PRODUCT_OWNER".equals(a.getAuthority()))) {
             return Set.of("DASHBOARD_READ", "PRODUCT_READ", "CATEGORY_READ",
                     "ORDER_READ", "PROMOTION_READ", "POST_READ", "POST_CATEGORY_READ",
                     "REVIEW_READ", "USER_READ", "ROLE_READ", "AUDIT_LOG_READ",

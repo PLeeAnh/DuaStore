@@ -74,6 +74,16 @@
                         <label class="form-label">Giá khuyến mãi</label>
                         <input type="number" th:field="*{giaKhuyenMai}" class="form-control" min="0" step="1" id="giaKhuyenMai" />
                     </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Giá vốn (COGS)</label>
+                        <input type="number" th:field="*{giaVon}" class="form-control" min="0" step="1" placeholder="0" />
+                        <div class="form-text">Dùng để tính lợi nhuận (margin)</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Ngưỡng cảnh báo tồn</label>
+                        <input type="number" th:field="*{lowStockThreshold}" class="form-control" min="0" step="1" placeholder="20" />
+                        <div class="form-text">Khi tồn dưới ngưỡng sẽ cảnh báo trên Dashboard</div>
+                    </div>
                     <div class="col-12" id="pricingSuggestion"></div>
                     <div class="col-md-4 d-flex align-items-end">
                         <div class="form-check">

@@ -53,8 +53,8 @@ public class AlertService {
     }
 
     @Transactional
-    public void checkLowStock(int threshold) {
-        List<Object[]> lowStockProducts = variantRepository.findLowStockProductIds(threshold);
+    public void checkLowStock() {
+        List<Object[]> lowStockProducts = variantRepository.findLowStockProductIds();
         if (lowStockProducts.isEmpty()) return;
         List<Integer> productIds = lowStockProducts.stream()
                 .map(row -> (Integer) row[0])

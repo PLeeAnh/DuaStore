@@ -275,8 +275,16 @@
                     <div class="col-md-6">
                         <h6 class="mb-3"><i class="bi bi-journal-text me-1"></i>Ghi chú nội bộ</h6>
                         <div id="noteList" style="max-height:400px;overflow-y:auto">
-                            <div th:each="n : ${notes}" class="border-start border-3 border-primary ps-3 mb-3">
-                                <div class="text-muted small" th:text="${n.createdBy} + ' - ' + ${#temporals.format(n.createdAt, 'HH:mm dd/MM/yyyy')}"></div>
+                            <div th:each="n : ${notes}" class="border-start border-3 ps-3 mb-3"
+                                 th:classappend="${n.severity == 'DANGER'} ? 'border-danger' : (${n.severity == 'WARN'} ? 'border-warning' : 'border-primary')">
+                                <div class="text-muted small d-flex align-items-center gap-2">
+                                    <span th:text="${n.createdBy}">admin</span>
+                                    <span th:if="${n.severity != null and n.severity != 'INFO'}" class="badge"
+                                          th:classappend="${n.severity == 'DANGER'} ? 'bg-danger' : 'bg-warning text-dark'"
+                                          th:text="${n.severity}">WARN</span>
+                                    <span>-</span>
+                                    <span th:text="${#temporals.format(n.createdAt, 'HH:mm dd/MM/yyyy')}"></span>
+                                </div>
                                 <div class="mt-1" th:text="${n.content}"></div>
                                 <a href="javascript:void(0)" class="small text-danger" th:onclick="'deleteNote(' + ${n.id} + ')'">Xóa</a>
                             </div>
@@ -286,7 +294,14 @@
                         </div>
                         <div class="mt-3">
                             <textarea id="newNoteInput" class="form-control form-control-sm" rows="2" placeholder="Nhập ghi chú..."></textarea>
-                            <button class="btn btn-sm btn-primary mt-2" onclick="addNote()"><i class="bi bi-save me-1"></i>Lưu ghi chú</button>
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <select id="newNoteSeverity" class="form-select form-select-sm" style="width:120px">
+                                    <option value="INFO">Thông tin</option>
+                                    <option value="WARN">Cảnh báo</option>
+                                    <option value="DANGER">Nghiêm trọng</option>
+                                </select>
+                                <button class="btn btn-sm btn-primary" onclick="addNote()"><i class="bi bi-save me-1"></i>Lưu ghi chú</button>
+                            </div>
                         </div>
                     </div>
                 </div>

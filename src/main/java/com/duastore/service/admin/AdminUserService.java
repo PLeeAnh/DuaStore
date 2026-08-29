@@ -20,7 +20,7 @@ import java.util.Set;
  */
 public class AdminUserService {
 
-    private static final String SUPER_ADMIN = "SUPER_ADMIN";
+    private static final String PRODUCT_OWNER = "PRODUCT_OWNER";
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -192,7 +192,7 @@ public class AdminUserService {
         }
 
         boolean isSuperAdmin
-                = hasRole(targetUser, SUPER_ADMIN);
+                = hasRole(targetUser, PRODUCT_OWNER);
 
         if (isSuperAdmin
                 && targetUser.getIsActive()
@@ -203,7 +203,7 @@ public class AdminUserService {
 
             if (superAdminCount <= 1) {
                 throw new IllegalArgumentException(
-                        "Không thể khóa tài khoản SUPER_ADMIN cuối cùng"
+                        "Không thể khóa tài khoản PRODUCT_OWNER cuối cùng"
                 );
             }
         }
@@ -217,15 +217,15 @@ public class AdminUserService {
 
         boolean isCurrentSuperAdmin
                 = currentAdmin != null
-                && hasRole(currentAdmin, SUPER_ADMIN);
+                && hasRole(currentAdmin, PRODUCT_OWNER);
 
         boolean oldHasSuperAdmin
-                = hasRole(targetUser, SUPER_ADMIN);
+                = hasRole(targetUser, PRODUCT_OWNER);
 
         boolean newHasSuperAdmin
                 = newRoles.stream()
                         .anyMatch(role
-                                -> SUPER_ADMIN.equals(
+                                -> PRODUCT_OWNER.equals(
                                 role.getName()
                         )
                         );
@@ -238,13 +238,13 @@ public class AdminUserService {
                             targetUser.getId()
                     )) {
                 throw new IllegalArgumentException(
-                        "Không thể tự gỡ vai trò SUPER_ADMIN của chính mình"
+                        "Không thể tự gỡ vai trò PRODUCT_OWNER của chính mình"
                 );
             }
 
             if (countSuperAdmins() <= 1) {
                 throw new IllegalArgumentException(
-                        "Không thể gỡ vai trò SUPER_ADMIN cuối cùng"
+                        "Không thể gỡ vai trò PRODUCT_OWNER cuối cùng"
                 );
             }
         }
@@ -253,7 +253,7 @@ public class AdminUserService {
                 && !oldHasSuperAdmin
                 && !isCurrentSuperAdmin) {
             throw new IllegalArgumentException(
-                    "Chỉ SUPER_ADMIN mới được gán vai trò SUPER_ADMIN"
+                    "Chỉ PRODUCT_OWNER mới được gán vai trò PRODUCT_OWNER"
             );
         }
     }
@@ -275,7 +275,7 @@ public class AdminUserService {
     @Transactional(readOnly = true)
     public long countSuperAdmins() {
         return userRepository.countActiveByRoleName(
-                SUPER_ADMIN
+                PRODUCT_OWNER
         );
     }
 

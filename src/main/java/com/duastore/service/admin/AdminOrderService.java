@@ -86,8 +86,13 @@ public class AdminOrderService {
 
     @Transactional
     public Page<Order> getAllOrders(int page, int size, String q, String trangThai, String trangThaiTT,
-            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, Boolean chuaGan, Integer assignedAdminId) {
-        Pageable pageable = PageRequest.of(page, size);
+            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, Boolean chuaGan, Integer assignedAdminId,
+            String sortField, String sortDir) {
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(
+                "desc".equalsIgnoreCase(sortDir) ? org.springframework.data.domain.Sort.Direction.DESC : org.springframework.data.domain.Sort.Direction.ASC,
+                sortField != null ? sortField : "ngayDat"
+        );
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<Order> orders = orderRepository.searchOrders(q, trangThai, trangThaiTT, fromDate, toDate, chuaGan, assignedAdminId, pageable);
         for (Order o : orders.getContent()) {
             adminLogService.tuDongPhanDon(o);
@@ -97,9 +102,8 @@ public class AdminOrderService {
 
     @Transactional
     public Page<Order> getMyOrders(Integer adminId, int page, int size, String q, String trangThai, String trangThaiTT,
-            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, Boolean chuaGan, Integer assignedAdminId) {
-        // Chỉ hiển thị các đơn thực sự được gán cho admin này.
-        // Đơn chưa gán sẽ được tự động chia đều (tuDongPhanDon) khi ai đó mở tab "Tất cả".
+            java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, Boolean chuaGan, Integer assignedAdminId,
+            String sortField, String sortDir) {
         List<OrderAssignment> assignments = assignmentRepository.findActiveByAdminId(adminId, "DANG_XU_LY");
         if (assignments.isEmpty()) {
             return Page.empty();
@@ -108,7 +112,11 @@ public class AdminOrderService {
                 .map(a -> a.getOrder().getId())
                 .collect(Collectors.toList());
 
-        Pageable pageable = PageRequest.of(page, size);
+        org.springframework.data.domain.Sort sort = org.springframework.data.domain.Sort.by(
+                "desc".equalsIgnoreCase(sortDir) ? org.springframework.data.domain.Sort.Direction.DESC : org.springframework.data.domain.Sort.Direction.ASC,
+                sortField != null ? sortField : "ngayDat"
+        );
+        Pageable pageable = PageRequest.of(page, size, sort);
         return orderRepository.searchOrdersByIds(ids, q, trangThai, trangThaiTT, fromDate, toDate, chuaGan, assignedAdminId, pageable);
     }
 

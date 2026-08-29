@@ -40,7 +40,7 @@ class AdminUserControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"ROLE_SUPER_ADMIN"})
+    @WithMockUser(authorities = {"ROLE_PRODUCT_OWNER"})
     void getUserList_asSuperAdmin_returns200() throws Exception {
         mockMvc.perform(get("/admin/nguoi-dung"))
                 .andExpect(status().isOk());

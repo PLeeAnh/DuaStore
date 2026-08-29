@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+<head>
+    <title>Lịch sử xuất nhập kho</title>
+</head>
+<body>
+<th:block layout:fragment="breadcrumb">
+    <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
+    <li class="breadcrumb-item active">Xuất nhập kho</li>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="adm-card p-4 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#059669,rgba(5,150,105,0.7));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="bi bi-box-seam" style="font-size:1.5rem;color:#fff"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold mb-0" style="font-size:1.35rem">Lịch sử xuất nhập kho</h4>
+                <p class="mb-0" style="font-size:.82rem;color:var(--ef-text-muted)">Theo dõi mọi biến động tồn kho biến thể sản phẩm</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng lịch sử -->
+    <div class="adm-card">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:60px">#</th>
+                        <th>Thời gian</th>
+                        <th>Biến thể</th>
+                        <th>Loại</th>
+                        <th>Số lượng</th>
+                        <th>Tồn trước</th>
+                        <th>Tồn sau</th>
+                        <th>Người thực hiện</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="m, iter : ${movements}">
+                        <td th:text="${iter.index + 1 + (currentPage * pageSize)}"></td>
+                        <td class="small" th:text="${#temporals.format(m.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="'#' + ${m.variantId}"></span>
+                        </td>
+                        <td>
+                            <span th:if="${m.type == 'IN'}" class="badge bg-success">
+                                <i class="bi bi-arrow-down-circle me-1"></i>Nhập kho
+                            </span>
+                            <span th:if="${m.type == 'OUT'}" class="badge bg-danger">
+                                <i class="bi bi-arrow-up-circle me-1"></i>Xuất kho
+                            </span>
+                            <span th:if="${m.type == 'ADJUST'}" class="badge bg-warning text-dark">
+                                <i class="bi bi-pencil-square me-1"></i>Điều chỉnh
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${m.quantity > 0}" class="text-success fw-semibold" th:text="'+' + ${m.quantity}"></span>
+                            <span th:if="${m.quantity < 0}" class="text-danger fw-semibold" th:text="${m.quantity}"></span>
+                            <span th:if="${m.quantity == 0}" class="text-muted">0</span>
+                        </td>
+                        <td th:text="${m.stockBefore}"></td>
+                        <td th:text="${m.stockAfter}"></td>
+                        <td th:text="${userNames.get(m.userId) ?: '#' + m.userId}"></td>
+                        <td>
+                            <span th:if="${m.note != null}" class="text-muted small" th:text="${m.note}"></span>
+                            <span th:if="${m.note == null}" class="text-muted">—</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(movements)}">
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size:2rem;opacity:.4"></i>
+                            <p class="mt-2 mb-0">Chưa có lịch sử xuất nhập kho</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        <div th:if="${totalPages > 1}" class="d-flex align-items-center justify-content-between px-3 py-2" style="border-top:1px solid var(--ef-border)">
+            <span class="small text-muted">
+                Hiện <span th:text="${currentPage * pageSize + 1}">1</span>–<span th:text="${#numbers.formatInteger((currentPage + 1) * pageSize > totalItems ? totalItems : (currentPage + 1) * pageSize, 'COMMA')}">10</span> trên <span th:text="${#numbers.formatInteger(totalItems, 'COMMA')}">0</span>
+            </span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/xuat-nhap-kho(page=${currentPage - 1}, size=${pageSize})}">&laquo;</a>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                        class="page-item" th:classappend="${i == currentPage} ? 'active'"
+                        th:if="${i >= currentPage - 2 && i <= currentPage + 2}">
+                        <a class="page-link" th:href="@{/admin/xuat-nhap-kho(page=${i}, size=${pageSize})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                        <a class="page-link" th:href="@{/admin/xuat-nhap-kho(page=${currentPage + 1}, size=${pageSize})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+</body>
+</html>
