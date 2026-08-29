@@ -122,11 +122,6 @@ public final class PermissionEnum {
     public static final String FLASH_SALE_UPDATE = "FLASH_SALE_UPDATE";
     public static final String FLASH_SALE_DELETE = "FLASH_SALE_DELETE";
 
-    // REFUND
-    public static final String REFUND_READ = "REFUND_READ";
-    public static final String REFUND_UPDATE = "REFUND_UPDATE";
-    public static final String REFUND_APPROVE = "REFUND_APPROVE";
-
     // FOOTER_LINK
     public static final String FOOTER_LINK_READ = "FOOTER_LINK_READ";
     public static final String FOOTER_LINK_CREATE = "FOOTER_LINK_CREATE";
