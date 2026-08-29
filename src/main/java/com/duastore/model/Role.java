@@ -3,6 +3,7 @@ package com.duastore.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -33,7 +34,15 @@ public class Role {
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
-    private Set<Permission> permissions;
+    private Set<Permission> permissions = new HashSet<>();
+
+    /**
+     * Hibernate requires a mutable collection when synchronizing a role's
+     * permissions during persist or merge.
+     */
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions == null ? new HashSet<>() : new HashSet<>(permissions);
+    }
 
     @Column(nullable = false, columnDefinition = "bit default 1")
     private Boolean isActive = true;

@@ -16,6 +16,7 @@ import com.duastore.service.PricingService;
 import com.duastore.service.PricingService.FlashSaleOffer;
 import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductVariantRepository;
+import com.duastore.repository.ProductRepository;
 import com.duastore.repository.PromotionRepository;
 import com.duastore.service.client.ProductService;
 import com.duastore.service.client.ReviewService;
@@ -27,6 +28,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -62,6 +64,7 @@ public class ProductController {
     private final PricingService pricingService;
     private final OrderItemRepository orderItemRepository;
     private final NotificationHelper notificationHelper;
+    private final ProductRepository productRepository;
     private final com.duastore.repository.ProductViewRepository productViewRepository;
     private final com.duastore.service.ActivityAnalyticsService activityAnalyticsService;
 
@@ -147,7 +150,8 @@ public class ProductController {
             OrderItemRepository orderItemRepository,
             NotificationHelper notificationHelper,
             com.duastore.repository.ProductViewRepository productViewRepository,
-            com.duastore.service.ActivityAnalyticsService activityAnalyticsService) {
+            com.duastore.service.ActivityAnalyticsService activityAnalyticsService,
+            ProductRepository productRepository) {
         this.productService = productService;
         this.variantRepository = variantRepository;
         this.productImageRepository = productImageRepository;
@@ -162,6 +166,7 @@ public class ProductController {
         this.notificationHelper = notificationHelper;
         this.productViewRepository = productViewRepository;
         this.activityAnalyticsService = activityAnalyticsService;
+        this.productRepository = productRepository;
     }
 
     @GetMapping("/danh-muc/{slug}")
@@ -804,6 +809,33 @@ public class ProductController {
             m.put("hinhAnhChinh", p.getHinhAnhChinh());
             result.add(m);
         }
+        return result;
+    }
+
+    @GetMapping("/api/products/explore")
+    @ResponseBody
+    public Map<String, Object> explore(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size) {
+        Page<Product> products = productRepository.findDangBanPaged(PageRequest.of(page, size));
+        List<Map<String, Object>> items = new java.util.ArrayList<>();
+        for (Product p : products.getContent()) {
+            Map<String, Object> m = new java.util.HashMap<>();
+            m.put("id", p.getId());
+            m.put("tenSanPham", p.getTenSanPham());
+            m.put("hinhAnhChinh", p.getHinhAnhChinh());
+            List<ProductVariant> pvs = variantRepository.findByProductIdAndIsActiveTrue(p.getId());
+            if (!pvs.isEmpty()) {
+                ProductVariant v = pvs.get(0);
+                m.put("giaGoc", v.getGiaGoc());
+                m.put("giaKhuyenMai", v.getGiaKhuyenMai());
+            }
+            items.add(m);
+        }
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("items", items);
+        result.put("hasNext", products.hasNext());
+        result.put("page", page);
         return result;
     }
 }

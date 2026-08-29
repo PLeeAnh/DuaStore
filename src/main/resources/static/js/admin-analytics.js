@@ -139,6 +139,49 @@
                 showEmptyState(pmCanvas);
             }
         }
+
+        // Monthly Revenue (12 months) bar chart
+        var mrCanvas = document.getElementById('monthlyRevenueChart');
+        if (mrCanvas && data.monthlyRevenue12 && data.monthlyRevenue12.length) {
+            clearEmptyState(mrCanvas);
+            var mrLabels = data.monthlyRevenue12.map(function (d) { return d.label; });
+            var mrValues = data.monthlyRevenue12.map(function (d) { return parseFloat(d.revenue) || 0; });
+            if (mrValues.some(function (v) { return v > 0; })) {
+                chartInstances.push(new Chart(mrCanvas, {
+                    type: 'bar',
+                    data: { labels: mrLabels, datasets: [{ label: 'Doanh thu', data: mrValues, backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 4 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) { return new Intl.NumberFormat('vi-VN').format(ctx.raw) + '₫'; } } } },
+                        scales: { y: { beginAtZero: true, ticks: { callback: function(v) { return v >= 1000000 ? (v / 1000000).toFixed(1) + 'Tr' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v; } } } }
+                    }
+                }));
+            } else {
+                showEmptyState(mrCanvas);
+            }
+        }
+
+        // Revenue by Category bar chart
+        var crCanvas = document.getElementById('categoryRevenueChart');
+        if (crCanvas && data.revenueByCategory && data.revenueByCategory.length) {
+            clearEmptyState(crCanvas);
+            var crLabels = data.revenueByCategory.map(function (d) { return d.name || d.categoryName; });
+            var crValues = data.revenueByCategory.map(function (d) { return parseFloat(d.revenue || d.value) || 0; });
+            var crColors = ['#2563eb', '#10b981', '#f97316', '#8b5cf6', '#ef4444', '#6b7280'];
+            if (crValues.some(function (v) { return v > 0; })) {
+                chartInstances.push(new Chart(crCanvas, {
+                    type: 'bar',
+                    data: { labels: crLabels, datasets: [{ label: 'Doanh thu', data: crValues, backgroundColor: crLabels.map(function (_, i) { return crColors[i % crColors.length]; }), borderRadius: 4 }] },
+                    options: {
+                        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) { return new Intl.NumberFormat('vi-VN').format(ctx.raw) + '₫'; } } } },
+                        scales: { x: { beginAtZero: true, ticks: { callback: function(v) { return v >= 1000000 ? (v / 1000000).toFixed(1) + 'Tr' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v; } } } }
+                    }
+                }));
+            } else {
+                showEmptyState(crCanvas);
+            }
+        }
         } catch (err) {
             console.error('[analytics] Lỗi khi vẽ chart:', err);
         }

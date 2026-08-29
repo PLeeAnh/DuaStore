@@ -1,6 +1,7 @@
 package com.duastore.controller.admin;
 
 import com.duastore.service.admin.AdminAnalyticsService;
+import com.duastore.service.admin.AdminDashboardService;
 import com.duastore.service.admin.AdminVariantPredictionService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -22,11 +23,14 @@ public class AdminAnalyticsController {
 
     private final AdminAnalyticsService analyticsService;
     private final AdminVariantPredictionService predictionService;
+    private final AdminDashboardService dashboardService;
 
     public AdminAnalyticsController(AdminAnalyticsService analyticsService,
-                                     AdminVariantPredictionService predictionService) {
+                                     AdminVariantPredictionService predictionService,
+                                     AdminDashboardService dashboardService) {
         this.analyticsService = analyticsService;
         this.predictionService = predictionService;
+        this.dashboardService = dashboardService;
     }
 
     @GetMapping
@@ -128,6 +132,14 @@ public class AdminAnalyticsController {
 
         // Traffic tab
         model.addAttribute("recentOrders", analyticsService.getRecentOrders(10));
+
+        // Enhanced analytics from DashboardService
+        model.addAttribute("monthlyRevenue12", dashboardService.getMonthlyRevenueLast12Months());
+        model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
+        model.addAttribute("cancelRefundRate", dashboardService.getCancelRefundRate());
+        model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
+        model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
+        model.addAttribute("topSelling7Days", dashboardService.getTopSellingProductsLast7Days(5));
 
         return "view/admin/analytics";
     }

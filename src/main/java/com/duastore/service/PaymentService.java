@@ -1,39 +1,58 @@
 package com.duastore.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Service
-/**
- * Service chứa nghiệp vụ (business logic) xử lý thanh toán.
- */
 public class PaymentService {
 
-    @Value("${payment.bank.code}")
-    private String bankCode;
+    private final SiteSettingService siteSettingService;
 
-    @Value("${payment.bank.account.number}")
-    private String accountNumber;
-
-    @Value("${payment.bank.account.name}")
-    private String accountName;
+    public PaymentService(SiteSettingService siteSettingService) {
+        this.siteSettingService = siteSettingService;
+    }
 
     public String getBankCode() {
-        return bankCode;
+        return siteSettingService.getValue("payment_bank_code", "MBB");
     }
 
     public String getAccountNumber() {
-        return accountNumber;
+        return siteSettingService.getValue("payment_bank_account", "118830072008");
     }
 
     public String getAccountName() {
-        return accountName;
+        return siteSettingService.getValue("payment_bank_holder", "");
+    }
+
+    public String getBankName() {
+        return siteSettingService.getValue("payment_bank_name", "MBBank");
+    }
+
+    public String getBankBranch() {
+        return siteSettingService.getValue("payment_bank_branch", "");
+    }
+
+    public String getQrUrl() {
+        return siteSettingService.getValue("payment_qr_url", "");
+    }
+
+    public Map<String, String> getBankInfo() {
+        return Map.of(
+            "bankName", getBankName(),
+            "accountNumber", getAccountNumber(),
+            "accountName", getAccountName(),
+            "bankBranch", getBankBranch(),
+            "qrUrl", getQrUrl()
+        );
     }
 
     public String generateVietQrUrl(String maDon, long amount) {
+        String bankCode = getBankCode();
+        String accountNumber = getAccountNumber();
+        String accountName = getAccountName();
         String des = encodeValue("Thanh toan don " + maDon);
         String holder = encodeValue(accountName);
         return String.format("https://qr.sepay.vn/img?acc=%s&bank=%s&amount=%d&des=%s&template=compact&holder=%s",

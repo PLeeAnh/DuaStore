@@ -199,7 +199,7 @@
         if (dmDen) dmDen.textContent = den;
 
         if (dmFooterAction) {
-            dmFooterAction.innerHTML = '<button type="button" class="vc2-get ds-btn-fill" onclick="claimPromo(\'' + ma + '\')">Nhận voucher</button>';
+            dmFooterAction.innerHTML = '<button type="button" class="ds-btn ds-btn-fill" onclick="claimPromo(\'' + ma + '\')"><i class="bi bi-wallet2 me-1"></i>Nhận voucher</button>';
         }
 
         var modal = document.getElementById('detailModal');

@@ -190,6 +190,9 @@ public class CheckoutController {
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
         model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
 
+        // Bank info for transfer payment
+        model.addAttribute("bankInfo", paymentService.getBankInfo());
+
         // Estimated delivery date
         model.addAttribute("estimatedDeliveryDate", java.time.LocalDate.now().plusDays(5).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " – " + java.time.LocalDate.now().plusDays(10).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
@@ -381,6 +384,7 @@ public class CheckoutController {
         model.addAttribute("loyaltyRedeemRate", loyaltyPointsService.getPointsRedeemRate());
         model.addAttribute("loyaltyEarnRate", loyaltyPointsService.getPointsEarnRate());
         model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
+        model.addAttribute("bankInfo", paymentService.getBankInfo());
         List<Promotion> activePromotions = getActivePromotions();
         Promotion bestPromo = findBestPromo(activePromotions, subtotal, phiShip);
         model.addAttribute("bestPromo", bestPromo);
@@ -481,9 +485,15 @@ public class CheckoutController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> apiQrInfo(@RequestParam long amount) {
         Map<String, Object> res = new HashMap<>();
-        res.put("qrUrl", paymentService.generateVietQrUrl("DUASTORE", amount));
+        String customQr = paymentService.getQrUrl();
+        if (customQr != null && !customQr.isBlank()) {
+            res.put("qrUrl", customQr);
+        } else {
+            res.put("qrUrl", paymentService.generateVietQrUrl("DUASTORE", amount));
+        }
         res.put("accountNumber", paymentService.getAccountNumber());
         res.put("accountName", paymentService.getAccountName());
+        res.put("bankName", paymentService.getBankName());
         return ResponseEntity.ok(res);
     }
 
@@ -532,6 +542,7 @@ public class CheckoutController {
             model.addAttribute("bankCode", paymentService.getBankCode());
             model.addAttribute("accountNumber", paymentService.getAccountNumber());
             model.addAttribute("accountName", paymentService.getAccountName());
+            model.addAttribute("bankName", paymentService.getBankName());
             model.addAttribute("title", "Thanh toán chuyển khoản");
             return "view/client/payment";
         } catch (RuntimeException e) {
@@ -726,8 +737,16 @@ public class CheckoutController {
         boolean paymentEnabled = switch (paymentMethod) {
             case "COD" -> "1".equals(paymentSettings.getOrDefault("payment_cod", "1"));
             case "CHUYEN_KHOAN" -> "1".equals(paymentSettings.getOrDefault("payment_bank", "1"));
-            case "VNPAY" -> "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1"))
-                    && vnpayService.isConfigured();
+            case "VNPAY" -> {
+                boolean enabled = "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1"));
+                if (!enabled) {
+                    throw new RuntimeException("VNPAY đã tắt. Bật tại Admin → Cấu hình thanh toán.");
+                }
+                if (!vnpayService.isConfigured()) {
+                    throw new RuntimeException("VNPAY chưa cấu hình TMN Code / Hash Secret. Nhập tại Admin → Cấu hình thanh toán → Cấu hình VNPay.");
+                }
+                yield true;
+            }
             default -> false;
         };
         if (!paymentEnabled) {

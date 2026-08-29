@@ -287,36 +287,36 @@
                         <div class="col-lg-8">
                             <div class="tab-content">
                                 <div class="tab-pane fade show active" id="tab-mota">
-                                    <div th:if="${product.moTa}" style="font-size:.9rem;color:#475569;line-height:1.8" th:utext="${product.moTa}">Mô tả chi tiết sản phẩm...</div>
+                                    <div th:if="${product.moTa}" class="ds-prose" th:utext="${product.moTa}">Mô tả chi tiết sản phẩm...</div>
                                     <p th:unless="${product.moTa}" class="text-muted mb-0">Chưa có mô tả cho sản phẩm này.</p>
                                 </div>
                                 <div class="tab-pane fade" id="tab-huongdan">
-                                    <div style="font-size:.9rem;color:#475569;line-height:1.8">
+                                    <div class="ds-prose">
                                         <div class="d-flex align-items-start gap-3 mb-3">
-                                            <div style="width:36px;height:36px;border-radius:50%;background:#F0F5FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#2563EB;font-size:1rem"><i class="bi bi-truck"></i></div>
+                                            <div class="ds-icon-circle ds-icon-circle--blue"><i class="bi bi-truck"></i></div>
                                             <div>
-                                                <strong style="color:#0F172A">Vận chuyển</strong>
+                                                <strong class="ds-heading-color">Vận chuyển</strong>
                                                 <p class="mb-0 mt-1" style="font-size:.85rem">Giao hàng toàn quốc. Thời gian giao hàng dự kiến 3-7 ngày làm việc tùy khu vực.</p>
                                             </div>
                                         </div>
                                         <div class="d-flex align-items-start gap-3 mb-3">
-                                            <div style="width:36px;height:36px;border-radius:50%;background:#FFF7ED;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#EA580C;font-size:1rem"><i class="bi bi-arrow-return-left"></i></div>
+                                            <div class="ds-icon-circle ds-icon-circle--orange"><i class="bi bi-arrow-return-left"></i></div>
                                             <div>
-                                                <strong style="color:#0F172A">Đổi trả</strong>
+                                                <strong class="ds-heading-color">Đổi trả</strong>
                                                 <p class="mb-0 mt-1" style="font-size:.85rem">Đổi trả trong 7 ngày kể từ ngày nhận hàng nếu sản phẩm lỗi hoặc không đúng mô tả.</p>
                                             </div>
                                         </div>
                                         <div class="d-flex align-items-start gap-3 mb-3">
-                                            <div style="width:36px;height:36px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#16A34A;font-size:1rem"><i class="bi bi-shield-check"></i></div>
+                                            <div class="ds-icon-circle ds-icon-circle--green"><i class="bi bi-shield-check"></i></div>
                                             <div>
-                                                <strong style="color:#0F172A">Bảo hành</strong>
+                                                <strong class="ds-heading-color">Bảo hành</strong>
                                                 <p class="mb-0 mt-1" style="font-size:.85rem">Sản phẩm được bảo hành chính hãng theo chính sách của nhà sản xuất.</p>
                                             </div>
                                         </div>
                                         <div class="d-flex align-items-start gap-3">
-                                            <div style="width:36px;height:36px;border-radius:50%;background:#F5F3FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#7C3AED;font-size:1rem"><i class="bi bi-credit-card"></i></div>
+                                            <div class="ds-icon-circle ds-icon-circle--purple"><i class="bi bi-credit-card"></i></div>
                                             <div>
-                                                <strong style="color:#0F172A">Thanh toán</strong>
+                                                <strong class="ds-heading-color">Thanh toán</strong>
                                                 <p class="mb-0 mt-1" style="font-size:.85rem">Hỗ trợ thanh toán khi nhận hàng (COD), chuyển khoản ngân hàng, và thẻ tín dụng.</p>
                                             </div>
                                         </div>

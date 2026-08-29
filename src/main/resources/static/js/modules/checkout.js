@@ -798,65 +798,50 @@ document.addEventListener('DOMContentLoaded', function () {
         var tt = document.querySelector('input[name="phuongThucTT"]:checked');
         if (!tt)
             return;
-        if (tt.value === 'CHUYEN_KHOAN') {
-            e.preventDefault();
-            var totalEl = document.getElementById('totalDisplay');
-            var amount = parseInt(totalEl.textContent.replace(/[^0-9]/g, '')) || 0;
-            DuaStore.api.get('/checkout/api/qr-info?amount=' + amount)
-                    .then(function (result) {
-                        if (!result.ok) {
-                            DuaStore.toast.error('Không thể tạo mã QR, vui lòng thử lại');
-                            return;
-                        }
-                        var data = result.data;
-                        document.getElementById('qrPaymentImage').src = data.qrUrl;
-                        document.getElementById('qrAccountNumber').textContent = data.accountNumber;
-                        document.getElementById('qrAccountName').textContent = data.accountName;
-                        document.getElementById('qrAmount').textContent = amount.toLocaleString('vi-VN') + '₫';
-                        new bootstrap.Modal(document.getElementById('qrPaymentModal')).show();
-                    });
-        } else {
-            e.preventDefault();
+        e.preventDefault();
 
-            var btn = document.querySelector('#checkoutForm button[type="submit"], button[form="checkoutForm"]');
-            if (!btn)
-                return;
-            if (btn._submitted) {
-                e.preventDefault();
-                return;
-            }
-            btn._submitted = true;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+        var btn = document.querySelector('#checkoutForm button[type="submit"], button[form="checkoutForm"]');
+        if (!btn)
+            return;
+        if (btn._submitted) {
+            return;
+        }
+        btn._submitted = true;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
 
-            var form = document.getElementById('checkoutForm');
-            var formData = new URLSearchParams(new FormData(form));
+        var form = document.getElementById('checkoutForm');
+        var formData = new URLSearchParams(new FormData(form));
 
-            DuaStore.api.postForm('/checkout/api/create', formData)
-                    .then(function (result) {
-                        if (!result.ok || !result.data) {
-                            DuaStore.toast.error(result.message || 'Đặt hàng thất bại');
-                            btn._submitted = false;
-                            btn.disabled = false;
-                            btn.innerHTML = 'Đặt hàng';
-                            return;
-                        }
-                    if (result.data.success) {
-                        if (result.data.vnpayUrl) {
-                            window.location.href = result.data.vnpayUrl;
-                        } else if (result.data.redirectUrl) {
-                            window.location.href = result.data.redirectUrl;
-                        } else {
-                            window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
-                        }
-                    } else {
-                        DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
+        DuaStore.api.postForm('/checkout/api/create', formData)
+                .then(function (result) {
+                    if (!result.ok || !result.data) {
+                        DuaStore.toast.error(result.message || 'Đặt hàng thất bại');
                         btn._submitted = false;
                         btn.disabled = false;
                         btn.innerHTML = 'Đặt hàng';
+                        return;
                     }
-                });
-        }
+                if (result.data.success) {
+                    if (result.data.vnpayUrl) {
+                        window.location.href = result.data.vnpayUrl;
+                    } else if (result.data.redirectUrl) {
+                        window.location.href = result.data.redirectUrl;
+                    } else {
+                        window.location.href = '/checkout/thanh-cong/' + result.data.orderId;
+                    }
+                } else {
+                    DuaStore.toast.error(result.data.message || 'Đặt hàng thất bại');
+                    btn._submitted = false;
+                    btn.disabled = false;
+                    btn.innerHTML = 'Đặt hàng';
+                }
+            }).catch(function () {
+                DuaStore.toast.error('Lỗi kết nối, vui lòng thử lại');
+                btn._submitted = false;
+                btn.disabled = false;
+                btn.innerHTML = 'Đặt hàng';
+            });
     });
 
     document.querySelectorAll('input[name="shippingCarrier"]').forEach(function (el) {
