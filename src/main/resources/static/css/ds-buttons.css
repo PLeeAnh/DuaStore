@@ -1,7 +1,6 @@
 /* =====================================================
  DuaStore — Unified Button System (admin + client)
- Mục tiêu: CHỈ 1 kiểu button duy nhất cho toàn site.
- Bảng màu: chỉ xanh nước biển (--ds-btn-blue), trắng, đen.
+ Bảng màu: xanh primary, đỏ danger, xanh lá success, vàng warning.
  Áp dụng đè lên các class Bootstrap sẵn có (btn-primary, btn-danger, ...)
  để không phải sửa lại HTML từng trang.
  File này được load SAU CÙNG trong cả admin/base.html và client/base.html
@@ -24,7 +23,6 @@
     font-weight: 600;
     letter-spacing: .01em;
     transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .1s ease;
-    box-shadow: none !important;
 }
 
 .btn:active,
@@ -41,32 +39,28 @@
 
 /* ── PRIMARY: nền xanh, chữ trắng ── */
 .btn-primary,
-.btn-success,
 .ds-btn-fill {
     background-color: var(--ds-btn-blue) !important;
     border-color: var(--ds-btn-blue) !important;
     color: var(--ds-btn-white) !important;
 }
 .btn-primary:hover, .btn-primary:focus,
-.btn-success:hover, .btn-success:focus,
 .ds-btn-fill:hover, .ds-btn-fill:focus {
     background-color: var(--ds-btn-blue-dark) !important;
     border-color: var(--ds-btn-blue-dark) !important;
     color: var(--ds-btn-white) !important;
 }
 .btn-primary:disabled, .btn-primary.disabled,
-.btn-success:disabled, .btn-success.disabled,
 .ds-btn-fill:disabled, .ds-btn-fill.disabled {
     background-color: #A9C6EF !important;
     border-color: #A9C6EF !important;
     color: var(--ds-btn-white) !important;
-    opacity: 1 !important;
+    opacity: .65 !important;
 }
 
 /* ── SECONDARY: nền trắng, viền + chữ xanh ── */
 .btn-secondary,
 .btn-info,
-.btn-warning,
 .btn-light,
 .btn-outline-primary,
 .btn-outline-secondary,
@@ -80,7 +74,6 @@
 }
 .btn-secondary:hover, .btn-secondary:focus,
 .btn-info:hover, .btn-info:focus,
-.btn-warning:hover, .btn-warning:focus,
 .btn-light:hover, .btn-light:focus,
 .btn-outline-primary:hover, .btn-outline-primary:focus,
 .btn-outline-secondary:hover, .btn-outline-secondary:focus,
@@ -98,32 +91,85 @@
     border-color: #CBD5E1 !important;
     color: #94A3B8 !important;
     background-color: var(--ds-btn-white) !important;
-    opacity: 1 !important;
+    opacity: .65 !important;
 }
 
-/* ── DESTRUCTIVE: nền đen, chữ trắng ── */
+/* ── DANGER / DESTRUCTIVE: nền đỏ, chữ trắng ── */
 .btn-danger,
-.btn-dark,
 .btn-outline-danger,
 .ds-btn-danger {
+    background-color: #EF4444 !important;
+    border-color: #EF4444 !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-danger:hover, .btn-danger:focus,
+.btn-outline-danger:hover, .btn-outline-danger:focus,
+.ds-btn-danger:hover, .ds-btn-danger:focus {
+    background-color: #DC2626 !important;
+    border-color: #DC2626 !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-danger:disabled, .btn-danger.disabled,
+.btn-outline-danger:disabled, .btn-outline-danger.disabled,
+.ds-btn-danger:disabled, .ds-btn-danger.disabled {
+    background-color: #FCA5A5 !important;
+    border-color: #FCA5A5 !important;
+    color: var(--ds-btn-white) !important;
+    opacity: .65 !important;
+}
+
+/* ── DARK: nền đen, chữ trắng (for confirmation modals, etc.) ── */
+.btn-dark {
     background-color: var(--ds-btn-black) !important;
     border-color: var(--ds-btn-black) !important;
     color: var(--ds-btn-white) !important;
 }
-.btn-danger:hover, .btn-danger:focus,
-.btn-dark:hover, .btn-dark:focus,
-.btn-outline-danger:hover, .btn-outline-danger:focus,
-.ds-btn-danger:hover, .ds-btn-danger:focus {
+.btn-dark:hover, .btn-dark:focus {
     background-color: var(--ds-btn-black-dark) !important;
     border-color: var(--ds-btn-black-dark) !important;
     color: var(--ds-btn-white) !important;
 }
-.btn-danger:disabled, .btn-danger.disabled,
-.ds-btn-danger:disabled, .ds-btn-danger.disabled {
+.btn-dark:disabled, .btn-dark.disabled {
     background-color: #B8BCC6 !important;
     border-color: #B8BCC6 !important;
     color: var(--ds-btn-white) !important;
-    opacity: 1 !important;
+    opacity: .65 !important;
+}
+
+/* ── WARNING: nền vàng, chữ đen ── */
+.btn-warning {
+    background-color: #F59E0B !important;
+    border-color: #F59E0B !important;
+    color: #111318 !important;
+}
+.btn-warning:hover, .btn-warning:focus {
+    background-color: #D97706 !important;
+    border-color: #D97706 !important;
+    color: #111318 !important;
+}
+.btn-warning:disabled, .btn-warning.disabled {
+    background-color: #FCD34D !important;
+    border-color: #FCD34D !important;
+    color: #111318 !important;
+    opacity: .65 !important;
+}
+
+/* ── SUCCESS: nền xanh lá, chữ trắng ── */
+.btn-success {
+    background-color: #16A34A !important;
+    border-color: #16A34A !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-success:hover, .btn-success:focus {
+    background-color: #15803D !important;
+    border-color: #15803D !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-success:disabled, .btn-success.disabled {
+    background-color: #86EFAC !important;
+    border-color: #86EFAC !important;
+    color: var(--ds-btn-white) !important;
+    opacity: .65 !important;
 }
 
 /* ── Focus ring: chỉ xanh, không dùng màu Bootstrap mặc định ── */

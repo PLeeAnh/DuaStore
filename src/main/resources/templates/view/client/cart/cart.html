@@ -89,10 +89,10 @@
                                                 <div class="ds-cart-item-variant" th:text="${item.tenBienThe}">Biến thể</div>
                                                 <div class="d-flex gap-2">
                                                     <button class="ds-cart-remove"
-                                                            th:onclick="'removeCartItem(' + ${item.variantId} + ')'" style="font-size:0.8rem;">
+                                                            th:onclick="'removeCartItem(' + ${item.variantId} + ')'">
                                                         <i class="bi bi-trash"></i> Xóa
                                                     </button>
-                                                    <button class="ds-cart-remove" style="font-size:0.8rem;color:#0d6efd;"
+                                                    <button class="ds-cart-remove" style="color:#0d6efd;"
                                                             th:onclick="'saveForLater(' + ${item.variantId} + ')'">
                                                         <i class="bi bi-bookmark"></i> Lưu lại sau
                                                     </button>

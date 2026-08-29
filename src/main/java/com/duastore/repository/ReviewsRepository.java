@@ -45,4 +45,7 @@ public interface ReviewsRepository extends JpaRepository<Review, Integer> {
 
     @Query("SELECT AVG(r.danhGia), COUNT(r) FROM Review r WHERE r.productId = :productId AND r.isApproved = true")
     List<Object[]> getAverageRating(@Param("productId") Integer productId);
+
+    @Query("SELECT r.productId, COUNT(r), AVG(r.danhGia) FROM Review r WHERE r.isApproved = true GROUP BY r.productId ORDER BY COUNT(r) DESC")
+    List<Object[]> findMostReviewed(Pageable pageable);
 }

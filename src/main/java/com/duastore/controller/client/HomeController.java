@@ -8,11 +8,9 @@ import com.duastore.model.Promotion;
 import com.duastore.repository.CategoryRepository;
 import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.OrderItemRepository;
-import com.duastore.repository.ProductImageRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
-import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserVoucherRepository;
 import com.duastore.repository.WishlistRepository;
 import com.duastore.model.VoucherStatus;
@@ -22,6 +20,7 @@ import com.duastore.service.PricingService.FlashSaleOffer;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
+import com.duastore.repository.ReviewsRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -52,9 +51,8 @@ public class HomeController {
     private final SiteSettingService siteSettingService;
     private final OrderItemRepository orderItemRepository;
     private final WishlistRepository wishlistRepository;
-    private final ReviewsRepository reviewsRepository;
     private final PricingService pricingService;
-    private final ProductImageRepository productImageRepository;
+    private final ReviewsRepository reviewsRepository;
 
     public HomeController(ProductService productService,
             CategoryService categoryService,
@@ -69,9 +67,8 @@ public class HomeController {
             SiteSettingService siteSettingService,
             OrderItemRepository orderItemRepository,
             WishlistRepository wishlistRepository,
-            ReviewsRepository reviewsRepository,
             PricingService pricingService,
-            ProductImageRepository productImageRepository) {
+            ReviewsRepository reviewsRepository) {
         this.productService = productService;
         this.categoryService = categoryService;
         this.flashSaleRepository = flashSaleRepository;
@@ -85,9 +82,8 @@ public class HomeController {
         this.siteSettingService = siteSettingService;
         this.orderItemRepository = orderItemRepository;
         this.wishlistRepository = wishlistRepository;
-        this.reviewsRepository = reviewsRepository;
         this.pricingService = pricingService;
-        this.productImageRepository = productImageRepository;
+        this.reviewsRepository = reviewsRepository;
     }
 
     /**
@@ -222,87 +218,30 @@ public class HomeController {
         List<Product> discountedProducts = productRepository.findDiscountedWithVariants(PageRequest.of(0, 10));
         model.addAttribute("discountedProducts", discountedProducts);
 
-        // ─ Duyệt sản phẩm (Browse) - sản phẩm nổi bật cho section hai cột ─
-        List<Product> browseProducts = featured.stream().limit(10).toList();
-        model.addAttribute("browseProducts", browseProducts);
-
-        // Tính rating trung bình + số lượt yêu thích cho browse products
-        Map<Integer, Double> ratingMap = new HashMap<>();
-        Map<Integer, Long> ratingCountMap = new HashMap<>();
-        Map<Integer, Long> wishlistCountMap = new HashMap<>();
-        if (!browseProducts.isEmpty()) {
-            List<Integer> browseIds = browseProducts.stream().map(Product::getId).toList();
-            List<Object[]> ratingRows = reviewsRepository.getAverageRatings(browseIds);
-            for (Object[] row : ratingRows) {
-                Integer pid = (Integer) row[0];
-                Double avg = row[1] != null ? ((Number) row[1]).doubleValue() : null;
-                Long cnt = row[2] != null ? ((Number) row[2]).longValue() : 0L;
-                ratingMap.put(pid, avg);
-                ratingCountMap.put(pid, cnt);
-            }
-            List<Object[]> wlRows = wishlistRepository.countByProductIds(browseIds);
-            for (Object[] row : wlRows) {
-                wishlistCountMap.put((Integer) row[0], ((Number) row[1]).longValue());
-            }
+        // ─ Yêu thích nhất (most wished) ─
+        List<Object[]> mostWishedRows = wishlistRepository.findMostLiked(PageRequest.of(0, 8));
+        List<Integer> mostWishedIds = mostWishedRows.stream().map(r -> ((Number) r[0]).intValue()).toList();
+        Map<Integer, Long> wishCountMap = new HashMap<>();
+        for (Object[] row : mostWishedRows) {
+            wishCountMap.put(((Number) row[0]).intValue(), ((Number) row[1]).longValue());
         }
-        model.addAttribute("ratingMap", ratingMap);
-        model.addAttribute("ratingCountMap", ratingCountMap);
-        model.addAttribute("wishlistCountMap", wishlistCountMap);
-        boolean hasFavProducts = browseProducts.stream().anyMatch(p -> wishlistCountMap.getOrDefault(p.getId(), 0L) > 0);
-        boolean hasSoldProducts = browseProducts.stream().anyMatch(p -> soldCountMap.getOrDefault(p.getId(), 0L) > 0);
-        model.addAttribute("hasFavProducts", hasFavProducts);
-        model.addAttribute("hasSoldProducts", hasSoldProducts);
+        List<Product> mostWishedProducts = productRepository.findAllByIdWithVariants(mostWishedIds);
+        model.addAttribute("mostWishedProducts", mostWishedProducts);
+        model.addAttribute("wishCountMap", wishCountMap);
 
-        // Gallery images cho browse section
-        Map<Integer, List<String>> browseGalleryMap = new HashMap<>();
-        if (!browseProducts.isEmpty()) {
-            List<Integer> browseIds = browseProducts.stream().map(Product::getId).toList();
-            Map<Integer, String> mainImgMap = browseProducts.stream()
-                    .filter(p -> p.getHinhAnhChinh() != null)
-                    .collect(Collectors.toMap(Product::getId, Product::getHinhAnhChinh));
-            Map<Integer, List<com.duastore.model.ProductImage>> grouped = productImageRepository
-                    .findByProductIdInAndIsActiveTrue(browseIds)
-                    .stream()
-                    .collect(Collectors.groupingBy(com.duastore.model.ProductImage::getProductId));
-            for (Integer pid : browseIds) {
-                List<String> urls = new ArrayList<>();
-                if (mainImgMap.containsKey(pid)) {
-                    urls.add(mainImgMap.get(pid));
-                }
-                List<com.duastore.model.ProductImage> imgs = grouped.getOrDefault(pid, java.util.Collections.emptyList());
-                int maxBrowseImgs = 10;
-                for (com.duastore.model.ProductImage img : imgs) {
-                    if (img.getImageUrl() != null && !urls.contains(img.getImageUrl())) {
-                        if (urls.size() >= maxBrowseImgs) break;
-                        urls.add(img.getImageUrl());
-                    }
-                }
-                browseGalleryMap.put(pid, urls);
-            }
+        // ─ Đánh giá nhiều nhất (most reviewed) ─
+        List<Object[]> mostReviewedRows = reviewsRepository.findMostReviewed(PageRequest.of(0, 8));
+        List<Integer> mostReviewedIds = mostReviewedRows.stream().map(r -> ((Number) r[0]).intValue()).toList();
+        Map<Integer, Long> reviewCountMap = new HashMap<>();
+        Map<Integer, Double> avgRatingMap = new HashMap<>();
+        for (Object[] row : mostReviewedRows) {
+            reviewCountMap.put(((Number) row[0]).intValue(), ((Number) row[1]).longValue());
+            avgRatingMap.put(((Number) row[0]).intValue(), ((Number) row[2]) != null ? ((Number) row[2]).doubleValue() : 0.0);
         }
-        model.addAttribute("browseGalleryMap", browseGalleryMap);
-
-        Map<Integer, Long> productCountMap = productRepository.countProductsByDanhMuc()
-                .stream()
-                .collect(Collectors.toMap(row -> (Integer) row[0], row -> (Long) row[1]));
-
-        // Aggregate child category counts into parents
-        List<Category> allCategories = categoryRepository.findByIsActiveTrue();
-        for (Category cat : allCategories) {
-            if (cat.getParent() != null) {
-                Integer parentId = cat.getParent().getId();
-                Long childCount = productCountMap.getOrDefault(cat.getId(), 0L);
-                productCountMap.merge(parentId, childCount, Long::sum);
-            }
-        }
-        model.addAttribute("productCountMap", productCountMap);
-        long totalProducts = productCountMap.values().stream().mapToLong(Long::longValue).sum();
-        model.addAttribute("totalProducts", totalProducts);
-
-        // Map danh mục ID → tên danh mục (dùng cho browse section)
-        Map<Integer, String> categoryNameMap = allCategories.stream()
-                .collect(Collectors.toMap(Category::getId, Category::getTenDanhMuc, (a, b) -> a));
-        model.addAttribute("categoryNameMap", categoryNameMap);
+        List<Product> mostReviewedProducts = productRepository.findAllByIdWithVariants(mostReviewedIds);
+        model.addAttribute("mostReviewedProducts", mostReviewedProducts);
+        model.addAttribute("reviewCountMap", reviewCountMap);
+        model.addAttribute("avgRatingMap", avgRatingMap);
 
         // Gộp toàn bộ ID sản phẩm ở mọi khối để tính chung 1 lần variants/flashsale/promo
         List<Product> allSectionProducts = new ArrayList<>();
@@ -311,7 +250,8 @@ public class HomeController {
         allSectionProducts.addAll(newestProducts);
         allSectionProducts.addAll(underPriceProducts);
         allSectionProducts.addAll(discountedProducts);
-        allSectionProducts.addAll(browseProducts);
+        allSectionProducts.addAll(mostWishedProducts);
+        allSectionProducts.addAll(mostReviewedProducts);
 
 // ── Các section động do admin thêm trong "Thiết kế trang chủ" ──
         List<Map<String, Object>> hpSections = new ArrayList<>();

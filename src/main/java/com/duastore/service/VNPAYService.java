@@ -20,17 +20,43 @@ public class VNPAYService {
 
     private static final Logger log = LoggerFactory.getLogger(VNPAYService.class);
 
-    @Value("${vnpay.tmn-code}")
-    private String tmnCode;
+    private final SiteSettingService siteSettingService;
 
-    @Value("${vnpay.hash-secret}")
-    private String hashSecret;
+    @Value("${vnpay.tmn-code:}")
+    private String tmnCodeDefault;
 
-    @Value("${vnpay.pay-url}")
-    private String payUrl;
+    @Value("${vnpay.hash-secret:}")
+    private String hashSecretDefault;
 
-    @Value("${vnpay.return-url}")
-    private String returnUrl;
+    @Value("${vnpay.pay-url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
+    private String payUrlDefault;
+
+    @Value("${vnpay.return-url:http://localhost:8080/checkout/vnpay/return}")
+    private String returnUrlDefault;
+
+    public VNPAYService(SiteSettingService siteSettingService) {
+        this.siteSettingService = siteSettingService;
+    }
+
+    private String getTmnCode() {
+        String v = siteSettingService.getValue("vnpay_tmn_code");
+        return (v != null && !v.isBlank()) ? v : tmnCodeDefault;
+    }
+
+    private String getHashSecret() {
+        String v = siteSettingService.getValue("vnpay_hash_secret");
+        return (v != null && !v.isBlank()) ? v : hashSecretDefault;
+    }
+
+    private String getPayUrl() {
+        String v = siteSettingService.getValue("vnpay_pay_url");
+        return (v != null && !v.isBlank()) ? v : payUrlDefault;
+    }
+
+    private String getReturnUrl() {
+        String v = siteSettingService.getValue("vnpay_return_url");
+        return (v != null && !v.isBlank()) ? v : returnUrlDefault;
+    }
 
     private static final String VERSION = "2.1.0";
     private static final String COMMAND = "pay";
@@ -41,8 +67,9 @@ public class VNPAYService {
     private static final String TRANSACTION_TYPE_REFUND = "02";
 
     public boolean isConfigured() {
-        return tmnCode != null && !tmnCode.isBlank()
-                && hashSecret != null && !hashSecret.isBlank();
+        String tc = getTmnCode();
+        String hs = getHashSecret();
+        return tc != null && !tc.isBlank() && hs != null && !hs.isBlank();
     }
 
     public String createPaymentUrl(String txnRef, long amount, String orderInfo, HttpServletRequest req) {
@@ -53,24 +80,24 @@ public class VNPAYService {
         Map<String, String> params = new LinkedHashMap<>();
         params.put("vnp_Version", VERSION);
         params.put("vnp_Command", COMMAND);
-        params.put("vnp_TmnCode", tmnCode);
+        params.put("vnp_TmnCode", getTmnCode());
         params.put("vnp_Amount", String.valueOf(amount * 100));
         params.put("vnp_CurrCode", CURR_CODE);
         params.put("vnp_TxnRef", txnRef);
         params.put("vnp_OrderInfo", orderInfo);
         params.put("vnp_OrderType", ORDER_TYPE);
         params.put("vnp_Locale", LOCALE);
-        params.put("vnp_ReturnUrl", returnUrl);
+        params.put("vnp_ReturnUrl", getReturnUrl());
         params.put("vnp_IpAddr", getIpAddress(req));
         params.put("vnp_CreateDate", formatDate(new Date()));
         params.put("vnp_ExpireDate", formatDate(addMinutes(new Date(), 15)));
         params.put("vnp_BankCode", "VNBANK");
 
         String hashData = buildHashData(params);
-        String secureHash = hmacSHA512(hashSecret, hashData);
+        String secureHash = hmacSHA512(getHashSecret(), hashData);
         params.put("vnp_SecureHash", secureHash);
 
-        return payUrl + "?" + buildQuery(params);
+        return getPayUrl() + "?" + buildQuery(params);
     }
 
     public Map<String, String> verifyReturn(Map<String, String> params) {
@@ -87,7 +114,7 @@ public class VNPAYService {
         verifyParams.remove("vnp_SecureHashType");
 
         String hashData = buildHashData(verifyParams);
-        String computedHash = hmacSHA512(hashSecret, hashData);
+        String computedHash = hmacSHA512(getHashSecret(), hashData);
 
         if (!computedHash.equals(vnpSecureHash)) {
             result.put("success", "false");
@@ -123,7 +150,7 @@ public class VNPAYService {
         Map<String, String> params = new LinkedHashMap<>();
         params.put("vnp_Version", VERSION);
         params.put("vnp_Command", REFUND_COMMAND);
-        params.put("vnp_TmnCode", tmnCode);
+        params.put("vnp_TmnCode", getTmnCode());
         params.put("vnp_TransactionType", TRANSACTION_TYPE_REFUND);
         params.put("vnp_TxnRef", txnRef);
         params.put("vnp_Amount", String.valueOf(amount));
@@ -136,11 +163,11 @@ public class VNPAYService {
         params.put("vnp_OrderType", ORDER_TYPE);
 
         String hashData = buildHashData(params);
-        String secureHash = hmacSHA512(hashSecret, hashData);
+        String secureHash = hmacSHA512(getHashSecret(), hashData);
         params.put("vnp_SecureHash", secureHash);
 
         String query = buildQuery(params);
-        String refundUrl = payUrl.replace("/vpcpay.html", "/vpcpay.html"); // VNPAY refund endpoint is same URL
+        String refundUrl = getPayUrl().replace("/vpcpay.html", "/vpcpay.html"); // VNPAY refund endpoint is same URL
 
         try {
             // Send POST request to VNPAY refund API

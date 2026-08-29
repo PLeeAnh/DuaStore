@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -62,7 +63,15 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
+
+    /**
+     * JPA mutates relationship collections during merge, so retain a mutable
+     * copy even when callers provide an immutable collection such as Set.of().
+     */
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles == null ? new HashSet<>() : new HashSet<>(roles);
+    }
 
     @Column(nullable = false)
     private Boolean isActive;
