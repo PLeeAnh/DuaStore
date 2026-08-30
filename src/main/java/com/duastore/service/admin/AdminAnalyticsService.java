@@ -5,6 +5,7 @@ import com.duastore.model.Order;
 import com.duastore.model.ProductVariant;
 import com.duastore.model.VoucherStatus;
 import com.duastore.repository.*;
+import com.duastore.repository.PageViewRepository;
 import com.duastore.util.PriceUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class AdminAnalyticsService {
     private final PromotionRepository promotionRepository;
     private final UserVoucherRepository userVoucherRepository;
     private final CategoryRepository categoryRepository;
+    private final PageViewRepository pageViewRepository;
 
     public AdminAnalyticsService(OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
@@ -41,7 +43,8 @@ public class AdminAnalyticsService {
             UserRepository userRepository,
             PromotionRepository promotionRepository,
             UserVoucherRepository userVoucherRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository,
+            PageViewRepository pageViewRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
@@ -50,6 +53,7 @@ public class AdminAnalyticsService {
         this.promotionRepository = promotionRepository;
         this.userVoucherRepository = userVoucherRepository;
         this.categoryRepository = categoryRepository;
+        this.pageViewRepository = pageViewRepository;
     }
 
     // ==================== REVENUE ====================
@@ -241,6 +245,94 @@ public class AdminAnalyticsService {
         return PriceUtils.format(total.divide(BigDecimal.valueOf(customers), 0, RoundingMode.HALF_UP));
     }
 
+    public Map<String, Object> getCustomerLifetimeStats() {
+        List<Object[]> rows = userRepository.findCustomerLifetimeStats();
+        if (rows.isEmpty()) {
+            Map<String, Object> empty = new LinkedHashMap<>();
+            empty.put("avgOrderCount", 0.0);
+            empty.put("avgTotalSpent", BigDecimal.ZERO);
+            empty.put("repeatRate", 0.0);
+            empty.put("oneTimeCount", 0L);
+            empty.put("repeatCount", 0L);
+            empty.put("loyalCount", 0L);
+            return empty;
+        }
+
+        long totalCustomers = 0;
+        long oneTime = 0;
+        long repeat = 0;
+        long loyal = 0;
+        BigDecimal totalSpentSum = BigDecimal.ZERO;
+        long totalOrderCount = 0;
+
+        for (Object[] row : rows) {
+            Long userId = ((Number) row[0]).longValue();
+            Long orderCount = ((Number) row[1]).longValue();
+            BigDecimal totalSpent = (BigDecimal) row[2];
+            totalCustomers++;
+            totalOrderCount += orderCount;
+            totalSpentSum = totalSpentSum.add(totalSpent != null ? totalSpent : BigDecimal.ZERO);
+            if (orderCount <= 1) oneTime++;
+            else if (orderCount <= 3) repeat++;
+            else loyal++;
+        }
+
+        double avgOrderCount = totalCustomers > 0 ? (double) totalOrderCount / totalCustomers : 0;
+        BigDecimal avgTotalSpent = totalCustomers > 0
+                ? totalSpentSum.divide(BigDecimal.valueOf(totalCustomers), 0, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+        double repeatRate = totalCustomers > 0 ? ((double) (repeat + loyal) / totalCustomers) * 100 : 0;
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("avgOrderCount", Math.round(avgOrderCount * 10.0) / 10.0);
+        result.put("avgTotalSpent", avgTotalSpent);
+        result.put("repeatRate", Math.round(repeatRate * 10.0) / 10.0);
+        result.put("oneTimeCount", oneTime);
+        result.put("repeatCount", repeat);
+        result.put("loyalCount", loyal);
+        result.put("totalCustomers", totalCustomers);
+        return result;
+    }
+
+    public List<Map<String, Object>> getRFMSegments() {
+        List<Object[]> rows = userRepository.findRFMData();
+        if (rows.isEmpty()) return List.of();
+
+        LocalDateTime now = LocalDateTime.now();
+        long[] segments = new long[6];
+
+        for (Object[] row : rows) {
+            Long orderCount = ((Number) row[0]).longValue();
+            BigDecimal totalSpent = (BigDecimal) row[1];
+            LocalDateTime lastOrderDate = (LocalDateTime) row[2];
+            long daysSinceLastOrder = lastOrderDate != null
+                    ? java.time.Duration.between(lastOrderDate, now).toDays() : 999;
+
+            boolean recent = daysSinceLastOrder <= 30;
+            boolean frequent = orderCount >= 3;
+            boolean highValue = totalSpent != null && totalSpent.compareTo(new BigDecimal("5000000")) >= 0;
+
+            if (recent && frequent && highValue) segments[0]++;
+            else if (recent && frequent) segments[1]++;
+            else if (recent && highValue) segments[2]++;
+            else if (frequent && highValue) segments[3]++;
+            else if (daysSinceLastOrder <= 90) segments[4]++;
+            else segments[5]++;
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        String[] names = {"Champions", "Loyal", "Potential Loyalists", "Big Spenders", "Warm", "At Risk / Lost"};
+        String[] colors = {"#059669", "#2563EB", "#7C3AED", "#D97706", "#6B7280", "#DC2626"};
+        for (int i = 0; i < 6; i++) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("name", names[i]);
+            m.put("count", segments[i]);
+            m.put("color", colors[i]);
+            result.add(m);
+        }
+        return result;
+    }
+
     // ==================== PRODUCTS ====================
     public List<Map<String, Object>> getTopSellingProducts(LocalDate from, LocalDate to) {
         LocalDateTime start = from.atStartOfDay();
@@ -277,9 +369,7 @@ public class AdminAnalyticsService {
     }
 
     public long getLowStockProducts() {
-        return productVariantRepository.findAll().stream()
-                .filter(v -> v.isActive() && v.getSoLuongTon() != null && v.getSoLuongTon() < 5)
-                .count();
+        return productVariantRepository.countLowStockVariants();
     }
 
     public long getTotalStock() {
@@ -345,6 +435,177 @@ public class AdminAnalyticsService {
         return PriceUtils.format(totalDiscount);
     }
 
+    public List<Map<String, Object>> getPromotionEffectiveness(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Order> orders = orderRepository.findByTrangThaiDonInAndNgayDatBetween(
+                List.of("DA_GIAO", "DA_HOAN_THANH"), start, end);
+
+        Map<Integer, BigDecimal[]> promoMap = new LinkedHashMap<>();
+        for (Order o : orders) {
+            if (o.getPromotion() == null) continue;
+            Integer promoId = o.getPromotion().getId();
+            BigDecimal[] arr = promoMap.computeIfAbsent(promoId, k -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO});
+            arr[0] = arr[0].add(o.getTongThanhToan());
+            arr[1] = arr[1].add(o.getTienGiam() != null ? o.getTienGiam() : BigDecimal.ZERO);
+            arr[2] = arr[2].add(BigDecimal.ONE);
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        promoMap.entrySet().stream()
+                .sorted((a, b) -> b.getValue()[0].compareTo(a.getValue()[0]))
+                .limit(10)
+                .forEach(e -> {
+                    var promo = promotionRepository.findById(e.getKey());
+                    if (promo.isEmpty()) return;
+                    BigDecimal revenue = e.getValue()[0];
+                    BigDecimal discount = e.getValue()[1];
+                    long orderCount = e.getValue()[2].longValue();
+                    BigDecimal roi = discount.compareTo(BigDecimal.ZERO) > 0
+                            ? revenue.subtract(discount).multiply(BigDecimal.valueOf(100)).divide(discount, 1, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("maCode", promo.get().getMaCode());
+                    m.put("tenChuongTrinh", promo.get().getTenChuongTrinh());
+                    m.put("revenue", revenue);
+                    m.put("discount", discount);
+                    m.put("orderCount", orderCount);
+                    m.put("roi", roi);
+                    result.add(m);
+                });
+        return result;
+    }
+
+    // ==================== MARGIN / PROFIT ====================
+    public Map<String, Object> getMarginSummary(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Order> orders = orderRepository.findByTrangThaiDonInAndNgayDatBetween(
+                List.of("DA_GIAO", "DA_HOAN_THANH"), start, end);
+
+        BigDecimal totalRevenue = BigDecimal.ZERO;
+        BigDecimal totalCOGS = BigDecimal.ZERO;
+
+        for (Order o : orders) {
+            var items = orderItemRepository.findByOrderId(o.getId());
+            for (var item : items) {
+                BigDecimal itemRevenue = BigDecimal.valueOf(item.getSoLuong()).multiply(item.getDonGia());
+                totalRevenue = totalRevenue.add(itemRevenue);
+                if (item.getGiaVon() != null) {
+                    totalCOGS = totalCOGS.add(BigDecimal.valueOf(item.getSoLuong()).multiply(item.getGiaVon()));
+                }
+            }
+        }
+
+        BigDecimal profit = totalRevenue.subtract(totalCOGS);
+        BigDecimal marginPct = totalRevenue.compareTo(BigDecimal.ZERO) > 0
+                ? profit.multiply(BigDecimal.valueOf(100)).divide(totalRevenue, 1, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("revenue", totalRevenue);
+        result.put("cogs", totalCOGS);
+        result.put("profit", profit);
+        result.put("marginPct", marginPct);
+        return result;
+    }
+
+    public List<Map<String, Object>> getMarginByCategory(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Order> orders = orderRepository.findByTrangThaiDonInAndNgayDatBetween(
+                List.of("DA_GIAO", "DA_HOAN_THANH"), start, end);
+
+        Map<Integer, BigDecimal[]> catMap = new LinkedHashMap<>();
+        for (Order o : orders) {
+            var items = orderItemRepository.findByOrderId(o.getId());
+            for (var item : items) {
+                if (item.getProductId() == null) continue;
+                var product = productRepository.findById(item.getProductId());
+                if (product.isEmpty()) continue;
+                Integer catId = product.get().getDanhMucId();
+                BigDecimal[] arr = catMap.computeIfAbsent(catId, k -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO});
+                BigDecimal itemRevenue = BigDecimal.valueOf(item.getSoLuong()).multiply(item.getDonGia());
+                arr[0] = arr[0].add(itemRevenue);
+                if (item.getGiaVon() != null) {
+                    arr[1] = arr[1].add(BigDecimal.valueOf(item.getSoLuong()).multiply(item.getGiaVon()));
+                }
+            }
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        catMap.entrySet().stream()
+                .sorted((a, b) -> b.getValue()[0].compareTo(a.getValue()[0]))
+                .limit(10)
+                .forEach(e -> {
+                    String name = categoryRepository.findById(e.getKey())
+                            .map(Category::getTenDanhMuc)
+                            .orElse("Danh mục #" + e.getKey());
+                    BigDecimal revenue = e.getValue()[0];
+                    BigDecimal cogs = e.getValue()[1];
+                    BigDecimal profit = revenue.subtract(cogs);
+                    BigDecimal marginPct = revenue.compareTo(BigDecimal.ZERO) > 0
+                            ? profit.multiply(BigDecimal.valueOf(100)).divide(revenue, 1, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("name", name);
+                    row.put("revenue", revenue);
+                    row.put("cogs", cogs);
+                    row.put("profit", profit);
+                    row.put("marginPct", marginPct);
+                    result.add(row);
+                });
+        return result;
+    }
+
+    public List<Map<String, Object>> getTopMarginProducts(LocalDate from, LocalDate to, int limit) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Order> orders = orderRepository.findByTrangThaiDonInAndNgayDatBetween(
+                List.of("DA_GIAO", "DA_HOAN_THANH"), start, end);
+
+        Map<Integer, BigDecimal[]> prodMap = new LinkedHashMap<>();
+        for (Order o : orders) {
+            var items = orderItemRepository.findByOrderId(o.getId());
+            for (var item : items) {
+                if (item.getProductId() == null) continue;
+                BigDecimal[] arr = prodMap.computeIfAbsent(item.getProductId(), k -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO});
+                BigDecimal itemRevenue = BigDecimal.valueOf(item.getSoLuong()).multiply(item.getDonGia());
+                arr[0] = arr[0].add(itemRevenue);
+                arr[1] = arr[1].add(BigDecimal.valueOf(item.getSoLuong()));
+                if (item.getGiaVon() != null) {
+                    arr[2] = arr[2].add(BigDecimal.valueOf(item.getSoLuong()).multiply(item.getGiaVon()));
+                }
+            }
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        prodMap.entrySet().stream()
+                .sorted((a, b) -> b.getValue()[0].compareTo(a.getValue()[0]))
+                .limit(limit)
+                .forEach(e -> {
+                    var product = productRepository.findById(e.getKey());
+                    BigDecimal revenue = e.getValue()[0];
+                    int totalSold = e.getValue()[1].intValue();
+                    BigDecimal cogs = e.getValue()[2];
+                    BigDecimal profit = revenue.subtract(cogs);
+                    BigDecimal marginPct = revenue.compareTo(BigDecimal.ZERO) > 0
+                            ? profit.multiply(BigDecimal.valueOf(100)).divide(revenue, 1, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("productId", e.getKey());
+                    row.put("tenSanPham", product.map(p -> p.getTenSanPham()).orElse("SP #" + e.getKey()));
+                    row.put("hinhAnh", product.map(p -> p.getHinhAnhChinh()).orElse(null));
+                    row.put("totalSold", totalSold);
+                    row.put("revenue", revenue);
+                    row.put("cogs", cogs);
+                    row.put("profit", profit);
+                    row.put("marginPct", marginPct);
+                    result.add(row);
+                });
+        return result;
+    }
+
     // ==================== RECENT ORDERS ====================
     public List<Map<String, Object>> getRecentOrders(int limit) {
         List<Order> orders = orderRepository.findTop10ByOrderByNgayDatDesc(PageRequest.of(0, limit));
@@ -358,6 +619,63 @@ public class AdminAnalyticsService {
             m.put("trangThaiDon", o.getTrangThaiDon());
             m.put("phuongThucTT", o.getPhuongThucTT());
             m.put("ngayDat", o.getNgayDat());
+            result.add(m);
+        }
+        return result;
+    }
+
+    // ==================== CONVERSION FUNNEL ====================
+    public Map<String, Object> getConversionFunnel(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        
+        long visitors = pageViewRepository.countUniqueVisitors(start, end);
+        long addToCart = pageViewRepository.countAddToCartSessions(start, end);
+        long checkout = pageViewRepository.countCheckoutSessions(start, end);
+        long paid = pageViewRepository.countPaidSessions(start, end);
+        
+        double visitorToCartPct = visitors > 0 ? (addToCart * 100.0 / visitors) : 0;
+        double cartToCheckoutPct = addToCart > 0 ? (checkout * 100.0 / addToCart) : 0;
+        double checkoutToPaidPct = checkout > 0 ? (paid * 100.0 / checkout) : 0;
+        double overallConversion = visitors > 0 ? (paid * 100.0 / visitors) : 0;
+        
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("visitors", visitors);
+        result.put("addToCart", addToCart);
+        result.put("checkout", checkout);
+        result.put("paid", paid);
+        result.put("visitorToCartPct", Math.round(visitorToCartPct * 10.0) / 10.0);
+        result.put("cartToCheckoutPct", Math.round(cartToCheckoutPct * 10.0) / 10.0);
+        result.put("checkoutToPaidPct", Math.round(checkoutToPaidPct * 10.0) / 10.0);
+        result.put("overallConversion", Math.round(overallConversion * 10.0) / 10.0);
+        return result;
+    }
+
+    public List<Map<String, Object>> getTopPages(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Object[]> rows = pageViewRepository.findTopPages(start, end, org.springframework.data.domain.PageRequest.of(0, 10));
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("page", row[0]);
+            m.put("views", row[1]);
+            result.add(m);
+        }
+        return result;
+    }
+
+    // ==================== REVENUE BY CHANNEL ====================
+    public List<Map<String, Object>> getRevenueByChannel(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Object[]> rows = orderRepository.sumRevenueGroupByPhuongThucTT(start, end);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("channel", row[0] != null ? row[0] : "UNKNOWN");
+            m.put("revenue", row[1]);
+            m.put("count", row[2]);
             result.add(m);
         }
         return result;

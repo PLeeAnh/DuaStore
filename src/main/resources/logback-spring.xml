@@ -93,13 +93,6 @@
         <appender-ref ref="CONSOLE"/>
     </logger>
 
-    <!-- Refund Logger -->
-    <logger name="com.duastore.service.admin.RefundService" level="DEBUG" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-
     <!-- Flash Sale Logger -->
     <logger name="com.duastore.service.PricingService" level="DEBUG" additivity="false">
         <appender-ref ref="FILE"/>

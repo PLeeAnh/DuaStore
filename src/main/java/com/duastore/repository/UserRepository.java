@@ -40,7 +40,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.name = :role")
     Page<User> findByRole(@Param("role") String role, Pageable pageable);
 
-    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name IN ('ADMIN', 'SUPER_ADMIN') AND u.isActive = true")
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name IN ('ADMIN', 'PRODUCT_OWNER', 'STAFF') AND u.isActive = true")
     java.util.List<User> findAllActiveAdmins();
 
     @Query("SELECT COUNT(DISTINCT u) FROM User u JOIN u.roles r WHERE r.name = :role AND u.isActive = true")
@@ -137,4 +137,19 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<Object[]> findTopCustomersByRevenue(@Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             Pageable pageable);
+
+    @Query("SELECT u.id, COUNT(o), COALESCE(SUM(o.tongThanhToan), 0) "
+            + "FROM Order o JOIN o.user u "
+            + "WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') "
+            + "GROUP BY u.id")
+    List<Object[]> findCustomerLifetimeStats();
+
+    @Query("SELECT COUNT(o), COALESCE(SUM(o.tongThanhToan), 0), MAX(o.ngayDat) "
+            + "FROM Order o JOIN o.user u "
+            + "WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') "
+            + "GROUP BY o.user.id")
+    List<Object[]> findRFMData();
+
+    @Query("SELECT DISTINCT u FROM User u JOIN u.roles r WHERE r.name IN :roleNames AND u.isActive = true")
+    List<User> findByRolesNameIn(@Param("roleNames") List<String> roleNames);
 }

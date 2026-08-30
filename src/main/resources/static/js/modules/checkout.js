@@ -10,6 +10,7 @@ var modalDistricts = [];
 var modalWards = [];
 var editingAddressId = null;
 var modalProvincePromise = null;
+window._cachedGeoPosition = null;
 
 function loadModalProvinces() {
     return fetch('/api/location/provinces').then(function (r) {
@@ -264,6 +265,7 @@ function reverseGeocodeForModal(lat, lng) {
             }
             if (!city) city = comps.city || comps.town || '';
             var district = comps.county || comps.district || comps.city_district || '';
+
             var ward = comps.suburb || comps.neighbourhood || comps.quarter || comps.village || comps.hamlet || comps.town || comps.city_district || '';
             if (!ward && comps.city && /^(phường|xã|thị trấn)\s/i.test(comps.city)) {
                 ward = comps.city;
@@ -271,11 +273,46 @@ function reverseGeocodeForModal(lat, lng) {
             var districtFallback = (comps.city && /^(phường|xã|thị trấn|thị xã)\s/i.test(comps.city))
                 ? comps.city.replace(/^(phường|xã|thị trấn|thị xã)\s+/i, '').trim() : '';
             if (!district) district = districtFallback;
+
+            if (!district && data.display_name) {
+                var dnParts = data.display_name.split(/[,，]/).map(function(s) { return s.trim().normalize('NFC'); });
+                for (var j = dnParts.length - 1; j >= 0; j--) {
+                    var dp = dnParts[j].normalize('NFC');
+                    if (/^(quận|huyện|thị xã)\s/i.test(dp)) { district = dp; break; }
+                }
+            }
+
+            if (!district && ward) {
+                var wardLower = ward.toLowerCase().normalize('NFC');
+                var wardMatch = wardLower.match(/^(phường|xã|thị trấn)\s+(.+)/);
+                if (wardMatch) {
+                    var wardCore = wardMatch[2].trim();
+                    var candidates = [wardCore];
+                    var dnParts2 = (data.display_name || '').split(/[,，]/).map(function(s) { return s.trim().normalize('NFC'); });
+                    for (var j = dnParts2.length - 1; j >= 0; j--) {
+                        var dp = dnParts2[j];
+                        if (/^(quận|huyện|thị xã)\s/i.test(dp)) { district = dp; break; }
+                    }
+                    if (!district && wardCore.length >= 3) {
+                        district = wardCore.charAt(0).toUpperCase() + wardCore.slice(1);
+                    }
+                }
+            }
+
             var street = comps.house_number ? comps.house_number + ' ' : '';
             street += comps.road || comps.path || comps.pedestrian || comps.residential || comps.quarter || comps.neighbourhood || comps.suburb || comps.hamlet || comps.village || comps.town || '';
             street = street.trim();
             document.getElementById('modalDiaChiCuTheText').value = street;
-            var setAddr = function () { modalSetFromNominatim(city, district, ward, street, data.display_name || ''); };
+            var setAddr = function () {
+                modalSetFromNominatim(city, district, ward, street, data.display_name || '');
+                setTimeout(function () {
+                    var wardEl = document.getElementById('modalPhuongXa');
+                    if (wardEl && !wardEl.value) {
+                        var st = document.getElementById('modalMapStatus');
+                        if (st) st.textContent += ' — Quận/Huyện đã tự chọn, vui lòng chọn Phường/Xã thủ công.';
+                    }
+                }, 800);
+            };
             if (modalProvincePromise) { modalProvincePromise.then(setAddr); } else { setAddr(); }
             document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + (data.display_name || '');
         });
@@ -439,22 +476,76 @@ function modalSearchMap() {
 }
 
 function modalGetMyLocation() {
-    if (!navigator.geolocation) {
-        document.getElementById('modalMapStatus').textContent = 'Trình duyệt không hỗ trợ GPS';
-        return;
-    }
-    document.getElementById('modalMapStatus').textContent = 'Đang lấy vị trí...';
-    navigator.geolocation.getCurrentPosition(function (pos) {
-        var lat = pos.coords.latitude;
-        var lng = pos.coords.longitude;
+    var statusEl = document.getElementById('modalMapStatus');
+
+    function applyPosition(lat, lng) {
         document.getElementById('modalLatitude').value = lat;
         document.getElementById('modalLongitude').value = lng;
         if (window.checkoutMap && typeof window.checkoutMap.setView === 'function') { window.checkoutMap.setView([lat, lng], 16); }
         if (window.checkoutMarker && typeof window.checkoutMarker.setLatLng === 'function') window.checkoutMarker.setLatLng([lat, lng]);
         reverseGeocodeForModal(lat, lng);
+    }
+
+    function fallbackIPGeo() {
+        statusEl.textContent = 'Đang lấy vị trí từ mạng...';
+        function toResult(d) {
+            if (d && d.latitude && d.longitude) return { lat: d.latitude, lng: d.longitude, city: d.city || d.region || '' };
+            if (d && d.lat && d.lng) return { lat: d.lat, lng: d.lng, city: d.city || '' };
+            return null;
+        }
+        var clientGeo = fetch('https://ipwho.is/').then(function(r){ return r.json(); }).then(function(d) {
+            var r = toResult(d);
+            if (!r) throw new Error('no data');
+            return r;
+        });
+        var serverGeo = fetch('/api/location/geoip').then(function(r){ return r.json(); }).then(function(d) {
+            var r = toResult(d);
+            if (!r) throw new Error('no data');
+            return r;
+        });
+        clientGeo.catch(function(){ return serverGeo; }).then(function(result) {
+            statusEl.innerHTML = '📍 Vị trí từ mạng: <b>' + (result.city || 'không rõ') + '</b> — Chọn Tỉnh/TP, Quận/Huyện, Phường/Xã cho chính xác.';
+            applyPosition(result.lat, result.lng);
+        }).catch(function() {
+            statusEl.textContent = 'Không xác định được vị trí. Vui lòng chọn địa chỉ trên bản đồ.';
+        });
+    }
+
+    // 1. Dùng GPS đã cache từ khi trang load
+    if (window._cachedGeoPosition) {
+        statusEl.textContent = 'Đang lấy vị trí GPS...';
+        applyPosition(window._cachedGeoPosition.lat, window._cachedGeoPosition.lng);
+        statusEl.textContent = 'Đã lấy vị trí GPS.';
+        window._cachedGeoPosition = null;
+        return;
+    }
+
+    // 2. Thử GPS realtime (timeout ngắn)
+    if (!navigator.geolocation) {
+        fallbackIPGeo();
+        return;
+    }
+    statusEl.textContent = 'Đang lấy vị trí...';
+    var done = false;
+    var timer = setTimeout(function () {
+        if (!done) {
+            done = true;
+            fallbackIPGeo();
+        }
+    }, 3000);
+
+    navigator.geolocation.getCurrentPosition(function (pos) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        applyPosition(pos.coords.latitude, pos.coords.longitude);
+        statusEl.textContent = 'Đã lấy vị trí GPS.';
     }, function () {
-        document.getElementById('modalMapStatus').textContent = 'Không thể lấy vị trí. Kiểm tra quyền GPS.';
-    });
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        fallbackIPGeo();
+    }, { enableHighAccuracy: false, timeout: 4000, maximumAge: 300000 });
 }
 
 function modalClearMap() {
@@ -660,8 +751,38 @@ function updateEstimatedDelivery(days) {
     if (el) el.textContent = minDate.toLocaleDateString('vi-VN') + ' – ' + maxDate.toLocaleDateString('vi-VN');
 }
 
+/* ═══ GEO PERMISSION (outside modal) ═══ */
+function requestGeoPermission() {
+    var btn = document.getElementById('enableGpsBtn');
+    if (!navigator.geolocation) {
+        if (btn) { btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Trình duyệt không hỗ trợ GPS'; btn.style.color = '#DC2626'; }
+        return;
+    }
+    if (btn) { btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang yêu cầu quyền...'; btn.disabled = true; }
+    navigator.geolocation.getCurrentPosition(function (pos) {
+        window._cachedGeoPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        if (btn) { btn.innerHTML = '<i class="bi bi-check-circle"></i> GPS đã bật'; btn.style.color = 'var(--ds-success, #059669)'; btn.disabled = false; }
+        setTimeout(function () { if (btn) btn.style.display = 'none'; }, 3000);
+    }, function (err) {
+        if (btn) {
+            var label = err.code === 1 ? 'GPS bị chặn — bấm để thử lại' : 'GPS không khả dụng — dùng vị trí từ mạng';
+            btn.innerHTML = '<i class="bi bi-geo-alt"></i> ' + label;
+            btn.style.color = '#DC2626';
+            btn.disabled = false;
+        }
+    }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 });
+}
+
 /* ═══ DOM READY ═══ */
 document.addEventListener('DOMContentLoaded', function () {
+    if (navigator.geolocation) {
+        var btn = document.getElementById('enableGpsBtn');
+        if (btn) btn.style.display = '';
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            window._cachedGeoPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            if (btn) { btn.style.display = 'none'; }
+        }, function () {}, { enableHighAccuracy: true, timeout: 5000, maximumAge: 300000 });
+    }
     if (document.querySelector('.ds-checkout-steps')) {
         document.body.classList.add('ds-checkout-page');
     }
@@ -780,6 +901,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return;
                     }
                     if (result.data.success) {
+                        window.DuaStore && window.DuaStore.track('ORDER_COMPLETE', { orderId: result.data.orderId });
                         if (result.data.redirectUrl) {
                             window.location.href = result.data.redirectUrl;
                         } else {
@@ -810,6 +932,8 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
 
+        window.DuaStore && window.DuaStore.track('CHECKOUT_START');
+
         var form = document.getElementById('checkoutForm');
         var formData = new URLSearchParams(new FormData(form));
 
@@ -823,6 +947,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return;
                     }
                 if (result.data.success) {
+                    window.DuaStore && window.DuaStore.track('ORDER_COMPLETE', { orderId: result.data.orderId });
                     if (result.data.vnpayUrl) {
                         window.location.href = result.data.vnpayUrl;
                     } else if (result.data.redirectUrl) {

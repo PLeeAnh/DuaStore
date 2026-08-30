@@ -18,7 +18,7 @@ public class SecurityService {
         }
 
         for (GrantedAuthority a : auth.getAuthorities()) {
-            if ("ROLE_SUPER_ADMIN".equals(a.getAuthority())) {
+            if ("ROLE_PRODUCT_OWNER".equals(a.getAuthority())) {
                 return true;
             }
         }

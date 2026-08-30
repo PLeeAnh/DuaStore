@@ -50,6 +50,10 @@ public class OrderItem {
     @Column(nullable = false, precision = 12, scale = 0)
     private BigDecimal thanhTien;
 
+    /** Giá vốn tại thời điểm bán (snapshot từ ProductVariant.giaVon) */
+    @Column(precision = 12, scale = 0)
+    private BigDecimal giaVon;
+
     @Column(length = 20)
     private String loaiGia;
 }

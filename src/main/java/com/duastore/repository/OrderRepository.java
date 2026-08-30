@@ -181,4 +181,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "WHERE o.user.id IN :ids AND (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') "
             + "GROUP BY o.user.id")
     List<Object[]> sumTotalSpentByUserIds(@Param("ids") List<Integer> ids);
+
+    @Query("SELECT o.phuongThucTT, SUM(o.tongThanhToan), COUNT(o) FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') AND o.ngayDat BETWEEN :start AND :end GROUP BY o.phuongThucTT")
+    List<Object[]> sumRevenueGroupByPhuongThucTT(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

@@ -48,8 +48,10 @@
                             <th style="width:50px">STT</th>
                             <th>Tên biến thể</th>
                             <th class="text-center" style="width:80px">Ảnh</th>
-                            <th style="width:180px">Giá bán</th>
-                            <th style="width:140px">Tồn kho</th>
+                            <th style="width:150px">Giá bán</th>
+                            <th style="width:130px">Giá vốn</th>
+                            <th style="width:110px">Tồn kho</th>
+                            <th style="width:100px">Ngưỡng CB</th>
                             <th class="text-center" style="width:100px">Trạng thái</th>
                         </tr>
                     </thead>
@@ -70,8 +72,16 @@
                                        class="form-control form-control-sm" min="0" step="1" required />
                             </td>
                             <td>
+                                <input type="number" th:name="'variants[' + ${stat.index} + '].giaVon'" th:value="${v.giaVon}"
+                                       class="form-control form-control-sm" min="0" step="1" placeholder="0" />
+                            </td>
+                            <td>
                                 <input type="number" th:name="'variants[' + ${stat.index} + '].soLuongTon'" th:value="${v.soLuongTon}"
                                        class="form-control form-control-sm" min="0" step="1" required />
+                            </td>
+                            <td>
+                                <input type="number" th:name="'variants[' + ${stat.index} + '].lowStockThreshold'" th:value="${v.lowStockThreshold}"
+                                       class="form-control form-control-sm" min="0" step="1" placeholder="20" />
                             </td>
                             <td class="text-center">
                                 <span th:if="${v.active}" class="status-pill status-da-hoan-thanh">Hoạt động</span>

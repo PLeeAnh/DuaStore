@@ -205,6 +205,7 @@ public class OrderService {
             orderItem.setSoLuong(ci.getSoLuong());
             orderItem.setThanhTien(thanhTien);
             orderItem.setLoaiGia(loaiGia);
+            orderItem.setGiaVon(variant.getGiaVon());
             order.getOrderItems().add(orderItem);
         }
         order.setTienHang(tienHang);

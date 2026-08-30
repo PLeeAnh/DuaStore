@@ -28,7 +28,7 @@ class RoleRepositoryTest {
         a.setName("ADMIN");
         roleRepository.save(a);
         Role s = new Role();
-        s.setName("SUPER_ADMIN");
+        s.setName("PRODUCT_OWNER");
         roleRepository.save(s);
     }
 
@@ -47,10 +47,10 @@ class RoleRepositoryTest {
     }
 
     @Test
-    void findByName_SUPER_ADMIN_returnsRole() {
-        Role role = roleRepository.findByName("SUPER_ADMIN");
+    void findByName_PRODUCT_OWNER_returnsRole() {
+        Role role = roleRepository.findByName("PRODUCT_OWNER");
         assertThat(role).isNotNull();
-        assertThat(role.getName()).isEqualTo("SUPER_ADMIN");
+        assertThat(role.getName()).isEqualTo("PRODUCT_OWNER");
     }
 
     @Test

@@ -19,8 +19,8 @@ import java.util.Map;
 /**
  * Dang ky WebSocket /ws/admin/notifications cho trang admin.
  *
- * Bao mat: chi ADMIN / SUPER_ADMIN moi duoc bat tay (handshake). Kiem tra o 2 lop:
- *  1. SecurityFilterChain: matcher "/ws/**" yeu cau role ADMIN/SUPER_ADMIN.
+ * Bao mat: chi ADMIN / PRODUCT_OWNER / STAFF moi duoc bat tay (handshake). Kiem tra o 2 lop:
+ *  1. SecurityFilterChain: matcher "/ws/**" yeu cau role ADMIN/PRODUCT_OWNER/STAFF.
  *  2. HandshakeInterceptor: rank hinh lai tai thoi diem het tay (rang buoc an toan).
  */
 @Configuration
@@ -57,7 +57,7 @@ public class AdminNotificationWebSocketConfig implements WebSocketConfigurer {
                 }
                 boolean admin = auth.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
-                        .anyMatch(a -> "ROLE_ADMIN".equals(a) || "ROLE_SUPER_ADMIN".equals(a));
+                        .anyMatch(a -> "ROLE_ADMIN".equals(a) || "ROLE_PRODUCT_OWNER".equals(a) || "ROLE_STAFF".equals(a));
                 if (!admin) {
                     log.warn("WS handshake bi tu choi: user {} khong phai admin", auth.getName());
                 }

@@ -105,6 +105,8 @@ public class AdminOrderController {
             @RequestParam(name = "trangThaiTT", required = false) String trangThaiTT,
             @RequestParam(name = "fromDate", required = false) String fromDateStr,
             @RequestParam(name = "toDate", required = false) String toDateStr,
+            @RequestParam(required = false, defaultValue = "ngayDat") String sort,
+            @RequestParam(required = false, defaultValue = "desc") String dir,
             Model model) {
         User admin = securityUtil.getCurrentUser();
         if (admin == null) {
@@ -120,9 +122,9 @@ public class AdminOrderController {
 
         Page<Order> orderPage;
         if (tatCa) {
-            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT, fromDate, toDate, chuaGan, assignedAdminId);
+            orderPage = adminOrderService.getAllOrders(page, size, query, filterTT, filterTTTT, fromDate, toDate, chuaGan, assignedAdminId, sort, dir);
         } else {
-            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT, fromDate, toDate, chuaGan, assignedAdminId);
+            orderPage = adminOrderService.getMyOrders(admin.getId(), page, size, query, filterTT, filterTTTT, fromDate, toDate, chuaGan, assignedAdminId, sort, dir);
         }
         List<OrderDTO> orderDTOs = orderPage.getContent().stream()
                 .map(orderService::convertToDTO)

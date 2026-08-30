@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 public class AdminProductController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminProductController.class);
-    private static final int LOW_STOCK_THRESHOLD = 20;
 
     private final AdminProductService productService;
     private final CategoryRepository categoryRepository;
@@ -125,7 +124,7 @@ public class AdminProductController {
 
         model.addAttribute("totalProducts", productRepository.countByIsActiveTrue());
         model.addAttribute("featuredCount", productRepository.countByIsFeaturedTrueAndIsActiveTrue());
-        model.addAttribute("lowStockCount", productVariantRepository.countLowStockProducts(LOW_STOCK_THRESHOLD));
+        model.addAttribute("lowStockCount", productVariantRepository.countLowStockProducts());
         model.addAttribute("totalStockAll", productVariantRepository.sumTotalStock());
 
         return "view/admin/product/product-list";
@@ -172,7 +171,7 @@ public class AdminProductController {
         boolean hasFilter = (keyword != null && !keyword.isBlank()) || lowStock;
         Page<ProductVariant> variantPage;
         if (lowStock) {
-            variantPage = productVariantRepository.findByIsActiveTrueAndSoLuongTonLessThanEqualOrderByIdAsc(LOW_STOCK_THRESHOLD, PageRequest.of(page, size));
+            variantPage = productVariantRepository.findLowStockVariants(PageRequest.of(page, size));
         } else if (hasFilter) {
             variantPage = productVariantRepository.searchAllPaged(keyword, PageRequest.of(page, size));
         } else {
@@ -204,7 +203,7 @@ public class AdminProductController {
         model.addAttribute("filterParams", filterParams);
 
         model.addAttribute("totalVariants", productVariantRepository.countByIsActiveTrue());
-        model.addAttribute("lowStockVariants", productVariantRepository.countByIsActiveTrueAndSoLuongTonLessThanEqual(LOW_STOCK_THRESHOLD));
+        model.addAttribute("lowStockVariants", productVariantRepository.countLowStockVariants());
         model.addAttribute("totalStockAll", productVariantRepository.sumTotalStock());
 
         return "view/admin/product/variant-page";

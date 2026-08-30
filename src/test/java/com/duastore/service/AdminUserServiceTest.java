@@ -44,10 +44,10 @@ class AdminUserServiceTest {
 
     @BeforeEach
     void setUp() {
-        superAdminRole = roleRepository.findByName("SUPER_ADMIN");
+        superAdminRole = roleRepository.findByName("PRODUCT_OWNER");
         if (superAdminRole == null) {
             superAdminRole = new Role();
-            superAdminRole.setName("SUPER_ADMIN");
+            superAdminRole.setName("PRODUCT_OWNER");
             roleRepository.save(superAdminRole);
         }
 
@@ -65,7 +65,7 @@ class AdminUserServiceTest {
             roleRepository.save(userRole);
         }
 
-        superAdminUser = createUser("super", "super@test.com", "SUPER_ADMIN", true, Set.of(superAdminRole));
+        superAdminUser = createUser("super", "super@test.com", "PRODUCT_OWNER", true, Set.of(superAdminRole));
         adminUser = createUser("admin_test", "admin_test@test.com", "Admin", true, Set.of(adminRole, userRole));
         normalUser = createUser("user", "user@test.com", "User", true, Set.of(userRole));
     }
@@ -92,7 +92,7 @@ class AdminUserServiceTest {
     void toggleStatus_cannotLockLastSuperAdmin() {
         assertThatThrownBy(() -> adminUserService.toggleStatus(superAdminUser.getId(), adminUser))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("khóa tài khoản SUPER_ADMIN cuối cùng");
+                .hasMessageContaining("khóa tài khoản PRODUCT_OWNER cuối cùng");
     }
 
     @Test
@@ -101,7 +101,7 @@ class AdminUserServiceTest {
         assertThatThrownBy(() -> adminUserService.updateUserRoles(anotherSuper.getId(),
                 List.of(userRole.getId()), anotherSuper))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("tự gỡ vai trò SUPER_ADMIN");
+                .hasMessageContaining("tự gỡ vai trò PRODUCT_OWNER");
     }
 
     @Test
@@ -109,7 +109,7 @@ class AdminUserServiceTest {
         assertThatThrownBy(() -> adminUserService.updateUserRoles(normalUser.getId(),
                 List.of(superAdminRole.getId()), adminUser))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Chỉ SUPER_ADMIN");
+                .hasMessageContaining("Chỉ PRODUCT_OWNER");
     }
 
     @Test

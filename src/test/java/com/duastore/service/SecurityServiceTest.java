@@ -41,7 +41,7 @@ class SecurityServiceTest {
     @Test
     void hasPermission_SUPER_ADMIN_anyPermission_returnsTrue() {
         SecurityContextHolder.getContext().setAuthentication(
-                auth("super", "ROLE_SUPER_ADMIN", List.of())
+                auth("super", "ROLE_PRODUCT_OWNER", List.of())
         );
         assertThat(securityService.hasPermission("ANYTHING")).isTrue();
     }

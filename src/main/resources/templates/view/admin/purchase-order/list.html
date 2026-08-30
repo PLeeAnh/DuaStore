@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Quản lý nhập hàng</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Nhập hàng</li>
+    </th:block>
+    <div layout:fragment="content">
+
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-box-arrow-in-down"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4>Nhập hàng</h4>
+                            <div class="adm-detail-meta">Quản lý phiếu nhập hàng và nhà cung cấp.</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a th:href="@{/admin/nhap-hang/nha-cung-cap}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-building me-1"></i>Nhà cung cấp
+                            </a>
+                            <a th:href="@{/admin/nhap-hang/tao-moi}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-lg me-1"></i>Tạo phiếu nhập mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-icon-48 adm-stat-icon-blue">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${totalOrders}">0</div>
+                            <div class="adm-stat-label">Tổng phiếu</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-icon-48 adm-stat-icon-amber">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${statusCounts.get('CHO_DUYET') != null ? statusCounts.get('CHO_DUYET') : 0}">0</div>
+                            <div class="adm-stat-label">Chờ duyệt</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-icon-48 adm-stat-icon-green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${statusCounts.get('HOAN_THANH') != null ? statusCounts.get('HOAN_THANH') : 0}">0</div>
+                            <div class="adm-stat-label">Hoàn thành</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-icon-48 adm-stat-icon-blue">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${statusCounts.get('DA_HUY') != null ? statusCounts.get('DA_HUY') : 0}">0</div>
+                            <div class="adm-stat-label">Đã hủy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-filter-bar">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="adm-tab-nav mb-0 me-1">
+                    <a th:href="@{/admin/nhap-hang}" class="adm-tab" th:classappend="${activeFilter == null} ? ' active' : ''">Tất cả</a>
+                    <a th:href="@{/admin/nhap-hang(trangThai='CHO_DUYET')}" class="adm-tab" th:classappend="${activeFilter == 'CHO_DUYET'} ? ' active' : ''">Chờ duyệt</a>
+                    <a th:href="@{/admin/nhap-hang(trangThai='DA_DUYET')}" class="adm-tab" th:classappend="${activeFilter == 'DA_DUYET'} ? ' active' : ''">Đã duyệt</a>
+                    <a th:href="@{/admin/nhap-hang(trangThai='DANG_NHAP')}" class="adm-tab" th:classappend="${activeFilter == 'DANG_NHAP'} ? ' active' : ''">Đang nhập</a>
+                    <a th:href="@{/admin/nhap-hang(trangThai='HOAN_THANH')}" class="adm-tab" th:classappend="${activeFilter == 'HOAN_THANH'} ? ' active' : ''">Hoàn thành</a>
+                    <a th:href="@{/admin/nhap-hang(trangThai='DA_HUY')}" class="adm-tab" th:classappend="${activeFilter == 'DA_HUY'} ? ' active' : ''">Đã hủy</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width:40px">#</th>
+                        <th>Mã phiếu</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày nhập</th>
+                        <th style="width:200px">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="o, iter : ${orders}">
+                        <td class="text-muted small" th:text="${iter.index + 1 + currentPage * 20}"></td>
+                        <td><a th:href="@{/admin/nhap-hang/{id}(id=${o.id})}" class="fw-semibold text-decoration-none" th:text="${o.maPhieu}"></a></td>
+                        <td th:text="${o.supplier?.tenNhaCungCap}"></td>
+                        <td class="fw-semibold" th:text="${#numbers.formatDecimal(o.tongTien, 0, 'POINT', 0, 'POINT')} + '₫'"></td>
+                        <td>
+                            <span th:switch="${o.trangThai}" class="status-pill">
+                                <span th:case="'CHO_DUYET'" class="badge bg-warning text-dark">Chờ duyệt</span>
+                                <span th:case="'DA_DUYET'" class="badge bg-info text-white">Đã duyệt</span>
+                                <span th:case="'DANG_NHAP'" class="badge bg-primary text-white">Đang nhập</span>
+                                <span th:case="'HOAN_THANH'" class="badge bg-success text-white">Hoàn thành</span>
+                                <span th:case="'DA_HUY'" class="badge bg-danger text-white">Đã hủy</span>
+                                <span th:case="*" class="badge bg-secondary" th:text="${o.trangThai}"></span>
+                            </span>
+                        </td>
+                        <td class="small" th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a th:href="@{/admin/nhap-hang/{id}(id=${o.id})}" class="btn btn-outline-secondary btn-sm" title="Xem chi tiết">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form th:if="${o.trangThai == 'CHO_DUYET'}" th:action="@{/admin/nhap-hang/{id}/duyet(id=${o.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-info btn-sm" title="Duyệt" onclick="return confirm('Duyệt phiếu nhập này?')">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                                <form th:if="${o.trangThai == 'DA_DUYET'}" th:action="@{/admin/nhap-hang/{id}/nhap-hang(id=${o.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-success btn-sm" title="Nhập hàng" onclick="return confirm('Xác nhận nhập hàng? Tồn kho sẽ được cập nhật.')">
+                                        <i class="bi bi-box-arrow-in-down"></i>
+                                    </button>
+                                </form>
+                                <form th:if="${o.trangThai != 'HOAN_THANH' and o.trangThai != 'DA_HUY'}" th:action="@{/admin/nhap-hang/{id}/huy(id=${o.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Hủy" onclick="return confirm('Hủy phiếu nhập này?')">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(orders)}">
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox me-1"></i>Chưa có phiếu nhập hàng
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

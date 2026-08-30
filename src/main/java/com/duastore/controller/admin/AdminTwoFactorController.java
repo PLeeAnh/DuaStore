@@ -27,7 +27,7 @@ public class AdminTwoFactorController {
     }
 
     @GetMapping("/setup")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','PRODUCT_OWNER')")
     public String setupForm(Model model) {
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
@@ -50,7 +50,7 @@ public class AdminTwoFactorController {
     }
 
     @PostMapping("/enable")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','PRODUCT_OWNER')")
     public String enable(@RequestParam String secret,
                          @RequestParam int code,
                          RedirectAttributes ra,
@@ -71,7 +71,7 @@ public class AdminTwoFactorController {
     }
 
     @PostMapping("/disable")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','PRODUCT_OWNER')")
     public String disable(@RequestParam int code,
                           RedirectAttributes ra) {
         Integer userId = securityUtil.getCurrentUserId();

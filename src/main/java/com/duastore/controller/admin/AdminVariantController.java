@@ -7,6 +7,7 @@ import com.duastore.repository.ProductRepository;
 import com.duastore.repository.WishlistRepository;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminVariantService;
+import com.duastore.service.admin.StockMovementService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,18 +38,20 @@ public class AdminVariantController {
     private final ProductRepository productRepository;
     private final WishlistRepository wishlistRepository;
     private final NotificationHelper notificationHelper;
-
+    private final StockMovementService stockMovementService;
     private final SecurityUtil securityUtil;
   
     public AdminVariantController(AdminVariantService variantService,
             ProductRepository productRepository,
             WishlistRepository wishlistRepository,
             NotificationHelper notificationHelper,
+            StockMovementService stockMovementService,
             SecurityUtil securityUtil) {
         this.variantService = variantService;
         this.productRepository = productRepository;
         this.wishlistRepository = wishlistRepository;
         this.notificationHelper = notificationHelper;
+        this.stockMovementService = stockMovementService;
         this.securityUtil = securityUtil;
     }
   
@@ -135,6 +138,14 @@ public class AdminVariantController {
             }
         }
         var saved = variantService.save(dto);
+        // Ghi nhận biến động tồn kho nếu số lượng thay đổi
+        if (oldStock != null && dto.getSoLuongTon() != null && !oldStock.equals(dto.getSoLuongTon())) {
+            int diff = dto.getSoLuongTon() - oldStock;
+            String type = diff > 0 ? "IN" : "OUT";
+            String note = diff > 0 ? "Nhập kho từ form sửa" : "Xuất kho từ form sửa";
+            stockMovementService.record(saved.getId(), diff, type, null,
+                    securityUtil.getCurrentUserId(), note);
+        }
         notifyVariantChanges(saved, oldStock, oldPrice);
         ra.addFlashAttribute("successMsg", "Cập nhật biến thể thành công");
         return "redirect:/admin/san-pham/chi-tiet/" + dto.getProductId();
@@ -277,6 +288,21 @@ public class AdminVariantController {
 
         Integer adminId = securityUtil.getCurrentUserId();
         variantService.bulkUpdate(variants, adminId);
+        // Ghi nhận biến động tồn kho cho từng variant trong bulk update
+        for (Map<String, Object> entry : variants) {
+            Integer id = toInteger(entry.get("id"));
+            if (id == null) continue;
+            ProductVariant newVariant = variantService.findById(id);
+            if (newVariant == null) continue;
+            Integer oldQty = oldStocks.get(id);
+            Integer newQty = newVariant.getSoLuongTon();
+            if (oldQty != null && newQty != null && !oldQty.equals(newQty)) {
+                int diff = newQty - oldQty;
+                String type = diff > 0 ? "IN" : "OUT";
+                stockMovementService.record(id, diff, type, null, adminId,
+                        "Bulk update từ trang quản lý biến thể");
+            }
+        }
         notifyBulkVariantChanges(oldStocks, oldPrices);
         return ResponseEntity.ok(Map.of("success", true));
     }

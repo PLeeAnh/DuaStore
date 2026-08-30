@@ -313,6 +313,7 @@ public class CheckoutController {
             if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
                 asyncEmailService.sendOrderSuccess(order);
             }
+            asyncEmailService.notifyStaffNewOrder(order);
 
             if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
                 return "redirect:/checkout/chuyen-khoan/" + order.getId();
@@ -573,6 +574,7 @@ public class CheckoutController {
             boolean firstTime = orderService.confirmPaid(id);
             if (firstTime) {
                 asyncEmailService.sendOrderSuccess(order);
+                asyncEmailService.notifyStaffNewOrder(order);
                 try {
                     notificationHelper.notifyStaff(
                             "Khách hàng đã xác nhận thanh toán cho đơn hàng: " + order.getMaDon(),

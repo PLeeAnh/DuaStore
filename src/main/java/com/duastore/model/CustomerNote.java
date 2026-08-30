@@ -4,16 +4,21 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+/**
+ * Ghi chú nội bộ của admin về khách hàng.
+ * Severity: INFO (xanh lá), WARN (vàng), DANGER (đỏ)
+ */
 @Entity
 @Table(name = "CustomerNotes")
 @Getter
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-/**
- * Entity ánh xạ dữ liệu khách hàng.
- */
 public class CustomerNote {
+
+    public static final String SEVERITY_INFO = "INFO";
+    public static final String SEVERITY_WARN = "WARN";
+    public static final String SEVERITY_DANGER = "DANGER";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +31,10 @@ public class CustomerNote {
     @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String content;
 
+    /** Mức độ: INFO, WARN, DANGER */
+    @Column(nullable = false, length = 20)
+    private String severity = SEVERITY_INFO;
+
     @Column(nullable = false, length = 100)
     private String createdBy;
 
@@ -35,5 +44,8 @@ public class CustomerNote {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (severity == null) {
+            severity = SEVERITY_INFO;
+        }
     }
 }

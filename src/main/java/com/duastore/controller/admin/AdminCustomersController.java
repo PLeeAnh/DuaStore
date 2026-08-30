@@ -190,12 +190,14 @@ public class AdminCustomersController {
 
     @PostMapping("/{id}/api/notes")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_UPDATE)")
-    public ResponseEntity<?> addNote(@PathVariable Integer id, @RequestParam String content) {
+    public ResponseEntity<?> addNote(@PathVariable Integer id, @RequestParam String content,
+            @RequestParam(required = false, defaultValue = "INFO") String severity) {
         String adminName = securityUtil.getCurrentUser().getHoTen();
-        CustomerNote note = adminCustomerService.addNote(id, content, adminName);
+        CustomerNote note = adminCustomerService.addNote(id, content, adminName, severity);
         Map<String, Object> result = new HashMap<>();
         result.put("id", note.getId());
         result.put("content", note.getContent());
+        result.put("severity", note.getSeverity());
         result.put("createdBy", note.getCreatedBy());
         result.put("createdAt", note.getCreatedAt().toString());
         return ResponseEntity.ok(result);

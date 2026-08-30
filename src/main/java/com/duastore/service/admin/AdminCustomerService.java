@@ -81,11 +81,12 @@ public class AdminCustomerService {
         return customerNoteRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public CustomerNote addNote(Integer userId, String content, String createdBy) {
+    public CustomerNote addNote(Integer userId, String content, String createdBy, String severity) {
         CustomerNote note = new CustomerNote();
         note.setUserId(userId);
         note.setContent(content);
         note.setCreatedBy(createdBy);
+        note.setSeverity(severity != null ? severity : CustomerNote.SEVERITY_INFO);
         return customerNoteRepository.save(note);
     }
 

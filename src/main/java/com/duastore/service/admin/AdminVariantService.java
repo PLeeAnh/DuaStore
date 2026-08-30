@@ -78,6 +78,8 @@ public class AdminVariantService {
         v.setGiaGoc(dto.getGiaGoc());
         v.setGiaKhuyenMai(dto.getGiaKhuyenMai());
         v.setSoLuongTon(dto.getSoLuongTon());
+        v.setGiaVon(dto.getGiaVon());
+        v.setLowStockThreshold(dto.getLowStockThreshold() != null ? dto.getLowStockThreshold() : 20);
         v.setDefault(dto.isDefault());
 
         String oldImage = v.getHinhAnh();
@@ -131,6 +133,18 @@ public class AdminVariantService {
                 Object soLuongObj = entry.get("soLuongTon");
                 if (soLuongObj instanceof Number) {
                     v.setSoLuongTon(((Number) soLuongObj).intValue());
+                }
+            }
+            if (entry.containsKey("giaVon")) {
+                Object giaVonObj = entry.get("giaVon");
+                if (giaVonObj instanceof Number) {
+                    v.setGiaVon(new BigDecimal(((Number) giaVonObj).doubleValue()));
+                }
+            }
+            if (entry.containsKey("lowStockThreshold")) {
+                Object thresholdObj = entry.get("lowStockThreshold");
+                if (thresholdObj instanceof Number) {
+                    v.setLowStockThreshold(((Number) thresholdObj).intValue());
                 }
             }
 

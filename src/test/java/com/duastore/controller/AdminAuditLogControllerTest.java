@@ -39,7 +39,7 @@ class AdminAuditLogControllerTest {
     }
 
     @Test
-    @WithMockUser(authorities = {"ROLE_SUPER_ADMIN"})
+    @WithMockUser(authorities = {"ROLE_PRODUCT_OWNER"})
     void getAuditLog_asSuperAdmin_returns200() throws Exception {
         mockMvc.perform(get("/admin/nhat-ky"))
                 .andExpect(status().isOk());

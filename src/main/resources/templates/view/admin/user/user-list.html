@@ -65,8 +65,8 @@
                             <i class="bi bi-shield-fill"></i>
                         </div>
                         <div>
-                            <div class="adm-stat-value" th:text="${superAdminCount}">0</div>
-                            <div class="adm-stat-label">SUPER_ADMIN</div>
+                            <div class="adm-stat-value" th:text="${productOwnerCount}">0</div>
+                            <div class="adm-stat-label">PRODUCT_OWNER</div>
                         </div>
                     </div>
                 </div>
@@ -80,6 +80,19 @@
                         <div>
                             <div class="adm-stat-value" th:text="${adminCount}">0</div>
                             <div class="adm-stat-label">ADMIN</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="adm-stat">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="adm-stat-icon" style="background:#E0F2FE;color:#0284C7">
+                            <i class="bi bi-person-workspace"></i>
+                        </div>
+                        <div>
+                            <div class="adm-stat-value" th:text="${staffCount}">0</div>
+                            <div class="adm-stat-label">STAFF</div>
                         </div>
                     </div>
                 </div>
@@ -135,10 +148,11 @@
                         <td th:text="${u.soDienThoai} ?: '--'">0900000000</td>
                         <td>
                             <span th:each="role : ${u.roles}">
-                                <span th:if="${role.name == 'SUPER_ADMIN'}" class="status-pill status-SUPER_ADMIN me-1">SUPER_ADMIN</span>
+                                <span th:if="${role.name == 'PRODUCT_OWNER'}" class="status-pill status-SUPER_ADMIN me-1">PRODUCT_OWNER</span>
                                 <span th:if="${role.name == 'ADMIN'}" class="status-pill status-ADMIN me-1">Admin</span>
+                                <span th:if="${role.name == 'STAFF'}" class="status-pill status-ADMIN me-1">Staff</span>
                                 <span th:if="${role.name == 'USER'}" class="status-pill status-USER me-1">Khách hàng</span>
-                                <span th:unless="${role.name == 'SUPER_ADMIN' or role.name == 'ADMIN' or role.name == 'USER'}" class="badge bg-info me-1" th:text="${role.name}">ROLE</span>
+                                <span th:unless="${role.name == 'PRODUCT_OWNER' or role.name == 'ADMIN' or role.name == 'STAFF' or role.name == 'USER'}" class="badge bg-info me-1" th:text="${role.name}">ROLE</span>
                             </span>
                         </td>
                         <td>

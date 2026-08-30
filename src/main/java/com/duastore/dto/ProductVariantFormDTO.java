@@ -64,6 +64,10 @@ public class ProductVariantFormDTO {
     @Min(value = 0, message = "Tồn kho không được âm")
     private Integer soLuongTon = 0;
 
+    private BigDecimal giaVon;
+
+    private Integer lowStockThreshold = 20;
+
     /**
      * Đường dẫn ảnh hiện tại (khi sửa)
      */

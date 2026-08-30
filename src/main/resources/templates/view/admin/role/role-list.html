@@ -72,13 +72,13 @@
                             </a>
                             <form th:action="@{/admin/vai-tro/xoa/{id}(id=${r.id})}" method="post"
                                   style="display:inline"
-                                  th:if="${r.name != 'SUPER_ADMIN' and r.name != 'ADMIN' and r.name != 'USER'}"
+                                  th:if="${r.name != 'PRODUCT_OWNER' and r.name != 'ADMIN' and r.name != 'STAFF' and r.name != 'USER'}"
                                   onsubmit="return confirm('Xóa vai trò này?')">
                                 <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
-                            <span th:if="${r.name == 'SUPER_ADMIN' or r.name == 'ADMIN' or r.name == 'USER'}"
+                            <span th:if="${r.name == 'PRODUCT_OWNER' or r.name == 'ADMIN' or r.name == 'STAFF' or r.name == 'USER'}"
                                   class="text-muted small">Mặc định</span>
                         </td>
                     </tr>

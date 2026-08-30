@@ -33,23 +33,30 @@ function removeTag(tagId) {
 }
 function addNote() {
     var input = document.getElementById('newNoteInput');
+    var severityEl = document.getElementById('newNoteSeverity');
     var content = input.value.trim();
     if (!content) return;
+    var severity = severityEl ? severityEl.value : 'INFO';
     fetch('/admin/khach-hang/' + customerId + '/api/notes', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'content=' + encodeURIComponent(content)
+        body: 'content=' + encodeURIComponent(content) + '&severity=' + encodeURIComponent(severity)
     }).then(function(r) { return r.json(); }).then(function(d) {
         var list = document.getElementById('noteList');
         var div = document.createElement('div');
-        div.className = 'border-start border-3 border-primary ps-3 mb-3';
-        div.innerHTML = '<div class="text-muted small">' + d.createdBy + ' - ' + d.createdAt + '</div>' +
+        var borderClass = d.severity === 'DANGER' ? 'border-danger' : (d.severity === 'WARN' ? 'border-warning' : 'border-primary');
+        div.className = 'border-start border-3 ps-3 mb-3 ' + borderClass;
+        var badge = d.severity && d.severity !== 'INFO'
+            ? ' <span class="badge ' + (d.severity === 'DANGER' ? 'bg-danger' : 'bg-warning text-dark') + '">' + d.severity + '</span>'
+            : '';
+        div.innerHTML = '<div class="text-muted small">' + d.createdBy + badge + ' - ' + d.createdAt + '</div>' +
             '<div class="mt-1">' + d.content + '</div>' +
             '<a href="javascript:void(0)" class="small text-danger" onclick="deleteNote(' + d.id + ')">Xóa</a>';
         var empty = list.querySelector('.text-muted.py-3');
         if (empty) empty.remove();
         list.prepend(div);
         input.value = '';
+        if (severityEl) severityEl.value = 'INFO';
     }).catch(function(err) { console.error(err); });
 }
 function deleteNote(noteId) {

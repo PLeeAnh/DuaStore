@@ -51,20 +51,20 @@ public class AdminRoleService {
         return grouped;
     }
 
-    private static final Set<String> PROTECTED_NAMES = Set.of("SUPER_ADMIN", "ADMIN", "USER");
+    private static final Set<String> PROTECTED_NAMES = Set.of("PRODUCT_OWNER", "ADMIN", "STAFF", "USER");
 
     @Transactional
     public Role save(Integer id, String name, String moTa, Boolean isActive, List<Integer> permissionIds) {
         Role role = (id != null) ? roleRepository.findById(id).orElse(new Role()) : new Role();
         String newName = name != null ? name.trim().toUpperCase() : null;
-        if ("SUPER_ADMIN".equals(role.getName()) && !"SUPER_ADMIN".equals(newName)) {
-            throw new IllegalArgumentException("Không thể đổi tên vai trò SUPER_ADMIN");
+        if ("PRODUCT_OWNER".equals(role.getName()) && !"PRODUCT_OWNER".equals(newName)) {
+            throw new IllegalArgumentException("Không thể đổi tên vai trò PRODUCT_OWNER");
         }
         if (newName == null || newName.isBlank()) {
             throw new IllegalArgumentException("Tên vai trò không được để trống");
         }
-        if (PROTECTED_NAMES.contains(newName)) {
-            throw new IllegalArgumentException("Không thể tạo hoặc đổi tên vai trò hệ thống: " + newName);
+        if (PROTECTED_NAMES.contains(newName) && role.getId() == null) {
+            throw new IllegalArgumentException("Không thể tạo vai trò hệ thống: " + newName);
         }
         if (role.getId() == null && roleRepository.findByName(newName) != null) {
             throw new IllegalArgumentException("Vai trò \"" + newName + "\" đã tồn tại");
@@ -89,7 +89,7 @@ public class AdminRoleService {
         if (role == null) {
             return false;
         }
-        if ("SUPER_ADMIN".equals(role.getName()) || "ADMIN".equals(role.getName()) || "USER".equals(role.getName())) {
+        if ("PRODUCT_OWNER".equals(role.getName()) || "ADMIN".equals(role.getName()) || "USER".equals(role.getName()) || "STAFF".equals(role.getName())) {
             return false;
         }
         role.setPermissions(new HashSet<>());
