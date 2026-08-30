@@ -48,9 +48,14 @@
                                 <section class="shp-section" aria-label="Địa chỉ giao hàng">
                                     <div class="shp-section-head">
                                         <h2 class="shp-section-title">Địa chỉ giao hàng</h2>
-                                        <button type="button" class="shp-link-btn" onclick="openAddressModal()">
-                                            <i class="bi bi-pencil"></i> Quản lý địa chỉ
-                                        </button>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <button type="button" class="shp-link-btn" id="enableGpsBtn" onclick="requestGeoPermission()" style="display:none;font-size:.82rem;color:var(--ds-primary)">
+                                                <i class="bi bi-geo-alt"></i> Bật định vị
+                                            </button>
+                                            <button type="button" class="shp-link-btn" onclick="openAddressModal()">
+                                                <i class="bi bi-pencil"></i> Quản lý địa chỉ
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div th:if="${#lists.isEmpty(addresses)}" class="ds-checkout-section-empty">

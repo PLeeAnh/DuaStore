@@ -182,6 +182,24 @@
                 showEmptyState(crCanvas);
             }
         }
+
+        // Revenue by Channel pie chart
+        var rcCanvas = document.getElementById('revenueChannelChart');
+        if (rcCanvas && data.revenueByChannel && data.revenueByChannel.length) {
+            clearEmptyState(rcCanvas);
+            var rcLabels = data.revenueByChannel.map(function (d) { return d.channel; });
+            var rcData = data.revenueByChannel.map(function (d) { return parseFloat(d.revenue) || 0; });
+            var rcColors = ['#0284C7', '#059669', '#D97706', '#DC2626', '#7C3AED', '#6B7280'];
+            if (rcData.some(function (v) { return v > 0; })) {
+                chartInstances.push(new Chart(rcCanvas, {
+                    type: 'doughnut',
+                    data: { labels: rcLabels, datasets: [{ data: rcData, backgroundColor: rcColors.slice(0, rcLabels.length), borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } }, tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + new Intl.NumberFormat('vi-VN').format(ctx.raw) + '₫'; } } } } }
+                }));
+            } else {
+                showEmptyState(rcCanvas);
+            }
+        }
         } catch (err) {
             console.error('[analytics] Lỗi khi vẽ chart:', err);
         }

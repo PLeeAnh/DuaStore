@@ -140,6 +140,9 @@ public class AdminAnalyticsController {
 
         // Traffic tab
         model.addAttribute("recentOrders", analyticsService.getRecentOrders(10));
+        model.addAttribute("revenueByChannel", analyticsService.getRevenueByChannel(fromDate, toDate));
+        model.addAttribute("conversionFunnel", analyticsService.getConversionFunnel(fromDate, toDate));
+        model.addAttribute("topPages", analyticsService.getTopPages(fromDate, toDate));
 
         // Enhanced analytics from DashboardService
         model.addAttribute("monthlyRevenue12", dashboardService.getMonthlyRevenueLast12Months());

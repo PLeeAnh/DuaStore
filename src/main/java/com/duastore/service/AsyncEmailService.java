@@ -2,6 +2,8 @@ package com.duastore.service;
 
 import com.duastore.model.Order;
 import com.duastore.model.OrderItem;
+import com.duastore.model.User;
+import com.duastore.repository.UserRepository;
 import com.duastore.util.PriceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +35,11 @@ public class AsyncEmailService {
     private static final Logger log = LoggerFactory.getLogger(AsyncEmailService.class);
 
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
-    public AsyncEmailService(EmailService emailService) {
+    public AsyncEmailService(EmailService emailService, UserRepository userRepository) {
         this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
     @Async("duastoreMailExecutor")
@@ -106,6 +110,29 @@ public class AsyncEmailService {
             emailService.send(toEmail, subject, htmlContent);
         } catch (Exception e) {
             log.warn("Async send raw email that bai (to={}): {}", toEmail, e.getMessage());
+        }
+    }
+
+    @Async("duastoreMailExecutor")
+    public void notifyStaffNewOrder(Order order) {
+        try {
+            List<User> staff = userRepository.findByRolesNameIn(List.of("ADMIN", "STAFF"));
+            String subject = "Đơn hàng mới #" + order.getMaDon();
+            String html = "<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>"
+                    + "<h2 style='color:#0284C7;'>Đơn hàng mới</h2>"
+                    + "<p><strong>Mã đơn:</strong> " + order.getMaDon() + "</p>"
+                    + "<p><strong>Khách hàng:</strong> " + order.getSnapTenNguoiNhan() + "</p>"
+                    + "<p><strong>SĐT:</strong> " + order.getSnapSoDienThoai() + "</p>"
+                    + "<p><strong>Tổng tiền:</strong> " + java.text.NumberFormat.getInstance(java.util.Locale.US).format(order.getTongThanhToan()) + "₫</p>"
+                    + "<p><strong>Phương thức TT:</strong> " + order.getPhuongThucTT() + "</p>"
+                    + "<p><a href='/admin/don-hang/" + order.getId() + "' style='display:inline-block;padding:8px 16px;background:#0284C7;color:#fff;text-decoration:none;border-radius:4px;'>Xem đơn hàng</a></p>"
+                    + "</div>";
+            for (User staffUser : staff) {
+                if (staffUser.getEmail() != null && !staffUser.getEmail().isEmpty()) {
+                    emailService.send(staffUser.getEmail(), subject, html);
+                }
+            }
+        } catch (Exception ignored) {
         }
     }
 }

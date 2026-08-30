@@ -5,6 +5,7 @@ import com.duastore.model.Order;
 import com.duastore.model.ProductVariant;
 import com.duastore.model.VoucherStatus;
 import com.duastore.repository.*;
+import com.duastore.repository.PageViewRepository;
 import com.duastore.util.PriceUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class AdminAnalyticsService {
     private final PromotionRepository promotionRepository;
     private final UserVoucherRepository userVoucherRepository;
     private final CategoryRepository categoryRepository;
+    private final PageViewRepository pageViewRepository;
 
     public AdminAnalyticsService(OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
@@ -41,7 +43,8 @@ public class AdminAnalyticsService {
             UserRepository userRepository,
             PromotionRepository promotionRepository,
             UserVoucherRepository userVoucherRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository,
+            PageViewRepository pageViewRepository) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.productRepository = productRepository;
@@ -50,6 +53,7 @@ public class AdminAnalyticsService {
         this.promotionRepository = promotionRepository;
         this.userVoucherRepository = userVoucherRepository;
         this.categoryRepository = categoryRepository;
+        this.pageViewRepository = pageViewRepository;
     }
 
     // ==================== REVENUE ====================
@@ -615,6 +619,63 @@ public class AdminAnalyticsService {
             m.put("trangThaiDon", o.getTrangThaiDon());
             m.put("phuongThucTT", o.getPhuongThucTT());
             m.put("ngayDat", o.getNgayDat());
+            result.add(m);
+        }
+        return result;
+    }
+
+    // ==================== CONVERSION FUNNEL ====================
+    public Map<String, Object> getConversionFunnel(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        
+        long visitors = pageViewRepository.countUniqueVisitors(start, end);
+        long addToCart = pageViewRepository.countAddToCartSessions(start, end);
+        long checkout = pageViewRepository.countCheckoutSessions(start, end);
+        long paid = pageViewRepository.countPaidSessions(start, end);
+        
+        double visitorToCartPct = visitors > 0 ? (addToCart * 100.0 / visitors) : 0;
+        double cartToCheckoutPct = addToCart > 0 ? (checkout * 100.0 / addToCart) : 0;
+        double checkoutToPaidPct = checkout > 0 ? (paid * 100.0 / checkout) : 0;
+        double overallConversion = visitors > 0 ? (paid * 100.0 / visitors) : 0;
+        
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("visitors", visitors);
+        result.put("addToCart", addToCart);
+        result.put("checkout", checkout);
+        result.put("paid", paid);
+        result.put("visitorToCartPct", Math.round(visitorToCartPct * 10.0) / 10.0);
+        result.put("cartToCheckoutPct", Math.round(cartToCheckoutPct * 10.0) / 10.0);
+        result.put("checkoutToPaidPct", Math.round(checkoutToPaidPct * 10.0) / 10.0);
+        result.put("overallConversion", Math.round(overallConversion * 10.0) / 10.0);
+        return result;
+    }
+
+    public List<Map<String, Object>> getTopPages(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Object[]> rows = pageViewRepository.findTopPages(start, end, org.springframework.data.domain.PageRequest.of(0, 10));
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("page", row[0]);
+            m.put("views", row[1]);
+            result.add(m);
+        }
+        return result;
+    }
+
+    // ==================== REVENUE BY CHANNEL ====================
+    public List<Map<String, Object>> getRevenueByChannel(LocalDate from, LocalDate to) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(LocalTime.MAX);
+        List<Object[]> rows = orderRepository.sumRevenueGroupByPhuongThucTT(start, end);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("channel", row[0] != null ? row[0] : "UNKNOWN");
+            m.put("revenue", row[1]);
+            m.put("count", row[2]);
             result.add(m);
         }
         return result;

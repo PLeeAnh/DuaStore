@@ -147,6 +147,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT COUNT(o), COALESCE(SUM(o.tongThanhToan), 0), MAX(o.ngayDat) "
             + "FROM Order o JOIN o.user u "
             + "WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') "
-            + "GROUP BY u.id")
+            + "GROUP BY o.user.id")
     List<Object[]> findRFMData();
+
+    @Query("SELECT DISTINCT u FROM User u JOIN u.roles r WHERE r.name IN :roleNames AND u.isActive = true")
+    List<User> findByRolesNameIn(@Param("roleNames") List<String> roleNames);
 }
