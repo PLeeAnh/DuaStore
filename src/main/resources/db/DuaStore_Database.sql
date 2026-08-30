@@ -233,6 +233,7 @@ GO
 
     create table order_items (
         donGia numeric(12,0) not null,
+        giaVon numeric(12,0),
         id int identity not null,
         orderId int not null,
         productId int,

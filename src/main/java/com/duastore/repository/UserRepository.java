@@ -137,4 +137,16 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<Object[]> findTopCustomersByRevenue(@Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
             Pageable pageable);
+
+    @Query("SELECT u.id, COUNT(o), COALESCE(SUM(o.tongThanhToan), 0) "
+            + "FROM Order o JOIN o.user u "
+            + "WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') "
+            + "GROUP BY u.id")
+    List<Object[]> findCustomerLifetimeStats();
+
+    @Query("SELECT COUNT(o), COALESCE(SUM(o.tongThanhToan), 0), MAX(o.ngayDat) "
+            + "FROM Order o JOIN o.user u "
+            + "WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') "
+            + "GROUP BY u.id")
+    List<Object[]> findRFMData();
 }

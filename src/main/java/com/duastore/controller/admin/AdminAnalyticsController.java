@@ -116,6 +116,8 @@ public class AdminAnalyticsController {
         model.addAttribute("topCustomers", analyticsService.getTopCustomers(fromDate, toDate));
         model.addAttribute("totalCustomers", analyticsService.getTotalCustomers());
         model.addAttribute("avgRevenuePerCustomer", analyticsService.getAvgRevenuePerCustomer(fromDate, toDate));
+        model.addAttribute("customerLifetime", analyticsService.getCustomerLifetimeStats());
+        model.addAttribute("rfmSegments", analyticsService.getRFMSegments());
 
         // Products tab
         model.addAttribute("topSellingProducts", analyticsService.getTopSellingProducts(fromDate, toDate));
@@ -129,6 +131,12 @@ public class AdminAnalyticsController {
         model.addAttribute("voucherStats", analyticsService.getVoucherStats());
         model.addAttribute("topVouchers", analyticsService.getTopVouchers());
         model.addAttribute("totalDiscountGiven", analyticsService.getTotalDiscountGiven(fromDate, toDate));
+        model.addAttribute("promotionEffectiveness", analyticsService.getPromotionEffectiveness(fromDate, toDate));
+
+        // Margin / Profit tab
+        model.addAttribute("marginSummary", analyticsService.getMarginSummary(fromDate, toDate));
+        model.addAttribute("marginByCategory", analyticsService.getMarginByCategory(fromDate, toDate));
+        model.addAttribute("topMarginProducts", analyticsService.getTopMarginProducts(fromDate, toDate, 10));
 
         // Traffic tab
         model.addAttribute("recentOrders", analyticsService.getRecentOrders(10));

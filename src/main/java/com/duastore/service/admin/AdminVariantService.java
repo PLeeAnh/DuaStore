@@ -78,6 +78,8 @@ public class AdminVariantService {
         v.setGiaGoc(dto.getGiaGoc());
         v.setGiaKhuyenMai(dto.getGiaKhuyenMai());
         v.setSoLuongTon(dto.getSoLuongTon());
+        v.setGiaVon(dto.getGiaVon());
+        v.setLowStockThreshold(dto.getLowStockThreshold() != null ? dto.getLowStockThreshold() : 20);
         v.setDefault(dto.isDefault());
 
         String oldImage = v.getHinhAnh();
