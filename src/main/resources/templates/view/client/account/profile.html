@@ -87,14 +87,6 @@
                                 </div>
                                 <i class="bi bi-chevron-right text-muted"></i>
                             </a>
-                            <a th:href="@{/tai-khoan/cai-dat}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
-                                <i class="bi bi-gear fs-5" style="color:var(--ds-primary);"></i>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold">Cài đặt</div>
-                                    <small class="text-muted">Thông báo, quyền riêng tư, trạng thái</small>
-                                </div>
-                                <i class="bi bi-chevron-right text-muted"></i>
-                            </a>
                             <a th:if="${session.userRole == 'ADMIN'}" th:href="@{/admin}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
                                 <i class="bi bi-shield-lock fs-5" style="color:var(--ds-primary);"></i>
                                 <div class="flex-grow-1">

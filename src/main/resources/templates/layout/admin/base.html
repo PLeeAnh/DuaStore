@@ -73,6 +73,12 @@
                       style="cursor:pointer"
                       onclick="event.preventDefault();event.stopPropagation();window.location.href='/admin/san-pham/bien-the?lowStock=1'"></span>
             </a>
+            <a class="adm-nav-link" th:href="@{/admin/xuat-nhap-kho}"
+               th:if="${userPermissions.contains('PRODUCT_READ')}"
+               th:classappend="${title == 'xuat-nhap-kho' ? ' active' : ''}">
+                <i class="bi bi-box-arrow-in-down"></i>
+                <span>Xuất nhập kho</span>
+            </a>
             <a class="adm-nav-link" th:href="@{/admin/danh-muc}"
                th:if="${userPermissions.contains('CATEGORY_READ')}"
                th:classappend="${title == 'danh-muc' ? ' active' : ''}">
