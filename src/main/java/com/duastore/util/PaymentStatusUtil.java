@@ -35,8 +35,8 @@ public final class PaymentStatusUtil {
         if ("CHUYEN_KHOAN".equals(phuongThuc)) {
             return "bi-bank";
         }
-        if ("VNPAY".equals(phuongThuc)) {
-            return "bi-credit-card-2-front";
+        if ("SEPAY_QR".equals(phuongThuc)) {
+            return "bi-qr-code";
         }
         return "bi-credit-card";
     }
@@ -48,8 +48,8 @@ public final class PaymentStatusUtil {
         if ("CHUYEN_KHOAN".equals(phuongThuc)) {
             return "Chuyển khoản";
         }
-        if ("VNPAY".equals(phuongThuc)) {
-            return "VNPay";
+        if ("SEPAY_QR".equals(phuongThuc)) {
+            return "QR (VietQR)";
         }
         return phuongThuc;
     }

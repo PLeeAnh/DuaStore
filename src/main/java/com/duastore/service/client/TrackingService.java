@@ -123,7 +123,7 @@ public class TrackingService {
         return switch (method) {
             case "COD" -> "Thanh toán khi nhận hàng";
             case "CHUYEN_KHOAN" -> "Chuyển khoản";
-            case "VNPAY" -> "VNPay";
+            case "SEPAY_QR" -> "QR (VietQR)";
             default -> method;
         };
     }

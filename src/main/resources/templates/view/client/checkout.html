@@ -151,13 +151,13 @@
                                                 </span>
                                             </label>
                                         </div>
-                                        <div class="ds-checkout-radio" th:if="${paymentMethods.vnpay}">
-                                            <input type="radio" name="phuongThucTT" id="ttVNPAY" value="VNPAY" />
-                                            <label for="ttVNPAY" class="ds-pay-option">
-                                                <span class="ds-pay-icon"><i class="bi bi-wallet2"></i></span>
+                                        <div class="ds-checkout-radio" th:if="${paymentMethods.sepay}">
+                                            <input type="radio" name="phuongThucTT" id="ttSepayQR" value="SEPAY_QR" />
+                                            <label for="ttSepayQR" class="ds-pay-option">
+                                                <span class="ds-pay-icon"><i class="bi bi-qr-code"></i></span>
                                                 <span class="ds-pay-body">
-                                                    <strong class="ds-pay-title">VNPAY</strong>
-                                                    <span class="ds-pay-desc">Thanh toán qua cổng VNPAY (ATM, Visa, QR)</span>
+                                                    <strong class="ds-pay-title">Thanh toán QR (VietQR)</strong>
+                                                    <span class="ds-pay-desc">Quét mã QR bằng app ngân hàng để thanh toán</span>
                                                 </span>
                                             </label>
                                         </div>

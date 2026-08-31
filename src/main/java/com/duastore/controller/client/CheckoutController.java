@@ -21,7 +21,7 @@ import com.duastore.service.PricingService;
 import com.duastore.dto.CarrierQuote;
 import com.duastore.service.MultiCarrierShippingService;
 import com.duastore.service.SiteSettingService;
-import com.duastore.service.VNPAYService;
+import com.duastore.service.SepayService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.service.admin.FraudDetectionService;
 import com.duastore.service.client.CartService;
@@ -65,7 +65,7 @@ public class CheckoutController {
     private final PaymentService paymentService;
     private final OrderStatusLogService orderStatusLogService;
     private final NotificationHelper notificationHelper;
-    private final VNPAYService vnpayService;
+    private final SepayService sepayService;
     private final FraudDetectionService fraudDetectionService;
     private final VoucherWalletService voucherWalletService;
     private final LoyaltyPointsService loyaltyPointsService;
@@ -89,7 +89,7 @@ public class CheckoutController {
             PaymentService paymentService,
             OrderStatusLogService orderStatusLogService,
             NotificationHelper notificationHelper,
-            VNPAYService vnpayService,
+            SepayService sepayService,
             FraudDetectionService fraudDetectionService,
             VoucherWalletService voucherWalletService,
             LoyaltyPointsService loyaltyPointsService,
@@ -107,7 +107,7 @@ public class CheckoutController {
         this.paymentService = paymentService;
         this.orderStatusLogService = orderStatusLogService;
         this.notificationHelper = notificationHelper;
-        this.vnpayService = vnpayService;
+        this.sepayService = sepayService;
         this.fraudDetectionService = fraudDetectionService;
         this.voucherWalletService = voucherWalletService;
         this.loyaltyPointsService = loyaltyPointsService;
@@ -201,7 +201,7 @@ public class CheckoutController {
         Map<String, Boolean> paymentMethods = new HashMap<>();
         paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.getOrDefault("payment_bank", "1")));
-        paymentMethods.put("vnpay", "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1")));
+        paymentMethods.put("sepay", "1".equals(paymentSettings.getOrDefault("payment_sepay", "0")));
         model.addAttribute("paymentMethods", paymentMethods);
 
         // Load carrier settings
@@ -216,8 +216,8 @@ public class CheckoutController {
         model.addAttribute("storeLng", storeLng);
 
         // Set default payment method based on available methods
-        if (!paymentMethods.get("cod") && paymentMethods.get("vnpay")) {
-            model.addAttribute("defaultPaymentMethod", "VNPAY");
+        if (!paymentMethods.get("cod") && paymentMethods.get("sepay")) {
+            model.addAttribute("defaultPaymentMethod", "SEPAY_QR");
         } else if (!paymentMethods.get("cod") && paymentMethods.get("bank")) {
             model.addAttribute("defaultPaymentMethod", "CHUYEN_KHOAN");
         } else {
@@ -230,7 +230,7 @@ public class CheckoutController {
         Map<String, Boolean> paymentMethods = new HashMap<>();
         paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.getOrDefault("payment_bank", "1")));
-        paymentMethods.put("vnpay", "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1")));
+        paymentMethods.put("sepay", "1".equals(paymentSettings.getOrDefault("payment_sepay", "0")));
         model.addAttribute("paymentMethods", paymentMethods);
     }
 
@@ -318,11 +318,8 @@ public class CheckoutController {
             if ("CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
                 return "redirect:/checkout/chuyen-khoan/" + order.getId();
             }
-            if ("VNPAY".equals(order.getPhuongThucTT())) {
-                String vnpayUrl = orderService.createVNPAYPaymentUrl(order.getId(), httpReq);
-                if (vnpayUrl != null) {
-                    return "redirect:" + vnpayUrl;
-                }
+            if ("SEPAY_QR".equals(order.getPhuongThucTT())) {
+                return "redirect:/checkout/sepay/qr/" + order.getId();
             }
             return "redirect:/checkout/thanh-cong/" + order.getId();
         } catch (RuntimeException e) {
@@ -393,7 +390,7 @@ public class CheckoutController {
         Map<String, Boolean> paymentMethods = new HashMap<>();
         paymentMethods.put("cod", "1".equals(paymentSettings.getOrDefault("payment_cod", "1")));
         paymentMethods.put("bank", "1".equals(paymentSettings.getOrDefault("payment_bank", "1")));
-        paymentMethods.put("vnpay", "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1")));
+        paymentMethods.put("sepay", "1".equals(paymentSettings.getOrDefault("payment_sepay", "0")));
         model.addAttribute("paymentMethods", paymentMethods);
 
         Map<String, String> shippingSettings = siteSettingService.getGroup("shipping");
@@ -457,17 +454,9 @@ public class CheckoutController {
             res.put("maDon", order.getMaDon());
 
             String paymentMethod = req.getPhuongThucTT();
-            if ("VNPAY".equals(paymentMethod)) {
-                String vnpayUrl = vnpayService.createPaymentUrl("DUASTORE" + order.getId(),
-                        order.getTongThanhToan().longValue(),
-                        "Thanh toan don hang " + order.getMaDon(), request);
-                if (vnpayUrl == null) {
-                    res.put("success", false);
-                    res.put("message", "Cổng thanh toán VNPAY chưa được cấu hình, vui lòng liên hệ quản trị viên");
-                    return ResponseEntity.ok(res);
-                }
-                res.put("redirectType", "VNPAY");
-                res.put("vnpayUrl", vnpayUrl);
+            if ("SEPAY_QR".equals(paymentMethod)) {
+                res.put("redirectType", "SEPAY_QR");
+                res.put("redirectUrl", "/checkout/sepay/qr/" + order.getId());
             } else if ("CHUYEN_KHOAN".equals(paymentMethod)) {
                 res.put("redirectType", "CHUYEN_KHOAN");
                 res.put("redirectUrl", "/checkout/chuyen-khoan/" + order.getId());
@@ -614,100 +603,91 @@ public class CheckoutController {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/vnpay/return")
-    public String vnpayReturn(@RequestParam Map<String, String> params, Model model) {
-        Map<String, String> result = vnpayService.verifyReturn(params);
-        if (!"true".equals(result.get("success"))) {
-            model.addAttribute("error", result.get("message"));
-            return "view/client/payment-fail";
-        }
-        String txnRef = result.get("txnRef");
-        if (txnRef == null) {
-            model.addAttribute("error", "Không tìm thấy đơn hàng");
-            return "view/client/payment-fail";
-        }
-        if (!"00".equals(result.get("responseCode"))) {
-            model.addAttribute("error", "Giao dịch không thành công hoặc đã bị hủy (mã lỗi: "
-                    + result.get("responseCode") + ")");
-            return "view/client/payment-fail";
-        }
+    @GetMapping("/sepay/qr/{id}")
+    public String sepayQR(@PathVariable Integer id, Model model) {
+        Integer userId = getUserId();
         try {
-            int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-            Order order = orderService.getOrderById(orderId);
-            if (!"VNPAY".equals(order.getPhuongThucTT())) {
-                model.addAttribute("error", "Đơn hàng không phải thanh toán qua VNPAY");
-                return "view/client/payment-fail";
+            Order order = orderService.getOrderByUserAndId(userId, id);
+            if (!"SEPAY_QR".equals(order.getPhuongThucTT())) {
+                return "redirect:/checkout/thanh-cong/" + id;
             }
-            if ("DA_HUY".equals(order.getTrangThaiDon())) {
-                model.addAttribute("error", "Đơn hàng đã bị hủy trước khi thanh toán. Liên hệ hỗ trợ để được hoàn tiền nếu giao dịch đã trừ tiền");
-                return "view/client/payment-fail";
+            if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                return "redirect:/checkout/thanh-cong/" + id;
             }
-            long expectedAmount = order.getTongThanhToan().longValue() * 100L;
-            if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
-                model.addAttribute("error", "Số tiền giao dịch không khớp với đơn hàng");
-                return "view/client/payment-fail";
-            }
-            if (!"DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
-                orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
-                orderService.updateVnpayTransactionNo(orderId, result.get("transactionNo"));
-                orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
-            }
-        } catch (Exception e) {
-            model.addAttribute("error", "Không tìm thấy đơn hàng");
-            return "view/client/payment-fail";
+            String qrUrl = sepayService.generateQrUrl(
+                    order.getTongThanhToan().longValue(),
+                    order.getMaDon());
+            model.addAttribute("order", orderService.convertToDTO(order));
+            model.addAttribute("qrUrl", qrUrl);
+            model.addAttribute("bankName", sepayService.getBankName());
+            model.addAttribute("accountNumber", sepayService.getBankAccount());
+            model.addAttribute("accountName", sepayService.getBankHolder());
+            model.addAttribute("title", "Thanh toán QR (VietQR)");
+            return "view/client/payment";
+        } catch (RuntimeException e) {
+            return "redirect:/";
         }
-        return "redirect:/checkout/thanh-cong/" + txnRef.replace("DUASTORE", "");
     }
 
-    @PostMapping("/vnpay/ipn")
+    @PostMapping("/sepay/ipn")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> vnpayIPN(@RequestParam Map<String, String> params) {
-        Map<String, String> result = vnpayService.verifyReturn(params);
-        Map<String, String> response = new HashMap<>();
-        if ("true".equals(result.get("success"))
-                && "00".equals(result.get("responseCode"))) {
-            String txnRef = result.get("txnRef");
-            if (txnRef == null) {
-                response.put("RspCode", "99");
-                response.put("Message", "Invalid TxnRef");
+    public ResponseEntity<Map<String, Object>> sepayIPN(
+            @RequestBody Map<String, Object> body,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        Map<String, Object> response = new HashMap<>();
+        if (!sepayService.verifyApiKey(authorization)) {
+            response.put("success", false);
+            response.put("message", "Invalid API key");
+            return ResponseEntity.status(401).body(response);
+        }
+        try {
+            String transferType = (String) body.getOrDefault("transferType", "");
+            if (!"in".equals(transferType)) {
+                response.put("success", true);
                 return ResponseEntity.ok(response);
             }
-            try {
-                int orderId = Integer.parseInt(txnRef.replace("DUASTORE", ""));
-                Order order = orderService.getOrderById(orderId);
-                long expectedAmount = order.getTongThanhToan().longValue() * 100L;
-                if (!String.valueOf(expectedAmount).equals(result.get("amount"))) {
-                    response.put("RspCode", "04");
-                    response.put("Message", "Amount mismatch");
-                    return ResponseEntity.ok(response);
-                }
-                if (!"VNPAY".equals(order.getPhuongThucTT())) {
-                    response.put("RspCode", "01");
-                    response.put("Message", "Order not found");
-                    return ResponseEntity.ok(response);
-                }
-                if ("DA_HUY".equals(order.getTrangThaiDon())) {
-                    response.put("RspCode", "09");
-                    response.put("Message", "Order cancelled");
-                    return ResponseEntity.ok(response);
-                }
-                if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
-                    response.put("RspCode", "02");
-                    response.put("Message", "Order already confirmed");
-                    return ResponseEntity.ok(response);
-                }
-                orderService.updatePaymentStatus(orderId, "DA_THANH_TOAN");
-                orderService.updateVnpayTransactionNo(orderId, result.get("transactionNo"));
-                orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
-                response.put("RspCode", "00");
-                response.put("Message", "Confirm Success");
-            } catch (Exception e) {
-                response.put("RspCode", "99");
-                response.put("Message", "Order not found");
+            Number amountNum = (Number) body.get("transferAmount");
+            long transferAmount = amountNum != null ? amountNum.longValue() : 0;
+            String code = (String) body.getOrDefault("code", "");
+            if (code == null || code.isBlank()) {
+                response.put("success", true);
+                return ResponseEntity.ok(response);
             }
-        } else {
-            response.put("RspCode", "97");
-            response.put("Message", "Invalid signature");
+            Order order = orderService.getOrderByMaDon(code);
+            if (order == null) {
+                response.put("success", false);
+                response.put("message", "Order not found");
+                return ResponseEntity.ok(response);
+            }
+            if (!"SEPAY_QR".equals(order.getPhuongThucTT())) {
+                response.put("success", false);
+                response.put("message", "Order is not SEPAY_QR type");
+                return ResponseEntity.ok(response);
+            }
+            if ("DA_HUY".equals(order.getTrangThaiDon())) {
+                response.put("success", false);
+                response.put("message", "Order cancelled");
+                return ResponseEntity.ok(response);
+            }
+            if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                response.put("success", true);
+                return ResponseEntity.ok(response);
+            }
+            if (transferAmount < order.getTongThanhToan().longValue()) {
+                response.put("success", false);
+                response.put("message", "Amount mismatch");
+                return ResponseEntity.ok(response);
+            }
+            orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
+            orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+            try {
+                asyncEmailService.sendOrderSuccess(order);
+            } catch (Exception ignored) {
+            }
+            response.put("success", true);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
         }
         return ResponseEntity.ok(response);
     }
@@ -739,13 +719,13 @@ public class CheckoutController {
         boolean paymentEnabled = switch (paymentMethod) {
             case "COD" -> "1".equals(paymentSettings.getOrDefault("payment_cod", "1"));
             case "CHUYEN_KHOAN" -> "1".equals(paymentSettings.getOrDefault("payment_bank", "1"));
-            case "VNPAY" -> {
-                boolean enabled = "1".equals(paymentSettings.getOrDefault("payment_vnpay", "1"));
+            case "SEPAY_QR" -> {
+                boolean enabled = "1".equals(paymentSettings.getOrDefault("payment_sepay", "0"));
                 if (!enabled) {
-                    throw new RuntimeException("VNPAY đã tắt. Bật tại Admin → Cấu hình thanh toán.");
+                    throw new RuntimeException("Thanh toán QR (VietQR) đã tắt. Bật tại Admin → Cấu hình thanh toán.");
                 }
-                if (!vnpayService.isConfigured()) {
-                    throw new RuntimeException("VNPAY chưa cấu hình TMN Code / Hash Secret. Nhập tại Admin → Cấu hình thanh toán → Cấu hình VNPay.");
+                if (!sepayService.isConfigured()) {
+                    throw new RuntimeException("Sepay chưa cấu hình Merchant ID / Secret Key. Nhập tại Admin → Cấu hình thanh toán → Cấu hình Sepay.");
                 }
                 yield true;
             }

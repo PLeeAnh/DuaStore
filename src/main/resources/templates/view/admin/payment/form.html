@@ -48,10 +48,10 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-check form-switch">
-                            <input type="hidden" name="payment_vnpay" value="0" />
-                            <input class="form-check-input" type="checkbox" name="payment_vnpay" value="1"
-                                   id="paymentVnpay" th:checked="${settings.get('payment_vnpay') == '1'}" />
-                            <label class="form-check-label" for="paymentVnpay">VNPay</label>
+                            <input type="hidden" name="payment_sepay" value="0" />
+                            <input class="form-check-input" type="checkbox" name="payment_sepay" value="1"
+                                   id="paymentSepay" th:checked="${settings.get('payment_sepay') == '1'}" />
+                            <label class="form-check-label" for="paymentSepay">Thanh toán QR (VietQR)</label>
                         </div>
                     </div>
                     <div class="col-12">
@@ -84,31 +84,26 @@
                         <div class="form-text">Để trống sẽ dùng QR từ qr.sepay.vn. Nếu nhập URL ảnh, ảnh sẽ hiển thị thay thế.</div>
                     </div>
                     <div class="col-12">
-                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-shield-lock me-1"></i>Cấu hình VNPay</h6>
+                        <h6 class="fw-semibold border-bottom pb-2 mt-3"><i class="bi bi-shield-lock me-1"></i>Cấu hình Sepay (VietQR)</h6>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">TMN Code</label>
-                        <input type="text" name="vnpay_tmn_code" class="form-control"
-                               th:value="${settings.get('vnpay_tmn_code')}" />
-                        <div class="form-text">Lấy từ portal.vnpayment.vn</div>
+                        <label class="form-label">Merchant ID</label>
+                        <input type="text" name="sepay_merchant_id" class="form-control"
+                               th:value="${settings.get('sepay_merchant_id')}" />
+                        <div class="form-text">Lấy từ my.sepay.vn → Payment Gateway → Register</div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Hash Secret</label>
-                        <input type="password" name="vnpay_hash_secret" class="form-control"
-                               th:value="${settings.get('vnpay_hash_secret')}" />
-                        <div class="form-text">Lấy từ portal.vnpayment.vn</div>
+                        <label class="form-label">Secret Key</label>
+                        <input type="password" name="sepay_secret_key" class="form-control"
+                               th:value="${settings.get('sepay_secret_key')}" />
+                        <div class="form-text">Lấy từ my.sepay.vn → Payment Gateway → Register</div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Pay URL (VNPay endpoint)</label>
-                        <input type="url" name="vnpay_pay_url" class="form-control"
-                               th:value="${settings.get('vnpay_pay_url')}" placeholder="https://sandbox.vnpayment.vn/paymentv2/vpcpay.html" />
-                        <div class="form-text">Sandbox: <code>https://sandbox.vnpayment.vn/paymentv2/vpcpay.html</code> | Production: <code>https://pay.vnpay.vn/vpcpay.html</code></div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Return URL</label>
-                        <input type="url" name="vnpay_return_url" class="form-control"
-                               th:value="${settings.get('vnpay_return_url')}" placeholder="http://localhost:8080/checkout/vnpay/return" />
-                        <div class="form-text">URL VNPay redirect sau khi thanh toán. Phải là URL công khai.</div>
+                    <div class="col-12">
+                        <div class="alert alert-info small py-2 mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Webhook URL: <code>/checkout/sepay/ipn</code> — Cấu hình tại my.sepay.vn → Integrations → Webhooks.
+                            Đăng ký tài khoản tại <a href="https://my.sepay.vn" target="_blank">my.sepay.vn</a>.
+                        </div>
                     </div>
                     <div class="col-12">
                         <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>

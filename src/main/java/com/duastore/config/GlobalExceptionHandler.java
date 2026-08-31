@@ -187,7 +187,7 @@ public class GlobalExceptionHandler {
         String accept = request.getHeader("Accept");
         boolean isApi = request.getRequestURI().startsWith("/api/") 
                 || request.getRequestURI().startsWith("/address/api/")
-                || request.getRequestURI().startsWith("/checkout/vnpay/")
+                || request.getRequestURI().startsWith("/checkout/sepay/")
                 || (accept != null && accept.contains("application/json"));
         
         if (isApi) {

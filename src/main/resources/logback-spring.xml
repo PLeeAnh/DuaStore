@@ -86,8 +86,8 @@
         <appender-ref ref="CONSOLE"/>
     </logger>
 
-    <!-- VNPAY Logger -->
-    <logger name="com.duastore.service.VNPAYService" level="DEBUG" additivity="false">
+    <!-- Sepay Logger -->
+    <logger name="com.duastore.service.SepayService" level="DEBUG" additivity="false">
         <appender-ref ref="FILE"/>
         <appender-ref ref="ERROR_FILE"/>
         <appender-ref ref="CONSOLE"/>

@@ -9,7 +9,7 @@ import com.duastore.service.GHNShippingService;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.MultiCarrierShippingService;
 import com.duastore.service.PricingService;
-import com.duastore.service.VNPAYService;
+import com.duastore.service.SepayService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.util.PriceUtils;
 import org.hibernate.ObjectNotFoundException;
@@ -25,7 +25,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 @Transactional(readOnly = true)
@@ -46,7 +45,7 @@ public class OrderService {
     private final OrderStatusLogService orderStatusLogService;
     private final UserVoucherRepository userVoucherRepository;
     private final GHNShippingService ghnShippingService;
-    private final VNPAYService vnpayService;
+    private final SepayService sepayService;
     private final PricingService pricingService;
     private final FlashSaleRepository flashSaleRepository;
     private final FlashSaleItemRepository flashSaleItemRepository;
@@ -63,7 +62,7 @@ public class OrderService {
             OrderStatusLogService orderStatusLogService,
             UserVoucherRepository userVoucherRepository,
             GHNShippingService ghnShippingService,
-            VNPAYService vnpayService,
+            SepayService sepayService,
             PricingService pricingService,
             FlashSaleRepository flashSaleRepository,
             FlashSaleItemRepository flashSaleItemRepository,
@@ -82,7 +81,7 @@ public class OrderService {
         this.orderStatusLogService = orderStatusLogService;
         this.userVoucherRepository = userVoucherRepository;
         this.ghnShippingService = ghnShippingService;
-        this.vnpayService = vnpayService;
+        this.sepayService = sepayService;
         this.pricingService = pricingService;
         this.flashSaleRepository = flashSaleRepository;
         this.flashSaleItemRepository = flashSaleItemRepository;
@@ -538,16 +537,6 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateVnpayTransactionNo(Integer orderId, String txnNo) {
-        if (txnNo == null || txnNo.isBlank()) {
-            return;
-        }
-        Order order = getOrderById(orderId);
-        order.setVnpTransactionNo(txnNo);
-        orderRepository.save(order);
-    }
-
-    @Transactional
     public void markOrderReceived(Integer userId, Integer orderId) {
         Order order = getOrderByUserAndId(userId, orderId);
         if (!"DA_GIAO".equals(order.getTrangThaiDon())) {
@@ -764,16 +753,5 @@ public class OrderService {
         return orderItemRepository.findByOrderId(order.getId()).stream()
                 .map(this::convertItemToDTO)
                 .collect(Collectors.toList());
-    }
-
-    public String createVNPAYPaymentUrl(Integer orderId, HttpServletRequest req) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
-        return vnpayService.createPaymentUrl(
-                "DUASTORE" + order.getId(),
-                order.getTongThanhToan().longValue(),
-                "Thanh toan don hang " + order.getMaDon(),
-                req
-        );
     }
 }
