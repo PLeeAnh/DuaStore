@@ -1162,7 +1162,7 @@ PRINT 'Seed du lieu co ban hoan tat!';
 GO
 
 -- ============================================================
--- SEED: SiteSettings (cau hinh mac dinh)
+-- SEED: SiteSettings (cau hinh mac dinh - TOAN BO BAT)
 -- ============================================================
 INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VALUES
 -- Store
@@ -1172,23 +1172,22 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 ('store', 'store_latitude', '20.8565', GETDATE()),
 ('store', 'store_longitude', '106.6756', GETDATE()),
 ('store', 'store_business_hours', N'{"mon":{"open":true,"allDay":false,"slots":[{"open":"08:00","close":"19:00"}]},"tue":{"open":true,"allDay":false,"slots":[{"open":"08:00","close":"19:00"}]},"wed":{"open":true,"allDay":false,"slots":[{"open":"08:00","close":"19:00"}]},"thu":{"open":true,"allDay":false,"slots":[{"open":"08:00","close":"19:00"}]},"fri":{"open":true,"allDay":false,"slots":[{"open":"08:00","close":"19:00"}]},"sat":{"open":true,"allDay":false,"slots":[{"open":"08:00","close":"19:00"}]},"sun":{"open":true,"allDay":false,"slots":[{"open":"08:00","close":"19:00"}]}}', GETDATE()),
--- Payment
-('payment', 'payment_enabled', '1', GETDATE()),
+-- Payment (toggle names = payment_cod, payment_bank, payment_vnpay)
+('payment', 'payment_cod', '1', GETDATE()),
+('payment', 'payment_bank', '1', GETDATE()),
+('payment', 'payment_vnpay', '0', GETDATE()),
 ('payment', 'payment_bank_code', 'MBB', GETDATE()),
 ('payment', 'payment_bank_account', '118830072008', GETDATE()),
 ('payment', 'payment_bank_holder', 'LE ANH PHUONG', GETDATE()),
 ('payment', 'payment_bank_name', 'MBBank', GETDATE()),
 ('payment', 'payment_bank_branch', 'Hai Phong', GETDATE()),
 ('payment', 'payment_qr_url', '/images/payment-qr.jpg', GETDATE()),
-('payment', 'payment_cod_enabled', '1', GETDATE()),
-('payment', 'payment_transfer_enabled', '1', GETDATE()),
-('payment', 'payment_vnpay_enabled', '0', GETDATE()),
 ('payment', 'vnpay_tmn_code', '', GETDATE()),
 ('payment', 'vnpay_hash_secret', '', GETDATE()),
 ('payment', 'vnpay_pay_url', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html', GETDATE()),
 ('payment', 'vnpay_return_url', 'http://localhost:8080/checkout/vnpay/return', GETDATE()),
--- Shipping
-('shipping', 'shipping_enabled', '1', GETDATE()),
+-- Shipping (toggle names = shipping_free, carrier_ghn_enabled, carrier_ghtk_enabled)
+('shipping', 'shipping_free', '1', GETDATE()),
 ('shipping', 'shipping_free_min', '500000', GETDATE()),
 ('shipping', 'carrier_ghn_enabled', '0', GETDATE()),
 ('shipping', 'carrier_ghtk_enabled', '0', GETDATE()),
@@ -1205,7 +1204,24 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 ('shipping', 'ghn_test_mode', 'true', GETDATE()),
 ('shipping', 'ghn_default_district_id', '1444', GETDATE()),
 ('shipping', 'ghn_default_ward_code', '21012', GETDATE()),
--- Appearance
+-- Appearance: Header (null = default ON)
+('appearance', 'header_logo', '1', GETDATE()),
+('appearance', 'header_hotline', '1', GETDATE()),
+('appearance', 'header_search', '1', GETDATE()),
+('appearance', 'header_cart', '1', GETDATE()),
+('appearance', 'header_account', '1', GETDATE()),
+-- Appearance: Widgets
+('appearance', 'widget_messenger', '1', GETDATE()),
+('appearance', 'widget_zalo', '1', GETDATE()),
+('appearance', 'widget_call', '1', GETDATE()),
+('appearance', 'widget_chatbot', '1', GETDATE()),
+('appearance', 'widget_backtotop', '1', GETDATE()),
+('appearance', 'widget_popup', '1', GETDATE()),
+('appearance', 'popup_promo_active', '0', GETDATE()),
+('appearance', 'popup_promo_image', '', GETDATE()),
+('appearance', 'popup_promo_link', '', GETDATE()),
+('appearance', 'popup_promo_mode', 'once', GETDATE()),
+('appearance', 'popup_promo_interval', '60', GETDATE()),
 ('appearance', 'custom_css', '', GETDATE()),
 ('appearance', 'hp_3_limit', '6', GETDATE()),
 ('appearance', 'hp_4_limit', '7', GETDATE()),
@@ -1213,11 +1229,6 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 ('appearance', 'hp_3_layout', '3', GETDATE()),
 ('appearance', 'hp_4_layout', '4', GETDATE()),
 ('appearance', 'hp_5_layout', '4', GETDATE()),
-('appearance', 'popup_promo_active', '0', GETDATE()),
-('appearance', 'popup_promo_image', '', GETDATE()),
-('appearance', 'popup_promo_link', '', GETDATE()),
-('appearance', 'popup_promo_mode', 'once', GETDATE()),
-('appearance', 'popup_promo_interval', '60', GETDATE()),
 -- Loyalty
 ('loyalty', 'loyalty_earn_rate', '10000', GETDATE()),
 ('loyalty', 'loyalty_redeem_rate', '100', GETDATE()),
@@ -1225,7 +1236,7 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 ('loyalty', 'loyalty_expiry_enabled', 'true', GETDATE()),
 -- Order
 ('order', 'order_auto_cancel_hours', '24', GETDATE()),
--- Email (de fallback khi chua cau hinh SMTP)
+-- Email
 ('email', 'email_host', 'smtp.gmail.com', GETDATE()),
 ('email', 'email_port', '587', GETDATE()),
 ('email', 'email_encryption', 'tls', GETDATE()),
@@ -1467,76 +1478,3 @@ BEGIN
 END
 GO
 
--- ============================================================
--- BANG MOI: Suppliers (Nha cung cap)
--- ============================================================
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Suppliers')
-BEGIN
-    CREATE TABLE Suppliers (
-        id int identity not null,
-        tenNhaCungCap nvarchar(200) not null,
-        lienHe nvarchar(200),
-        soDienThoai nvarchar(20),
-        email nvarchar(200),
-        diaChi nvarchar(500),
-        ghiChu nvarchar(max),
-        isActive bit not null default 1,
-        createdAt datetime2(7) not null,
-        updatedAt datetime2(7),
-        primary key (id)
-    );
-    PRINT 'Suppliers: da tao bang';
-END
-GO
-
--- ============================================================
--- BANG MOI: PurchaseOrders (Phieu nhap hang)
--- ============================================================
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'PurchaseOrders')
-BEGIN
-    CREATE TABLE PurchaseOrders (
-        id int identity not null,
-        maPhieu nvarchar(50) not null,
-        supplierId int not null,
-        trangThai nvarchar(30) not null default 'CHO_DUYET',
-        tongTien numeric(15,0) not null default 0,
-        soTienDaTra numeric(15,0) not null default 0,
-        ngayNhap datetime2(7),
-        ngayDuyet datetime2(7),
-        ngayHoanThanh datetime2(7),
-        ghiChu nvarchar(max),
-        createdBy int not null,
-        approvedBy int,
-        createdAt datetime2(7) not null,
-        updatedAt datetime2(7),
-        primary key (id)
-    );
-    ALTER TABLE PurchaseOrders ADD CONSTRAINT FK_PurchaseOrders_supplierId FOREIGN KEY (supplierId) REFERENCES Suppliers;
-    CREATE INDEX IX_PurchaseOrders_trangThai ON PurchaseOrders(trangThai);
-    CREATE INDEX IX_PurchaseOrders_maPhieu ON PurchaseOrders(maPhieu);
-    PRINT 'PurchaseOrders: da tao bang';
-END
-GO
-
--- ============================================================
--- BANG MOI: PurchaseOrderItems (Chi tiet phieu nhap)
--- ============================================================
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'PurchaseOrderItems')
-BEGIN
-    CREATE TABLE PurchaseOrderItems (
-        id int identity not null,
-        purchaseOrderId int not null,
-        variantId int,
-        tenSanPham nvarchar(300) not null,
-        soLuong int not null default 0,
-        giaNhap numeric(12,0) not null default 0,
-        thanhTien numeric(15,0) not null default 0,
-        soLuongNhan int not null default 0,
-        ghiChu nvarchar(500),
-        primary key (id)
-    );
-    ALTER TABLE PurchaseOrderItems ADD CONSTRAINT FK_PurchaseOrderItems_purchaseOrderId FOREIGN KEY (purchaseOrderId) REFERENCES PurchaseOrders ON DELETE CASCADE;
-    CREATE INDEX IX_PurchaseOrderItems_purchaseOrderId ON PurchaseOrderItems(purchaseOrderId);
-    PRINT 'PurchaseOrderItems: da tao bang';
-END
-GO

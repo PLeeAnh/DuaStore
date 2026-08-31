@@ -23,6 +23,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -82,6 +83,21 @@ public class AccountController {
         model.addAttribute("user", user);
         model.addAttribute("authProviders", userAuthProviderRepository.findByUserId(user.getId()));
         return "view/client/account/profile";
+    }
+
+    @GetMapping("/tai-khoan/hoat-dong")
+    public String activity(Model model) {
+        User user = securityUtil.getCurrentUser();
+        if (user == null) {
+            return "redirect:/dang-nhap";
+        }
+        model.addAttribute("title", "Hoạt động");
+        model.addAttribute("recentOrders",
+                orderRepository.findByUserId(user.getId(),
+                        PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "ngayDat"))).getContent());
+        model.addAttribute("recentReviews",
+                reviewsRepository.findByUserIdOrderByNgayTaoDesc(user.getId()).stream().limit(5).toList());
+        return "view/client/account/activity";
     }
 
     @PostMapping("/tai-khoan/cap-nhat")
