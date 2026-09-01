@@ -78,6 +78,142 @@
                     <div class="ds-slider-dots"></div>
                 </section>
 
+                <!-- CHIẾN DỊCH KHUYẾN MÃI (voucher cards) -->
+                <section class="ds-section-card ds-discount-section sr-up ds-slider-section ds-slider-single"
+                         th:if="${not #lists.isEmpty(campaignPromotions)}" data-items-per-page="4">
+                    <div class="ds-discount-header">
+                        <h2 class="ds-discount-title"><i class="bi bi-fire"></i> Đang diễn ra chiến dịch khuyến mãi</h2>
+                        <a th:href="@{/khuyen-mai}" class="ds-link-more">Xem tất cả voucher <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                    <div class="ds-slider-wrap">
+                        <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
+                        <div class="ds-slider-viewport">
+                            <div class="ds-slider-track">
+
+                                <div th:each="promo : ${campaignPromotions}" class="ds-discount-item ds-campaign-card"
+                                     th:data-promo-id="${promo.id}" th:data-promo-code="${promo.maCode}"
+                                     onclick="claimHomePromo(this.getAttribute('data-promo-id'), this.getAttribute('data-promo-code'))">
+                                    <div class="dc_work_group">
+                                        <span class="ds-promo-expiring-badge"
+                                              th:if="${promo.denNgay != null and promo.denNgay.isBefore(T(java.time.LocalDateTime).now().plusDays(3))}">
+                                            <i class="bi bi-hourglass-split"></i>Sắp hết hạn
+                                        </span>
+                                        <div class="dc_work_group_title">
+                                            <i class="bi bi-ticket-perforated" style="color:var(--ds-primary);font-size:.95rem;"></i>
+                                            <h3 th:text="${promo.tenChuongTrinh}">Tên chương trình</h3>
+                                        </div>
+                                        <div class="ds-browse-list ds-promo-body">
+                                            <div class="ds-promo-value" th:classappend="${'PHAN_TRAM'.equals(promo.loaiGiam)} ? 'ds-promo-value-pct' : 'ds-promo-value-money'">
+                                                <span class="ds-promo-value-main">
+                                                    <span th:if="${'PHAN_TRAM'.equals(promo.loaiGiam)}"
+                                                          th:text="${'- ' + #numbers.formatDecimal(promo.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">-15%</span>
+                                                    <span th:unless="${'PHAN_TRAM'.equals(promo.loaiGiam)}"
+                                                          th:text="${'- ' + #numbers.formatDecimal(promo.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}">-50.000đ</span>
+                                                </span>
+                                                <span class="ds-promo-value-max" th:if="${promo.giamToiDa != null}"
+                                                      th:text="${'Giảm tối đa ' + #numbers.formatDecimal(promo.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">Giảm tối đa 100.000đ</span>
+                                                <span class="ds-promo-value-type" th:text="${'PHAN_TRAM'.equals(promo.loaiGiam)} ? 'Voucher giảm %' : 'Voucher giảm tiền'">Voucher</span>
+                                            </div>
+                                            <div class="ds-promo-conds">
+                                                <span class="ds-promo-cond" th:if="${promo.donHangToiThieu != null and promo.donHangToiThieu > 0}">
+                                                    <i class="bi bi-cart3"></i> Đơn từ <strong th:text="${#numbers.formatDecimal(promo.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                                </span>
+                                                <span class="ds-promo-cond">
+                                                    <i class="bi bi-calendar3"></i> HSD: <strong th:text="${#temporals.format(promo.denNgay, 'dd/MM/yyyy')}">31/12/2026</strong>
+                                                </span>
+                                            </div>
+                                            <div class="ds-promo-code-row">
+                                                <span class="vc2-code" th:text="${promo.maCode}">CODE</span>
+                                                <button type="button" class="vc2-copy" th:data-code="${promo.maCode}" onclick="event.stopPropagation(); copyDetailCode()">Sao chép</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </section>
+
+                <!-- SẢN PHẨM NỔI BẬT -->
+                <section class="ds-section-card sr-up" th:if="${(themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0') and not #lists.isEmpty(featuredProducts)}">
+                    <div class="ds-product-grid-v2" th:style="'--cols:' + ${productColumns}">
+
+                        <div th:each="p : ${featuredProducts}">
+                            <div class="ds-product-card" th:data-productid="${p.id}"
+                                 th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                 v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                 fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null}"
+                                 th:classappend="${v != null and v.soLuongTon <= 0} ? 'oos' : ''"
+                                 th:onclick="|window.location.href='/san-pham/${p.id}'|">
+
+                                <button th:classappend="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'btn-wishlist-card active' : 'btn-wishlist-card'"
+                                        th:onclick="|event.stopPropagation(); toggleWishlist(this, ${p.id})|" title="Thêm vào yêu thích">
+                                    <i th:class="${likedIds != null and #lists.contains(likedIds, p.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                </button>
+
+                                <div class="ds-product-image-wrap">
+                                    <a th:href="@{'/san-pham/' + ${p.id}}">
+<img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+<img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                         <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
+                                        <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
+                                        <div class="ds-flash-timer" th:if="${fs != null}"
+                                             th:data-end="${#temporals.format(fs.event.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
+                                            <i class="bi bi-clock"></i>
+                                            <span class="flash-countdown">--:--:--</span>
+                                        </div>
+                                        <span class="ds-badge-flash-stock" th:if="${fs != null and fs.soLuongConLai > 0}">
+                                            <i class="bi bi-fire"></i> Chỉ còn <b th:text="${fs.soLuongConLai}">30</b> sản phẩm
+                                        </span>
+                                        <span class="ds-badge-flash-stock ds-badge-flash-stock-hot" th:if="${fs != null and fs.soLuongConLai <= 0}">
+                                            <i class="bi bi-fire"></i> Hết suất Flash Sale
+                                        </span>
+                                        <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
+                                    </a>
+                                </div>
+
+                                <!-- Steam-style hover preview -->
+                                <div class="ds-card-hover-preview">
+                                    <div class="ds-card-hover-thumb" th:if="${p.hinhAnhChinh != null or (v != null and v.hinhAnh != null)}">
+                                        <img th:src="@{${p.hinhAnhChinh != null ? p.hinhAnhChinh : v.hinhAnh}}" alt="" loading="lazy"/>
+                                    </div>
+                                    <div class="ds-card-hover-body">
+                                        <div class="ds-card-hover-name" th:text="${p.tenSanPham}">Tên sản phẩm</div>
+                                        <div class="ds-card-hover-desc" th:if="${p.moTa != null}" th:text="${#strings.abbreviate(#strings.unescapeJava(#strings.replace(p.moTa, '<[^>]*>', '')), 100)}">Mô tả ngắn...</div>
+                                        <div class="ds-card-hover-meta">
+                                            <span th:if="${p.thuongHieu != null}" th:text="${p.thuongHieu}">Thương hiệu</span>
+                                            <span th:if="${p.xuatXu != null}" th:text="${p.xuatXu}">Xuất xứ</span>
+                                        </div>
+                                        <div class="ds-card-hover-tags">
+                                            <span class="ds-card-hover-tag" th:if="${p.chatLieu != null}" th:text="${p.chatLieu}">Chất liệu</span>
+                                            <span class="ds-card-hover-tag" th:if="${p.kinhLoai != null}" th:text="${p.kinhLoai}">Loại kính</span>
+                                            <span class="ds-card-hover-tag" th:if="${p.hinhDang != null}" th:text="${p.hinhDang}">Hình dạng</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="ds-card-body">
+                                    <div class="ds-card-price">
+                                        <span class="ds-card-price-badge"
+                                              th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                              th:text="|-${bestDiscountMap.get(p.id)}%|">-15%</span>
+                                        <div class="ds-card-price-values">
+                                            <span class="ds-card-price-old"
+                                                  th:if="${v != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
+                                                  th:text="${#numbers.formatInteger(v.giaGoc, 0, 'POINT')} + '₫'">15.000₫</span>
+                                            <span class="ds-card-price-current"
+                                                  th:text="${#numbers.formatInteger(promoPriceMap.get(p.id) != null ? promoPriceMap.get(p.id) : (v != null and v.giaKhuyenMai != null ? v.giaKhuyenMai : (v != null ? v.giaGoc : 0)), 0, 'POINT')} + '₫'">12.750₫</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
                 <!-- SẢN PHẨM MỚI (slider 4 cột + arrows + dots) -->
                 <section class="ds-section-card ds-scroll-section sr-up ds-slider-section" th:if="${not #lists.isEmpty(newestProducts)}"
                          data-items-per-page="6">
@@ -155,6 +291,41 @@
                                     <div class="ds-mini-card-img">
                                         <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                         <span class="ds-mini-card-badge" th:if="${wishCountMap.get(p.id) != null}" th:text="${wishCountMap.get(p.id)} + ' ❤'"></span>
+                    <div class="ds-browse-wrap">
+                        <!-- Cột trái: tabs + list -->
+                        <div>
+                            <div class="ds-browse-tabs">
+                                <button th:if="${hasFavProducts}" class="ds-browse-tab active" data-tab="fav">Yêu thích nhất</button>
+                                <button th:if="${hasSoldProducts}" class="ds-browse-tab" data-tab="sold" th:classappend="${!hasFavProducts ? 'active' : ''}">Bán chạy nhất</button>
+                                <button class="ds-browse-tab" data-tab="rating" th:classappend="${!hasFavProducts and !hasSoldProducts ? 'active' : ''}">Đánh giá cao nhất</button>
+                            </div>
+                            <div class="ds-browse-list" id="browseList">
+                                <div th:each="p, iter : ${browseProducts}"
+                                     class="ds-browse-row" th:classappend="${iter.index == 0} ? 'active'"
+                                     th:data-index="${iter.index}"
+                                     th:data-id="${p.id}"
+                                     th:data-name="${p.tenSanPham}"
+                                     th:data-img="${p.hinhAnhChinh ?: '/images/no-image.png'}"
+                                     th:data-desc="${p.moTa != null ? (#strings.length(p.moTa) > 140 ? #strings.substring(p.moTa,0,140) + '…' : p.moTa) : ''}"
+                                     th:data-cat="${categoryNameMap.get(p.danhMucId) ?: ''}"
+                                     th:data-rating="${ratingMap.get(p.id) != null ? #numbers.formatDecimal(ratingMap.get(p.id), 1, 1) : ''}"
+                                     th:data-rating-count="${ratingCountMap.get(p.id) ?: 0}"
+                                     th:data-wishlist="${wishlistCountMap.get(p.id) ?: 0}"
+                                     th:data-href="@{'/san-pham/' + ${p.id}}"
+th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
+                                      v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
+                                      fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null},
+                                      bestPrice=${variantBestPriceMap != null ? variantBestPriceMap.get(v != null ? v.id : null) : null}"
+                                      th:data-price="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : '')}"
+                                      th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
+                                     th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
+                                     th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
+                                     th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
+                                     th:data-gallery="${#strings.listJoin(browseGalleryMap.get(p.id) ?: java.util.Collections.emptyList(), ',')}">
+                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                    <div class="ds-browse-row-info">
+                                        <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
+                                        <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
                                     </div>
                                     <div class="ds-mini-card-body">
                                         <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
@@ -162,6 +333,19 @@
                                               th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
                                     </div>
                                 </a>
+                                </div>
+                            </div>
+                            <div class="ds-see-more-link">
+                                <span>Xem thêm:</span>
+                                <div th:if="${hasFavProducts}" class="ds-see-more-btn" data-tab="fav" style="display:block">
+                                    <a th:href="@{/san-pham(sortBy='yêu thích')}" class="ds-see-more-btn-inner">Yêu thích nhất</a>
+                                </div>
+                                <div th:if="${hasSoldProducts}" class="ds-see-more-btn" data-tab="sold" th:style="${!hasFavProducts ? 'display:block' : 'display:none'}">
+                                    <a th:href="@{/san-pham(sortBy='bán chạy')}" class="ds-see-more-btn-inner">Bán chạy nhất</a>
+                                </div>
+                                <div class="ds-see-more-btn" data-tab="rating" th:style="${!hasFavProducts and !hasSoldProducts ? 'display:block' : 'display:none'}">
+                                    <a th:href="@{/san-pham(sortBy='top_rated')}" class="ds-see-more-btn-inner">Đánh giá cao nhất</a>
+                                </div>
                             </div>
                         </div>
                         <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
