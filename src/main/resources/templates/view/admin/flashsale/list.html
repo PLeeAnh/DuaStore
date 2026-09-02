@@ -30,7 +30,15 @@
             </div>
         </div>
 
-        <!-- Đã bỏ tab-nav Khuyến mãi/Flash Sale vì sidebar đã có sẵn 2 mục này -->
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:if="${userPermissions.contains('PROMOTION_READ')}" th:href="@{/admin/khuyen-mai}">
+                <i class="bi bi-percent"></i>Khuyến mãi
+            </a>
+            <a class="adm-tab active">
+                <i class="bi bi-lightning-charge-fill"></i>Flash Sale
+            </a>
+        </div>
 
         <div class="adm-table-wrap">
             <div class="table-responsive">

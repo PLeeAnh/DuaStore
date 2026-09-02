@@ -30,6 +30,16 @@
             </div>
         </div>
 
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab active">
+                <i class="bi bi-file-text"></i>Bài viết
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('POST_CATEGORY_READ')}" th:href="@{/admin/danh-muc-bai-viet}">
+                <i class="bi bi-folder"></i>Danh mục bài viết
+            </a>
+        </div>
+
         <div class="row g-3 mb-4">
             <div class="col-md-4 col-6">
                 <div class="adm-stat">

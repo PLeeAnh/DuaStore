@@ -31,6 +31,25 @@
             </div>
         </div>
 
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:if="${userPermissions.contains('STORE_READ')}" th:href="@{/admin/cua-hang}">
+                <i class="bi bi-geo-alt"></i>Cửa hàng
+            </a>
+            <a class="adm-tab active">
+                <i class="bi bi-map"></i>Địa chỉ
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('EMAIL_SETTING_READ')}" th:href="@{/admin/email-smtp}">
+                <i class="bi bi-envelope"></i>Email/SMTP
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('PAYMENT_SETTING_READ')}" th:href="@{/admin/thanh-toan}">
+                <i class="bi bi-credit-card"></i>Thanh toán
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('SHIPPING_SETTING_READ')}" th:href="@{/admin/van-chuyen}">
+                <i class="bi bi-truck"></i>Vận chuyển
+            </a>
+        </div>
+
         <div class="adm-card">
             <div class="adm-card-body p-0">
                 <div class="table-responsive">

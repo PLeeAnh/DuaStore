@@ -82,7 +82,7 @@
                 <span>Danh mục</span>
             </a>
 
-            <!-- Bán hàng: Đơn hàng/Khách hàng/Khuyến mãi đi cùng Đánh giá & Liên hệ (đều là hậu-bán-hàng) -->
+            <!-- Bán hàng: Khuyến mãi(+Flash Sale), Đánh giá(+Tin nhắn liên hệ) đã chuyển thành tab bên trong nhau -->
             <div class="adm-nav-section">Bán hàng</div>
             <a class="adm-nav-link" th:href="@{/admin/don-hang}"
                th:if="${userPermissions.contains('ORDER_READ')}"
@@ -99,30 +99,18 @@
             </a>
             <a class="adm-nav-link" th:href="@{/admin/khuyen-mai}"
                th:if="${userPermissions.contains('PROMOTION_READ')}"
-               th:classappend="${title == 'khuyen-mai' ? ' active' : ''}">
+               th:classappend="${title == 'khuyen-mai' or title == 'flash-sale' ? ' active' : ''}">
                 <i class="bi bi-tag"></i>
                 <span>Khuyến mãi</span>
             </a>
-            <a class="adm-nav-link" th:href="@{/admin/flash-sale}"
-               th:if="${userPermissions.contains('FLASH_SALE_READ')}"
-               th:classappend="${title == 'flash-sale' ? ' active' : ''}">
-                <i class="bi bi-lightning-charge-fill"></i>
-                <span>Flash Sale</span>
-            </a>
             <a class="adm-nav-link" th:href="@{/admin/danh-gia}"
                th:if="${userPermissions.contains('REVIEW_READ')}"
-               th:classappend="${title == 'danh-gia' ? ' active' : ''}">
+               th:classappend="${title == 'danh-gia' or title == 'tin-nhan-lien-he' ? ' active' : ''}">
                 <i class="bi bi-star"></i>
                 <span>Đánh giá</span>
             </a>
-            <a class="adm-nav-link" th:href="@{/admin/tin-nhan-lien-he}"
-               th:if="${userPermissions.contains('CONTACT_MESSAGE_READ')}"
-               th:classappend="${title == 'tin-nhan-lien-he' ? ' active' : ''}">
-                <i class="bi bi-inbox"></i>
-                <span>Tin nhắn liên hệ</span>
-            </a>
 
-            <!-- Nội dung (collapsible) -->
+            <!-- Nội dung (collapsible): Danh mục bài viết/Banner/Popup/Footer đã chuyển thành tab -->
 <div class="adm-nav-section adm-nav-toggle" style="cursor:pointer" onclick="toggleNavSub('navNoiDung', this)">
                     <span>Nội dung</span>
                     <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
@@ -130,15 +118,9 @@
             <div id="navNoiDung" class="adm-nav-sub">
                 <a class="adm-nav-link" th:href="@{/admin/bai-viet}"
                    th:if="${userPermissions.contains('POST_READ')}"
-                   th:classappend="${title == 'bai-viet' ? ' active' : ''}">
+                   th:classappend="${title == 'bai-viet' or title == 'danh-muc-bai-viet' ? ' active' : ''}">
                     <i class="bi bi-newspaper"></i>
                     <span>Bài viết</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/danh-muc-bai-viet}"
-                   th:if="${userPermissions.contains('POST_CATEGORY_READ')}"
-                   th:classappend="${title == 'danh-muc-bai-viet' ? ' active' : ''}">
-                    <i class="bi bi-folder"></i>
-                    <span>Danh mục bài viết</span>
                 </a>
                 <a class="adm-nav-link" th:href="@{/admin/thong-bao}"
                    th:if="${userPermissions.contains('NOTIFICATION_READ')}"
@@ -148,31 +130,13 @@
                 </a>
                 <a class="adm-nav-link" th:href="@{/admin/giao-dien}"
                    th:if="${userPermissions.contains('APPEARANCE_READ')}"
-                   th:classappend="${title == 'giao-dien' ? ' active' : ''}">
+                   th:classappend="${title == 'giao-dien' or title == 'banner' or title == 'popup-banner' or title == 'footer-links' ? ' active' : ''}">
                     <i class="bi bi-palette"></i>
                     <span>Giao diện</span>
                 </a>
-                <a class="adm-nav-link" th:href="@{/admin/banner}"
-                   th:if="${userPermissions.contains('BANNER_READ')}"
-                   th:classappend="${title == 'banner' ? ' active' : ''}">
-                    <i class="bi bi-images"></i>
-                    <span>Banner</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/popup-banner}"
-                   th:if="${userPermissions.contains('BANNER_READ')}"
-                   th:classappend="${title == 'popup-banner' ? ' active' : ''}">
-                    <i class="bi bi-window-stack"></i>
-                    <span>Popup banner</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/footer-links}"
-                   th:if="${userPermissions.contains('FOOTER_LINK_READ')}"
-                   th:classappend="${title == 'footer-links' ? ' active' : ''}">
-                    <i class="bi bi-link-45deg"></i>
-                    <span>Liên kết chân trang</span>
-                </a>
             </div>
 
-            <!-- Hệ thống (collapsible) -->
+            <!-- Hệ thống (collapsible): Địa chỉ/Email/Thanh toán/Vận chuyển gộp vào Cửa hàng; Nhật ký gộp vào Người dùng -->
 <div class="adm-nav-section adm-nav-toggle" style="cursor:pointer" onclick="toggleNavSub('navCaiDat', this)">
                     <span>Hệ thống</span>
                     <i class="bi bi-chevron-down ms-auto" style="font-size:.7rem;transition:transform .2s"></i>
@@ -180,45 +144,15 @@
             <div id="navCaiDat" class="adm-nav-sub">
                 <a class="adm-nav-link" th:href="@{/admin/cua-hang}"
                    th:if="${userPermissions.contains('STORE_READ')}"
-                   th:classappend="${title == 'cua-hang' ? ' active' : ''}">
+                   th:classappend="${title == 'cua-hang' or title == 'dia-chi' or title == 'email-smtp' or title == 'thanh-toan' or title == 'van-chuyen' ? ' active' : ''}">
                     <i class="bi bi-geo-alt"></i>
                     <span>Cửa hàng</span>
                 </a>
-                <a class="adm-nav-link" th:href="@{/admin/dia-chi}"
-                   th:if="${userPermissions.contains('STORE_READ')}"
-                   th:classappend="${title == 'dia-chi' ? ' active' : ''}">
-                    <i class="bi bi-map"></i>
-                    <span>Địa chỉ</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/email-smtp}"
-                   th:if="${userPermissions.contains('EMAIL_SETTING_READ')}"
-                   th:classappend="${title == 'email-smtp' ? ' active' : ''}">
-                    <i class="bi bi-envelope"></i>
-                    <span>Email/SMTP</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/thanh-toan}"
-                   th:if="${userPermissions.contains('PAYMENT_SETTING_READ')}"
-                   th:classappend="${title == 'thanh-toan' ? ' active' : ''}">
-                    <i class="bi bi-credit-card"></i>
-                    <span>Thanh toán</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/van-chuyen}"
-                   th:if="${userPermissions.contains('SHIPPING_SETTING_READ')}"
-                   th:classappend="${title == 'van-chuyen' ? ' active' : ''}">
-                    <i class="bi bi-truck"></i>
-                    <span>Vận chuyển</span>
-                </a>
                 <a class="adm-nav-link" th:href="@{/admin/nguoi-dung}"
                    th:if="${userPermissions.contains('USER_READ') or userPermissions.contains('ROLE_READ')}"
-                   th:classappend="${title == 'nguoi-dung' or title == 'vai-tro' ? ' active' : ''}">
+                   th:classappend="${title == 'nguoi-dung' or title == 'vai-tro' or title == 'nhat-ky' ? ' active' : ''}">
                     <i class="bi bi-people"></i>
                     <span>Người dùng &amp; vai trò</span>
-                </a>
-                <a class="adm-nav-link" th:href="@{/admin/nhat-ky}"
-                   th:if="${userPermissions.contains('AUDIT_LOG_READ')}"
-                   th:classappend="${title == 'nhat-ky' ? ' active' : ''}">
-                    <i class="bi bi-clock-history"></i>
-                    <span>Nhật ký</span>
                 </a>
             </div>
 

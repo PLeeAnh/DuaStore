@@ -25,6 +25,16 @@
             </div>
         </div>
 
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:if="${userPermissions.contains('REVIEW_READ')}" th:href="@{/admin/danh-gia}">
+                <i class="bi bi-star"></i>Đánh giá
+            </a>
+            <a class="adm-tab active">
+                <i class="bi bi-inbox"></i>Tin nhắn liên hệ
+            </a>
+        </div>
+
         <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
             <a th:href="@{/admin/tin-nhan-lien-he}" class="btn btn-sm"
                th:classappend="${(bo == null or bo == '') ? 'btn-primary' : 'btn-outline-secondary'}">

@@ -27,6 +27,16 @@
             </div>
         </div>
 
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab active">
+                <i class="bi bi-star"></i>Đánh giá
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('CONTACT_MESSAGE_READ')}" th:href="@{/admin/tin-nhan-lien-he}">
+                <i class="bi bi-inbox"></i>Tin nhắn liên hệ
+            </a>
+        </div>
+
         <div class="row g-3 mb-4">
             <div class="col-md-4 col-6">
                 <div class="adm-stat">
