@@ -93,7 +93,7 @@ public class AdminAnalyticsController {
         model.addAttribute("title", "phan-tich");
         model.addAttribute("fromDate", fromDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
         model.addAttribute("toDate", toDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
-        model.addAttribute("activePeriod", period);
+        model.addAttribute("activePeriod", (period != null && !period.isEmpty()) ? period : null);
 
         // Revenue tab
         model.addAttribute("totalRevenue", analyticsService.getTotalRevenue(fromDate, toDate));
