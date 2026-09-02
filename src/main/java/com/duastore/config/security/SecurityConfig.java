@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasAnyRole("ADMIN", "PRODUCT_OWNER", "STAFF")
                 .requestMatchers("/ws/**").hasAnyRole("ADMIN", "PRODUCT_OWNER", "STAFF")
                 .requestMatchers("/api/wishlist/**", "/api/cart/**", "/address/api/**", "/api/vi-voucher/**", "/api/thong-bao/**", "/api/coupon/**").authenticated()
-                .requestMatchers("/checkout/vnpay/**").permitAll()
+                .requestMatchers("/checkout/sepay/**").permitAll()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()
                 .anyRequest().permitAll()
                 )
@@ -100,7 +100,7 @@ public class SecurityConfig {
                         "/api/auth/verify-code",
                         "/admin/thong-bao/api/don-hang-moi",
                         "/admin/thong-bao/api/lien-he-moi",
-                        "/checkout/vnpay/ipn"
+                        "/checkout/sepay/ipn"
                 ));
 
         http.headers(headers -> headers

@@ -95,8 +95,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "(:fromDate IS NULL OR o.ngayDat >= :fromDate) AND "
             + "(:toDate IS NULL OR o.ngayDat < :toDate) AND "
             + "(:chuaGan IS NULL OR :chuaGan = false OR NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)) AND "
-            + "(:assignedAdminId IS NULL OR EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id AND a.admin.id = :assignedAdminId)) "
-            + "ORDER BY o.ngayDat ASC")
+            + "(:assignedAdminId IS NULL OR EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id AND a.admin.id = :assignedAdminId)) ")
     Page<Order> searchOrders(@Param("q") String q, @Param("trangThai") String trangThai,
             @Param("trangThaiTT") String trangThaiTT,
             @Param("fromDate") LocalDateTime fromDate,
@@ -113,8 +112,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             + "(:fromDate IS NULL OR o.ngayDat >= :fromDate) AND "
             + "(:toDate IS NULL OR o.ngayDat < :toDate) AND "
             + "(:chuaGan IS NULL OR :chuaGan = false OR NOT EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id)) AND "
-            + "(:assignedAdminId IS NULL OR EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id AND a.admin.id = :assignedAdminId)) "
-            + "ORDER BY o.ngayDat ASC")
+            + "(:assignedAdminId IS NULL OR EXISTS (SELECT a FROM OrderAssignment a WHERE a.order.id = o.id AND a.admin.id = :assignedAdminId)) ")
     Page<Order> searchOrdersByIds(@Param("ids") List<Integer> ids,
             @Param("q") String q,
             @Param("trangThai") String trangThai,

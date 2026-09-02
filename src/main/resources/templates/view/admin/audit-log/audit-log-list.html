@@ -30,6 +30,19 @@
             </div>
         </div>
 
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:if="${userPermissions.contains('USER_READ')}" th:href="@{/admin/nguoi-dung}">
+                <i class="bi bi-people"></i>Người dùng
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('ROLE_READ')}" th:href="@{/admin/vai-tro}">
+                <i class="bi bi-shield-lock"></i>Phân quyền
+            </a>
+            <a class="adm-tab active">
+                <i class="bi bi-clock-history"></i>Nhật ký
+            </a>
+        </div>
+
         <div id="resultsContainer" data-ajax-container="true">
             <div class="adm-table-wrap">
                 <div class="table-responsive">

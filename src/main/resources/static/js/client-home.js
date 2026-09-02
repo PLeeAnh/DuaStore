@@ -1,4 +1,123 @@
 (function () {
+    /* Điểm "đánh giá cao nhất": ưu tiên sản phẩm vừa có rating cao vừa có
+       nhiều lượt đánh giá (rating cao nhưng chỉ 1 lượt sẽ không thắng
+       rating thấp hơn nhưng có rất nhiều lượt đánh giá thật). */
+    function ratingScore(row) {
+        var rating = parseFloat(row.dataset.rating) || 0;
+        var count = parseInt(row.dataset.ratingCount) || 0;
+        return rating * Math.log(1 + count);
+    }
+    var browseTabs = document.querySelectorAll('.ds-browse-tab');
+    var browseList = document.getElementById('browseList');
+    var browsePreview = document.getElementById('browsePreview');
+    if (browseTabs.length && browseList && browsePreview) {
+        var browseRows = Array.from(browseList.querySelectorAll('.ds-browse-row'));
+
+        browseTabs.forEach(function (tab) {
+            tab.addEventListener('click', function () {
+                browseTabs.forEach(function (t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+                var key = tab.dataset.tab;
+                browseRows.sort(function (a, b) {
+                    if (key === 'fav') return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
+                    if (key === 'sold') return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
+                    if (key === 'rating') return ratingScore(b) - ratingScore(a);
+                    return 0;
+                });
+                browseRows.forEach(function (r) { browseList.appendChild(r); });
+                if (browseRows.length) activateBrowseRow(browseRows[0]);
+
+                var seeMoreBtns = document.querySelectorAll('.ds-see-more-btn');
+                seeMoreBtns.forEach(function (btn) { btn.style.display = btn.dataset.tab === key ? 'block' : 'none'; });
+            });
+        });
+
+        var activeTab = document.querySelector('.ds-browse-tab.active');
+        if (activeTab && browseRows.length) {
+            var initKey = activeTab.dataset.tab;
+            browseRows.sort(function (a, b) {
+                if (initKey === 'fav') return (parseInt(b.dataset.favCount) || 0) - (parseInt(a.dataset.favCount) || 0);
+                if (initKey === 'sold') return (parseInt(b.dataset.soldCount) || 0) - (parseInt(a.dataset.soldCount) || 0);
+                if (initKey === 'rating') return ratingScore(b) - ratingScore(a);
+                return 0;
+            });
+            browseRows.forEach(function (r) { browseList.appendChild(r); });
+            activateBrowseRow(browseRows[0]);
+        }
+
+        var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        browseRows.forEach(function (row) {
+            row.addEventListener('mouseenter', function () { activateBrowseRow(row); });
+            if (isTouch) {
+                var tapped = false;
+                row.addEventListener('click', function () {
+                    if (tapped) {
+                        var href = row.dataset.href;
+                        if (href) window.location.href = href;
+                    } else {
+                        tapped = true;
+                        activateBrowseRow(row);
+                        setTimeout(function () { tapped = false; }, 1500);
+                    }
+                });
+            } else {
+                row.addEventListener('click', function () {
+                    var href = row.dataset.href;
+                    if (href) window.location.href = href;
+                });
+            }
+        });
+
+        function activateBrowseRow(row) {
+            browseRows.forEach(function (r) { r.classList.remove('active'); });
+            row.classList.add('active');
+            document.getElementById('browsePreviewName').textContent = row.dataset.name;
+
+            var link = document.getElementById('browsePreviewLink');
+            if (link) link.href = row.dataset.href || '#';
+
+            var thumb = document.querySelector('#browsePreviewThumb img');
+            if (thumb) {
+                thumb.src = row.dataset.img || '/images/no-image.png';
+                thumb.alt = row.dataset.name || '';
+            }
+
+            var ratingVal = row.dataset.rating || '';
+            var ratingCount = parseInt(row.dataset.ratingCount) || 0;
+            var ratingLabel = '';
+            if (ratingCount > 0 && ratingVal) {
+                var r = parseFloat(ratingVal);
+                if (r >= 4.5) ratingLabel = 'Tốt';
+                else if (r >= 3.5) ratingLabel = 'Khá';
+                else if (r >= 2.5) ratingLabel = 'Bình thường';
+                else if (r >= 1.5) ratingLabel = 'Kém';
+                else ratingLabel = 'Rất kém';
+            }
+            document.getElementById('browsePreviewRatingValue').textContent = ratingCount > 0 ? ratingVal : '';
+            document.getElementById('browsePreviewRatingLabel').textContent = ratingCount > 0 ? ratingLabel : 'Chưa ai đánh giá';
+            document.getElementById('browsePreviewRatingCount').textContent = ratingCount > 0 ? '(' + ratingCount + ')' : '(0)';
+
+            var catTag = document.getElementById('browsePreviewCatTag');
+            if (catTag) catTag.textContent = row.dataset.cat || '';
+
+            var container = document.getElementById('browsePreviewImages');
+            var galleryStr = row.dataset.gallery || '';
+            var gallery = galleryStr ? galleryStr.split(',').filter(function (s) { return s.trim(); }) : [];
+            if (gallery.length === 0) gallery = [row.dataset.img || '/images/no-image.png'];
+            container.innerHTML = '';
+            gallery.slice(0, 6).forEach(function (url) {
+                var img = document.createElement('img');
+                img.className = 'ds-browse-preview-img';
+                img.src = url;
+                img.alt = '';
+                img.addEventListener('mouseenter', function () { if (thumb) thumb.src = url; });
+                container.appendChild(img);
+            });
+        }
+    }
+})();
+
+(function () {
     function initSlider(el) {
         var viewport = el.querySelector('.ds-slider-viewport');
         var track = el.querySelector('.ds-slider-track');

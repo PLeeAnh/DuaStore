@@ -30,6 +30,16 @@
             </div>
         </div>
 
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:if="${userPermissions.contains('POST_READ')}" th:href="@{/admin/bai-viet}">
+                <i class="bi bi-file-text"></i>Bài viết
+            </a>
+            <a class="adm-tab active">
+                <i class="bi bi-folder"></i>Danh mục bài viết
+            </a>
+        </div>
+
         <div class="adm-table-wrap">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -40,7 +50,7 @@
                             <th>Slug</th>
                             <th>Mô tả</th>
                             <th>Ngày tạo</th>
-                            <th class="text-end">Thao tác</th>
+                            <th class="text-center adm-kebab-col" style="width:64px"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -52,17 +62,21 @@
                             <td class="text-muted small" th:text="${cat.slug}">-</td>
                             <td class="small text-truncate" style="max-width:300px" th:text="${cat.moTa}">-</td>
                             <td class="small text-muted" th:text="${#temporals.format(cat.ngayTao, 'dd/MM/yyyy')}"></td>
-                            <td class="text-end text-nowrap">
-                                <a th:href="@{/admin/danh-muc-bai-viet/sua/{id}(id=${cat.id})}"
-                                   class="btn btn-sm btn-outline-primary" title="Sửa">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form th:action="@{/admin/danh-muc-bai-viet/xoa/{id}(id=${cat.id})}" method="post" class="d-inline"
-                                      onsubmit="return confirm('Xóa danh mục này?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
-                                        <i class="bi bi-trash"></i>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                        <i class="bi bi-three-dots-vertical"></i>
                                     </button>
-                                </form>
+                                    <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                                        <li><a class="dropdown-item" th:href="@{/admin/danh-muc-bai-viet/sua/{id}(id=${cat.id})}"><i class="bi bi-pencil"></i>Sửa</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form th:action="@{/admin/danh-muc-bai-viet/xoa/{id}(id=${cat.id})}" method="post" class="d-block">
+                                                <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa danh mục này?"><i class="bi bi-trash"></i>Xóa</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(categories)}">

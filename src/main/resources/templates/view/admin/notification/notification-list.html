@@ -69,7 +69,7 @@
                         <th>Đính kèm</th>
                         <th>Ngày tạo</th>
                         <th>Trạng thái</th>
-                        <th>Thao tác</th>
+                        <th class="text-center adm-kebab-col" style="width:64px"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -92,16 +92,21 @@
                             <span th:if="${n.isActive}" class="status-pill status-ACTIVE">Hiển thị</span>
                             <span th:unless="${n.isActive}" class="status-pill status-AN">Ẩn</span>
                         </td>
-                        <td>
-                            <a th:href="@{/admin/thong-bao/sua/{id}(id=${n.id})}" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form th:action="@{/admin/thong-bao/xoa/{id}(id=${n.id})}" method="post" style="display:inline"
-                                  onsubmit="return confirm('Xóa thông báo này?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-trash"></i>
+                        <td class="text-center">
+                            <div class="dropdown">
+                                <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                            </form>
+                                <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                                    <li><a class="dropdown-item" th:href="@{/admin/thong-bao/sua/{id}(id=${n.id})}"><i class="bi bi-pencil"></i>Sửa</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form th:action="@{/admin/thong-bao/xoa/{id}(id=${n.id})}" method="post" class="d-block">
+                                            <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa thông báo này?"><i class="bi bi-trash"></i>Xóa</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(notifications)}">

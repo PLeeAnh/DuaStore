@@ -27,6 +27,16 @@
             </div>
         </div>
 
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab active">
+                <i class="bi bi-star"></i>Đánh giá
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('CONTACT_MESSAGE_READ')}" th:href="@{/admin/tin-nhan-lien-he}">
+                <i class="bi bi-inbox"></i>Tin nhắn liên hệ
+            </a>
+        </div>
+
         <div class="row g-3 mb-4">
             <div class="col-md-4 col-6">
                 <div class="adm-stat">
@@ -69,7 +79,7 @@
                         <th>Hình ảnh</th>
                         <th>Trạng thái</th>
                         <th>Ngày</th>
-                        <th>Thao tác</th>
+                        <th class="text-center adm-kebab-col" style="width:64px"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -92,30 +102,38 @@
                             <span th:unless="${r.isApproved}" class="status-pill status-CHO_DUYET">Chờ duyệt</span>
                         </td>
                         <td th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}"></td>
-                        <td>
-                            <form th:if="${!r.isApproved}" th:action="@{/admin/danh-gia/duyet/{id}(id=${r.id})}" method="post" style="display:inline">
-                                <button type="submit" class="btn btn-sm btn-outline-success me-1" title="Duyệt">
-                                    <i class="bi bi-check-lg"></i>
+                        <td class="text-center">
+                            <div class="dropdown">
+                                <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                    <span th:if="${replyCountMap.get(r.id) != null && replyCountMap.get(r.id) > 0}"
+                                          class="badge bg-primary rounded-pill" style="position:absolute;top:-4px;right:-4px;font-size:.55rem"
+                                          th:text="${replyCountMap.get(r.id)}"></span>
                                 </button>
-                            </form>
-                            <form th:if="${r.isApproved}" th:action="@{/admin/danh-gia/an/{id}(id=${r.id})}" method="post" style="display:inline">
-                                <button type="submit" class="btn btn-sm btn-outline-warning me-1" title="Ẩn">
-                                    <i class="bi bi-eye-slash"></i>
-                                </button>
-                            </form>
-                            <button type="button" class="btn btn-sm btn-outline-primary me-1" title="Phản hồi"
-                                    onclick="toggleReplyForm(this)" th:data-review-id="${r.id}">
-                                <i class="bi bi-reply"></i>
-                                <span th:if="${replyCountMap.get(r.id) != null && replyCountMap.get(r.id) > 0}"
-                                      class="badge bg-primary rounded-pill ms-1" style="font-size:.6rem"
-                                      th:text="${replyCountMap.get(r.id)}"></span>
-                            </button>
-                            <form th:action="@{/admin/danh-gia/xoa/{id}(id=${r.id})}" method="post" style="display:inline"
-                                  onsubmit="return confirm('Xóa đánh giá này?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                                <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                                    <li th:if="${!r.isApproved}">
+                                        <form th:action="@{/admin/danh-gia/duyet/{id}(id=${r.id})}" method="post" class="d-block">
+                                            <button type="submit" class="dropdown-item"><i class="bi bi-check-lg"></i>Duyệt</button>
+                                        </form>
+                                    </li>
+                                    <li th:if="${r.isApproved}">
+                                        <form th:action="@{/admin/danh-gia/an/{id}(id=${r.id})}" method="post" class="d-block">
+                                            <button type="submit" class="dropdown-item"><i class="bi bi-eye-slash"></i>Ẩn</button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <button type="button" class="dropdown-item" onclick="toggleReplyForm(this)" th:data-review-id="${r.id}">
+                                            <i class="bi bi-reply"></i>Phản hồi
+                                        </button>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form th:action="@{/admin/danh-gia/xoa/{id}(id=${r.id})}" method="post" class="d-block">
+                                            <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa đánh giá này?"><i class="bi bi-trash"></i>Xóa</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(reviews)}">

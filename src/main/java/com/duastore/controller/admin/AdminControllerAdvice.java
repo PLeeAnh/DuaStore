@@ -2,6 +2,7 @@ package com.duastore.controller.admin;
 
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.User;
+import com.duastore.repository.PermissionRepository;
 import com.duastore.service.admin.AdminDashboardService;
 import com.duastore.service.admin.AdminOrderService;
 import org.springframework.security.core.Authentication;
@@ -21,13 +22,16 @@ public class AdminControllerAdvice {
     private final AdminOrderService adminOrderService;
     private final AdminDashboardService adminDashboardService;
     private final SecurityUtil securityUtil;
+    private final PermissionRepository permissionRepository;
 
     public AdminControllerAdvice(AdminOrderService adminOrderService,
             AdminDashboardService adminDashboardService,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil,
+            PermissionRepository permissionRepository) {
         this.adminOrderService = adminOrderService;
         this.adminDashboardService = adminDashboardService;
         this.securityUtil = securityUtil;
+        this.permissionRepository = permissionRepository;
     }
 
     @ModelAttribute("pendingOrders")
@@ -70,14 +74,12 @@ public class AdminControllerAdvice {
 
         if (auth.getAuthorities().stream()
                 .anyMatch(a -> "ROLE_PRODUCT_OWNER".equals(a.getAuthority()))) {
-            return Set.of("DASHBOARD_READ", "PRODUCT_READ", "CATEGORY_READ",
-                    "ORDER_READ", "PROMOTION_READ", "POST_READ", "POST_CATEGORY_READ",
-                    "REVIEW_READ", "USER_READ", "ROLE_READ", "AUDIT_LOG_READ",
-                    "NOTIFICATION_READ", "ANALYTICS_READ", "CUSTOMER_READ",
-                    "HOMEPAGE_READ", "STORE_READ", "APPEARANCE_READ",
-                    "EMAIL_SETTING_READ", "PAYMENT_SETTING_READ", "SHIPPING_SETTING_READ",
-                    "BANNER_READ", "FLASH_SALE_READ",
-                    "VARIANT_READ", "PRICE_HISTORY_READ");
+            // PRODUCT_OWNER co toan quyen he thong (khong duoc gan permission rieng le
+            // trong CustomUserDetailsService), nen lay truc tiep tu bang permissions
+            // thay vi liet ke tay - tranh bi lech khi co module/permission moi.
+            return permissionRepository.findAllByOrderByModuleAscActionAsc().stream()
+                    .map(p -> p.getModule() + "_" + p.getAction())
+                    .collect(Collectors.toSet());
         }
 
         return perms;

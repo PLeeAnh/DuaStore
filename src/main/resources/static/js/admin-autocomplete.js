@@ -74,7 +74,7 @@
         'CHO_XAC_NHAN': 'Chờ xác nhận', 'DA_XAC_NHAN': 'Đã xác nhận', 'DANG_GIAO': 'Đang giao',
         'DA_GIAO': 'Đã giao', 'DA_HOAN_THANH': 'Hoàn thành', 'DA_HUY': 'Đã hủy',
         'CHUA_THANH_TOAN': 'Chưa TT', 'DA_THANH_TOAN': 'Đã thanh toán',
-        'COD': 'COD', 'BANK': 'Chuyển khoản', 'VNPAY': 'VNPay'
+        'COD': 'COD', 'BANK': 'Chuyển khoản', 'SEPAY_QR': 'QR (VietQR)'
     };
     var STATUS_CLASS = {
         'CHO_XAC_NHAN': 'bg-warning text-dark', 'DA_XAC_NHAN': 'bg-info text-dark',

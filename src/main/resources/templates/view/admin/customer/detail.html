@@ -113,7 +113,7 @@
                             <div class="text-end">
                                 <div class="fw-semibold small" th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></div>
                                 <span class="badge"
-                                      th:classappend="${o.trangThaiDon == 'DA_HOAN_THANH' || o.trangThaiDon == 'DA_GIAO'} ? 'bg-success' : (${o.trangThaiDon == 'DA_HUY' || o.trangThaiDon == 'DA_HOAN_TIEN'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                      th:classappend="${o.trangThaiDon == 'DA_HOAN_THANH' || o.trangThaiDon == 'DA_GIAO'} ? 'bg-success' : (${o.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-warning text-dark')"
                                       th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(o.trangThaiDon)}">
                                 </span>
                             </div>

@@ -50,7 +50,7 @@ public class AsyncEmailService {
             }
             String tt = switch (order.getPhuongThucTT() == null ? "" : order.getPhuongThucTT()) {
                 case "CHUYEN_KHOAN" -> "Chuyển khoản";
-                case "VNPAY" -> "VNPay";
+                case "SEPAY_QR" -> "QR (VietQR)";
                 default -> "COD";
             };
             String gh = "GHN".equals(order.getShippingCarrier()) ? "Giao Hàng Nhanh" : "Giao Hàng Tiết Kiệm";

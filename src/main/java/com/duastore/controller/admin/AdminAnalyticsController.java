@@ -93,7 +93,7 @@ public class AdminAnalyticsController {
         model.addAttribute("title", "phan-tich");
         model.addAttribute("fromDate", fromDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
         model.addAttribute("toDate", toDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
-        model.addAttribute("activePeriod", period);
+        model.addAttribute("activePeriod", (period != null && !period.isEmpty()) ? period : null);
 
         // Revenue tab
         model.addAttribute("totalRevenue", analyticsService.getTotalRevenue(fromDate, toDate));
@@ -147,7 +147,7 @@ public class AdminAnalyticsController {
         // Enhanced analytics from DashboardService
         model.addAttribute("monthlyRevenue12", dashboardService.getMonthlyRevenueLast12Months());
         model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
-        model.addAttribute("cancelRefundRate", dashboardService.getCancelRefundRate());
+        model.addAttribute("cancelRefundRate", dashboardService.getCancelRate());
         model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
         model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
         model.addAttribute("topSelling7Days", dashboardService.getTopSellingProductsLast7Days(5));

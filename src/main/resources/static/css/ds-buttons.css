@@ -3,6 +3,12 @@
  Bảng màu: xanh primary, đỏ danger, xanh lá success, vàng warning.
  Áp dụng đè lên các class Bootstrap sẵn có (btn-primary, btn-danger, ...)
  để không phải sửa lại HTML từng trang.
+ Mục tiêu: CHỈ 1 kiểu button duy nhất cho toàn site.
+ Bảng màu: chỉ xanh nước biển (--ds-btn-blue), trắng, đen.
+ Áp dụng đè lên các class Bootstrap sẵn có (btn-primary, btn-danger, ...)
+ để không phải sửa lại HTML từng trang.
+ NGOẠI LỆ: nút "Mua ngay" dạng sóng (.ds-price-btn.ds-card-add-cart với
+ svg.btn-wave-svg) giữ nguyên 100%, không bị ảnh hưởng bởi file này.
  File này được load SAU CÙNG trong cả admin/base.html và client/base.html
  để chắc chắn thắng cascade.
  ===================================================== */
@@ -23,6 +29,7 @@
     font-weight: 600;
     letter-spacing: .01em;
     transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .1s ease;
+    box-shadow: none !important;
 }
 
 .btn:active,
@@ -39,28 +46,33 @@
 
 /* ── PRIMARY: nền xanh, chữ trắng ── */
 .btn-primary,
+.btn-success,
 .ds-btn-fill {
     background-color: var(--ds-btn-blue) !important;
     border-color: var(--ds-btn-blue) !important;
     color: var(--ds-btn-white) !important;
 }
 .btn-primary:hover, .btn-primary:focus,
+.btn-success:hover, .btn-success:focus,
 .ds-btn-fill:hover, .ds-btn-fill:focus {
     background-color: var(--ds-btn-blue-dark) !important;
     border-color: var(--ds-btn-blue-dark) !important;
     color: var(--ds-btn-white) !important;
 }
 .btn-primary:disabled, .btn-primary.disabled,
+.btn-success:disabled, .btn-success.disabled,
 .ds-btn-fill:disabled, .ds-btn-fill.disabled {
     background-color: #A9C6EF !important;
     border-color: #A9C6EF !important;
     color: var(--ds-btn-white) !important;
     opacity: .65 !important;
+    opacity: 1 !important;
 }
 
 /* ── SECONDARY: nền trắng, viền + chữ xanh ── */
 .btn-secondary,
 .btn-info,
+.btn-warning,
 .btn-light,
 .btn-outline-primary,
 .btn-outline-secondary,
@@ -74,6 +86,7 @@
 }
 .btn-secondary:hover, .btn-secondary:focus,
 .btn-info:hover, .btn-info:focus,
+.btn-warning:hover, .btn-warning:focus,
 .btn-light:hover, .btn-light:focus,
 .btn-outline-primary:hover, .btn-outline-primary:focus,
 .btn-outline-secondary:hover, .btn-outline-secondary:focus,
@@ -125,6 +138,22 @@
     color: var(--ds-btn-white) !important;
 }
 .btn-dark:hover, .btn-dark:focus {
+    opacity: 1 !important;
+}
+
+/* ── DESTRUCTIVE: nền đen, chữ trắng ── */
+.btn-danger,
+.btn-dark,
+.btn-outline-danger,
+.ds-btn-danger {
+    background-color: var(--ds-btn-black) !important;
+    border-color: var(--ds-btn-black) !important;
+    color: var(--ds-btn-white) !important;
+}
+.btn-danger:hover, .btn-danger:focus,
+.btn-dark:hover, .btn-dark:focus,
+.btn-outline-danger:hover, .btn-outline-danger:focus,
+.ds-btn-danger:hover, .ds-btn-danger:focus {
     background-color: var(--ds-btn-black-dark) !important;
     border-color: var(--ds-btn-black-dark) !important;
     color: var(--ds-btn-white) !important;
@@ -170,6 +199,12 @@
     border-color: #86EFAC !important;
     color: var(--ds-btn-white) !important;
     opacity: .65 !important;
+.btn-danger:disabled, .btn-danger.disabled,
+.ds-btn-danger:disabled, .ds-btn-danger.disabled {
+    background-color: #B8BCC6 !important;
+    border-color: #B8BCC6 !important;
+    color: var(--ds-btn-white) !important;
+    opacity: 1 !important;
 }
 
 /* ── Focus ring: chỉ xanh, không dùng màu Bootstrap mặc định ── */
@@ -177,6 +212,20 @@
 .ds-btn:focus-visible {
     outline: 2px solid var(--ds-btn-blue) !important;
     outline-offset: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NGOẠI LỆ BẮT BUỘC: nút "Mua ngay" dạng sóng — giữ nguyên,
+   không áp bất kỳ rule nào ở trên lên phần tử này.
+   ══════════════════════════════════════════════════════════ */
+.ds-price-btn.ds-card-add-cart,
+.ds-price-btn.ds-card-add-cart:hover,
+.ds-price-btn.ds-card-add-cart:focus,
+.ds-price-btn.ds-card-add-cart:active {
+    all: revert;
+}
+.ds-price-btn.ds-card-add-cart * {
+    all: revert;
 }
 
 /* ── Kebab dropdown menu: z-index phòng thủ, tránh bị che/kẹt bởi

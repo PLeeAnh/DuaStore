@@ -25,7 +25,7 @@
         }
         a.innerHTML =
             '<div class="ds-explore-card-img">' +
-                '<img src="' + (item.hinhAnhChinh || '/images/no-image.png') + '" alt="" loading="lazy" />' +
+                '<img src="' + (item.hinhAnhChinh || item.hinhAnh || '/images/no-image.png') + '" alt="" loading="lazy" />' +
             '</div>' +
             '<div class="ds-explore-card-body">' +
                 '<div class="ds-explore-card-name">' + (item.tenSanPham || '') + '</div>' +

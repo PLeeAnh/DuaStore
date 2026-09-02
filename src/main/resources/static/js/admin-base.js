@@ -51,18 +51,26 @@ document.addEventListener('click', function(e) {
     var sidebar = document.querySelector('.adm-sidebar');
     var backdrop = document.getElementById('admSidebarBackdrop');
     var toggle = document.getElementById('admNavToggle');
+    var icon = document.getElementById('admToggleIcon');
     if (!sidebar || !backdrop || !toggle) return;
+
+    function setIcon(isOpen) {
+        if (icon) icon.className = isOpen ? 'bi bi-x' : 'bi bi-list';
+        toggle.setAttribute('aria-label', isOpen ? 'Đóng menu' : 'Mở menu');
+    }
 
     function openSidebar() {
         sidebar.classList.add('adm-sidebar-mobile-open');
         backdrop.classList.add('show');
         document.body.style.overflow = 'hidden';
+        setIcon(true);
     }
 
     function closeSidebar() {
         sidebar.classList.remove('adm-sidebar-mobile-open');
         backdrop.classList.remove('show');
         document.body.style.overflow = '';
+        setIcon(false);
     }
 
     toggle.addEventListener('click', function(e) {

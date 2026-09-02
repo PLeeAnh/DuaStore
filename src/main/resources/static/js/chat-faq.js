@@ -7,7 +7,7 @@
     { q: "Giao hàng mất bao lâu?", a: "🚚 DuaStore giao hàng toàn quốc trong <strong>2–3 ngày làm việc</strong>. Miễn phí vận chuyển cho đơn từ <strong>500.000₫</strong>!" },
     { q: "Chính sách đổi trả thế nào?", a: "🔄 Hỗ trợ <strong>đổi trả trong 7 ngày</strong> nếu sản phẩm bị lỗi do nhà sản xuất. Vui lòng giữ nguyên bao bì và liên hệ hotline <strong>0901 234 567</strong>." },
     { q: "Có bộ quà tặng không?", a: "🎁 Có! DuaStore có nhiều <strong>bộ quà tặng thủy tinh cao cấp</strong> phù hợp sinh nhật, cưới hỏi, khai trương. Giá từ <strong>200.000₫ – 2.000.000₫</strong>." },
-    { q: "Thanh toán bằng gì?", a: "💳 Chấp nhận: <strong>COD</strong> (tiền mặt khi nhận), <strong>Chuyển khoản</strong> ngân hàng và <strong>VNPAY</strong>. Hoàn toàn an toàn!" },
+    { q: "Thanh toán bằng gì?", a: "💳 Chấp nhận: <strong>COD</strong> (tiền mặt khi nhận), <strong>Chuyển khoản</strong> ngân hàng và <strong>QR (VietQR)</strong>. Hoàn toàn an toàn!" },
     { q: "Ly pha lê Bohemia có gì đặc biệt?", a: "✨ Ly pha lê Bohemia nhập từ <strong>Séc</strong> – nổi tiếng với độ trong suốt cao, họa tiết tinh xảo và độ bền vượt trội. Là dòng sản phẩm cao cấp được ưa chuộng nhất!" },
     { q: "Cửa hàng ở đâu?", a: "📍 DuaStore tại <strong>Hải Phòng</strong>. Mở cửa <strong>8:00 – 21:00</strong> tất cả các ngày trong tuần. Hotline: <strong>0901 234 567</strong>." },
     { q: "Bảo quản đồ thủy tinh thế nào?", a: "💎 Nên rửa bằng <strong>nước ấm</strong>, tránh thay đổi nhiệt độ đột ngột. Không dùng máy rửa bát cho sản phẩm pha lê. Để nơi khô ráo, tránh va đập." },

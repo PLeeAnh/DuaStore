@@ -76,7 +76,7 @@
                             </div>
                             <div class="d-flex justify-content-between py-1 small">
                                 <span class="text-muted">Phương thức TT</span>
-                                <span th:text="${order.phuongThucTT == 'COD' ? 'Thanh toán khi nhận hàng' : order.phuongThucTT == 'CHUYEN_KHOAN' ? 'Chuyển khoản' : 'VNPay'}"></span>
+                                <span th:text="${order.phuongThucTT == 'COD' ? 'Thanh toán khi nhận hàng' : order.phuongThucTT == 'CHUYEN_KHOAN' ? 'Chuyển khoản' : order.phuongThucTT == 'SEPAY_QR' ? 'QR (VietQR)' : order.phuongThucTT}"></span>
                             </div>
                         </div>
 

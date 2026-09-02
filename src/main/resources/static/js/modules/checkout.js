@@ -948,9 +948,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 if (result.data.success) {
                     window.DuaStore && window.DuaStore.track('ORDER_COMPLETE', { orderId: result.data.orderId });
-                    if (result.data.vnpayUrl) {
-                        window.location.href = result.data.vnpayUrl;
-                    } else if (result.data.redirectUrl) {
+                    if (result.data.redirectUrl) {
                         window.location.href = result.data.redirectUrl;
                     } else {
                         window.location.href = '/checkout/thanh-cong/' + result.data.orderId;

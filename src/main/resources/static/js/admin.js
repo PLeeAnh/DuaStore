@@ -81,49 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
-    /* ── Sidebar toggle ── */
-    const toggle = document.getElementById('admNavToggle');
-    const sidebar = document.querySelector('.adm-sidebar');
-    const icon = document.getElementById('admToggleIcon');
-
-    if (toggle && sidebar) {
-        function isMobile() {
-            return window.innerWidth <= 991;
-        }
-
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = sidebar.classList.toggle('adm-sidebar-mobile-open');
-            toggle.setAttribute('aria-label', isOpen ? 'Đóng menu' : 'Mở menu');
-            if (icon) {
-                icon.className = isOpen ? 'bi bi-x' : 'bi bi-list';
-            }
-            if (isMobile()) {
-                document.body.style.overflow = isOpen ? 'hidden' : '';
-            }
-        });
-
-        const mainArea = document.querySelector('.adm-main');
-        if (mainArea) {
-            mainArea.addEventListener('click', () => {
-                if (isMobile() && sidebar.classList.contains('adm-sidebar-mobile-open')) {
-                    sidebar.classList.remove('adm-sidebar-mobile-open');
-                    document.body.style.overflow = '';
-                    if (icon)
-                        icon.className = 'bi bi-list';
-                }
-            });
-        }
-
-        window.addEventListener('resize', () => {
-            if (!isMobile() && sidebar.classList.contains('adm-sidebar-mobile-open')) {
-                sidebar.classList.remove('adm-sidebar-mobile-open');
-                document.body.style.overflow = '';
-                if (icon)
-                    icon.className = 'bi bi-list';
-            }
-        });
-    }
+    /* Sidebar toggle: implemented once in admin-base.js (handles backdrop + Escape key) */
 
     /* ── Profile menu ── */
     const admTrigger = document.getElementById('admProfileTrigger');

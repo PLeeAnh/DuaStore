@@ -108,7 +108,6 @@ public class TrackingService {
             case "DA_GIAO" -> "Đã giao hàng";
             case "DA_HOAN_THANH" -> "Hoàn thành";
             case "DA_HUY" -> "Đã hủy";
-            case "DA_HOAN_TIEN" -> "Đã hoàn tiền";
             default -> status;
         };
     }
@@ -123,7 +122,7 @@ public class TrackingService {
         return switch (method) {
             case "COD" -> "Thanh toán khi nhận hàng";
             case "CHUYEN_KHOAN" -> "Chuyển khoản";
-            case "VNPAY" -> "VNPay";
+            case "SEPAY_QR" -> "QR (VietQR)";
             default -> method;
         };
     }

@@ -15,23 +15,17 @@ public final class OrderStatusUtil {
             Map.entry("DANG_GIAO", "Đang giao"),
             Map.entry("DA_GIAO", "Đã giao"),
             Map.entry("DA_HOAN_THANH", "Hoàn thành"),
-            Map.entry("DA_HUY", "Đã hủy"),
-            Map.entry("DA_HOAN_TIEN", "Đã hoàn tiền"),
-            Map.entry("DA_YEU_CAU_HOAN_TIEN", "Đã yêu cầu hoàn tiền"),
-            Map.entry("DANG_TRA_HANG", "Đang trả hàng"),
-            Map.entry("DA_NHAN_HANG_TRA", "Đã nhận hàng trả"),
-            Map.entry("TU_CHOI_HOAN_TIEN", "Từ chối hoàn tiền")
+            Map.entry("DA_HUY", "Đã hủy")
     );
 
     private static final List<String> ORDERED_STATUSES = List.of(
             "CHO_XAC_NHAN", "DA_XAC_NHAN", "DANG_GIAO", "DA_GIAO", "DA_HOAN_THANH"
     );
 
-    private static final List<String> REFUND_STATUSES = List.of(
-            "DA_YEU_CAU_HOAN_TIEN", "DANG_TRA_HANG", "DA_NHAN_HANG_TRA", "DA_HOAN_TIEN", "TU_CHOI_HOAN_TIEN"
-    );
-
     public static String getDisplayName(String code) {
+        if (code == null) {
+            return null;
+        }
         return DISPLAY_NAMES.getOrDefault(code, code);
     }
 
@@ -47,19 +41,7 @@ public final class OrderStatusUtil {
         return ORDERED_STATUSES.size();
     }
 
-    public static List<String> getRefundStatuses() {
-        return REFUND_STATUSES;
-    }
-
-    public static boolean isRefundStatus(String code) {
-        return REFUND_STATUSES.contains(code);
-    }
-
     public static boolean isCompletedOrder(String code) {
-        return "DA_GIAO".equals(code) || "DA_HOAN_THANH".equals(code);
-    }
-
-    public static boolean isRefundableStatus(String code) {
         return "DA_GIAO".equals(code) || "DA_HOAN_THANH".equals(code);
     }
 

@@ -45,8 +45,8 @@
                                             </button>
                                         </form>
                                     </th:block>
-                                    <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : 'bg-secondary'}"
-                                          th:text="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ xác nhận' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã xác nhận' : order.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : order.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : order.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'Đã hoàn thành' : order.trangThaiDon == 'DA_HOAN_TIEN' ? 'Đã hoàn tiền' : order.trangThaiDon}"></span>
+                                    <span class="badge fs-6" th:classappend="${order.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : order.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : order.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : order.trangThaiDon == 'DA_GIAO' ? 'bg-success' : order.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : order.trangThaiDon == 'DA_HUY' ? 'bg-danger' : 'bg-secondary'}"
+                                          th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(order.trangThaiDon)}"></span>
                                 </div>
                             </div>
                         </div>

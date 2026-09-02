@@ -85,15 +85,15 @@ class AdminDashboardServiceTest {
     @Test
     void getPaymentMethodDistribution_returnsDistinctMethods() {
         createOrder("PM-001", "DA_HOAN_THANH", "COD", new BigDecimal("100000"), LocalDateTime.now().minusDays(1));
-        createOrder("PM-002", "DA_HOAN_THANH", "VNPAY", new BigDecimal("200000"), LocalDateTime.now().minusDays(2));
+        createOrder("PM-002", "DA_HOAN_THANH", "SEPAY_QR", new BigDecimal("200000"), LocalDateTime.now().minusDays(2));
         createOrder("PM-003", "DA_HOAN_THANH", "COD", new BigDecimal("150000"), LocalDateTime.now().minusDays(3));
 
         Map<String, Long> dist = dashboardService.getPaymentMethodDistribution();
 
         assertThat(dist).containsKey("COD");
-        assertThat(dist).containsKey("VNPAY");
+        assertThat(dist).containsKey("SEPAY_QR");
         assertThat(dist.get("COD")).isEqualTo(2);
-        assertThat(dist.get("VNPAY")).isEqualTo(1);
+        assertThat(dist.get("SEPAY_QR")).isEqualTo(1);
     }
 
     @Test
@@ -108,8 +108,8 @@ class AdminDashboardServiceTest {
     void getSalesFunnel_returnsAllStages() {
         createOrder("SF-001", "CHO_XAC_NHAN", "COD", new BigDecimal("100000"), LocalDateTime.now().minusDays(1));
         createOrder("SF-002", "DA_XAC_NHAN", "COD", new BigDecimal("200000"), LocalDateTime.now().minusDays(2));
-        createOrder("SF-003", "DANG_GIAO", "VNPAY", new BigDecimal("300000"), LocalDateTime.now().minusDays(3));
-        createOrder("SF-004", "DA_GIAO", "VNPAY", new BigDecimal("400000"), LocalDateTime.now().minusDays(4));
+        createOrder("SF-003", "DANG_GIAO", "SEPAY_QR", new BigDecimal("300000"), LocalDateTime.now().minusDays(3));
+        createOrder("SF-004", "DA_GIAO", "SEPAY_QR", new BigDecimal("400000"), LocalDateTime.now().minusDays(4));
         createOrder("SF-005", "DA_HOAN_THANH", "COD", new BigDecimal("500000"), LocalDateTime.now().minusDays(5));
 
         List<Map<String, Object>> funnel = dashboardService.getSalesFunnel();
@@ -125,7 +125,7 @@ class AdminDashboardServiceTest {
     @Test
     void getStatComparison_returnsAllFields() {
         createOrder("SC-001", "DA_HOAN_THANH", "COD", new BigDecimal("300000"), LocalDateTime.now().minusHours(1));
-        createOrder("SC-002", "CHO_XAC_NHAN", "VNPAY", new BigDecimal("500000"), LocalDateTime.now().minusDays(15));
+        createOrder("SC-002", "CHO_XAC_NHAN", "SEPAY_QR", new BigDecimal("500000"), LocalDateTime.now().minusDays(15));
 
         Map<String, Object> stats = dashboardService.getStatComparison();
 
@@ -139,7 +139,7 @@ class AdminDashboardServiceTest {
 
     @Test
     void getRevenueGrowth_withRevenue_returnsFormattedString() {
-        createOrder("RG-001", "DA_HOAN_THANH", "VNPAY", new BigDecimal("1000000"), LocalDateTime.now().minusHours(1));
+        createOrder("RG-001", "DA_HOAN_THANH", "SEPAY_QR", new BigDecimal("1000000"), LocalDateTime.now().minusHours(1));
 
         String growth = dashboardService.getRevenueGrowth();
 
@@ -178,22 +178,22 @@ class AdminDashboardServiceTest {
         assertThat(top).isNotNull();
     }
 
-    // ------ getCancelRefundRate ------
+    // ------ getCancelRate ------
 
     @Test
-    void getCancelRefundRate_returnsRateWithCancelledOrders() {
+    void getCancelRate_returnsRateWithCancelledOrders() {
         createOrder("CR-001", "DA_HOAN_THANH", "COD", new BigDecimal("100000"), LocalDateTime.now().minusDays(1));
         createOrder("CR-002", "DA_HUY", "COD", new BigDecimal("200000"), LocalDateTime.now().minusDays(2));
 
-        Map<String, Object> rate = dashboardService.getCancelRefundRate();
+        Map<String, Object> rate = dashboardService.getCancelRate();
 
-        assertThat(rate).containsKeys("total", "cancelled", "refunded", "rate");
+        assertThat(rate).containsKeys("total", "cancelled", "rate");
         assertThat(rate.get("cancelled")).isEqualTo(1L);
     }
 
     @Test
-    void getCancelRefundRate_noOrders_returnsZero() {
-        Map<String, Object> rate = dashboardService.getCancelRefundRate();
+    void getCancelRate_noOrders_returnsZero() {
+        Map<String, Object> rate = dashboardService.getCancelRate();
 
         assertThat(rate.get("rate")).isEqualTo("0%");
         assertThat(rate.get("total")).isEqualTo(0L);

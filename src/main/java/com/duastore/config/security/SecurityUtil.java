@@ -3,6 +3,7 @@ package com.duastore.config.security;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,12 +53,18 @@ public class SecurityUtil {
             return Optional.empty();
         }
         String email = resolveEmail(auth);
-        // Use native query to avoid triggering Hibernate auto-flush during auditing callbacks
+        // Native query with FlushModeType.COMMIT: this runs from inside JPA Auditing's
+        // @PreUpdate/@PrePersist callback (see AuditorConfig), i.e. mid-flush of some other
+        // entity. The default AUTO flush mode auto-flushes the session before ANY query
+        // (JPQL or native) executes, which re-enters the in-progress flush and corrupts
+        // collection state (Hibernate throws "Found shared references to a collection").
+        // COMMIT skips that pre-query flush; this lookup never needs to see uncommitted changes.
         try {
             List<Object> rows = entityManager.createNativeQuery(
                     "SELECT id FROM users WHERE email = :val OR username = :val")
                     .setParameter("val", email)
                     .setMaxResults(1)
+                    .setFlushMode(FlushModeType.COMMIT)
                     .getResultList();
             if (!rows.isEmpty()) {
                 return Optional.of(((Number) rows.get(0)).intValue());

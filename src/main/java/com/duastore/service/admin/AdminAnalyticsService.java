@@ -191,7 +191,7 @@ public class AdminAnalyticsService {
         LocalDateTime end = to.atTime(LocalTime.MAX);
         return orderRepository.countByPhuongThucTTAndNgayDatBetween("BANK_TRANSFER", start, end)
                 + orderRepository.countByPhuongThucTTAndNgayDatBetween("MOMO", start, end)
-                + orderRepository.countByPhuongThucTTAndNgayDatBetween("VNPAY", start, end);
+                + orderRepository.countByPhuongThucTTAndNgayDatBetween("SEPAY_QR", start, end);
     }
 
     public String getCompletionRate(LocalDate from, LocalDate to) {

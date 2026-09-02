@@ -87,7 +87,7 @@ public class Order {
     private String maVanDon;
 
     @Column(length = 100)
-    private String vnpTransactionNo;
+    private String sepayTransactionId;
 
     @Column(length = 1000)
     private String fraudWarning;

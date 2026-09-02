@@ -26,6 +26,22 @@
             </div>
         </div>
 
+        <!-- ═════ TABS (điều hướng nhóm Giao diện) ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab active">
+                <i class="bi bi-palette"></i>Giao diện
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('BANNER_READ')}" th:href="@{/admin/banner}">
+                <i class="bi bi-images"></i>Banner
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('BANNER_READ')}" th:href="@{/admin/popup-banner}">
+                <i class="bi bi-window-stack"></i>Popup banner
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('FOOTER_LINK_READ')}" th:href="@{/admin/footer-links}">
+                <i class="bi bi-link-45deg"></i>Liên kết chân trang
+            </a>
+        </div>
+
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" id="appearanceTabs" role="tablist">
             <li class="nav-item" role="presentation">
