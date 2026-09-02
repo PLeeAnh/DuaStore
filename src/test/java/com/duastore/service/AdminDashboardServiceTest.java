@@ -178,22 +178,22 @@ class AdminDashboardServiceTest {
         assertThat(top).isNotNull();
     }
 
-    // ------ getCancelRefundRate ------
+    // ------ getCancelRate ------
 
     @Test
-    void getCancelRefundRate_returnsRateWithCancelledOrders() {
+    void getCancelRate_returnsRateWithCancelledOrders() {
         createOrder("CR-001", "DA_HOAN_THANH", "COD", new BigDecimal("100000"), LocalDateTime.now().minusDays(1));
         createOrder("CR-002", "DA_HUY", "COD", new BigDecimal("200000"), LocalDateTime.now().minusDays(2));
 
-        Map<String, Object> rate = dashboardService.getCancelRefundRate();
+        Map<String, Object> rate = dashboardService.getCancelRate();
 
-        assertThat(rate).containsKeys("total", "cancelled", "refunded", "rate");
+        assertThat(rate).containsKeys("total", "cancelled", "rate");
         assertThat(rate.get("cancelled")).isEqualTo(1L);
     }
 
     @Test
-    void getCancelRefundRate_noOrders_returnsZero() {
-        Map<String, Object> rate = dashboardService.getCancelRefundRate();
+    void getCancelRate_noOrders_returnsZero() {
+        Map<String, Object> rate = dashboardService.getCancelRate();
 
         assertThat(rate.get("rate")).isEqualTo("0%");
         assertThat(rate.get("total")).isEqualTo(0L);

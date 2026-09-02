@@ -263,7 +263,7 @@
                                 <div class="adm-stat-icon" style="background:#FEE2E2;color:#DC2626"><i class="bi bi-x-circle"></i></div>
                                 <div>
                                     <div class="adm-stat-value" th:text="${cancelRefundRate.get('rate')}">0%</div>
-                                    <div class="adm-stat-label">Tỷ lệ huỷ/hoàn tiền</div>
+                                    <div class="adm-stat-label">Tỷ lệ huỷ đơn</div>
                                 </div>
                             </div>
                         </div>
@@ -969,7 +969,6 @@
                                         <span th:case="'DA_GIAO'" class="status-pill status-da-giao">Đã giao</span>
                                         <span th:case="'DA_HOAN_THANH'" class="status-pill status-da-hoan-thanh">Hoàn thành</span>
                                         <span th:case="'DA_HUY'" class="status-pill status-da-huy">Đã huỷ</span>
-                                        <span th:case="'DA_HOAN_TIEN'" class="status-pill status-da-huy">Đã hoàn tiền</span>
                                         <span th:case="*" class="status-pill bg-secondary" th:text="${o.trangThaiDon}"></span>
                                     </span>
                                 </td>

@@ -8394,6 +8394,7 @@ body.ds-checkout-page #main-content {
 }
 .ds-mnav-item {
     flex: 1;
+    min-width: 0;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -8410,6 +8411,12 @@ body.ds-checkout-page #main-content {
     line-height: 1.2;
     cursor: pointer;
     transition: color .2s;
+}
+.ds-mnav-item span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .ds-mnav-item i {
     font-size: 1.15rem;

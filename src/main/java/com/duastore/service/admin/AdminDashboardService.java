@@ -416,16 +416,13 @@ public class AdminDashboardService {
                 .collect(Collectors.toList());
     }
 
-    public Map<String, Object> getCancelRefundRate() {
+    public Map<String, Object> getCancelRate() {
         long total = orderRepository.count();
         long cancelled = orderRepository.countByTrangThaiDon("DA_HUY");
-        long refunded = orderRepository.countByTrangThaiDon("DA_HOAN_TIEN");
-        long bad = cancelled + refunded;
-        String rate = total > 0 ? String.format("%.1f%%", (bad * 100.0 / total)) : "0%";
+        String rate = total > 0 ? String.format("%.1f%%", (cancelled * 100.0 / total)) : "0%";
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("total", total);
         m.put("cancelled", cancelled);
-        m.put("refunded", refunded);
         m.put("rate", rate);
         return m;
     }

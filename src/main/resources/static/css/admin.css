@@ -79,6 +79,7 @@ body.adm-body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    min-width: 0;
 }
 
 /* ── 3. Sidebar ── */
@@ -503,6 +504,7 @@ body.adm-body {
 /* ── 6. Content / Footer ── */
 .adm-content {
     flex: 1;
+    min-width: 0;
     padding: 1.5rem;
     background: var(--adm-bg);
 }
@@ -1333,6 +1335,7 @@ body.adm-body {
 
 /* ── 29. Kebab Dropdown ── */
 .adm-kebab-btn {
+    position: relative;
     width: 32px;
     height: 32px;
     padding: 0;

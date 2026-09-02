@@ -21,8 +21,8 @@
                                     </div>
                                     <div th:each="o : ${recentOrders}" class="d-flex align-items-center gap-3 px-4 py-3 border-bottom" style="border-color:var(--ds-border);">
                                         <div class="flex-shrink-0">
-                                            <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : o.trangThaiDon == 'DA_HOAN_TIEN' ? 'bg-secondary' : 'bg-secondary'}"
-                                                  th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ XN' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã XN' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'Hoàn tất' : o.trangThaiDon == 'DA_HOAN_TIEN' ? 'Hoàn tiền' : o.trangThaiDon}"></span>
+                                            <span class="badge" th:classappend="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'bg-warning' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'bg-primary' : o.trangThaiDon == 'DANG_GIAO' ? 'bg-info' : o.trangThaiDon == 'DA_GIAO' ? 'bg-success' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'bg-success' : o.trangThaiDon == 'DA_HUY' ? 'bg-danger' : 'bg-secondary'}"
+                                                  th:text="${o.trangThaiDon == 'CHO_XAC_NHAN' ? 'Chờ XN' : o.trangThaiDon == 'DA_XAC_NHAN' ? 'Đã XN' : o.trangThaiDon == 'DANG_GIAO' ? 'Đang giao' : o.trangThaiDon == 'DA_GIAO' ? 'Đã giao' : o.trangThaiDon == 'DA_HUY' ? 'Đã hủy' : o.trangThaiDon == 'DA_HOAN_THANH' ? 'Hoàn tất' : o.trangThaiDon}"></span>
                                         </div>
                                         <div class="flex-grow-1 text-truncate">
                                             <div class="fw-semibold text-truncate" th:text="'Mã đơn: ' + ${o.maDon}"></div>

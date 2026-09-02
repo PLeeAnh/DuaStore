@@ -147,7 +147,7 @@ public class AdminAnalyticsController {
         // Enhanced analytics from DashboardService
         model.addAttribute("monthlyRevenue12", dashboardService.getMonthlyRevenueLast12Months());
         model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
-        model.addAttribute("cancelRefundRate", dashboardService.getCancelRefundRate());
+        model.addAttribute("cancelRefundRate", dashboardService.getCancelRate());
         model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
         model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
         model.addAttribute("topSelling7Days", dashboardService.getTopSellingProductsLast7Days(5));

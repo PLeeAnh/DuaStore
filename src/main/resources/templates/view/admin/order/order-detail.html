@@ -51,14 +51,11 @@
         <div th:if="${currentStep > 0}" class="adm-card mt-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="adm-section-title mb-0">Tiến trình đơn hàng dự kiến</span>
-                <span class="text-muted small no-print" th:if="${order.trangThaiDon != 'DA_HUY' and order.trangThaiDon != 'DA_HOAN_THANH' and order.trangThaiDon != 'DA_HOAN_TIEN'}">
+                <span class="text-muted small no-print" th:if="${order.trangThaiDon != 'DA_HUY' and order.trangThaiDon != 'DA_HOAN_THANH'}">
                     <i class="bi bi-hand-index-thumb me-1"></i>Bấm vào bước tiếp theo để cập nhật
                 </span>
                 <span class="badge bg-danger" th:if="${order.trangThaiDon == 'DA_HUY'}">
                     <i class="bi bi-x-circle me-1"></i>Đơn đã bị hủy
-                </span>
-                <span class="badge bg-secondary" th:if="${order.trangThaiDon == 'DA_HOAN_TIEN'}">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>Đã hoàn tiền
                 </span>
             </div>
 
@@ -67,7 +64,7 @@
                     <div class="position-absolute" style="top:27px; left:0; right:0; height:4px; z-index:0">
                         <div class="bg-light h-100 w-100 position-absolute rounded"></div>
                         <div class="h-100 position-absolute rounded"
-                             th:classappend="${order.trangThaiDon == 'DA_HUY' or order.trangThaiDon == 'DA_HOAN_TIEN'} ? 'bg-danger' : 'bg-success'"
+                             th:classappend="${order.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-success'"
                              th:style="${'width: ' + ((currentStep - 0.5) * 100.0 / T(com.duastore.util.OrderStatusUtil).getTotalSteps()) + '%; transition: width 0.3s'}">
                         </div>
                     </div>
@@ -76,7 +73,7 @@
                         <div class="oms-timeline-node timeline-step"
                              th:data-status="${s}"
                              th:data-stepindex="${iter.index + 1}"
-                              th:classappend="${(iter.index + 1 < currentStep) ? 'done clickable' : (iter.index + 1 == currentStep) ? 'current clickable' : (iter.index + 1 == currentStep + 1 and order.trangThaiDon != 'DA_HUY' and order.trangThaiDon != 'DA_HOAN_THANH' and order.trangThaiDon != 'DA_HOAN_TIEN') ? 'clickable' : 'pending'}"
+                              th:classappend="${(iter.index + 1 < currentStep) ? 'done clickable' : (iter.index + 1 == currentStep) ? 'current clickable' : (iter.index + 1 == currentStep + 1 and order.trangThaiDon != 'DA_HUY' and order.trangThaiDon != 'DA_HOAN_THANH') ? 'clickable' : 'pending'}"
                              th:title="${T(com.duastore.util.OrderStatusUtil).getDisplayName(s)}">
                             <i th:switch="${iter.index}">
                                 <i th:case="0" class="bi bi-bag-check"></i>
@@ -87,7 +84,7 @@
                             </i>
                         </div>
                         <small class="mt-2 text-center text-nowrap"
-                               th:classappend="${iter.index + 1 <= currentStep and order.trangThaiDon != 'DA_HUY' and order.trangThaiDon != 'DA_HOAN_TIEN'} ? 'fw-semibold text-dark' : 'text-muted'"
+                               th:classappend="${iter.index + 1 <= currentStep and order.trangThaiDon != 'DA_HUY'} ? 'fw-semibold text-dark' : 'text-muted'"
                                th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(s)}">
                         </small>
                     </div>

@@ -108,7 +108,6 @@ public class TrackingService {
             case "DA_GIAO" -> "Đã giao hàng";
             case "DA_HOAN_THANH" -> "Hoàn thành";
             case "DA_HUY" -> "Đã hủy";
-            case "DA_HOAN_TIEN" -> "Đã hoàn tiền";
             default -> status;
         };
     }
