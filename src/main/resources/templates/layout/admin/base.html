@@ -63,11 +63,11 @@
                 <span>Phân tích</span>
             </a>
 
-            <!-- Sản phẩm: gộp Sản phẩm/Biến thể/Xuất nhập kho/Danh mục/Lịch sử giá lại một chỗ -->
+            <!-- Sản phẩm: Biến thể/Hình ảnh/Xuất nhập kho/Lịch sử giá đã chuyển thành tab bên trong trang Sản phẩm -->
             <div class="adm-nav-section">Sản phẩm</div>
             <a class="adm-nav-link" th:href="@{/admin/san-pham}"
                th:if="${userPermissions.contains('PRODUCT_READ')}"
-               th:classappend="${title == 'san-pham' ? ' active' : ''}">
+               th:classappend="${title == 'san-pham' or title == 'xuat-nhap-kho' or title == 'lich-su-gia' ? ' active' : ''}">
                 <i class="bi bi-box-seam"></i>
                 <span>Sản phẩm &amp; biến thể</span>
                 <span class="badge bg-warning text-dark ms-auto" title="Sản phẩm tồn kho thấp (≤20) — bấm để xem"
@@ -80,18 +80,6 @@
                th:classappend="${title == 'danh-muc' ? ' active' : ''}">
                 <i class="bi bi-grid-3x3-gap"></i>
                 <span>Danh mục</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/xuat-nhap-kho}"
-               th:if="${userPermissions.contains('PRODUCT_READ')}"
-               th:classappend="${title == 'xuat-nhap-kho' ? ' active' : ''}">
-                <i class="bi bi-box-arrow-in-down"></i>
-                <span>Xuất nhập kho</span>
-            </a>
-            <a class="adm-nav-link" th:href="@{/admin/lich-su-gia}"
-               th:if="${userPermissions.contains('PRICE_HISTORY_READ')}"
-               th:classappend="${title == 'lich-su-gia' ? ' active' : ''}">
-                <i class="bi bi-currency-exchange"></i>
-                <span>Lịch sử giá</span>
             </a>
 
             <!-- Bán hàng: Đơn hàng/Khách hàng/Khuyến mãi đi cùng Đánh giá & Liên hệ (đều là hậu-bán-hàng) -->

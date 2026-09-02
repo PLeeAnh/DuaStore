@@ -6,6 +6,7 @@
     <head><title>Lịch sử giá</title></head>
     <body>
     <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/san-pham}">Sản phẩm</a></li>
         <li class="breadcrumb-item active" aria-current="page">Lịch sử giá</li>
     </th:block>
     <div layout:fragment="content">
@@ -22,6 +23,26 @@
                 </div>
             </div>
         </div>
+
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav">
+            <a class="adm-tab" th:href="@{/admin/san-pham}">
+                <i class="bi bi-list-ul"></i>Danh sách
+            </a>
+            <a class="adm-tab" th:href="@{/admin/san-pham/bien-the}">
+                <i class="bi bi-diagram-3"></i>Biến thể
+            </a>
+            <a class="adm-tab" th:href="@{/admin/san-pham/hinh-anh}">
+                <i class="bi bi-images"></i>Hình ảnh
+            </a>
+            <a class="adm-tab" th:href="@{/admin/xuat-nhap-kho}">
+                <i class="bi bi-box-arrow-in-down"></i>Xuất nhập kho
+            </a>
+            <a class="adm-tab active">
+                <i class="bi bi-currency-exchange"></i>Lịch sử giá
+            </a>
+        </div>
+
         <div class="adm-table-wrap">
             <div class="table-responsive">
             <table class="table table-hover align-middle">

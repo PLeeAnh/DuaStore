@@ -35,6 +35,12 @@
             <a class="adm-tab active">
                 <i class="bi bi-images"></i>Hình ảnh
             </a>
+            <a class="adm-tab" th:href="@{/admin/xuat-nhap-kho}">
+                <i class="bi bi-box-arrow-in-down"></i>Xuất nhập kho
+            </a>
+            <a class="adm-tab" th:if="${userPermissions.contains('PRICE_HISTORY_READ')}" th:href="@{/admin/lich-su-gia}">
+                <i class="bi bi-currency-exchange"></i>Lịch sử giá
+            </a>
         </div>
 
         <!-- ═══════ KPI CARDS ═══════ -->
