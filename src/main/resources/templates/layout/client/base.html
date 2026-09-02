@@ -363,7 +363,7 @@
                                                     <a class="ds-mega-product-card" th:each="p : ${child.products}"
                                                        th:href="@{'/san-pham/' + ${p.id}}">
                                                         <div class="ds-mega-product-img">
-                                                            <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                                            <img th:src="${p.hinhAnhChinh ?: (p.variants != null and !p.variants.isEmpty() ? p.variants[0].hinhAnh : null) ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                                         </div>
                                                         <span class="ds-mega-product-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
                                                     </a>
@@ -378,7 +378,7 @@
                                                 <a class="ds-mega-product-card" th:each="p : ${cat.products}"
                                                    th:href="@{'/san-pham/' + ${p.id}}">
                                                     <div class="ds-mega-product-img">
-                                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                                        <img th:src="${p.hinhAnhChinh ?: (p.variants != null and !p.variants.isEmpty() ? p.variants[0].hinhAnh : null) ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                                     </div>
                                                     <span class="ds-mega-product-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
                                                 </a>

@@ -829,6 +829,7 @@ public class ProductController {
                 ProductVariant v = pvs.get(0);
                 m.put("giaGoc", v.getGiaGoc());
                 m.put("giaKhuyenMai", v.getGiaKhuyenMai());
+                m.put("hinhAnh", v.getHinhAnh());
             }
             items.add(m);
         }

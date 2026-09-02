@@ -1089,6 +1089,24 @@ INSERT INTO Categories (tenDanhMuc, parentId, thuTuHienThi) VALUES
     (N'Ly Champagne', 4, 4), (N'Ly Highball',   4, 5);
 GO
 
+-- Anh dai dien danh muc (hien tren trang chu / mega-menu)
+UPDATE Categories SET imageUrl = '/images/products/chai-tron-250ml-nap-go.jpg' WHERE tenDanhMuc = N'Chai Thủy Tinh';
+UPDATE Categories SET imageUrl = '/images/products/hu-hinh-trai-bi-500ml.jpg' WHERE tenDanhMuc = N'Hũ Thủy Tinh';
+UPDATE Categories SET imageUrl = '/images/products/binh-hoa-trong-25cm.jpg' WHERE tenDanhMuc = N'Bình Trang Trí';
+UPDATE Categories SET imageUrl = '/images/products/ly-highball-300ml.jpg' WHERE tenDanhMuc = N'Ly & Cốc';
+UPDATE Categories SET imageUrl = '/images/products/bo-tach-tra-200ml.jpg' WHERE tenDanhMuc = N'Quà Tặng';
+UPDATE Categories SET imageUrl = '/images/products/chai-vodka-tron-500ml.jpg' WHERE tenDanhMuc = N'Chai Rượu';
+UPDATE Categories SET imageUrl = '/images/products/chai-nuoc-hoa-vuong-100ml.jpg' WHERE tenDanhMuc = N'Chai Nước Hoa';
+UPDATE Categories SET imageUrl = '/images/products/chai-tron-500ml-nap-nhua.jpg' WHERE tenDanhMuc = N'Chai Thực Phẩm';
+UPDATE Categories SET imageUrl = '/images/products/bo-binh-hoa-mau-800ml.jpg' WHERE tenDanhMuc = N'Bình Hoa';
+UPDATE Categories SET imageUrl = '/images/products/binh-hoa-cobalt-25cm.jpg' WHERE tenDanhMuc = N'Bình Decor';
+UPDATE Categories SET imageUrl = '/images/products/ly-vang-350ml-don.jpg' WHERE tenDanhMuc = N'Ly Rượu Vang';
+UPDATE Categories SET imageUrl = '/images/products/ly-highball-450ml.jpg' WHERE tenDanhMuc = N'Ly Whisky';
+UPDATE Categories SET imageUrl = '/images/products/coc-co-quai-250ml.jpg' WHERE tenDanhMuc = N'Ly Nước';
+UPDATE Categories SET imageUrl = '/images/products/ly-vang-200ml-don.jpg' WHERE tenDanhMuc = N'Ly Champagne';
+UPDATE Categories SET imageUrl = '/images/products/ly-highball-bo6.jpg' WHERE tenDanhMuc = N'Ly Highball';
+GO
+
 INSERT INTO Products (tenSanPham, moTa, chatLieu, xuatXu, mucDichSuDung, danhMucId, trangThaiSanPham, isFeatured) VALUES
     (N'Chai Thủy Tinh Đựng Rượu Tròn',
      N'Chai thủy tinh hình tròn, miệng rộng, phù hợp đựng rượu, nước ép, si-rô. Chất liệu thủy tinh trong suốt, an toàn thực phẩm.',

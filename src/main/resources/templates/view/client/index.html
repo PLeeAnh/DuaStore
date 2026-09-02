@@ -229,7 +229,7 @@
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
-<img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+<img th:src="${p.hinhAnhChinh ?: (v != null ? v.hinhAnh : null) ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                      </div>
                                      <div class="ds-mini-card-body">
                                         <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
@@ -259,7 +259,7 @@
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
-<img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+<img th:src="${p.hinhAnhChinh ?: (v != null ? v.hinhAnh : null) ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                      </div>
                                      <div class="ds-mini-card-body">
                                         <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
@@ -289,7 +289,7 @@
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
-                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+                                        <img th:src="${p.hinhAnhChinh ?: (v != null ? v.hinhAnh : null) ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                         <span class="ds-mini-card-badge" th:if="${wishCountMap.get(p.id) != null}" th:text="${wishCountMap.get(p.id)} + ' ❤'"></span>
                                     </div>
                                     <div class="ds-mini-card-body">
@@ -320,7 +320,7 @@
                                    th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                    v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                     <div class="ds-mini-card-img">
-                                        <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
+                                        <img th:src="${p.hinhAnhChinh ?: (v != null ? v.hinhAnh : null) ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                         <span class="ds-mini-card-badge" th:if="${reviewCountMap.get(p.id) != null}" th:text="${reviewCountMap.get(p.id)} + ' ★'"></span>
                                     </div>
                                     <div class="ds-mini-card-body">
@@ -378,7 +378,7 @@
                                        th:with="pvList=${variantsMap.get(p.id) != null ? variantsMap.get(p.id) : null},
                                        v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                         <div class="ds-mini-card-img">
-                                            <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                            <img th:src="${p.hinhAnhChinh ?: (v != null ? v.hinhAnh : null) ?: '/images/no-image.png'}" alt="" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         </div>
                                         <div class="ds-mini-card-body">
                                             <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
@@ -405,7 +405,7 @@
                                th:with="pvList=${variantsMap.get(p.id) != null ? variantsMap.get(p.id) : null},
                                v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null">
                                 <div class="ds-mini-card-img">
-                                    <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy" onerror="this.src='/images/no-image.png'"/>
+                                    <img th:src="${p.hinhAnhChinh ?: (v != null ? v.hinhAnh : null) ?: '/images/no-image.png'}" alt="" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                 </div>
                                 <div class="ds-mini-card-body">
                                     <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
@@ -525,7 +525,7 @@
     <th:block th:insert="~{fragments/promotion-modal :: promotionModal}" />
     <th:block layout:fragment="extra-script">
         <script th:src="@{/js/client-home.js(v=3)}"></script>
-        <script th:src="@{/js/client-home-explore.js(v=1)}"></script>
+        <script th:src="@{/js/client-home-explore.js(v=2)}"></script>
         <script th:if="${popupPromoActive == '1' and popupPromoImage != null and !popupPromoImage.isEmpty()}"
                 th:src="@{/js/popup-promo.js(v=1)}"></script>
     </th:block>
