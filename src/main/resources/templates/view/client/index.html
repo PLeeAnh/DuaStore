@@ -291,41 +291,6 @@
                                     <div class="ds-mini-card-img">
                                         <img th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" alt="" loading="lazy"/>
                                         <span class="ds-mini-card-badge" th:if="${wishCountMap.get(p.id) != null}" th:text="${wishCountMap.get(p.id)} + ' ❤'"></span>
-                    <div class="ds-browse-wrap">
-                        <!-- Cột trái: tabs + list -->
-                        <div>
-                            <div class="ds-browse-tabs">
-                                <button th:if="${hasFavProducts}" class="ds-browse-tab active" data-tab="fav">Yêu thích nhất</button>
-                                <button th:if="${hasSoldProducts}" class="ds-browse-tab" data-tab="sold" th:classappend="${!hasFavProducts ? 'active' : ''}">Bán chạy nhất</button>
-                                <button class="ds-browse-tab" data-tab="rating" th:classappend="${!hasFavProducts and !hasSoldProducts ? 'active' : ''}">Đánh giá cao nhất</button>
-                            </div>
-                            <div class="ds-browse-list" id="browseList">
-                                <div th:each="p, iter : ${browseProducts}"
-                                     class="ds-browse-row" th:classappend="${iter.index == 0} ? 'active'"
-                                     th:data-index="${iter.index}"
-                                     th:data-id="${p.id}"
-                                     th:data-name="${p.tenSanPham}"
-                                     th:data-img="${p.hinhAnhChinh ?: '/images/no-image.png'}"
-                                     th:data-desc="${p.moTa != null ? (#strings.length(p.moTa) > 140 ? #strings.substring(p.moTa,0,140) + '…' : p.moTa) : ''}"
-                                     th:data-cat="${categoryNameMap.get(p.danhMucId) ?: ''}"
-                                     th:data-rating="${ratingMap.get(p.id) != null ? #numbers.formatDecimal(ratingMap.get(p.id), 1, 1) : ''}"
-                                     th:data-rating-count="${ratingCountMap.get(p.id) ?: 0}"
-                                     th:data-wishlist="${wishlistCountMap.get(p.id) ?: 0}"
-                                     th:data-href="@{'/san-pham/' + ${p.id}}"
-th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
-                                      v=${pvList != null and !pvList.isEmpty()} ? ${pvList[0]} : null,
-                                      fs=${flashSaleMap != null ? flashSaleMap.get(p.id) : null},
-                                      bestPrice=${variantBestPriceMap != null ? variantBestPriceMap.get(v != null ? v.id : null) : null}"
-                                      th:data-price="${bestPrice != null ? #numbers.formatInteger(bestPrice, 0, 'POINT') : (v != null ? #numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT') : '')}"
-                                      th:data-discount="${v != null and v.giaKhuyenMai != null ? #numbers.formatDecimal((v.giaGoc - v.giaKhuyenMai) * 100 / v.giaGoc, 0, 0) : ''}"
-                                     th:data-fav-count="${wishlistCountMap.get(p.id) ?: 0}"
-                                     th:data-sold-count="${soldCountMap.get(p.id) ?: 0}"
-                                     th:data-days-old="${#temporals.format(p.ngayTao, 'yyyy-MM-dd')}"
-                                     th:data-gallery="${#strings.listJoin(browseGalleryMap.get(p.id) ?: java.util.Collections.emptyList(), ',')}">
-                                    <img class="ds-browse-row-img" th:src="${p.hinhAnhChinh ?: '/images/no-image.png'}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
-                                    <div class="ds-browse-row-info">
-                                        <span class="ds-browse-row-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
-                                        <span class="ds-browse-row-tag"><i class="bi bi-tag"></i> <span th:text="${categoryNameMap.get(p.danhMucId) ?: ''}">Danh mục</span></span>
                                     </div>
                                     <div class="ds-mini-card-body">
                                         <span class="ds-mini-card-name" th:text="${p.tenSanPham}">Tên sản phẩm</span>
@@ -333,19 +298,6 @@ th:with="pvList=${variantsMap != null ? variantsMap.get(p.id) : null},
                                               th:text="${#numbers.formatInteger(v.giaKhuyenMai != null ? v.giaKhuyenMai : v.giaGoc, 0, 'POINT')} + '₫'">100.000₫</span>
                                     </div>
                                 </a>
-                                </div>
-                            </div>
-                            <div class="ds-see-more-link">
-                                <span>Xem thêm:</span>
-                                <div th:if="${hasFavProducts}" class="ds-see-more-btn" data-tab="fav" style="display:block">
-                                    <a th:href="@{/san-pham(sortBy='yêu thích')}" class="ds-see-more-btn-inner">Yêu thích nhất</a>
-                                </div>
-                                <div th:if="${hasSoldProducts}" class="ds-see-more-btn" data-tab="sold" th:style="${!hasFavProducts ? 'display:block' : 'display:none'}">
-                                    <a th:href="@{/san-pham(sortBy='bán chạy')}" class="ds-see-more-btn-inner">Bán chạy nhất</a>
-                                </div>
-                                <div class="ds-see-more-btn" data-tab="rating" th:style="${!hasFavProducts and !hasSoldProducts ? 'display:block' : 'display:none'}">
-                                    <a th:href="@{/san-pham(sortBy='top_rated')}" class="ds-see-more-btn-inner">Đánh giá cao nhất</a>
-                                </div>
                             </div>
                         </div>
                         <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>

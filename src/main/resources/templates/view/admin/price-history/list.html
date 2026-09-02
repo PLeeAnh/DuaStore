@@ -46,8 +46,8 @@
                     <td th:text="${h.giaMoi != null ? #numbers.formatDecimal(h.giaMoi, 0, 'COMMA', 0, 'POINT') : '—'}">120,000</td>
                     <td>
                         <span th:if="${h.giaCu != null and h.giaMoi != null}"
-                              th:classappend="${h.giaMoi.compareTo(h.giaCu) >= 0} ? 'text-success' : 'text-danger'"
-                              th:text="${h.giaMoi.compareTo(h.giaCu) >= 0} ? '+' + #numbers.formatDecimal(h.giaMoi.subtract(h.giaCu), 0, 'COMMA', 0, 'POINT') : #numbers.formatDecimal(h.giaMoi.subtract(h.giaCu), 0, 'COMMA', 0, 'POINT')">
+                              th:classappend="${h.giaMoi.compareTo(h.giaCu) >= 0 ? 'text-success' : 'text-danger'}"
+                              th:text="${h.giaMoi.compareTo(h.giaCu) >= 0 ? '+' + #numbers.formatDecimal(h.giaMoi.subtract(h.giaCu), 0, 'COMMA', 0, 'POINT') : #numbers.formatDecimal(h.giaMoi.subtract(h.giaCu), 0, 'COMMA', 0, 'POINT')}">
                             +20,000
                         </span>
                         <span th:if="${h.giaCu == null or h.giaMoi == null}">—</span>

@@ -1113,42 +1113,42 @@ UPDATE Products SET leadTimeDays = 10 WHERE tenSanPham LIKE N'%Pasabahce%';
 GO
 
 INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
-    (1, N'50ml - Nắp Gỗ',    50,  15000, NULL,  20, N'/uploads/chai-tron-50ml-nap-go.jpg',    0),
-    (1, N'50ml - Nắp Nhựa',  50,  13000, NULL,  15, N'/uploads/chai-tron-50ml-nap-nhua.jpg',  0),
-    (1, N'100ml - Nắp Gỗ',  100,  23000, NULL,  50, N'/uploads/chai-tron-100ml-nap-go.jpg',   1),
-    (1, N'100ml - Nắp Nhựa',100,  20000, NULL,  40, N'/uploads/chai-tron-100ml-nap-nhua.jpg', 0),
-    (1, N'250ml - Nắp Gỗ',  250,  38000, 34000, 30, N'/uploads/chai-tron-250ml-nap-go.jpg',   0),
-    (1, N'250ml - Nắp Nhựa',250,  32000, NULL,  25, N'/uploads/chai-tron-250ml-nap-nhua.jpg', 0),
-    (1, N'500ml - Nắp Gỗ',  500,  55000, 50000,  0, N'/uploads/chai-tron-500ml-nap-go.jpg',   0),
-    (1, N'500ml - Nắp Nhựa',500,  48000, NULL,  15, N'/uploads/chai-tron-500ml-nap-nhua.jpg', 0),
-    (1, N'750ml - Nắp Gỗ',  750,  72000, NULL,  10, N'/uploads/chai-tron-750ml-nap-go.jpg',   0),
-    (1, N'750ml - Nắp Nhựa',750,  65000, NULL,   8, N'/uploads/chai-tron-750ml-nap-nhua.jpg', 0);
+    (1, N'50ml - Nắp Gỗ',    50,  15000, NULL,  20, N'/images/products/chai-tron-50ml-nap-go.jpg',    0),
+    (1, N'50ml - Nắp Nhựa',  50,  13000, NULL,  15, N'/images/products/chai-tron-50ml-nap-nhua.jpg',  0),
+    (1, N'100ml - Nắp Gỗ',  100,  23000, NULL,  50, N'/images/products/chai-tron-100ml-nap-go.jpg',   1),
+    (1, N'100ml - Nắp Nhựa',100,  20000, NULL,  40, N'/images/products/chai-tron-100ml-nap-nhua.jpg', 0),
+    (1, N'250ml - Nắp Gỗ',  250,  38000, 34000, 30, N'/images/products/chai-tron-250ml-nap-go.jpg',   0),
+    (1, N'250ml - Nắp Nhựa',250,  32000, NULL,  25, N'/images/products/chai-tron-250ml-nap-nhua.jpg', 0),
+    (1, N'500ml - Nắp Gỗ',  500,  55000, 50000,  0, N'/images/products/chai-tron-500ml-nap-go.jpg',   0),
+    (1, N'500ml - Nắp Nhựa',500,  48000, NULL,  15, N'/images/products/chai-tron-500ml-nap-nhua.jpg', 0),
+    (1, N'750ml - Nắp Gỗ',  750,  72000, NULL,  10, N'/images/products/chai-tron-750ml-nap-go.jpg',   0),
+    (1, N'750ml - Nắp Nhựa',750,  65000, NULL,   8, N'/images/products/chai-tron-750ml-nap-nhua.jpg', 0);
 
 INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
-    (2, N'250ml - Nắp Bạc', 250, 25000, NULL,  35, N'/uploads/chai-vuong-250ml-nap-bac.jpg', 1),
-    (2, N'500ml - Nắp Bạc', 500, 42000, NULL,  20, N'/uploads/chai-vuong-500ml-nap-bac.jpg', 0),
-    (2, N'750ml - Nắp Bạc', 750, 68000, 60000, 12, N'/uploads/chai-vuong-750ml-nap-bac.jpg', 0);
+    (2, N'250ml - Nắp Bạc', 250, 25000, NULL,  35, N'/images/products/chai-vuong-250ml-nap-bac.jpg', 1),
+    (2, N'500ml - Nắp Bạc', 500, 42000, NULL,  20, N'/images/products/chai-vuong-500ml-nap-bac.jpg', 0),
+    (2, N'750ml - Nắp Bạc', 750, 68000, 60000, 12, N'/images/products/chai-vuong-750ml-nap-bac.jpg', 0);
 
 INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
-    (3, N'Trong suốt - Cao 25cm',  NULL, 450000, NULL,   15, N'/uploads/binh-hoa-trong-25cm.jpg',  1),
-    (3, N'Xanh Cobalt - Cao 25cm', NULL, 520000, 480000,  8, N'/uploads/binh-hoa-cobalt-25cm.jpg', 0),
-    (3, N'Nâu khói - Cao 25cm',    NULL, 490000, NULL,   10, N'/uploads/binh-hoa-nau-25cm.jpg',    0),
-    (3, N'Trong suốt - Cao 35cm',  NULL, 620000, NULL,    6, N'/uploads/binh-hoa-trong-35cm.jpg',  0);
+    (3, N'Trong suốt - Cao 25cm',  NULL, 450000, NULL,   15, N'/images/products/binh-hoa-trong-25cm.jpg',  1),
+    (3, N'Xanh Cobalt - Cao 25cm', NULL, 520000, 480000,  8, N'/images/products/binh-hoa-cobalt-25cm.jpg', 0),
+    (3, N'Nâu khói - Cao 25cm',    NULL, 490000, NULL,   10, N'/images/products/binh-hoa-nau-25cm.jpg',    0),
+    (3, N'Trong suốt - Cao 35cm',  NULL, 620000, NULL,    6, N'/images/products/binh-hoa-trong-35cm.jpg',  0);
 
 INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
-    (4, N'200ml - Đơn chiếc', NULL,  84000, NULL,   56, N'/uploads/ly-vang-200ml-don.jpg',  1),
-    (4, N'350ml - Đơn chiếc', NULL, 105000,  95000, 22, N'/uploads/ly-vang-350ml-don.jpg',  0),
-    (4, N'Bộ 6 cái - 200ml',  NULL, 480000, 430000, 15, N'/uploads/ly-vang-200ml-bo6.jpg',  0),
-    (4, N'Bộ 6 cái - 350ml',  NULL, 600000, 550000,  8, N'/uploads/ly-vang-350ml-bo6.jpg',  0);
+    (4, N'200ml - Đơn chiếc', NULL,  84000, NULL,   56, N'/images/products/ly-vang-200ml-don.jpg',  1),
+    (4, N'350ml - Đơn chiếc', NULL, 105000,  95000, 22, N'/images/products/ly-vang-350ml-don.jpg',  0),
+    (4, N'Bộ 6 cái - 200ml',  NULL, 480000, 430000, 15, N'/images/products/ly-vang-200ml-bo6.jpg',  0),
+    (4, N'Bộ 6 cái - 350ml',  NULL, 600000, 550000,  8, N'/images/products/ly-vang-350ml-bo6.jpg',  0);
 
 INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
-    (5, N'300ml - Đơn chiếc', 300,  35000, NULL,   80, N'/uploads/ly-highball-300ml.jpg', 1),
-    (5, N'450ml - Đơn chiếc', 450,  45000,  40000, 60, N'/uploads/ly-highball-450ml.jpg', 0),
-    (5, N'Bộ 6 cái - 300ml',  300, 195000, 175000, 20, N'/uploads/ly-highball-bo6.jpg',   0);
+    (5, N'300ml - Đơn chiếc', 300,  35000, NULL,   80, N'/images/products/ly-highball-300ml.jpg', 1),
+    (5, N'450ml - Đơn chiếc', 450,  45000,  40000, 60, N'/images/products/ly-highball-450ml.jpg', 0),
+    (5, N'Bộ 6 cái - 300ml',  300, 195000, 175000, 20, N'/images/products/ly-highball-bo6.jpg',   0);
 
 INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh, isDefault) VALUES
-    (6, N'500ml - Pha lê trắng', 500, 850000, NULL,   0, N'/uploads/pasabahce-500ml.jpg', 1),
-    (6, N'750ml - Pha lê trắng', 750, 980000, 890000, 0, N'/uploads/pasabahce-750ml.jpg', 0);
+    (6, N'500ml - Pha lê trắng', 500, 850000, NULL,   0, N'/images/products/pasabahce-500ml.jpg', 1),
+    (6, N'750ml - Pha lê trắng', 750, 980000, 890000, 0, N'/images/products/pasabahce-750ml.jpg', 0);
 GO
 
 -- ============================================================
@@ -1216,24 +1216,24 @@ INSERT INTO ProductVariants (productId, tenBienThe, dungTich, giaGoc, giaKhuyenM
 SELECT p.id, N'Mặc định', v.dungTich, v.giaGoc, v.giaKhuyenMai, v.soLuongTon, v.hinhAnh, 1
 FROM Products p
 CROSS APPLY (VALUES
-    (N'Bình Chiết Rượu Vang',                       1000, 320000, 290000, 25, N'/uploads/binh-chiet-ruou-vang-1000ml.png'),
-    (N'Bình Cắm Hoa Trang Trí Loại Nhỏ',              300,  95000, NULL,   40, N'/uploads/binh-cam-hoa-trang-tri-nho-300ml.jpg'),
-    (N'Bình Hoa Pha Lê',                             1000, 680000, 620000, 12, N'/uploads/binh-hoa-pha-le-1000ml.jpg'),
-    (N'Bình Khuếch Tán Tinh Dầu',                     350, 150000, NULL,   30, N'/uploads/binh-khuech-tan-tinh-dau-350ml.jpg'),
-    (N'Bình Thủy Tinh Ngâm Rượu',                    5000, 280000, NULL,   15, N'/uploads/binh-ngam-ruou-5000ml.jpg'),
-    (N'Bình Đựng Nước Thủy Tinh Dập Nổi Sang Trọng',  1000, 220000, 195000, 20, N'/uploads/binh-dung-nuoc-dap-noi-1000ml.jpg'),
-    (N'Bình Thủy Tinh Decanter Hario',                 400, 385000, NULL,   18, N'/uploads/binh-decanter-hario-400ml.jpg'),
-    (N'Bộ Bình Hoa Màu',                               800, 175000, NULL,   22, N'/uploads/bo-binh-hoa-mau-800ml.jpg'),
-    (N'Bộ Ly Thủy Tinh Màu 1',                         350, 145000, NULL,   35, N'/uploads/bo-ly-mau-1-350ml.jpg'),
-    (N'Bộ Ly Thủy Tinh Màu 2',                         350, 145000, NULL,   35, N'/uploads/bo-ly-mau-2-350ml.jpg'),
-    (N'Bộ Tách Trà Thủy Tinh',                         200, 210000, 189000, 28, N'/uploads/bo-tach-tra-200ml.jpg'),
-    (N'Chai Nước Hoa Vuông Thủy Tinh',                 100,  45000, NULL,   50, N'/uploads/chai-nuoc-hoa-vuong-100ml.jpg'),
-    (N'Chai Rượu Vodka Thủy Tinh Dạng Tròn',           500,  38000, NULL,   60, N'/uploads/chai-vodka-tron-500ml.jpg'),
-    (N'Cốc Thủy Tinh Có Quai',                         250,  42000, NULL,   45, N'/uploads/coc-co-quai-250ml.jpg'),
-    (N'Hũ Thủy Tinh Hình Trái Bí',                     500,  68000, NULL,   32, N'/uploads/hu-hinh-trai-bi-500ml.jpg'),
-    (N'Hũ Thủy Tinh Nắp Cài Kín Hơi',                  750,  55000, NULL,   38, N'/uploads/hu-nap-cai-kin-hoi-750ml.jpg'),
-    (N'Hũ Thủy Tinh Sọc',                              100,  32000, NULL,   55, N'/uploads/hu-soc-100ml.jpg'),
-    (N'Ly Thủy Tinh Dạng Trụ Tròn Họa Tiết Sọc',       400,  40000, NULL,   42, N'/uploads/ly-tru-tron-hoa-tiet-soc-400ml.jpg')
+    (N'Bình Chiết Rượu Vang',                       1000, 320000, 290000, 25, N'/images/products/binh-chiet-ruou-vang-1000ml.png'),
+    (N'Bình Cắm Hoa Trang Trí Loại Nhỏ',              300,  95000, NULL,   40, N'/images/products/binh-cam-hoa-trang-tri-nho-300ml.jpg'),
+    (N'Bình Hoa Pha Lê',                             1000, 680000, 620000, 12, N'/images/products/binh-hoa-pha-le-1000ml.jpg'),
+    (N'Bình Khuếch Tán Tinh Dầu',                     350, 150000, NULL,   30, N'/images/products/binh-khuech-tan-tinh-dau-350ml.jpg'),
+    (N'Bình Thủy Tinh Ngâm Rượu',                    5000, 280000, NULL,   15, N'/images/products/binh-ngam-ruou-5000ml.jpg'),
+    (N'Bình Đựng Nước Thủy Tinh Dập Nổi Sang Trọng',  1000, 220000, 195000, 20, N'/images/products/binh-dung-nuoc-dap-noi-1000ml.jpg'),
+    (N'Bình Thủy Tinh Decanter Hario',                 400, 385000, NULL,   18, N'/images/products/binh-decanter-hario-400ml.jpg'),
+    (N'Bộ Bình Hoa Màu',                               800, 175000, NULL,   22, N'/images/products/bo-binh-hoa-mau-800ml.jpg'),
+    (N'Bộ Ly Thủy Tinh Màu 1',                         350, 145000, NULL,   35, N'/images/products/bo-ly-mau-1-350ml.jpg'),
+    (N'Bộ Ly Thủy Tinh Màu 2',                         350, 145000, NULL,   35, N'/images/products/bo-ly-mau-2-350ml.jpg'),
+    (N'Bộ Tách Trà Thủy Tinh',                         200, 210000, 189000, 28, N'/images/products/bo-tach-tra-200ml.jpg'),
+    (N'Chai Nước Hoa Vuông Thủy Tinh',                 100,  45000, NULL,   50, N'/images/products/chai-nuoc-hoa-vuong-100ml.jpg'),
+    (N'Chai Rượu Vodka Thủy Tinh Dạng Tròn',           500,  38000, NULL,   60, N'/images/products/chai-vodka-tron-500ml.jpg'),
+    (N'Cốc Thủy Tinh Có Quai',                         250,  42000, NULL,   45, N'/images/products/coc-co-quai-250ml.jpg'),
+    (N'Hũ Thủy Tinh Hình Trái Bí',                     500,  68000, NULL,   32, N'/images/products/hu-hinh-trai-bi-500ml.jpg'),
+    (N'Hũ Thủy Tinh Nắp Cài Kín Hơi',                  750,  55000, NULL,   38, N'/images/products/hu-nap-cai-kin-hoi-750ml.jpg'),
+    (N'Hũ Thủy Tinh Sọc',                              100,  32000, NULL,   55, N'/images/products/hu-soc-100ml.jpg'),
+    (N'Ly Thủy Tinh Dạng Trụ Tròn Họa Tiết Sọc',       400,  40000, NULL,   42, N'/images/products/ly-tru-tron-hoa-tiet-soc-400ml.jpg')
 ) AS v(tenSanPham, dungTich, giaGoc, giaKhuyenMai, soLuongTon, hinhAnh)
 WHERE p.tenSanPham = v.tenSanPham;
 GO
@@ -1261,9 +1261,9 @@ INSERT INTO orders (maDon, userId, addressId, snapTenNguoiNhan, snapSoDienThoai,
      354000, 30000, 30000, 354000, 'CHUYEN_KHOAN', 'SHIP', 'CHUA_THANH_TOAN', 'CHO_XAC_NHAN', 2, GETDATE());
 
 INSERT INTO order_items (orderId, productId, variantId, tenSanPham, tenBienThe, hinhAnhSP, donGia, soLuong, thanhTien) VALUES
-    (1, 1,  3, N'Chai Thủy Tinh Đựng Rượu Tròn', N'100ml - Nắp Gỗ',    N'/uploads/chai-tron-100ml-nap-go.jpg',  23000, 2,  46000),
-    (1, 4, 14, N'Ly Rượu Vang Pha Lê Bohemia',   N'200ml - Đơn chiếc', N'/uploads/ly-vang-200ml-don.jpg',       84000, 3, 252000),
-    (1, 5, 18, N'Ly Highball Thủy Tinh Cao Cấp',  N'300ml - Đơn chiếc', N'/uploads/ly-highball-300ml.jpg',       35000, 1,  35000);
+    (1, 1,  3, N'Chai Thủy Tinh Đựng Rượu Tròn', N'100ml - Nắp Gỗ',    N'/images/products/chai-tron-100ml-nap-go.jpg',  23000, 2,  46000),
+    (1, 4, 14, N'Ly Rượu Vang Pha Lê Bohemia',   N'200ml - Đơn chiếc', N'/images/products/ly-vang-200ml-don.jpg',       84000, 3, 252000),
+    (1, 5, 18, N'Ly Highball Thủy Tinh Cao Cấp',  N'300ml - Đơn chiếc', N'/images/products/ly-highball-300ml.jpg',       35000, 1,  35000);
 
 INSERT INTO PostCategories (tenDanhMuc, moTa, thuTu, ngayTao) VALUES
     (N'Hướng Dẫn', N'Các bài hướng dẫn chọn và bảo quản đồ thủy tinh', 1, GETDATE()),
@@ -1335,12 +1335,12 @@ GO
 INSERT INTO CartItems (userId, productId, variantId, soLuong, giaLucThem, ngayThem)
 SELECT u.id, pv.productId, pv.id, c.soLuong, pv.giaGoc, GETDATE()
 FROM (VALUES
-    ('tranthib', N'/uploads/binh-cam-hoa-trang-tri-nho-300ml.jpg', 2),
-    ('lehoangc', N'/uploads/ly-vang-350ml-don.jpg', 1),
-    ('phamthid', N'/uploads/hu-soc-100ml.jpg', 3),
-    ('vominhe',  N'/uploads/bo-ly-mau-2-350ml.jpg', 1),
-    ('dangthif', N'/uploads/chai-tron-250ml-nap-go.jpg', 2),
-    ('nguyenvan',N'/uploads/binh-khuech-tan-tinh-dau-350ml.jpg', 1)
+    ('tranthib', N'/images/products/binh-cam-hoa-trang-tri-nho-300ml.jpg', 2),
+    ('lehoangc', N'/images/products/ly-vang-350ml-don.jpg', 1),
+    ('phamthid', N'/images/products/hu-soc-100ml.jpg', 3),
+    ('vominhe',  N'/images/products/bo-ly-mau-2-350ml.jpg', 1),
+    ('dangthif', N'/images/products/chai-tron-250ml-nap-go.jpg', 2),
+    ('nguyenvan',N'/images/products/binh-khuech-tan-tinh-dau-350ml.jpg', 1)
 ) AS c(username, hinhAnh, soLuong)
 JOIN users u ON u.username = c.username
 JOIN ProductVariants pv ON pv.hinhAnh = c.hinhAnh;
@@ -1401,27 +1401,27 @@ GO
 INSERT INTO order_items (orderId, productId, variantId, tenSanPham, tenBienThe, hinhAnhSP, donGia, soLuong, thanhTien)
 SELECT ord.id, pv.productId, pv.id, p.tenSanPham, pv.tenBienThe, pv.hinhAnh, pv.giaGoc, oi.soLuong, pv.giaGoc * oi.soLuong
 FROM (VALUES
-    ('DUA-20260002', N'/uploads/chai-tron-100ml-nap-go.jpg', 1),
-    ('DUA-20260002', N'/uploads/chai-nuoc-hoa-vuong-100ml.jpg', 2),
-    ('DUA-20260003', N'/uploads/bo-tach-tra-200ml.jpg', 1),
-    ('DUA-20260003', N'/uploads/ly-highball-300ml.jpg', 2),
-    ('DUA-20260004', N'/uploads/hu-hinh-trai-bi-500ml.jpg', 3),
-    ('DUA-20260005', N'/uploads/ly-vang-200ml-don.jpg', 1),
-    ('DUA-20260005', N'/uploads/binh-hoa-pha-le-1000ml.jpg', 1),
-    ('DUA-20260006', N'/uploads/chai-vodka-tron-500ml.jpg', 4),
-    ('DUA-20260007', N'/uploads/coc-co-quai-250ml.jpg', 2),
-    ('DUA-20260007', N'/uploads/pasabahce-500ml.jpg', 1),
-    ('DUA-20260013', N'/uploads/chai-tron-50ml-nap-go.jpg', 2),
-    ('DUA-20260014', N'/uploads/ly-highball-450ml.jpg', 1),
-    ('DUA-20260015', N'/uploads/binh-cam-hoa-trang-tri-nho-300ml.jpg', 1),
-    ('DUA-20260016', N'/uploads/hu-nap-cai-kin-hoi-750ml.jpg', 2),
-    ('DUA-20260017', N'/uploads/bo-ly-mau-1-350ml.jpg', 1),
-    ('DUA-20260018', N'/uploads/chai-vuong-500ml-nap-bac.jpg', 3),
-    ('DUA-20260019', N'/uploads/binh-decanter-hario-400ml.jpg', 1),
-    ('DUA-20260020', N'/uploads/ly-vang-350ml-don.jpg', 2),
-    ('DUA-20260021', N'/uploads/bo-binh-hoa-mau-800ml.jpg', 1),
-    ('DUA-20260022', N'/uploads/chai-tron-250ml-nap-nhua.jpg', 2),
-    ('DUA-20260023', N'/uploads/binh-hoa-nau-25cm.jpg', 1)
+    ('DUA-20260002', N'/images/products/chai-tron-100ml-nap-go.jpg', 1),
+    ('DUA-20260002', N'/images/products/chai-nuoc-hoa-vuong-100ml.jpg', 2),
+    ('DUA-20260003', N'/images/products/bo-tach-tra-200ml.jpg', 1),
+    ('DUA-20260003', N'/images/products/ly-highball-300ml.jpg', 2),
+    ('DUA-20260004', N'/images/products/hu-hinh-trai-bi-500ml.jpg', 3),
+    ('DUA-20260005', N'/images/products/ly-vang-200ml-don.jpg', 1),
+    ('DUA-20260005', N'/images/products/binh-hoa-pha-le-1000ml.jpg', 1),
+    ('DUA-20260006', N'/images/products/chai-vodka-tron-500ml.jpg', 4),
+    ('DUA-20260007', N'/images/products/coc-co-quai-250ml.jpg', 2),
+    ('DUA-20260007', N'/images/products/pasabahce-500ml.jpg', 1),
+    ('DUA-20260013', N'/images/products/chai-tron-50ml-nap-go.jpg', 2),
+    ('DUA-20260014', N'/images/products/ly-highball-450ml.jpg', 1),
+    ('DUA-20260015', N'/images/products/binh-cam-hoa-trang-tri-nho-300ml.jpg', 1),
+    ('DUA-20260016', N'/images/products/hu-nap-cai-kin-hoi-750ml.jpg', 2),
+    ('DUA-20260017', N'/images/products/bo-ly-mau-1-350ml.jpg', 1),
+    ('DUA-20260018', N'/images/products/chai-vuong-500ml-nap-bac.jpg', 3),
+    ('DUA-20260019', N'/images/products/binh-decanter-hario-400ml.jpg', 1),
+    ('DUA-20260020', N'/images/products/ly-vang-350ml-don.jpg', 2),
+    ('DUA-20260021', N'/images/products/bo-binh-hoa-mau-800ml.jpg', 1),
+    ('DUA-20260022', N'/images/products/chai-tron-250ml-nap-nhua.jpg', 2),
+    ('DUA-20260023', N'/images/products/binh-hoa-nau-25cm.jpg', 1)
 ) AS oi(maDon, hinhAnh, soLuong)
 JOIN orders ord ON ord.maDon = oi.maDon
 JOIN ProductVariants pv ON pv.hinhAnh = oi.hinhAnh
@@ -1547,7 +1547,7 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 ('shipping', 'shipping_free', '1', GETDATE()),
 ('shipping', 'shipping_free_min', '500000', GETDATE()),
 ('shipping', 'carrier_ghn_enabled', '0', GETDATE()),
-('shipping', 'carrier_ghtk_enabled', '0', GETDATE()),
+('shipping', 'carrier_ghtk_enabled', '1', GETDATE()),
 ('shipping', 'carrier_ghn_base_fee', '15000', GETDATE()),
 ('shipping', 'carrier_ghn_rate_km', '2000', GETDATE()),
 ('shipping', 'carrier_ghn_min_fee', '15000', GETDATE()),
@@ -1995,9 +1995,9 @@ GO
 
 -- ---------- popup_banners ----------
 INSERT INTO popup_banners (active, interval_minutes, created_at, updated_at, display_mode, title, image_url, link_url) VALUES
-    (1, NULL, DATEADD(DAY,-10,GETDATE()), DATEADD(DAY,-1,GETDATE()), 'EVERY_VISIT', N'Chào mừng đến với DuaStore!', '/uploads/binh-hoa-pha-le-1000ml.jpg', '/khuyen-mai'),
-    (1, 60,   DATEADD(DAY,-5,GETDATE()),  DATEADD(DAY,-1,GETDATE()), 'ONCE_PER_SESSION', N'Flash Sale Cuối Tuần - Giảm đến 25%', '/uploads/ly-vang-350ml-bo6.jpg', '/san-pham'),
-    (0, NULL, DATEADD(DAY,-30,GETDATE()), DATEADD(DAY,-20,GETDATE()),'EVERY_VISIT', N'Khai Trương Chi Nhánh Mới', '/uploads/bo-binh-hoa-mau-800ml.jpg', '/lien-he');
+    (1, NULL, DATEADD(DAY,-10,GETDATE()), DATEADD(DAY,-1,GETDATE()), 'EVERY_VISIT', N'Chào mừng đến với DuaStore!', '/images/products/binh-hoa-pha-le-1000ml.jpg', '/khuyen-mai'),
+    (1, 60,   DATEADD(DAY,-5,GETDATE()),  DATEADD(DAY,-1,GETDATE()), 'ONCE_PER_SESSION', N'Flash Sale Cuối Tuần - Giảm đến 25%', '/images/products/ly-vang-350ml-bo6.jpg', '/san-pham'),
+    (0, NULL, DATEADD(DAY,-30,GETDATE()), DATEADD(DAY,-20,GETDATE()),'EVERY_VISIT', N'Khai Trương Chi Nhánh Mới', '/images/products/bo-binh-hoa-mau-800ml.jpg', '/lien-he');
 GO
 
 -- ---------- user_settings ----------
