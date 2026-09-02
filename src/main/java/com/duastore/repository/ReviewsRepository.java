@@ -48,4 +48,29 @@ public interface ReviewsRepository extends JpaRepository<Review, Integer> {
 
     @Query("SELECT r.productId, COUNT(r), AVG(r.danhGia) FROM Review r WHERE r.isApproved = true GROUP BY r.productId ORDER BY COUNT(r) DESC")
     List<Object[]> findMostReviewed(Pageable pageable);
+
+    @Query("SELECT r FROM Review r WHERE "
+            + "(:isApproved IS NULL OR r.isApproved = :isApproved) AND "
+            + "(:maxScore IS NULL OR r.danhGia <= :maxScore) AND "
+            + "(:unanswered = false OR r.id NOT IN (SELECT rr.reviewId FROM ReviewReply rr)) AND "
+            + "(:keyword IS NULL OR :keyword = '' OR "
+            + "  LOWER(r.binhLuan) LIKE LOWER(CONCAT('%', :keyword, '%')) OR "
+            + "  r.productId IN (SELECT p.id FROM Product p WHERE LOWER(p.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) OR "
+            + "  r.userId IN (SELECT u.id FROM User u WHERE LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')))"
+            + ") ORDER BY r.ngayTao DESC")
+    Page<Review> searchAdmin(@Param("keyword") String keyword,
+            @Param("isApproved") Boolean isApproved,
+            @Param("maxScore") Integer maxScore,
+            @Param("unanswered") boolean unanswered,
+            Pageable pageable);
+
+    long countByDanhGiaLessThanEqual(Integer maxScore);
+
+    long countByIsApprovedFalse();
+
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.id NOT IN (SELECT rr.reviewId FROM ReviewReply rr)")
+    long countUnanswered();
+
+    @Query("SELECT AVG(r.danhGia) FROM Review r")
+    Double getOverallAverageRating();
 }

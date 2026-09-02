@@ -102,6 +102,33 @@ public class ContactMessageService {
         return null;
     }
 
+    public ContactMessage markRead(Integer id) {
+        ContactMessage m = getById(id);
+        if (m != null && !Boolean.TRUE.equals(m.getIsRead())) {
+            m.setIsRead(true);
+            return contactMessageRepository.save(m);
+        }
+        return m;
+    }
+
+    public ContactMessage toggleResolved(Integer id) {
+        ContactMessage m = getById(id);
+        if (m != null) {
+            m.setIsResolved(!Boolean.TRUE.equals(m.getIsResolved()));
+            return contactMessageRepository.save(m);
+        }
+        return null;
+    }
+
+    public ContactMessage updateCategory(Integer id, String phanLoai) {
+        ContactMessage m = getById(id);
+        if (m != null && labelMap().containsKey(phanLoai)) {
+            m.setPhanLoai(phanLoai);
+            return contactMessageRepository.save(m);
+        }
+        return null;
+    }
+
     public boolean delete(Integer id) {
         ContactMessage m = getById(id);
         if (m != null) {

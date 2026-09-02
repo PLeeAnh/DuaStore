@@ -41,19 +41,22 @@ public class AdminContactMessageController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CONTACT_MESSAGE_READ)")
     public String list(@RequestParam(required = false) String bo,
                        @RequestParam(required = false) String loai,
+                       @RequestParam(required = false) Integer id,
                        Model model) {
         model.addAttribute("title", "tin-nhan-lien-he");
         Map<String, String> labels = ContactMessageService.labelMap();
 
-        List<ContactMessage> all = contactMessageService.findAll();
+        List<ContactMessage> all = contactMessageService.findAll().stream()
+                .filter(m -> !Boolean.TRUE.equals(m.getIsSpam()))
+                .collect(Collectors.toList());
         List<ContactMessage> filtered = all;
 
-        if ("rac".equals(bo)) {
-            filtered = all.stream().filter(m -> Boolean.TRUE.equals(m.getIsSpam())).collect(Collectors.toList());
-        } else if ("thuong".equals(bo)) {
-            filtered = all.stream().filter(m -> !Boolean.TRUE.equals(m.getIsSpam())).collect(Collectors.toList());
+        if ("mo".equals(bo)) {
+            filtered = all.stream().filter(m -> !Boolean.TRUE.equals(m.getIsResolved())).collect(Collectors.toList());
         } else if ("chua-doc".equals(bo)) {
             filtered = all.stream().filter(m -> !Boolean.TRUE.equals(m.getIsRead())).collect(Collectors.toList());
+        } else if ("xong".equals(bo)) {
+            filtered = all.stream().filter(m -> Boolean.TRUE.equals(m.getIsResolved())).collect(Collectors.toList());
         }
 
         if (StringUtils.hasText(loai)) {
@@ -62,9 +65,9 @@ public class AdminContactMessageController {
                     .collect(Collectors.toList());
         }
 
-        long countThuong = all.stream().filter(m -> !Boolean.TRUE.equals(m.getIsSpam())).count();
-        long countRac = all.stream().filter(m -> Boolean.TRUE.equals(m.getIsSpam())).count();
         long countChuaDoc = all.stream().filter(m -> !Boolean.TRUE.equals(m.getIsRead())).count();
+        long countMo = all.stream().filter(m -> !Boolean.TRUE.equals(m.getIsResolved())).count();
+        long countXong = all.stream().filter(m -> Boolean.TRUE.equals(m.getIsResolved())).count();
 
         // Đếm reply cho mỗi tin nhắn
         Map<Integer, Long> replyCountMap = new HashMap<>();
@@ -75,16 +78,25 @@ public class AdminContactMessageController {
             replyCountMap.put(m.getId(), (long) replies.size());
         }
 
+        ContactMessage selected = null;
+        if (id != null) {
+            selected = filtered.stream().filter(m -> m.getId().equals(id)).findFirst().orElse(null);
+        }
+        if (selected == null && !filtered.isEmpty()) {
+            selected = filtered.get(0);
+        }
+
         model.addAttribute("messages", filtered);
         model.addAttribute("labels", labels);
         model.addAttribute("bo", bo);
         model.addAttribute("loai", loai == null ? "" : loai);
-        model.addAttribute("countThuong", countThuong);
-        model.addAttribute("countRac", countRac);
+        model.addAttribute("countMo", countMo);
+        model.addAttribute("countXong", countXong);
         model.addAttribute("countChuaDoc", countChuaDoc);
         model.addAttribute("countAll", (long) all.size());
         model.addAttribute("replyCountMap", replyCountMap);
         model.addAttribute("repliesMap", repliesMap);
+        model.addAttribute("selected", selected);
         return "view/admin/contact/list";
     }
 
@@ -99,6 +111,30 @@ public class AdminContactMessageController {
             ra.addFlashAttribute("errorMsg", "Không tìm thấy tin nhắn");
         }
         return "redirect:/admin/tin-nhan-lien-he";
+    }
+
+    @PostMapping("/danh-dau-xong/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CONTACT_MESSAGE_UPDATE)")
+    public String markResolved(@PathVariable Integer id, RedirectAttributes ra) {
+        ContactMessage m = contactMessageService.toggleResolved(id);
+        if (m != null) {
+            ra.addFlashAttribute("successMsg", Boolean.TRUE.equals(m.getIsResolved()) ? "Đã đánh dấu xong" : "Đã chuyển về đang mở");
+        } else {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy tin nhắn");
+        }
+        return "redirect:/admin/tin-nhan-lien-he?id=" + id;
+    }
+
+    @PostMapping("/phan-loai/{id}")
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CONTACT_MESSAGE_UPDATE)")
+    public String updateCategory(@PathVariable Integer id, @RequestParam String phanLoai, RedirectAttributes ra) {
+        ContactMessage m = contactMessageService.updateCategory(id, phanLoai);
+        if (m != null) {
+            ra.addFlashAttribute("successMsg", "Đã cập nhật chủ đề");
+        } else {
+            ra.addFlashAttribute("errorMsg", "Không tìm thấy tin nhắn");
+        }
+        return "redirect:/admin/tin-nhan-lien-he?id=" + id;
     }
 
     @PostMapping("/xoa/{id}")
@@ -135,7 +171,7 @@ public class AdminContactMessageController {
         contactReplyRepository.save(reply);
 
         // Đánh dấu đã đọc khi reply
-        contactMessageService.toggleRead(id);
+        contactMessageService.markRead(id);
 
         Map<String, Object> result = new HashMap<>();
         result.put("id", reply.getId());

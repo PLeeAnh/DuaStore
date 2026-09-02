@@ -110,6 +110,12 @@ public class AdminProductController {
         model.addAttribute("categoryMap", productService.getCategoryMap(cats));
         model.addAttribute("totalStock", productService.getTotalStockMap(productPage.getContent()));
 
+        Map<Integer, Long> categoryProductCounts = new HashMap<>();
+        for (Object[] row : productRepository.countProductsByDanhMuc()) {
+            if (row[0] != null) categoryProductCounts.put((Integer) row[0], (Long) row[1]);
+        }
+        model.addAttribute("categoryProductCounts", categoryProductCounts);
+
         Map<String, Object> filterParams = new HashMap<>();
         if (keyword != null) filterParams.put("keyword", keyword);
         if (danhMuc != null) filterParams.put("danhMuc", danhMuc);

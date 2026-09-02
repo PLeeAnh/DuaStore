@@ -55,7 +55,7 @@
                         </div>
                         <div class="adm-card-body">
                             <div class="row g-3">
-                                <div class="col-md-8">
+                                <div class="col-12">
                                     <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
                                     <input type="text" th:field="*{tenSanPham}" class="form-control" required
                                            data-ds-autocomplete="/admin/api/search?type=product"
@@ -64,63 +64,16 @@
                                            th:placeholder="${product.id == null} ? 'Gõ tên — có gợi ý, Enter để chọn' : 'Tên sản phẩm'"/>
                                     <div th:if="${#fields.hasErrors('tenSanPham')}" th:errors="*{tenSanPham}" class="text-danger small"></div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-                                    <select th:field="*{danhMucId}" class="form-select searchable-select" required>
-                                        <option value="">— Chọn danh mục —</option>
-                                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}">DM</option>
-                                    </select>
-                                    <div th:if="${#fields.hasErrors('danhMucId')}" th:errors="*{danhMucId}" class="text-danger small"></div>
-                                </div>
                                 <div class="col-12">
-                                    <div class="row g-3">
-                                        <div class="col-md-3">
-                                            <label class="form-label">Thương hiệu</label>
-                                            <select th:field="*{thuongHieu}" class="form-select searchable-select" data-create>
-                                                <option value="">— Chọn thương hiệu —</option>
-                                                <option th:each="b : ${brands}" th:value="${b}" th:text="${b}">Brand</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Chất liệu</label>
-                                            <select th:field="*{chatLieu}" class="form-select searchable-select" data-create>
-                                                <option value="">— Chọn chất liệu —</option>
-                                                <option th:each="m : ${materials}" th:value="${m}" th:text="${m}">Material</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Xuất xứ</label>
-                                            <select th:field="*{xuatXu}" class="form-select searchable-select" data-create>
-                                                <option value="">— Chọn xuất xứ —</option>
-                                                <option th:each="o : ${origins}" th:value="${o}" th:text="${o}">Origin</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Loại kính</label>
-                                            <select th:field="*{kinhLoai}" class="form-select searchable-select" data-create>
-                                                <option value="">— Chọn loại kính —</option>
-                                                <option th:each="g : ${glassTypes}" th:value="${g}" th:text="${g}">GlassType</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Mục đích sử dụng</label>
-                                            <select th:field="*{mucDichSuDung}" class="form-select searchable-select" data-create>
-                                                <option value="">— Chọn mục đích —</option>
-                                                <option th:each="p : ${purposes}" th:value="${p}" th:text="${p}">Purpose</option>
-                                            </select>
-                                        </div>
+                                    <label class="form-label">Mô tả sản phẩm</label>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="generateDescription()">
+                                            <i class="bi bi-magic me-1"></i>Tự động viết mô tả
+                                        </button>
+                                        <span id="descStatus" class="small text-muted align-self-center" style="display:none"></span>
                                     </div>
+                                    <textarea th:field="*{moTa}" class="form-control" rows="5" style="min-height:120px"></textarea>
                                 </div>
-                <div class="col-12">
-                    <label class="form-label">Mô tả sản phẩm</label>
-                    <div class="d-flex gap-2 mb-2">
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="generateDescription()">
-                            <i class="bi bi-magic me-1"></i>Tự động viết mô tả
-                        </button>
-                        <span id="descStatus" class="small text-muted align-self-center" style="display:none"></span>
-                    </div>
-                    <textarea th:field="*{moTa}" class="form-control" rows="5" style="min-height:120px"></textarea>
-                </div>
                                 <div class="col-12">
                                     <label class="form-label">Trạng thái</label>
                                     <div class="d-flex flex-wrap gap-2">
@@ -161,6 +114,60 @@
                                             </div>
                                         </div>
                                     </details>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card: Phân loại sản phẩm -->
+                    <div class="adm-card mt-4">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-tags me-2"></i>Phân loại sản phẩm</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+                                    <select th:field="*{danhMucId}" class="form-select searchable-select" placeholder="Tìm danh mục..." required>
+                                        <option value="">— Chọn danh mục —</option>
+                                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}">DM</option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('danhMucId')}" th:errors="*{danhMucId}" class="text-danger small"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Thương hiệu</label>
+                                    <select th:field="*{thuongHieu}" class="form-select searchable-select" placeholder="Tìm thương hiệu..." data-create>
+                                        <option value="">— Chọn thương hiệu —</option>
+                                        <option th:each="b : ${brands}" th:value="${b}" th:text="${b}">Brand</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Chất liệu</label>
+                                    <select th:field="*{chatLieu}" class="form-select searchable-select" placeholder="Tìm chất liệu..." data-create>
+                                        <option value="">— Chọn chất liệu —</option>
+                                        <option th:each="m : ${materials}" th:value="${m}" th:text="${m}">Material</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Xuất xứ</label>
+                                    <select th:field="*{xuatXu}" class="form-select searchable-select" placeholder="Tìm xuất xứ..." data-create>
+                                        <option value="">— Chọn xuất xứ —</option>
+                                        <option th:each="o : ${origins}" th:value="${o}" th:text="${o}">Origin</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Loại kính</label>
+                                    <select th:field="*{kinhLoai}" class="form-select searchable-select" placeholder="Tìm loại kính..." data-create>
+                                        <option value="">— Chọn loại kính —</option>
+                                        <option th:each="g : ${glassTypes}" th:value="${g}" th:text="${g}">GlassType</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Mục đích sử dụng</label>
+                                    <select th:field="*{mucDichSuDung}" class="form-select searchable-select" placeholder="Tìm mục đích..." data-create>
+                                        <option value="">— Chọn mục đích —</option>
+                                        <option th:each="p : ${purposes}" th:value="${p}" th:text="${p}">Purpose</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>

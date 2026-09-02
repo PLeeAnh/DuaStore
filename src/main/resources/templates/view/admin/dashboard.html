@@ -28,6 +28,19 @@
             </div>
         </div>
 
+        <!-- ═════ BỘ LỌC THỜI GIAN (áp dụng cho Đơn/Doanh thu/Top sản phẩm) ═════ -->
+        <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+            <a th:href="@{/admin(period='today')}" class="btn btn-sm" th:classappend="${activePeriod == 'today'} ? 'btn-dark' : 'btn-outline-secondary'">Hôm nay</a>
+            <a th:href="@{/admin(period='yesterday')}" class="btn btn-sm" th:classappend="${activePeriod == 'yesterday'} ? 'btn-dark' : 'btn-outline-secondary'">Hôm qua</a>
+            <a th:href="@{/admin(period='last-7')}" class="btn btn-sm" th:classappend="${activePeriod == 'last-7'} ? 'btn-dark' : 'btn-outline-secondary'">7 ngày</a>
+            <a th:href="@{/admin(period='this-week')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-week'} ? 'btn-dark' : 'btn-outline-secondary'">Tuần này</a>
+            <a th:href="@{/admin(period='this-month')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-month'} ? 'btn-dark' : 'btn-outline-secondary'">Tháng này</a>
+            <a th:href="@{/admin(period='last-month')}" class="btn btn-sm" th:classappend="${activePeriod == 'last-month'} ? 'btn-dark' : 'btn-outline-secondary'">Tháng trước</a>
+            <a th:href="@{/admin(period='this-quarter')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-quarter'} ? 'btn-dark' : 'btn-outline-secondary'">Quý này</a>
+            <a th:href="@{/admin(period='this-year')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-year'} ? 'btn-dark' : 'btn-outline-secondary'">Năm nay</a>
+            <a th:href="@{/admin/phan-tich(period=${activePeriod})}" class="btn btn-sm btn-outline-primary ms-auto"><i class="bi bi-graph-up me-1"></i>Xem báo cáo chi tiết</a>
+        </div>
+
         <div th:if="${dashboardError}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle me-1"></i>
             <span th:text="${dashboardError}"></span>
@@ -99,15 +112,15 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
             <div class="col-6 col-xl-2">
                 <div class="adm-stat p-3" style="border-left:3px solid #7c3aed">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="adm-stat-lbl">Đơn tháng</span>
+                        <span class="adm-stat-lbl" th:text="${activePeriod == 'this-month'} ? 'Đơn tháng' : 'Đơn trong kỳ'">Đơn tháng</span>
                         <div class="adm-stat-icon adm-stat-icon-purple">
                             <i class="bi bi-receipt"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.ordersThisMonth : totalOrders} ?: 0" style="color:#7c3aed">0</div>
+                    <div class="adm-stat-val" th:text="${totalOrders} ?: 0" style="color:#7c3aed">0</div>
                     <div class="adm-text-xs-muted">
                         <span>Đã giao: <span th:text="${deliveredOrders} ?: 0"></span></span>
-                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.ordersChange, '+')} ? 'text-success' : 'text-danger'" class="ms-1">
+                        <span th:if="${statComparison != null and activePeriod == 'this-month'}" th:classappend="${#strings.startsWith(statComparison.ordersChange, '+')} ? 'text-success' : 'text-danger'" class="ms-1">
                             <span th:text="${statComparison.ordersChange}"></span>
                         </span>
                     </div>
@@ -117,14 +130,14 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
             <div class="col-6 col-xl-2">
                 <div class="adm-stat p-3" style="border-left:3px solid #2563eb">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="adm-stat-lbl">Doanh thu tháng</span>
+                        <span class="adm-stat-lbl" th:text="${activePeriod == 'this-month'} ? 'Doanh thu tháng' : 'Doanh thu trong kỳ'">Doanh thu tháng</span>
                         <div class="adm-stat-icon adm-stat-icon-blue">
                             <i class="bi bi-currency-exchange"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.revenueThisMonth : monthlyRevenue} ?: '--'" style="color:#2563eb">--</div>
+                    <div class="adm-stat-val" th:text="${monthlyRevenue} ?: '--'" style="color:#2563eb">--</div>
                     <div class="adm-text-xs-muted">
-                        <span th:text="${revenueGrowth}"></span>
+                        <span th:if="${activePeriod == 'this-month'}" th:text="${revenueGrowth}"></span>
                     </div>
                 </div>
             </div>
@@ -180,7 +193,7 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
             <div class="col-12 col-lg-4">
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top sản phẩm (tháng)</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top sản phẩm <span th:text="${activePeriod == 'this-month'} ? '(tháng)' : '(trong kỳ)'">(tháng)</span></h6>
                     </div>
                     <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(topProducts)}">
                         <div th:each="tp, iter : ${topProducts}" class="d-flex align-items-center gap-2">

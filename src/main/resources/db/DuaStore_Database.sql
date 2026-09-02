@@ -510,6 +510,7 @@ GO
         id int identity not null,
         is_read bit not null,
         is_spam bit not null,
+        is_resolved bit not null default 0,
         created_at datetime2(7) not null,
         phan_loai nvarchar(30) not null,
         hoTen nvarchar(150) not null,
@@ -1423,10 +1424,10 @@ FROM (VALUES
     ('DUA-20260015', 'nguyenvan', 95000, 20000, 0, 115000, 'COD',          'CHUA_THANH_TOAN', 'DA_XAC_NHAN',          2),
     ('DUA-20260016', 'tranthib', 110000, 20000, 0, 130000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DANG_GIAO',            1),
     ('DUA-20260017', 'lehoangc', 145000, 20000, 0, 165000, 'COD',          'CHUA_THANH_TOAN', 'DANG_GIAO',            1),
-    ('DUA-20260018', 'phamthid', 126000, 20000, 0, 146000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',             10),
+    ('DUA-20260018', 'phamthid', 126000, 20000, 0, 146000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',              0),
     ('DUA-20260019', 'vominhe',  385000, 20000, 0, 405000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',             12),
     ('DUA-20260020', 'dangthif', 210000, 20000, 0, 230000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',       20),
-    ('DUA-20260021', 'nguyenvan',175000, 20000, 0, 195000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',       18),
+    ('DUA-20260021', 'nguyenvan',175000, 20000, 0, 195000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',        1),
     ('DUA-20260022', 'tranthib',  64000, 20000, 0,  84000, 'COD',          'CHUA_THANH_TOAN', 'DA_HUY',               3),
     ('DUA-20260023', 'lehoangc', 490000, 20000, 0, 510000, 'CHUYEN_KHOAN', 'CHUA_THANH_TOAN', 'DA_HUY',               8)
 ) AS o(maDon, username, tienHang, phiVanChuyen, tienGiam, tongThanhToan, phuongThucTT, trangThaiTT, trangThaiDon, d)

@@ -106,23 +106,54 @@
                     <option value="DA_HOAN_THANH" th:selected="${trangThai == 'DA_HOAN_THANH'}">Đã hoàn thành</option>
                     <option value="DA_HUY" th:selected="${trangThai == 'DA_HUY'}">Đã hủy</option>
                 </select>
-                <select id="filterTrangThaiTT" class="form-select form-select-sm searchable-select adm-filter-select" style="width:auto" data-autosubmit placeholder="Thanh toán">
-                    <option value="">Thanh toán</option>
+                <select id="filterTrangThaiTT" class="form-select form-select-sm searchable-select adm-filter-select" style="width:auto" data-autosubmit placeholder="Tìm trạng thái...">
+                    <option value="">Tất cả</option>
                     <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
                     <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
                 </select>
-                <select id="filterAssigned" class="form-select form-select-sm searchable-select adm-filter-select" style="width:auto" data-autosubmit placeholder="Phân công">
-                    <option value="">Phân công</option>
+                <select id="filterAssigned" class="form-select form-select-sm searchable-select adm-filter-select" style="width:auto" data-autosubmit placeholder="Tìm nhân viên...">
+                    <option value="">Tất cả</option>
                     <option value="CHUA_GAN" th:selected="${chuaGan}">Chưa gán</option>
                     <th:block th:each="entry : ${staffLoad}">
                         <option th:value="${entry.key}" th:selected="${assignedAdminId == entry.key}"
-                                th:text="${staffUsers.get(entry.key).hoTen} + ' (' + ${entry.value} + ' đơn)'"></option>
+                                th:attr="data-count=${entry.value} + ' đơn'"
+                                th:text="${staffUsers.get(entry.key).hoTen}"></option>
                     </th:block>
                 </select>
-                <input type="date" id="filterFromDate" class="form-control form-control-sm adm-filter-select" style="width:auto"
-                       title="Từ ngày" th:value="${fromDate}" />
-                <input type="date" id="filterToDate" class="form-control form-control-sm adm-filter-select" style="width:auto"
-                       title="Đến ngày" th:value="${toDate}" />
+                <div class="adm-daterange" id="admOrderDateRange">
+                    <button type="button" class="adm-daterange-btn">
+                        <i class="bi bi-calendar-range"></i>
+                        <span th:text="${(fromDate != null and !fromDate.isEmpty()) or (toDate != null and !toDate.isEmpty())}
+                            ? (${fromDate != null and !fromDate.isEmpty() ? fromDate : '…'} + ' → ' + ${toDate != null and !toDate.isEmpty() ? toDate : '…'})
+                            : 'Tất cả thời gian'">Tất cả thời gian</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="adm-daterange-popover" style="display:none">
+                        <div class="adm-daterange-presets">
+                            <button type="button" class="adm-daterange-preset" data-period="today">Hôm nay</button>
+                            <button type="button" class="adm-daterange-preset" data-period="yesterday">Hôm qua</button>
+                            <button type="button" class="adm-daterange-preset" data-period="last-7">7 ngày</button>
+                            <button type="button" class="adm-daterange-preset" data-period="this-week">Tuần này</button>
+                            <button type="button" class="adm-daterange-preset" data-period="this-month">Tháng này</button>
+                            <button type="button" class="adm-daterange-preset" data-period="last-month">Tháng trước</button>
+                        </div>
+                        <div class="adm-daterange-inputs">
+                            <div>
+                                <label>Từ ngày</label>
+                                <input type="date" id="filterFromDate" data-role="from" th:value="${fromDate}" />
+                            </div>
+                            <div>
+                                <label>Đến ngày</label>
+                                <input type="date" id="filterToDate" data-role="to" th:value="${toDate}" />
+                            </div>
+                        </div>
+                        <div class="adm-daterange-error">"Đến ngày" phải sau "Từ ngày"</div>
+                        <div class="adm-daterange-actions">
+                            <button type="button" class="adm-daterange-clear">Bỏ chọn</button>
+                            <button type="button" class="adm-daterange-apply">Áp dụng</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -246,9 +277,28 @@
     </div>
     <th:block layout:fragment="extra-script">
         <script>var tatCa = [[${tatCa}]];</script>
+        <script th:src="@{/js/admin-daterange.js(v=1)}"></script>
         <script th:src="@{/js/admin-filters.js(v=2)}"></script>
         <script th:src="@{/js/admin-order-list.js(v=1)}"></script>
         <script th:src="@{/js/admin-table-sort.js}"></script>
+        <script>
+            initAdmDateRange('admOrderDateRange', {
+                onPreset: function (period) {
+                    var r = admResolvePeriodRange(period);
+                    var fd = document.getElementById('filterFromDate');
+                    var td = document.getElementById('filterToDate');
+                    fd.value = r.from;
+                    td.value = r.to;
+                    td.dispatchEvent(new Event('change'));
+                },
+                onApply: function () {
+                    document.getElementById('filterToDate').dispatchEvent(new Event('change'));
+                },
+                onClear: function () {
+                    document.getElementById('filterToDate').dispatchEvent(new Event('change'));
+                }
+            });
+        </script>
     </th:block>
 </body>
 </html>

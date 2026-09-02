@@ -91,17 +91,17 @@
                            data-ds-map="customer"
                            data-ds-open-url="/admin/khach-hang/{id}"
                            data-ds-no-recent />
-                    <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto">
+                    <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tìm trạng thái...">
                         <option value="">Tất cả trạng thái</option>
                         <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
                         <option value="LOCKED" th:selected="${status == 'LOCKED'}">Khóa</option>
                     </select>
-                    <select id="filterCity" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tất cả tỉnh/thành">
+                    <select id="filterCity" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tìm tỉnh/thành...">
                         <option value="">Tất cả tỉnh/thành</option>
                         <option th:each="c : ${cities}" th:value="${c}" th:selected="${city == c}" th:text="${c}"></option>
                     </select>
-                    <select id="filterSpendingTier" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Phân khúc chi tiêu">
-                        <option value="">Phân khúc chi tiêu</option>
+                    <select id="filterSpendingTier" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tìm phân khúc...">
+                        <option value="">Tất cả phân khúc</option>
                         <option value="vip" th:selected="${spendingTier == 'vip'}">VIP (&ge;10tr)</option>
                         <option value="medium" th:selected="${spendingTier == 'medium'}">Trung bình (2-10tr)</option>
                         <option value="new" th:selected="${spendingTier == 'new'}">Mới (&lt;2tr)</option>
