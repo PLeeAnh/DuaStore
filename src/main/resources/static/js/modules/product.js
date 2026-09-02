@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             var days = Math.floor(diff / 86400000);
             if (days > 0) {
-                span.textContent = days + ' days left';
+                span.textContent = 'Còn ' + days + ' ngày';
                 return;
             }
             var h = Math.floor(diff / 3600000);

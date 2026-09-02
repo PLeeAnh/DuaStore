@@ -366,7 +366,7 @@
                 <div class="row g-3 mt-1">
                     <div class="col-12">
                         <div class="adm-card p-3">
-                            <strong style="font-size:.875rem"><i class="bi bi-trophy me-1"></i>Top 5 sản phẩm bán chạy (7 ngày)</strong>
+                            <strong style="font-size:.875rem"><i class="bi bi-trophy me-1"></i>Top 5 sản phẩm bán chạy</strong>
                             <div class="table-responsive mt-2">
                                 <table class="table mb-0">
                                     <thead>
@@ -377,7 +377,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr th:each="p, iter : ${topSelling7Days}">
+                                        <tr th:each="p, iter : ${topSellingProducts}" th:if="${iter.index < 5}">
                                             <td>
                                                 <span th:if="${iter.index < 3}" class="badge"
                                                       th:classappend="${iter.index == 0} ? 'bg-warning text-dark' : (${iter.index == 1} ? 'bg-secondary' : 'bg-info text-dark')"
@@ -392,7 +392,7 @@
                                             </td>
                                             <td><span class="badge bg-danger" th:text="${p.totalSold}">0</span></td>
                                         </tr>
-                                        <tr th:if="${#lists.isEmpty(topSelling7Days)}">
+                                        <tr th:if="${#lists.isEmpty(topSellingProducts)}">
                                             <td colspan="3" class="text-center text-muted py-3">Chưa có dữ liệu</td>
                                         </tr>
                                     </tbody>
