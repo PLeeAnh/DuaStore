@@ -69,20 +69,25 @@
                         </td>
                         <td th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}">01/01/2026</td>
                         <td class="text-center">
-                            <a th:href="@{/admin/vai-tro/sua/{id}(id=${r.id})}"
-                               class="btn btn-outline-primary btn-sm me-1" title="Sửa">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form th:action="@{/admin/vai-tro/xoa/{id}(id=${r.id})}" method="post"
-                                  style="display:inline"
-                                  th:if="${r.name != 'PRODUCT_OWNER' and r.name != 'ADMIN' and r.name != 'STAFF' and r.name != 'USER'}"
-                                  onsubmit="return confirm('Xóa vai trò này?')">
-                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa">
-                                    <i class="bi bi-trash"></i>
+                            <div class="dropdown">
+                                <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                            </form>
-                            <span th:if="${r.name == 'PRODUCT_OWNER' or r.name == 'ADMIN' or r.name == 'STAFF' or r.name == 'USER'}"
-                                  class="text-muted small">Mặc định</span>
+                                <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
+                                    <li><a class="dropdown-item" th:href="@{/admin/vai-tro/sua/{id}(id=${r.id})}"><i class="bi bi-pencil"></i>Sửa</a></li>
+                                    <li th:if="${r.name != 'PRODUCT_OWNER' and r.name != 'ADMIN' and r.name != 'STAFF' and r.name != 'USER'}">
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li th:if="${r.name != 'PRODUCT_OWNER' and r.name != 'ADMIN' and r.name != 'STAFF' and r.name != 'USER'}">
+                                        <form th:action="@{/admin/vai-tro/xoa/{id}(id=${r.id})}" method="post" class="d-block">
+                                            <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa vai trò này?"><i class="bi bi-trash"></i>Xóa</button>
+                                        </form>
+                                    </li>
+                                    <li th:if="${r.name == 'PRODUCT_OWNER' or r.name == 'ADMIN' or r.name == 'STAFF' or r.name == 'USER'}">
+                                        <span class="dropdown-item disabled text-muted"><i class="bi bi-shield-lock"></i>Vai trò mặc định</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(roles)}">
