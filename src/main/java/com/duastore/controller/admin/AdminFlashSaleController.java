@@ -183,8 +183,21 @@ public class AdminFlashSaleController {
             return "redirect:/admin/flash-sale/edit/" + id;
         }
         try {
+            // Kiểm tra trước: biến thể này có đang chạy ở 1 Flash Sale KHÁC không — nếu có,
+            // hệ thống sẽ KHÔNG cộng dồn % giảm, mà chỉ 1 trong 2 Flash Sale có hiệu lực
+            // (ưu tiên priority cao hơn, bằng nhau thì cái mới thêm — tức Flash Sale này —
+            // sẽ thắng). Cảnh báo rõ để admin không nhầm là 2 mức giảm được cộng lại.
+            FlashSaleItem overlap = flashSaleService.findOverlappingActiveItem(
+                    itemDto.getVariantId(), id, java.time.LocalDateTime.now());
             flashSaleService.addItem(itemDto);
-            ra.addFlashAttribute("successMsg", "Thêm sản phẩm flash sale thành công");
+            if (overlap != null) {
+                ra.addFlashAttribute("successMsg", "Đã thêm sản phẩm flash sale thành công");
+                ra.addFlashAttribute("warningMsg", "Lưu ý: biến thể này đang chạy ở Flash Sale \""
+                        + overlap.getFlashSale().getTenChuongTrinh()
+                        + "\" — hệ thống KHÔNG cộng dồn % giảm giữa 2 chương trình, chỉ Flash Sale vừa thêm (mới hơn) có hiệu lực cho tới khi 1 trong 2 kết thúc.");
+            } else {
+                ra.addFlashAttribute("successMsg", "Thêm sản phẩm flash sale thành công");
+            }
         } catch (Exception e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }

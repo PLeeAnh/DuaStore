@@ -28,16 +28,52 @@
             </div>
         </div>
 
-        <!-- ═════ BỘ LỌC THỜI GIAN (áp dụng cho Đơn/Doanh thu/Top sản phẩm) ═════ -->
+        <!-- ═════ BỘ LỌC THỜI GIAN (áp dụng cho Đơn/Doanh thu/Top sản phẩm) — dùng chung component với trang Phân tích ═════ -->
         <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
-            <a th:href="@{/admin(period='today')}" class="btn btn-sm" th:classappend="${activePeriod == 'today'} ? 'btn-dark' : 'btn-outline-secondary'">Hôm nay</a>
-            <a th:href="@{/admin(period='yesterday')}" class="btn btn-sm" th:classappend="${activePeriod == 'yesterday'} ? 'btn-dark' : 'btn-outline-secondary'">Hôm qua</a>
-            <a th:href="@{/admin(period='last-7')}" class="btn btn-sm" th:classappend="${activePeriod == 'last-7'} ? 'btn-dark' : 'btn-outline-secondary'">7 ngày</a>
-            <a th:href="@{/admin(period='this-week')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-week'} ? 'btn-dark' : 'btn-outline-secondary'">Tuần này</a>
-            <a th:href="@{/admin(period='this-month')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-month'} ? 'btn-dark' : 'btn-outline-secondary'">Tháng này</a>
-            <a th:href="@{/admin(period='last-month')}" class="btn btn-sm" th:classappend="${activePeriod == 'last-month'} ? 'btn-dark' : 'btn-outline-secondary'">Tháng trước</a>
-            <a th:href="@{/admin(period='this-quarter')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-quarter'} ? 'btn-dark' : 'btn-outline-secondary'">Quý này</a>
-            <a th:href="@{/admin(period='this-year')}" class="btn btn-sm" th:classappend="${activePeriod == 'this-year'} ? 'btn-dark' : 'btn-outline-secondary'">Năm nay</a>
+            <div class="adm-daterange" id="admDashboardDateRange">
+                <button type="button" class="adm-daterange-btn active">
+                    <i class="bi bi-calendar-range"></i>
+                    <span th:switch="${activePeriod}">
+                        <span th:case="'today'">Hôm nay</span>
+                        <span th:case="'yesterday'">Hôm qua</span>
+                        <span th:case="'last-7'">7 ngày qua</span>
+                        <span th:case="'this-week'">Tuần này</span>
+                        <span th:case="'this-month'">Tháng này</span>
+                        <span th:case="'last-month'">Tháng trước</span>
+                        <span th:case="'this-quarter'">Quý này</span>
+                        <span th:case="'this-year'">Năm nay</span>
+                        <span th:case="*" th:text="${fromDate} + ' → ' + ${toDate}">Tuỳ chỉnh</span>
+                    </span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="adm-daterange-popover" style="display:none">
+                    <div class="adm-daterange-presets">
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'today'} ? 'active'" data-period="today">Hôm nay</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'yesterday'} ? 'active'" data-period="yesterday">Hôm qua</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-7'} ? 'active'" data-period="last-7">7 ngày</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-week'} ? 'active'" data-period="this-week">Tuần này</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-month'} ? 'active'" data-period="this-month">Tháng này</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-month'} ? 'active'" data-period="last-month">Tháng trước</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-quarter'} ? 'active'" data-period="this-quarter">Quý này</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-year'} ? 'active'" data-period="this-year">Năm nay</button>
+                    </div>
+                    <div class="adm-daterange-inputs">
+                        <div>
+                            <label class="small text-muted mb-1 d-block">Từ ngày</label>
+                            <input type="date" data-role="from" th:value="${fromDate}" class="form-control form-control-sm"/>
+                        </div>
+                        <div>
+                            <label class="small text-muted mb-1 d-block">Đến ngày</label>
+                            <input type="date" data-role="to" th:value="${toDate}" class="form-control form-control-sm"/>
+                        </div>
+                    </div>
+                    <div class="adm-daterange-error" style="display:none">"Đến ngày" phải sau "Từ ngày"</div>
+                    <div class="adm-daterange-actions">
+                        <button type="button" class="adm-daterange-clear">Bỏ chọn</button>
+                        <button type="button" class="adm-daterange-apply">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
             <a th:href="@{/admin/phan-tich(period=${activePeriod})}" class="btn btn-sm btn-outline-primary ms-auto"><i class="bi bi-graph-up me-1"></i>Xem báo cáo chi tiết</a>
         </div>
 
@@ -403,6 +439,20 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                   th:attr="data-label=${mr.label}, data-value=${mr.revenue}"></span>
         </div>
         <script th:src="@{/js/admin-dashboard.js}"></script>
+        <script th:src="@{/js/admin-daterange.js(v=1)}"></script>
+        <script th:inline="javascript">
+            initAdmDateRange('admDashboardDateRange', {
+                onPreset: function (period) {
+                    window.location.href = '/admin?period=' + period;
+                },
+                onApply: function (from, to) {
+                    window.location.href = '/admin?from=' + from + '&to=' + to;
+                },
+                onClear: function () {
+                    window.location.href = '/admin?period=this-month';
+                }
+            });
+        </script>
     </div>
     </th:block>
 
