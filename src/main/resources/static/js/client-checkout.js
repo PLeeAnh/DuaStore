@@ -81,7 +81,11 @@ function applyPromoCode(code) {
     }).then(function (data) {
         if (!data) return;
         if (data.valid) {
-            if (msgEl) msgEl.innerHTML = '<span class="text-primary">&#10003; ' + data.message + '</span>';
+            var okMsg = '<span class="text-primary">&#10003; ' + data.message + '</span>';
+            if (data.ownedInWallet === false) {
+                okMsg += '<br><span class="text-warning small"><i class="bi bi-exclamation-triangle-fill me-1"></i>Mã này chưa được lưu vào ví của bạn — vẫn áp dụng được vì đây là mã công khai.</span>';
+            }
+            if (msgEl) msgEl.innerHTML = okMsg;
             window.appliedDiscount = parseInt(data.discount) || 0;
             document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + 'đ';
             document.getElementById('discountDisplay').className = 'text-danger';

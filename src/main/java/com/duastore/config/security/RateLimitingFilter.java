@@ -18,6 +18,12 @@ public class RateLimitingFilter extends HttpFilter {
     private static final int MAX_ATTEMPTS = 5;
     private static final long WINDOW_MS = 60_000;
 
+    // Chỉ giới hạn tần suất cho các endpoint THỰC SỰ nhạy cảm (đăng nhập, OTP, đặt lại mật
+    // khẩu, tạo đơn hàng, đổi voucher...) — KHÔNG áp cho các thao tác UI bình thường như
+    // giỏ hàng/yêu thích. Trước đây /api/cart/update nằm trong danh sách này, nên khách bấm
+    // nút +/- số lượng vài lần liên tiếp (rất bình thường) là dính giới hạn 5 request/phút,
+    // hiện lỗi "yêu cầu thất bại" dù không hề có gì bất thường — thao tác giỏ hàng không có
+    // rủi ro dò mật khẩu/mã, không cần giới hạn kiểu chống brute-force này.
     private static final Set<String> PROTECTED_PATHS = Set.of(
             "/dang-nhap",
             "/api/auth/send-code",
@@ -27,10 +33,6 @@ public class RateLimitingFilter extends HttpFilter {
             "/tai-khoan/tai-khoan-lien-ket",
             "/checkout/api/create",
             "/address/api/save",
-            "/api/cart/add-popup",
-            "/api/cart/update",
-            "/api/cart/remove-item",
-            "/api/wishlist/toggle",
             "/api/coupon/validate"
     );
 

@@ -107,9 +107,35 @@
 
                 <div class="ct-detail-footer">
                     <div class="ct-quick-row">
-                        <button type="button" class="rv-btn" onclick="insertQuickReply('Cảm ơn bạn đã liên hệ, chúng tôi đã tiếp nhận và đang kiểm tra ngay.')">Đã nhận, đang kiểm tra</button>
-                        <button type="button" class="rv-btn" onclick="insertQuickReply('Shop xin lỗi vì trải nghiệm chưa tốt. Chúng tôi sẽ hỗ trợ bồi thường/đổi trả sớm nhất.')">Xin lỗi &amp; xử lý</button>
-                        <button type="button" class="rv-btn" onclick="insertQuickReply('Shop xác nhận đã nhận được thanh toán của bạn. Cảm ơn bạn!')">Xác nhận thanh toán</button>
+                        <button type="button" class="rv-btn" onclick="insertQuickReply('Cảm ơn bạn đã liên hệ, DuaStore đã tiếp nhận và đang kiểm tra ngay.')">Đã nhận, đang kiểm tra</button>
+                        <th:block th:switch="${selected.phanLoaiKey}">
+                            <th:block th:case="'DON_HANG'">
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Bạn vui lòng cho shop xin mã đơn hàng để kiểm tra chi tiết giúp bạn nhé!')">Xin mã đơn hàng</button>
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Đơn hàng của bạn đang được xử lý, shop sẽ cập nhật trạng thái sớm nhất.')">Cập nhật trạng thái đơn</button>
+                            </th:block>
+                            <th:block th:case="'GIAO_HANG'">
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Shop xin lỗi vì sự chậm trễ trong khâu giao hàng, shop sẽ liên hệ đơn vị vận chuyển để đẩy nhanh cho bạn.')">Xin lỗi về giao hàng</button>
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Bạn vui lòng cho shop xin mã vận đơn để tra cứu tình trạng giao hàng nhé!')">Xin mã vận đơn</button>
+                            </th:block>
+                            <th:block th:case="'THANH_TOAN'">
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Shop xác nhận đã nhận được thanh toán của bạn. Cảm ơn bạn!')">Xác nhận thanh toán</button>
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Bạn vui lòng gửi ảnh chụp biên lai chuyển khoản để shop đối soát giúp bạn nhé!')">Xin ảnh biên lai</button>
+                            </th:block>
+                            <th:block th:case="'KHIEU_NAI'">
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Shop rất xin lỗi vì trải nghiệm chưa tốt. Shop sẽ hỗ trợ đổi trả/hoàn tiền sớm nhất cho bạn.')">Xin lỗi &amp; xử lý</button>
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Bạn vui lòng để lại số điện thoại để shop liên hệ hỗ trợ trực tiếp nhé!')">Xin SĐT hỗ trợ</button>
+                            </th:block>
+                            <th:block th:case="'SAN_PHAM'">
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Sản phẩm hiện vẫn còn hàng, bạn có thể đặt mua trực tiếp trên website nhé!')">Xác nhận còn hàng</button>
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Shop xin gửi thêm thông tin chi tiết về sản phẩm bạn quan tâm sau ít phút.')">Gửi thêm thông tin SP</button>
+                            </th:block>
+                            <th:block th:case="'HOP_TAC'">
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Cảm ơn bạn đã quan tâm hợp tác cùng DuaStore! Shop sẽ liên hệ lại trong 1-2 ngày làm việc.')">Cảm ơn &amp; hẹn phản hồi</button>
+                            </th:block>
+                            <th:block th:case="*">
+                                <button type="button" class="rv-btn" onclick="insertQuickReply('Shop xin lỗi vì trải nghiệm chưa tốt. Chúng tôi sẽ hỗ trợ xử lý sớm nhất.')">Xin lỗi &amp; xử lý</button>
+                            </th:block>
+                        </th:block>
                     </div>
                     <textarea id="contact-reply-content" rows="3" placeholder="Trả lời khách qua email…"></textarea>
                     <div class="ct-footer-actions">

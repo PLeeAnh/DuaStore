@@ -2540,6 +2540,8 @@ body.adm-body {
 .rv-reply-text { font-size: 13px; color: #475569; margin-top: 4px; line-height: 1.55; }
 
 .rv-reply-form { margin-top: 13px; }
+.rv-quick-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 9px; }
+.rv-quick-row .rv-chip { height: 30px; font-size: 12px; }
 .rv-reply-form textarea {
     width: 100%;
     padding: 10px 12px;
@@ -2737,6 +2739,62 @@ body.adm-body {
 @media (max-width: 900px) {
     .ct-layout { grid-template-columns: 1fr; }
 }
+
+/* ── 43e. Product list extras ── */
+.pd-warn-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+.pd-warn-banner i { color: #B45309; font-size: 18px; flex: 0 0 18px; }
+.pd-warn-text { flex: 1; font-size: 13.5px; color: #78350F; }
+.pd-warn-btn {
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    background: var(--card);
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #92400E;
+    text-decoration: none;
+}
+.pd-warn-btn:hover { background: #FFFBEB; color: #92400E; }
+
+.pd-stock-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+}
+.pd-stock-ok { background: #DCFCE7; color: #15803D; }
+.pd-stock-low { background: #FEE2E2; color: #B91C1C; }
+
+.pd-bulk-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 9px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.pd-bulk-label { font-size: 13px; font-weight: 600; color: #1E40AF; }
+
+.pd-toolbar-wrap { margin-bottom: 16px; }
+.pd-toolbar-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pd-search { flex: 0 1 280px; }
+.pd-clear-link { height: 36px; display: inline-flex; align-items: center; padding: 0 4px; }
 
 /* ── 44. Appearance / Section Builder ── */
 .hp-section {

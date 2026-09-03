@@ -4,6 +4,7 @@ import com.duastore.repository.OrderRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.ProductRepository;
+import com.duastore.repository.ContactMessageRepository;
 import com.duastore.util.PriceUtils;
 import org.springframework.stereotype.Service;
 
@@ -26,17 +27,23 @@ public class AdminCopilotService {
     private final UserRepository userRepository;
     private final ProductVariantRepository variantRepository;
     private final ProductRepository productRepository;
+    private final AdminReviewService reviewService;
+    private final ContactMessageRepository contactMessageRepository;
 
     public AdminCopilotService(AdminAnalyticsService analyticsService,
                                 OrderRepository orderRepository,
                                 UserRepository userRepository,
                                 ProductVariantRepository variantRepository,
-                                ProductRepository productRepository) {
+                                ProductRepository productRepository,
+                                AdminReviewService reviewService,
+                                ContactMessageRepository contactMessageRepository) {
         this.analyticsService = analyticsService;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.variantRepository = variantRepository;
         this.productRepository = productRepository;
+        this.reviewService = reviewService;
+        this.contactMessageRepository = contactMessageRepository;
     }
 
     public Map<String, Object> answer(String query) {
@@ -72,6 +79,15 @@ public class AdminCopilotService {
         if (q.contains("doanh thu") || q.contains("revenue")) {
             return handleRevenue(q);
         }
+        if (q.contains("chờ xác nhận") || q.contains("cho xac nhan") || q.contains("đơn chờ") || q.contains("don cho")) {
+            return handlePendingOrders();
+        }
+        if (q.contains("đánh giá") || q.contains("danh gia") || q.contains("review")) {
+            return handleReviews();
+        }
+        if (q.contains("tin nhắn") || q.contains("tin nhan") || q.contains("liên hệ") || q.contains("lien he")) {
+            return handleContactMessages();
+        }
         if (q.contains("đơn hàng") || q.contains("don hang") || q.contains("order")) {
             return handleOrders(q);
         }
@@ -80,10 +96,13 @@ public class AdminCopilotService {
                 "• **Doanh thu** hôm nay / tuần này / tháng này\n" +
                 "• **So sánh** doanh thu tuần này với tuần trước\n" +
                 "• **Đơn hàng** tháng này\n" +
+                "• **Đơn chờ xác nhận**\n" +
                 "• **Top** sản phẩm bán chạy\n" +
                 "• **Tồn kho** thấp\n" +
                 "• **Khách hàng mới** tháng này\n" +
-                "• **Tỷ lệ hoàn thành**");
+                "• **Tỷ lệ hoàn thành**\n" +
+                "• **Đánh giá** chưa trả lời\n" +
+                "• **Tin nhắn** chưa đọc");
     }
 
     // ===== Query handlers =====
@@ -214,6 +233,43 @@ public class AdminCopilotService {
         if (p == null) p = new PeriodResult(LocalDate.now().withDayOfMonth(1), LocalDate.now(), "tháng này");
         String discount = analyticsService.getTotalDiscountGiven(p.from, p.to);
         return singleAnswer("Tổng giảm giá đã cấp " + p.label + ": **" + discount + "**");
+    }
+
+    private Map<String, Object> handlePendingOrders() {
+        long pending = orderRepository.countByTrangThaiDon("CHO_XAC_NHAN");
+        StringBuilder sb = new StringBuilder("**Đơn chờ xác nhận:** " + pending + " đơn");
+        if (pending > 0) {
+            sb.append("\nVào tab **Đơn hàng** để xử lý ngay, tránh khách chờ lâu.");
+        } else {
+            sb.append("\nKhông có đơn nào đang chờ xác nhận.");
+        }
+        return singleAnswer(sb.toString());
+    }
+
+    private Map<String, Object> handleReviews() {
+        long unanswered = reviewService.countUnanswered();
+        long lowRating = reviewService.countLowRating();
+        double avg = reviewService.getOverallAverageRating();
+        StringBuilder sb = new StringBuilder("**Đánh giá sản phẩm:**\n");
+        sb.append("• Điểm trung bình: " + String.format("%.1f", avg) + "★\n");
+        sb.append("• Chưa trả lời: " + unanswered + " đánh giá\n");
+        sb.append("• 1–2★ cần xử lý: " + lowRating + " đánh giá");
+        if (unanswered > 0) {
+            sb.append("\nVào tab **Đánh giá** để trả lời khách sớm.");
+        }
+        return singleAnswer(sb.toString());
+    }
+
+    private Map<String, Object> handleContactMessages() {
+        long open = contactMessageRepository.countByIsResolvedFalseAndIsSpamFalse();
+        long unread = contactMessageRepository.countByIsRead(false);
+        StringBuilder sb = new StringBuilder("**Tin nhắn liên hệ:**\n");
+        sb.append("• Đang mở: " + open + " tin nhắn\n");
+        sb.append("• Chưa đọc: " + unread + " tin nhắn");
+        if (unread > 0) {
+            sb.append("\nVào tab **Tin nhắn liên hệ** để phản hồi khách.");
+        }
+        return singleAnswer(sb.toString());
     }
 
     private Map<String, Object> handlePaymentMethod(String q) {

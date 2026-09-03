@@ -83,7 +83,7 @@ class OrderServiceTest {
         String maCode = "TEST10";
         BigDecimal subtotal = new BigDecimal("200000");
 
-        var result = orderService.validateCouponForApi(maCode, subtotal);
+        var result = orderService.validateCouponForApi(maCode, subtotal, null);
         assertThat(result.get("valid")).isEqualTo(false);
     }
 

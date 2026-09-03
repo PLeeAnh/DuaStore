@@ -1306,16 +1306,16 @@ INSERT INTO PostCategories (tenDanhMuc, moTa, thuTu, ngayTao) VALUES
     (N'Hướng Dẫn', N'Các bài hướng dẫn chọn và bảo quản đồ thủy tinh', 1, GETDATE()),
     (N'Xu Hướng',  N'Xu hướng trang trí và quà tặng', 2, GETDATE());
 
-INSERT INTO Posts (tieuDe, tomTat, noiDung, tacGiaId, danhMucId, trangThai, ngayTao, ngayCapNhat) VALUES
+INSERT INTO Posts (tieuDe, tomTat, noiDung, hinhAnh, tacGiaId, danhMucId, trangThai, ngayTao, ngayCapNhat) VALUES
     (N'Hướng dẫn chọn chai thủy tinh theo mục đích sử dụng',
      N'Phân biệt chai đựng rượu, nước hoa, thực phẩm - điểm khác biệt về miệng chai, kiểu nắp và chất liệu.',
-     N'<p>Nội dung hướng dẫn đầy đủ...</p>', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
+     N'<p>Nội dung hướng dẫn đầy đủ...</p>', N'/images/products/chai-tron-250ml-nap-go.jpg', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
     (N'Ưu điểm của thủy tinh Borosilicate so với thủy tinh thường',
      N'Tại sao thủy tinh Borosilicate lại được ưa chuộng trong ngành thực phẩm và dược phẩm?',
-     N'<p>Nội dung bài viết...</p>', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
+     N'<p>Nội dung bài viết...</p>', N'/images/products/binh-decanter-hario-400ml.jpg', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
     (N'Top 5 mẫu bình trang trí được ưa chuộng nhất năm nay',
      N'Khảo sát xu hướng thị trường bình thủy tinh và pha lê trang trí.',
-     N'<p>Nội dung bài viết...</p>', 1, 2, 'NHAP', GETDATE(), GETDATE());
+     N'<p>Nội dung bài viết...</p>', N'/images/products/binh-hoa-pha-le-1000ml.jpg', 1, 2, 'NHAP', GETDATE(), GETDATE());
 
 INSERT INTO Wishlists (userId, productId, ngayThem) VALUES
     (2, 3, GETDATE()),
@@ -2316,6 +2316,28 @@ GO
 
 PRINT '====================================================';
 PRINT ' Gan voucher cho don hang hoan tat!';
+PRINT '====================================================';
+GO
+
+-- ============================================================
+-- Backfill Products.hinhAnhChinh tu anh cua bien the mac dinh
+-- (INSERT Products o tren khong set cot nay, chi ProductVariants
+-- moi co anh — cac trang admin/client hien anh dai dien san pham
+-- (VD: /admin/san-pham) doc truc tiep hinhAnhChinh nen can co du lieu).
+-- ============================================================
+UPDATE p
+SET p.hinhAnhChinh = pv.hinhAnh
+FROM Products p
+CROSS APPLY (
+    SELECT TOP 1 hinhAnh FROM ProductVariants
+    WHERE productId = p.id AND hinhAnh IS NOT NULL
+    ORDER BY isDefault DESC, id ASC
+) pv
+WHERE p.hinhAnhChinh IS NULL;
+GO
+
+PRINT '====================================================';
+PRINT ' Da backfill hinhAnhChinh cho tat ca san pham!';
 PRINT '====================================================';
 GO
 

@@ -1008,17 +1008,37 @@
         <script th:src="@{/js/admin-analytics.js(v=4)}"></script>
         <script th:src="@{/js/admin-daterange.js(v=1)}"></script>
         <script>
+            function getActiveAnalyticsTab() {
+                var activeBtn = document.querySelector('#analyticsTabs .nav-link.active');
+                var target = activeBtn ? activeBtn.getAttribute('data-bs-target') : null;
+                return target ? target.substring(1) : null;
+            }
+            function tabQueryParam() {
+                var tab = getActiveAnalyticsTab();
+                return tab ? '&tab=' + tab : '';
+            }
             initAdmDateRange('admAnalyticsDateRange', {
                 onPreset: function (period) {
-                    window.location.href = '/admin/phan-tich?period=' + period;
+                    window.location.href = '/admin/phan-tich?period=' + period + tabQueryParam();
                 },
                 onApply: function (from, to) {
-                    window.location.href = '/admin/phan-tich?from=' + from + '&to=' + to;
+                    window.location.href = '/admin/phan-tich?from=' + from + '&to=' + to + tabQueryParam();
                 },
                 onClear: function () {
-                    window.location.href = '/admin/phan-tich?period=this-month';
+                    window.location.href = '/admin/phan-tich?period=this-month' + tabQueryParam();
                 }
             });
+
+            // Khôi phục tab đang xem sau khi trang tải lại (do đổi bộ lọc ngày tháng)
+            (function () {
+                var params = new URLSearchParams(window.location.search);
+                var tab = params.get('tab');
+                if (!tab) return;
+                var btn = document.querySelector('#analyticsTabs .nav-link[data-bs-target="#' + tab + '"]');
+                if (btn && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                    new bootstrap.Tab(btn).show();
+                }
+            })();
         </script>
     </th:block>
 </body>

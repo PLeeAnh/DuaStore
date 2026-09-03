@@ -392,6 +392,7 @@ public class AdminOrderController {
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
     public ResponseEntity<Map<String, Object>> updateStatusInline(@PathVariable Integer id,
             @RequestParam String trangThai,
+            @RequestParam(required = false) String trangThaiTT,
             HttpServletRequest request) {
         Map<String, Object> result = new LinkedHashMap<>();
         try {
@@ -434,6 +435,13 @@ public class AdminOrderController {
                 } catch (Exception ignored) {
                 }
             }
+            if (trangThaiTT != null && !trangThaiTT.isBlank()) {
+                Order refreshed = adminOrderService.getOrderById(id);
+                if (!trangThaiTT.equals(refreshed.getTrangThaiTT())) {
+                    adminOrderService.updatePaymentStatusWithLog(id, trangThaiTT, refreshed.getTrangThaiTT(), admin, request);
+                }
+            }
+
             String msg;
             if ("DA_HUY".equals(trangThai)) {
                 msg = "Đã xóa đơn hàng";
@@ -443,8 +451,10 @@ public class AdminOrderController {
             if (stockMsg != null) {
                 msg += ". " + stockMsg;
             }
-            if (wasUnpaid && "DA_HOAN_THANH".equals(trangThai)) {
-                msg += " Khách chưa thanh toán — bạn đã xác nhận thay khách.";
+            if (wasUnpaid && "DA_THANH_TOAN".equals(trangThaiTT)) {
+                msg += " Đã xác nhận thanh toán.";
+            } else if (wasUnpaid && "DA_HOAN_THANH".equals(trangThai) && trangThaiTT == null) {
+                msg += " Lưu ý: đơn vẫn đang ở trạng thái chưa thanh toán.";
             }
 
             result.put("success", true);

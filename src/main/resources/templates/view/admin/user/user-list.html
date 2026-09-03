@@ -47,86 +47,39 @@
             </a>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
-                            <div class="adm-stat-label">Tổng người dùng</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng người dùng</div>
+                <div class="rv-stat-value" th:text="${totalItems}">0</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
-                            <i class="bi bi-shield-fill"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${productOwnerCount}">0</div>
-                            <div class="adm-stat-label">PRODUCT_OWNER</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">PRODUCT_OWNER</div>
+                <div class="rv-stat-value" th:text="${productOwnerCount}">0</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#F3E8FF;color:#9333EA">
-                            <i class="bi bi-person-badge"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${adminCount}">0</div>
-                            <div class="adm-stat-label">ADMIN</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">ADMIN</div>
+                <div class="rv-stat-value" th:text="${adminCount}">0</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#E0F2FE;color:#0284C7">
-                            <i class="bi bi-person-workspace"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${staffCount}">0</div>
-                            <div class="adm-stat-label">STAFF</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">STAFF</div>
+                <div class="rv-stat-value" th:text="${staffCount}">0</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
-                            <i class="bi bi-person"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${userCount}">0</div>
-                            <div class="adm-stat-label">USER</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">USER</div>
+                <div class="rv-stat-value" th:text="${userCount}">0</div>
             </div>
         </div>
 
+        <div class="pd-toolbar-wrap">
+            <form class="pd-toolbar-form" method="get">
+                <select name="role" class="form-select form-select-sm searchable-select adm-filter-select" placeholder="Tìm vai trò..." data-autosubmit>
+                    <option value="">Tất cả</option>
+                    <option th:each="r : ${allRoles}" th:value="${r.name}" th:selected="${role == r.name}" th:text="${r.name}">ROLE</option>
+                </select>
+            </form>
+        </div>
+
         <div class="adm-table-wrap">
-            <div class="d-flex align-items-center justify-content-between px-3 py-2" style="border-bottom:1px solid var(--ef-border)">
-                <div class="d-flex align-items-center gap-2">
-                    <form class="d-flex align-items-center gap-2" method="get">
-                        <select name="role" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tìm vai trò..." data-autosubmit>
-                            <option value="">Tất cả</option>
-                            <option th:each="r : ${allRoles}" th:value="${r.name}" th:selected="${role == r.name}" th:text="${r.name}">ROLE</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-outline-primary">Lọc</button>
-                    </form>
-                </div>
-            </div>
             <div class="table-responsive">
             <table class="table">
                 <thead>

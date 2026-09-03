@@ -48,7 +48,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT COUNT(o) FROM Order o WHERE o.ngayDat BETWEEN :start AND :end")
     long countByNgayDatBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    @Query("SELECT COALESCE(SUM(o.tongThanhToan), 0) FROM Order o WHERE (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') AND o.ngayDat BETWEEN :start AND :end")
+    @Query("SELECT COALESCE(SUM(o.tongThanhToan), 0) FROM Order o WHERE (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') AND o.trangThaiTT = 'DA_THANH_TOAN' AND o.ngayDat BETWEEN :start AND :end")
     BigDecimal sumTongThanhToanByTrangThaiDonAndNgayDatBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("SELECT o FROM Order o ORDER BY o.ngayDat DESC")
@@ -176,10 +176,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> searchOrdersAutocomplete(@Param("q") String q, Pageable pageable);
 
     @Query("SELECT o.user.id, SUM(o.tongThanhToan) FROM Order o "
-            + "WHERE o.user.id IN :ids AND (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') "
+            + "WHERE o.user.id IN :ids AND (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') AND o.trangThaiTT = 'DA_THANH_TOAN' "
             + "GROUP BY o.user.id")
     List<Object[]> sumTotalSpentByUserIds(@Param("ids") List<Integer> ids);
 
-    @Query("SELECT o.phuongThucTT, SUM(o.tongThanhToan), COUNT(o) FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') AND o.ngayDat BETWEEN :start AND :end GROUP BY o.phuongThucTT")
+    @Query("SELECT o.phuongThucTT, SUM(o.tongThanhToan), COUNT(o) FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') AND o.trangThaiTT = 'DA_THANH_TOAN' AND o.ngayDat BETWEEN :start AND :end GROUP BY o.phuongThucTT")
     List<Object[]> sumRevenueGroupByPhuongThucTT(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

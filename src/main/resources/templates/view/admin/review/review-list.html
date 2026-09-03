@@ -110,6 +110,19 @@
 
                 <!-- Form trả lời (ẩn, hiện khi bấm nút Trả lời) -->
                 <div th:id="'reply-section-' + ${r.id}" class="rv-reply-form" style="display:none">
+                    <div class="rv-quick-row" th:if="${r.danhGia <= 2}">
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 0)'">Xin lỗi &amp; hỏi lý do</button>
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 1)'">Đề nghị đổi trả/hoàn tiền</button>
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 2)'">Xin liên hệ để hỗ trợ</button>
+                    </div>
+                    <div class="rv-quick-row" th:if="${r.danhGia == 3}">
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 3)'">Cảm ơn góp ý</button>
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 4)'">Hỏi thêm chi tiết</button>
+                    </div>
+                    <div class="rv-quick-row" th:if="${r.danhGia >= 4}">
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 5)'">Cảm ơn khách</button>
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 6)'">Mời quay lại ủng hộ</button>
+                    </div>
                     <textarea th:id="'reply-content-' + ${r.id}" rows="3" placeholder="Viết câu trả lời cho khách…"></textarea>
                     <div class="rv-reply-form-actions">
                         <span class="rv-reply-hint">Trả lời sẽ hiện công khai dưới đánh giá trên trang sản phẩm.</span>
@@ -182,6 +195,20 @@
                     location.reload();
                 })
                 .catch(function() { alert('Lỗi kết nối'); });
+            }
+
+            var REVIEW_QUICK_REPLIES = [
+                'Shop rất tiếc vì trải nghiệm chưa tốt. Bạn có thể cho shop biết cụ thể vấn đề gặp phải không ạ?',
+                'Shop xin lỗi vì sự cố này. Bạn vui lòng liên hệ hotline hoặc để lại số điện thoại để shop hỗ trợ đổi trả/hoàn tiền nhé!',
+                'Rất mong bạn để lại thông tin liên hệ (SĐT/Zalo) để shop hỗ trợ xử lý sớm nhất ạ.',
+                'Cảm ơn góp ý của bạn! Shop sẽ ghi nhận để cải thiện chất lượng sản phẩm/dịch vụ.',
+                'Bạn có thể chia sẻ thêm chi tiết để shop hiểu rõ và cải thiện tốt hơn không ạ?',
+                'Cảm ơn bạn đã tin tưởng và ủng hộ DuaStore! Chúc bạn dùng sản phẩm thật vui nhé.',
+                'Cảm ơn đánh giá của bạn! Mong được đón tiếp bạn ở những lần mua sắm tiếp theo ạ.'
+            ];
+            function insertReviewQuickReply(reviewId, idx) {
+                var ta = document.getElementById('reply-content-' + reviewId);
+                if (ta) ta.value = REVIEW_QUICK_REPLIES[idx];
             }
 
             document.addEventListener('DOMContentLoaded', function () {

@@ -28,88 +28,51 @@
             </div>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
-                            <div class="adm-stat-label">Tổng khách hàng</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng khách hàng</div>
+                <div class="rv-stat-value" th:text="${totalItems}">0</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${activeCount}">0</div>
-                            <div class="adm-stat-label">Đang hoạt động</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Đang hoạt động</div>
+                <div class="rv-stat-value" th:text="${activeCount}">0</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#FEE2E2;color:#DC2626">
-                            <i class="bi bi-lock"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${lockedCount}">0</div>
-                            <div class="adm-stat-label">Bị khóa</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Bị khóa</div>
+                <div class="rv-stat-value" th:text="${lockedCount}">0</div>
             </div>
-            <div class="col-md-3 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
-                            <i class="bi bi-person-plus"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${newThisMonth}">0</div>
-                            <div class="adm-stat-label">Mới trong tháng</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Mới trong tháng</div>
+                <div class="rv-stat-value" th:text="${newThisMonth}">0</div>
             </div>
         </div>
 
-        <div class="adm-table-wrap p-3 mb-4">
-            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                <div class="d-flex gap-2 flex-wrap">
-                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm tên, email..." th:value="${keyword}"
+        <div class="pd-toolbar-wrap">
+            <div class="pd-toolbar-form">
+                <div class="rv-search" style="flex:0 0 220px">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchKeyword" placeholder="Tìm tên, email..." th:value="${keyword}"
                            data-ds-autocomplete="/admin/api/search?type=customer"
                            data-ds-map="customer"
                            data-ds-open-url="/admin/khach-hang/{id}"
                            data-ds-no-recent />
-                    <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tìm trạng thái...">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
-                        <option value="LOCKED" th:selected="${status == 'LOCKED'}">Khóa</option>
-                    </select>
-                    <select id="filterCity" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tìm tỉnh/thành...">
-                        <option value="">Tất cả tỉnh/thành</option>
-                        <option th:each="c : ${cities}" th:value="${c}" th:selected="${city == c}" th:text="${c}"></option>
-                    </select>
-                    <select id="filterSpendingTier" class="form-select form-select-sm searchable-select" style="width:auto" placeholder="Tìm phân khúc...">
-                        <option value="">Tất cả phân khúc</option>
-                        <option value="vip" th:selected="${spendingTier == 'vip'}">VIP (&ge;10tr)</option>
-                        <option value="medium" th:selected="${spendingTier == 'medium'}">Trung bình (2-10tr)</option>
-                        <option value="new" th:selected="${spendingTier == 'new'}">Mới (&lt;2tr)</option>
-                    </select>
                 </div>
-                <a th:href="@{/admin/khach-hang}" class="btn btn-outline-secondary btn-sm" th:if="${searching}">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>Xóa lọc
-                </a>
+                <select id="filterStatus" class="form-select form-select-sm searchable-select adm-filter-select" placeholder="Tìm trạng thái...">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="ACTIVE" th:selected="${status == 'ACTIVE'}">Hoạt động</option>
+                    <option value="LOCKED" th:selected="${status == 'LOCKED'}">Khóa</option>
+                </select>
+                <select id="filterCity" class="form-select form-select-sm searchable-select adm-filter-select" placeholder="Tìm tỉnh/thành...">
+                    <option value="">Tất cả tỉnh/thành</option>
+                    <option th:each="c : ${cities}" th:value="${c}" th:selected="${city == c}" th:text="${c}"></option>
+                </select>
+                <select id="filterSpendingTier" class="form-select form-select-sm searchable-select adm-filter-select" placeholder="Tìm phân khúc...">
+                    <option value="">Tất cả phân khúc</option>
+                    <option value="vip" th:selected="${spendingTier == 'vip'}">VIP (&ge;10tr)</option>
+                    <option value="medium" th:selected="${spendingTier == 'medium'}">Trung bình (2-10tr)</option>
+                    <option value="new" th:selected="${spendingTier == 'new'}">Mới (&lt;2tr)</option>
+                </select>
+                <a th:href="@{/admin/khach-hang}" class="rv-link pd-clear-link" th:if="${searching}">Xoá lọc</a>
             </div>
         </div>
 

@@ -66,13 +66,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /* ═══ SCROLLREVEAL ═══ */
-    if (typeof ScrollReveal !== 'undefined') {
-        var sr = ScrollReveal({origin: 'bottom', distance: '40px', duration: 800, delay: 200, easing: 'ease-out'});
-        sr.reveal('.sr-card', {interval: 200});
-        sr.reveal('.sr-up', {});
-        sr.reveal('.sr-left', {origin: 'left', distance: '60px'});
-        sr.reveal('.sr-right', {origin: 'right', distance: '60px'});
+    /* ═══ SCROLL REVEAL (IntersectionObserver — thay cho thư viện ScrollReveal ngoài) ═══
+       Thư viện ScrollReveal@4 cũ có lỗi đã biết: nó set tạm document.body.style.height='100%'
+       để đo viewport, và trong một số trường hợp giá trị đó bị "kẹt" vĩnh viễn (không được
+       reset lại) — khiến cả trang không cuộn được và mọi click bên dưới đều không ăn (đúng
+       như lỗi "click sản phẩm ko được" đã gặp). Thay bằng IntersectionObserver gốc của trình
+       duyệt — nhẹ hơn, không đụng vào body, không có lỗi này. */
+    var srEls = document.querySelectorAll('.sr-card, .sr-up, .sr-left, .sr-right');
+    if (srEls.length) {
+        if ('IntersectionObserver' in window) {
+            var srObserver = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('sr-revealed');
+                        srObserver.unobserve(entry.target);
+                    }
+                });
+            }, {threshold: 0.1, rootMargin: '0px 0px -40px 0px'});
+            srEls.forEach(function (el, i) {
+                if (el.classList.contains('sr-card')) {
+                    el.style.transitionDelay = Math.min(i * 100, 600) + 'ms';
+                }
+                srObserver.observe(el);
+            });
+        } else {
+            srEls.forEach(function (el) { el.classList.add('sr-revealed'); });
+        }
     }
 
     /* ═══ PROFILE MENU ═══ */
@@ -230,36 +249,10 @@ document.addEventListener('DOMContentLoaded', function () {
             plus.disabled = (val >= maxStock);
     });
 
-    /* ═══ FLASH SALE COUNTDOWN ═══ */
-    document.querySelectorAll('.ds-flash-timer').forEach(timer => {
-        const endStr = timer.getAttribute('data-end');
-        if (!endStr)
-            return;
-        const endDate = new Date(endStr);
-        function tick() {
-            const diff = endDate - new Date();
-            const span = timer.querySelector('.flash-countdown');
-            if (!span)
-                return;
-            if (diff <= 0) {
-                span.textContent = 'Đã kết thúc';
-                timer.style.opacity = '.5';
-                return;
-            }
-            const days = Math.floor(diff / 86400000);
-            if (days > 0) {
-                const d = endDate.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit', year: 'numeric'});
-                span.textContent = 'HSD: ' + d;
-                return;
-            }
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            span.textContent = String(h).padStart(2, '0') + 'h ' + String(m).padStart(2, '0') + 'm ' + String(s).padStart(2, '0') + 's';
-        }
-        tick();
-        setInterval(tick, 1000);
-    });
+    /* Đếm ngược Flash Sale (.ds-flash-timer) được xử lý duy nhất trong modules/product.js
+       — trước đây file này có 1 bản sao gần giống nhưng hiển thị khác định dạng
+       ("HSD: dd/mm/yyyy" thay vì "Còn X ngày"), khiến 2 setInterval độc lập ghi đè
+       chữ khác nhau lên cùng 1 span mỗi giây → nhìn như bị nhấp nháy. */
 
     /* ═══ PROMO COUNTDOWN ═══ */
     document.querySelectorAll('.ds-promo-timer').forEach(timer => {

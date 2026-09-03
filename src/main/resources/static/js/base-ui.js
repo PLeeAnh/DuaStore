@@ -569,7 +569,10 @@ function loadEpActivity() {
         var reviewsDiv = document.getElementById('epActivityReviews');
         if (!loading || ordersDiv.dataset.loaded) return;
         fetch('/tai-khoan/api/hoat-dong')
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+        if (r.redirected || !r.ok) { throw new Error('session-expired'); }
+                return r.json();
+        })
         .then(function(data) {
         loading.classList.add('d-none');
                 if (data.orders && data.orders.length) {
@@ -597,8 +600,12 @@ function loadEpActivity() {
                 }
         ordersDiv.dataset.loaded = 'true';
                 })
-        .catch(function() {
+        .catch(function(err) {
+        if (err && err.message === 'session-expired') {
+        loading.innerHTML = '<div class="text-center py-4 text-muted small">Phiên đăng nhập đã hết hạn. <a href="/dang-nhap" class="fw-semibold">Đăng nhập lại</a></div>';
+        } else {
         loading.innerHTML = '<div class="text-center py-4 text-muted small">Không thể tải hoạt động</div>';
+        }
                 });
 }
 

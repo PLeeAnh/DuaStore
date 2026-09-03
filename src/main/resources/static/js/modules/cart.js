@@ -144,7 +144,6 @@ function addToCart(productId, variantId, quantity) {
             if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
                 DuaStore.toast.success('Đã thêm vào giỏ hàng');
             }
-            setTimeout(saveGuestCartToLS, 100);
         }
     }).catch(function (error) {
         console.error('Lỗi giỏ hàng: ', error);
@@ -335,7 +334,6 @@ function removeCartItem(cartItemId) {
         if (data.success) {
             if (typeof updateCartBadge === 'function')
                 updateCartBadge(data.cartCount);
-            setTimeout(saveGuestCartToLS, 100);
             if (data.remainingItems === 0 && pid) {
                 document.querySelectorAll('.ds-product-card[data-productid="' + pid + '"]').forEach(function (card) {
                     var b = card.querySelector('.ds-card-add-cart');
@@ -398,7 +396,6 @@ function updatePopupQty(variantId, delta) {
         if (data.success) {
             if (typeof updateCartBadge === 'function')
                 updateCartBadge(data.cartCount);
-            setTimeout(saveGuestCartToLS, 100);
         } else if (data.message && data.message.indexOf('dang nhap') !== -1) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
@@ -449,79 +446,12 @@ function setPopupQty(variantId) {
     }).catch(function () {});
 }
 
-/* ═══ LOCALSTORAGE GUEST CART PERSISTENCE ═══ */
-function saveGuestCartToLS() {
-    var items = [];
-    document.querySelectorAll('#cart-items-container .popup-item').forEach(function(el) {
-        var id = el.id.replace('cart-item-', '');
-        var qtyEl = el.querySelector('input[id^="popup-qty-"]');
-        var priceEl = el.querySelector('.popup-item-price');
-        var nameEl = el.querySelector('a');
-        var imgEl = el.querySelector('img');
-        items.push({
-            variantId: parseInt(id) || id,
-            productId: parseInt(el.dataset.productid) || 0,
-            qty: qtyEl ? parseInt(qtyEl.value) || 1 : 1,
-            price: priceEl ? parseInt(priceEl.dataset.price) || 0 : 0,
-            name: nameEl ? nameEl.textContent : '',
-            img: imgEl ? imgEl.src : ''
-        });
-    });
-    try { localStorage.setItem('ds_guest_cart', JSON.stringify(items)); } catch(e) {}
-}
-
-function restoreGuestCartFromLS() {
-    var raw;
-    try { raw = localStorage.getItem('ds_guest_cart'); } catch(e) {}
-    if (!raw) return;
-    var items;
-    try { items = JSON.parse(raw); } catch(e) { return; }
-    if (!items || !items.length) return;
-    var container = document.getElementById('cart-items-container');
-    if (!container) return;
-    var existing = container.querySelectorAll('.popup-item').length;
-    if (existing > 0) return;
-    var emptyMsg = container.querySelector('.text-center.text-muted');
-    if (emptyMsg) emptyMsg.remove();
-    items.forEach(function(item) {
-        var imgHtml = item.img
-            ? '<img src="' + item.img + '" class="w-100 h-100 object-fit-cover" alt="SP">'
-            : '<i class="bi bi-box-seam text-secondary"></i>';
-        var priceFmt = (item.price * item.qty).toLocaleString('vi-VN') + '₫';
-        var html = '<div class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" id="cart-item-' + item.variantId + '" data-productid="' + item.productId + '">' +
-            '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
-            '<div class="popup-item-info flex-grow-1">' +
-            '<a href="/san-pham/' + item.productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + item.name + '</a>' +
-            '<div class="d-flex align-items-center">' +
-            '<div class="input-group input-group-sm" style="width:85px;">' +
-            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + item.variantId + ',-1)">-</button>' +
-            '<input class="form-control text-center py-0 px-1" type="number" min="1" id="popup-qty-' + item.variantId + '" value="' + item.qty + '" />' +
-            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + item.variantId + ',1)">+</button>' +
-            '</div>' +
-            '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + item.variantId + '" data-price="' + item.price + '">' + priceFmt + '</span>' +
-            '</div>' +
-            '</div>' +
-            '<button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" onclick="removeCartItem(' + item.variantId + ')"><i class="bi bi-trash text-danger"></i></button>' +
-            '</div>';
-        container.insertAdjacentHTML('beforeend', html);
-    });
-    var totalQty = items.reduce(function(sum, i) { return sum + i.qty; }, 0);
-    if (typeof updateCartBadge === 'function') updateCartBadge(totalQty);
-    if (!document.querySelector('#cart-popup .mt-2.pt-2')) {
-        var popup = document.getElementById('cart-popup');
-        if (popup) {
-            var div = document.createElement('div');
-            div.className = 'mt-2 pt-2';
-            div.innerHTML = '<a href="/checkout" class="btn btn-danger w-100 fw-semibold py-2">Thanh toán tất cả</a>';
-            popup.appendChild(div);
-        }
-    }
-}
-
-// Auto-restore on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-    restoreGuestCartFromLS();
-});
+/* Dọn key localStorage cũ (lỗi): trước đây mọi thao tác giỏ hàng (kể cả khi đã
+   đăng nhập) đều lưu snapshot popup vào key này, rồi tự động chèn lại bất cứ
+   khi nào popup trống — khiến dữ liệu giỏ hàng cũ hiện lại dù DB đã trống/khác
+   tài khoản. Server-rendered popup (Thymeleaf) đã là nguồn dữ liệu đúng, nên
+   xoá hẳn key rác này một lần cho các trình duyệt đã từng bị lưu. */
+try { localStorage.removeItem('ds_guest_cart'); } catch (e) {}
 
 /* ═══ HELPERS ═══ */
 function getActiveVariant(card) {

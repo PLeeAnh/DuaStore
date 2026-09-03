@@ -216,20 +216,19 @@ public class OrderService {
             Promotion lockedPromo = promotionRepository.findByIdWithLock(promo.getId())
                     .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
 
-            // Voucher trong ví: bat buoc phai duoc luu vao vi truoc khi dung
+            // Voucher trong ví: không bắt buộc phải lưu vào ví trước khi dùng
             UserVoucher userVoucher = userVoucherRepository.findByUserIdAndPromotionId(userId, lockedPromo.getId())
                     .orElse(null);
-            if (userVoucher == null) {
-                throw new RuntimeException("Bạn chưa lưu voucher này vào ví. Hãy lưu vào ví trước khi sử dụng");
-            }
-            if (userVoucher.getStatus() != VoucherStatus.AVAILABLE) {
-                throw new RuntimeException("Voucher này không còn sử dụng được");
-            }
-            if (userVoucher.getExpiredAt() != null && userVoucher.getExpiredAt().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Voucher đã hết hạn");
-            }
-            if (userVoucher.getRemainingUses() == null || userVoucher.getRemainingUses() <= 0) {
-                throw new RuntimeException("Voucher đã hết lượt sử dụng");
+            if (userVoucher != null) {
+                if (userVoucher.getStatus() != VoucherStatus.AVAILABLE) {
+                    throw new RuntimeException("Voucher này không còn sử dụng được");
+                }
+                if (userVoucher.getExpiredAt() != null && userVoucher.getExpiredAt().isBefore(LocalDateTime.now())) {
+                    throw new RuntimeException("Voucher đã hết hạn");
+                }
+                if (userVoucher.getRemainingUses() == null || userVoucher.getRemainingUses() <= 0) {
+                    throw new RuntimeException("Voucher đã hết lượt sử dụng");
+                }
             }
 
             Map<Integer, Product> productById = cartItems.stream()
@@ -650,7 +649,7 @@ public class OrderService {
         }
     }
 
-    public Map<String, Object> validateCouponForApi(String maCode, BigDecimal tienHang) {
+    public Map<String, Object> validateCouponForApi(String maCode, BigDecimal tienHang, Integer userId) {
         Map<String, Object> result = new HashMap<>();
         result.put("valid", false);
 
@@ -671,6 +670,13 @@ public class OrderService {
         result.put("giamToiDa", promo.getGiamToiDa());
         result.put("donHangToiThieu", promo.getDonHangToiThieu());
         result.put("tenChuongTrinh", promo.getTenChuongTrinh());
+        // Không bắt buộc phải lưu voucher vào ví mới được dùng (đã bỏ ràng buộc này theo
+        // yêu cầu trước) — nhưng vẫn báo cho client biết mã này KHÔNG nằm trong ví của
+        // khách, để client tự quyết định hiển thị 1 cảnh báo minh bạch thay vì áp dụng
+        // âm thầm như trước (quan trọng với voucher phải mua bằng điểm tích lũy).
+        boolean ownedInWallet = userId != null
+                && userVoucherRepository.findByUserIdAndPromotionId(userId, promo.getId()).isPresent();
+        result.put("ownedInWallet", ownedInWallet);
 
         try {
             validatePromotion(promo, tienHang);

@@ -34,83 +34,40 @@
         </div>
 
         <!-- KPI Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-folder"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${totalCategories}">0</div>
-                            <div class="adm-stat-label">Tổng danh mục</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng danh mục</div>
+                <div class="rv-stat-value" th:text="${totalCategories}">0</div>
             </div>
-            <div class="col-md-3">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#E0F2FE;color:#0284C7">
-                            <i class="bi bi-folder2-open"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${rootCategories}">0</div>
-                            <div class="adm-stat-label">Danh mục gốc</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Danh mục gốc</div>
+                <div class="rv-stat-value" th:text="${rootCategories}">0</div>
             </div>
-            <div class="col-md-3">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#F3E8FF;color:#7C3AED">
-                            <i class="bi bi-folder2"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${childCategories}">0</div>
-                            <div class="adm-stat-label">Danh mục con</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Danh mục con</div>
+                <div class="rv-stat-value" th:text="${childCategories}">0</div>
             </div>
-            <div class="col-md-3">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DCFCE7;color:#16A34A">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${activeCategories}">0</div>
-                            <div class="adm-stat-label">Đang hoạt động</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Đang hoạt động</div>
+                <div class="rv-stat-value" th:text="${activeCategories}">0</div>
             </div>
         </div>
 
         <!-- Filter Bar -->
-        <div class="adm-card mb-4">
-            <div class="adm-card-body">
-                <form th:action="@{/admin/danh-muc}" method="get" class="row g-3 align-items-end" id="filterForm">
-                    <div class="col-md-7">
-                        <input type="text" name="keyword" class="form-control" placeholder="Tên danh mục, mô tả..."
-                               th:value="${param.keyword}" id="keywordInput" />
-                    </div>
-                    <div class="col-md-3">
-                        <select name="status" class="form-select searchable-select" id="statusSelect" placeholder="Tìm trạng thái..." data-autosubmit>
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="active" th:selected="${param.status == 'active'}">Hoạt động</option>
-                            <option value="inactive" th:selected="${param.status == 'inactive'}">Ngừng hoạt động</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <a th:href="@{/admin/danh-muc}" class="btn btn-outline-secondary w-100">
-                            <i class="bi bi-x-lg me-1"></i>Reset
-                        </a>
-                    </div>
-                </form>
-            </div>
+        <div class="pd-toolbar-wrap">
+            <form th:action="@{/admin/danh-muc}" method="get" class="pd-toolbar-form" id="filterForm">
+                <div class="rv-search" style="flex:0 1 300px">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="keyword" placeholder="Tên danh mục, mô tả..."
+                           th:value="${param.keyword}" id="keywordInput" />
+                </div>
+                <select name="status" class="form-select searchable-select adm-filter-select" id="statusSelect" placeholder="Tìm trạng thái..." data-autosubmit>
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active" th:selected="${param.status == 'active'}">Hoạt động</option>
+                    <option value="inactive" th:selected="${param.status == 'inactive'}">Ngừng hoạt động</option>
+                </select>
+                <a th:href="@{/admin/danh-muc}" class="rv-link pd-clear-link">Xoá lọc</a>
+            </form>
         </div>
 
         <!-- Search Results (card list) -->

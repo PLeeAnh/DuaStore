@@ -159,17 +159,9 @@
 <img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                          <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
                                         <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
-                                        <div class="ds-flash-timer" th:if="${fs != null}"
-                                             th:data-end="${#temporals.format(fs.event.ngayKetThuc, 'yyyy-MM-dd''T''HH:mm:ss')}">
-                                            <i class="bi bi-clock"></i>
-                                            <span class="flash-countdown">--:--:--</span>
-                                        </div>
-                                        <span class="ds-badge-flash-stock" th:if="${fs != null and fs.soLuongConLai > 0}">
-                                            <i class="bi bi-fire"></i> Chỉ còn <b th:text="${fs.soLuongConLai}">30</b> sản phẩm
-                                        </span>
-                                        <span class="ds-badge-flash-stock ds-badge-flash-stock-hot" th:if="${fs != null and fs.soLuongConLai <= 0}">
-                                            <i class="bi bi-fire"></i> Hết suất Flash Sale
-                                        </span>
+                                        <!-- Trang chủ chỉ để khám phá sản phẩm — không hiện ruy băng/đếm ngược Flash
+                                             Sale ở đây nữa (dễ đè lên nút yêu thích, dễ lệch dữ liệu khi nhiều biến
+                                             thể). Chi tiết Flash Sale xem ở trang /khuyen-mai. -->
                                         <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên sản phẩm</div>
                                     </a>
                                 </div>
@@ -202,7 +194,7 @@
                                         <div class="ds-card-price-values">
                                             <span class="ds-card-price-old"
                                                   th:if="${v != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
-                                                  th:text="${#numbers.formatInteger(v.giaGoc, 0, 'POINT')} + '₫'">15.000₫</span>
+                                                  th:text="${#numbers.formatInteger(originalPriceMap != null and originalPriceMap.get(p.id) != null ? originalPriceMap.get(p.id) : v.giaGoc, 0, 'POINT')} + '₫'">15.000₫</span>
                                             <span class="ds-card-price-current"
                                                   th:text="${#numbers.formatInteger(promoPriceMap.get(p.id) != null ? promoPriceMap.get(p.id) : (v != null and v.giaKhuyenMai != null ? v.giaKhuyenMai : (v != null ? v.giaGoc : 0)), 0, 'POINT')} + '₫'">12.750₫</span>
                                         </div>

@@ -341,19 +341,35 @@ public class ProductController {
         // Pre‑compute promo discounted price per variant (product-specific promos)
         Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
+        // "-X%" badge + giá gốc gạch ngang + có gate ruy băng Flash Sale hay không — trước
+        // đây trang /san-pham KHÔNG hề gán model attribute "bestDiscountMap" nên badge -X%
+        // không bao giờ hiện (dù giá hiển thị vẫn đang giảm đúng), còn ruy băng Flash Sale
+        // lại hiện bất cứ khi nào sản phẩm có 1 biến thể nào đó đang flash sale — kể cả khi
+        // mức giá thực tế đang giảm theo khuyến mãi khác — khiến khách thấy đồng hồ đếm
+        // ngược + giá giảm nhưng không có badge/% nào giải thích, dễ hiểu lầm là ảo.
+        Map<Integer, Integer> bestDiscountMap = new HashMap<>();
+        Map<Integer, BigDecimal> originalPriceMap = new HashMap<>();
+        Map<Integer, Boolean> hasFlashMap = new HashMap<>();
+
+        // Lưu ý: phải tra flash sale theo TỪNG biến thể (variantId), không được lấy giá
+        // flash sale rẻ nhất của SẢN PHẨM (flashSaleMap theo productId) rồi áp cho mọi
+        // biến thể khác — trước đây bug này khiến biến thể 750ml hiện giá flash sale
+        // của biến thể 50ml dù không hề nằm trong đợt Flash Sale đó.
+        Map<Integer, FlashSaleItem> variantFlashItemMap = pricingService.loadActiveFlashSaleItemMap(
+                variantsMap.values().stream().flatMap(List::stream).map(ProductVariant::getId).toList());
 
         for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
             Integer productId = entry.getKey();
             List<ProductVariant> pvList = entry.getValue();
+            if (pvList.isEmpty()) {
+                continue;
+            }
 
             // Get product-specific best promos
             Promotion productPctPromo = productBestPercentagePromoMap.get(productId);
-            Promotion productFixedPromo = productBestFixedPromoMap.get(productId);
-
-            // Use global promos as fallback
             Promotion pctPromo = productPctPromo != null ? productPctPromo : bestPercentagePromo;
-            Promotion fixedPromo = productFixedPromo != null ? productFixedPromo : bestFixedPromo;
 
+            // 1) Variant giá khuyến mãi + promo áp cho TỪNG biến thể (dùng khi đổi chip size)
             if (pctPromo != null) {
                 BigDecimal discountPct = pctPromo.getGiaTriGiam();
                 boolean hasGiamToiDa = pctPromo.getGiamToiDa() != null;
@@ -373,42 +389,84 @@ public class ProductController {
                         variantPromoPriceMap.put(pv.getId(), raw.setScale(0, java.math.RoundingMode.HALF_UP));
                     }
                 }
-                if (!pvList.isEmpty()) {
-                    ProductVariant first = pvList.get(0);
-                    BigDecimal basePrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : first.getGiaGoc();
-                    if (basePrice != null) {
-                        BigDecimal raw = basePrice
-                                .multiply(BigDecimal.valueOf(100).subtract(discountPct))
-                                .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                        if (hasGiamToiDa) {
-                            BigDecimal actualDiscount = basePrice.multiply(discountPct)
-                                    .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
-                            if (actualDiscount.compareTo(pctPromo.getGiamToiDa()) > 0) {
-                                raw = basePrice.subtract(pctPromo.getGiamToiDa());
-                            }
-                        }
-                        promoPriceMap.put(productId, raw.setScale(0, java.math.RoundingMode.HALF_UP));
+            }
+
+            // 2) Giá/badge đại diện của card (biến thể đầu tiên) — kết hợp giá KM biến thể,
+            // khuyến mãi, VÀ flash sale của ĐÚNG biến thể đó, luôn cùng 1 nguồn tham chiếu.
+            ProductVariant first = pvList.get(0);
+            BigDecimal giaGoc = first.getGiaGoc();
+            if (giaGoc == null) {
+                giaGoc = BigDecimal.ZERO;
+            }
+            BigDecimal bestPrice = giaGoc;
+            int bestPct = 0;
+            BigDecimal originalForDisplay = giaGoc;
+            boolean hasFlash = false;
+
+            if (first.getGiaKhuyenMai() != null && first.getGiaKhuyenMai().compareTo(bestPrice) < 0) {
+                bestPrice = first.getGiaKhuyenMai();
+                bestPct = giaGoc.compareTo(BigDecimal.ZERO) > 0
+                        ? giaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
+                                .divide(giaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                        : 0;
+            }
+
+            if (pctPromo != null) {
+                BigDecimal promoPrice = bestPrice
+                        .multiply(BigDecimal.valueOf(100).subtract(pctPromo.getGiaTriGiam()))
+                        .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                if (pctPromo.getGiamToiDa() != null) {
+                    BigDecimal actualDiscount = bestPrice.multiply(pctPromo.getGiaTriGiam())
+                            .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
+                    if (actualDiscount.compareTo(pctPromo.getGiamToiDa()) > 0) {
+                        promoPrice = bestPrice.subtract(pctPromo.getGiamToiDa());
                     }
                 }
+                if (promoPrice.compareTo(bestPrice) < 0) {
+                    bestPrice = promoPrice;
+                    bestPct = giaGoc.compareTo(BigDecimal.ZERO) > 0
+                            ? giaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
+                                    .divide(giaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                            : 0;
+                }
             }
-            // TODO: Handle fixed amount promos (SO_TIEN) if needed
+
+            FlashSaleItem firstFsItem = variantFlashItemMap.get(first.getId());
+            if (firstFsItem != null && firstFsItem.getGiaSale() != null
+                    && firstFsItem.getGiaSale().compareTo(bestPrice) < 0) {
+                BigDecimal fsGiaGoc = first.getGiaGoc() != null ? first.getGiaGoc() : giaGoc;
+                bestPrice = firstFsItem.getGiaSale();
+                bestPct = fsGiaGoc.compareTo(BigDecimal.ZERO) > 0
+                        ? fsGiaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
+                                .divide(fsGiaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
+                        : 0;
+                originalForDisplay = fsGiaGoc;
+                hasFlash = true;
+            }
+
+            promoPriceMap.put(productId, bestPrice.setScale(0, java.math.RoundingMode.HALF_UP));
+            bestDiscountMap.put(productId, bestPct);
+            originalPriceMap.put(productId, originalForDisplay);
+            hasFlashMap.put(productId, hasFlash);
         }
         model.addAttribute("promoPriceMap", promoPriceMap);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
+        model.addAttribute("bestDiscountMap", bestDiscountMap);
+        model.addAttribute("originalPriceMap", originalPriceMap);
+        model.addAttribute("hasFlashMap", hasFlashMap);
 
         // Pre-compute best price per variant (base, flash sale, promo)
         Map<Integer, BigDecimal> variantBestPriceMap = new HashMap<>();
-        for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
-            Integer productId = entry.getKey();
-            PricingService.FlashSaleOffer offer = flashSaleMap.get(productId);
-            for (ProductVariant pv : entry.getValue()) {
+        for (List<ProductVariant> pvs : variantsMap.values()) {
+            for (ProductVariant pv : pvs) {
                 BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                 if (basePrice == null) continue;
                 BigDecimal best = basePrice;
-                // Flash sale price
-                if (offer != null) {
-                    BigDecimal flashPrice = offer.giaSale();
-                    if (flashPrice.compareTo(best) < 0) best = flashPrice;
+                // Flash sale price — chỉ áp nếu ĐÚNG biến thể này đang có flash sale
+                FlashSaleItem fsItem = variantFlashItemMap.get(pv.getId());
+                if (fsItem != null) {
+                    BigDecimal flashPrice = fsItem.getGiaSale();
+                    if (flashPrice != null && flashPrice.compareTo(best) < 0) best = flashPrice;
                 }
                 // Promo price
                 BigDecimal promoPrice = variantPromoPriceMap.get(pv.getId());
@@ -623,12 +681,44 @@ public class ProductController {
             variantPromoPriceMap.put(pv.getId(), bestPrice);
         }
 
-        if (!variants.isEmpty()) {
-            promoDiscountedPrice = variantPromoPriceMap.get(variants.get(0).getId());
+        if (defaultVariant != null) {
+            promoDiscountedPrice = variantPromoPriceMap.get(defaultVariant.getId());
         }
         model.addAttribute("promoDiscountedPrice", promoDiscountedPrice);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
         model.addAttribute("variantBestPriceMap", variantPromoPriceMap);
+
+        // Giá gốc + % giảm dùng để hiển thị ngay cạnh promoDiscountedPrice — PHẢI cùng
+        // tham chiếu tới defaultVariant (không dùng minPrice/maxPrice của cả sản phẩm,
+        // vì đó là khoảng giá gộp nhiều biến thể khác nhau, ghép với 1 mức giá cụ thể
+        // sẽ ra % giảm sai / không khớp).
+        BigDecimal defaultOriginalPrice = defaultVariant != null
+                ? (defaultVariant.getGiaKhuyenMai() != null ? defaultVariant.getGiaKhuyenMai() : defaultVariant.getGiaGoc())
+                : null;
+        Integer defaultDiscountPct = null;
+        if (defaultOriginalPrice != null && promoDiscountedPrice != null
+                && defaultOriginalPrice.compareTo(BigDecimal.ZERO) > 0
+                && promoDiscountedPrice.compareTo(defaultOriginalPrice) < 0) {
+            defaultDiscountPct = defaultOriginalPrice.subtract(promoDiscountedPrice)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(defaultOriginalPrice, 0, java.math.RoundingMode.HALF_UP)
+                    .intValue();
+        }
+        model.addAttribute("defaultOriginalPrice", defaultOriginalPrice);
+        model.addAttribute("defaultDiscountPct", defaultDiscountPct);
+
+        // Ruy băng "FLASH SALE" chỉ hiện khi flash sale THỰC SỰ là mức giá đang áp dụng
+        // cho defaultVariant — trước đây badge Flash Sale (%, số suất còn lại) hiện độc
+        // lập miễn là biến thể có tham gia flash sale, kể cả khi giá thực tế đang giảm
+        // theo 1 mã khuyến mãi khác rẻ hơn — gây hiển thị "Flash Sale -25%" nhưng giá
+        // lại đang giảm 30% theo khuyến mãi, trông như số liệu ảo/không khớp nhau.
+        FlashSaleItem defaultFlashItem = defaultVariant != null ? variantFlashMap.get(defaultVariant.getId()) : null;
+        boolean defaultVariantHasFlash = defaultFlashItem != null
+                && pricingService.isFlashSaleItemUsable(defaultFlashItem)
+                && defaultFlashItem.getGiaSale() != null
+                && promoDiscountedPrice != null
+                && defaultFlashItem.getGiaSale().compareTo(promoDiscountedPrice) == 0;
+        model.addAttribute("defaultVariantHasFlash", defaultVariantHasFlash);
 
         reviewSize = clampReviewSize(reviewSize);
         Integer currentUserId = null;
@@ -693,13 +783,21 @@ public class ProductController {
             Map<Integer, List<ProductVariant>> relatedVariantsMap = relatedVariants.stream()
                     .collect(Collectors.groupingBy(ProductVariant::getProductId));
             Map<Integer, BigDecimal> relatedMinPrices = new HashMap<>();
+            Map<Integer, String> relatedImages = new HashMap<>();
             for (var entry : relatedVariantsMap.entrySet()) {
                 entry.getValue().stream()
                         .map(v -> v.getGiaKhuyenMai() != null ? v.getGiaKhuyenMai() : v.getGiaGoc())
                         .min(BigDecimal::compareTo)
                         .ifPresent(price -> relatedMinPrices.put(entry.getKey(), price));
+                entry.getValue().stream()
+                        .filter(ProductVariant::isDefault)
+                        .findFirst()
+                        .or(() -> entry.getValue().stream().findFirst())
+                        .map(ProductVariant::getHinhAnh)
+                        .ifPresent(img -> relatedImages.put(entry.getKey(), img));
             }
             model.addAttribute("relatedMinPrices", relatedMinPrices);
+            model.addAttribute("relatedImages", relatedImages);
         }
 
         // Page URL for social sharing

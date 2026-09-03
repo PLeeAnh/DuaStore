@@ -124,7 +124,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     /* ═══ FLASH SALE COUNTDOWN ═══ */
+    /* #flashBannerTimer (trang chi tiết sản phẩm) được đồng bộ riêng theo biến thể
+       đang chọn trong product-detail.html — bỏ qua ở đây để tránh 2 setInterval độc
+       lập cùng ghi vào 1 span, gây nhấp nháy giống bug đã fix ở main.js trước đó. */
     document.querySelectorAll('.ds-flash-timer').forEach(function (timer) {
+        if (timer.id === 'flashBannerTimer')
+            return;
         var endStr = timer.getAttribute('data-end');
         if (!endStr)
             return;

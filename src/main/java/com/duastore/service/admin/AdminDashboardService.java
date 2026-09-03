@@ -222,10 +222,10 @@ public class AdminDashboardService {
                 revenueThisMonth != null ? revenueThisMonth.longValue() : 0L,
                 revenueLastMonth != null ? revenueLastMonth.longValue() : 0L));
 
-        long newCustomersThisMonth = userRepository.countByNgayTaoBetween(
-                firstOfMonth.atStartOfDay(), today.atTime(LocalTime.MAX));
-        long newCustomersLastMonth = userRepository.countByNgayTaoBetween(
-                firstOfLastMonth.atStartOfDay(), lastOfLastMonth.atTime(LocalTime.MAX));
+        long newCustomersThisMonth = userRepository.countByRoleAndNgayTaoBetween(
+                "USER", firstOfMonth.atStartOfDay(), today.atTime(LocalTime.MAX));
+        long newCustomersLastMonth = userRepository.countByRoleAndNgayTaoBetween(
+                "USER", firstOfLastMonth.atStartOfDay(), lastOfLastMonth.atTime(LocalTime.MAX));
         result.put("newCustomersThisMonth", newCustomersThisMonth);
         result.put("customersChange", calcChange(newCustomersThisMonth, newCustomersLastMonth));
 

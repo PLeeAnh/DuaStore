@@ -138,6 +138,11 @@ public class PromotionController {
             }
             BigDecimal bestPrice = first.getGiaKhuyenMai() != null ? first.getGiaKhuyenMai() : giaGoc;
             int bestPct = 0;
+            // Giá gốc hiển thị (gạch ngang) phải LUÔN khớp với biến thể thực sự tạo ra
+            // bestPrice — nếu flash sale thắng thì phải lấy giaGoc của chính flash item
+            // đó (fsGiaGoc), không được giữ nguyên giaGoc của "first" (có thể là biến thể
+            // khác), tránh so giá của biến thể A với giá gốc của biến thể B.
+            BigDecimal originalForDisplay = giaGoc;
             if (first.getGiaKhuyenMai() != null && first.getGiaKhuyenMai().compareTo(giaGoc) < 0) {
                 bestPct = giaGoc.subtract(bestPrice).multiply(BigDecimal.valueOf(100))
                         .divide(giaGoc, 0, RoundingMode.HALF_UP).intValue();
@@ -170,11 +175,12 @@ public class PromotionController {
                                     .divide(fsGiaGoc, 0, RoundingMode.HALF_UP).intValue()
                             : 0;
                     bestPrice = fsPrice;
-                    bestPct = Math.max(bestPct, pct);
+                    bestPct = pct;
+                    originalForDisplay = fsGiaGoc;
                 }
             }
             dealPriceMap.put(entry.getKey(), bestPrice);
-            dealOriginalMap.put(entry.getKey(), giaGoc);
+            dealOriginalMap.put(entry.getKey(), originalForDisplay);
             dealPctMap.put(entry.getKey(), bestPct);
         }
 

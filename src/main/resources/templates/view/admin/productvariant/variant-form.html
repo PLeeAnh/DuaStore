@@ -13,103 +13,158 @@
 
         <!-- ═══════ HERO HEADER ═══════ -->
         <div class="adm-detail-hero">
-            <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="d-flex align-items-start gap-3">
                 <div class="adm-icon-48">
                     <i class="bi bi-diagram-3"></i>
                 </div>
-                <div>
-                    <h4><span th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Sửa biến thể</span></h4>
-                    <div class="adm-detail-meta" th:if="${variant.id != null}">
-                        SKU: #<span th:text="${variant.id}">1</span>
-                        <span class="mx-2">|</span>
-                        Sản phẩm: <span th:text="${productName}">Tên SP</span>
-                    </div>
-                    <div class="adm-detail-meta" th:unless="${variant.id != null}">
-                        Tạo biến thể mới cho sản phẩm.
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4><span th:text="${variant.id != null} ? 'Sửa biến thể' : 'Thêm biến thể'">Sửa biến thể</span></h4>
+                            <div class="adm-detail-meta" th:if="${variant.id != null}">
+                                SKU: #<span th:text="${variant.id}">1</span>
+                                <span class="mx-2">|</span>
+                                Sản phẩm: <span th:text="${productName}">Tên SP</span>
+                            </div>
+                            <div class="adm-detail-meta" th:unless="${variant.id != null}">
+                                Tạo biến thể mới cho sản phẩm.
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-x-lg me-1"></i>Hủy
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="adm-detail-actions">
-                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i>Quay lại
-                </a>
             </div>
         </div>
 
         <!-- ═══════ FORM ═══════ -->
-        <div class="adm-card">
-            <div class="adm-card-body">
-                <form id="variantForm"
-                      th:action="${variant.id != null} ? @{/admin/bien-the/sua/{id}(id=${variant.id})} : @{/admin/bien-the/them-moi}"
-                      th:object="${variant}" method="post" data-dirty-bar enctype="multipart/form-data" class="row g-3">
-                    <input type="hidden" th:field="*{id}" />
-                    <input type="hidden" th:field="*{productId}" />
+        <form id="variantForm"
+              th:action="${variant.id != null} ? @{/admin/bien-the/sua/{id}(id=${variant.id})} : @{/admin/bien-the/them-moi}"
+              th:object="${variant}" method="post" data-dirty-bar enctype="multipart/form-data">
+            <input type="hidden" th:field="*{id}" />
+            <input type="hidden" th:field="*{productId}" />
 
-                    <div class="col-12">
-                        <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-info-circle me-2"></i>Thông tin biến thể</h6>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Tên biến thể <span class="text-danger">*</span></label>
-                        <input type="text" th:field="*{tenBienThe}" class="form-control" required />
-                        <div th:if="${#fields.hasErrors('tenBienThe')}" th:errors="*{tenBienThe}" class="text-danger small"></div>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Dung tích (ml)</label>
-                        <select th:field="*{dungTich}" class="form-select searchable-select" data-create>
-                            <option value="">— Chọn dung tích —</option>
-                            <option th:each="c : ${capacities}" th:value="${c}" th:text="${c} + ' ml'">Cap</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Tồn kho</label>
-                        <input type="number" th:field="*{soLuongTon}" class="form-control" min="0" />
-                        <div th:if="${#fields.hasErrors('soLuongTon')}" th:errors="*{soLuongTon}" class="text-danger small"></div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Giá gốc <span class="text-danger">*</span></label>
-                        <input type="number" th:field="*{giaGoc}" class="form-control" required min="0" step="1" id="giaGoc" />
-                        <div th:if="${#fields.hasErrors('giaGoc')}" th:errors="*{giaGoc}" class="text-danger small"></div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Giá khuyến mãi</label>
-                        <input type="number" th:field="*{giaKhuyenMai}" class="form-control" min="0" step="1" id="giaKhuyenMai" />
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Giá vốn (COGS)</label>
-                        <input type="number" th:field="*{giaVon}" class="form-control" min="0" step="1" placeholder="0" />
-                        <div class="form-text">Dùng để tính lợi nhuận (margin)</div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Ngưỡng cảnh báo tồn</label>
-                        <input type="number" th:field="*{lowStockThreshold}" class="form-control" min="0" step="1" placeholder="20" />
-                        <div class="form-text">Khi tồn dưới ngưỡng sẽ cảnh báo trên Dashboard</div>
-                    </div>
-                    <div class="col-12" id="pricingSuggestion"></div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <div class="form-check">
-                            <input type="checkbox" th:field="*{default}" class="form-check-input" id="isDefault" />
-                            <label class="form-check-label" for="isDefault">Biến thể mặc định</label>
+            <div class="row g-4">
+                <!-- ═══ LEFT COLUMN ═══ -->
+                <div class="col-lg-8">
+
+                    <!-- Card: Thông tin biến thể -->
+                    <div class="adm-card">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-info-circle me-2"></i>Thông tin biến thể</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tên biến thể <span class="text-danger">*</span></label>
+                                    <input type="text" th:field="*{tenBienThe}" class="form-control" required />
+                                    <div th:if="${#fields.hasErrors('tenBienThe')}" th:errors="*{tenBienThe}" class="text-danger small"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Dung tích (ml)</label>
+                                    <select th:field="*{dungTich}" class="form-select searchable-select" data-create>
+                                        <option value="">— Chọn dung tích —</option>
+                                        <option th:each="c : ${capacities}" th:value="${c}" th:text="${c} + ' ml'">Cap</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tồn kho</label>
+                                    <input type="number" th:field="*{soLuongTon}" class="form-control" min="0" />
+                                    <div th:if="${#fields.hasErrors('soLuongTon')}" th:errors="*{soLuongTon}" class="text-danger small"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Giá gốc <span class="text-danger">*</span></label>
+                                    <input type="number" th:field="*{giaGoc}" class="form-control" required min="0" step="1" id="giaGoc" />
+                                    <div th:if="${#fields.hasErrors('giaGoc')}" th:errors="*{giaGoc}" class="text-danger small"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Giá khuyến mãi</label>
+                                    <input type="number" th:field="*{giaKhuyenMai}" class="form-control" min="0" step="1" id="giaKhuyenMai" />
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <div class="form-check mb-2">
+                                        <input type="checkbox" th:field="*{default}" class="form-check-input" id="isDefault" />
+                                        <label class="form-check-label" for="isDefault">Biến thể mặc định</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div id="pricingSuggestion"></div>
+                                </div>
+                                <div class="col-12">
+                                    <details class="ds-advanced">
+                                        <summary>
+                                            <i class="bi bi-sliders me-1"></i>Thông tin nâng cao
+                                            <span class="chev"><i class="bi bi-chevron-down"></i></span>
+                                        </summary>
+                                        <div class="ds-advanced-body row g-3 mt-0">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Giá vốn (COGS)</label>
+                                                <input type="number" th:field="*{giaVon}" class="form-control" min="0" step="1" placeholder="0" />
+                                                <div class="form-text">Dùng để tính lợi nhuận (margin)</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Ngưỡng cảnh báo tồn</label>
+                                                <input type="number" th:field="*{lowStockThreshold}" class="form-control" min="0" step="1" placeholder="20" />
+                                                <div class="form-text">Khi tồn dưới ngưỡng sẽ cảnh báo trên Dashboard</div>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="col-12 mt-3">
-                        <h6 class="fw-semibold mb-3" style="color:var(--text)"><i class="bi bi-image me-2"></i>Hình ảnh</h6>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Ảnh biến thể</label>
-                        <input type="file" th:name="hinhAnhFile" class="form-control" accept="image/*" />
-                        <div th:if="${variant.hinhAnh}" class="mt-2">
-                            <img th:src="@{${variant.hinhAnh}}" alt="preview" style="width:100px;height:100px;object-fit:cover;border-radius:6px;" />
-                            <input type="hidden" th:field="*{hinhAnh}" />
+                </div>
+
+                <!-- ═══ RIGHT COLUMN ═══ -->
+                <div class="col-lg-4 d-flex flex-column">
+
+                    <!-- Card: Thông tin tổng quan (only for edit mode) -->
+                    <div class="adm-card" th:if="${variant.id != null}">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-info-square me-2"></i>Thông tin tổng quan</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="adm-info-row">
+                                <span class="adm-info-label">SKU</span>
+                                <span class="adm-info-value">#<span th:text="${variant.id}">1</span></span>
+                            </div>
+                            <div class="adm-info-row">
+                                <span class="adm-info-label">Sản phẩm</span>
+                                <span class="adm-info-value" th:text="${productName}">—</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="col-12 border-top pt-3 mt-3">
-                        <a href="javascript:history.back()" class="btn btn-outline-secondary">Hủy</a>
+                    <!-- Card: Ảnh biến thể (centered) -->
+                    <div class="adm-card mt-4 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="adm-card-header">
+                            <span><i class="bi bi-image me-2"></i>Ảnh biến thể</span>
+                        </div>
+                        <div class="adm-card-body">
+                            <div class="adm-main-image-wrap">
+                                <img th:if="${variant.hinhAnh}" th:src="@{${variant.hinhAnh}}" alt="" class="adm-main-image" />
+                                <div th:unless="${variant.hinhAnh}" class="adm-empty py-3">
+                                    <i class="bi bi-image adm-empty-icon"></i>
+                                    <div class="adm-empty-title">Chưa có ảnh biến thể</div>
+                                </div>
+                            </div>
+                            <input type="hidden" th:if="${variant.hinhAnh}" th:field="*{hinhAnh}" />
+                            <div class="d-flex gap-2 mt-3">
+                                <label class="btn btn-outline-primary btn-sm flex-fill">
+                                    <i class="bi bi-arrow-repeat me-1"></i><span th:text="${variant.hinhAnh != null} ? 'Đổi ảnh' : 'Thêm ảnh'">Đổi ảnh</span>
+                                    <input type="file" th:name="hinhAnhFile" accept="image/*" hidden />
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                </form>
+
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 
     <th:block layout:fragment="extra-script">
@@ -133,5 +188,5 @@
             /*]]>*/
         </script>
     </th:block>
-</body>
+    </body>
 </html>

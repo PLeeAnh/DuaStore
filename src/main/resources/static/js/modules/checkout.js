@@ -206,11 +206,20 @@ function modalSetFromNominatim(tinhThanh, quanHuyen, phuongXa, diaChi, displayNa
             return;
         setComboValue('modalQuanHuyenCombo', dfound.code, dfound.name);
         return loadModalWards(dfound.code).then(function (wards) {
-            if (!phuongXa)
-                return;
-            var wfound = fuzzyFindLocation(wards, phuongXa);
-            if (wfound)
+            var wfound = phuongXa ? fuzzyFindLocation(wards, phuongXa) : null;
+            if (wfound) {
                 setComboValue('modalPhuongXaCombo', wfound.code, wfound.name);
+            } else {
+                // Dữ liệu geocode miễn phí thường không có tên Phường/Xã chuẩn hành
+                // chính VN (chỉ có tên khu vực/OSM locality) — không thể tự khớp chắc
+                // chắn, nên chỉ làm nổi bật ô để người dùng biết cần tự chọn.
+                var wardControl = document.querySelector('#modalPhuongXaCombo + .ts-wrapper .ts-control, [id^="modalPhuongXaCombo"] ~ .ts-wrapper .ts-control');
+                if (wardControl) {
+                    wardControl.style.transition = 'box-shadow .3s';
+                    wardControl.style.boxShadow = '0 0 0 3px rgba(255,193,7,.6)';
+                    setTimeout(function () { wardControl.style.boxShadow = ''; }, 2500);
+                }
+            }
         });
     });
 }
@@ -223,7 +232,7 @@ function initCheckoutMap() {
         var lat = window.storeLat || 20.8565;
         var lng = window.storeLng || 106.6756;
         window.checkoutMap = L.map(mapEl, { center: [lat, lng], zoom: 13, zoomControl: true });
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(window.checkoutMap);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri' }).addTo(window.checkoutMap);
         window.checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(window.checkoutMap);
         window.checkoutMarker.on('dragend', function () {
             var p = window.checkoutMarker.getLatLng();
@@ -244,8 +253,8 @@ function initCheckoutMap() {
 }
 
 function reverseGeocodeForModal(lat, lng) {
-    var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1&accept-language=vi';
-    fetch(url, { headers: { 'User-Agent': 'DuaStore/1.0' } })
+    var url = '/api/location/reverse-geocode?lat=' + lat + '&lng=' + lng;
+    fetch(url)
         .then(function (r) { return r.json(); })
         .then(function (data) {
             if (!data || data.error) return;
@@ -315,6 +324,10 @@ function reverseGeocodeForModal(lat, lng) {
             };
             if (modalProvincePromise) { modalProvincePromise.then(setAddr); } else { setAddr(); }
             document.getElementById('modalMapStatus').textContent = 'Đã tìm: ' + (data.display_name || '');
+        })
+        .catch(function () {
+            var st = document.getElementById('modalMapStatus');
+            if (st) st.textContent += ' — Không lấy được tên đường/địa chỉ chi tiết, vui lòng chọn Tỉnh/TP, Quận/Huyện, Phường/Xã thủ công.';
         });
 }
 
@@ -429,8 +442,8 @@ function modalSearchMap() {
     var q = document.getElementById('modalDiaChiCuThe').value.trim();
     if (!q) return;
     document.getElementById('modalMapStatus').textContent = 'Đang tra cứu...';
-    var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q + ', Việt Nam') + '&limit=5&addressdetails=1&accept-language=vi';
-    fetch(url, { headers: { 'User-Agent': 'DuaStore/1.0' } })
+    var url = '/api/location/search-geocode?q=' + encodeURIComponent(q);
+    fetch(url)
         .then(function (r) { return r.json(); })
         .then(function (results) {
             if (results && results.length) {
@@ -472,6 +485,9 @@ function modalSearchMap() {
             } else {
                 document.getElementById('modalMapStatus').textContent = 'Không tìm thấy địa chỉ';
             }
+        })
+        .catch(function () {
+            document.getElementById('modalMapStatus').textContent = 'Không tra cứu được địa chỉ. Vui lòng thử lại.';
         });
 }
 
@@ -803,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var q = this.value.trim();
             if (q.length < 3) { if (suggestionBox) suggestionBox.style.display = 'none'; return; }
             searchTimeout = setTimeout(function () {
-                fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q + ', Việt Nam') + '&limit=5&addressdetails=1&accept-language=vi', { headers: { 'User-Agent': 'DuaStore/1.0' } })
+                fetch('/api/location/search-geocode?q=' + encodeURIComponent(q))
                     .then(function (r) { return r.json(); })
                     .then(function (results) {
                         if (!suggestionBox) return;
@@ -833,7 +849,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             suggestionBox.appendChild(a);
                         });
                         suggestionBox.style.display = '';
-                    });
+                    })
+                    .catch(function () { if (suggestionBox) suggestionBox.style.display = 'none'; });
             }, 400);
         });
     }
@@ -1000,6 +1017,45 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    /* ── Kebab menu (Chi tiết / Xoá) trong danh sách địa chỉ ──
+       `#addressModalList` cuộn dọc (overflow-y:auto) khi có nhiều địa chỉ, nên dropdown-
+       menu (dù z-index rất cao) vẫn bị CẮT bởi mép cuộn của container cha — nhìn như bị
+       đè bởi thẻ địa chỉ bên dưới. `data-bs-container="body"` không giải quyết được vì
+       Bootstrap 5 Dropdown không có option "container" (chỉ Modal/Tooltip mới có) — nên
+       tự tay dời menu ra <body> lúc mở, dùng position:fixed theo toạ độ nút bấm, và trả
+       lại đúng chỗ cũ lúc đóng. */
+    (function () {
+        var kebabState = new WeakMap();
+        document.addEventListener('show.bs.dropdown', function (e) {
+            var btn = e.target;
+            if (!btn.classList || !btn.classList.contains('ds-kebab-btn')) return;
+            var menu = btn.parentElement.querySelector('.dropdown-menu');
+            if (!menu) return;
+            kebabState.set(btn, {menu: menu, parent: menu.parentElement, next: menu.nextSibling});
+            var rect = btn.getBoundingClientRect();
+            menu.style.position = 'fixed';
+            menu.style.margin = '0';
+            menu.style.top = (rect.bottom + 4) + 'px';
+            menu.style.left = 'auto';
+            menu.style.right = (window.innerWidth - rect.right) + 'px';
+            document.body.appendChild(menu);
+        });
+        document.addEventListener('hide.bs.dropdown', function (e) {
+            var btn = e.target;
+            var state = kebabState.get(btn);
+            if (!state) return;
+            var menu = state.menu;
+            menu.style.position = '';
+            menu.style.margin = '';
+            menu.style.top = '';
+            menu.style.left = '';
+            menu.style.right = '';
+            if (state.next) state.parent.insertBefore(menu, state.next);
+            else state.parent.appendChild(menu);
+            kebabState.delete(btn);
+        });
+    })();
 
     var addrModal = document.getElementById('addressModal');
     if (addrModal) {

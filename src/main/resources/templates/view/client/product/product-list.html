@@ -164,20 +164,10 @@
                                         <img th:if="${p.hinhAnhChinh != null}" th:src="@{${p.hinhAnhChinh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         <img th:if="${p.hinhAnhChinh == null and v != null and v.hinhAnh != null}" th:src="@{${v.hinhAnh}}" th:alt="${p.tenSanPham}" loading="lazy" onerror="this.src='/images/no-image.png'"/>
                                         <i th:if="${p.hinhAnhChinh == null and (v == null or v.hinhAnh == null)}" class="bi bi-box-seam"></i>
-                                        <span class="ds-badge-sale" th:if="${bestDiscountMap != null and bestDiscountMap.get(p.id) != null and bestDiscountMap.get(p.id) > 0}"
-                                              th:text="|-${bestDiscountMap.get(p.id)}%|">-15%</span>
                                         <span class="ds-badge-oos" th:classappend="${v != null and v.soLuongTon > 0} ? 'd-none' : ''">Bán hết</span>
-                                        <div class="ds-flash-timer" th:if="${fs != null}"
-                                             th:data-end="${#strings.concat(#temporals.format(fs.event.ngayKetThuc, 'yyyy-MM-dd'), 'T', #temporals.format(fs.event.ngayKetThuc, 'HH:mm:ss'))}">
-                                            <i class="bi bi-clock"></i>
-                                            <span class="flash-countdown">--:--:--</span>
-                                        </div>
-                                        <span class="ds-badge-flash-stock" th:if="${fs != null and fs.soLuongConLai > 0}">
-                                            <i class="bi bi-fire"></i> Chỉ còn <b th:text="${fs.soLuongConLai}">30</b> sản phẩm
-                                        </span>
-                                        <span class="ds-badge-flash-stock ds-badge-flash-stock-hot" th:if="${fs != null and fs.soLuongConLai <= 0}">
-                                            <i class="bi bi-fire"></i> Hết suất Flash Sale
-                                        </span>
+                                        <!-- Trang danh sách sản phẩm không hiện badge -X%/ruy băng Flash Sale —
+                                             chỉ hiện giá cuối cùng. Khuyến mãi/Flash Sale xem ở trang /khuyen-mai
+                                             để tránh rối/lệch dữ liệu. -->
                                         <div class="ds-product-name-overlay" th:text="${p.tenSanPham}">Tên SP</div>
                                     </a>
                                     <div class="ds-qty-row ds-qty-row-image">

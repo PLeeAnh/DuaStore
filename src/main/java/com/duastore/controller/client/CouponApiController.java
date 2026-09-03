@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.service.client.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +16,11 @@ import java.util.Map;
 public class CouponApiController {
 
     private final OrderService orderService;
+    private final SecurityUtil securityUtil;
 
-    public CouponApiController(OrderService orderService) {
+    public CouponApiController(OrderService orderService, SecurityUtil securityUtil) {
         this.orderService = orderService;
+        this.securityUtil = securityUtil;
     }
 
     @PostMapping("/validate")
@@ -33,7 +36,7 @@ public class CouponApiController {
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body(Map.of("valid", false, "message", "Subtotal không hợp lệ"));
         }
-        Map<String, Object> result = orderService.validateCouponForApi(maCode, subtotal);
+        Map<String, Object> result = orderService.validateCouponForApi(maCode, subtotal, securityUtil.getCurrentUserId());
         return ResponseEntity.ok(result);
     }
 }

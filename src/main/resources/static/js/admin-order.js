@@ -2,15 +2,19 @@
 (function () {
     var orderId = window.orderId;
     var currentStep = window.currentStep;
+    var currentPaymentStatus = window.currentPaymentStatus;
     var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || '';
     var csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+    var PAYMENT_ASK_STATUSES = ['DA_GIAO', 'DA_HOAN_THANH'];
 
-    function postStatus(status) {
+    function postStatus(status, trangThaiTT) {
         var headers = {};
         if (csrfHeader && csrfToken)
             headers[csrfHeader] = csrfToken;
-        return fetch('/admin/don-hang/api/' + orderId + '/cap-nhat-trang-thai?trangThai=' + status,
-                {method: 'POST', headers: headers}).then(function (r) {
+        var url = '/admin/don-hang/api/' + orderId + '/cap-nhat-trang-thai?trangThai=' + status;
+        if (trangThaiTT)
+            url += '&trangThaiTT=' + trangThaiTT;
+        return fetch(url, {method: 'POST', headers: headers}).then(function (r) {
             return r.json();
         });
     }
@@ -32,6 +36,47 @@
         }, 6000);
     }
 
+    function doUpdate(status, trangThaiTT, node) {
+        node.style.opacity = '0.5';
+        postStatus(status, trangThaiTT).then(function (data) {
+            if (data.success) {
+                if (window.__dsToastAfterReload) window.__dsToastAfterReload('Đã cập nhật trạng thái đơn hàng');
+                location.reload();
+            } else {
+                if (data.message)
+                    showErrorToast(data.message);
+                node.style.opacity = '1';
+            }
+        }).catch(function () {
+            node.style.opacity = '1';
+        });
+    }
+
+    function askPaymentThenUpdate(status, node) {
+        var modalEl = document.getElementById('paymentConfirmModal');
+        if (!modalEl || typeof bootstrap === 'undefined') {
+            doUpdate(status, 'DA_THANH_TOAN', node);
+            return;
+        }
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var chk = document.getElementById('paymentConfirmDontShow');
+        if (chk) chk.checked = false;
+        var paidBtn = document.getElementById('paymentConfirmPaid');
+
+        function cleanup() {
+            paidBtn.removeEventListener('click', onPaid);
+        }
+        function onPaid() {
+            if (chk && chk.checked) sessionStorage.setItem('ds_payment_confirm_dont_show', 'true');
+            cleanup();
+            modal.hide();
+            doUpdate(status, 'DA_THANH_TOAN', node);
+        }
+        paidBtn.addEventListener('click', onPaid);
+        modalEl.addEventListener('hidden.bs.modal', cleanup, {once: true});
+        modal.show();
+    }
+
     document.querySelectorAll('.timeline-step.clickable').forEach(function (el) {
         el.addEventListener('click', function () {
             var status = this.dataset.status;
@@ -41,19 +86,21 @@
             if (stepIndex === currentStep)
                 return;
             var node = this;
-            node.style.opacity = '0.5';
-            postStatus(status).then(function (data) {
-                if (data.success) {
-                    if (window.__dsToastAfterReload) window.__dsToastAfterReload('Đã cập nhật trạng thái đơn hàng');
-                    location.reload();
-                } else {
-                    if (data.message)
-                        showErrorToast(data.message);
-                    node.style.opacity = '1';
-                }
-            }).catch(function () {
-                node.style.opacity = '1';
-            });
+
+            var needsPaymentCheck = PAYMENT_ASK_STATUSES.indexOf(status) !== -1
+                    && currentPaymentStatus !== 'DA_THANH_TOAN';
+
+            if (!needsPaymentCheck) {
+                doUpdate(status, null, node);
+                return;
+            }
+
+            if (sessionStorage.getItem('ds_payment_confirm_dont_show') === 'true') {
+                doUpdate(status, 'DA_THANH_TOAN', node);
+                return;
+            }
+
+            askPaymentThenUpdate(status, node);
         });
     });
 
