@@ -153,7 +153,7 @@ window.DuaStore.tracking = {};
         list.innerHTML = '';
         events.forEach(function (ev, idx) {
             var isLast = idx === events.length - 1;
-            var isCancel = ev.icon === 'CANCEL_ORDER' || ev.icon === 'REFUND_ORDER';
+            var isCancel = ev.icon === 'CANCEL_ORDER';
             var dotClass = isCancel ? 'cancel' : ev.active ? 'active' : ev.completed ? 'done' : '';
             var labelClass = isCancel ? 'cancel' : ev.active ? 'active' : ev.completed ? 'done' : '';
             var timeStr = '';

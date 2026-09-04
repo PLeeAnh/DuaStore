@@ -5,13 +5,16 @@ import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.model.Order;
 import com.duastore.service.client.OrderService;
+import com.duastore.service.client.ReviewService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/tai-khoan/don-hang")
@@ -22,10 +25,12 @@ public class OrderController {
 
     private final OrderService orderService;
     private final SecurityUtil securityUtil;
+    private final ReviewService reviewService;
 
-    public OrderController(OrderService orderService, SecurityUtil securityUtil) {
+    public OrderController(OrderService orderService, SecurityUtil securityUtil, ReviewService reviewService) {
         this.orderService = orderService;
         this.securityUtil = securityUtil;
+        this.reviewService = reviewService;
     }
 
     private Integer getUserId() {
@@ -64,8 +69,22 @@ public class OrderController {
             Order order = orderService.getOrderByUserAndId(userId, id);
             OrderDTO orderDTO = orderService.convertToDTO(order);
             List<OrderItemDTO> items = orderService.getOrderItemsByOrder(order);
+
+            boolean canReviewOrder = "DA_GIAO".equals(orderDTO.getTrangThaiDon())
+                    || "DA_HOAN_THANH".equals(orderDTO.getTrangThaiDon());
+            Set<Integer> reviewedProductIds = new HashSet<>();
+            if (canReviewOrder) {
+                for (OrderItemDTO item : items) {
+                    if (reviewService.hasReviewed(userId, item.getProductId())) {
+                        reviewedProductIds.add(item.getProductId());
+                    }
+                }
+            }
+
             model.addAttribute("order", orderDTO);
             model.addAttribute("items", items);
+            model.addAttribute("canReviewOrder", canReviewOrder);
+            model.addAttribute("reviewedProductIds", reviewedProductIds);
             model.addAttribute("title", "Chi tiết đơn hàng");
             return "view/client/order/order-detail";
         } catch (Exception e) {

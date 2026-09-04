@@ -68,6 +68,7 @@
                             </td>
                             <td>
                                 <input type="hidden" th:name="'variants[' + ${stat.index} + '].id'" th:value="${v.id}" />
+                                <input type="hidden" th:name="'variants[' + ${stat.index} + '].version'" th:value="${v.version}" />
                                 <input type="number" th:name="'variants[' + ${stat.index} + '].giaBan'" th:value="${v.giaGoc}"
                                        class="form-control form-control-sm" min="0" step="1" required />
                             </td>
@@ -123,7 +124,7 @@
         </div>
     </div>
     <th:block layout:fragment="extra-script">
-        <script th:src="@{/js/admin-variant-bulk-edit.js(v=1)}"></script>
+        <script th:src="@{/js/admin-variant-bulk-edit.js(v=2)}"></script>
     </th:block>
 </body>
 </html>

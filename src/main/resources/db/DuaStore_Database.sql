@@ -219,6 +219,7 @@ GO
         linkUrl nvarchar(500),
         content NVARCHAR(MAX) not null,
         linkLabel nvarchar(255),
+        requiredPermission nvarchar(40),
         primary key (id)
     );
 
@@ -262,7 +263,7 @@ GO
         nguoi_thuc_hien_id int,
         order_id int not null,
         thoi_gian datetime2(7) not null,
-        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED','REFUND_ORDER'))),
+        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
         trang_thai_cu nvarchar(50),
         trang_thai_moi nvarchar(50),
         ghiChu nvarchar(500),
@@ -382,6 +383,7 @@ GO
         lowStockThreshold int default 20 not null,
         productId int not null,
         soLuongTon int default 0 not null,
+        version int default 0 not null,
         hinhAnh nvarchar(255),
         tenBienThe nvarchar(255) not null,
         primary key (id)
@@ -421,7 +423,8 @@ GO
         userId int not null,
         ngayTao datetime2(7) not null,
         binhLuan nvarchar(1000),
-        primary key (id)
+        primary key (id),
+        constraint UK_reviews_user_product unique (userId, productId)
     );
 
     create table role_permissions (
@@ -568,7 +571,26 @@ GO
         avatar nvarchar(255),
         password nvarchar(255) not null,
         resetToken nvarchar(255),
+        lockReason nvarchar(500),
         primary key (id)
+    );
+
+    -- Yeu cau khoa tai khoan khach hang: ADMIN/STAFF khoa tai khoan that (khong phai
+    -- bot nghi van gian lan) phai cho PRODUCT_OWNER duyet moi thuc su co hieu luc.
+    create table account_lock_requests (
+        id int identity not null,
+        userId int not null,
+        requestedBy int not null,
+        decidedBy int,
+        reason nvarchar(500) not null,
+        decisionNote nvarchar(500),
+        status nvarchar(20) not null default 'PENDING' check ((status in ('PENDING','APPROVED','REJECTED'))),
+        requestedAt datetime2(7) not null,
+        decidedAt datetime2(7),
+        primary key (id),
+        constraint FK_alr_user foreign key (userId) references users(id),
+        constraint FK_alr_requestedBy foreign key (requestedBy) references users(id),
+        constraint FK_alr_decidedBy foreign key (decidedBy) references users(id)
     );
 
     create table UserVouchers (
@@ -646,6 +668,14 @@ GO
         note nvarchar(500),
         createdAt datetime2(7) not null,
         primary key (id)
+    );
+
+    -- So du diem tich luy HIEN TAI, 1 dong/user — cot dem cap nhat NGUYEN TU (UPDATE...WHERE),
+    -- tach rieng khoi LoyaltyTransactions (lich su append-only). Xem LoyaltyBalance.java.
+    create table LoyaltyBalances (
+        userId int not null,
+        balance int not null default 0,
+        primary key (userId)
     );
 
     create table ReviewImages (
@@ -839,6 +869,11 @@ GO
 
     alter table LoyaltyTransactions
        add constraint FK_LoyaltyTransactions_userId
+       foreign key (userId)
+       references users;
+
+    alter table LoyaltyBalances
+       add constraint FK_LoyaltyBalances_userId
        foreign key (userId)
        references users;
 
@@ -1278,17 +1313,25 @@ GO
 INSERT INTO Addresses (userId, tenNguoiNhan, soDienThoai, tinhThanh, quanHuyen, phuongXa, diaChiCuThe, isDefault) VALUES
     (2, N'Nguyễn Văn An', '0912345678', N'Hải Phòng', N'Ngô Quyền', N'Máy Tơ', N'123 Trần Hưng Đạo', 1);
 
-INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToiThieu, giamToiDa, soLanDung, tuNgay, denNgay, targetType, targetIds) VALUES
-    ('KHAIHANG', N'Khai trương DuaStore Hải Phòng', 'PHAN_TRAM', 15, 200000, 100000, 200, '2026-01-01', '2026-12-31', NULL, NULL),
-    ('FREESHIP',  N'Miễn phí vận chuyển đơn từ 500k', 'SO_TIEN',  30000, 500000, NULL, NULL, '2026-01-01', '2026-12-31', NULL, NULL),
-    ('DECO50K',   N'Giảm 50k đơn từ 300k',           'SO_TIEN',  50000, 300000, NULL,  100, '2026-01-01', '2026-12-31', NULL, NULL),
-    ('SUMMER50',  N'Summer Sale - Giảm 50%',           'PHAN_TRAM', 50, 500000, 200000, 500, '2026-06-01', '2026-08-31', 'PRODUCT', '1,2,3,4,5'),
-    ('NEWUSER',   N'Ưu đãi người mới - Giảm 20%',      'PHAN_TRAM', 20, 100000, 50000,  1000, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('THANG9',    N'Ưu đãi tháng 9 - Giảm 10%',         'PHAN_TRAM', 10, 150000, 80000,  300, '2026-09-01', '2026-09-30', 'ALL', NULL),
-    ('SINHNHAT',  N'Quà sinh nhật thành viên',          'PHAN_TRAM', 15, 0,      100000, 500, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('VIP100K',   N'Giảm 100k cho đơn VIP từ 1 triệu',  'SO_TIEN',   100000, 1000000, NULL, 100, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('COMBO30',   N'Combo giảm 30% danh mục ly & cốc',  'PHAN_TRAM', 30, 100000, 150000, 200, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('CUOINAM',   N'Ưu đãi cuối năm - Giảm 25%',        'PHAN_TRAM', 25, 200000, 150000, 400, '2026-10-01', '2026-12-31', 'ALL', NULL);
+-- Cac ma khuyen mai "toan bo" (targetType='ALL' HOAC NULL — ca 2 deu roi vao nhanh
+-- "default -> true" trong resolveEligibleAmount/isPromotionApplicableToProduct, tuc ap
+-- dung cho MOI san pham) bi VO HIEU HOA (isActive=0): kho kiem soat, tung gay le pricing
+-- kho hieu (vd COMBO30 tu dong ap vao ca hang Flash Sale luc checkout; KHAIHANG tu dong
+-- hien -15% tren MOI trang san pham, ke ca hang da het/hang test). Rieng loaiGiam=PHAN_TRAM
+-- voi targetType rong la nguy hiem nhat vi con bi chon lam "bestPercentagePromo" hien
+-- thang len gia san pham. Van giu lai dong INSERT (chi doi isActive=0) thay vi xoa han,
+-- vi UserVouchers/orders phia duoi con FK tham chieu toi.
+INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToiThieu, giamToiDa, soLanDung, tuNgay, denNgay, targetType, targetIds, isActive) VALUES
+    ('KHAIHANG', N'Khai trương DuaStore Hải Phòng', 'PHAN_TRAM', 15, 200000, 100000, 200, '2026-01-01', '2026-12-31', NULL, NULL, 0),
+    ('FREESHIP',  N'Miễn phí vận chuyển đơn từ 500k', 'SO_TIEN',  30000, 500000, NULL, NULL, '2026-01-01', '2026-12-31', NULL, NULL, 1),
+    ('DECO50K',   N'Giảm 50k đơn từ 300k',           'SO_TIEN',  50000, 300000, NULL,  100, '2026-01-01', '2026-12-31', NULL, NULL, 1),
+    ('SUMMER50',  N'Summer Sale - Giảm 50%',           'PHAN_TRAM', 50, 500000, 200000, 500, '2026-06-01', '2026-08-31', 'PRODUCT', '1,2,3,4,5', 1),
+    ('NEWUSER',   N'Ưu đãi người mới - Giảm 20%',      'PHAN_TRAM', 20, 100000, 50000,  1000, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('THANG9',    N'Ưu đãi tháng 9 - Giảm 10%',         'PHAN_TRAM', 10, 150000, 80000,  300, '2026-09-01', '2026-09-30', 'ALL', NULL, 0),
+    ('SINHNHAT',  N'Quà sinh nhật thành viên',          'PHAN_TRAM', 15, 0,      100000, 500, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('VIP100K',   N'Giảm 100k cho đơn VIP từ 1 triệu',  'SO_TIEN',   100000, 1000000, NULL, 100, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('COMBO30',   N'Combo giảm 30% danh mục ly & cốc',  'PHAN_TRAM', 30, 100000, 150000, 200, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('CUOINAM',   N'Ưu đãi cuối năm - Giảm 25%',        'PHAN_TRAM', 25, 200000, 150000, 400, '2026-10-01', '2026-12-31', 'ALL', NULL, 0);
 
 INSERT INTO orders (maDon, userId, addressId, snapTenNguoiNhan, snapSoDienThoai, snapDiaChi,
     tienHang, phiVanChuyen, tienGiam, tongThanhToan,
@@ -1427,7 +1470,7 @@ VALUES (N'Banner DuaStore', N'/images/Banner 1 DuaStore.jpg', N'/san-pham', 1, 0
 
 INSERT INTO store_info (tenCuaHang, soNha, duong, phuongXa, quanHuyen, tinhThanh, soDienThoai, email, isActive, isDefault, createdAt, updatedAt)
 VALUES (N'DuaStore Hải Phòng', N'123', N'Trần Hưng Đạo', N'Máy Tơ', N'Ngô Quyền', N'Hải Phòng',
-        '0225.123.4567', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
+        '0936764369', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
 GO
 
 -- ============================================================
@@ -1642,7 +1685,8 @@ CROSS APPLY (VALUES (
     END
 )) AS r(binhLuan)
 WHERE u.username IN ('nguyenvan', 'tranthib', 'lehoangc', 'phamthid', 'vominhe', 'dangthif')
-  AND p.id <= 9;
+  AND p.id <= 9
+  AND NOT EXISTS (SELECT 1 FROM Reviews rv WHERE rv.userId = u.id AND rv.productId = p.id);
 GO
 
 -- UserVouchers: luu them voucher vao vi cho tung khach hang (toi da moi nguoi x moi promotion 1 lan)
@@ -1663,7 +1707,7 @@ GO
 INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VALUES
 -- Store
 ('store', 'store_address', N'Phố Tôn Thất Thuyết, Phan Bội Châu, Phường Hồng Bàng, Thành phố Hải Phòng, 18000, Việt Nam', GETDATE()),
-('store', 'store_phone', '0983595240', GETDATE()),
+('store', 'store_phone', '0936764369', GETDATE()),
 ('store', 'store_email', 'contact@duastore.vn', GETDATE()),
 ('store', 'store_latitude', '20.8565', GETDATE()),
 ('store', 'store_longitude', '106.6756', GETDATE()),
@@ -1671,7 +1715,7 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 -- Payment (toggle names = payment_cod, payment_bank, payment_sepay)
 ('payment', 'payment_cod', '1', GETDATE()),
 ('payment', 'payment_bank', '1', GETDATE()),
-('payment', 'payment_sepay', '0', GETDATE()),
+('payment', 'payment_sepay', '1', GETDATE()),
 ('payment', 'payment_bank_code', 'MBB', GETDATE()),
 ('payment', 'payment_bank_account', '118830072008', GETDATE()),
 ('payment', 'payment_bank_holder', 'PHÙNG LÊ ANH', GETDATE()),
@@ -1682,7 +1726,7 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 ('payment', 'sepay_secret_key', '', GETDATE()),
 -- Shipping (toggle names = shipping_free, carrier_ghn_enabled, carrier_ghtk_enabled)
 ('shipping', 'shipping_free', '1', GETDATE()),
-('shipping', 'shipping_free_min', '500000', GETDATE()),
+('shipping', 'shipping_free_min', '0', GETDATE()),
 ('shipping', 'carrier_ghn_enabled', '0', GETDATE()),
 ('shipping', 'carrier_ghtk_enabled', '1', GETDATE()),
 ('shipping', 'carrier_ghn_base_fee', '15000', GETDATE()),
@@ -2209,6 +2253,14 @@ FROM users u WHERE u.username = 'lehoangc'
 UNION ALL
 SELECT u.id, -30, 0, 'EXPIRED', NULL, N'Điểm thưởng hết hạn sử dụng', DATEADD(DAY,-60,GETDATE())
 FROM users u WHERE u.username = 'phamthid';
+GO
+
+-- ---------- LoyaltyBalances (backfill so du hien tai tu dong cuoi cua LoyaltyTransactions,
+-- giu dung "so du hien tai" ma he thong da hien thi truoc gio — xem findCurrentBalanceByUserId) ----------
+INSERT INTO LoyaltyBalances (userId, balance)
+SELECT lt.userId, lt.balance
+FROM LoyaltyTransactions lt
+WHERE lt.id = (SELECT MAX(lt2.id) FROM LoyaltyTransactions lt2 WHERE lt2.userId = lt.userId);
 GO
 
 -- ---------- ReviewImages (thu vien anh danh gia) ----------

@@ -103,6 +103,9 @@ public class User {
     @Column
     private LocalDateTime lockedUntil;
 
+    @Column(length = 500)
+    private String lockReason;
+
     @PrePersist
     protected void onCreate() {
         ngayTao = LocalDateTime.now();

@@ -46,8 +46,27 @@ public class NotificationHelper {
         }
     }
 
+    /**
+     * @deprecated Dung ban co requiredPermission — khong truyen quyen se hien thi cho
+     * TAT CA ADMIN/STAFF/PRODUCT_OWNER du khong lien quan nghiep vu cua ho.
+     */
+    @Deprecated
     @Transactional
     public void notifyStaff(String content, String linkType, Integer linkId, String linkUrl, String linkLabel) {
+        notifyStaff(content, linkType, linkId, linkUrl, linkLabel, null);
+    }
+
+    /**
+     * @param requiredPermission Quyen can co de THAY thong bao nay (xem PermissionEnum,
+     *        vd "ORDER_READ") — chi nguoi co quyen do (hoac PRODUCT_OWNER, luon thay tat
+     *        ca) moi thay. Dung tien to "ROLE:" (vd "ROLE:PRODUCT_OWNER") de gioi han
+     *        theo dung 1 vai tro cu the thay vi 1 quyen (dung cho cac nghiep vu chi
+     *        PRODUCT_OWNER moi duoc lam, khong gan voi quyen module nao). null = ai
+     *        trong nhom quan tri cung thay (thong bao chung, hiem khi can).
+     */
+    @Transactional
+    public void notifyStaff(String content, String linkType, Integer linkId, String linkUrl, String linkLabel,
+            String requiredPermission) {
         try {
             Notification n = new Notification();
             n.setContent(content);
@@ -56,6 +75,7 @@ public class NotificationHelper {
             n.setLinkId(linkId);
             n.setLinkUrl(linkUrl);
             n.setLinkLabel(linkLabel);
+            n.setRequiredPermission(requiredPermission);
             n.setIsActive(true);
             Notification saved = notificationRepository.save(n);
             // PUSH realtime qua WebSocket cho cac admin dang mo trang (khong can cho poll 30s).

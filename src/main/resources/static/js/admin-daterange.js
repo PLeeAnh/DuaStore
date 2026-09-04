@@ -97,6 +97,9 @@ window.admResolvePeriodRange = function (period) {
         case 'last-7':
             from.setDate(from.getDate() - 6);
             break;
+        case 'last-30':
+            from.setDate(from.getDate() - 29);
+            break;
         case 'this-week': {
             var day = (today.getDay() + 6) % 7; // 0 = Monday
             from.setDate(today.getDate() - day);
@@ -116,8 +119,19 @@ window.admResolvePeriodRange = function (period) {
             from = new Date(today.getFullYear(), q * 3, 1);
             break;
         }
+        case 'last-quarter': {
+            var qc = Math.floor(today.getMonth() / 3);
+            var qcStart = new Date(today.getFullYear(), qc * 3, 1);
+            from = new Date(qcStart.getFullYear(), qcStart.getMonth() - 3, 1);
+            to = new Date(qcStart.getFullYear(), qcStart.getMonth(), 0);
+            break;
+        }
         case 'this-year':
             from = new Date(today.getFullYear(), 0, 1);
+            break;
+        case 'last-year':
+            from = new Date(today.getFullYear() - 1, 0, 1);
+            to = new Date(today.getFullYear() - 1, 11, 31);
             break;
         default:
             from = new Date(today.getFullYear(), today.getMonth(), 1);

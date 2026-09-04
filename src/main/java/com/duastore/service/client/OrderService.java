@@ -1,10 +1,12 @@
 package com.duastore.service.client;
 
+import com.duastore.dto.CartItemDTO;
 import com.duastore.dto.OrderDTO;
 import com.duastore.dto.OrderItemDTO;
 import com.duastore.dto.TimelineEvent;
 import com.duastore.model.*;
 import com.duastore.repository.*;
+import com.duastore.service.AsyncEmailService;
 import com.duastore.service.GHNShippingService;
 import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.MultiCarrierShippingService;
@@ -52,6 +54,7 @@ public class OrderService {
     private final LoyaltyPointsService loyaltyPointsService;
     private final MultiCarrierShippingService multiCarrierShippingService;
     private final CheckoutIdempotencyService checkoutIdempotencyService;
+    private final AsyncEmailService asyncEmailService;
 
     public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
             CartService cartService, AddressRepository addressRepository,
@@ -68,7 +71,8 @@ public class OrderService {
             FlashSaleItemRepository flashSaleItemRepository,
             LoyaltyPointsService loyaltyPointsService,
             MultiCarrierShippingService multiCarrierShippingService,
-            CheckoutIdempotencyService checkoutIdempotencyService) {
+            CheckoutIdempotencyService checkoutIdempotencyService,
+            AsyncEmailService asyncEmailService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.cartService = cartService;
@@ -88,6 +92,7 @@ public class OrderService {
         this.loyaltyPointsService = loyaltyPointsService;
         this.multiCarrierShippingService = multiCarrierShippingService;
         this.checkoutIdempotencyService = checkoutIdempotencyService;
+        this.asyncEmailService = asyncEmailService;
     }
 
     /**
@@ -104,7 +109,8 @@ public class OrderService {
     }
 
     /**
-     * Xac nhan don hang da thanh toan — IDEMPOTENT + lock PESSIMISTIC_WRITE.
+     * Xac nhan don hang da thanh toan — IDEMPOTENT bang UPDATE nguyen tu (xem
+     * OrderRepository.markPaidIfUnpaid).
      *
      * Return true neu lan DAU tien chuyen CHUA_THANH_TOAN -> DA_THANH_TOAN (co log).
      * Return false neu don da duoc thanh toan truoc do hoac khong hop le — goi lai an toan.
@@ -112,15 +118,84 @@ public class OrderService {
      */
     @Transactional
     public boolean confirmPaid(Integer orderId) {
-        Order order = orderRepository.findByIdForUpdate(orderId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
-        if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+        int updated = orderRepository.markPaidIfUnpaid(orderId);
+        if (updated == 0) {
             return false;
         }
-        order.setTrangThaiTT("DA_THANH_TOAN");
-        orderRepository.save(order);
+        Order order = orderRepository.findByIdWithUserAndItems(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
         orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+        clearCartItemsForOrder(order);
+        autoAssignAndNotify(order);
         return true;
+    }
+
+    /**
+     * Tu dong phan cong don cho 1 ADMIN/STAFF bat ky ngay khi thanh toan thanh cong, va
+     * gui email bao cho nguoi duoc phan cong (dat hang + thanh toan thanh cong, can xu ly).
+     * Bo qua neu don da duoc phan cong tu truoc (tranh gan lai/gui trung khi payment status
+     * duoc goi lai nhieu lan). Best-effort — loi o day khong duoc lam hong luong thanh toan.
+     */
+    private void autoAssignAndNotify(Order order) {
+        try {
+            if (orderAssignmentRepository.findByOrderId(order.getId()).isPresent()) {
+                return;
+            }
+            List<User> pool = userRepository.findByRolesNameIn(List.of("ADMIN", "STAFF"));
+            if (pool.isEmpty()) {
+                return;
+            }
+            User picked = pool.get(new java.util.Random().nextInt(pool.size()));
+            OrderAssignment assignment = new OrderAssignment();
+            assignment.setOrder(order);
+            assignment.setAdmin(picked);
+            assignment.setTrangThai("DANG_XU_LY");
+            orderAssignmentRepository.save(assignment);
+            asyncEmailService.sendOrderAssigned(order, picked,
+                    "Hệ thống (tự động — đơn đã đặt và thanh toán thành công)");
+        } catch (Exception e) {
+            // best-effort, khong anh huong luong thanh toan chinh
+        }
+    }
+
+    /**
+     * Gui email cam on + moi danh gia san pham khi don chuyen sang "Da hoan thanh".
+     * Goi tu ca luong khach tu bam "Da nhan duoc hang" (markOrderReceived) lan luong
+     * admin cap nhat trang thai thu cong (xem AdminOrderService).
+     */
+    public void notifyOrderCompleted(Order order) {
+        if (order == null || order.getUser() == null || order.getUser().getEmail() == null) {
+            return;
+        }
+        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+        asyncEmailService.sendOrderCompleted(order.getUser().getEmail(), order.getUser().getHoTen(),
+                order.getMaDon(), items);
+    }
+
+    /**
+     * Xoa cac dong trong gio hang cua khach TRUNG voi cac variant cua don nay, goi luc
+     * thanh toan CHUYEN_KHOAN/SEPAY_QR duoc xac nhan that (xem processCheckout — 2
+     * phuong thuc nay khong xoa gio hang ngay luc dat don nua). Chi xoa dung nhung dong
+     * lien quan don, khong dong toi cac san pham khac khach da them vao gio sau do.
+     */
+    private void clearCartItemsForOrder(Order order) {
+        if (order.getUser() == null) {
+            return;
+        }
+        Integer userId = order.getUser().getId();
+        Set<Integer> variantIds = order.getOrderItems().stream()
+                .map(OrderItem::getVariantId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (variantIds.isEmpty()) {
+            return;
+        }
+        List<CartItem> toRemove = cartItemRepository.findByUserIdOrderByNgayThemDesc(userId).stream()
+                .filter(ci -> variantIds.contains(ci.getVariantId()))
+                .toList();
+        if (!toRemove.isEmpty()) {
+            cartItemRepository.deleteAll(toRemove);
+        }
     }
 
     @Transactional
@@ -236,28 +311,34 @@ public class OrderService {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toMap(Product::getId, p -> p, (a, b) -> a));
             BigDecimal eligibleAmount = resolveEligibleAmount(lockedPromo, order.getOrderItems(), productById);
-            validatePromotion(lockedPromo, eligibleAmount);
-            BigDecimal tienGiam = calculateDiscount(lockedPromo, eligibleAmount,
-                    order.getPhiVanChuyen() != null ? order.getPhiVanChuyen() : BigDecimal.ZERO);
-            order.setTienGiam(tienGiam);
-            order.setPromotion(lockedPromo);
-            lockedPromo.setDaDung(lockedPromo.getDaDung() + 1);
-            BigDecimal usedBudget = lockedPromo.getUsedBudget() != null ? lockedPromo.getUsedBudget() : BigDecimal.ZERO;
-            lockedPromo.setUsedBudget(usedBudget.add(tienGiam));
-            promotionRepository.save(lockedPromo);
-
-            if (userVoucher != null) {
-                Integer remaining = userVoucher.getRemainingUses();
-                if (remaining != null && remaining > 1) {
-                    userVoucher.setRemainingUses(remaining - 1);
-                    userVoucher.setTotalSaved(userVoucher.getTotalSaved().add(tienGiam));
-                } else {
-                    userVoucher.setRemainingUses(0);
-                    userVoucher.setStatus(VoucherStatus.USED);
-                    userVoucher.setUsedAt(LocalDateTime.now());
-                    userVoucher.setTotalSaved(userVoucher.getTotalSaved().add(tienGiam));
+            // Mã không áp dụng được cho BẤT KỲ sản phẩm nào trong đơn (vd: toàn bộ đơn là
+            // hàng Flash Sale không cộng dồn được mã, hoặc không sản phẩm nào thuộc phạm vi
+            // mã) — bỏ qua mã một cách âm thầm và vẫn cho đặt hàng bình thường theo giá gốc,
+            // thay vì chặn cả đơn hàng vì 1 mã (thường là do hệ thống tự động gợi ý) không
+            // dùng được. Nếu số tiền đủ điều kiện > 0 nhưng chưa đạt mức tối thiểu thì vẫn
+            // báo lỗi rõ ràng như cũ để khách biết cần mua thêm bao nhiêu mới áp dụng được.
+            if (eligibleAmount.compareTo(BigDecimal.ZERO) > 0) {
+                // validatePromotion la kiem tra "mem" cho phan lon dieu kien (con han, du dieu
+                // kien don toi thieu...) — rieng gioi han soLanDung/budget duoc thuc thi THAT SU
+                // nguyen tu o claimUsageIfAvailable ben duoi, khong con dua vao doc-roi-ghi nua.
+                validatePromotion(lockedPromo, eligibleAmount);
+                BigDecimal tienGiam = calculateDiscount(lockedPromo, eligibleAmount,
+                        order.getPhiVanChuyen() != null ? order.getPhiVanChuyen() : BigDecimal.ZERO);
+                if (promotionRepository.claimUsageIfAvailable(lockedPromo.getId(), tienGiam) == 0) {
+                    throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng hoặc hết ngân sách");
                 }
-                userVoucherRepository.save(userVoucher);
+                order.setTienGiam(tienGiam);
+                order.setPromotion(lockedPromo);
+
+                if (userVoucher != null) {
+                    // Nguyen tu — chong khach double-submit checkout lam voucher bi tru
+                    // luot 2 lan (xem UserVoucherRepository.consumeUseIfAvailable).
+                    int consumed = userVoucherRepository.consumeUseIfAvailable(
+                            userVoucher.getId(), tienGiam, LocalDateTime.now());
+                    if (consumed == 0) {
+                        throw new RuntimeException("Voucher đã hết lượt sử dụng");
+                    }
+                }
             }
         }
 
@@ -302,7 +383,10 @@ public class OrderService {
         }
         order.setGhiChu(ghiChu);
 
-        // Lock flash sale + decrement stock FIRST (before saving order)
+        // Lock flash sale + kiem tra con hang (KHONG tru ton kho o day — ton kho thuc
+        // te chi bi tru khi don chuyen sang trang thai "Dang giao", xem
+        // AdminOrderService.adjustStock — tranh tru nham hang khi don con dang cho
+        // xac nhan hoac bi huy truoc khi giao).
         for (CartItem ci : cartItems) {
             if (ci.getVariant() == null) {
                 continue;
@@ -315,24 +399,21 @@ public class OrderService {
                 continue;
             }
 
-            // Lock and increment flash sale sold count first
+            // Claim suat flash sale — nguyen tu qua UPDATE...WHERE (xem
+            // PricingService.incrementSoldQuantity / FlashSaleItemRepository.claimQuotaIfAvailable),
+            // khong con dua vao findByIdWithLock nua vi pessimistic lock da duoc xac nhan
+            // khong chan duoc race o moi truong nay.
             if ("FLASH_SALE".equals(oi.getLoaiGia())) {
                 FlashSaleItem item = flashItemMap.get(ci.getVariantId());
-                if (item != null) {
-                    FlashSaleItem lockedItem = flashSaleItemRepository.findByIdWithLock(item.getId())
-                            .orElseThrow(() -> new RuntimeException("Flash sale không tồn tại"));
-                    if (!pricingService.incrementSoldQuantity(lockedItem, ci.getSoLuong())) {
-                        throw new RuntimeException("Sản phẩm \"" + oi.getTenSanPham() + "\" đã hết suất Flash Sale");
-                    }
-                    flashSaleItemRepository.save(lockedItem);
+                if (item != null && !pricingService.incrementSoldQuantity(item, ci.getSoLuong())) {
+                    throw new RuntimeException("Sản phẩm \"" + oi.getTenSanPham() + "\" đã hết suất Flash Sale");
                 }
             }
 
-            // Lock variant and decrement stock atomically
+            // Khoa variant, chi KIEM TRA con hang — khong tru o day
             ProductVariant variant = variantRepository.findByIdWithLock(ci.getVariant().getId())
                     .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại trong kho"));
-            int affected = variantRepository.decrementStock(variant.getId(), ci.getSoLuong());
-            if (affected == 0) {
+            if (variant.getSoLuongTon() == null || variant.getSoLuongTon() < ci.getSoLuong()) {
                 throw new RuntimeException("Sản phẩm \"" + oi.getTenSanPham()
                         + " - " + variant.getTenBienThe() + "\" không đủ hàng trong kho");
             }
@@ -347,7 +428,14 @@ public class OrderService {
 
         orderStatusLogService.ghiLog(order, OrderEventType.CREATE_ORDER, user, null, null, null);
 
-        cartItemRepository.deleteAll(cartItems);
+        // COD: dat hang = cam ket mua, xoa gio hang ngay. CHUYEN_KHOAN/SEPAY_QR: don tao
+        // truoc khi khach thuc su thanh toan — neu xoa gio hang ngay, khach bo ngang chua
+        // chuyen khoan/quet QR se mat trang gio hang oan trong khi chua he thanh toan gi.
+        // Chi xoa cac dong nay khoi gio hang luc thanh toan THAT SU duoc xac nhan
+        // (xem clearCartItemsForOrder, goi tu confirmPaid / updatePaymentStatus).
+        if ("COD".equals(phuongThucTT)) {
+            cartItemRepository.deleteAll(cartItems);
+        }
 
         if ("GHN".equals(shippingCarrier)) {
             String ghnCode = ghnShippingService.createOrder(order, address);
@@ -379,6 +467,38 @@ public class OrderService {
                 continue;
             }
             if ("FLASH_SALE".equals(item.getLoaiGia()) && !Boolean.TRUE.equals(promo.getStackable())) {
+                continue;
+            }
+            eligible = eligible.add(item.getThanhTien());
+        }
+        return eligible;
+    }
+
+    /**
+     * Tương đương resolveEligibleAmount nhưng dùng cho giỏ hàng (trước khi tạo Order) —
+     * dùng ở trang checkout để xem trước khuyến mãi nào thực sự áp dụng được, tránh
+     * tình trạng khuyến mãi tự động chọn hiển thị ở trang xem trước nhưng khi đặt hàng
+     * lại bị từ chối do biến thể đang Flash Sale không được cộng dồn khuyến mãi.
+     */
+    public BigDecimal resolveEligibleAmountForCart(Promotion promo, List<CartItemDTO> items, Map<Integer, Product> productById) {
+        String type = promo.getTargetType() == null ? "" : promo.getTargetType();
+        Set<Integer> targetIds = parseIntTargetIds(promo.getTargetIds());
+        BigDecimal eligible = BigDecimal.ZERO;
+        for (CartItemDTO item : items) {
+            boolean match = switch (type) {
+                case "PRODUCT" ->
+                    targetIds.contains(item.getProductId());
+                case "CATEGORY" -> {
+                    Product p = productById.get(item.getProductId());
+                    yield p != null && targetIds.contains(p.getDanhMucId());
+                }
+                default ->
+                    true;
+            };
+            if (!match) {
+                continue;
+            }
+            if ("FLASH_SALE".equals(item.getNguonGia()) && !Boolean.TRUE.equals(promo.getStackable())) {
                 continue;
             }
             eligible = eligible.add(item.getThanhTien());
@@ -475,7 +595,7 @@ public class OrderService {
     }
 
     public Order getOrderById(Integer id) {
-        return orderRepository.findById(id)
+        return orderRepository.findByIdWithUserAndItems(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
     }
 
@@ -488,7 +608,7 @@ public class OrderService {
     }
 
     public Order getOrderByMaDon(String maDon) {
-        return orderRepository.findByMaDon(maDon)
+        return orderRepository.findByMaDonWithUserAndItems(maDon)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
     }
 
@@ -513,7 +633,6 @@ public class OrderService {
                     };
                 }
                 case CANCEL_ORDER -> "Đã hủy đơn hàng";
-                case REFUND_ORDER -> "Đã hoàn tiền";
             };
             boolean isLast = (i == logs.size() - 1);
             events.add(new TimelineEvent(
@@ -528,28 +647,57 @@ public class OrderService {
         return events;
     }
 
+    /**
+     * UPDATE nguyen tu (giong confirmPaid) — webhook SePay hay retry, 2 request IPN gan nhu
+     * dong thoi cho cung 1 don phai chi co DUY NHAT 1 request "thang" duoc coi la lan dau
+     * chuyen CHUA_THANH_TOAN -> DA_THANH_TOAN, khong thi ca hai deu chay
+     * clearCartItemsForOrder/autoAssignAndNotify/gui email trung (da xac nhan bang test
+     * thuc te truoc khi doi sang UPDATE nguyen tu).
+     *
+     * Tra ve true CHI KHI chinh lan goi nay la lan dau chuyen trang thai — caller (vd
+     * sepayIPN) phai dua vao gia tri tra ve nay de quyet dinh co ghi log/gui email
+     * "thanh toan thanh cong" hay khong, KHONG duoc tu doc lai trang thai don rieng.
+     */
     @Transactional
-    public void updatePaymentStatus(Integer orderId, String trangThaiTT) {
+    public boolean updatePaymentStatus(Integer orderId, String trangThaiTT) {
+        if ("DA_THANH_TOAN".equals(trangThaiTT)) {
+            int updated = orderRepository.markPaidIfUnpaid(orderId);
+            if (updated == 0) {
+                return false;
+            }
+            Order order = orderRepository.findByIdWithUserAndItems(orderId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+            clearCartItemsForOrder(order);
+            autoAssignAndNotify(order);
+            return true;
+        }
         Order order = getOrderById(orderId);
         order.setTrangThaiTT(trangThaiTT);
         orderRepository.save(order);
+        return false;
     }
 
+    /**
+     * UPDATE nguyen tu (xem OrderRepository.markCompletedIfDelivered) — chong khach
+     * double-click "Đã nhận được hàng" hoac dung do voi admin doi trang thai gan nhu
+     * cung luc cong diem/gui email cam on 2 lan.
+     */
     @Transactional
     public void markOrderReceived(Integer userId, Integer orderId) {
         Order order = getOrderByUserAndId(userId, orderId);
-        if (!"DA_GIAO".equals(order.getTrangThaiDon())) {
+        int updated = orderRepository.markCompletedIfDelivered(orderId);
+        if (updated == 0) {
             throw new RuntimeException("Chỉ có thể xác nhận đã nhận khi đơn hàng ở trạng thái 'Đã giao'");
         }
         order.setTrangThaiDon("DA_HOAN_THANH");
         order.setTrangThaiTT("DA_THANH_TOAN");
-        orderRepository.save(order);
         orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, null,
                 "DA_GIAO", "DA_HOAN_THANH",
                 "Khách hàng xác nhận đã nhận được hàng");
         if (order.getUser() != null) {
             loyaltyPointsService.earnPoints(userId, orderId, order.getTongThanhToan());
         }
+        notifyOrderCompleted(order);
     }
 
     @Transactional
@@ -558,7 +706,8 @@ public class OrderService {
         if (!"CHO_XAC_NHAN".equals(order.getTrangThaiDon())) {
             throw new RuntimeException("Chỉ có thể hủy đơn hàng đang chờ xác nhận");
         }
-        restoreStock(orderId);
+        // Khong can hoan lai ton kho: o trang thai CHO_XAC_NHAN, ton kho THUC TE chua
+        // bi tru (chi tru khi don chuyen sang "Dang giao" — xem AdminOrderService.adjustStock).
         restoreFlashSaleQuota(orderId);
         restoreVoucher(order);
         loyaltyPointsService.refundRedeemedPointsForOrder(userId, orderId);
@@ -626,26 +775,7 @@ public class OrderService {
             flashSaleItemRepository.findByVariantId(item.getVariantId())
                     .stream()
                     .findFirst()
-                    .flatMap(found -> flashSaleItemRepository.findByIdWithLock(found.getId()))
-                    .ifPresent(lockedItem -> {
-                        pricingService.decrementSoldQuantity(lockedItem, item.getSoLuong());
-                        flashSaleItemRepository.save(lockedItem);
-                    });
-        }
-    }
-
-    private void restoreStock(Integer orderId) {
-        List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
-        for (OrderItem item : items) {
-            if (item.getVariantId() == null) {
-                continue;
-            }
-            ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
-            if (variant == null) {
-                continue;
-            }
-            variant.setSoLuongTon(variant.getSoLuongTon() + item.getSoLuong());
-            variantRepository.save(variant);
+                    .ifPresent(found -> pricingService.decrementSoldQuantity(found, item.getSoLuong()));
         }
     }
 

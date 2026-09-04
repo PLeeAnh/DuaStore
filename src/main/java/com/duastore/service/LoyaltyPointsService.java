@@ -1,6 +1,8 @@
 package com.duastore.service;
 
+import com.duastore.model.LoyaltyBalance;
 import com.duastore.model.LoyaltyTransaction;
+import com.duastore.repository.LoyaltyBalanceRepository;
 import com.duastore.repository.LoyaltyTransactionRepository;
 import com.duastore.repository.UserRepository;
 import org.slf4j.Logger;
@@ -21,15 +23,40 @@ public class LoyaltyPointsService {
     private static final Logger log = LoggerFactory.getLogger(LoyaltyPointsService.class);
 
     private final LoyaltyTransactionRepository loyaltyTransactionRepository;
+    private final LoyaltyBalanceRepository loyaltyBalanceRepository;
     private final UserRepository userRepository;
     private final SiteSettingService siteSettingService;
 
     public LoyaltyPointsService(LoyaltyTransactionRepository loyaltyTransactionRepository,
+            LoyaltyBalanceRepository loyaltyBalanceRepository,
             UserRepository userRepository,
             SiteSettingService siteSettingService) {
         this.loyaltyTransactionRepository = loyaltyTransactionRepository;
+        this.loyaltyBalanceRepository = loyaltyBalanceRepository;
         this.userRepository = userRepository;
         this.siteSettingService = siteSettingService;
+    }
+
+    /**
+     * Dam bao co dong so du cho user (tao voi balance=0 neu chua co) truoc khi thao tac
+     * atomic — UPDATE...WHERE khong tu tao dong moi. Bat PK-violation neu 2 request cung
+     * tao lan dau gan nhu cung luc (chi anh huong lan giao dich diem DAU TIEN cua user).
+     */
+    private void ensureBalanceRow(Integer userId) {
+        if (!loyaltyBalanceRepository.existsById(userId)) {
+            try {
+                LoyaltyBalance b = new LoyaltyBalance();
+                b.setUserId(userId);
+                b.setBalance(0);
+                loyaltyBalanceRepository.save(b);
+            } catch (Exception ignored) {
+                // Da duoc tao boi 1 request khac gan nhu cung luc — bo qua.
+            }
+        }
+    }
+
+    private int currentBalance(Integer userId) {
+        return loyaltyBalanceRepository.findById(userId).map(LoyaltyBalance::getBalance).orElse(0);
     }
 
     public int getPointsEarnRate() {
@@ -78,14 +105,23 @@ public class LoyaltyPointsService {
     @Transactional
     public void earnPoints(Integer userId, Integer orderId, BigDecimal orderAmount) {
         try {
+            // Chan cong diem trung: don co the duoc goi hoan thanh tu 2 nguon (khach tu bam
+            // "Da nhan hang" VA admin doi trang thai) gan nhu cung luc, hoac 1 nguon bi goi
+            // lai (double-click/retry). Khong co check nay, moi lan goi la cong them 1 lan.
+            if (loyaltyTransactionRepository.findFirstByUserIdAndReferenceIdAndType(userId, orderId, "EARNED").isPresent()) {
+                log.info("Bo qua tich diem trung cho don {} (user {}) — da tich diem tu truoc", orderId, userId);
+                return;
+            }
             int rate = getPointsEarnRate();
             int points = orderAmount.divideToIntegralValue(BigDecimal.valueOf(rate)).intValue();
             if (points <= 0) return;
-            int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
+            ensureBalanceRow(userId);
+            loyaltyBalanceRepository.addDelta(userId, points);
+            int newBalance = currentBalance(userId);
             LoyaltyTransaction tx = new LoyaltyTransaction();
             tx.setUserId(userId);
             tx.setPoints(points);
-            tx.setBalance(currentBalance + points);
+            tx.setBalance(newBalance);
             tx.setType("EARNED");
             tx.setReferenceId(orderId);
             tx.setNote("Tích điểm từ đơn hàng #" + orderId);
@@ -100,16 +136,25 @@ public class LoyaltyPointsService {
         return redeemPoints(userId, points, null, note);
     }
 
+    /**
+     * Tru diem NGUYEN TU qua LoyaltyBalanceRepository.deductIfEnough truoc khi ghi log —
+     * chong khach double-submit checkout (2 tab, bam nhieu lan) doi diem 2 lan gan nhu
+     * cung luc, cung doc thay du diem truoc khi ben nao commit (y het lop bug da sua o
+     * thanh toan/tong kho/khuyen mai — pessimistic lock da bi xac nhan khong dang tin
+     * cay o moi truong Hibernate + SQL Server nay).
+     */
     @Transactional
     public int redeemPoints(Integer userId, int points, Integer orderId, String note) {
-        int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
-        if (points > currentBalance) {
-            throw new IllegalArgumentException("Không đủ điểm. Hiện có: " + currentBalance + ", cần: " + points);
+        ensureBalanceRow(userId);
+        int updated = loyaltyBalanceRepository.deductIfEnough(userId, points);
+        if (updated == 0) {
+            throw new IllegalArgumentException("Không đủ điểm. Hiện có: " + currentBalance(userId) + ", cần: " + points);
         }
+        int newBalance = currentBalance(userId);
         LoyaltyTransaction tx = new LoyaltyTransaction();
         tx.setUserId(userId);
         tx.setPoints(-points);
-        tx.setBalance(currentBalance - points);
+        tx.setBalance(newBalance);
         tx.setType("REDEEMED");
         tx.setReferenceId(orderId);
         tx.setNote(note);
@@ -126,11 +171,13 @@ public class LoyaltyPointsService {
                 .ifPresent(redeemed -> {
                     int points = -redeemed.getPoints();
                     if (points <= 0) return;
-                    int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
+                    ensureBalanceRow(userId);
+                    loyaltyBalanceRepository.addDelta(userId, points);
+                    int newBalance = currentBalance(userId);
                     LoyaltyTransaction refund = new LoyaltyTransaction();
                     refund.setUserId(userId);
                     refund.setPoints(points);
-                    refund.setBalance(currentBalance + points);
+                    refund.setBalance(newBalance);
                     refund.setType("ADJUSTED");
                     refund.setReferenceId(orderId);
                     refund.setNote("Hoàn điểm do hủy đơn #" + orderId);
@@ -140,11 +187,16 @@ public class LoyaltyPointsService {
 
     @Transactional
     public int adjustPoints(Integer userId, int points, String reason, String adminName) {
-        int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
-        int newBalance = Math.max(0, currentBalance + points);
+        ensureBalanceRow(userId);
+        int before = currentBalance(userId);
+        int delta = points < 0 && -points > before ? -before : points;
+        if (delta != 0) {
+            loyaltyBalanceRepository.addDelta(userId, delta);
+        }
+        int newBalance = currentBalance(userId);
         LoyaltyTransaction tx = new LoyaltyTransaction();
         tx.setUserId(userId);
-        tx.setPoints(points);
+        tx.setPoints(delta);
         tx.setBalance(newBalance);
         tx.setType("ADJUSTED");
         tx.setNote(reason + " (bởi " + adminName + ")");
@@ -153,7 +205,8 @@ public class LoyaltyPointsService {
     }
 
     public int getBalance(Integer userId) {
-        return loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
+        ensureBalanceRow(userId);
+        return currentBalance(userId);
     }
 
     @Transactional
@@ -181,7 +234,7 @@ public class LoyaltyPointsService {
             return;
         }
 
-        int currentBalance = loyaltyTransactionRepository.findCurrentBalanceByUserId(userId);
+        int currentBalance = currentBalance(userId);
         int pointsToExpire = 0;
 
         for (LoyaltyTransaction tx : oldTransactions) {
@@ -202,11 +255,13 @@ public class LoyaltyPointsService {
         }
 
         if (pointsToExpire > 0) {
+            ensureBalanceRow(userId);
+            loyaltyBalanceRepository.addDelta(userId, -pointsToExpire);
             // Record the expiry as an adjustment
             LoyaltyTransaction expiryTx = new LoyaltyTransaction();
             expiryTx.setUserId(userId);
             expiryTx.setPoints(-pointsToExpire);
-            expiryTx.setBalance(currentBalance);
+            expiryTx.setBalance(currentBalance(userId));
             expiryTx.setType("EXPIRED");
             expiryTx.setNote("Hết hạn " + pointsToExpire + " điểm sau " + getPointsExpiryMonths() + " tháng không hoạt động");
             loyaltyTransactionRepository.save(expiryTx);

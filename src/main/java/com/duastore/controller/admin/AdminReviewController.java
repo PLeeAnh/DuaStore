@@ -223,7 +223,8 @@ public class AdminReviewController {
                 "Danh gia cho san pham " + productName + " " + action,
                 "PRODUCT", review.getProductId(),
                 "/admin/danh-gia",
-                "Xem danh gia"
+                "Xem danh gia",
+                com.duastore.config.security.PermissionEnum.REVIEW_READ
         );
     }
 }

@@ -3,6 +3,7 @@ package com.duastore.controller.admin;
 import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.User;
 import com.duastore.repository.PermissionRepository;
+import com.duastore.service.admin.AccountLockService;
 import com.duastore.service.admin.AdminDashboardService;
 import com.duastore.service.admin.AdminOrderService;
 import org.springframework.security.core.Authentication;
@@ -23,15 +24,36 @@ public class AdminControllerAdvice {
     private final AdminDashboardService adminDashboardService;
     private final SecurityUtil securityUtil;
     private final PermissionRepository permissionRepository;
+    private final AccountLockService accountLockService;
 
     public AdminControllerAdvice(AdminOrderService adminOrderService,
             AdminDashboardService adminDashboardService,
             SecurityUtil securityUtil,
-            PermissionRepository permissionRepository) {
+            PermissionRepository permissionRepository,
+            AccountLockService accountLockService) {
         this.adminOrderService = adminOrderService;
         this.adminDashboardService = adminDashboardService;
         this.securityUtil = securityUtil;
         this.permissionRepository = permissionRepository;
+        this.accountLockService = accountLockService;
+    }
+
+    @ModelAttribute("isProductOwner")
+    public boolean isProductOwner(Authentication auth) {
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_PRODUCT_OWNER".equals(a.getAuthority()));
+    }
+
+    @ModelAttribute("pendingLockRequests")
+    public long pendingLockRequests(Authentication auth) {
+        if (!isProductOwner(auth)) {
+            return 0;
+        }
+        try {
+            return accountLockService.countPending();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     @ModelAttribute("pendingOrders")

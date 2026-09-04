@@ -68,8 +68,7 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
             session.setAttribute("userInitial", user.getHoTen() != null && !user.getHoTen().isEmpty()
                     ? String.valueOf(user.getHoTen().charAt(0)).toUpperCase() : "U");
             session.setAttribute("userEmail", user.getEmail());
-            String roleName = user.getRoles().stream()
-                    .findFirst().map(r -> r.getName()).orElse("USER");
+            String roleName = SecurityUtil.resolvePrimaryRoleName(user.getRoles());
             session.setAttribute("userRole", roleName);
             session.setAttribute("userUsername", user.getUsername());
             session.setAttribute("userPhone", user.getSoDienThoai());

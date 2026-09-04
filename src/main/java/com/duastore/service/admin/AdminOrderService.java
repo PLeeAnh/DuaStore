@@ -31,6 +31,8 @@ public class AdminOrderService {
 
     private static final Map<String, Set<String>> VALID_TRANSITIONS = new LinkedHashMap<>();
     private static final Map<String, String> STATUS_NAMES = new LinkedHashMap<>();
+    /** Cac trang thai ma tai do ton kho THUC TE da bi tru (tu luc "Dang giao" tro di). */
+    private static final Set<String> STOCK_DEDUCTED_STATES = Set.of("DANG_GIAO", "DA_GIAO", "DA_HOAN_THANH");
 
     static {
         VALID_TRANSITIONS.put("CHO_XAC_NHAN", Set.of("DA_XAC_NHAN", "DA_HUY"));
@@ -59,6 +61,7 @@ public class AdminOrderService {
     private final FlashSaleItemRepository flashSaleItemRepository;
     private final PricingService pricingService;
     private final com.duastore.service.client.OrderService clientOrderService;
+    private final StockMovementService stockMovementService;
 
     public AdminOrderService(OrderRepository orderRepository,
             AdminLogService adminLogService,
@@ -70,7 +73,8 @@ public class AdminOrderService {
             LoyaltyPointsService loyaltyPointsService,
             FlashSaleItemRepository flashSaleItemRepository,
             PricingService pricingService,
-            com.duastore.service.client.OrderService clientOrderService) {
+            com.duastore.service.client.OrderService clientOrderService,
+            StockMovementService stockMovementService) {
         this.orderRepository = orderRepository;
         this.adminLogService = adminLogService;
         this.assignmentRepository = assignmentRepository;
@@ -82,6 +86,7 @@ public class AdminOrderService {
         this.flashSaleItemRepository = flashSaleItemRepository;
         this.pricingService = pricingService;
         this.clientOrderService = clientOrderService;
+        this.stockMovementService = stockMovementService;
     }
 
     @Transactional
@@ -145,22 +150,6 @@ public class AdminOrderService {
         return order;
     }
 
-    public void updateOrderStatus(Integer id, String trangThaiDon) {
-        Order order = getOrderById(id);
-        String error = validateTransition(order.getTrangThaiDon(), trangThaiDon);
-        if (error != null) {
-            throw new IllegalArgumentException(error);
-        }
-        if ("DA_HOAN_THANH".equals(trangThaiDon)) {
-            order.setTrangThaiTT("DA_THANH_TOAN");
-        }
-        if ("DA_GIAO".equals(trangThaiDon) && order.getNgayGiao() == null) {
-            order.setNgayGiao(java.time.LocalDateTime.now());
-        }
-        order.setTrangThaiDon(trangThaiDon);
-        orderRepository.save(order);
-    }
-
     public void updatePaymentStatus(Integer id, String trangThaiTT) {
         Order order = getOrderById(id);
         String old = order.getTrangThaiTT();
@@ -196,8 +185,43 @@ public class AdminOrderService {
         return null;
     }
 
-    private String adjustStock(Integer orderId, String newStatus, String oldStatus) {
+    /**
+     * Ton kho THUC TE (soLuongTon) chi bi tru khi don hang thuc su di giao — luc chuyen
+     * sang trang thai "Dang giao" — chu khong tru ngay luc dat hang (xem OrderService).
+     * Ly do: tranh tinh huong khach dat roi huy/khong xac nhan ma kho da bi tru nham,
+     * trong khi don thuc su chi "mat hang" khi da xuat kho di giao.
+     */
+    private String adjustStock(Integer orderId, String newStatus, String oldStatus, String maDon, Integer adminUserId) {
+        if ("DANG_GIAO".equals(newStatus)) {
+            List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
+            int count = 0;
+            for (OrderItem item : items) {
+                if (item.getVariantId() == null) {
+                    continue;
+                }
+                ProductVariant variant = variantRepository.findByIdWithLock(item.getVariantId()).orElse(null);
+                if (variant == null) {
+                    continue;
+                }
+                int affected = variantRepository.decrementStock(variant.getId(), item.getSoLuong());
+                if (affected == 0) {
+                    throw new IllegalArgumentException("Sản phẩm \"" + item.getTenSanPham()
+                            + (item.getTenBienThe() != null ? " - " + item.getTenBienThe() : "")
+                            + "\" không đủ hàng trong kho để giao");
+                }
+                if (adminUserId != null) {
+                    stockMovementService.recordOut(item.getVariantId(), item.getSoLuong(), orderId, adminUserId,
+                            "Xuất kho giao đơn " + maDon);
+                }
+                count += item.getSoLuong();
+            }
+            return count > 0 ? "Đã trừ " + count + " sản phẩm khỏi tồn kho." : null;
+        }
         if ("DA_HUY".equals(newStatus)) {
+            // Chi hoan lai ton kho neu don da tung bi tru that (tuc da qua "Dang giao").
+            if (!STOCK_DEDUCTED_STATES.contains(oldStatus)) {
+                return null;
+            }
             List<OrderItem> items = orderItemRepository.findByOrderId(orderId);
             int count = 0;
             for (OrderItem item : items) {
@@ -210,6 +234,10 @@ public class AdminOrderService {
                 }
                 variant.setSoLuongTon(variant.getSoLuongTon() + item.getSoLuong());
                 variantRepository.save(variant);
+                if (adminUserId != null) {
+                    stockMovementService.recordIn(item.getVariantId(), item.getSoLuong(), adminUserId,
+                            "Hoàn kho do hủy đơn " + maDon);
+                }
                 count += item.getSoLuong();
             }
             return count > 0 ? "Đã hoàn lại " + count + " sản phẩm vào tồn kho." : null;
@@ -229,7 +257,7 @@ public class AdminOrderService {
         }
 
         if ("DA_HUY".equals(trangThaiDon)) {
-            String stockMsg = adjustStock(id, "DA_HUY", oldStatus);
+            String stockMsg = adjustStock(id, "DA_HUY", oldStatus, order.getMaDon(), admin != null ? admin.getId() : null);
             if (order.getUser() != null) {
                 loyaltyPointsService.refundRedeemedPointsForOrder(order.getUser().getId(), id);
             }
@@ -259,14 +287,18 @@ public class AdminOrderService {
             order.setNgayGiao(java.time.LocalDateTime.now());
         }
 
+        // Tru ton kho TRUOC khi luu trang thai "Dang giao" — neu khong du hang, that bai
+        // ngay tai day (khong doi trang thai don) thay vi luu roi moi bao loi.
+        String stockMsg = adjustStock(id, trangThaiDon, oldStatus, order.getMaDon(), admin != null ? admin.getId() : null);
+
         order.setTrangThaiDon(trangThaiDon);
         orderRepository.save(order);
 
         if ("DA_HOAN_THANH".equals(trangThaiDon) && order.getUser() != null) {
             loyaltyPointsService.earnPoints(order.getUser().getId(), id, order.getTongThanhToan());
+            clientOrderService.notifyOrderCompleted(order);
         }
 
-        String stockMsg = adjustStock(id, trangThaiDon, oldStatus);
         orderStatusLogService.ghiLog(order, OrderEventType.STATUS_CHANGE, admin, oldStatus, trangThaiDon, stockMsg);
 
         adminLogService.ghiLogDonHang(admin, id, "CAP_NHAT_TRANG_THAI_DON",
@@ -285,11 +317,7 @@ public class AdminOrderService {
             flashSaleItemRepository.findByVariantId(item.getVariantId())
                     .stream()
                     .findFirst()
-                    .flatMap(found -> flashSaleItemRepository.findByIdWithLock(found.getId()))
-                    .ifPresent(lockedItem -> {
-                        pricingService.decrementSoldQuantity(lockedItem, item.getSoLuong());
-                        flashSaleItemRepository.save(lockedItem);
-                    });
+                    .ifPresent(found -> pricingService.decrementSoldQuantity(found, item.getSoLuong()));
         }
     }
 

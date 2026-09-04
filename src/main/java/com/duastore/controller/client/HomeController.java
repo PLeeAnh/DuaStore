@@ -22,6 +22,7 @@ import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
 import com.duastore.repository.ReviewsRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -142,8 +143,14 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(Model model, HttpSession session) {
         model.addAttribute("title", "Trang chủ");
+
+        Object loginErrorMessage = session.getAttribute("loginErrorMessage");
+        if (loginErrorMessage != null) {
+            model.addAttribute("loginErrorMessage", loginErrorMessage);
+            session.removeAttribute("loginErrorMessage");
+        }
 
         // Read homepage section settings
         int promoLimit = parseInt(siteSettingService.getValue("hp_3_limit"), 6);

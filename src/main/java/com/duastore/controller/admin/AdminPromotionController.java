@@ -164,7 +164,8 @@ public class AdminPromotionController {
                     "Admin " + getCurrentAdminName() + " đã tạo khuyến mãi: " + saved.getTenChuongTrinh(),
                     "PROMOTION", saved.getId(),
                     "/admin/khuyen-mai",
-                    "Xem khuyến mãi"
+                    "Xem khuyến mãi",
+                    com.duastore.config.security.PermissionEnum.PROMOTION_READ
             );
             ra.addFlashAttribute("successMsg", "Thêm khuyến mãi thành công");
         } catch (Exception e) {

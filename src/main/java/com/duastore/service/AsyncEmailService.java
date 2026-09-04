@@ -87,11 +87,28 @@ public class AsyncEmailService {
     }
 
     @Async("duastoreMailExecutor")
-    public void sendOrderAssigned(String toEmail, String adminName, String maDon, String customerName, String assignedBy) {
+    public void sendOrderAssigned(Order order, User admin, String assignedBy) {
         try {
-            emailService.sendOrderAssignedEmail(toEmail, adminName, maDon, customerName, assignedBy);
+            if (order == null || admin == null || EmailService.isPlaceholderEmail(admin.getEmail())) {
+                return;
+            }
+            emailService.sendOrderAssignedEmail(admin.getEmail(),
+                    admin.getHoTen() != null ? admin.getHoTen() : admin.getEmail(),
+                    order, assignedBy);
         } catch (Exception e) {
-            log.warn("Async send assigned email that bai ({}): {}", maDon, e.getMessage());
+            log.warn("Async send assigned email that bai ({}): {}", order != null ? order.getMaDon() : "-", e.getMessage());
+        }
+    }
+
+    @Async("duastoreMailExecutor")
+    public void sendOrderCompleted(String toEmail, String hoTen, String maDon, List<OrderItem> items) {
+        try {
+            if (toEmail == null || toEmail.isBlank()) {
+                return;
+            }
+            emailService.sendOrderCompletedEmail(toEmail, hoTen, maDon, items);
+        } catch (Exception e) {
+            log.warn("Async send completed email that bai ({}): {}", maDon, e.getMessage());
         }
     }
 
@@ -128,7 +145,7 @@ public class AsyncEmailService {
                     + "<p><a href='/admin/don-hang/" + order.getId() + "' style='display:inline-block;padding:8px 16px;background:#0284C7;color:#fff;text-decoration:none;border-radius:4px;'>Xem đơn hàng</a></p>"
                     + "</div>";
             for (User staffUser : staff) {
-                if (staffUser.getEmail() != null && !staffUser.getEmail().isEmpty()) {
+                if (!EmailService.isPlaceholderEmail(staffUser.getEmail())) {
                     emailService.send(staffUser.getEmail(), subject, html);
                 }
             }

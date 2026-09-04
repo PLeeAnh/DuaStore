@@ -55,12 +55,17 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Query("SELECT v FROM ProductVariant v WHERE v.id = :id")
     Optional<ProductVariant> findByIdWithLock(@Param("id") Integer id);
 
+    // Tang ca "version" trong cung cau UPDATE nay — de nhung entity ProductVariant dang
+    // duoc giu (vd admin dang mo form sua) tro thanh "cu" (stale) ve mat optimistic-lock:
+    // neu admin submit form sau khi mot don hang da tru/hoan ton kho o day, Hibernate se
+    // phat hien version lech va tu choi ghi de (xem AdminVariantService.save/bulkSave).
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon - :qty WHERE v.id = :id AND v.soLuongTon >= :qty")
+    @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon - :qty, v.version = v.version + 1 "
+            + "WHERE v.id = :id AND v.soLuongTon >= :qty")
     int decrementStock(@Param("id") Integer id, @Param("qty") Integer qty);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon + :qty WHERE v.id = :id")
+    @Query("UPDATE ProductVariant v SET v.soLuongTon = v.soLuongTon + :qty, v.version = v.version + 1 WHERE v.id = :id")
     void incrementStock(@Param("id") Integer id, @Param("qty") Integer qty);
 
     List<ProductVariant> findByIsActiveTrueOrderByIdAsc();

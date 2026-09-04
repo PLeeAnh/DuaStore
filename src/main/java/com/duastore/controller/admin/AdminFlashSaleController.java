@@ -332,7 +332,8 @@ public class AdminFlashSaleController {
                 "Flash sale \"" + flashSale.getTenChuongTrinh() + "\" da duoc " + action,
                 "PROMOTION", flashSale.getId(),
                 "/admin/flash-sale",
-                "Xem flash sale"
+                "Xem flash sale",
+                com.duastore.config.security.PermissionEnum.FLASH_SALE_READ
         );
     }
 }

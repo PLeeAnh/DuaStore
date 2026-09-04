@@ -54,6 +54,31 @@ public class VerificationCodeController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    @PostMapping("/send-reset-code")
+    public ResponseEntity<?> sendResetCode(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email không được bỏ trống"));
+        }
+
+        if (userRepository.findByEmail(email).isEmpty()) {
+            // Không tiết lộ email có tồn tại trong hệ thống hay không
+            return ResponseEntity.ok(Map.of("success", true));
+        }
+
+        String code = codeService.generate(email);
+
+        boolean sent = emailService.sendOtpEmail(email, code, "RESET");
+        if (!sent) {
+            log.warn("Không gửi được email OTP đặt lại mật khẩu tới {}", email);
+            codeService.delete(email);
+            return ResponseEntity.ok(Map.of("success", false, "error",
+                    "Không gửi được email mã xác thực. Vui lòng thử lại sau."));
+        }
+        log.info("Reset password OTP sent to {}", email);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
     @PostMapping("/verify-code")
     public ResponseEntity<?> verifyCode(@RequestBody Map<String, String> body) {
         String email = body.get("email");

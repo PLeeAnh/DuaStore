@@ -84,6 +84,20 @@ public class ProductController {
     }
 
     /**
+     * Mot khuyen mai co donHangToiThieu (vd "giam 15% cho don tu 200k") KHONG duoc coi la
+     * "chac chan ap dung" cho gia hien thi cua 1 san pham rieng le neu gia san pham do,
+     * mot minh no, chua du muc toi thieu — vi luc khach that su dat 1 san pham nay vao gio
+     * hang roi checkout, OrderService/CheckoutController se TU CHOI ap ma (khong du dieu
+     * kien don toi thieu), khien gia thuc te khac voi gia da "hua" luc xem chi tiet san
+     * pham. Chi cho ap khi mot minh san pham nay (o muc gia goc) da vuot nguong.
+     */
+    private boolean meetsMinOrderAlone(Promotion promo, BigDecimal price) {
+        BigDecimal min = promo.getDonHangToiThieu();
+        return min == null || min.compareTo(BigDecimal.ZERO) <= 0
+                || (price != null && min.compareTo(price) <= 0);
+    }
+
+    /**
      * Check if a promotion applies to a given product based on targetType and targetIds.
      * targetType: ALL (or null) -> applies to all products
      * targetType: CATEGORY -> product's category (or parent) must be in targetIds
@@ -375,7 +389,7 @@ public class ProductController {
                 boolean hasGiamToiDa = pctPromo.getGiamToiDa() != null;
                 for (ProductVariant pv : pvList) {
                     BigDecimal basePrice = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
-                    if (basePrice != null) {
+                    if (basePrice != null && meetsMinOrderAlone(pctPromo, basePrice)) {
                         BigDecimal raw = basePrice
                                 .multiply(BigDecimal.valueOf(100).subtract(discountPct))
                                 .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
@@ -411,7 +425,7 @@ public class ProductController {
                         : 0;
             }
 
-            if (pctPromo != null) {
+            if (pctPromo != null && meetsMinOrderAlone(pctPromo, bestPrice)) {
                 BigDecimal promoPrice = bestPrice
                         .multiply(BigDecimal.valueOf(100).subtract(pctPromo.getGiaTriGiam()))
                         .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
@@ -653,7 +667,7 @@ public class ProductController {
             BigDecimal bestPrice = basePrice;
 
             // Apply promotion if available
-            if (bestPercentagePromo != null) {
+            if (bestPercentagePromo != null && meetsMinOrderAlone(bestPercentagePromo, basePrice)) {
                 BigDecimal promoPrice = basePrice
                         .multiply(BigDecimal.valueOf(100).subtract(bestPercentagePromo.getGiaTriGiam()))
                         .divide(BigDecimal.valueOf(100), java.math.RoundingMode.HALF_UP);
@@ -877,7 +891,8 @@ public class ProductController {
                     "Co danh gia moi cho san pham " + productName + " can duyet",
                     "PRODUCT", id,
                     "/admin/danh-gia",
-                    "Duyet danh gia"
+                    "Duyet danh gia",
+                    com.duastore.config.security.PermissionEnum.REVIEW_READ
             );
             if (isAjax) return java.util.Map.of("success", true, "message", "Cam on ban da danh gia!");
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");

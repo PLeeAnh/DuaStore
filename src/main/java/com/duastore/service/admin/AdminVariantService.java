@@ -70,6 +70,15 @@ public class AdminVariantService {
     public ProductVariant save(ProductVariantFormDTO dto) {
         ProductVariant v = (dto.getId() != null) ? variantRepository.findById(dto.getId()).orElse(new ProductVariant()) : new ProductVariant();
 
+        // Optimistic lock thu cong: dto.getVersion() la version admin thay LUC MO FORM (o
+        // request GET rieng, truoc do). Neu don hang da tru/hoan ton kho (hoac ai do khac
+        // da luu) trong luc admin dang sua, version hien tai trong DB se khac — tu choi
+        // ghi de va bat admin tai lai trang thay so moi nhat, thay vi am tham ghi de sai.
+        if (dto.getId() != null && v.getId() != null && dto.getVersion() != null
+                && !dto.getVersion().equals(v.getVersion())) {
+            throw new org.springframework.orm.ObjectOptimisticLockingFailureException(ProductVariant.class, v.getId());
+        }
+
         BigDecimal oldPrice = v.getGiaGoc();
 
         v.setProductId(dto.getProductId());
@@ -112,14 +121,28 @@ public class AdminVariantService {
         return saved;
     }
 
+    /**
+     * Tra ve danh sach id bi BO QUA vi du lieu da cu (version khong khop) — dung cung
+     * co che voi save() don le: form luoi mang theo version luc admin tai trang, neu
+     * dong nao da bi doi (vd don hang vua tru/hoan kho) truoc khi admin bam luu, dong
+     * do bi bo qua thay vi am tham ghi de sai, va admin duoc bao ro id nao can tai lai.
+     */
     @Transactional
-    public void bulkUpdate(List<Map<String, Object>> variants, Integer adminId) {
+    public List<Integer> bulkUpdate(List<Map<String, Object>> variants, Integer adminId) {
+        List<Integer> skippedIds = new java.util.ArrayList<>();
         for (Map<String, Object> entry : variants) {
             Integer id = (Integer) entry.get("id");
             if (id == null) continue;
 
             ProductVariant v = variantRepository.findById(id).orElse(null);
             if (v == null) continue;
+
+            Object versionObj = entry.get("version");
+            if (versionObj instanceof Number && v.getVersion() != null
+                    && ((Number) versionObj).intValue() != v.getVersion()) {
+                skippedIds.add(id);
+                continue;
+            }
 
             BigDecimal oldPrice = v.getGiaGoc();
 
@@ -157,6 +180,7 @@ public class AdminVariantService {
                         productName, oldPrice, v.getGiaGoc(), adminId, "ADMIN");
             }
         }
+        return skippedIds;
     }
 
     @Transactional

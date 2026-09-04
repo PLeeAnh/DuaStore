@@ -1,5 +1,6 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityService;
 import com.duastore.dto.AdminNotificationDTO;
 import com.duastore.model.Notification;
 import com.duastore.model.Product;
@@ -34,15 +35,18 @@ public class AdminNotificationController {
     private final ProductRepository productRepository;
     private final PromotionRepository promotionRepository;
     private final NotificationRepository notificationRepository;
+    private final SecurityService securityService;
 
     public AdminNotificationController(AdminNotificationService adminNotificationService,
             ProductRepository productRepository,
             PromotionRepository promotionRepository,
-            NotificationRepository notificationRepository) {
+            NotificationRepository notificationRepository,
+            SecurityService securityService) {
         this.adminNotificationService = adminNotificationService;
         this.productRepository = productRepository;
         this.promotionRepository = promotionRepository;
         this.notificationRepository = notificationRepository;
+        this.securityService = securityService;
     }
 
     @GetMapping
@@ -163,7 +167,14 @@ public class AdminNotificationController {
         try {
             Integer readMaxId = (Integer) session.getAttribute("staffNotifReadMaxId");
             if (readMaxId == null) readMaxId = 0;
-            long count = notificationRepository.countUnreadStaffNotifications(readMaxId);
+            final int maxId = readMaxId;
+            @SuppressWarnings("unchecked")
+            java.util.Set<Integer> readIdsRaw = (java.util.Set<Integer>) session.getAttribute("staffNotifReadIds");
+            java.util.Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Set.of();
+            long count = notificationRepository.findStaffNotifications().stream()
+                    .filter(n -> securityService.canSeeNotification(n.getRequiredPermission()))
+                    .filter(n -> n.getId() > maxId && !readIds.contains(n.getId()))
+                    .count();
             return String.valueOf(count);
         } catch (Exception e) {
             return "0";

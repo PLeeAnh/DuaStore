@@ -4,7 +4,7 @@
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/client/base}">
     <head>
-        <title>Thanh toán chuyển khoản — DuaStore</title>
+        <title>Thanh toán QR (VietQR) — DuaStore</title>
     </head>
     <body>
         <div layout:fragment="content">
@@ -19,17 +19,14 @@
                                     <div id="qr-payment-box">
                                         <div class="mb-4">
                                             <div class="bg-success bg-opacity-10 d-inline-flex p-3 rounded-circle mb-3">
-                                                <i class="bi bi-bank text-success fs-2"></i>
+                                                <i class="bi bi-qr-code text-success fs-2"></i>
                                             </div>
                                             <h4 class="fw-bold">Quét mã QR để thanh toán</h4>
-                                            <p class="text-muted small mb-1">Vui lòng chuyển khoản đúng số tiền bên dưới</p>
-                                            <span class="badge bg-secondary bg-opacity-75">
-                                                <i class="bi bi-hand-index-thumb me-1"></i>Xác nhận thủ công — cần bấm "Đã thanh toán"
-                                            </span>
+                                            <p class="text-muted small">Chuyển khoản đúng số tiền — hệ thống tự động xác nhận, không cần bấm gì thêm</p>
                                         </div>
 
                                         <div class="mb-4">
-                                            <img th:src="${qrUrl}" alt="QR thanh toán"
+                                            <img th:src="${qrUrl}" alt="QR thanh toán SePay"
                                                  class="img-fluid rounded-3 border"
                                                  style="max-width:280px;width:100%" />
                                         </div>
@@ -37,7 +34,7 @@
                                         <div class="bg-light rounded-3 p-3 mb-4 text-start">
                                             <div class="d-flex justify-content-between small mb-2">
                                                 <span class="text-muted">Ngân hàng</span>
-                                                <span class="fw-medium" th:text="${bankName}">Techcombank</span>
+                                                <span class="fw-medium" th:text="${bankName}">MBBank</span>
                                             </div>
                                             <div class="d-flex justify-content-between small mb-2">
                                                 <span class="text-muted">Số tài khoản</span>
@@ -62,23 +59,14 @@
                                             Vui lòng thanh toán trong <strong id="countdown-timer">15:00</strong>
                                         </div>
 
-                                        <div class="alert alert-warning small py-2 mb-4">
-                                            <i class="bi bi-info-circle me-1"></i>
-                                            Sau khi chuyển khoản, vui lòng bấm <strong>"Đã thanh toán"</strong> để hoàn tất đơn hàng.
-                                        </div>
-
-                                        <button id="btn-confirm" type="button"
-                                                class="btn btn-success btn-lg rounded-pill w-100 fw-semibold py-2"
-                                                th:data-order-id="${order.id}">
-                                            <i class="bi bi-check-circle me-1"></i>Đã thanh toán
-                                        </button>
-
-                                        <div id="confirm-loading" class="d-none mt-3">
-                                            <div class="spinner-border spinner-border-sm text-success me-1" role="status"></div>
-                                            <span class="text-muted small">Đang xử lý...</span>
+                                        <div id="waiting-box" class="d-flex align-items-center justify-content-center gap-2 py-2 mb-3">
+                                            <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                                            <span class="text-muted small">Đang chờ xác nhận thanh toán tự động…</span>
                                         </div>
                                     </div>
 
+                                    <!-- Hiện khi het 15 phut ma chua thanh toan — thay vi de trang "chet", huong dan
+                                         ro rang buoc tiep theo thay vi chi bao loi bang toast roi thoi. -->
                                     <div id="expired-box" class="d-none">
                                         <div class="bg-warning bg-opacity-10 d-inline-flex p-3 rounded-circle mb-3">
                                             <i class="bi bi-clock-history text-warning fs-2"></i>
@@ -104,12 +92,16 @@
         <th:block layout:fragment="extra-script">
         <script th:inline="javascript">
             (function () {
-                var orderId = document.getElementById('btn-confirm').getAttribute('data-order-id');
+                var orderId = /*[[${order.id}]]*/ 0;
                 var pollInterval = null;
                 var countdownSeconds = 15 * 60;
+                var expired = false;
                 var paymentPending = true;
 
-                // ── Chặn rời trang trong lúc chờ xác nhận (xem sepay-qr.html) ──
+                // ── Chặn rời trang trong lúc chờ xác nhận tự động (giống cách trang
+                // checkout khóa nút "Đặt hàng" trong lúc đang xử lý) — tránh khách thoát
+                // ra đặt đơn khác/rời đi giữa chừng trong khi tiền đã chuyển và hệ thống
+                // đang chờ webhook SePay báo về. Tự tắt khi thanh toán xong hoặc hết hạn.
                 window.addEventListener('beforeunload', function (e) {
                     if (paymentPending) {
                         e.preventDefault();
@@ -121,12 +113,15 @@
                 var timerEl = document.getElementById('countdown-timer');
                 function updateCountdown() {
                     if (countdownSeconds <= 0) {
-                        paymentPending = false;
-                        timerEl.textContent = '00:00';
-                        document.getElementById('qr-payment-box').classList.add('d-none');
-                        document.getElementById('back-link-box').classList.add('d-none');
-                        document.getElementById('expired-box').classList.remove('d-none');
-                        stopPolling();
+                        if (!expired) {
+                            expired = true;
+                            paymentPending = false;
+                            timerEl.textContent = '00:00';
+                            document.getElementById('qr-payment-box').classList.add('d-none');
+                            document.getElementById('back-link-box').classList.add('d-none');
+                            document.getElementById('expired-box').classList.remove('d-none');
+                            stopPolling();
+                        }
                         return;
                     }
                     var m = Math.floor(countdownSeconds / 60);
@@ -134,55 +129,13 @@
                     timerEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
                     countdownSeconds--;
                 }
+                updateCountdown();
                 setInterval(updateCountdown, 1000);
 
-                // ── AJAX Confirm ─────────────────────────────
-                var btnConfirm = document.getElementById('btn-confirm');
-                var loadingEl = document.getElementById('confirm-loading');
-                var confirming = false;
-
-                btnConfirm.addEventListener('click', function () {
-                    if (confirming) return;
-                    confirming = true;
-
-                    btnConfirm.classList.add('d-none');
-                    loadingEl.classList.remove('d-none');
-
-                    fetch('/checkout/chuyen-khoan/' + orderId + '/xac-nhan', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            [document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN']:
-                                document.querySelector('meta[name="_csrf"]')?.content || ''
-                        }
-                    })
-                    .then(function (resp) { return resp.json(); })
-                    .then(function (data) {
-                        loadingEl.classList.add('d-none');
-                        if (data.success) {
-                            paymentPending = false;
-                            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Xác nhận thành công! Đang chuyển trang...'); }
-                            stopPolling();
-                            setTimeout(function () {
-                                window.location.href = data.redirectUrl || '/checkout/thanh-cong/' + orderId;
-                            }, 1500);
-                        } else {
-                            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error(data.message || 'Có lỗi xảy ra, vui lòng thử lại.'); }
-                            btnConfirm.classList.remove('d-none');
-                            confirming = false;
-                        }
-                    })
-                    .catch(function () {
-                        loadingEl.classList.add('d-none');
-                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Lỗi kết nối, vui lòng thử lại.'); }
-                        btnConfirm.classList.remove('d-none');
-                        confirming = false;
-                    });
-                });
-
-                // ── Polling: auto-check payment status ───────
+                // ── Polling: tự động dò trạng thái thanh toán, SePay báo IPN thì cập nhật ──
                 function startPolling() {
                     pollInterval = setInterval(function () {
+                        if (expired) { stopPolling(); return; }
                         fetch('/checkout/api/check-payment-status/' + orderId)
                             .then(function (resp) { return resp.json(); })
                             .then(function (data) {
@@ -190,14 +143,14 @@
                                     stopPolling();
                                     paymentPending = false;
                                     if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã nhận được thanh toán! Đang chuyển trang...'); }
-                                    loadingEl.classList.add('d-none');
+                                    document.getElementById('waiting-box').classList.add('d-none');
                                     setTimeout(function () {
                                         window.location.href = data.redirectUrl;
                                     }, 1000);
                                 }
                             })
                             .catch(function () {});
-                    }, 10000);
+                    }, 5000);
                 }
 
                 function stopPolling() {

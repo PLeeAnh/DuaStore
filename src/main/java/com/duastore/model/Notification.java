@@ -41,6 +41,15 @@ public class Notification {
     @Column(length = 20)
     private String targetRole;
 
+    /**
+     * Quyen can co de THAY thong bao nay (vd "ORDER_READ", "PROMOTION_READ" — xem
+     * PermissionEnum). null = ai trong nhom targetRole cung thay (thong bao chung).
+     * Loc theo dung nghiep vu cua tung vai tro, thay vi moi ADMIN/STAFF/PRODUCT_OWNER
+     * deu thay CHUNG mot dong thong bao du khong lien quan den cong viec cua ho.
+     */
+    @Column(length = 40)
+    private String requiredPermission;
+
     @Column(nullable = false)
     private Boolean isActive;
 

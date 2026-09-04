@@ -45,4 +45,22 @@ public class SecurityService {
         }
         return false;
     }
+
+    /**
+     * Kiem tra nguoi dang dang nhap co duoc thay 1 thong bao noi bo hay khong, dua tren
+     * Notification.requiredPermission — null = ai cung thay; tien to "ROLE:" = phai dung
+     * vai tro do (dung cho nghiep vu rieng cua 1 vai tro, khong gan permission module nao,
+     * vd duyet yeu cau khoa tai khoan chi PRODUCT_OWNER duoc lam); con lai la 1 quyen
+     * trong PermissionEnum, dung lai chinh hasPermission() da co (PRODUCT_OWNER luon
+     * thay tat ca).
+     */
+    public boolean canSeeNotification(String requiredPermission) {
+        if (requiredPermission == null || requiredPermission.isBlank()) {
+            return true;
+        }
+        if (requiredPermission.startsWith("ROLE:")) {
+            return hasRole(requiredPermission.substring(5));
+        }
+        return hasPermission(requiredPermission);
+    }
 }

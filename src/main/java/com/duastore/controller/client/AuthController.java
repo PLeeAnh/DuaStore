@@ -113,7 +113,8 @@ public class AuthController {
                 "Khach hang moi: " + savedUser.getHoTen() + " (" + savedUser.getEmail() + ")",
                 null, null,
                 "/admin/khach-hang/" + savedUser.getId(),
-                "Xem khach hang"
+                "Xem khach hang",
+                com.duastore.config.security.PermissionEnum.CUSTOMER_READ
         );
         verifyCodeService.delete(req.getEmail());
 

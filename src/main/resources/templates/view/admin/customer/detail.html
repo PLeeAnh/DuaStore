@@ -29,6 +29,12 @@
                                 <span th:if="${customer.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
                                 <span th:unless="${customer.isActive}" class="status-pill status-LOCKED">Khóa</span>
                             </div>
+                            <div th:if="${customer.isActive == false and customer.lockReason != null and !customer.lockReason.isEmpty()}" class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle"></i> Lý do khóa: <span th:text="${customer.lockReason}"></span>
+                            </div>
+                            <div th:if="${pendingLockRequest != null}" class="text-warning small mt-1">
+                                <i class="bi bi-hourglass-split"></i> Có yêu cầu khóa đang chờ Product Owner duyệt — lý do: <span th:text="${pendingLockRequest.reason}"></span>
+                            </div>
                         </div>
                         <div class="d-flex gap-2 align-items-center">
                             <input type="text" class="form-control form-control-sm"
@@ -38,6 +44,17 @@
                                    data-ds-map="customer"
                                    data-ds-open-url="/admin/khach-hang/{id}"
                                    data-ds-no-recent />
+                            <form th:if="${pendingLockRequest == null}" th:action="@{/admin/khach-hang/toggle-status}" method="post" class="d-inline"
+                                  th:attr="onsubmit=${customer.isActive} ? 'return dsPromptLockReason(this)' : null">
+                                <input type="hidden" name="id" th:value="${customer.id}" />
+                                <input type="hidden" name="fromDetail" value="true" />
+                                <input type="hidden" name="reason" class="js-lock-reason" />
+                                <button type="submit" class="btn btn-sm" th:classappend="${customer.isActive} ? 'btn-outline-warning' : 'btn-outline-success'">
+                                    <i th:if="${customer.isActive}" class="bi bi-lock"></i>
+                                    <i th:if="${!customer.isActive}" class="bi bi-unlock"></i>
+                                    <span th:text="${customer.isActive} ? 'Khóa tài khoản' : 'Kích hoạt'"></span>
+                                </button>
+                            </form>
                             <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-arrow-left me-1"></i>Quay lại
                             </a>
@@ -374,6 +391,14 @@
     <th:block layout:fragment="extra-script">
         <script th:inline="javascript">
             window.__customerId = [[${customer.id}]];
+        </script>
+        <script>
+            function dsPromptLockReason(form) {
+                var reason = prompt('Nhập lý do khóa tài khoản này (khách hàng sẽ nhìn thấy lý do này):');
+                if (!reason || !reason.trim()) return false;
+                form.querySelector('.js-lock-reason').value = reason.trim();
+                return true;
+            }
         </script>
         <script th:src="@{/js/admin-customer.js(v=1)}"></script>
     </th:block>

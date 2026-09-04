@@ -202,6 +202,10 @@
 
                                         <div class="ds-card-body">
                                             <a th:href="@{/san-pham/{id}(id=${p.id})}" class="ds-product-name" th:text="${p.tenSanPham}">Tên SP</a>
+                                            <div th:if="${avgRatings != null and avgRatings.get(p.id) != null}" class="small text-muted mb-1" style="font-size:.78rem;">
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                                <span th:text="${#numbers.formatDecimal(avgRatings.get(p.id), 1, 1)}">4.5</span>
+                                            </div>
 
                                             <div class="ds-card-actions">
                                                 <div th:if="${groupedVariantsMap != null and groupedVariantsMap.get(p.id) != null}">

@@ -64,4 +64,20 @@ public interface UserVoucherRepository extends JpaRepository<UserVoucher, Intege
 
     @Query("SELECT uv.promotion.id, COUNT(uv) FROM UserVoucher uv WHERE uv.status = 'USED' GROUP BY uv.promotion.id ORDER BY COUNT(uv) DESC")
     List<Object[]> countUsedGroupByPromotionId(Pageable pageable);
+
+    /**
+     * Tru 1 luot dung voucher mot cach nguyen tu — chong khach double-submit checkout
+     * (bam "Đặt hàng" 2 lan lien tiep) khien cung 1 voucher bi tru luot 2 lan. Neu day la
+     * luot cuoi thi tu chuyen sang USED trong cung 1 UPDATE. Tra ve 0 = voucher da het
+     * luot/het han/khong con AVAILABLE (caller phai bao loi), 1 = tru luot thanh cong.
+     */
+    @Modifying
+    @Query("UPDATE UserVoucher uv SET uv.remainingUses = uv.remainingUses - 1, "
+            + "uv.status = CASE WHEN uv.remainingUses - 1 <= 0 THEN 'USED' ELSE uv.status END, "
+            + "uv.usedAt = CASE WHEN uv.remainingUses - 1 <= 0 THEN :now ELSE uv.usedAt END, "
+            + "uv.totalSaved = uv.totalSaved + :tienGiam "
+            + "WHERE uv.id = :id AND uv.status = 'AVAILABLE' AND uv.remainingUses > 0 "
+            + "AND (uv.expiredAt IS NULL OR uv.expiredAt >= :now)")
+    int consumeUseIfAvailable(@Param("id") Integer id, @Param("tienGiam") java.math.BigDecimal tienGiam,
+            @Param("now") LocalDateTime now);
 }

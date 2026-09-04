@@ -4,6 +4,7 @@ import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.*;
 import com.duastore.repository.*;
 import com.duastore.service.NotificationHelper;
+import com.duastore.service.admin.AccountLockService;
 import com.duastore.service.admin.AdminCustomerService;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminUserService;
@@ -44,6 +45,7 @@ public class AdminCustomersController {
     private final SecurityUtil securityUtil;
     private final AdminUserService adminUserService;
     private final AdminLogService adminLogService;
+    private final AccountLockService accountLockService;
 
     public AdminCustomersController(AdminCustomerService adminCustomerService,
             UserRepository userRepository,
@@ -57,7 +59,8 @@ public class AdminCustomersController {
             NotificationHelper notificationHelper,
             SecurityUtil securityUtil,
             AdminUserService adminUserService,
-            AdminLogService adminLogService) {
+            AdminLogService adminLogService,
+            AccountLockService accountLockService) {
         this.adminCustomerService = adminCustomerService;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
@@ -71,6 +74,7 @@ public class AdminCustomersController {
         this.securityUtil = securityUtil;
         this.adminUserService = adminUserService;
         this.adminLogService = adminLogService;
+        this.accountLockService = accountLockService;
     }
 
     @GetMapping
@@ -128,6 +132,7 @@ public class AdminCustomersController {
         }
         model.addAttribute("title", "khach-hang");
         model.addAttribute("customer", user);
+        model.addAttribute("pendingLockRequest", accountLockService.getPendingForUser(id));
 
         Page<Order> orders = orderRepository.findByUserId(id, PageRequest.of(0, 50, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "ngayDat")));
         model.addAttribute("orders", orders.getContent());
@@ -225,7 +230,10 @@ public class AdminCustomersController {
 
     @PostMapping("/toggle-status")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).CUSTOMER_UPDATE)")
-    public String toggleStatus(@RequestParam Integer id, RedirectAttributes ra) {
+    public String toggleStatus(@RequestParam Integer id,
+            @RequestParam(required = false) String reason,
+            @RequestParam(required = false) String fromDetail,
+            RedirectAttributes ra) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {
             ra.addFlashAttribute("errorMsg", "Không tìm thấy khách hàng");
@@ -238,36 +246,32 @@ public class AdminCustomersController {
             ra.addFlashAttribute("errorMsg", "Không xác định được người thao tác");
             return "redirect:/admin/khach-hang";
         }
+
         try {
-            adminUserService.toggleStatus(id, currentAdmin);
+            if (user.getIsActive()) {
+                // Khoa: can ly do; ADMIN/STAFF khoa tai khoan that (khong nghi bot) se
+                // tao yeu cau cho PRODUCT_OWNER duyet thay vi khoa ngay.
+                boolean lockedNow = accountLockService.requestLock(id, reason, currentAdmin);
+                ra.addFlashAttribute("successMsg", lockedNow
+                        ? "Đã khóa khách hàng"
+                        : "Đã gửi yêu cầu khóa tài khoản, chờ Product Owner duyệt");
+            } else {
+                adminUserService.unlock(id, currentAdmin);
+                adminLogService.ghiLog(currentAdmin, "Kích hoạt lại tài khoản khách hàng #" + id,
+                        "CUSTOMER", id, null, null, "đã được kích hoạt");
+                notificationHelper.notifyAll("Tài khoản của bạn đã được kích hoạt",
+                        "ACCOUNT_LOCK", id, "/tai-khoan", "Xem chi tiết", id);
+                notificationHelper.notifyStaff(
+                        currentAdmin.getHoTen() + " đã kích hoạt tài khoản khách hàng " + user.getHoTen(),
+                        "CUSTOMER", id, "/admin/khach-hang/" + id, "Xem khách hàng",
+                        com.duastore.config.security.PermissionEnum.CUSTOMER_READ);
+                ra.addFlashAttribute("successMsg", "Đã kích hoạt khách hàng");
+            }
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("errorMsg", e.getMessage());
-            return "redirect:/admin/khach-hang";
         }
-        boolean nowActive = !user.getIsActive();
-        String statusMsg = nowActive ? "đã được kích hoạt" : "đã bị khóa";
-        adminLogService.ghiLog(currentAdmin,
-                "Khóa/kích hoạt tài khoản khách hàng #" + id,
-                "CUSTOMER", id, null, null, statusMsg);
-        notificationHelper.notifyAll(
-                "Tài khoản của bạn " + statusMsg,
-                null, null, null, null,
-                user.getId()
-        );
-        String adminName;
-        try {
-            adminName = securityUtil.getCurrentUser().getHoTen();
-        } catch (Exception e) {
-            adminName = "";
-        }
-        notificationHelper.notifyStaff(
-                "Admin " + adminName + " " + statusMsg + " tài khoản khách hàng " + user.getHoTen(),
-                "CUSTOMER", user.getId(),
-                "/admin/khach-hang/" + user.getId(),
-                "Xem khách hàng"
-        );
-        ra.addFlashAttribute("successMsg", nowActive ? "Đã kích hoạt khách hàng" : "Đã khóa khách hàng");
-        return "redirect:/admin/khach-hang";
+        String ref = "true".equals(fromDetail) ? "/admin/khach-hang/" + id : "/admin/khach-hang";
+        return "redirect:" + ref;
     }
 
     @DeleteMapping("/{id}/api/tags/{tagId}")

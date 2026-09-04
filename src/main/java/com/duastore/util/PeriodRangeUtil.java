@@ -21,6 +21,7 @@ public final class PeriodRangeUtil {
                 case "yesterday" -> new DateRange(today.minusDays(1), today.minusDays(1));
                 case "this-week" -> new DateRange(today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)), today);
                 case "last-7" -> new DateRange(today.minusDays(6), today);
+                case "last-30" -> new DateRange(today.minusDays(29), today);
                 case "this-month" -> new DateRange(today.withDayOfMonth(1), today);
                 case "last-month" -> {
                     LocalDate lastMonth = today.minusMonths(1);
@@ -30,7 +31,17 @@ public final class PeriodRangeUtil {
                     int quarter = (today.getMonthValue() - 1) / 3;
                     yield new DateRange(LocalDate.of(today.getYear(), quarter * 3 + 1, 1), today);
                 }
+                case "last-quarter" -> {
+                    int quarter = (today.getMonthValue() - 1) / 3;
+                    LocalDate thisQuarterStart = LocalDate.of(today.getYear(), quarter * 3 + 1, 1);
+                    LocalDate lastQuarterStart = thisQuarterStart.minusMonths(3);
+                    LocalDate lastQuarterEnd = thisQuarterStart.minusDays(1);
+                    yield new DateRange(lastQuarterStart, lastQuarterEnd);
+                }
                 case "this-year" -> new DateRange(LocalDate.of(today.getYear(), 1, 1), today);
+                case "last-year" -> new DateRange(
+                        LocalDate.of(today.getYear() - 1, 1, 1),
+                        LocalDate.of(today.getYear() - 1, 12, 31));
                 default -> new DateRange(today.withDayOfMonth(1), today);
             };
         }

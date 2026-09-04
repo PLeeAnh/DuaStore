@@ -25,6 +25,8 @@
                     </div>
                 </header>
 
+                <div th:replace="~{view/client/parts/checkout-stepper :: stepper(2)}"></div>
+
                 <!-- ══════════ BODY: form + summary ══════════ -->
                 <div class="shp-body">
 
@@ -86,9 +88,13 @@
                                 <section class="shp-section" aria-label="Vận chuyển">
                                     <h2 class="shp-section-title">Vận chuyển</h2>
 
-                                    <div th:if="${subtotal != null and shippingFreeMin != null and subtotal.compareTo(shippingFreeMin) >= 0}" class="shp-notice shp-notice-free">
+                                    <div th:if="${subtotal != null and shippingFreeMin != null and subtotal.compareTo(shippingFreeMin) >= 0 and shippingFreeMin.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="shp-notice shp-notice-free">
                                         <i class="bi bi-truck"></i>
                                         <span>Miễn phí vận chuyển — đơn của bạn đạt mức <strong th:text="${#numbers.formatDecimal(shippingFreeMin, 0, 'POINT', 0, 'POINT')} + '₫'"></strong></span>
+                                    </div>
+                                    <div th:if="${shippingFreeMin != null and shippingFreeMin.compareTo(T(java.math.BigDecimal).ZERO) <= 0}" class="shp-notice shp-notice-free">
+                                        <i class="bi bi-truck"></i>
+                                        <span>Miễn phí vận chuyển cho mọi đơn hàng</span>
                                     </div>
                                     <div th:if="${shippingFreeMin == null or subtotal == null or subtotal.compareTo(shippingFreeMin) < 0}" class="shp-notice">
                                         <i class="bi bi-info-circle"></i>
@@ -147,7 +153,7 @@
                                                 <span class="ds-pay-icon"><i class="bi bi-bank2"></i></span>
                                                 <span class="ds-pay-body">
                                                     <strong class="ds-pay-title">Chuyển khoản ngân hàng</strong>
-                                                    <span class="ds-pay-desc">Quét mã QR thanh toán sau khi đặt hàng</span>
+                                                    <span class="ds-pay-desc">Chuyển khoản thủ công — tự bấm "Đã thanh toán" để xác nhận</span>
                                                 </span>
                                             </label>
                                         </div>
@@ -157,7 +163,7 @@
                                                 <span class="ds-pay-icon"><i class="bi bi-qr-code"></i></span>
                                                 <span class="ds-pay-body">
                                                     <strong class="ds-pay-title">Thanh toán QR (VietQR)</strong>
-                                                    <span class="ds-pay-desc">Quét mã QR bằng app ngân hàng để thanh toán</span>
+                                                    <span class="ds-pay-desc">Quét mã QR — hệ thống tự động xác nhận, không cần bấm gì thêm</span>
                                                 </span>
                                             </label>
                                         </div>
@@ -188,7 +194,7 @@
                     <aside class="shp-aside">
                         <div class="shp-aside-inner">
                             <button type="button" class="shp-aside-toggle" id="shpSummaryToggle" aria-expanded="false" aria-controls="shpSummaryBody">
-                                <span class="shp-aside-toggle-label">Tóm tắt đơn hàng</span>
+                                <span class="shp-aside-toggle-label">Tổng dự kiến <small class="d-block text-muted" style="font-weight:400;">(đã gồm phí ship)</small></span>
                                 <span class="shp-aside-toggle-total" th:text="${#numbers.formatDecimal(tongTam != null ? tongTam : (subtotal + 30000), 0, 'POINT', 0, 'POINT')} + '₫'"></span>
                                 <i class="bi bi-chevron-down"></i>
                             </button>
@@ -223,17 +229,9 @@
                                     </div>
                                 </div>
 
-                                <button type="button" class="shp-discount-link" onclick="openPromoModal()">
-                                    <i class="bi bi-ticket-perforated-fill"></i> Thêm mã giảm giá
-                                </button>
-
-                                <div class="shp-promo-display" id="checkoutPromoDisplay" style="display:none;">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <span class="text-primary fw-semibold" id="checkoutPromoLabel" style="font-size:.85rem;"></span>
-                                        <button type="button" class="btn btn-sm p-0 border-0" id="checkoutCopyPromo" style="display:none;font-size:.75rem;" onclick="copyCheckoutPromo()">Copy</button>
-                                    </div>
-                                    <div id="checkoutPromoMsg" style="font-size:.8rem;"></div>
-                                </div>
+                                <a th:href="@{/khuyen-mai}" class="shp-discount-link">
+                                    <i class="bi bi-ticket-perforated-fill"></i> Xem mã giảm giá tại trang Khuyến mãi
+                                </a>
 
                                 <div class="shp-cost">
                                     <div class="shp-cost-row">
@@ -286,7 +284,6 @@
                                     </div>
                                     <ul class="shp-perks-list">
                                         <li><i class="bi bi-check2"></i> Miễn phí vận chuyển cho đơn từ <strong th:text="${shippingFreeMin != null ? #numbers.formatDecimal(shippingFreeMin, 0, 'POINT', 0, 'POINT') + '₫' : '500.000₫'}"></strong></li>
-                                        <li><i class="bi bi-check2"></i> Hoàn trả &amp; đổi trả trong 7 ngày</li>
                                         <li><i class="bi bi-check2"></i> Tích lũy điểm mỗi đơn hàng</li>
                                         <li><i class="bi bi-check2"></i> Hỗ trợ qua chat trực tuyến 24/7</li>
                                     </ul>
@@ -501,63 +498,6 @@
                                 <div class="d-flex gap-2">
                                     <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="showAddressList()">Hủy</button>
                                     <button type="button" class="ds-btn ds-btn-fill ds-btn-sm" onclick="saveAddressFromModal()">Lưu địa chỉ</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal chọn mã giảm giá -->
-            <div class="modal fade" id="promoModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-sm" style="border-radius:14px;">
-                        <div class="modal-header border-0 pb-0 px-4 pt-4">
-                            <h5 class="fw-bold modal-title" style="font-size:1rem;">Chọn mã giảm giá</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body px-4 pt-3 pb-4">
-                            <div class="d-flex gap-2 mb-3">
-                                <input type="text" id="promoVoucherInput" class="form-control" placeholder="Nhập mã giảm giá" style="border-radius:var(--ds-r);" />
-                                <button class="ds-btn ds-btn-outline flex-shrink-0" type="button" onclick="applyVoucherInput()">Áp dụng</button>
-                            </div>
-                            <div th:if="${#lists.isEmpty(userVouchers)}" class="text-muted text-center py-4">Bạn chưa lưu mã giảm giá nào</div>
-                            <div th:each="uv : ${userVouchers}" class="promo-item d-flex align-items-stretch mb-2"
-                                 th:data-code="${uv.promotion.maCode}"
-                                 th:data-loai="${uv.promotion.loaiGiam}"
-                                 th:data-giatri="${uv.promotion.giaTriGiam}"
-                                 th:data-min="${uv.promotion.donHangToiThieu}"
-                                 th:data-maxgiam="${uv.promotion.giamToiDa}"
-                                 th:data-ten="${uv.promotion.tenChuongTrinh}"
-                                 onclick="selectPromo(this)" style="cursor:pointer;">
-                                <div class="bg-danger rounded-start" style="width:5px;flex-shrink:0;"></div>
-                                <div class="border border-start-0 rounded-end p-3 w-100" style="border-color:#e5e7eb!important;">
-                                    <div class="d-flex justify-content-between align-items-start mb-1">
-                                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <span class="text-primary fw-bold" style="font-size:1.05rem;"
-                                                  th:if="${'PHAN_TRAM'.equals(uv.promotion.loaiGiam)}"
-                                                  th:text="${'-' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
-                                            <span class="text-primary fw-bold" style="font-size:1.05rem;"
-                                                  th:if="${'SO_TIEN'.equals(uv.promotion.loaiGiam)}"
-                                                  th:text="${'Giảm ' + #numbers.formatDecimal(uv.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                            <span class="badge bg-light text-dark border font-monospace" style="font-size:.7rem;letter-spacing:.5px;" th:text="${uv.promotion.maCode}"></span>
-                                            <button class="btn btn-sm py-0 px-1 border-0" style="font-size:.6rem;color:#6b7280;" type="button"
-                                                    th:data-code="${uv.promotion.maCode}" onclick="event.stopPropagation();copyCode(this)">Copy</button>
-                                        </div>
-                                        <span class="badge bg-danger rounded-pill" style="font-size:.55rem;font-weight:500;">Giảm giá</span>
-                                        <span th:if="${uv.remainingUses != null}" class="badge bg-secondary rounded-pill ms-1" style="font-size:.55rem;font-weight:500;">Còn ${uv.remainingUses} lượt</span>
-                                    </div>
-                                    <div class="text-muted" style="font-size:.75rem;" th:text="${uv.promotion.tenChuongTrinh}"></div>
-                                    <div class="d-flex flex-wrap gap-x-3 gap-y-1 small text-muted mt-1" style="font-size:.7rem!important;">
-                                        <span th:if="${uv.promotion.donHangToiThieu != null and uv.promotion.donHangToiThieu > 0}"
-                                              th:text="${'Đơn tối thiểu ' + #numbers.formatDecimal(uv.promotion.donHangToiThieu, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                        <span th:if="${uv.promotion.giamToiDa != null}"
-                                              th:text="${'Giảm tối đa ' + #numbers.formatDecimal(uv.promotion.giamToiDa, 0, 'POINT', 0, 'POINT') + '₫'}"></span>
-                                        <span th:if="${uv.promotion.denNgay != null}" class="ds-promo-timer"
-                                              th:data-end="${#strings.concat(#temporals.format(uv.promotion.denNgay, 'yyyy-MM-dd'), 'T', #temporals.format(uv.promotion.denNgay, 'HH:mm:ss'))}">
-                                            HSD: <span class="promo-countdown" th:text="${#temporals.format(uv.promotion.denNgay, 'dd/MM/yyyy')}"></span>
-                                        </span>
-                                    </div>
                                 </div>
                             </div>
                         </div>

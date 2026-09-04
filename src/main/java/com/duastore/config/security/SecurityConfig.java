@@ -31,6 +31,7 @@ public class SecurityConfig {
     private final CustomAuthenticationSuccessHandler successHandler;
     private final CustomAuthenticationFailureHandler failureHandler;
     private final CustomOAuth2UserService oAuth2UserService;
+    private final CustomOAuth2AuthenticationFailureHandler oAuth2FailureHandler;
     private final TwoFactorAuthFilter twoFactorAuthFilter;
 
     @Value("${duastore.remember-me.key}")
@@ -40,11 +41,13 @@ public class SecurityConfig {
             CustomAuthenticationSuccessHandler successHandler,
             CustomAuthenticationFailureHandler failureHandler,
             CustomOAuth2UserService oAuth2UserService,
+            CustomOAuth2AuthenticationFailureHandler oAuth2FailureHandler,
             TwoFactorAuthFilter twoFactorAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
         this.oAuth2UserService = oAuth2UserService;
+        this.oAuth2FailureHandler = oAuth2FailureHandler;
         this.twoFactorAuthFilter = twoFactorAuthFilter;
     }
 
@@ -72,7 +75,7 @@ public class SecurityConfig {
                 .userService(oAuth2UserService)
                 )
                 .successHandler(successHandler)
-                .failureUrl("/?loginError=true")
+                .failureHandler(oAuth2FailureHandler)
                 )
                 .logout(logout -> logout
                 .logoutUrl("/dang-xuat")

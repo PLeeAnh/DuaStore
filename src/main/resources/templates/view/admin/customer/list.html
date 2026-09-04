@@ -23,6 +23,10 @@
                             <h4>Khách hàng</h4>
                             <div class="adm-detail-meta">Quản lý tất cả khách hàng trong cửa hàng.</div>
                         </div>
+                        <a th:if="${isProductOwner}" th:href="@{/admin/yeu-cau-khoa-tk}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-shield-lock"></i> Yêu cầu khóa TK
+                            <span class="badge bg-danger ms-1" th:if="${pendingLockRequests > 0}" th:text="${pendingLockRequests}"></span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -124,8 +128,10 @@
                                     <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
                                         <li><a class="dropdown-item" th:href="@{/admin/khach-hang/{id}(id=${customer.id})}"><i class="bi bi-eye"></i>Chi tiết</a></li>
                                         <li>
-                                            <form th:action="@{/admin/khach-hang/toggle-status}" method="post" class="d-block">
+                                            <form th:action="@{/admin/khach-hang/toggle-status}" method="post" class="d-block"
+                                                  th:attr="onsubmit=${customer.isActive} ? 'return dsPromptLockReason(this)' : null">
                                                 <input type="hidden" name="id" th:value="${customer.id}" />
+                                                <input type="hidden" name="reason" class="js-lock-reason" />
                                                 <button type="submit" class="dropdown-item" th:classappend="${customer.isActive} ? 'text-warning' : 'text-success'">
                                                     <i th:if="${customer.isActive}" class="bi bi-lock"></i>
                                                     <i th:if="${!customer.isActive}" class="bi bi-unlock"></i>
@@ -165,6 +171,14 @@
     </div>
     <th:block layout:fragment="extra-script">
         <script th:src="@{/js/admin-filters.js}"></script>
+        <script>
+            function dsPromptLockReason(form) {
+                var reason = prompt('Nhập lý do khóa tài khoản này (khách hàng sẽ nhìn thấy lý do này):');
+                if (!reason || !reason.trim()) return false;
+                form.querySelector('.js-lock-reason').value = reason.trim();
+                return true;
+            }
+        </script>
     </th:block>
 </body>
 </html>

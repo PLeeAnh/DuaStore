@@ -83,4 +83,11 @@ public class ProductVariantFormDTO {
      * 1 biến thể/sản phẩm được isDefault = true
      */
     private boolean isDefault = false;
+
+    /**
+     * Version của biến thể LÚC admin mở form sửa (optimistic locking) — dùng để phát hiện
+     * trường hợp tồn kho đã bị đơn hàng trừ/hoàn ngay trong lúc admin đang sửa, tránh admin
+     * vô tình ghi đè số tồn kho mới hơn bằng số cũ. null khi thêm mới.
+     */
+    private Integer version;
 }

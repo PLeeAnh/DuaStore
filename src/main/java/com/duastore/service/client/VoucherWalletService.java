@@ -52,9 +52,11 @@ public class VoucherWalletService {
         if (lockedPromo.getMaxClaimsPerUser() != null && lockedPromo.getMaxClaimsPerUser() <= 0) {
             throw new RuntimeException("Khuyến mãi này không cho phép lưu voucher");
         }
-        if (lockedPromo.getMaxClaims() != null
-                && lockedPromo.getSavedCount() != null
-                && lockedPromo.getSavedCount() >= lockedPromo.getMaxClaims()) {
+        // Claim suat luu nguyen tu (UPDATE...WHERE) — khong con dua vao doc savedCount roi
+        // ghi lai nua, vi PESSIMISTIC_WRITE tu findByIdWithLock da duoc xac nhan khong chan
+        // duoc race o moi truong nay. Rieng viec 1 user luu trung 1 voucher da duoc chan
+        // boi UNIQUE constraint (userId, promotionId) o bang UserVouchers.
+        if (promotionRepository.claimSaveSlotIfAvailable(promotionId) == 0) {
             throw new RuntimeException("Khuyến mãi đã hết lượt lưu");
         }
 
@@ -67,8 +69,6 @@ public class VoucherWalletService {
         uv.setStatus(VoucherStatus.AVAILABLE);
         uv.setTotalSaved(java.math.BigDecimal.ZERO);
 
-        lockedPromo.setSavedCount(lockedPromo.getSavedCount() != null ? lockedPromo.getSavedCount() + 1 : 1);
-        promotionRepository.save(lockedPromo);
         return userVoucherRepository.save(uv);
     }
 
@@ -81,12 +81,7 @@ public class VoucherWalletService {
         // Chi tra lai suat claim neu voucher chua tung duoc su dung, tranh bi
         // lam can quota (maxClaims) cua khuyen mai qua vong lap luu/xoa/luu lai.
         if (uv.getStatus() == VoucherStatus.AVAILABLE && uv.getPromotion() != null) {
-            promotionRepository.findByIdWithLock(uv.getPromotion().getId()).ifPresent(lockedPromo -> {
-                if (lockedPromo.getSavedCount() != null && lockedPromo.getSavedCount() > 0) {
-                    lockedPromo.setSavedCount(lockedPromo.getSavedCount() - 1);
-                    promotionRepository.save(lockedPromo);
-                }
-            });
+            promotionRepository.releaseSaveSlot(uv.getPromotion().getId());
         }
         userVoucherRepository.delete(uv);
     }

@@ -292,7 +292,8 @@ public class AdminProductController {
                     "Admin " + getCurrentAdminName() + " đã thêm sản phẩm mới: " + saved.getTenSanPham(),
                     "PRODUCT", saved.getId(),
                     "/admin/san-pham/chi-tiet/" + saved.getId(),
-                    "Xem sản phẩm"
+                    "Xem sản phẩm",
+                    com.duastore.config.security.PermissionEnum.PRODUCT_READ
             );
         }
         ra.addFlashAttribute("successMsg", "Thêm sản phẩm thành công");
@@ -487,7 +488,8 @@ public class AdminProductController {
                     "Sản phẩm " + product.getTenSanPham() + " vừa hết hàng!",
                     "PRODUCT", product.getId(),
                     "/admin/san-pham/sua/" + product.getId(),
-                    "Xem sản phẩm"
+                    "Xem sản phẩm",
+                    com.duastore.config.security.PermissionEnum.PRODUCT_READ
             );
         }
 

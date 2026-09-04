@@ -11,6 +11,7 @@ import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.OrderRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.AsyncEmailService;
+import com.duastore.service.EmailService;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.AdminOrderService;
@@ -629,12 +630,8 @@ public class AdminOrderController {
             newAdmin.setId(adminId);
             User assignedUser = userRepository.findById(adminId).orElse(null);
 
-            if (assignedUser != null && assignedUser.getEmail() != null && !assignedUser.getEmail().isBlank()) {
-                asyncEmailService.sendOrderAssigned(
-                        assignedUser.getEmail(),
-                        assignedUser.getHoTen() != null ? assignedUser.getHoTen() : assignedUser.getEmail(),
-                        order.getMaDon(),
-                        order.getSnapTenNguoiNhan() != null ? order.getSnapTenNguoiNhan() : "Khách hàng",
+            if (assignedUser != null && !EmailService.isPlaceholderEmail(assignedUser.getEmail())) {
+                asyncEmailService.sendOrderAssigned(order, assignedUser,
                         admin.getHoTen() != null ? admin.getHoTen() : admin.getUsername());
                 log.info("Gửi email phân công đơn {} tới {} <{}>", order.getMaDon(),
                         assignedUser.getHoTen(), assignedUser.getEmail());

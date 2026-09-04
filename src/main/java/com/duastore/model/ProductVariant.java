@@ -36,6 +36,17 @@ public class ProductVariant {
     @Column(nullable = false)
     private Integer soLuongTon = 0;
 
+    /**
+     * Optimistic locking — chong "lost update" khi admin sua bien the (form ghi de toan
+     * bo cac truong) xay ra gan dung luc don hang tru/hoan ton kho (decrementStock/
+     * incrementStock — atomic UPDATE cung tang version). Neu admin submit voi du lieu da
+     * cu (version khong khop), Hibernate nem OptimisticLockingFailureException thay vi
+     * am tham ghi de so ton kho moi hon bang so cu.
+     */
+    @Version
+    @Column(nullable = false)
+    private Integer version = 0;
+
     /** Ngưỡng tồn kho cảnh báo (mặc định 20) */
     private Integer lowStockThreshold = 20;
 

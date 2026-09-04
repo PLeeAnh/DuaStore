@@ -105,6 +105,7 @@ public class AdminVariantController {
         dto.setSoLuongTon(v.getSoLuongTon());
         dto.setHinhAnh(v.getHinhAnh());
         dto.setDefault(v.isDefault());
+        dto.setVersion(v.getVersion());
 
         model.addAttribute("variant", dto);
         model.addAttribute("title", "san-pham");
@@ -137,7 +138,14 @@ public class AdminVariantController {
                         + "% so với giá cũ (" + formatCurrency(oldVariant.getGiaGoc()) + "). Bạn có chắc muốn thay đổi?");
             }
         }
-        var saved = variantService.save(dto);
+        ProductVariant saved;
+        try {
+            saved = variantService.save(dto);
+        } catch (org.springframework.orm.ObjectOptimisticLockingFailureException e) {
+            ra.addFlashAttribute("errorMsg", "Tồn kho/giá của biến thể này vừa được cập nhật bởi thao tác khác "
+                    + "(có thể do đơn hàng vừa giao/hủy) trong lúc bạn đang sửa. Vui lòng tải lại trang để xem số liệu mới nhất trước khi lưu.");
+            return "redirect:/admin/bien-the/sua/" + id;
+        }
         // Ghi nhận biến động tồn kho nếu số lượng thay đổi
         if (oldStock != null && dto.getSoLuongTon() != null && !oldStock.equals(dto.getSoLuongTon())) {
             int diff = dto.getSoLuongTon() - oldStock;
@@ -200,7 +208,8 @@ public class AdminVariantController {
                     "Sản phẩm " + productName + " vừa hết hàng!",
                     "PRODUCT", variant.getProductId(),
                     "/admin/san-pham/sua/" + variant.getProductId(),
-                    "Xem sản phẩm"
+                    "Xem sản phẩm",
+                    com.duastore.config.security.PermissionEnum.VARIANT_READ
             );
         }
 
@@ -287,7 +296,7 @@ public class AdminVariantController {
         }
 
         Integer adminId = securityUtil.getCurrentUserId();
-        variantService.bulkUpdate(variants, adminId);
+        List<Integer> skippedIds = variantService.bulkUpdate(variants, adminId);
         // Ghi nhận biến động tồn kho cho từng variant trong bulk update
         for (Map<String, Object> entry : variants) {
             Integer id = toInteger(entry.get("id"));
@@ -304,7 +313,7 @@ public class AdminVariantController {
             }
         }
         notifyBulkVariantChanges(oldStocks, oldPrices);
-        return ResponseEntity.ok(Map.of("success", true));
+        return ResponseEntity.ok(Map.of("success", true, "skippedIds", skippedIds));
     }
 
     private void notifyBulkVariantChanges(Map<Integer, Integer> oldStocks, Map<Integer, BigDecimal> oldPrices) {
@@ -325,7 +334,8 @@ public class AdminVariantController {
                         "Sản phẩm " + productName + " vừa hết hàng!",
                         "PRODUCT", variant.getProductId(),
                         "/admin/san-pham/sua/" + variant.getProductId(),
-                        "Xem sản phẩm"
+                        "Xem sản phẩm",
+                        com.duastore.config.security.PermissionEnum.VARIANT_READ
                 );
             }
             if (oldStock != null && oldStock <= 0 && newStock > 0) {

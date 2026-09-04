@@ -32,11 +32,14 @@
                     <span th:case="'today'">Hôm nay</span>
                     <span th:case="'yesterday'">Hôm qua</span>
                     <span th:case="'last-7'">7 ngày qua</span>
+                    <span th:case="'last-30'">30 ngày qua</span>
                     <span th:case="'this-week'">Tuần này</span>
                     <span th:case="'this-month'">Tháng này</span>
                     <span th:case="'last-month'">Tháng trước</span>
                     <span th:case="'this-quarter'">Quý này</span>
+                    <span th:case="'last-quarter'">Quý trước</span>
                     <span th:case="'this-year'">Năm nay</span>
+                    <span th:case="'last-year'">Năm trước</span>
                     <span th:case="*" th:text="${fromDate} + ' → ' + ${toDate}">Tuỳ chỉnh</span>
                 </span>
                 <i class="bi bi-chevron-down"></i>
@@ -45,12 +48,15 @@
                 <div class="adm-daterange-presets">
                     <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'today'} ? 'active'" data-period="today">Hôm nay</button>
                     <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'yesterday'} ? 'active'" data-period="yesterday">Hôm qua</button>
-                    <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-7'} ? 'active'" data-period="last-7">7 ngày</button>
+                    <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-7'} ? 'active'" data-period="last-7">7 ngày qua</button>
+                    <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-30'} ? 'active'" data-period="last-30">30 ngày qua</button>
                     <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-week'} ? 'active'" data-period="this-week">Tuần này</button>
                     <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-month'} ? 'active'" data-period="this-month">Tháng này</button>
                     <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-month'} ? 'active'" data-period="last-month">Tháng trước</button>
                     <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-quarter'} ? 'active'" data-period="this-quarter">Quý này</button>
+                    <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-quarter'} ? 'active'" data-period="last-quarter">Quý trước</button>
                     <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-year'} ? 'active'" data-period="this-year">Năm nay</button>
+                    <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-year'} ? 'active'" data-period="last-year">Năm trước</button>
                 </div>
                 <div class="adm-daterange-inputs">
                     <div>
@@ -1006,7 +1012,7 @@
             };
         </script>
         <script th:src="@{/js/admin-analytics.js(v=4)}"></script>
-        <script th:src="@{/js/admin-daterange.js(v=1)}"></script>
+        <script th:src="@{/js/admin-daterange.js(v=2)}"></script>
         <script>
             function getActiveAnalyticsTab() {
                 var activeBtn = document.querySelector('#analyticsTabs .nav-link.active');

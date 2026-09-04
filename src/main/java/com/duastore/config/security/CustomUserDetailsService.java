@@ -4,8 +4,6 @@ import com.duastore.model.Permission;
 import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,24 +33,23 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                 "Không tìm thấy tài khoản: " + username));
 
-        if (!user.getIsActive()) {
-            throw new DisabledException("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
-        }
-
-        if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(java.time.LocalDateTime.now())) {
-            throw new LockedException("Tài khoản tạm khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau 15 phút.");
-        }
-
         boolean hasActiveRole = user.getRoles().stream().anyMatch(Role::getIsActive);
-        if (!hasActiveRole) {
-            throw new DisabledException(
-                    "Tài khoản chưa được gán vai trò. Vui lòng liên hệ quản trị viên.");
-        }
+        boolean enabled = Boolean.TRUE.equals(user.getIsActive()) && hasActiveRole;
+        boolean accountNonLocked = user.getLockedUntil() == null
+                || !user.getLockedUntil().isAfter(java.time.LocalDateTime.now());
 
+        // QUAN TRONG: khong throw DisabledException/LockedException truc tiep o day.
+        // DaoAuthenticationProvider.retrieveUser() bao toan bo loi UserDetailsService
+        // nem ra (tru UsernameNotFoundException) thanh InternalAuthenticationServiceException
+        // — lam mat kieu that su cua exception, khien CustomAuthenticationFailureHandler
+        // khong nhan dien duoc la "tai khoan bi khoa" ma bao nham thanh "sai mat khau"
+        // (con tru nham luot thu con lai). Thay vao do, tra ve enabled/accountNonLocked
+        // dung trang thai — Spring Security se tu throw DisabledException/LockedException
+        // dung kieu ngay sau retrieveUser() thanh cong (khong bi bao loi nua).
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                true, true, true, true,
+                enabled, true, true, accountNonLocked,
                 getAuthorities(user)
         );
     }
