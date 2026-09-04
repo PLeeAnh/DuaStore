@@ -4,7 +4,7 @@
       xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
       layout:decorate="~{layout/admin/base}">
     <head>
-        <title>Quản lý đánh giá</title>
+        <title>Đánh giá &amp; Liên hệ</title>
     </head>
     <body>
     <th:block layout:fragment="breadcrumb">
@@ -17,167 +17,141 @@
                     <i class="bi bi-star"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h4>Đánh giá sản phẩm</h4>
-                            <div class="adm-detail-meta">Quản lý đánh giá của khách hàng về sản phẩm.</div>
-                        </div>
+                    <h4>Đánh giá &amp; Liên hệ</h4>
+                    <div class="adm-detail-meta">
+                        <span th:text="${unansweredCount}">0</span> đánh giá chưa trả lời ·
+                        <span th:text="${contactUnreadCount}">0</span> tin nhắn chưa đọc
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- ═════ STAT CARDS ═════ -->
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Điểm trung bình</div>
+                <div class="rv-stat-value" th:text="${#numbers.formatDecimal(avgRating, 1, 1, 'COMMA')} + '★'">0★</div>
+                <div class="rv-stat-caption"><span th:text="${totalReviewCount}">0</span> đánh giá</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Chưa trả lời</div>
+                <div class="rv-stat-value rv-stat-warning" th:text="${unansweredCount}">0</div>
+                <div class="rv-stat-caption">nên trả lời trong 24h</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Đánh giá 1–2★</div>
+                <div class="rv-stat-value rv-stat-danger" th:text="${lowRatingCount}">0</div>
+                <div class="rv-stat-caption">cần xử lý sớm</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tin nhắn đang mở</div>
+                <div class="rv-stat-value" th:text="${contactMessageCount}">0</div>
+                <div class="rv-stat-caption"><span th:text="${contactUnreadCount}">0</span> chưa đọc</div>
             </div>
         </div>
 
         <!-- ═════ TABS ═════ -->
         <div class="adm-tab-nav">
             <a class="adm-tab active">
-                <i class="bi bi-star"></i>Đánh giá
+                <i class="bi bi-star"></i>Đánh giá <span class="rv-tab-count" th:text="${totalReviewCount}">0</span>
             </a>
             <a class="adm-tab" th:if="${userPermissions.contains('CONTACT_MESSAGE_READ')}" th:href="@{/admin/tin-nhan-lien-he}">
-                <i class="bi bi-inbox"></i>Tin nhắn liên hệ
+                <i class="bi bi-inbox"></i>Tin nhắn liên hệ <span class="rv-tab-count rv-tab-count-muted" th:text="${contactMessageCount}">0</span>
             </a>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-4 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-star"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
-                            <div class="adm-stat-label">Tổng đánh giá</div>
-                        </div>
+        <!-- ═════ SEARCH + FILTER CHIPS ═════ -->
+        <div class="rv-toolbar">
+            <div class="rv-search">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchKeyword" th:value="${keyword}" placeholder="Nội dung, khách, sản phẩm…" />
+            </div>
+            <a th:href="@{/admin/danh-gia(keyword=${keyword})}" class="rv-chip" th:classappend="${activeFilter == null} ? 'active' : ''">
+                Tất cả <span th:text="${totalReviewCount}">0</span>
+            </a>
+            <a th:href="@{/admin/danh-gia(keyword=${keyword},filter='unanswered')}" class="rv-chip" th:classappend="${activeFilter == 'unanswered'} ? 'active' : ''">
+                Chưa trả lời <span th:text="${unansweredCount}">0</span>
+            </a>
+            <a th:href="@{/admin/danh-gia(keyword=${keyword},filter='low')}" class="rv-chip" th:classappend="${activeFilter == 'low'} ? 'active' : ''">
+                1–2★ <span th:text="${lowRatingCount}">0</span>
+            </a>
+            <a th:href="@{/admin/danh-gia(keyword=${keyword},filter='hidden')}" class="rv-chip" th:classappend="${activeFilter == 'hidden'} ? 'active' : ''">
+                Đang ẩn <span th:text="${hiddenCount}">0</span>
+            </a>
+        </div>
+
+        <!-- ═════ REVIEW CARDS ═════ -->
+        <div class="rv-list">
+            <div class="rv-card" th:each="r : ${reviews}" th:classappend="${!r.isApproved} ? 'rv-card-hidden' : ''">
+                <div class="rv-card-head">
+                    <span class="rv-avatar" th:text="${userInitials.get(r.userId)}">NV</span>
+                    <div class="rv-who">
+                        <div class="rv-name" th:text="${userNames.get(r.userId)}">Khách hàng</div>
+                        <div class="rv-product" th:text="${productNames.get(r.productId)}">Sản phẩm</div>
+                    </div>
+                    <span class="rv-stars" th:data-score="${r.danhGia}"></span>
+                    <span class="rv-badge rv-badge-hidden" th:if="${!r.isApproved}">Đang ẩn</span>
+                    <span class="rv-spacer"></span>
+                    <span class="rv-date" th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}">—</span>
+                </div>
+
+                <p class="rv-comment" th:text="${r.binhLuan != null ? r.binhLuan : '—'}">Bình luận</p>
+
+                <div class="rv-images" th:if="${!#lists.isEmpty(r.images)}">
+                    <div class="rv-image" th:each="img : ${r.images}">
+                        <img th:src="@{${img.imageUrl}}" alt="Ảnh đánh giá" />
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="adm-filter-bar">
-            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                <div class="d-flex gap-2">
-                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm sản phẩm, khách hàng..." />
-                    <select id="filterApproved" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="true">Đã duyệt</option>
-                        <option value="false">Chờ duyệt</option>
-                    </select>
+                <div class="rv-reply-box" th:if="${repliesMap.get(r.id) != null && !repliesMap.get(r.id).isEmpty()}">
+                    <div class="rv-reply-title">DuaStore đã trả lời</div>
+                    <div class="rv-reply-text" th:text="${repliesMap.get(r.id)[repliesMap.get(r.id).size() - 1].content}">—</div>
                 </div>
-            </div>
-        </div>
 
-        <div class="adm-table-wrap">
-            <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Sản phẩm</th>
-                        <th>Khách hàng</th>
-                        <th>Đánh giá</th>
-                        <th>Bình luận</th>
-                        <th>Hình ảnh</th>
-                        <th>Trạng thái</th>
-                        <th>Ngày</th>
-                        <th class="text-center adm-kebab-col" style="width:64px"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="r, iter : ${reviews}">
-                        <td th:text="${iter.index + 1 + currentPage * pageSize}"></td>
-                        <td th:text="${productNames.get(r.productId)}"></td>
-                        <td th:text="${userNames.get(r.userId)}"></td>
-                        <td>
-                            <span class="review-admin-stars" th:data-score="${r.danhGia}"></span>
-                        </td>
-                        <td class="adm-cell-text">
-                            <span th:text="${r.binhLuan != null ? r.binhLuan : '—'}" class="text-muted"></span>
-                        </td>
-                        <td>
-                            <img th:if="${r.hinhAnh != null}" th:src="@{${r.hinhAnh}}" alt="" style="width:50px;height:50px;object-fit:cover;border-radius:4px;" />
-                            <span th:unless="${r.hinhAnh != null}" class="text-muted">—</span>
-                        </td>
-                        <td>
-                            <span th:if="${r.isApproved}" class="status-pill status-DA_DUYET">Đã duyệt</span>
-                            <span th:unless="${r.isApproved}" class="status-pill status-CHO_DUYET">Chờ duyệt</span>
-                        </td>
-                        <td th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy')}"></td>
-                        <td class="text-center">
-                            <div class="dropdown">
-                                <button class="adm-kebab-btn" data-bs-toggle="dropdown" aria-label="Thao tác">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                    <span th:if="${replyCountMap.get(r.id) != null && replyCountMap.get(r.id) > 0}"
-                                          class="badge bg-primary rounded-pill" style="position:absolute;top:-4px;right:-4px;font-size:.55rem"
-                                          th:text="${replyCountMap.get(r.id)}"></span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end adm-kebab-menu">
-                                    <li th:if="${!r.isApproved}">
-                                        <form th:action="@{/admin/danh-gia/duyet/{id}(id=${r.id})}" method="post" class="d-block">
-                                            <button type="submit" class="dropdown-item"><i class="bi bi-check-lg"></i>Duyệt</button>
-                                        </form>
-                                    </li>
-                                    <li th:if="${r.isApproved}">
-                                        <form th:action="@{/admin/danh-gia/an/{id}(id=${r.id})}" method="post" class="d-block">
-                                            <button type="submit" class="dropdown-item"><i class="bi bi-eye-slash"></i>Ẩn</button>
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <button type="button" class="dropdown-item" onclick="toggleReplyForm(this)" th:data-review-id="${r.id}">
-                                            <i class="bi bi-reply"></i>Phản hồi
-                                        </button>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form th:action="@{/admin/danh-gia/xoa/{id}(id=${r.id})}" method="post" class="d-block">
-                                            <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa đánh giá này?"><i class="bi bi-trash"></i>Xóa</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(reviews)}">
-                        <td colspan="9" class="text-muted text-center py-4">Chưa có đánh giá nào</td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-        </div>
-
-        <!-- Hidden reply forms — hiện khi bấm nút phản hồi -->
-        <div th:each="r : ${reviews}" th:id="'reply-section-' + ${r.id}" style="display:none">
-            <div class="adm-card p-3 mt-2 mb-3" style="border-left:3px solid var(--ef-primary)">
-                <strong style="font-size:.85rem">
-                    <i class="bi bi-reply me-1"></i>Phản hồi cho đánh giá #<span th:text="${r.id}"></span>
-                    — <span th:text="${productNames.get(r.productId)}"></span>
-                </strong>
-                <!-- Danh sách reply đã có -->
-                <div th:if="${repliesMap.get(r.id) != null && !repliesMap.get(r.id).isEmpty()}" class="mt-2 mb-2">
-                    <div th:each="rep : ${repliesMap.get(r.id)}" class="p-2 mb-1 rounded" style="background:#f8fafc;font-size:.82rem">
-                        <div class="d-flex justify-content-between">
-                            <span class="fw-semibold" th:text="${rep.content}"></span>
-                            <small class="text-muted" th:text="${#temporals.format(rep.createdAt, 'dd/MM HH:mm')}"></small>
-                        </div>
+                <!-- Form trả lời (ẩn, hiện khi bấm nút Trả lời) -->
+                <div th:id="'reply-section-' + ${r.id}" class="rv-reply-form" style="display:none">
+                    <textarea th:id="'reply-content-' + ${r.id}" rows="3" placeholder="Viết câu trả lời cho khách…"></textarea>
+                    <div class="rv-reply-form-actions">
+                        <span class="rv-reply-hint">Trả lời sẽ hiện công khai dưới đánh giá trên trang sản phẩm.</span>
+                        <button type="button" class="rv-btn" th:data-review-id="${r.id}" onclick="toggleReplyForm(this)">Hủy</button>
+                        <button type="button" class="rv-btn rv-btn-primary" th:onclick="'submitReply(' + ${r.id} + ')'">Gửi trả lời</button>
                     </div>
                 </div>
-                <!-- Form reply mới -->
-                <div class="d-flex gap-2 mt-2">
-                    <textarea class="form-control form-control-sm" rows="2" placeholder="Nhập nội dung phản hồi..."
-                              th:id="'reply-content-' + ${r.id}" style="font-size:.82rem"></textarea>
-                    <button type="button" class="btn btn-sm btn-primary align-self-end"
-                            th:onclick="'submitReply(' + ${r.id} + ')'"
-                            style="white-space:nowrap">
-                        <i class="bi bi-send me-1"></i>Gửi
-                    </button>
+
+                <div class="rv-actions">
+                    <button type="button" class="rv-btn rv-btn-primary" th:if="${(repliesMap.get(r.id) == null || repliesMap.get(r.id).isEmpty()) && userPermissions.contains('REVIEW_APPROVE')}"
+                            th:data-review-id="${r.id}" onclick="toggleReplyForm(this)">Trả lời</button>
+                    <form th:if="${!r.isApproved and userPermissions.contains('REVIEW_APPROVE')}" th:action="@{/admin/danh-gia/duyet/{id}(id=${r.id})}" method="post" class="d-inline">
+                        <button type="submit" class="rv-btn">Duyệt</button>
+                    </form>
+                    <form th:if="${r.isApproved and userPermissions.contains('REVIEW_HIDE')}" th:action="@{/admin/danh-gia/an/{id}(id=${r.id})}" method="post" class="d-inline">
+                        <button type="submit" class="rv-btn">Ẩn đánh giá</button>
+                    </form>
+                    <form th:if="${userPermissions.contains('REVIEW_DELETE')}" th:action="@{/admin/danh-gia/xoa/{id}(id=${r.id})}" method="post" class="d-inline">
+                        <button type="submit" class="rv-btn rv-btn-danger" data-confirm="Xóa đánh giá này?">Xoá</button>
+                    </form>
+                    <span class="rv-spacer"></span>
+                    <a th:href="@{/admin/khach-hang/{id}(id=${r.userId})}" class="rv-link">Xem khách hàng →</a>
                 </div>
             </div>
+
+            <div class="rv-empty" th:if="${#lists.isEmpty(reviews)}">Chưa có đánh giá nào</div>
         </div>
 
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
+
+        <div class="rv-perm-hint">
+            Trả lời/Duyệt cần <strong>REVIEW_APPROVE</strong> · ẩn cần <strong>REVIEW_HIDE</strong> · xoá cần <strong>REVIEW_DELETE</strong>.
+        </div>
     </div>
 
     <th:block layout:fragment="extra-script">
         <script th:inline="javascript">
+            document.querySelectorAll('.rv-stars').forEach(function (el) {
+                var score = parseInt(el.dataset.score) || 0;
+                el.textContent = '★'.repeat(score) + '☆'.repeat(5 - score);
+            });
+
             function toggleReplyForm(btn) {
                 var reviewId = btn.getAttribute('data-review-id');
                 var section = document.getElementById('reply-section-' + reviewId);
@@ -209,8 +183,23 @@
                 })
                 .catch(function() { alert('Lỗi kết nối'); });
             }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var searchTimer;
+                var keywordEl = document.getElementById('searchKeyword');
+                if (keywordEl) {
+                    keywordEl.addEventListener('input', function () {
+                        clearTimeout(searchTimer);
+                        searchTimer = setTimeout(function () {
+                            var params = new URLSearchParams(window.location.search);
+                            if (keywordEl.value) params.set('keyword', keywordEl.value); else params.delete('keyword');
+                            params.delete('page');
+                            window.location.href = '/admin/danh-gia?' + params.toString();
+                        }, 400);
+                    });
+                }
+            });
         </script>
-        <script th:src="@{/js/admin-review.js}"></script>
     </th:block>
 </body>
 </html>

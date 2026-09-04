@@ -124,15 +124,16 @@
                                data-autosubmit="300" />
                     </div>
                     <div class="col-md-3">
-                        <select name="danhMuc" class="form-select searchable-select" placeholder="Danh mục" data-autosubmit>
-                            <option value="">Danh mục</option>
+                        <select name="danhMuc" class="form-select searchable-select" placeholder="Tìm danh mục..." data-autosubmit>
+                            <option value="">Tất cả danh mục</option>
                             <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"
+                                    th:attr="data-count=${categoryProductCounts.get(cat.id)} ?: 0"
                                     th:selected="${danhMuc == cat.id}">DM</option>
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <select name="trangThai" class="form-select searchable-select" data-autosubmit>
-                            <option value="">Trạng thái</option>
+                        <select name="trangThai" class="form-select searchable-select" placeholder="Tìm trạng thái..." data-autosubmit>
+                            <option value="">Tất cả trạng thái</option>
                             <option value="DANG_BAN" th:selected="${trangThai == 'DANG_BAN'}">Đang bán</option>
                             <option value="DAT_TRUOC" th:selected="${trangThai == 'DAT_TRUOC'}">Đặt trước</option>
                             <option value="NGUNG_BAN" th:selected="${trangThai == 'NGUNG_BAN'}">Ngừng bán</option>

@@ -510,6 +510,7 @@ GO
         id int identity not null,
         is_read bit not null,
         is_spam bit not null,
+        is_resolved bit not null default 0,
         created_at datetime2(7) not null,
         phan_loai nvarchar(30) not null,
         hoTen nvarchar(150) not null,
@@ -1089,6 +1090,19 @@ INSERT INTO Categories (tenDanhMuc, parentId, thuTuHienThi) VALUES
     (N'Ly Champagne', 4, 4), (N'Ly Highball',   4, 5);
 GO
 
+-- Danh muc con bo sung (danh muc goc con it, tach nho de de duyet hon)
+INSERT INTO Categories (tenDanhMuc, parentId, thuTuHienThi)
+SELECT N'Bình Hoa Pha Lê', id, 3 FROM Categories WHERE tenDanhMuc = N'Bình Trang Trí'
+UNION ALL
+SELECT N'Bình Decanter Rượu', id, 4 FROM Categories WHERE tenDanhMuc = N'Bình Trang Trí'
+UNION ALL
+SELECT N'Hũ Đựng Thực Phẩm', id, 1 FROM Categories WHERE tenDanhMuc = N'Hũ Thủy Tinh'
+UNION ALL
+SELECT N'Hũ Ngâm Rượu', id, 2 FROM Categories WHERE tenDanhMuc = N'Hũ Thủy Tinh'
+UNION ALL
+SELECT N'Ly Màu Nghệ Thuật', id, 6 FROM Categories WHERE tenDanhMuc = N'Ly & Cốc';
+GO
+
 -- Anh dai dien danh muc (hien tren trang chu / mega-menu)
 UPDATE Categories SET imageUrl = '/images/products/chai-tron-250ml-nap-go.jpg' WHERE tenDanhMuc = N'Chai Thủy Tinh';
 UPDATE Categories SET imageUrl = '/images/products/hu-hinh-trai-bi-500ml.jpg' WHERE tenDanhMuc = N'Hũ Thủy Tinh';
@@ -1105,6 +1119,11 @@ UPDATE Categories SET imageUrl = '/images/products/ly-highball-450ml.jpg' WHERE 
 UPDATE Categories SET imageUrl = '/images/products/coc-co-quai-250ml.jpg' WHERE tenDanhMuc = N'Ly Nước';
 UPDATE Categories SET imageUrl = '/images/products/ly-vang-200ml-don.jpg' WHERE tenDanhMuc = N'Ly Champagne';
 UPDATE Categories SET imageUrl = '/images/products/ly-highball-bo6.jpg' WHERE tenDanhMuc = N'Ly Highball';
+UPDATE Categories SET imageUrl = '/images/products/binh-hoa-pha-le-1000ml.jpg' WHERE tenDanhMuc = N'Bình Hoa Pha Lê';
+UPDATE Categories SET imageUrl = '/images/products/binh-decanter-hario-400ml.jpg' WHERE tenDanhMuc = N'Bình Decanter Rượu';
+UPDATE Categories SET imageUrl = '/images/products/hu-hinh-trai-bi-500ml.jpg' WHERE tenDanhMuc = N'Hũ Đựng Thực Phẩm';
+UPDATE Categories SET imageUrl = '/images/products/binh-ngam-ruou-5000ml.jpg' WHERE tenDanhMuc = N'Hũ Ngâm Rượu';
+UPDATE Categories SET imageUrl = '/images/products/bo-ly-mau-1-350ml.jpg' WHERE tenDanhMuc = N'Ly Màu Nghệ Thuật';
 GO
 
 INSERT INTO Products (tenSanPham, moTa, chatLieu, xuatXu, mucDichSuDung, danhMucId, trangThaiSanPham, isFeatured) VALUES
@@ -1405,10 +1424,10 @@ FROM (VALUES
     ('DUA-20260015', 'nguyenvan', 95000, 20000, 0, 115000, 'COD',          'CHUA_THANH_TOAN', 'DA_XAC_NHAN',          2),
     ('DUA-20260016', 'tranthib', 110000, 20000, 0, 130000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DANG_GIAO',            1),
     ('DUA-20260017', 'lehoangc', 145000, 20000, 0, 165000, 'COD',          'CHUA_THANH_TOAN', 'DANG_GIAO',            1),
-    ('DUA-20260018', 'phamthid', 126000, 20000, 0, 146000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',             10),
+    ('DUA-20260018', 'phamthid', 126000, 20000, 0, 146000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',              0),
     ('DUA-20260019', 'vominhe',  385000, 20000, 0, 405000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',             12),
     ('DUA-20260020', 'dangthif', 210000, 20000, 0, 230000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',       20),
-    ('DUA-20260021', 'nguyenvan',175000, 20000, 0, 195000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',       18),
+    ('DUA-20260021', 'nguyenvan',175000, 20000, 0, 195000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',        1),
     ('DUA-20260022', 'tranthib',  64000, 20000, 0,  84000, 'COD',          'CHUA_THANH_TOAN', 'DA_HUY',               3),
     ('DUA-20260023', 'lehoangc', 490000, 20000, 0, 510000, 'CHUYEN_KHOAN', 'CHUA_THANH_TOAN', 'DA_HUY',               8)
 ) AS o(maDon, username, tienHang, phiVanChuyen, tienGiam, tongThanhToan, phuongThucTT, trangThaiTT, trangThaiDon, d)
@@ -2260,6 +2279,43 @@ GO
 
 PRINT '====================================================';
 PRINT ' Seed nhat ky he thong (3 bang) hoan tat!';
+PRINT '====================================================';
+GO
+
+-- ============================================================
+-- BUOC 8: Phan lai san pham vao cac danh muc con moi (them phong phu)
+-- ============================================================
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Bình Hoa Pha Lê')
+    WHERE tenSanPham IN (N'Bình Hoa Pha Lê Cắt Cạnh', N'Bình Hoa Pha Lê', N'Bình Pha Lê Pasabahce Nhập Khẩu');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Bình Decanter Rượu')
+    WHERE tenSanPham IN (N'Bình Chiết Rượu Vang', N'Bình Thủy Tinh Decanter Hario');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Hũ Đựng Thực Phẩm')
+    WHERE tenSanPham IN (N'Hũ Thủy Tinh Hình Trái Bí', N'Hũ Thủy Tinh Nắp Cài Kín Hơi', N'Hũ Thủy Tinh Sọc');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Hũ Ngâm Rượu')
+    WHERE tenSanPham = N'Bình Thủy Tinh Ngâm Rượu';
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Ly Màu Nghệ Thuật')
+    WHERE tenSanPham IN (N'Bộ Ly Thủy Tinh Màu 1', N'Bộ Ly Thủy Tinh Màu 2');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Ly Highball')
+    WHERE tenSanPham = N'Ly Thủy Tinh Dạng Trụ Tròn Họa Tiết Sọc';
+GO
+
+PRINT '====================================================';
+PRINT ' Bo sung 5 danh muc con + phan lai san pham hoan tat!';
+PRINT '====================================================';
+GO
+
+-- ============================================================
+-- BUOC 9: Gan voucher cho mot so don hang DA_GIAO/DA_HOAN_THANH
+-- (de bao cao "Hieu qua chuong trinh khuyen mai" trong Phan tich co du lieu)
+-- ============================================================
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'SINHNHAT'), tienGiam = 16950, tongThanhToan = 116050 WHERE maDon = 'DUA-20260002';
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'THANG9'),   tienGiam = 76400, tongThanhToan = 687600 WHERE maDon = 'DUA-20260005';
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'NEWUSER'),  tienGiam = 50000, tongThanhToan = 355000 WHERE maDon = 'DUA-20260019';
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'SINHNHAT'), tienGiam = 26250, tongThanhToan = 168750 WHERE maDon = 'DUA-20260021';
+GO
+
+PRINT '====================================================';
+PRINT ' Gan voucher cho don hang hoan tat!';
 PRINT '====================================================';
 GO
 

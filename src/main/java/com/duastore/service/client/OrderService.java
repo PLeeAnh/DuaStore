@@ -10,6 +10,8 @@ import com.duastore.service.LoyaltyPointsService;
 import com.duastore.service.MultiCarrierShippingService;
 import com.duastore.service.PricingService;
 import com.duastore.service.SepayService;
+import com.duastore.service.SiteSettingService;
+import com.duastore.service.admin.AdminLogService;
 import com.duastore.service.admin.OrderStatusLogService;
 import com.duastore.util.PriceUtils;
 import org.hibernate.ObjectNotFoundException;
@@ -43,6 +45,8 @@ public class OrderService {
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final ProductVariantRepository variantRepository;
     private final OrderStatusLogService orderStatusLogService;
+    private final AdminLogService adminLogService;
+    private final SiteSettingService siteSettingService;
     private final UserVoucherRepository userVoucherRepository;
     private final GHNShippingService ghnShippingService;
     private final SepayService sepayService;
@@ -60,6 +64,8 @@ public class OrderService {
             OrderAssignmentRepository orderAssignmentRepository,
             ProductVariantRepository variantRepository,
             OrderStatusLogService orderStatusLogService,
+            AdminLogService adminLogService,
+            SiteSettingService siteSettingService,
             UserVoucherRepository userVoucherRepository,
             GHNShippingService ghnShippingService,
             SepayService sepayService,
@@ -79,6 +85,8 @@ public class OrderService {
         this.orderAssignmentRepository = orderAssignmentRepository;
         this.variantRepository = variantRepository;
         this.orderStatusLogService = orderStatusLogService;
+        this.adminLogService = adminLogService;
+        this.siteSettingService = siteSettingService;
         this.userVoucherRepository = userVoucherRepository;
         this.ghnShippingService = ghnShippingService;
         this.sepayService = sepayService;
@@ -216,22 +224,6 @@ public class OrderService {
             Promotion lockedPromo = promotionRepository.findByIdWithLock(promo.getId())
                     .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
 
-            // Voucher trong ví: bat buoc phai duoc luu vao vi truoc khi dung
-            UserVoucher userVoucher = userVoucherRepository.findByUserIdAndPromotionId(userId, lockedPromo.getId())
-                    .orElse(null);
-            if (userVoucher == null) {
-                throw new RuntimeException("Bạn chưa lưu voucher này vào ví. Hãy lưu vào ví trước khi sử dụng");
-            }
-            if (userVoucher.getStatus() != VoucherStatus.AVAILABLE) {
-                throw new RuntimeException("Voucher này không còn sử dụng được");
-            }
-            if (userVoucher.getExpiredAt() != null && userVoucher.getExpiredAt().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Voucher đã hết hạn");
-            }
-            if (userVoucher.getRemainingUses() == null || userVoucher.getRemainingUses() <= 0) {
-                throw new RuntimeException("Voucher đã hết lượt sử dụng");
-            }
-
             Map<Integer, Product> productById = cartItems.stream()
                     .map(CartItem::getProduct)
                     .filter(Objects::nonNull)
@@ -246,20 +238,6 @@ public class OrderService {
             BigDecimal usedBudget = lockedPromo.getUsedBudget() != null ? lockedPromo.getUsedBudget() : BigDecimal.ZERO;
             lockedPromo.setUsedBudget(usedBudget.add(tienGiam));
             promotionRepository.save(lockedPromo);
-
-            if (userVoucher != null) {
-                Integer remaining = userVoucher.getRemainingUses();
-                if (remaining != null && remaining > 1) {
-                    userVoucher.setRemainingUses(remaining - 1);
-                    userVoucher.setTotalSaved(userVoucher.getTotalSaved().add(tienGiam));
-                } else {
-                    userVoucher.setRemainingUses(0);
-                    userVoucher.setStatus(VoucherStatus.USED);
-                    userVoucher.setUsedAt(LocalDateTime.now());
-                    userVoucher.setTotalSaved(userVoucher.getTotalSaved().add(tienGiam));
-                }
-                userVoucherRepository.save(userVoucher);
-            }
         }
 
         if (order.getTienGiam() == null) {
@@ -355,6 +333,18 @@ public class OrderService {
             if (ghnCode != null) {
                 order.setMaVanDon(ghnCode);
                 orderRepository.save(order);
+            }
+        }
+
+        // Tự động chia đơn cho admin/staff có ít đơn đang xử lý nhất ngay khi đặt hàng.
+        String autoAssignEnabled = siteSettingService.getValue("auto_assign_enabled", "1");
+        if ("1".equals(autoAssignEnabled)) {
+            try {
+                adminLogService.tuDongPhanDon(order);
+            } catch (Exception e) {
+                // Không được đánh sập luồng đặt hàng nếu việc phân công đơn gặp lỗi.
+                org.slf4j.LoggerFactory.getLogger(getClass()).warn(
+                        "Auto-assign đơn #{} thất bại: {}", order.getId(), e.getMessage());
             }
         }
 

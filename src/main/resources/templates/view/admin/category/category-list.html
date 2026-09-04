@@ -98,8 +98,8 @@
                                th:value="${param.keyword}" id="keywordInput" />
                     </div>
                     <div class="col-md-3">
-                        <select name="status" class="form-select searchable-select" id="statusSelect" data-autosubmit>
-                            <option value="">Trạng thái</option>
+                        <select name="status" class="form-select searchable-select" id="statusSelect" placeholder="Tìm trạng thái..." data-autosubmit>
+                            <option value="">Tất cả trạng thái</option>
                             <option value="active" th:selected="${param.status == 'active'}">Hoạt động</option>
                             <option value="inactive" th:selected="${param.status == 'inactive'}">Ngừng hoạt động</option>
                         </select>

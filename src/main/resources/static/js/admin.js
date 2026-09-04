@@ -26,6 +26,35 @@
     };
 })();
 
+function buildTomSelectOpts(el) {
+    var opts = {
+        placeholder: el.getAttribute('placeholder') || 'Tìm kiếm...',
+        maxOptions: null,
+        allowEmptyOption: true,
+        plugins: ['dropdown_input'],
+        render: {
+            option: function (data, escape) {
+                var badge = data.count ? '<span class="ts-opt-badge">' + escape(data.count) + '</span>' : '';
+                return '<div><span class="ts-opt-label">' + escape(data.text) + '</span>' + badge + '</div>';
+            }
+        }
+    };
+    if (el.hasAttribute('data-create')) {
+        opts.create = true;
+        opts.createOnBlur = true;
+    }
+    if (el.hasAttribute('data-autosubmit')) {
+        el._tsInit = true;
+        opts.onChange = function () {
+            if (el._tsInit) { el._tsInit = false; return; }
+            var form = el.closest('form');
+            if (form) form.submit();
+            else el.dispatchEvent(new Event('change', {bubbles: true}));
+        };
+    }
+    return opts;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     /* ── Global toast helper ── */
@@ -201,27 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.searchable-select').forEach(el => {
         if (el.tagName !== 'SELECT')
             return;
-        const opts = {
-            placeholder: el.getAttribute('placeholder') || 'Tìm kiếm...',
-            maxOptions: null,
-        };
-        if (el.hasAttribute('data-create')) {
-            opts.create = true;
-            opts.createOnBlur = true;
-        }
-        if (el.hasAttribute('data-autosubmit')) {
-            el._tsInit = true;
-            opts.onChange = function () {
-                if (el._tsInit) { el._tsInit = false; return; }
-                var form = el.closest('form');
-                if (form) {
-                    form.submit();
-                } else {
-                    el.dispatchEvent(new Event('change', {bubbles: true}));
-                }
-            };
-        }
-        if (typeof TomSelect !== 'undefined') new TomSelect(el, opts);
+        if (typeof TomSelect !== 'undefined') new TomSelect(el, buildTomSelectOpts(el));
     });
 
     /* ── Dirty Save Bar ── */
@@ -441,21 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         /* TomSelect */
         document.querySelectorAll('.searchable-select').forEach(function (el) {
             if (el.tagName !== 'SELECT' || el.tomselect) return;
-            var opts = {
-                placeholder: el.getAttribute('placeholder') || 'Tìm kiếm...',
-                maxOptions: null,
-            };
-            if (el.hasAttribute('data-create')) { opts.create = true; opts.createOnBlur = true; }
-            if (el.hasAttribute('data-autosubmit')) {
-                el._tsInit = true;
-                opts.onChange = function () {
-                    if (el._tsInit) { el._tsInit = false; return; }
-                    var form = el.closest('form');
-                    if (form) form.submit();
-                    else el.dispatchEvent(new Event('change', {bubbles: true}));
-                };
-            }
-            if (typeof TomSelect !== 'undefined') new TomSelect(el, opts);
+            if (typeof TomSelect !== 'undefined') new TomSelect(el, buildTomSelectOpts(el));
         });
 
     };
@@ -475,14 +470,13 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 var old = list[i];
                 if (!old.parentNode) continue;
+                var s = document.createElement('script');
                 if (old.src) {
-                    var s = document.createElement('script');
                     s.src = old.src;
-                    old.parentNode.replaceChild(s, old);
                 } else {
-                    try { (0, eval)(old.textContent); } catch (e2) { /* ignore */ }
-                    old.parentNode.removeChild(old);
+                    s.textContent = old.textContent;
                 }
+                old.parentNode.replaceChild(s, old);
             } catch (e) { /* ignore script errors from extensions */ }
         }
     }
@@ -571,16 +565,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Execute scripts in new extra content
                 extraScripts.forEach(function (old) {
                     try {
+                        var s = document.createElement('script');
                         if (old.src) {
-                            var s = document.createElement('script');
                             s.src = old.src;
-                            if (old.parentNode) {
-                                old.parentNode.replaceChild(s, old);
-                            } else {
-                                document.body.appendChild(s);
-                            }
                         } else {
-                            try { (0, eval)(old.textContent); } catch (e2) { /* ignore */ }
+                            s.textContent = old.textContent;
+                        }
+                        if (old.parentNode) {
+                            old.parentNode.replaceChild(s, old);
+                        } else {
+                            document.body.appendChild(s);
                         }
                     } catch (e) { /* ignore script errors from extensions */ }
                 });

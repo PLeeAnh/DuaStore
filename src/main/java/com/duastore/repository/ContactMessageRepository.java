@@ -14,4 +14,12 @@ public interface ContactMessageRepository extends JpaRepository<ContactMessage, 
     List<ContactMessage> findAllByOrderByCreatedAtDesc();
 
     Optional<ContactMessage> findById(Integer id);
+
+    long countByIsRead(Boolean isRead);
+
+    long countByIsSpamFalse();
+
+    long countByIsResolvedFalseAndIsSpamFalse();
+
+    long countByIsResolvedTrueAndIsSpamFalse();
 }
