@@ -109,6 +109,7 @@
                 <select id="filterTrangThaiTT" class="form-select form-select-sm searchable-select adm-filter-select" style="width:auto" data-autosubmit placeholder="Tìm trạng thái...">
                     <option value="">Tất cả</option>
                     <option value="CHUA_THANH_TOAN" th:selected="${trangThaiTT == 'CHUA_THANH_TOAN'}">Chưa thanh toán</option>
+                    <option value="CHO_XAC_NHAN_CK" th:selected="${trangThaiTT == 'CHO_XAC_NHAN_CK'}">Chờ xác nhận CK</option>
                     <option value="DA_THANH_TOAN" th:selected="${trangThaiTT == 'DA_THANH_TOAN'}">Đã thanh toán</option>
                 </select>
                 <select id="filterAssigned" class="form-select form-select-sm searchable-select adm-filter-select" style="width:auto" data-autosubmit placeholder="Tìm nhân viên...">
@@ -155,6 +156,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <button type="button" class="btn btn-warning btn-sm" onclick="openAutoAssignModal()">
+                <i class="bi bi-lightning-charge me-1"></i>Tự động chia đơn
+                <span class="badge bg-danger text-white ms-1" th:if="${unassignedCount > 0}" th:text="${unassignedCount}" style="font-size:.7rem"></span>
+            </button>
         </div>
 
         <div class="adm-batch-bar" id="batchBar" style="display:none">
@@ -275,6 +283,35 @@
 
         <th:block th:replace="~{view/admin/fragments/pagination :: pagination(${currentPage}, ${totalPages}, ${totalItems}, ${pageSize}, ${entityLabel}, ${url}, ${filterParams})}" />
     </div>
+    <!-- Modal Tự động chia đơn -->
+    <div class="modal fade" id="autoAssignModal" tabindex="-1" aria-labelledby="autoAssignModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="autoAssignModalLabel"><i class="bi bi-lightning-charge me-2 text-warning"></i>Tự động chia đơn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Chọn <strong>Tự động chia</strong> để phân tất cả đơn chưa gán cho nhân viên có ít đơn nhất.
+                        Hoặc chọn nhân viên cụ thể để phân tất cả đơn cho người đó.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Nhân viên đang hoạt động</label>
+                        <div id="staffListAutoAssign" class="list-group list-group-flush"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-warning btn-sm" id="btnAutoAssignLeast" onclick="doAutoAssign(null)">
+                        <i class="bi bi-lightning-charge me-1"></i>Tự động chia (ít việc nhất)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <th:block layout:fragment="extra-script">
         <script>var tatCa = [[${tatCa}]];</script>
         <script th:src="@{/js/admin-daterange.js(v=1)}"></script>
@@ -282,7 +319,89 @@
         <script th:src="@{/js/admin-order-list.js(v=1)}"></script>
         <script th:src="@{/js/admin-table-sort.js}"></script>
         <script>
-            initAdmDateRange('admOrderDateRange', {
+            // === Auto-assign functionality ===
+        function openAutoAssignModal() {
+            var staffLoad = [[${staffLoad}]] || {};
+            var staffUsers = [[${staffUsers}]] || {};
+            var container = document.getElementById('staffListAutoAssign');
+            container.innerHTML = '';
+
+            var sorted = Object.entries(staffLoad).sort((a, b) => a[1] - b[1]);
+            if (sorted.length === 0) {
+                container.innerHTML = '<div class="text-muted small py-2">Không có nhân viên nào</div>';
+            } else {
+                sorted.forEach(function(entry) {
+                    var id = entry[0];
+                    var load = entry[1];
+                    var user = staffUsers[id];
+                    if (!user) return;
+                    var name = user.hoTen || 'N/A';
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                    item.innerHTML = '<div class="d-flex align-items-center gap-2">'
+                        + '<span class="oms-admin-avatar" style="width:28px;height:28px;font-size:.7rem">' + name.charAt(0) + '</span>'
+                        + '<div><div class="small fw-semibold">' + name + '</div>'
+                        + '<div class="text-muted" style="font-size:.7rem">' + load + ' đơn đang xử lý</div></div></div>'
+                        + '<button type="button" class="btn btn-outline-primary btn-sm" onclick="doAutoAssign(' + id + ')">Phân tất cả</button>';
+                    container.appendChild(item);
+                });
+            }
+
+            var modal = new bootstrap.Modal(document.getElementById('autoAssignModal'));
+            modal.show();
+        }
+
+        function doAutoAssign(adminId) {
+            var url = '/admin/don-hang/api/auto-assign';
+            var body = '';
+            if (adminId) body = 'adminId=' + adminId;
+            var btn = adminId ? event.target : document.getElementById('btnAutoAssignLeast');
+            var origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang phân...';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    [document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN']:
+                        document.querySelector('meta[name="_csrf"]')?.content || ''
+                },
+                body: body
+            })
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+                if (data.success) {
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.success(data.message || 'Phân công thành công!');
+                    } else {
+                        alert(data.message);
+                    }
+                    bootstrap.Modal.getInstance(document.getElementById('autoAssignModal')).hide();
+                    setTimeout(function() { location.reload(); }, 1000);
+                } else {
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.error(data.message || 'Có lỗi xảy ra');
+                    } else {
+                        alert(data.message || 'Có lỗi xảy ra');
+                    }
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+                if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                    DuaStore.toast.error('Lỗi kết nối');
+                } else {
+                    alert('Lỗi kết nối');
+                }
+            });
+        }
+
+        initAdmDateRange('admOrderDateRange', {
                 onPreset: function (period) {
                     var r = admResolvePeriodRange(period);
                     var fd = document.getElementById('filterFromDate');

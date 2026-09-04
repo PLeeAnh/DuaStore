@@ -3,6 +3,7 @@ package com.duastore.controller.admin;
 import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.config.security.SecurityUtil;
+import com.duastore.repository.OrderAssignmentRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.admin.AdminLogService;
@@ -36,14 +37,16 @@ public class AdminUserController {
     private final AdminLogService adminLogService;
     private final SecurityUtil securityUtil;
     private final NotificationHelper notificationHelper;
+    private final OrderAssignmentRepository orderAssignmentRepository;
 
     public AdminUserController(UserRepository userRepository, AdminUserService adminUserService, AdminLogService adminLogService, SecurityUtil securityUtil,
-            NotificationHelper notificationHelper) {
+            NotificationHelper notificationHelper, OrderAssignmentRepository orderAssignmentRepository) {
         this.userRepository = userRepository;
         this.adminUserService = adminUserService;
         this.adminLogService = adminLogService;
         this.securityUtil = securityUtil;
         this.notificationHelper = notificationHelper;
+        this.orderAssignmentRepository = orderAssignmentRepository;
     }
 
     @GetMapping
@@ -132,6 +135,17 @@ public class AdminUserController {
     public String createForm(Model model) {
         model.addAttribute("title", "nguoi-dung");
         model.addAttribute("allRoles", adminUserService.getAllRoles());
+
+        // Hiển thị tải hiện tại của các nhân viên đang hoạt động
+        List<User> activeStaff = userRepository.findAllActiveAdmins();
+        Map<Integer, Long> staffLoad = new java.util.LinkedHashMap<>();
+        for (User staff : activeStaff) {
+            long load = orderAssignmentRepository.countByAdminIdAndTrangThai(staff.getId(), "DANG_XU_LY");
+            staffLoad.put(staff.getId(), load);
+        }
+        model.addAttribute("activeStaff", activeStaff);
+        model.addAttribute("staffLoad", staffLoad);
+
         return "view/admin/user/user-create";
     }
 

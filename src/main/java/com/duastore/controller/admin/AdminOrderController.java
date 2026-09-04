@@ -666,4 +666,137 @@ public class AdminOrderController {
         }
         return "redirect:/admin/don-hang/" + id;
     }
+
+    @PostMapping("/{id}/xac-nhan-chuyen-khoan")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
+    public ResponseEntity<Map<String, Object>> xacNhanChuyenKhoan(
+            @PathVariable Integer id,
+            HttpServletRequest request) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            User admin = securityUtil.getCurrentUser();
+            if (admin == null) {
+                result.put("success", false);
+                result.put("message", "Chưa đăng nhập");
+                return ResponseEntity.status(401).body(result);
+            }
+
+            Order order = adminOrderService.getOrderById(id);
+
+            if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+                result.put("success", false);
+                result.put("message", "Đơn hàng không phải thanh toán chuyển khoản");
+                return ResponseEntity.ok(result);
+            }
+
+            if ("DA_THANH_TOAN".equals(order.getTrangThaiTT())) {
+                result.put("success", false);
+                result.put("message", "Đơn hàng đã được xác nhận thanh toán rồi");
+                return ResponseEntity.ok(result);
+            }
+
+            // Cap nhat trang thai thanh toan
+            order.setTrangThaiTT("DA_THANH_TOAN");
+            orderRepository.save(order);
+            orderStatusLogService.ghiLog(order, com.duastore.model.OrderEventType.PAYMENT_CONFIRMED,
+                    admin, "CHUA_THANH_TOAN", "DA_THANH_TOAN",
+                    "Admin " + admin.getHoTen() + " xác nhận đã nhận chuyển khoản");
+
+            adminLogService.ghiLogDonHang(admin, order.getId(), "XAC_NHAN_CHUYEN_KHOAN",
+                    "CHUA_THANH_TOAN", "DA_THANH_TOAN",
+                    "Xác nhận chuyển khoản đơn hàng " + order.getMaDon(), request);
+
+            // Gui email xac nhan cho khach
+            if (order.getUser() != null && order.getUser().getEmail() != null) {
+                asyncEmailService.sendOrderSuccess(order);
+            }
+
+            // Thong bao den khach qua WebSocket
+            try {
+                notificationHelper.notifyAll(
+                        "Đơn hàng " + order.getMaDon() + " đã được xác nhận thanh toán",
+                        "ORDER", order.getId(),
+                        "/tai-khoan/don-hang/" + order.getId(),
+                        order.getMaDon(),
+                        order.getUser() != null ? order.getUser().getId() : null
+                );
+            } catch (Exception ignored) {
+            }
+
+            result.put("success", true);
+            result.put("message", "Đã xác nhận chuyển khoản cho đơn " + order.getMaDon());
+        } catch (Exception e) {
+            log.error("Lỗi xác nhận chuyển khoản đơn #{}: {}", id, e.getMessage(), e);
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/api/auto-assign")
+    @ResponseBody
+    @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).ORDER_UPDATE)")
+    public ResponseEntity<Map<String, Object>> autoAssignOrders(
+            @RequestParam(value = "adminId", required = false) Integer adminId,
+            HttpServletRequest request) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            User admin = securityUtil.getCurrentUser();
+            if (admin == null) {
+                result.put("success", false);
+                result.put("message", "Chưa đăng nhập");
+                return ResponseEntity.status(401).body(result);
+            }
+
+            List<Order> unassignedOrders = orderRepository.findUnassignedOrders();
+            if (unassignedOrders.isEmpty()) {
+                result.put("success", true);
+                result.put("assigned", 0);
+                result.put("message", "Không có đơn hàng chưa được phân công");
+                return ResponseEntity.ok(result);
+            }
+
+            List<User> admins = userRepository.findAllActiveAdmins();
+            if (admins.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Không có nhân viên nào đang hoạt động");
+                return ResponseEntity.ok(result);
+            }
+
+            int assigned = 0;
+            for (Order order : unassignedOrders) {
+                if (adminId != null) {
+                    User targetAdmin = userRepository.findById(adminId).orElse(null);
+                    if (targetAdmin != null) {
+                        adminLogService.phanDonCho(order, targetAdmin);
+                        assigned++;
+                    }
+                } else {
+                    User leastLoaded = null;
+                    long minLoad = Long.MAX_VALUE;
+                    for (User a : admins) {
+                        long load = assignmentRepository.countByAdminIdAndTrangThai(a.getId(), "DANG_XU_LY");
+                        if (load < minLoad) {
+                            minLoad = load;
+                            leastLoaded = a;
+                        }
+                    }
+                    if (leastLoaded != null) {
+                        adminLogService.phanDonCho(order, leastLoaded);
+                        assigned++;
+                    }
+                }
+            }
+
+            result.put("success", true);
+            result.put("assigned", assigned);
+            result.put("message", "Đã phân công " + assigned + " đơn hàng");
+        } catch (Exception e) {
+            log.error("Lỗi autoAssignOrders: {}", e.getMessage(), e);
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        }
+        return ResponseEntity.ok(result);
+    }
 }

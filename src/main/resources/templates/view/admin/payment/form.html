@@ -50,6 +50,17 @@
                     <div class="col-12">
                         <h6 class="fw-semibold border-bottom pb-2"><i class="bi bi-credit-card me-1"></i>Phương thức thanh toán</h6>
                     </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="auto_assign_enabled" value="0" />
+                            <input class="form-check-input" type="checkbox" name="auto_assign_enabled" value="1"
+                                   id="autoAssignEnabled" th:checked="${settings.get('auto_assign_enabled') == '1'}" />
+                            <label class="form-check-label" for="autoAssignEnabled">
+                                <i class="bi bi-lightning-charge text-warning me-1"></i>Tự động phân đơn khi đặt hàng
+                            </label>
+                        </div>
+                        <div class="form-text">Khi bật, đơn hàng mới sẽ tự động được gán cho nhân viên có ít đơn đang xử lý nhất.</div>
+                    </div>
                     <div class="col-md-4">
                         <div class="form-check form-switch">
                             <input type="hidden" name="payment_cod" value="0" />

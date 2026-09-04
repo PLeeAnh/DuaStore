@@ -145,6 +145,19 @@
                               th:text="${T(com.duastore.util.PaymentStatusUtil).getDisplayName(order.trangThaiTT)}">
                         </span>
                     </div>
+                    <!-- Nut xac nhan chuyen khoan -->
+                    <div th:if="${order.phuongThucTT == 'CHUYEN_KHOAN' and order.trangThaiTT == 'CHUA_THANH_TOAN'}" class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-bank fs-4"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">Khách hàng chọn chuyển khoản ngân hàng</div>
+                            <div class="small text-muted">Sau khi kiểm tra tài khoản nhận tiền, bấm xác nhận để hoàn tất đơn hàng.</div>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm flex-shrink-0" id="btnXacNhanCK"
+                                th:data-id="${order.id}"
+                                onclick="xacNhanChuyenKhoan(this)">
+                            <i class="bi bi-check-circle me-1"></i>Xác nhận đã nhận CK
+                        </button>
+                    </div>
                     <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
                         <i class="bi fs-4"
                            th:classappend="${T(com.duastore.util.PaymentStatusUtil).getPaymentIcon(order.phuongThucTT)}"></i>
@@ -450,6 +463,50 @@
             window.currentStep = [[${currentStep}]];
         </script>
         <script th:src="@{/js/admin-order.js(v=1)}"></script>
+        <script>
+            function xacNhanChuyenKhoan(btn) {
+                var id = btn.getAttribute('data-id');
+                if (!confirm('Xác nhận đã nhận chuyển khoản cho đơn hàng này?')) return;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xác nhận...';
+                fetch('/admin/don-hang/' + id + '/xac-nhan-chuyen-khoan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        [document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN']:
+                            document.querySelector('meta[name="_csrf"]')?.content || ''
+                    }
+                })
+                .then(function(resp) { return resp.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                            DuaStore.toast.success(data.message || 'Xác nhận thành công!');
+                        } else {
+                            alert(data.message);
+                        }
+                        setTimeout(function() { location.reload(); }, 1000);
+                    } else {
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                            DuaStore.toast.error(data.message || 'Có lỗi xảy ra');
+                        } else {
+                            alert(data.message || 'Có lỗi xảy ra');
+                        }
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Xác nhận đã nhận CK';
+                    }
+                })
+                .catch(function() {
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.error('Lỗi kết nối');
+                    } else {
+                        alert('Lỗi kết nối');
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Xác nhận đã nhận CK';
+                });
+            }
+        </script>
     </th:block>
 </body>
 </html>

@@ -66,17 +66,16 @@ public class AdminControllerAdvice {
             return Set.of();
         }
 
-        Set<String> roleAuthorities = Set.of("ROLE_PRODUCT_OWNER", "ROLE_ADMIN", "ROLE_STAFF", "ROLE_USER");
+        Set<String> roleAuthorities = Set.of("ROLE_PRODUCT_OWNER", "ROLE_SUPER_ADMIN", "ROLE_ADMIN", "ROLE_STAFF", "ROLE_USER");
         Set<String> perms = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(a -> !roleAuthorities.contains(a))
                 .collect(Collectors.toSet());
 
         if (auth.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_PRODUCT_OWNER".equals(a.getAuthority()))) {
-            // PRODUCT_OWNER co toan quyen he thong (khong duoc gan permission rieng le
-            // trong CustomUserDetailsService), nen lay truc tiep tu bang permissions
-            // thay vi liet ke tay - tranh bi lech khi co module/permission moi.
+                .anyMatch(a -> "ROLE_PRODUCT_OWNER".equals(a.getAuthority())
+                        || "ROLE_SUPER_ADMIN".equals(a.getAuthority())
+                        || "ROLE_ADMIN".equals(a.getAuthority()))) {
             return permissionRepository.findAllByOrderByModuleAscActionAsc().stream()
                     .map(p -> p.getModule() + "_" + p.getAction())
                     .collect(Collectors.toSet());

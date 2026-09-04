@@ -77,6 +77,35 @@
                 </div>
             </form>
         </div>
+
+        <!-- Phân tích tải nhân viên hiện tại -->
+        <div class="adm-card mt-4" th:if="${activeStaff != null and !activeStaff.isEmpty()}">
+            <div class="adm-card-body">
+                <h6 class="fw-semibold border-bottom pb-2 mb-3">
+                    <i class="bi bi-bar-chart me-1"></i>Tải hiện tại của nhân viên
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-4 col-6" th:each="staff : ${activeStaff}">
+                        <div class="d-flex align-items-center gap-2 p-2 rounded border">
+                            <span class="oms-admin-avatar" style="width:32px;height:32px;font-size:.8rem"
+                                  th:text="${#strings.substring(staff.hoTen, 0, 1)}">N</span>
+                            <div class="flex-grow-1">
+                                <div class="small fw-semibold" th:text="${staff.hoTen}">Nhân viên</div>
+                                <div class="text-muted" style="font-size:.72rem">
+                                    <span th:text="${staffLoad.get(staff.id) ?: 0}">0</span> đơn đang xử lý
+                                </div>
+                            </div>
+                            <span class="badge" th:classappend="${(staffLoad.get(staff.id) ?: 0) < 5} ? 'bg-success' : ((staffLoad.get(staff.id) ?: 0) < 10) ? 'bg-warning text-dark' : 'bg-danger'"
+                                  th:text="${staffLoad.get(staff.id) ?: 0}">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-text mt-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Nhân viên mới sẽ được tự động phân đơn theo thuật toán ít việc nhất (khi bật tự động phân đơn).
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 </html>
