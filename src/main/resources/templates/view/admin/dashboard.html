@@ -410,13 +410,13 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                     <div class="d-flex flex-column gap-2">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="adm-text-sm">Đã hủy</span>
-                            <span class="badge bg-danger" th:text="${cancelRefundRate.cancelled} ?: 0">0</span>
+                            <span class="badge bg-danger" th:text="${cancelRate.cancelled} ?: 0">0</span>
                         </div>
                         <hr class="my-1"/>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-bold adm-text-sm">Tỉ lệ</span>
-                            <span class="badge" th:classappend="${cancelRefundRate.cancelled > 0} ? 'bg-danger' : 'bg-success'"
-                                  th:text="${cancelRefundRate.rate} ?: '0%'">0%</span>
+                            <span class="badge" th:classappend="${cancelRate.cancelled > 0} ? 'bg-danger' : 'bg-success'"
+                                  th:text="${cancelRate.rate} ?: '0%'">0%</span>
                         </div>
                     </div>
                 </div>

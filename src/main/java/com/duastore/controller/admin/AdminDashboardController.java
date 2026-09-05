@@ -121,7 +121,7 @@ public class AdminDashboardController {
                 model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
                 model.addAttribute("monthlyRevenueData", dashboardService.getMonthlyRevenueLast12Months());
                 model.addAttribute("topProducts7Days", dashboardService.getTopSellingProductsLast7Days(5));
-                model.addAttribute("cancelRefundRate", dashboardService.getCancelRate());
+                model.addAttribute("cancelRate", dashboardService.getCancelRate());
             } catch (Exception e) {
                 log.error("Failed to load enhanced dashboard data", e);
             }

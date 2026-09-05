@@ -112,7 +112,7 @@
                 <div th:id="'reply-section-' + ${r.id}" class="rv-reply-form" style="display:none">
                     <div class="rv-quick-row" th:if="${r.danhGia <= 2}">
                         <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 0)'">Xin lỗi &amp; hỏi lý do</button>
-                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 1)'">Đề nghị đổi trả/hoàn tiền</button>
+                        <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 1)'">Xin lỗi &amp; đề nghị hỗ trợ</button>
                         <button type="button" class="rv-chip" th:onclick="'insertReviewQuickReply(' + ${r.id} + ', 2)'">Xin liên hệ để hỗ trợ</button>
                     </div>
                     <div class="rv-quick-row" th:if="${r.danhGia == 3}">
@@ -199,7 +199,7 @@
 
             var REVIEW_QUICK_REPLIES = [
                 'Shop rất tiếc vì trải nghiệm chưa tốt. Bạn có thể cho shop biết cụ thể vấn đề gặp phải không ạ?',
-                'Shop xin lỗi vì sự cố này. Bạn vui lòng liên hệ hotline hoặc để lại số điện thoại để shop hỗ trợ đổi trả/hoàn tiền nhé!',
+                'Shop xin lỗi vì sự cố này. Bạn vui lòng liên hệ hotline hoặc để lại số điện thoại để shop hỗ trợ và xử lý sớm nhất nhé!',
                 'Rất mong bạn để lại thông tin liên hệ (SĐT/Zalo) để shop hỗ trợ xử lý sớm nhất ạ.',
                 'Cảm ơn góp ý của bạn! Shop sẽ ghi nhận để cải thiện chất lượng sản phẩm/dịch vụ.',
                 'Bạn có thể chia sẻ thêm chi tiết để shop hiểu rõ và cải thiện tốt hơn không ạ?',
