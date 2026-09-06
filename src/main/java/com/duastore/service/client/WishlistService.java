@@ -81,11 +81,17 @@ public class WishlistService {
         if (wish.getProduct() != null) {
             Product p = wish.getProduct();
             dto.setTenSanPham(p.getTenSanPham());
-            dto.setHinhAnh(p.getHinhAnhChinh());
             List<ProductVariant> variants = variantRepository.findByProductIdAndIsActiveTrue(p.getId());
             if (!variants.isEmpty()) {
-                dto.setGiaBan(variants.get(0).getGiaKhuyenMai() != null ? variants.get(0).getGiaKhuyenMai() : variants.get(0).getGiaGoc());
-                dto.setGiaGoc(variants.get(0).getGiaGoc());
+                ProductVariant defaultVariant = variants.stream()
+                        .filter(ProductVariant::isDefault)
+                        .findFirst()
+                        .orElse(variants.get(0));
+                dto.setHinhAnh(p.getHinhAnhChinh() != null ? p.getHinhAnhChinh() : defaultVariant.getHinhAnh());
+                dto.setGiaBan(defaultVariant.getGiaKhuyenMai() != null ? defaultVariant.getGiaKhuyenMai() : defaultVariant.getGiaGoc());
+                dto.setGiaGoc(defaultVariant.getGiaGoc());
+            } else {
+                dto.setHinhAnh(p.getHinhAnhChinh());
             }
         }
         return dto;

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/client/base}">
+    <head>
+        <title>Thanh toán QR (VietQR) — DuaStore</title>
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <div class="container-xl py-5">
+                <div class="ds-section-card">
+                    <div th:replace="~{view/client/parts/checkout-stepper :: stepper(2)}"></div>
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-md-8 col-lg-6">
+                            <div class="ds-card">
+                                <div class="ds-card-body text-center">
+
+                                    <div id="qr-payment-box">
+                                        <div class="mb-4">
+                                            <div class="bg-success bg-opacity-10 d-inline-flex p-3 rounded-circle mb-3">
+                                                <i class="bi bi-qr-code text-success fs-2"></i>
+                                            </div>
+                                            <h4 class="fw-bold">Quét mã QR để thanh toán</h4>
+                                            <p class="text-muted small">Chuyển khoản đúng số tiền — hệ thống tự động xác nhận, không cần bấm gì thêm</p>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <img th:src="${qrUrl}" alt="QR thanh toán SePay"
+                                                 class="img-fluid rounded-3 border"
+                                                 style="max-width:280px;width:100%" />
+                                        </div>
+
+                                        <div class="bg-light rounded-3 p-3 mb-4 text-start">
+                                            <div class="d-flex justify-content-between small mb-2">
+                                                <span class="text-muted">Ngân hàng</span>
+                                                <span class="fw-medium" th:text="${bankName}">MBBank</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small mb-2">
+                                                <span class="text-muted">Số tài khoản</span>
+                                                <span class="fw-medium" th:text="${accountNumber}"></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small mb-2">
+                                                <span class="text-muted">Chủ tài khoản</span>
+                                                <span class="fw-medium" th:text="${accountName}"></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small mb-2">
+                                                <span class="text-muted">Mã đơn</span>
+                                                <span class="fw-medium" th:text="${order.maDon}"></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small">
+                                                <span class="text-muted">Số tiền</span>
+                                                <span class="fw-bold text-danger fs-5" th:text="${#numbers.formatDecimal(order.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                                            </div>
+                                        </div>
+
+                                        <div id="countdown-box" class="alert alert-info small py-2 mb-3">
+                                            <i class="bi bi-clock me-1"></i>
+                                            Vui lòng thanh toán trong <strong id="countdown-timer">15:00</strong>
+                                        </div>
+
+                                        <div id="waiting-box" class="d-flex align-items-center justify-content-center gap-2 py-2 mb-3">
+                                            <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                                            <span class="text-muted small">Đang chờ xác nhận thanh toán tự động…</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hiện khi het 15 phut ma chua thanh toan — thay vi de trang "chet", huong dan
+                                         ro rang buoc tiep theo thay vi chi bao loi bang toast roi thoi. -->
+                                    <div id="expired-box" class="d-none">
+                                        <div class="bg-warning bg-opacity-10 d-inline-flex p-3 rounded-circle mb-3">
+                                            <i class="bi bi-clock-history text-warning fs-2"></i>
+                                        </div>
+                                        <h4 class="fw-bold">Phiên thanh toán đã hết hạn</h4>
+                                        <p class="text-muted small mb-4">Đơn hàng <strong th:text="${order.maDon}"></strong> chưa được thanh toán trong 15 phút. Sản phẩm vẫn còn trong giỏ hàng — bạn có thể đặt lại bất cứ lúc nào.</p>
+                                        <a th:href="@{/gio-hang}" class="ds-btn ds-btn-fill w-100 mb-2">Quay lại giỏ hàng</a>
+                                        <a th:href="@{/tai-khoan/don-hang/{id}(id=${order.id})}" class="text-muted small d-block mt-2">Xem chi tiết đơn hàng này</a>
+                                    </div>
+
+                                    <div id="back-link-box" class="mt-3">
+                                        <a th:href="@{/gio-hang}" class="text-muted small">Quay lại giỏ hàng</a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="extra-script">
+        <script th:inline="javascript">
+            (function () {
+                var orderId = /*[[${order.id}]]*/ 0;
+                var pollInterval = null;
+                var countdownSeconds = 15 * 60;
+                var expired = false;
+                var paymentPending = true;
+
+                // ── Chặn rời trang trong lúc chờ xác nhận tự động (giống cách trang
+                // checkout khóa nút "Đặt hàng" trong lúc đang xử lý) — tránh khách thoát
+                // ra đặt đơn khác/rời đi giữa chừng trong khi tiền đã chuyển và hệ thống
+                // đang chờ webhook SePay báo về. Tự tắt khi thanh toán xong hoặc hết hạn.
+                window.addEventListener('beforeunload', function (e) {
+                    if (paymentPending) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                });
+
+                // ── Countdown Timer ──────────────────────────
+                var timerEl = document.getElementById('countdown-timer');
+                function updateCountdown() {
+                    if (countdownSeconds <= 0) {
+                        if (!expired) {
+                            expired = true;
+                            paymentPending = false;
+                            timerEl.textContent = '00:00';
+                            document.getElementById('qr-payment-box').classList.add('d-none');
+                            document.getElementById('back-link-box').classList.add('d-none');
+                            document.getElementById('expired-box').classList.remove('d-none');
+                            stopPolling();
+                        }
+                        return;
+                    }
+                    var m = Math.floor(countdownSeconds / 60);
+                    var s = countdownSeconds % 60;
+                    timerEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                    countdownSeconds--;
+                }
+                updateCountdown();
+                setInterval(updateCountdown, 1000);
+
+                // ── Polling: tự động dò trạng thái thanh toán, SePay báo IPN thì cập nhật ──
+                function startPolling() {
+                    pollInterval = setInterval(function () {
+                        if (expired) { stopPolling(); return; }
+                        fetch('/checkout/api/check-payment-status/' + orderId)
+                            .then(function (resp) { return resp.json(); })
+                            .then(function (data) {
+                                if (data.paid && data.redirectUrl) {
+                                    stopPolling();
+                                    paymentPending = false;
+                                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã nhận được thanh toán! Đang chuyển trang...'); }
+                                    document.getElementById('waiting-box').classList.add('d-none');
+                                    setTimeout(function () {
+                                        window.location.href = data.redirectUrl;
+                                    }, 1000);
+                                }
+                            })
+                            .catch(function () {});
+                    }, 5000);
+                }
+
+                function stopPolling() {
+                    if (pollInterval) {
+                        clearInterval(pollInterval);
+                        pollInterval = null;
+                    }
+                }
+
+                startPolling();
+            })();
+        </script>
+        </th:block>
+    </body>
+</html>

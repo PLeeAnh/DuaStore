@@ -1,5 +1,6 @@
 package com.duastore.config.security;
 
+import com.duastore.model.Role;
 import com.duastore.model.User;
 import com.duastore.repository.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -12,8 +13,10 @@ import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 /**
@@ -112,5 +115,27 @@ public class SecurityUtil {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
                 || a.getAuthority().equals("ROLE_PRODUCT_OWNER")
                 || a.getAuthority().equals("ROLE_STAFF"));
+    }
+
+    /**
+     * Chon 1 role "chinh" de luu vao session/authority khi user co nhieu role.
+     * User.getRoles() la Set nen thu tu duyet khong on dinh — neu chi lay
+     * findFirst() thi vai tro ADMIN co the bi bo qua ngau nhien khi user co
+     * them role khac (vd USER), khien nhung noi check session.userRole == 'ADMIN'
+     * (link vao /admin, ...) khong hien dung du user thuc su la admin.
+     */
+    private static final List<String> ROLE_PRIORITY = List.of("ADMIN", "PRODUCT_OWNER", "STAFF");
+
+    public static String resolvePrimaryRoleName(Set<Role> roles) {
+        if (roles == null || roles.isEmpty()) {
+            return "USER";
+        }
+        return roles.stream()
+                .map(Role::getName)
+                .min(Comparator.comparingInt(name -> {
+                    int idx = ROLE_PRIORITY.indexOf(name);
+                    return idx < 0 ? ROLE_PRIORITY.size() : idx;
+                }))
+                .orElse("USER");
     }
 }

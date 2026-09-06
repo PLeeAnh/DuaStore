@@ -1,5 +1,6 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityService;
 import com.duastore.model.Notification;
 import com.duastore.repository.NotificationRepository;
 import jakarta.servlet.http.HttpSession;
@@ -21,9 +22,11 @@ public class AdminNavbarAdvice {
     private static final Logger log = LoggerFactory.getLogger(AdminNavbarAdvice.class);
 
     private final NotificationRepository notificationRepository;
+    private final SecurityService securityService;
 
-    public AdminNavbarAdvice(NotificationRepository notificationRepository) {
+    public AdminNavbarAdvice(NotificationRepository notificationRepository, SecurityService securityService) {
         this.notificationRepository = notificationRepository;
+        this.securityService = securityService;
     }
 
     @SuppressWarnings("unchecked")
@@ -33,7 +36,12 @@ public class AdminNavbarAdvice {
             Integer readMaxId = (Integer) session.getAttribute("staffNotifReadMaxId");
             Set<Integer> readIdsRaw = (Set<Integer>) session.getAttribute("staffNotifReadIds");
             final Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Collections.emptySet();
-            List<Notification> allStaffNotifs = notificationRepository.findStaffNotifications();
+            // Chi giu lai thong bao KHOP NGHIEP VU cua vai tro dang dang nhap (xem
+            // Notification.requiredPermission) — truoc day moi ADMIN/STAFF/PRODUCT_OWNER
+            // deu thay chung 1 dong thong bao du khong lien quan cong viec cua ho.
+            List<Notification> allStaffNotifs = notificationRepository.findStaffNotifications().stream()
+                    .filter(n -> securityService.canSeeNotification(n.getRequiredPermission()))
+                    .toList();
 
             if (readMaxId != null && readMaxId > 0) {
                 List<Notification> unread = allStaffNotifs.stream()

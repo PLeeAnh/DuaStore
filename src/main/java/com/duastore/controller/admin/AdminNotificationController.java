@@ -1,5 +1,6 @@
 package com.duastore.controller.admin;
 
+import com.duastore.config.security.SecurityService;
 import com.duastore.dto.AdminNotificationDTO;
 import com.duastore.model.Notification;
 import com.duastore.model.Product;
@@ -10,7 +11,6 @@ import com.duastore.repository.ProductRepository;
 import com.duastore.repository.PromotionRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,15 +34,18 @@ public class AdminNotificationController {
     private final ProductRepository productRepository;
     private final PromotionRepository promotionRepository;
     private final NotificationRepository notificationRepository;
+    private final SecurityService securityService;
 
     public AdminNotificationController(AdminNotificationService adminNotificationService,
             ProductRepository productRepository,
             PromotionRepository promotionRepository,
-            NotificationRepository notificationRepository) {
+            NotificationRepository notificationRepository,
+            SecurityService securityService) {
         this.adminNotificationService = adminNotificationService;
         this.productRepository = productRepository;
         this.promotionRepository = promotionRepository;
         this.notificationRepository = notificationRepository;
+        this.securityService = securityService;
     }
 
     @GetMapping
@@ -50,11 +53,23 @@ public class AdminNotificationController {
     public String list(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             Model model) {
-        Page<Notification> notifPage = adminNotificationService.getAllNotifications(page, size);
-        model.addAttribute("notifications", notifPage.getContent());
+        // Loc theo dung nghiep vu cua vai tro dang dang nhap (giong AdminNavbarAdvice) —
+        // truoc day trang danh sach nay khong loc, nen thong bao rieng cua Product Owner
+        // (vd yeu cau khoa tai khoan) van bi cac tai khoan co quyen NOTIFICATION_READ
+        // chung xem duoc, du chuong thong bao da loc dung.
+        List<Notification> allVisible = notificationRepository.findAdminNotificationsList().stream()
+                .filter(n -> securityService.canSeeNotification(n.getRequiredPermission()))
+                .toList();
+        int totalItems = allVisible.size();
+        int fromIndex = Math.min(page * size, totalItems);
+        int toIndex = Math.min(fromIndex + size, totalItems);
+        List<Notification> pageContent = allVisible.subList(fromIndex, toIndex);
+        int totalPages = size > 0 ? (int) Math.ceil((double) totalItems / size) : 0;
+
+        model.addAttribute("notifications", pageContent);
         model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", notifPage.getTotalPages());
-        model.addAttribute("totalItems", notifPage.getTotalElements());
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalItems", totalItems);
         model.addAttribute("pageSize", size);
         model.addAttribute("entityLabel", "thông báo");
         model.addAttribute("url", "/admin/thong-bao");
@@ -163,7 +178,14 @@ public class AdminNotificationController {
         try {
             Integer readMaxId = (Integer) session.getAttribute("staffNotifReadMaxId");
             if (readMaxId == null) readMaxId = 0;
-            long count = notificationRepository.countUnreadStaffNotifications(readMaxId);
+            final int maxId = readMaxId;
+            @SuppressWarnings("unchecked")
+            java.util.Set<Integer> readIdsRaw = (java.util.Set<Integer>) session.getAttribute("staffNotifReadIds");
+            java.util.Set<Integer> readIds = readIdsRaw != null ? readIdsRaw : java.util.Set.of();
+            long count = notificationRepository.findStaffNotifications().stream()
+                    .filter(n -> securityService.canSeeNotification(n.getRequiredPermission()))
+                    .filter(n -> n.getId() > maxId && !readIds.contains(n.getId()))
+                    .count();
             return String.valueOf(count);
         } catch (Exception e) {
             return "0";

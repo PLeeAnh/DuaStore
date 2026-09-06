@@ -295,12 +295,12 @@ function initLeafletMap() {
     var mapEl = document.getElementById('map');
 
     var map = L.map(mapEl, { center: [lat, lng], zoom: 15, zoomControl: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri' }).addTo(map);
     var marker = L.marker([lat, lng], { draggable: true }).addTo(map);
 
     function reverseGeocode(latlng) {
-        var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + latlng.lat + '&lon=' + latlng.lng + '&addressdetails=1&accept-language=vi';
-        fetch(url, { headers: { 'User-Agent': 'DuaStore/1.0' } })
+        var url = '/api/location/reverse-geocode?lat=' + latlng.lat + '&lng=' + latlng.lng;
+        fetch(url)
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data && data.display_name) {
@@ -333,7 +333,7 @@ function initLeafletMap() {
         var q = this.value.trim();
         if (q.length < 3) return;
         searchTimeout = setTimeout(function() {
-            fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(q + ', Việt Nam') + '&limit=5&accept-language=vi', { headers: { 'User-Agent': 'DuaStore/1.0' } })
+            fetch('/api/location/search-geocode?q=' + encodeURIComponent(q))
                 .then(function(r) { return r.json(); })
                 .then(function(results) {
                     if (results && results.length) {
@@ -352,7 +352,7 @@ function initLeafletMap() {
     });
 
     if (addrInput.value) {
-        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(addrInput.value + ', Việt Nam') + '&limit=1&accept-language=vi', { headers: { 'User-Agent': 'DuaStore/1.0' } })
+        fetch('/api/location/search-geocode?q=' + encodeURIComponent(addrInput.value))
             .then(function(r) { return r.json(); })
             .then(function(results) {
                 if (results && results.length) {

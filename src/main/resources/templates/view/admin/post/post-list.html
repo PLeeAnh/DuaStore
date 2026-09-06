@@ -40,34 +40,26 @@
             </a>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-4 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-file-text"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${totalItems}">0</div>
-                            <div class="adm-stat-label">Tổng bài viết</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng bài viết</div>
+                <div class="rv-stat-value" th:text="${totalItems}">0</div>
             </div>
         </div>
 
-        <div class="adm-filter-bar">
-            <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
-                <div class="d-flex gap-2">
-                    <input type="text" id="searchKeyword" class="form-control form-control-sm" style="width:220px" placeholder="Tìm tiêu đề..." />
-                    <select id="filterStatus" class="form-select form-select-sm searchable-select" style="width:auto" data-autosubmit>
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="XUAT_BAN">Xuất bản</option>
-                        <option value="NHAP">Nháp</option>
-                        <option value="AN">Ẩn</option>
-                        <option value="DA_XOA">Đã xóa</option>
-                    </select>
+        <div class="pd-toolbar-wrap">
+            <div class="pd-toolbar-form">
+                <div class="rv-search" style="flex:0 0 220px">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchKeyword" placeholder="Tìm tiêu đề..." />
                 </div>
+                <select id="filterStatus" class="form-select form-select-sm searchable-select adm-filter-select" placeholder="Tìm trạng thái..." data-autosubmit>
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="XUAT_BAN">Xuất bản</option>
+                    <option value="NHAP">Nháp</option>
+                    <option value="AN">Ẩn</option>
+                    <option value="DA_XOA">Đã xóa</option>
+                </select>
             </div>
         </div>
 

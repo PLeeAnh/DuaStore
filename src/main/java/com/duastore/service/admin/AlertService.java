@@ -69,7 +69,8 @@ public class AlertService {
             if (p == null) continue;
             notificationHelper.notifyStaff(
                     "⚠️ Sản phẩm \"" + p.getTenSanPham() + "\" sắp hết hàng (còn " + totalStock + ")",
-                    "PRODUCT", p.getId(), "/admin/san-pham/sua/" + p.getId(), "Xem sản phẩm");
+                    "PRODUCT", p.getId(), "/admin/san-pham/sua/" + p.getId(), "Xem sản phẩm",
+                    com.duastore.config.security.PermissionEnum.PRODUCT_READ);
         }
     }
 
@@ -80,7 +81,8 @@ public class AlertService {
         if (count > 0) {
             notificationHelper.notifyStaff(
                     "⚠️ Có " + count + " đơn hàng chờ xác nhận quá " + hours + " giờ!",
-                    "ORDER", null, "/admin/don-hang?trangThai=CHO_XAC_NHAN", "Xem đơn hàng");
+                    "ORDER", null, "/admin/don-hang?trangThai=CHO_XAC_NHAN", "Xem đơn hàng",
+                    com.duastore.config.security.PermissionEnum.ORDER_READ);
         }
     }
 

@@ -138,7 +138,8 @@ public class AdminPostController {
                         "Bai viet moi da xuat ban: " + saved.getTieuDe(),
                         null, null,
                         "/admin/bai-viet",
-                        "Xem bai viet"
+                        "Xem bai viet",
+                        com.duastore.config.security.PermissionEnum.POST_READ
                 );
             }
             ra.addFlashAttribute("successMsg", "Thêm bài viết thành công");

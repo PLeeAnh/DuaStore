@@ -9,15 +9,24 @@
     </head>
     <body>
         <div layout:fragment="content">
-            <div class="ds-container py-4">
+            <div class="ds-ctn-wide py-4">
                 <div class="ds-section-card">
-                    <div class="d-flex align-items-center gap-2 mb-4">
-                        <i class="bi bi-wallet2 fs-3 text-danger"></i>
-                        <h4 class="fw-bold mb-0">Ví Voucher</h4>
+
+                    <!-- Hero -->
+                    <div class="vw-hero">
+                        <div class="vw-hero-icon"><i class="bi bi-wallet2"></i></div>
+                        <div>
+                            <p class="vw-hero-title">Ví Voucher</p>
+                            <p class="vw-hero-sub">Toàn bộ mã giảm giá bạn đã lưu — dùng ngay khi thanh toán</p>
+                        </div>
+                        <div class="vw-hero-stat">
+                            <div class="n" th:text="${availableCount}">0</div>
+                            <div class="l">voucher khả dụng</div>
+                        </div>
                     </div>
 
                     <!-- Tabs -->
-                    <ul class="nav nav-tabs mb-4">
+                    <ul class="nav nav-tabs vw-tabs mb-4">
                         <li class="nav-item">
                             <a class="nav-link" th:classappend="${tab == '' or tab == 'available' ? 'active' : ''}"
                                th:href="@{/vi-voucher(tab='available', keyword=${keyword}, sort=${sort})}">
@@ -57,14 +66,25 @@
                     <!-- Empty State -->
                     <div th:if="${#lists.isEmpty(vouchers)}" th:insert="~{fragments/empty-state :: emptyState(icon='bi bi-ticket-perforated', title='Chưa có voucher nào', desc='Các phiếu giảm giá bạn nhận được từ chương trình khuyến mãi sẽ xuất hiện tại đây.', btnText='Khám phá khuyến mãi', btnHref='/khuyen-mai')}"></div>
 
-                    <!-- Voucher Cards -->
+                    <!-- Voucher Tickets -->
                     <div th:unless="${#lists.isEmpty(vouchers)}" class="row g-3">
                         <div th:each="v : ${vouchers}" class="col-md-6 col-lg-4">
-                            <div class="vc-card h-100" th:data-id="${v.promotion.id}" th:data-status="${v.status.name()}">
+                            <div class="vw-ticket" th:classappend="${v.status.name() != 'AVAILABLE'} ? 'is-inactive'"
+                                 th:data-id="${v.promotion.id}" th:data-status="${v.status.name()}">
 
-                                <!-- Top row: status -->
-                                <div class="d-flex justify-content-end align-items-center mb-2">
-                                    <span class="vc-status">
+                                <!-- Stub: so tien/pct giam -->
+                                <div class="vw-ticket-stub">
+                                    <span class="amt" th:if="${'PHAN_TRAM'.equals(v.promotion.loaiGiam)}"
+                                          th:text="${#numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT')} + '%'"></span>
+                                    <span class="amt" th:if="${'SO_TIEN'.equals(v.promotion.loaiGiam)}"
+                                          th:text="${#numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT')}"></span>
+                                    <span class="unit" th:text="${'SO_TIEN'.equals(v.promotion.loaiGiam)} ? 'đồng' : 'giảm giá'"></span>
+                                </div>
+
+                                <div class="vw-ticket-divider"></div>
+
+                                <div class="vw-ticket-body">
+                                    <span class="vw-ticket-status">
                                         <span th:if="${v.status.name() == 'AVAILABLE'}" class="vc-dot green"></span>
                                         <span th:if="${v.status.name() == 'AVAILABLE'}">Đã lưu</span>
                                         <span th:if="${v.status.name() == 'USED'}" class="vc-dot gray"></span>
@@ -72,61 +92,47 @@
                                         <span th:if="${v.status.name() == 'EXPIRED'}" class="vc-dot gray"></span>
                                         <span th:if="${v.status.name() == 'EXPIRED'}">Hết hạn sử dụng</span>
                                         <span th:if="${v.status.name() == 'AVAILABLE' and v.remainingUses != null and v.remainingUses > 0}" class="ms-1">
-                                            <span class="vc-dot yellow"></span> <span th:text="'Còn ' + ${v.remainingUses} + ' lượt'"></span>
+                                            · <span th:text="'Còn ' + ${v.remainingUses} + ' lượt'"></span>
                                         </span>
                                     </span>
-                                </div>
 
-                                <!-- Discount -->
-                                <div class="vc-discount">
-                                    <span th:if="${'PHAN_TRAM'.equals(v.promotion.loaiGiam)}"
-                                          th:text="${'GIẢM ' + #numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}"></span>
-                                    <span th:if="${'SO_TIEN'.equals(v.promotion.loaiGiam)}"
-                                          th:text="${'GIẢM ' + #numbers.formatDecimal(v.promotion.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}"></span>
-                                </div>
+                                    <div class="vw-ticket-title" th:text="${v.promotion.tenChuongTrinh}">Tên chương trình</div>
+                                    <span class="vw-ticket-code" th:text="${v.promotion.maCode}">CODE</span>
 
-                                <!-- Description -->
-                                <div class="vc-desc" th:text="${v.promotion.tenChuongTrinh}">Tên chương trình</div>
-
-                                <!-- Code pill -->
-                                <span class="vc-code">Mã: <span th:text="${v.promotion.maCode}">CODE</span></span>
-
-                                <!-- Conditions grid -->
-                                <div class="vc-grid">
-                                    <div class="vc-grid-item" th:if="${v.promotion.donHangToiThieu != null and v.promotion.donHangToiThieu > 0}">
-                                        <span>&#x1F6D2;</span> Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(v.promotion.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
+                                    <div class="vw-ticket-meta">
+                                        <span th:if="${v.promotion.donHangToiThieu != null and v.promotion.donHangToiThieu > 0}">
+                                            Đơn tối thiểu <strong th:text="${#numbers.formatDecimal(v.promotion.donHangToiThieu, 0, 'POINT', 0, 'POINT')} + 'đ'"></strong>
+                                        </span>
+                                        <span th:if="${v.promotion.giamToiDa != null}">
+                                            Giảm tối đa <strong th:text="${#numbers.formatDecimal(v.promotion.giamToiDa, 0, 'POINT', 0, 'POINT')} + 'đ'"></strong>
+                                        </span>
+                                        <span>
+                                            HSD:
+                                            <th:block th:if="${v.expiredAt != null}">
+                                                <strong th:if="${v.status.name() == 'EXPIRED'}">Đã hết hạn</strong>
+                                                <strong th:if="${v.status.name() != 'EXPIRED'}" th:text="${#temporals.format(v.expiredAt, 'dd/MM/yyyy')}">01/01/2026</strong>
+                                            </th:block>
+                                            <strong th:if="${v.expiredAt == null}">Không giới hạn</strong>
+                                        </span>
+                                        <span th:if="${v.totalSaved != null and v.totalSaved.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                            Đã tiết kiệm <strong class="text-danger" th:text="${#numbers.formatDecimal(v.totalSaved, 0, 'POINT', 0, 'POINT')} + 'đ'"></strong>
+                                        </span>
                                     </div>
-                                    <div class="vc-grid-item" th:if="${v.promotion.giamToiDa != null}">
-                                        <span>&#x1F4B0;</span> Giảm tối đa: <strong th:text="${#numbers.formatDecimal(v.promotion.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
-                                    </div>
-                                    <div class="vc-grid-item">
-                                        <span>&#x1F4C5;</span> Hạn sử dụng:
-                                        <th:block th:if="${v.expiredAt != null}">
-                                            <span th:if="${v.status.name() == 'EXPIRED'}">Đã hết hạn</span>
-                                            <span th:if="${v.status.name() != 'EXPIRED'}">
-                                                <span th:text="${#temporals.format(v.expiredAt, 'dd/MM/yyyy')}">01/01/2026</span>
-                                            </span>
+
+                                    <div class="vw-ticket-actions">
+                                        <button class="vc-btn vc-btn-ghost btn-detail" type="button"
+                                                th:data-id="${v.promotion.id}">Chi tiết</button>
+                                        <th:block th:if="${v.status.name() == 'AVAILABLE'}">
+                                            <button class="vc-btn vc-btn-disabled btn-remove-voucher" type="button"
+                                                    th:data-id="${v.id}">Đã lưu</button>
+                                        </th:block>
+                                        <th:block th:if="${v.status.name() == 'USED'}">
+                                            <span class="vc-btn vc-btn-cta-used">Đã dùng hết</span>
+                                        </th:block>
+                                        <th:block th:if="${v.status.name() == 'EXPIRED'}">
+                                            <span class="vc-btn vc-btn-disabled">Hết hạn</span>
                                         </th:block>
                                     </div>
-                                    <div class="vc-grid-item" th:if="${v.totalSaved != null and v.totalSaved.compareTo(java.math.BigDecimal.ZERO) > 0}">
-                                        <span>&#x1F4B8;</span> Đã tiết kiệm: <strong class="text-danger" th:text="${#numbers.formatDecimal(v.totalSaved, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
-                                    </div>
-                                </div>
-
-                                <!-- Bottom row -->
-                                <div class="vc-bottom">
-                                    <button class="vc-btn vc-btn-ghost btn-detail" type="button"
-                                            th:data-id="${v.promotion.id}">Chi tiết</button>
-                                    <th:block th:if="${v.status.name() == 'AVAILABLE'}">
-                                        <button class="vc-btn vc-btn-disabled btn-remove-voucher" type="button"
-                                                th:data-id="${v.id}">Đã lưu</button>
-                                    </th:block>
-                                    <th:block th:if="${v.status.name() == 'USED'}">
-                                        <span class="vc-btn vc-btn-cta-used">Đã dùng hết</span>
-                                    </th:block>
-                                    <th:block th:if="${v.status.name() == 'EXPIRED'}">
-                                        <span class="vc-btn vc-btn-disabled">Hết hạn</span>
-                                    </th:block>
                                 </div>
                             </div>
                         </div>

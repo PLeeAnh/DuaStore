@@ -12,16 +12,42 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
         <link rel="stylesheet"
               href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&amp;family=DM+Sans:wght@400;500;600;700&amp;display=swap"/>
-        <link rel="stylesheet" th:href="@{/css/style.css}"/>
+        <link rel="stylesheet" th:href="@{/css/style.css(v=38)}"/>
         <script defer th:src="@{/js/toast.js(v=2)}"></script>
     </head>
-    <body class="ds-auth-page-body">
-        <div class="ds-auth-wrapper ds-auth-wrapper-wide">
-            <a th:href="@{/}" class="ds-auth-logo">DuaStore</a>
-            <div class="ds-card">
-                <div class="ds-card-body">
-                    <div class="ds-auth-title">Đăng ký tài khoản</div>
-                    <div class="ds-auth-sub">Tạo tài khoản để mua sắm tại DuaStore</div>
+    <body>
+        <div class="ds-auth2-page">
+            <aside class="ds-auth2-brand">
+                <div class="ds-auth2-brand-top">
+                    <a th:href="@{/}" class="ds-auth2-brand-logo">
+                        <img src="/images/logo.png" alt="DuaStore"/>
+                        <span>DuaStore</span>
+                    </a>
+                </div>
+                <div class="ds-auth2-brand-mid">
+                    <span class="ds-auth2-brand-eyebrow"><i class="bi bi-stars"></i> Đồ thủy tinh decor</span>
+                    <h1 class="ds-auth2-brand-title">Tham gia DuaStore, kiến tạo không gian sống tinh tế</h1>
+                    <p class="ds-auth2-brand-desc">Tạo tài khoản để khám phá bộ sưu tập chai, hũ, bình và ly thủy tinh cao cấp — cùng nhiều đặc quyền chỉ dành cho thành viên.</p>
+                    <ul class="ds-auth2-features">
+                        <li><span class="icon"><i class="bi bi-gift"></i></span> Giảm ngay 10% cho đơn hàng đầu tiên</li>
+                        <li><span class="icon"><i class="bi bi-truck"></i></span> Miễn phí vận chuyển cho đơn từ 500K</li>
+                        <li><span class="icon"><i class="bi bi-arrow-repeat"></i></span> Đổi trả dễ dàng trong 7 ngày</li>
+                    </ul>
+                </div>
+                <div class="ds-auth2-brand-bottom">
+                    <p class="ds-auth2-brand-quote">"Thủy tinh cao cấp — an toàn cho sức khỏe, trong suốt tinh tế."</p>
+                </div>
+            </aside>
+
+            <div class="ds-auth2-form-side">
+                <div class="ds-auth2-form-card ds-auth2-wide">
+                    <a th:href="@{/}" class="ds-auth2-mobile-logo">
+                        <img src="/images/logo.png" alt="DuaStore"/>
+                        <span>DuaStore</span>
+                    </a>
+
+                    <div class="ds-auth2-title">Đăng ký tài khoản</div>
+                    <div class="ds-auth2-sub">Tạo tài khoản để mua sắm tại DuaStore</div>
 
                     <form th:action="@{/dang-ky}" method="post" id="registerForm">
                         <div class="row g-3">
@@ -81,12 +107,12 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="ds-btn ds-btn-fill w-100 mt-4" style="justify-content:center;"
+                        <button type="submit" class="ds-btn ds-btn-fill ds-auth2-submit mt-4"
                                 id="registerBtn">Đăng ký
                         </button>
 
-                        <div class="text-center mt-3" style="font-size:0.85rem;color:var(--ds-gray-500);">
-                            Đã có tài khoản? <a th:href="@{/dang-nhap}" class="ds-auth-page-link">Đăng nhập</a>
+                        <div class="ds-auth2-footer-note">
+                            Đã có tài khoản? <a th:href="@{/dang-nhap}" class="ds-auth2-link">Đăng nhập</a>
                         </div>
                     </form>
                 </div>

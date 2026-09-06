@@ -171,6 +171,13 @@ public class ReviewService {
 
         try {
             review = reviewsRepository.save(review);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Rang buoc UNIQUE (userId, productId) o DB — lop bao ve cuoi cung chong gui
+            // trung khi khach double-click nut gui danh gia (check hasReviewed() o tren
+            // la doc-roi-ghi, khong nguyen tu, van co the bi 2 request vuot qua gan nhu
+            // cung luc truoc khi ben nao commit).
+            cleanupFiles(hinhAnhUrls);
+            throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");
         } catch (Exception e) {
             cleanupFiles(hinhAnhUrls);
             throw new RuntimeException("Lỗi khi lưu đánh giá", e);

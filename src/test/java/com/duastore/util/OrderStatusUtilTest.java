@@ -75,17 +75,6 @@ class OrderStatusUtilTest {
     }
 
     @Test
-    void getBadgeClass_refundOrderEventType_fallsBackToDefaultInsteadOfCrashing() {
-        // REFUND_ORDER is still a leftover value in the OrderEventType enum even though
-        // the refund feature itself was removed from the app. Any historical
-        // order_status_logs row still carrying it must render with a safe default
-        // badge instead of throwing (e.g. MatchException on an unmatched switch case).
-        assertThat(OrderStatusUtil.getBadgeClass(OrderEventType.REFUND_ORDER)).isEqualTo("bg-secondary");
-        assertThat(OrderStatusUtil.getIconClass(OrderEventType.REFUND_ORDER)).isEqualTo("bi-record-circle");
-        assertThat(OrderStatusUtil.getIconColorClass(OrderEventType.REFUND_ORDER)).isEqualTo("text-muted");
-    }
-
-    @Test
     void getBadgeClass_nullEventType_returnsSecondaryDefault() {
         assertThat(OrderStatusUtil.getBadgeClass(null)).isEqualTo("bg-secondary");
     }

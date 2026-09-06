@@ -102,7 +102,8 @@ public class AdminUserController {
                             + " tai khoan khach hang " + target.getHoTen(),
                     null, null,
                     "/admin/khach-hang/" + target.getId(),
-                    "Xem khach hang"
+                    "Xem khach hang",
+                    com.duastore.config.security.PermissionEnum.CUSTOMER_READ
             );
             adminLogService.ghiLog(admin, oldActive ? "KHOA_USER" : "KICH_HOAT_USER", "USER", id, String.valueOf(oldActive), String.valueOf(!oldActive), (oldActive ? "Khóa" : "Kích hoạt") + " tài khoản " + target.getHoTen());
             ra.addFlashAttribute("successMsg", "Cập nhật trạng thái thành công");

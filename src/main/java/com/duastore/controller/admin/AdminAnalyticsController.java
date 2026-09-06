@@ -3,16 +3,14 @@ package com.duastore.controller.admin;
 import com.duastore.service.admin.AdminAnalyticsService;
 import com.duastore.service.admin.AdminDashboardService;
 import com.duastore.service.admin.AdminVariantPredictionService;
+import com.duastore.util.PeriodRangeUtil;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
 
 @Controller
 @RequestMapping("/admin/phan-tich")
@@ -41,54 +39,9 @@ public class AdminAnalyticsController {
             @RequestParam(required = false) String period,
             Model model) {
 
-        LocalDate fromDate;
-        LocalDate toDate;
-
-        if (period != null && !period.isEmpty()) {
-            LocalDate today = LocalDate.now();
-            switch (period) {
-                case "today":
-                    fromDate = today;
-                    toDate = today;
-                    break;
-                case "yesterday":
-                    fromDate = today.minusDays(1);
-                    toDate = today.minusDays(1);
-                    break;
-                case "this-week":
-                    fromDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                    toDate = today;
-                    break;
-                case "last-7":
-                    fromDate = today.minusDays(6);
-                    toDate = today;
-                    break;
-                case "this-month":
-                    fromDate = today.withDayOfMonth(1);
-                    toDate = today;
-                    break;
-                case "last-month":
-                    fromDate = today.minusMonths(1).withDayOfMonth(1);
-                    toDate = today.minusMonths(1).withDayOfMonth(today.minusMonths(1).lengthOfMonth());
-                    break;
-                case "this-quarter":
-                    int quarter = (today.getMonthValue() - 1) / 3;
-                    fromDate = LocalDate.of(today.getYear(), quarter * 3 + 1, 1);
-                    toDate = today;
-                    break;
-                case "this-year":
-                    fromDate = LocalDate.of(today.getYear(), 1, 1);
-                    toDate = today;
-                    break;
-                default:
-                    fromDate = today.withDayOfMonth(1);
-                    toDate = today;
-                    break;
-            }
-        } else {
-            fromDate = (from != null && !from.isEmpty()) ? LocalDate.parse(from) : LocalDate.now().withDayOfMonth(1);
-            toDate = (to != null && !to.isEmpty()) ? LocalDate.parse(to) : LocalDate.now();
-        }
+        var range = PeriodRangeUtil.resolve(period, from, to);
+        LocalDate fromDate = range.from();
+        LocalDate toDate = range.to();
 
         model.addAttribute("title", "phan-tich");
         model.addAttribute("fromDate", fromDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
@@ -147,7 +100,7 @@ public class AdminAnalyticsController {
         // Enhanced analytics from DashboardService
         model.addAttribute("monthlyRevenue12", dashboardService.getMonthlyRevenueLast12Months());
         model.addAttribute("salesFunnel", dashboardService.getSalesFunnel());
-        model.addAttribute("cancelRefundRate", dashboardService.getCancelRate());
+        model.addAttribute("cancelRate", dashboardService.getCancelRate());
         model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
         model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
         model.addAttribute("topSelling7Days", dashboardService.getTopSellingProductsLast7Days(5));

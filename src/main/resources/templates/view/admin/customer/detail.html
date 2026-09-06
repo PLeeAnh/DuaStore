@@ -12,110 +12,129 @@
         <li class="breadcrumb-item active" aria-current="page" th:text="${customer.hoTen}"></li>
     </th:block>
     <div layout:fragment="content">
-        <div class="adm-page-header">
-            <div>
-                <h4><i class="bi bi-person-circle me-2"></i>Khách hàng</h4>
-            </div>
-            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i>Quay lại
-            </a>
-        </div>
 
-        <div class="mb-4">
-            <input type="text" class="form-control form-control-sm"
-                   style="max-width:400px"
-                   placeholder="Chuyển nhanh đến khách hàng khác…"
-                   data-ds-autocomplete="/admin/api/search?type=customer"
-                   data-ds-map="customer"
-                   data-ds-open-url="/admin/khach-hang/{id}"
-                   data-ds-no-recent />
-        </div>
-
-        <!-- Top Stats Row -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-2 col-6">
-                <div class="adm-card text-center">
-                    <div class="text-muted small mb-1">Đơn hàng</div>
-                    <div class="fw-bold fs-5" th:text="${totalOrders}">0</div>
+        <!-- ═════ HERO HEADER ═════ -->
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-person-circle"></i>
                 </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="adm-card text-center">
-                    <div class="text-muted small mb-1">Hoàn thành</div>
-                    <div class="fw-bold fs-5 text-success" th:text="${completedOrders}">0</div>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="adm-card text-center">
-                    <div class="text-muted small mb-1">Đã huỷ</div>
-                    <div class="fw-bold fs-5 text-danger" th:text="${cancelledOrders}">0</div>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="adm-card text-center">
-                    <div class="text-muted small mb-1">Tổng chi</div>
-                    <div class="fw-bold fs-5 text-primary" th:text="${#numbers.formatDecimal(totalSpent, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</div>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="adm-card text-center">
-                    <div class="text-muted small mb-1">TB/đơn</div>
-                    <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(avgOrderValue, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</div>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="adm-card text-center">
-                    <div class="text-muted small mb-1">Tỷ lệ huỷ</div>
-                    <div class="fw-bold fs-5"
-                         th:classappend="${cancelRate > 20} ? 'text-danger' : 'text-success'"
-                         th:text="${#numbers.formatDecimal(cancelRate, 1, 1) + '%'}">0%</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Profile + Order History Row -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-6">
-                <div class="adm-card h-100">
-                    <h6><i class="bi bi-person-badge me-2"></i>Hồ sơ khách hàng</h6>
-                    <div class="table-responsive">
-                    <table class="table table-sm table-borderless mb-0">
-                        <tr><td class="text-muted ps-0" style="width:100px">ID</td><td><span class="badge text-bg-light" th:text="${customer.id}"></span></td></tr>
-                        <tr><td class="text-muted ps-0">Họ tên</td><td class="fw-semibold" th:text="${customer.hoTen}"></td></tr>
-                        <tr><td class="text-muted ps-0">Email</td><td><a th:href="'mailto:' + ${customer.email}" th:text="${customer.email}"></a></td></tr>
-                        <tr><td class="text-muted ps-0">SĐT</td><td th:text="${customer.soDienThoai != null ? customer.soDienThoai : '—'}"></td></tr>
-                        <tr><td class="text-muted ps-0">Username</td><td th:text="${customer.username}"></td></tr>
-                        <tr><td class="text-muted ps-0">Trạng thái</td>
-                            <td>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <h4 th:text="${customer.hoTen}">Khách hàng</h4>
+                            <div class="adm-detail-meta">
+                                <span th:text="${customer.email}">email</span>
+                                <span class="mx-2">|</span>
                                 <span th:if="${customer.isActive}" class="status-pill status-ACTIVE">Hoạt động</span>
-                                <span th:if="${!customer.isActive}" class="status-pill status-LOCKED">Khóa</span>
-                            </td>
-                        </tr>
-                        <tr><td class="text-muted ps-0">Ngày tạo</td><td th:text="${#temporals.format(customer.ngayTao, 'HH:mm dd/MM/yyyy')}"></td></tr>
-                        <tr><td class="text-muted ps-0">Đơn cuối</td><td th:text="${lastOrderDate != null ? #temporals.format(lastOrderDate, 'HH:mm dd/MM/yyyy') : 'Chưa có'}"></td></tr>
-                        <tr><td class="text-muted ps-0">Sản phẩm YT</td><td th:text="${topProduct}"></td></tr>
-                    </table>
+                                <span th:unless="${customer.isActive}" class="status-pill status-LOCKED">Khóa</span>
+                            </div>
+                            <div th:if="${customer.isActive == false and customer.lockReason != null and !customer.lockReason.isEmpty()}" class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle"></i> Lý do khóa: <span th:text="${customer.lockReason}"></span>
+                            </div>
+                            <div th:if="${pendingLockRequest != null}" class="text-warning small mt-1">
+                                <i class="bi bi-hourglass-split"></i> Có yêu cầu khóa đang chờ Product Owner duyệt — lý do: <span th:text="${pendingLockRequest.reason}"></span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="text" class="form-control form-control-sm"
+                                   style="width:260px"
+                                   placeholder="Chuyển nhanh đến khách hàng khác…"
+                                   data-ds-autocomplete="/admin/api/search?type=customer"
+                                   data-ds-map="customer"
+                                   data-ds-open-url="/admin/khach-hang/{id}"
+                                   data-ds-no-recent />
+                            <form th:if="${pendingLockRequest == null}" th:action="@{/admin/khach-hang/toggle-status}" method="post" class="d-inline"
+                                  th:attr="onsubmit=${customer.isActive} ? 'return dsPromptLockReason(this)' : null">
+                                <input type="hidden" name="id" th:value="${customer.id}" />
+                                <input type="hidden" name="fromDetail" value="true" />
+                                <input type="hidden" name="reason" class="js-lock-reason" />
+                                <button type="submit" class="btn btn-sm" th:classappend="${customer.isActive} ? 'btn-outline-warning' : 'btn-outline-success'">
+                                    <i th:if="${customer.isActive}" class="bi bi-lock"></i>
+                                    <i th:if="${!customer.isActive}" class="bi bi-unlock"></i>
+                                    <span th:text="${customer.isActive} ? 'Khóa tài khoản' : 'Kích hoạt'"></span>
+                                </button>
+                            </form>
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left me-1"></i>Quay lại
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+        </div>
+
+        <!-- ═════ KPI CARDS ═════ -->
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Đơn hàng</div>
+                <div class="rv-stat-value" th:text="${totalOrders}">0</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Hoàn thành</div>
+                <div class="rv-stat-value" style="color:#059669" th:text="${completedOrders}">0</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Đã huỷ</div>
+                <div class="rv-stat-value rv-stat-danger" th:text="${cancelledOrders}">0</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng chi</div>
+                <div class="rv-stat-value" th:text="${#numbers.formatDecimal(totalSpent, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">TB/đơn</div>
+                <div class="rv-stat-value" th:text="${#numbers.formatDecimal(avgOrderValue, 0, 'POINT', 0, 'POINT')} + '₫'">0₫</div>
+            </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tỷ lệ huỷ</div>
+                <div class="rv-stat-value" th:classappend="${cancelRate > 20} ? 'rv-stat-danger' : ''"
+                     th:text="${#numbers.formatDecimal(cancelRate, 1, 1) + '%'}">0%</div>
+            </div>
+        </div>
+
+        <!-- ═════ PROFILE + ORDER HISTORY ═════ -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
                 <div class="adm-card h-100">
-                    <h6><i class="bi bi-clock-history me-2"></i>Đơn hàng gần đây</h6>
-                    <div th:if="${#lists.isEmpty(orders)}" class="text-muted small py-4 text-center">
-                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>Chưa có đơn hàng nào
+                    <div class="adm-card-header"><span><i class="bi bi-person-badge me-2"></i>Hồ sơ khách hàng</span></div>
+                    <div class="adm-card-body">
+                        <div class="adm-info-row"><span class="adm-info-label">ID</span><span class="adm-info-value">#<span th:text="${customer.id}">1</span></span></div>
+                        <div class="adm-info-row"><span class="adm-info-label">Họ tên</span><span class="adm-info-value" th:text="${customer.hoTen}">—</span></div>
+                        <div class="adm-info-row"><span class="adm-info-label">Email</span><span class="adm-info-value"><a th:href="'mailto:' + ${customer.email}" th:text="${customer.email}"></a></span></div>
+                        <div class="adm-info-row"><span class="adm-info-label">SĐT</span><span class="adm-info-value" th:text="${customer.soDienThoai != null ? customer.soDienThoai : '—'}">—</span></div>
+                        <div class="adm-info-row"><span class="adm-info-label">Username</span><span class="adm-info-value" th:text="${customer.username}">—</span></div>
+                        <div class="adm-info-row"><span class="adm-info-label">Ngày tạo</span><span class="adm-info-value" th:text="${#temporals.format(customer.ngayTao, 'HH:mm dd/MM/yyyy')}">—</span></div>
+                        <div class="adm-info-row"><span class="adm-info-label">Đơn cuối</span><span class="adm-info-value" th:text="${lastOrderDate != null ? #temporals.format(lastOrderDate, 'HH:mm dd/MM/yyyy') : 'Chưa có'}">—</span></div>
+                        <div class="adm-info-row"><span class="adm-info-label">Sản phẩm YT</span><span class="adm-info-value" th:text="${topProduct}">—</span></div>
+                        <div class="adm-info-row" th:if="${loyaltyBalance != null}">
+                            <span class="adm-info-label"><i class="bi bi-star-fill me-1" style="color:#E65100"></i>Điểm tích lũy</span>
+                            <span class="adm-info-value fw-bold" th:text="${loyaltyBalance} + ' điểm'">0</span>
+                        </div>
                     </div>
-                    <div th:if="${not #lists.isEmpty(orders)}" style="max-height:350px; overflow-y:auto">
-                        <div th:each="o : ${orders}" class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <div>
-                                <a th:href="@{/admin/don-hang/{id}(id=${o.id})}" class="fw-semibold text-decoration-none" th:text="'#' + ${o.maDon}"></a>
-                                <div class="text-muted small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></div>
-                            </div>
-                            <div class="text-end">
-                                <div class="fw-semibold small" th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></div>
-                                <span class="badge"
-                                      th:classappend="${o.trangThaiDon == 'DA_HOAN_THANH' || o.trangThaiDon == 'DA_GIAO'} ? 'bg-success' : (${o.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-warning text-dark')"
-                                      th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(o.trangThaiDon)}">
-                                </span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="adm-card h-100">
+                    <div class="adm-card-header"><span><i class="bi bi-clock-history me-2"></i>Đơn hàng gần đây</span></div>
+                    <div class="adm-card-body">
+                        <div th:if="${#lists.isEmpty(orders)}" class="adm-empty py-4">
+                            <i class="bi bi-inbox adm-empty-icon"></i>
+                            <div class="adm-empty-title">Chưa có đơn hàng nào</div>
+                        </div>
+                        <div th:if="${not #lists.isEmpty(orders)}" style="max-height:350px; overflow-y:auto">
+                            <div th:each="o : ${orders}" class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div>
+                                    <a th:href="@{/admin/don-hang/{id}(id=${o.id})}" class="fw-semibold text-decoration-none" th:text="'#' + ${o.maDon}"></a>
+                                    <div class="text-muted small" th:text="${#temporals.format(o.ngayDat, 'dd/MM/yyyy HH:mm')}"></div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-semibold small" th:text="${#numbers.formatDecimal(o.tongThanhToan, 0, 'POINT', 0, 'POINT')} + '₫'"></div>
+                                    <span class="badge"
+                                          th:classappend="${o.trangThaiDon == 'DA_HOAN_THANH' || o.trangThaiDon == 'DA_GIAO'} ? 'bg-success' : (${o.trangThaiDon == 'DA_HUY'} ? 'bg-danger' : 'bg-warning text-dark')"
+                                          th:text="${T(com.duastore.util.OrderStatusUtil).getDisplayName(o.trangThaiDon)}">
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -123,57 +142,36 @@
             </div>
         </div>
 
-        <div th:if="${loyaltyBalance != null}" class="mb-3">
-            <div class="adm-card d-flex align-items-center gap-3 py-2 px-3">
-                <div style="width:40px;height:40px;border-radius:10px;background:#FFF3E0;color:#E65100;display:flex;align-items:center;justify-content:center;font-size:1.3rem">
-                    <i class="bi bi-star-fill"></i>
-                </div>
-                <div>
-                    <div class="small text-muted">Điểm tích lũy</div>
-                    <div class="fw-bold fs-5" th:text="${loyaltyBalance} + ' điểm'">0</div>
-                </div>
-            </div>
+        <!-- ═════ TABS ═════ -->
+        <div class="adm-tab-nav" id="customerTabs" role="tablist">
+            <button class="adm-tab active" data-bs-toggle="tab" data-bs-target="#tab-addresses" type="button" role="tab">
+                <i class="bi bi-geo-alt"></i>Địa chỉ <span class="rv-tab-count" th:text="${#lists.size(addresses)}">0</span>
+            </button>
+            <button class="adm-tab" data-bs-toggle="tab" data-bs-target="#tab-vouchers" type="button" role="tab">
+                <i class="bi bi-ticket-perforated"></i>Ví voucher <span class="rv-tab-count" th:text="${#lists.size(vouchers)}">0</span>
+            </button>
+            <button class="adm-tab" data-bs-toggle="tab" data-bs-target="#tab-wishlist" type="button" role="tab">
+                <i class="bi bi-heart"></i>Wishlist <span class="rv-tab-count" th:text="${#lists.size(wishlistItems)}">0</span>
+            </button>
+            <button class="adm-tab" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button" role="tab">
+                <i class="bi bi-star"></i>Đánh giá <span class="rv-tab-count" th:text="${#lists.size(reviews)}">0</span>
+            </button>
+            <button class="adm-tab" data-bs-toggle="tab" data-bs-target="#tab-notes" type="button" role="tab">
+                <i class="bi bi-sticky"></i>Ghi chú &amp; Tags <span class="rv-tab-count" th:text="${#lists.size(notes)} + ${#lists.size(tags)}">0</span>
+            </button>
+            <button class="adm-tab" data-bs-toggle="tab" data-bs-target="#tab-loyalty" type="button" role="tab">
+                <i class="bi bi-star"></i>Lịch sử điểm
+            </button>
         </div>
 
-        <!-- Tabs -->
-        <ul class="nav nav-tabs" id="customerTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-addresses" type="button" role="tab">
-                    <i class="bi bi-geo-alt me-1"></i>Địa chỉ <span class="badge bg-secondary ms-1" th:text="${#lists.size(addresses)}">0</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-vouchers" type="button" role="tab">
-                    <i class="bi bi-ticket-perforated me-1"></i>Ví voucher <span class="badge bg-secondary ms-1" th:text="${#lists.size(vouchers)}">0</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-wishlist" type="button" role="tab">
-                    <i class="bi bi-heart me-1"></i>Wishlist <span class="badge bg-secondary ms-1" th:text="${#lists.size(wishlistItems)}">0</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button" role="tab">
-                    <i class="bi bi-star me-1"></i>Đánh giá <span class="badge bg-secondary ms-1" th:text="${#lists.size(reviews)}">0</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-notes" type="button" role="tab">
-                    <i class="bi bi-sticky me-1"></i>Ghi chú & Tags <span class="badge bg-secondary ms-1" th:text="${#lists.size(notes)} + ${#lists.size(tags)}">0</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-loyalty" type="button" role="tab">
-                    <i class="bi bi-star me-1"></i>Lịch sử điểm
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content border border-top-0 rounded-bottom p-4 bg-white">
+        <div class="adm-card">
+        <div class="adm-card-body">
+        <div class="tab-content">
             <!-- Tab: Addresses -->
             <div class="tab-pane fade show active" id="tab-addresses" role="tabpanel">
-                <div th:if="${#lists.isEmpty(addresses)}" class="text-muted small py-4 text-center">
-                    <i class="bi bi-geo-alt fs-3 d-block mb-2"></i>Chưa có địa chỉ nào
+                <div th:if="${#lists.isEmpty(addresses)}" class="adm-empty py-4">
+                    <i class="bi bi-geo-alt adm-empty-icon"></i>
+                    <div class="adm-empty-title">Chưa có địa chỉ nào</div>
                 </div>
                 <div th:if="${not #lists.isEmpty(addresses)}" class="row g-3">
                     <div th:each="addr : ${addresses}" class="col-md-6">
@@ -194,8 +192,9 @@
 
             <!-- Tab: Vouchers -->
             <div class="tab-pane fade" id="tab-vouchers" role="tabpanel">
-                <div th:if="${#lists.isEmpty(vouchers)}" class="text-muted small py-4 text-center">
-                    <i class="bi bi-ticket-perforated fs-3 d-block mb-2"></i>Chưa lưu voucher nào
+                <div th:if="${#lists.isEmpty(vouchers)}" class="adm-empty py-4">
+                    <i class="bi bi-ticket-perforated adm-empty-icon"></i>
+                    <div class="adm-empty-title">Chưa lưu voucher nào</div>
                 </div>
                 <div th:if="${not #lists.isEmpty(vouchers)}" class="row g-3">
                     <div th:each="uv : ${vouchers}" class="col-md-6">
@@ -233,8 +232,9 @@
 
             <!-- Tab: Wishlist -->
             <div class="tab-pane fade" id="tab-wishlist" role="tabpanel">
-                <div th:if="${#lists.isEmpty(wishlistItems)}" class="text-muted small py-4 text-center">
-                    <i class="bi bi-heart fs-3 d-block mb-2"></i>Chưa có sản phẩm yêu thích
+                <div th:if="${#lists.isEmpty(wishlistItems)}" class="adm-empty py-4">
+                    <i class="bi bi-heart adm-empty-icon"></i>
+                    <div class="adm-empty-title">Chưa có sản phẩm yêu thích</div>
                 </div>
                 <div th:if="${not #lists.isEmpty(wishlistItems)}" class="row g-3">
                     <div th:each="w : ${wishlistItems}" class="col-md-6">
@@ -251,30 +251,67 @@
                 </div>
             </div>
 
-            <!-- Tab: Notes & Tags -->
-            <div class="tab-pane fade" id="tab-notes" role="tabpanel">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <h6 class="mb-3"><i class="bi bi-tags me-1"></i>Thẻ gắn</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-3" id="tagList">
-                            <span th:each="t : ${tags}"
-                                  class="badge rounded-pill text-bg-primary d-inline-flex align-items-center gap-1"
-                                  style="font-size:0.85rem;padding:6px 12px;">
-                                <span th:text="${t.tag}">tag</span>
-                                <a href="javascript:void(0)" class="text-white text-decoration-none ms-1"
-                                   onclick="removeTag(${t.id})" style="opacity:.7">&times;</a>
-                            </span>
-                            <span th:if="${#lists.isEmpty(tags)}" class="text-muted small">Chưa có thẻ nào</span>
+            <!-- Tab: Reviews -->
+            <div class="tab-pane fade" id="tab-reviews" role="tabpanel">
+                <div th:if="${#lists.isEmpty(reviews)}" class="adm-empty py-4">
+                    <i class="bi bi-star adm-empty-icon"></i>
+                    <div class="adm-empty-title">Chưa có đánh giá nào</div>
+                </div>
+                <div th:if="${not #lists.isEmpty(reviews)}" style="max-height:500px; overflow-y:auto">
+                    <div th:each="r : ${reviews}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                        <div class="flex-shrink-0">
+                            <div class="rounded bg-warning text-dark d-flex align-items-center justify-content-center fw-bold"
+                                 style="width:40px;height:40px;font-size:16px"
+                                 th:text="${r.danhGia}"></div>
                         </div>
-                        <div class="input-group input-group-sm" style="max-width:280px">
-                            <input type="text" id="newTagInput" class="form-control" placeholder="Thêm thẻ..." maxlength="50"
-                                   onkeypress="if(event.key==='Enter')addTag()" />
-                            <button class="btn btn-outline-primary" onclick="addTag()"><i class="bi bi-plus"></i></button>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge" th:classappend="${r.isApproved} ? 'bg-success' : 'bg-warning text-dark'"
+                                          th:text="${r.isApproved ? 'Đã duyệt' : 'Chờ duyệt'}"></span>
+                                    <small class="text-muted ms-2" th:text="'Sản phẩm #' + ${r.productId}"></small>
+                                </div>
+                                <small class="text-muted" th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy HH:mm')}"></small>
+                            </div>
+                            <div class="mt-1 small" th:if="${r.binhLuan != null}" th:text="${r.binhLuan}"></div>
+                            <div class="mt-1" th:if="${r.hinhAnh != null}">
+                                <img th:src="@{${r.hinhAnh}}" alt="" class="rounded" style="width:100px;height:100px;object-fit:cover" />
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="mb-3"><i class="bi bi-journal-text me-1"></i>Ghi chú nội bộ</h6>
-                        <div id="noteList" style="max-height:400px;overflow-y:auto">
+                </div>
+            </div>
+
+            <!-- Tab: Notes & Tags -->
+            <div class="tab-pane fade" id="tab-notes" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-md-5">
+                        <div class="adm-card h-100">
+                            <div class="adm-card-header"><span><i class="bi bi-tags me-2"></i>Thẻ gắn</span></div>
+                            <div class="adm-card-body">
+                                <div class="d-flex flex-wrap gap-2 mb-3" id="tagList">
+                                    <span th:each="t : ${tags}"
+                                          class="badge rounded-pill text-bg-primary d-inline-flex align-items-center gap-1"
+                                          style="font-size:0.85rem;padding:6px 12px;">
+                                        <span th:text="${t.tag}">tag</span>
+                                        <a href="javascript:void(0)" class="text-white text-decoration-none ms-1"
+                                           onclick="removeTag(${t.id})" style="opacity:.7">&times;</a>
+                                    </span>
+                                    <span th:if="${#lists.isEmpty(tags)}" class="text-muted small">Chưa có thẻ nào</span>
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="newTagInput" class="form-control" placeholder="Thêm thẻ..." maxlength="50"
+                                           onkeypress="if(event.key==='Enter')addTag()" />
+                                    <button class="btn btn-outline-primary" onclick="addTag()"><i class="bi bi-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="adm-card h-100">
+                            <div class="adm-card-header"><span><i class="bi bi-journal-text me-2"></i>Ghi chú nội bộ</span></div>
+                            <div class="adm-card-body">
+                        <div id="noteList" style="max-height:340px;overflow-y:auto">
                             <div th:each="n : ${notes}" class="border-start border-3 ps-3 mb-3"
                                  th:classappend="${n.severity == 'DANGER'} ? 'border-danger' : (${n.severity == 'WARN'} ? 'border-warning' : 'border-primary')">
                                 <div class="text-muted small d-flex align-items-center gap-2">
@@ -288,11 +325,12 @@
                                 <div class="mt-1" th:text="${n.content}"></div>
                                 <a href="javascript:void(0)" class="small text-danger" th:onclick="'deleteNote(' + ${n.id} + ')'">Xóa</a>
                             </div>
-                            <div th:if="${#lists.isEmpty(notes)}" class="text-muted small py-3 text-center">
-                                <i class="bi bi-journal-text fs-3 d-block mb-2"></i>Chưa có ghi chú nào
+                            <div th:if="${#lists.isEmpty(notes)}" class="adm-empty py-3">
+                                <i class="bi bi-journal-text adm-empty-icon"></i>
+                                <div class="adm-empty-title">Chưa có ghi chú nào</div>
                             </div>
                         </div>
-                        <div class="mt-3">
+                        <div class="mt-3 pt-3 border-top">
                             <textarea id="newNoteInput" class="form-control form-control-sm" rows="2" placeholder="Nhập ghi chú..."></textarea>
                             <div class="d-flex align-items-center gap-2 mt-2">
                                 <select id="newNoteSeverity" class="form-select form-select-sm" style="width:120px">
@@ -303,19 +341,22 @@
                                 <button class="btn btn-sm btn-primary" onclick="addNote()"><i class="bi bi-save me-1"></i>Lưu ghi chú</button>
                             </div>
                         </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Tab: Loyalty History -->
             <div class="tab-pane fade" id="tab-loyalty" role="tabpanel">
-                <div th:if="${#lists.isEmpty(loyaltyHistory)}" class="text-muted small py-4 text-center">
-                    <i class="bi bi-star fs-3 d-block mb-2"></i>Chưa có giao dịch điểm tích lũy
+                <div th:if="${#lists.isEmpty(loyaltyHistory)}" class="adm-empty py-4">
+                    <i class="bi bi-star adm-empty-icon"></i>
+                    <div class="adm-empty-title">Chưa có giao dịch điểm tích lũy</div>
                 </div>
                 <div th:if="${not #lists.isEmpty(loyaltyHistory)}" style="max-height:500px;overflow-y:auto">
                     <div class="table-responsive">
-                    <table class="table table-sm table-borderless mb-0">
-                        <thead>
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
                             <tr class="small text-muted">
                                 <th>Thời gian</th>
                                 <th>Loại</th>
@@ -343,41 +384,21 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Tab: Reviews -->
-            <div class="tab-pane fade" id="tab-reviews" role="tabpanel">
-                <div th:if="${#lists.isEmpty(reviews)}" class="text-muted small py-4 text-center">
-                    <i class="bi bi-star fs-3 d-block mb-2"></i>Chưa có đánh giá nào
-                </div>
-                <div th:if="${not #lists.isEmpty(reviews)}" style="max-height:500px; overflow-y:auto">
-                    <div th:each="r : ${reviews}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
-                        <div class="flex-shrink-0">
-                            <div class="rounded bg-warning text-dark d-flex align-items-center justify-content-center fw-bold"
-                                 style="width:40px;height:40px;font-size:16px"
-                                 th:text="${r.danhGia}"></div>
-                        </div>
-                        <div class="flex-grow-1 min-w-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="badge" th:classappend="${r.isApproved} ? 'bg-success' : 'bg-warning text-dark'"
-                                          th:text="${r.isApproved ? 'Đã duyệt' : 'Chờ duyệt'}"></span>
-                                    <small class="text-muted ms-2" th:text="'Sản phẩm #' + ${r.productId}"></small>
-                                </div>
-                                <small class="text-muted" th:text="${#temporals.format(r.ngayTao, 'dd/MM/yyyy HH:mm')}"></small>
-                            </div>
-                            <div class="mt-1 small" th:if="${r.binhLuan != null}" th:text="${r.binhLuan}"></div>
-                            <div class="mt-1" th:if="${r.hinhAnh != null}">
-                                <img th:src="@{${r.hinhAnh}}" alt="" class="rounded" style="width:100px;height:100px;object-fit:cover" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        </div>
+        </div>
         </div>
     </div>
     <th:block layout:fragment="extra-script">
         <script th:inline="javascript">
             window.__customerId = [[${customer.id}]];
+        </script>
+        <script>
+            function dsPromptLockReason(form) {
+                var reason = prompt('Nhập lý do khóa tài khoản này (khách hàng sẽ nhìn thấy lý do này):');
+                if (!reason || !reason.trim()) return false;
+                form.querySelector('.js-lock-reason').value = reason.trim();
+                return true;
+            }
         </script>
         <script th:src="@{/js/admin-customer.js(v=1)}"></script>
     </th:block>

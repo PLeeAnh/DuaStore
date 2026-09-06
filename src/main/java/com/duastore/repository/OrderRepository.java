@@ -1,11 +1,9 @@
 package com.duastore.repository;
 
 import com.duastore.model.Order;
-import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,14 +24,50 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("UPDATE Order o SET o.fraudWarning = :warning WHERE o.id = :id")
     void setFraudWarning(@Param("id") Integer id, @Param("warning") String warning);
 
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.user.id = :userId AND o.fraudWarning IS NOT NULL AND o.fraudWarning <> ''")
+    long countByUserIdAndFraudWarningPresent(@Param("userId") Integer userId);
+
     Optional<Order> findByMaVanDon(String maVanDon);
 
     Optional<Order> findByMaDon(String maDon);
 
-    /** Khoa bang PESSIMISTIC_WRITE de cap nhat thanh toan / trang thai an toan duoi concurrency. */
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT o FROM Order o WHERE o.id = :id")
-    Optional<Order> findByIdForUpdate(@Param("id") Integer id);
+    /**
+     * Nap san User + OrderItems trong 1 query — dung cho cac cho can dua Order sang
+     * AsyncEmailService (chay o thread khac, khong con Hibernate session): neu de
+     * lazy-load tu nhien, truy cap order.getUser()/getOrderItems() tren thread async
+     * se nem loi "session is null" vi session request-scope da dong truoc do.
+     */
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.user LEFT JOIN FETCH o.orderItems WHERE o.id = :id")
+    Optional<Order> findByIdWithUserAndItems(@Param("id") Integer id);
+
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.user LEFT JOIN FETCH o.orderItems WHERE o.maDon = :maDon")
+    Optional<Order> findByMaDonWithUserAndItems(@Param("maDon") String maDon);
+
+    /**
+     * Chuyen sang DA_THANH_TOAN mot cach ATOMIC — tra ve so dong bi anh huong (0 hoac 1).
+     * Dung thay cho "SELECT...FOR UPDATE" (@Lock PESSIMISTIC_WRITE): da xac nhan bang test
+     * thuc te (2 request webhook gui dong thoi) rang pessimistic lock qua Hibernate + SQL
+     * Server o moi truong nay KHONG chan duoc race — ca hai request van doc thay CHUA_THANH_TOAN
+     * va cung "thanh cong". UPDATE ... WHERE dieu kien la thao tac nguyen tu that su o muc DB
+     * engine (giong cach decrementStock tru ton kho an toan duoi concurrency), khong phu thuoc
+     * vao viec ORM dich dung lock hint hay khong. Goi tra ve 1 -> chinh request nay la request
+     * THAT SU chuyen trang thai (chi request do moi duoc log/gui email/phan cong); tra ve 0 ->
+     * don da duoc request khac xu ly roi, bo qua.
+     */
+    @Modifying
+    @Query("UPDATE Order o SET o.trangThaiTT = 'DA_THANH_TOAN' WHERE o.id = :id AND o.trangThaiTT <> 'DA_THANH_TOAN'")
+    int markPaidIfUnpaid(@Param("id") Integer id);
+
+    /**
+     * Chuyen DA_GIAO -> DA_HOAN_THANH mot cach ATOMIC — cung ly do voi markPaidIfUnpaid:
+     * khach co the double-click "Da nhan duoc hang", hoac khach tu xac nhan ngay luc admin
+     * cung dang doi trang thai don sang Hoan thanh — ca hai deu co the doc thay DA_GIAO va
+     * cung tinh la "lan dau" neu khong co UPDATE dieu kien nay, dan toi cong diem tich luy
+     * va gui email cam on 2 lan. Tra ve so dong bi anh huong (0 hoac 1).
+     */
+    @Modifying
+    @Query("UPDATE Order o SET o.trangThaiDon = 'DA_HOAN_THANH', o.trangThaiTT = 'DA_THANH_TOAN' WHERE o.id = :id AND o.trangThaiDon = 'DA_GIAO'")
+    int markCompletedIfDelivered(@Param("id") Integer id);
 
     Page<Order> findByUserId(Integer userId, Pageable pageable);
 
@@ -48,7 +82,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @Query("SELECT COUNT(o) FROM Order o WHERE o.ngayDat BETWEEN :start AND :end")
     long countByNgayDatBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    @Query("SELECT COALESCE(SUM(o.tongThanhToan), 0) FROM Order o WHERE (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') AND o.ngayDat BETWEEN :start AND :end")
+    @Query("SELECT COALESCE(SUM(o.tongThanhToan), 0) FROM Order o WHERE (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') AND o.trangThaiTT = 'DA_THANH_TOAN' AND o.ngayDat BETWEEN :start AND :end")
     BigDecimal sumTongThanhToanByTrangThaiDonAndNgayDatBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query("SELECT o FROM Order o ORDER BY o.ngayDat DESC")
@@ -176,10 +210,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> searchOrdersAutocomplete(@Param("q") String q, Pageable pageable);
 
     @Query("SELECT o.user.id, SUM(o.tongThanhToan) FROM Order o "
-            + "WHERE o.user.id IN :ids AND (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') "
+            + "WHERE o.user.id IN :ids AND (o.trangThaiDon = 'DA_GIAO' OR o.trangThaiDon = 'DA_HOAN_THANH') AND o.trangThaiTT = 'DA_THANH_TOAN' "
             + "GROUP BY o.user.id")
     List<Object[]> sumTotalSpentByUserIds(@Param("ids") List<Integer> ids);
 
-    @Query("SELECT o.phuongThucTT, SUM(o.tongThanhToan), COUNT(o) FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') AND o.ngayDat BETWEEN :start AND :end GROUP BY o.phuongThucTT")
+    @Query("SELECT o.phuongThucTT, SUM(o.tongThanhToan), COUNT(o) FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO', 'DA_HOAN_THANH') AND o.trangThaiTT = 'DA_THANH_TOAN' AND o.ngayDat BETWEEN :start AND :end GROUP BY o.phuongThucTT")
     List<Object[]> sumRevenueGroupByPhuongThucTT(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

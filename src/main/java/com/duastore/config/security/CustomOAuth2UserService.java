@@ -112,9 +112,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
 
         } else if (!user.getIsActive()) {
-            throw new OAuth2AuthenticationException(
-                    new OAuth2Error("account_locked",
-                            "Tai khoan cua ban da bi khoa. Vui long lien he quan tri vien.", null));
+            String reason = user.getLockReason();
+            String msg = (reason != null && !reason.isBlank())
+                    ? "Tài khoản của bạn đã bị khóa. Lý do: " + reason
+                    : "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.";
+            throw new OAuth2AuthenticationException(new OAuth2Error("account_locked", msg, null));
         }
 
         if (googleSub != null) {

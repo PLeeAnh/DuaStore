@@ -219,6 +219,7 @@ GO
         linkUrl nvarchar(500),
         content NVARCHAR(MAX) not null,
         linkLabel nvarchar(255),
+        requiredPermission nvarchar(40),
         primary key (id)
     );
 
@@ -262,7 +263,7 @@ GO
         nguoi_thuc_hien_id int,
         order_id int not null,
         thoi_gian datetime2(7) not null,
-        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED','REFUND_ORDER'))),
+        loai_su_kien nvarchar(50) not null check ((loai_su_kien in ('CREATE_ORDER','ASSIGN_ADMIN','STATUS_CHANGE','CANCEL_ORDER','PAYMENT_CONFIRMED'))),
         trang_thai_cu nvarchar(50),
         trang_thai_moi nvarchar(50),
         ghiChu nvarchar(500),
@@ -382,6 +383,7 @@ GO
         lowStockThreshold int default 20 not null,
         productId int not null,
         soLuongTon int default 0 not null,
+        version int default 0 not null,
         hinhAnh nvarchar(255),
         tenBienThe nvarchar(255) not null,
         primary key (id)
@@ -421,7 +423,8 @@ GO
         userId int not null,
         ngayTao datetime2(7) not null,
         binhLuan nvarchar(1000),
-        primary key (id)
+        primary key (id),
+        constraint UK_reviews_user_product unique (userId, productId)
     );
 
     create table role_permissions (
@@ -510,6 +513,7 @@ GO
         id int identity not null,
         is_read bit not null,
         is_spam bit not null,
+        is_resolved bit not null default 0,
         created_at datetime2(7) not null,
         phan_loai nvarchar(30) not null,
         hoTen nvarchar(150) not null,
@@ -567,7 +571,26 @@ GO
         avatar nvarchar(255),
         password nvarchar(255) not null,
         resetToken nvarchar(255),
+        lockReason nvarchar(500),
         primary key (id)
+    );
+
+    -- Yeu cau khoa tai khoan khach hang: ADMIN/STAFF khoa tai khoan that (khong phai
+    -- bot nghi van gian lan) phai cho PRODUCT_OWNER duyet moi thuc su co hieu luc.
+    create table account_lock_requests (
+        id int identity not null,
+        userId int not null,
+        requestedBy int not null,
+        decidedBy int,
+        reason nvarchar(500) not null,
+        decisionNote nvarchar(500),
+        status nvarchar(20) not null default 'PENDING' check ((status in ('PENDING','APPROVED','REJECTED'))),
+        requestedAt datetime2(7) not null,
+        decidedAt datetime2(7),
+        primary key (id),
+        constraint FK_alr_user foreign key (userId) references users(id),
+        constraint FK_alr_requestedBy foreign key (requestedBy) references users(id),
+        constraint FK_alr_decidedBy foreign key (decidedBy) references users(id)
     );
 
     create table UserVouchers (
@@ -645,6 +668,14 @@ GO
         note nvarchar(500),
         createdAt datetime2(7) not null,
         primary key (id)
+    );
+
+    -- So du diem tich luy HIEN TAI, 1 dong/user — cot dem cap nhat NGUYEN TU (UPDATE...WHERE),
+    -- tach rieng khoi LoyaltyTransactions (lich su append-only). Xem LoyaltyBalance.java.
+    create table LoyaltyBalances (
+        userId int not null,
+        balance int not null default 0,
+        primary key (userId)
     );
 
     create table ReviewImages (
@@ -838,6 +869,11 @@ GO
 
     alter table LoyaltyTransactions
        add constraint FK_LoyaltyTransactions_userId
+       foreign key (userId)
+       references users;
+
+    alter table LoyaltyBalances
+       add constraint FK_LoyaltyBalances_userId
        foreign key (userId)
        references users;
 
@@ -1089,6 +1125,19 @@ INSERT INTO Categories (tenDanhMuc, parentId, thuTuHienThi) VALUES
     (N'Ly Champagne', 4, 4), (N'Ly Highball',   4, 5);
 GO
 
+-- Danh muc con bo sung (danh muc goc con it, tach nho de de duyet hon)
+INSERT INTO Categories (tenDanhMuc, parentId, thuTuHienThi)
+SELECT N'Bình Hoa Pha Lê', id, 3 FROM Categories WHERE tenDanhMuc = N'Bình Trang Trí'
+UNION ALL
+SELECT N'Bình Decanter Rượu', id, 4 FROM Categories WHERE tenDanhMuc = N'Bình Trang Trí'
+UNION ALL
+SELECT N'Hũ Đựng Thực Phẩm', id, 1 FROM Categories WHERE tenDanhMuc = N'Hũ Thủy Tinh'
+UNION ALL
+SELECT N'Hũ Ngâm Rượu', id, 2 FROM Categories WHERE tenDanhMuc = N'Hũ Thủy Tinh'
+UNION ALL
+SELECT N'Ly Màu Nghệ Thuật', id, 6 FROM Categories WHERE tenDanhMuc = N'Ly & Cốc';
+GO
+
 -- Anh dai dien danh muc (hien tren trang chu / mega-menu)
 UPDATE Categories SET imageUrl = '/images/products/chai-tron-250ml-nap-go.jpg' WHERE tenDanhMuc = N'Chai Thủy Tinh';
 UPDATE Categories SET imageUrl = '/images/products/hu-hinh-trai-bi-500ml.jpg' WHERE tenDanhMuc = N'Hũ Thủy Tinh';
@@ -1105,6 +1154,11 @@ UPDATE Categories SET imageUrl = '/images/products/ly-highball-450ml.jpg' WHERE 
 UPDATE Categories SET imageUrl = '/images/products/coc-co-quai-250ml.jpg' WHERE tenDanhMuc = N'Ly Nước';
 UPDATE Categories SET imageUrl = '/images/products/ly-vang-200ml-don.jpg' WHERE tenDanhMuc = N'Ly Champagne';
 UPDATE Categories SET imageUrl = '/images/products/ly-highball-bo6.jpg' WHERE tenDanhMuc = N'Ly Highball';
+UPDATE Categories SET imageUrl = '/images/products/binh-hoa-pha-le-1000ml.jpg' WHERE tenDanhMuc = N'Bình Hoa Pha Lê';
+UPDATE Categories SET imageUrl = '/images/products/binh-decanter-hario-400ml.jpg' WHERE tenDanhMuc = N'Bình Decanter Rượu';
+UPDATE Categories SET imageUrl = '/images/products/hu-hinh-trai-bi-500ml.jpg' WHERE tenDanhMuc = N'Hũ Đựng Thực Phẩm';
+UPDATE Categories SET imageUrl = '/images/products/binh-ngam-ruou-5000ml.jpg' WHERE tenDanhMuc = N'Hũ Ngâm Rượu';
+UPDATE Categories SET imageUrl = '/images/products/bo-ly-mau-1-350ml.jpg' WHERE tenDanhMuc = N'Ly Màu Nghệ Thuật';
 GO
 
 INSERT INTO Products (tenSanPham, moTa, chatLieu, xuatXu, mucDichSuDung, danhMucId, trangThaiSanPham, isFeatured) VALUES
@@ -1259,17 +1313,29 @@ GO
 INSERT INTO Addresses (userId, tenNguoiNhan, soDienThoai, tinhThanh, quanHuyen, phuongXa, diaChiCuThe, isDefault) VALUES
     (2, N'Nguyễn Văn An', '0912345678', N'Hải Phòng', N'Ngô Quyền', N'Máy Tơ', N'123 Trần Hưng Đạo', 1);
 
-INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToiThieu, giamToiDa, soLanDung, tuNgay, denNgay, targetType, targetIds) VALUES
-    ('KHAIHANG', N'Khai trương DuaStore Hải Phòng', 'PHAN_TRAM', 15, 200000, 100000, 200, '2026-01-01', '2026-12-31', NULL, NULL),
-    ('FREESHIP',  N'Miễn phí vận chuyển đơn từ 500k', 'SO_TIEN',  30000, 500000, NULL, NULL, '2026-01-01', '2026-12-31', NULL, NULL),
-    ('DECO50K',   N'Giảm 50k đơn từ 300k',           'SO_TIEN',  50000, 300000, NULL,  100, '2026-01-01', '2026-12-31', NULL, NULL),
-    ('SUMMER50',  N'Summer Sale - Giảm 50%',           'PHAN_TRAM', 50, 500000, 200000, 500, '2026-06-01', '2026-08-31', 'PRODUCT', '1,2,3,4,5'),
-    ('NEWUSER',   N'Ưu đãi người mới - Giảm 20%',      'PHAN_TRAM', 20, 100000, 50000,  1000, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('THANG9',    N'Ưu đãi tháng 9 - Giảm 10%',         'PHAN_TRAM', 10, 150000, 80000,  300, '2026-09-01', '2026-09-30', 'ALL', NULL),
-    ('SINHNHAT',  N'Quà sinh nhật thành viên',          'PHAN_TRAM', 15, 0,      100000, 500, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('VIP100K',   N'Giảm 100k cho đơn VIP từ 1 triệu',  'SO_TIEN',   100000, 1000000, NULL, 100, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('COMBO30',   N'Combo giảm 30% danh mục ly & cốc',  'PHAN_TRAM', 30, 100000, 150000, 200, '2026-01-01', '2026-12-31', 'ALL', NULL),
-    ('CUOINAM',   N'Ưu đãi cuối năm - Giảm 25%',        'PHAN_TRAM', 25, 200000, 150000, 400, '2026-10-01', '2026-12-31', 'ALL', NULL);
+-- Cac ma khuyen mai "toan bo" (targetType='ALL' HOAC NULL — ca 2 deu roi vao nhanh
+-- "default -> true" trong resolveEligibleAmount/isPromotionApplicableToProduct, tuc ap
+-- dung cho MOI san pham) bi VO HIEU HOA (isActive=0): kho kiem soat, tung gay le pricing
+-- kho hieu (vd COMBO30 tu dong ap vao ca hang Flash Sale luc checkout; KHAIHANG tu dong
+-- hien -15% tren MOI trang san pham, ke ca hang da het/hang test). Rieng loaiGiam=PHAN_TRAM
+-- voi targetType rong la nguy hiem nhat vi con bi chon lam "bestPercentagePromo" hien
+-- thang len gia san pham. Van giu lai dong INSERT (chi doi isActive=0) thay vi xoa han,
+-- vi UserVouchers/orders phia duoi con FK tham chieu toi.
+INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToiThieu, giamToiDa, soLanDung, tuNgay, denNgay, targetType, targetIds, isActive) VALUES
+    ('KHAIHANG', N'Khai trương DuaStore Hải Phòng', 'PHAN_TRAM', 15, 200000, 100000, 200, '2026-01-01', '2026-12-31', NULL, NULL, 0),
+    ('FREESHIP',  N'Miễn phí vận chuyển đơn từ 500k', 'SO_TIEN',  30000, 500000, NULL, NULL, '2026-01-01', '2026-12-31', NULL, NULL, 1),
+    ('DECO50K',   N'Giảm 50k đơn từ 300k',           'SO_TIEN',  50000, 300000, NULL,  100, '2026-01-01', '2026-12-31', NULL, NULL, 1),
+    ('SUMMER50',  N'Summer Sale - Giảm 50%',           'PHAN_TRAM', 50, 500000, 200000, 500, '2026-06-01', '2026-08-31', 'PRODUCT', '1,2,3,4,5', 1),
+    ('NEWUSER',   N'Ưu đãi người mới - Giảm 20%',      'PHAN_TRAM', 20, 100000, 50000,  1000, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('THANG9',    N'Ưu đãi tháng 9 - Giảm 10%',         'PHAN_TRAM', 10, 150000, 80000,  300, '2026-09-01', '2026-09-30', 'ALL', NULL, 0),
+    ('SINHNHAT',  N'Quà sinh nhật thành viên',          'PHAN_TRAM', 15, 0,      100000, 500, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('VIP100K',   N'Giảm 100k cho đơn VIP từ 1 triệu',  'SO_TIEN',   100000, 1000000, NULL, 100, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('COMBO30',   N'Combo giảm 30% danh mục ly & cốc',  'PHAN_TRAM', 30, 100000, 150000, 200, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
+    ('CUOINAM',   N'Ưu đãi cuối năm - Giảm 25%',        'PHAN_TRAM', 25, 200000, 150000, 400, '2026-10-01', '2026-12-31', 'ALL', NULL, 0),
+    -- Voucher chao mung tu dong cap khi dang ky tai khoan (xem AuthController.grantNewUserVoucher).
+    -- Dung targetType=PRODUCT (khong phai ALL) de tranh lai lo hien giam gia toan site
+    -- cho MOI khach nhu NEWUSER da tung gay (xem comment o tren).
+    ('CHAOMOI10', N'Chào mừng thành viên mới - Giảm 10%', 'PHAN_TRAM', 10, 100000, 30000, NULL, '2026-01-01', '2027-12-31', 'PRODUCT', '1,2,3,4,5,6', 1);
 
 INSERT INTO orders (maDon, userId, addressId, snapTenNguoiNhan, snapSoDienThoai, snapDiaChi,
     tienHang, phiVanChuyen, tienGiam, tongThanhToan,
@@ -1285,18 +1351,118 @@ INSERT INTO order_items (orderId, productId, variantId, tenSanPham, tenBienThe, 
 
 INSERT INTO PostCategories (tenDanhMuc, moTa, thuTu, ngayTao) VALUES
     (N'Hướng Dẫn', N'Các bài hướng dẫn chọn và bảo quản đồ thủy tinh', 1, GETDATE()),
-    (N'Xu Hướng',  N'Xu hướng trang trí và quà tặng', 2, GETDATE());
+    (N'Xu Hướng',  N'Xu hướng trang trí và quà tặng', 2, GETDATE()),
+    (N'Chăm Sóc & Bảo Quản', N'Mẹo vệ sinh, bảo quản và kéo dài tuổi thọ đồ thủy tinh - pha lê', 3, GETDATE());
 
-INSERT INTO Posts (tieuDe, tomTat, noiDung, tacGiaId, danhMucId, trangThai, ngayTao, ngayCapNhat) VALUES
+INSERT INTO Posts (tieuDe, slug, metaDescription, tomTat, noiDung, hinhAnh, tacGiaId, danhMucId, trangThai, luotXem, isFeatured, ngayXuatBan, ngayTao, ngayCapNhat) VALUES
     (N'Hướng dẫn chọn chai thủy tinh theo mục đích sử dụng',
+     N'huong-dan-chon-chai-thuy-tinh-theo-muc-dich-su-dung',
+     N'Cách chọn chai thủy tinh phù hợp cho rượu, nước hoa hay thực phẩm.',
      N'Phân biệt chai đựng rượu, nước hoa, thực phẩm - điểm khác biệt về miệng chai, kiểu nắp và chất liệu.',
-     N'<p>Nội dung hướng dẫn đầy đủ...</p>', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
+     N'<p>Mỗi loại chai thủy tinh được thiết kế riêng cho một mục đích sử dụng cụ thể. Chai đựng rượu thường có miệng hẹp, nắp gỗ hoặc nút bần để giữ hương vị lâu dài, trong khi chai nước hoa cần cổ chai nhỏ và nắp xịt kín khí.</p><p>Đối với thực phẩm, ưu tiên chai miệng rộng để dễ vệ sinh và nắp vặn kín hơi, tránh ẩm mốc. Việc chọn đúng loại chai không chỉ giúp bảo quản tốt hơn mà còn tăng tính thẩm mỹ khi trưng bày.</p>',
+     N'https://picsum.photos/seed/duastore-chai-thuytinh/900/600', 1, 1, 'XUAT_BAN', 342, 1, DATEADD(DAY,-40,GETDATE()), DATEADD(DAY,-40,GETDATE()), DATEADD(DAY,-40,GETDATE())),
     (N'Ưu điểm của thủy tinh Borosilicate so với thủy tinh thường',
+     N'uu-diem-thuy-tinh-borosilicate-so-voi-thuy-tinh-thuong',
+     N'Vì sao thủy tinh Borosilicate được ưa chuộng trong ngành thực phẩm, dược phẩm.',
      N'Tại sao thủy tinh Borosilicate lại được ưa chuộng trong ngành thực phẩm và dược phẩm?',
-     N'<p>Nội dung bài viết...</p>', 1, 1, 'XUAT_BAN', GETDATE(), GETDATE()),
+     N'<p>Thủy tinh Borosilicate chịu được sốc nhiệt tốt hơn nhiều so với thủy tinh soda-lime thông thường, nhờ hệ số giãn nở nhiệt thấp. Điều này giúp sản phẩm ít bị nứt vỡ khi chuyển đổi nhiệt độ đột ngột, ví dụ từ tủ lạnh sang lò vi sóng.</p><p>Ngoài ra, Borosilicate trơ về mặt hóa học, không phản ứng với axit hay kiềm, nên rất an toàn khi dùng đựng thực phẩm và dược phẩm lâu dài.</p>',
+     N'https://picsum.photos/seed/duastore-borosilicate/900/600', 1, 1, 'XUAT_BAN', 218, 0, DATEADD(DAY,-38,GETDATE()), DATEADD(DAY,-38,GETDATE()), DATEADD(DAY,-38,GETDATE())),
     (N'Top 5 mẫu bình trang trí được ưa chuộng nhất năm nay',
+     N'top-5-mau-binh-trang-tri-duoc-ua-chuong-nhat-nam-nay',
+     N'Điểm qua 5 mẫu bình trang trí thủy tinh, pha lê hot nhất hiện nay.',
      N'Khảo sát xu hướng thị trường bình thủy tinh và pha lê trang trí.',
-     N'<p>Nội dung bài viết...</p>', 1, 2, 'NHAP', GETDATE(), GETDATE());
+     N'<p>Từ bình hoa pha lê cắt cạnh cổ điển đến bình thủy tinh màu tối giản kiểu Bắc Âu, thị trường trang trí nội thất năm nay chứng kiến sự lên ngôi của các thiết kế vừa sang trọng vừa gần gũi thiên nhiên.</p><p>Danh sách top 5 bao gồm các mẫu bán chạy nhất tại DuaStore, được tổng hợp dựa trên số liệu đơn hàng thực tế.</p>',
+     N'https://picsum.photos/seed/duastore-binh-trang-tri/900/600', 1, 2, 'NHAP', 12, 0, NULL, DATEADD(DAY,-2,GETDATE()), DATEADD(DAY,-2,GETDATE())),
+    (N'5 cách vệ sinh ly pha lê không để lại vết ố',
+     N'5-cach-ve-sinh-ly-pha-le-khong-de-lai-vet-o',
+     N'Mẹo rửa ly pha lê sáng bóng, không bị mờ, không để lại vết nước.',
+     N'Hướng dẫn vệ sinh ly pha lê đúng cách để giữ độ trong suốt và tránh trầy xước.',
+     N'<p>Ly pha lê rất dễ bị mờ hoặc trầy xước nếu vệ sinh sai cách. Nên rửa bằng tay với nước ấm pha giấm trắng thay vì máy rửa chén, dùng khăn microfiber lau khô ngay để tránh vết ố do khoáng chất trong nước.</p><p>Tránh xếp chồng ly khi cất giữ, nên dùng giá treo miệng ly xuống dưới để hạn chế bụi bám vào lòng ly.</p>',
+     N'https://picsum.photos/seed/duastore-ve-sinh-ly-phale/900/600', 1, 3, 'XUAT_BAN', 501, 1, DATEADD(DAY,-33,GETDATE()), DATEADD(DAY,-33,GETDATE()), DATEADD(DAY,-33,GETDATE())),
+    (N'Cách bảo quản bình hoa thủy tinh bền đẹp theo thời gian',
+     N'cach-bao-quan-binh-hoa-thuy-tinh-ben-dep-theo-thoi-gian',
+     N'Mẹo giữ bình hoa thủy tinh luôn sáng bóng, không bị ố vàng.',
+     N'Những lưu ý khi vệ sinh và bảo quản bình hoa thủy tinh trong nhà.',
+     N'<p>Bình hoa thủy tinh nếu cắm hoa tươi lâu ngày dễ bị đóng cặn ở đáy. Nên thay nước 2-3 ngày/lần và vệ sinh đáy bình bằng bàn chải mềm kết hợp baking soda.</p><p>Khi không sử dụng, nên lau khô hoàn toàn trước khi cất để tránh nấm mốc phát triển bên trong.</p>',
+     N'https://picsum.photos/seed/duastore-binh-hoa-baoquan/900/600', 1, 3, 'XUAT_BAN', 276, 0, DATEADD(DAY,-30,GETDATE()), DATEADD(DAY,-30,GETDATE()), DATEADD(DAY,-30,GETDATE())),
+    (N'Xu hướng trang trí bàn tiệc bằng ly và bình thủy tinh màu 2026',
+     N'xu-huong-trang-tri-ban-tiec-bang-ly-va-binh-thuy-tinh-mau-2026',
+     N'Cập nhật xu hướng trang trí bàn tiệc với ly, bình thủy tinh màu.',
+     N'Gam màu pastel và thủy tinh cắt cạnh đang là lựa chọn hàng đầu cho tiệc cưới, tiệc sinh nhật.',
+     N'<p>Năm nay, xu hướng trang trí bàn tiệc nghiêng về các gam màu pastel như xanh cobalt, hồng phấn kết hợp cùng ly pha lê cắt cạnh tạo hiệu ứng ánh sáng lung linh.</p><p>Nhiều gia đình cũng ưa chuộng bộ ly đồng bộ với bình hoa cùng tông màu để tạo điểm nhấn cho không gian tiệc.</p>',
+     N'https://picsum.photos/seed/duastore-trang-tri-ban-tiec/900/600', 1, 2, 'XUAT_BAN', 189, 0, DATEADD(DAY,-28,GETDATE()), DATEADD(DAY,-28,GETDATE()), DATEADD(DAY,-28,GETDATE())),
+    (N'Vì sao nên chọn ly thủy tinh cường lực cho quán cafe, nhà hàng',
+     N'vi-sao-nen-chon-ly-thuy-tinh-cuong-luc-cho-quan-cafe-nha-hang',
+     N'Ly thủy tinh cường lực bền, chịu va đập tốt, phù hợp kinh doanh F&B.',
+     N'So sánh độ bền và tính kinh tế của ly cường lực so với ly thường trong môi trường kinh doanh.',
+     N'<p>Ly thủy tinh cường lực được xử lý nhiệt đặc biệt giúp tăng khả năng chịu va đập gấp 3-4 lần so với ly thường, rất phù hợp cho quán cafe, nhà hàng có tần suất sử dụng cao.</p><p>Dù giá thành ban đầu nhỉnh hơn, nhưng về lâu dài chi phí thay thế do vỡ hỏng lại thấp hơn đáng kể.</p>',
+     N'https://picsum.photos/seed/duastore-ly-cuong-luc/900/600', 1, 1, 'XUAT_BAN', 164, 0, DATEADD(DAY,-25,GETDATE()), DATEADD(DAY,-25,GETDATE()), DATEADD(DAY,-25,GETDATE())),
+    (N'Cách chọn quà tặng bằng thủy tinh, pha lê ý nghĩa cho người thân',
+     N'cach-chon-qua-tang-bang-thuy-tinh-pha-le-y-nghia-cho-nguoi-than',
+     N'Gợi ý quà tặng thủy tinh pha lê phù hợp cho từng dịp lễ.',
+     N'Từ sinh nhật, tân gia đến kỷ niệm ngày cưới - món quà thủy tinh nào phù hợp?',
+     N'<p>Quà tặng bằng thủy tinh, pha lê luôn mang ý nghĩa về sự trong sáng, bền vững trong các mối quan hệ. Với dịp tân gia, bộ ly hoặc bình hoa pha lê là lựa chọn phổ biến.</p><p>Với kỷ niệm ngày cưới, có thể chọn cặp ly khắc tên hoặc bình rượu pha lê cao cấp để tăng phần trang trọng.</p>',
+     N'https://picsum.photos/seed/duastore-qua-tang-phale/900/600', 1, 2, 'XUAT_BAN', 145, 0, DATEADD(DAY,-22,GETDATE()), DATEADD(DAY,-22,GETDATE()), DATEADD(DAY,-22,GETDATE())),
+    (N'Phân biệt pha lê thật và thủy tinh giả pha lê',
+     N'phan-biet-pha-le-that-va-thuy-tinh-gia-pha-le',
+     N'Mẹo nhận biết pha lê thật qua độ trong, âm thanh và trọng lượng.',
+     N'3 cách đơn giản giúp bạn phân biệt pha lê thật với hàng thủy tinh giả pha lê.',
+     N'<p>Pha lê thật chứa hàm lượng oxit chì nhất định giúp tăng độ khúc xạ ánh sáng, khi gõ nhẹ sẽ phát ra âm thanh trong và vang dài hơn thủy tinh thường.</p><p>Ngoài ra, pha lê thật thường nặng tay hơn và có độ trong suốt, lấp lánh đặc trưng khi đưa ra ánh sáng.</p>',
+     N'https://picsum.photos/seed/duastore-phale-that-gia/900/600', 1, 1, 'XUAT_BAN', 298, 1, DATEADD(DAY,-20,GETDATE()), DATEADD(DAY,-20,GETDATE()), DATEADD(DAY,-20,GETDATE())),
+    (N'Bí quyết cắm hoa đẹp với bình thủy tinh dáng cao',
+     N'bi-quyet-cam-hoa-dep-voi-binh-thuy-tinh-dang-cao',
+     N'Hướng dẫn cắm hoa với bình thủy tinh dáng cao đơn giản mà đẹp mắt.',
+     N'Mẹo phối hoa và bình thủy tinh dáng cao để tạo điểm nhấn cho phòng khách.',
+     N'<p>Bình thủy tinh dáng cao phù hợp với các loại hoa cành dài như hoa ly, hoa lay ơn, cành lá trang trí. Nên cắm hoa theo tỷ lệ chiều cao hoa gấp 1.5 lần chiều cao bình để cân đối.</p><p>Có thể kết hợp thêm sỏi trang trí hoặc đèn led mini dưới đáy bình để tăng hiệu ứng ánh sáng vào buổi tối.</p>',
+     N'https://picsum.photos/seed/duastore-cam-hoa-binh-cao/900/600', 1, 2, 'XUAT_BAN', 176, 0, DATEADD(DAY,-18,GETDATE()), DATEADD(DAY,-18,GETDATE()), DATEADD(DAY,-18,GETDATE())),
+    (N'Có nên rửa đồ thủy tinh bằng máy rửa chén không?',
+     N'co-nen-rua-do-thuy-tinh-bang-may-rua-chen-khong',
+     N'Giải đáp việc dùng máy rửa chén cho đồ thủy tinh, pha lê.',
+     N'Không phải loại thủy tinh nào cũng an toàn khi rửa bằng máy - đây là lý do vì sao.',
+     N'<p>Thủy tinh Borosilicate và thủy tinh cường lực thường an toàn khi rửa máy, tuy nhiên pha lê cắt cạnh và các sản phẩm có họa tiết vẽ tay nên rửa tay để tránh phai màu hoặc trầy xước do va chạm trong máy.</p><p>Nếu bắt buộc dùng máy, nên chọn chế độ rửa nhẹ và tránh xếp chồng các món lên nhau.</p>',
+     N'https://picsum.photos/seed/duastore-may-rua-chen/900/600', 1, 3, 'XUAT_BAN', 233, 0, DATEADD(DAY,-15,GETDATE()), DATEADD(DAY,-15,GETDATE()), DATEADD(DAY,-15,GETDATE())),
+    (N'Xu hướng nội thất tối giản với đồ thủy tinh trong suốt',
+     N'xu-huong-noi-that-toi-gian-voi-do-thuy-tinh-trong-suot',
+     N'Đồ thủy tinh trong suốt lên ngôi trong phong cách nội thất tối giản.',
+     N'Vì sao phong cách minimalism lại ưa chuộng vật dụng thủy tinh trong suốt?',
+     N'<p>Phong cách nội thất tối giản (minimalism) đề cao sự gọn gàng, ít chi tiết thừa. Đồ thủy tinh trong suốt vừa có tính ứng dụng cao, vừa không gây rối mắt như các vật liệu có màu sắc, hoa văn phức tạp.</p><p>Xu hướng này đang được nhiều gia đình trẻ tại các thành phố lớn lựa chọn cho không gian bếp và phòng khách.</p>',
+     N'https://picsum.photos/seed/duastore-noi-that-toi-gian/900/600', 1, 2, 'XUAT_BAN', 201, 0, DATEADD(DAY,-13,GETDATE()), DATEADD(DAY,-13,GETDATE()), DATEADD(DAY,-13,GETDATE())),
+    (N'Hướng dẫn chọn hũ thủy tinh đựng thực phẩm khô an toàn',
+     N'huong-dan-chon-hu-thuy-tinh-dung-thuc-pham-kho-an-toan',
+     N'Tiêu chí chọn hũ thủy tinh bảo quản thực phẩm khô lâu dài.',
+     N'Nắp cài kín hơi, chất liệu an toàn thực phẩm - những yếu tố cần lưu ý khi chọn hũ.',
+     N'<p>Khi chọn hũ thủy tinh đựng thực phẩm khô như ngũ cốc, gia vị, nên ưu tiên loại có nắp cài kín hơi (airtight) để hạn chế ẩm mốc và côn trùng xâm nhập.</p><p>Chất liệu thủy tinh cần đạt chuẩn an toàn thực phẩm, không chứa BPA, đặc biệt với các hũ dùng đựng đồ ăn cho trẻ nhỏ.</p>',
+     N'https://picsum.photos/seed/duastore-hu-thuy-tinh-thucpham/900/600', 1, 1, 'XUAT_BAN', 312, 0, DATEADD(DAY,-11,GETDATE()), DATEADD(DAY,-11,GETDATE()), DATEADD(DAY,-11,GETDATE())),
+    (N'3 mẹo khắc phục ly thủy tinh bị mờ, ố vàng lâu ngày',
+     N'3-meo-khac-phuc-ly-thuy-tinh-bi-mo-o-vang-lau-ngay',
+     N'Mẹo dân gian giúp ly thủy tinh sáng bóng trở lại như mới.',
+     N'Dùng giấm, baking soda hay vỏ chanh - đâu là cách hiệu quả nhất?',
+     N'<p>Ly thủy tinh bị mờ, ố vàng thường do cặn khoáng trong nước hoặc dầu mỡ tích tụ lâu ngày. Ngâm ly trong dung dịch giấm trắng pha nước ấm khoảng 15 phút rồi chà nhẹ bằng bàn chải mềm là cách phổ biến và hiệu quả.</p><p>Với vết ố cứng đầu, có thể kết hợp thêm baking soda tạo hỗn hợp sệt để chà trực tiếp lên vùng bị ố.</p>',
+     N'https://picsum.photos/seed/duastore-ly-bi-mo/900/600', 1, 3, 'XUAT_BAN', 421, 0, DATEADD(DAY,-9,GETDATE()), DATEADD(DAY,-9,GETDATE()), DATEADD(DAY,-9,GETDATE())),
+    (N'Tại sao thủy tinh dập nổi đang là xu hướng decor 2026',
+     N'tai-sao-thuy-tinh-dap-noi-dang-la-xu-huong-decor-2026',
+     N'Họa tiết dập nổi trên thủy tinh mang lại vẻ đẹp hoài cổ, sang trọng.',
+     N'Từ bình đựng nước đến ly uống nước, họa tiết dập nổi đang được ưa chuộng trở lại.',
+     N'<p>Thủy tinh dập nổi (embossed glass) tạo hiệu ứng thị giác độc đáo nhờ các họa tiết chìm nổi trên bề mặt, mang phong cách hoài cổ pha lẫn hiện đại.</p><p>Xu hướng này phù hợp với không gian decor kiểu vintage hoặc industrial đang thịnh hành hiện nay.</p>',
+     N'https://picsum.photos/seed/duastore-thuytinh-dapnoi/900/600', 1, 2, 'XUAT_BAN', 158, 0, DATEADD(DAY,-7,GETDATE()), DATEADD(DAY,-7,GETDATE()), DATEADD(DAY,-7,GETDATE())),
+    (N'Hướng dẫn bảo quản rượu trong bình thủy tinh ngâm đúng cách',
+     N'huong-dan-bao-quan-ruou-trong-binh-thuy-tinh-ngam-dung-cach',
+     N'Cách chọn và bảo quản bình thủy tinh ngâm rượu để giữ hương vị tốt nhất.',
+     N'Vị trí đặt bình, nhiệt độ và ánh sáng ảnh hưởng thế nào đến rượu ngâm?',
+     N'<p>Bình thủy tinh ngâm rượu nên được đặt ở nơi khô ráo, thoáng mát, tránh ánh nắng trực tiếp vì tia UV có thể làm biến đổi hương vị và màu sắc của rượu theo thời gian.</p><p>Nên chọn bình có nắp đậy kín để hạn chế oxy hóa, đồng thời vệ sinh bình sạch sẽ trước khi ngâm để tránh nhiễm khuẩn.</p>',
+     N'https://picsum.photos/seed/duastore-binh-ngam-ruou/900/600', 1, 1, 'XUAT_BAN', 267, 0, DATEADD(DAY,-5,GETDATE()), DATEADD(DAY,-5,GETDATE()), DATEADD(DAY,-5,GETDATE())),
+    (N'Gợi ý set quà tặng thủy tinh dưới 300K cho dịp lễ',
+     N'goi-y-set-qua-tang-thuy-tinh-duoi-300k-cho-dip-le',
+     N'Tổng hợp các set quà thủy tinh giá tốt, phù hợp làm quà tặng dịp lễ.',
+     N'Không cần chi quá nhiều vẫn có thể chọn được món quà thủy tinh tinh tế.',
+     N'<p>Với ngân sách dưới 300.000₫, bạn vẫn có thể lựa chọn được nhiều set quà thủy tinh đẹp mắt như bộ ly thủy tinh màu, hũ thủy tinh trang trí hoặc cốc thủy tinh có quai kèm hộp quà.</p><p>Nên ưu tiên các sản phẩm có thiết kế tối giản, dễ phối hợp với nhiều phong cách nội thất khác nhau.</p>',
+     N'https://picsum.photos/seed/duastore-set-qua-tang/900/600', 1, 2, 'XUAT_BAN', 134, 0, DATEADD(DAY,-3,GETDATE()), DATEADD(DAY,-3,GETDATE()), DATEADD(DAY,-3,GETDATE())),
+    (N'Cách sắp xếp tủ trưng bày ly, bình thủy tinh gọn gàng',
+     N'cach-sap-xep-tu-trung-bay-ly-binh-thuy-tinh-gon-gang',
+     N'Mẹo sắp xếp tủ trưng bày đồ thủy tinh vừa gọn vừa đẹp mắt.',
+     N'Nguyên tắc sắp xếp theo chiều cao, màu sắc giúp tủ trưng bày trông chuyên nghiệp hơn.',
+     N'<p>Khi sắp xếp tủ trưng bày, nên nhóm các món đồ thủy tinh theo chiều cao từ thấp đến cao hoặc theo tông màu để tạo cảm giác hài hòa, có điểm nhấn.</p><p>Tránh xếp quá sát nhau để hạn chế va chạm gây nứt vỡ, đồng thời nên lót một lớp vải mềm ở đáy kệ để giảm rung lắc.</p>',
+     N'https://picsum.photos/seed/duastore-tu-trung-bay/900/600', 1, 3, 'XUAT_BAN', 97, 0, DATEADD(DAY,-1,GETDATE()), DATEADD(DAY,-1,GETDATE()), DATEADD(DAY,-1,GETDATE()));
 
 INSERT INTO Wishlists (userId, productId, ngayThem) VALUES
     (2, 3, GETDATE()),
@@ -1308,7 +1474,7 @@ VALUES (N'Banner DuaStore', N'/images/Banner 1 DuaStore.jpg', N'/san-pham', 1, 0
 
 INSERT INTO store_info (tenCuaHang, soNha, duong, phuongXa, quanHuyen, tinhThanh, soDienThoai, email, isActive, isDefault, createdAt, updatedAt)
 VALUES (N'DuaStore Hải Phòng', N'123', N'Trần Hưng Đạo', N'Máy Tơ', N'Ngô Quyền', N'Hải Phòng',
-        '0225.123.4567', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
+        '0936764369', 'contact@duastore.vn', 1, 1, GETDATE(), GETDATE());
 GO
 
 -- ============================================================
@@ -1405,10 +1571,10 @@ FROM (VALUES
     ('DUA-20260015', 'nguyenvan', 95000, 20000, 0, 115000, 'COD',          'CHUA_THANH_TOAN', 'DA_XAC_NHAN',          2),
     ('DUA-20260016', 'tranthib', 110000, 20000, 0, 130000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DANG_GIAO',            1),
     ('DUA-20260017', 'lehoangc', 145000, 20000, 0, 165000, 'COD',          'CHUA_THANH_TOAN', 'DANG_GIAO',            1),
-    ('DUA-20260018', 'phamthid', 126000, 20000, 0, 146000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',             10),
+    ('DUA-20260018', 'phamthid', 126000, 20000, 0, 146000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',              0),
     ('DUA-20260019', 'vominhe',  385000, 20000, 0, 405000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_GIAO',             12),
     ('DUA-20260020', 'dangthif', 210000, 20000, 0, 230000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',       20),
-    ('DUA-20260021', 'nguyenvan',175000, 20000, 0, 195000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',       18),
+    ('DUA-20260021', 'nguyenvan',175000, 20000, 0, 195000, 'CHUYEN_KHOAN', 'DA_THANH_TOAN',   'DA_HOAN_THANH',        1),
     ('DUA-20260022', 'tranthib',  64000, 20000, 0,  84000, 'COD',          'CHUA_THANH_TOAN', 'DA_HUY',               3),
     ('DUA-20260023', 'lehoangc', 490000, 20000, 0, 510000, 'CHUYEN_KHOAN', 'CHUA_THANH_TOAN', 'DA_HUY',               8)
 ) AS o(maDon, username, tienHang, phiVanChuyen, tienGiam, tongThanhToan, phuongThucTT, trangThaiTT, trangThaiDon, d)
@@ -1523,7 +1689,8 @@ CROSS APPLY (VALUES (
     END
 )) AS r(binhLuan)
 WHERE u.username IN ('nguyenvan', 'tranthib', 'lehoangc', 'phamthid', 'vominhe', 'dangthif')
-  AND p.id <= 9;
+  AND p.id <= 9
+  AND NOT EXISTS (SELECT 1 FROM Reviews rv WHERE rv.userId = u.id AND rv.productId = p.id);
 GO
 
 -- UserVouchers: luu them voucher vao vi cho tung khach hang (toi da moi nguoi x moi promotion 1 lan)
@@ -1544,7 +1711,7 @@ GO
 INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VALUES
 -- Store
 ('store', 'store_address', N'Phố Tôn Thất Thuyết, Phan Bội Châu, Phường Hồng Bàng, Thành phố Hải Phòng, 18000, Việt Nam', GETDATE()),
-('store', 'store_phone', '0983595240', GETDATE()),
+('store', 'store_phone', '0936764369', GETDATE()),
 ('store', 'store_email', 'contact@duastore.vn', GETDATE()),
 ('store', 'store_latitude', '20.8565', GETDATE()),
 ('store', 'store_longitude', '106.6756', GETDATE()),
@@ -1552,7 +1719,7 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 -- Payment (toggle names = payment_cod, payment_bank, payment_sepay)
 ('payment', 'payment_cod', '1', GETDATE()),
 ('payment', 'payment_bank', '1', GETDATE()),
-('payment', 'payment_sepay', '0', GETDATE()),
+('payment', 'payment_sepay', '1', GETDATE()),
 ('payment', 'payment_bank_code', 'MBB', GETDATE()),
 ('payment', 'payment_bank_account', '118830072008', GETDATE()),
 ('payment', 'payment_bank_holder', 'PHÙNG LÊ ANH', GETDATE()),
@@ -1563,7 +1730,7 @@ INSERT INTO SiteSettings (settingGroup, settingKey, settingValue, createdAt) VAL
 ('payment', 'sepay_secret_key', '', GETDATE()),
 -- Shipping (toggle names = shipping_free, carrier_ghn_enabled, carrier_ghtk_enabled)
 ('shipping', 'shipping_free', '1', GETDATE()),
-('shipping', 'shipping_free_min', '500000', GETDATE()),
+('shipping', 'shipping_free_min', '0', GETDATE()),
 ('shipping', 'carrier_ghn_enabled', '0', GETDATE()),
 ('shipping', 'carrier_ghtk_enabled', '1', GETDATE()),
 ('shipping', 'carrier_ghn_base_fee', '15000', GETDATE()),
@@ -2092,6 +2259,14 @@ SELECT u.id, -30, 0, 'EXPIRED', NULL, N'Điểm thưởng hết hạn sử dụn
 FROM users u WHERE u.username = 'phamthid';
 GO
 
+-- ---------- LoyaltyBalances (backfill so du hien tai tu dong cuoi cua LoyaltyTransactions,
+-- giu dung "so du hien tai" ma he thong da hien thi truoc gio — xem findCurrentBalanceByUserId) ----------
+INSERT INTO LoyaltyBalances (userId, balance)
+SELECT lt.userId, lt.balance
+FROM LoyaltyTransactions lt
+WHERE lt.id = (SELECT MAX(lt2.id) FROM LoyaltyTransactions lt2 WHERE lt2.userId = lt.userId);
+GO
+
 -- ---------- ReviewImages (thu vien anh danh gia) ----------
 INSERT INTO ReviewImages (reviewId, imageUrl, sortOrder)
 SELECT r.id, pv.hinhAnh, 0
@@ -2260,6 +2435,65 @@ GO
 
 PRINT '====================================================';
 PRINT ' Seed nhat ky he thong (3 bang) hoan tat!';
+PRINT '====================================================';
+GO
+
+-- ============================================================
+-- BUOC 8: Phan lai san pham vao cac danh muc con moi (them phong phu)
+-- ============================================================
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Bình Hoa Pha Lê')
+    WHERE tenSanPham IN (N'Bình Hoa Pha Lê Cắt Cạnh', N'Bình Hoa Pha Lê', N'Bình Pha Lê Pasabahce Nhập Khẩu');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Bình Decanter Rượu')
+    WHERE tenSanPham IN (N'Bình Chiết Rượu Vang', N'Bình Thủy Tinh Decanter Hario');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Hũ Đựng Thực Phẩm')
+    WHERE tenSanPham IN (N'Hũ Thủy Tinh Hình Trái Bí', N'Hũ Thủy Tinh Nắp Cài Kín Hơi', N'Hũ Thủy Tinh Sọc');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Hũ Ngâm Rượu')
+    WHERE tenSanPham = N'Bình Thủy Tinh Ngâm Rượu';
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Ly Màu Nghệ Thuật')
+    WHERE tenSanPham IN (N'Bộ Ly Thủy Tinh Màu 1', N'Bộ Ly Thủy Tinh Màu 2');
+UPDATE Products SET danhMucId = (SELECT id FROM Categories WHERE tenDanhMuc = N'Ly Highball')
+    WHERE tenSanPham = N'Ly Thủy Tinh Dạng Trụ Tròn Họa Tiết Sọc';
+GO
+
+PRINT '====================================================';
+PRINT ' Bo sung 5 danh muc con + phan lai san pham hoan tat!';
+PRINT '====================================================';
+GO
+
+-- ============================================================
+-- BUOC 9: Gan voucher cho mot so don hang DA_GIAO/DA_HOAN_THANH
+-- (de bao cao "Hieu qua chuong trinh khuyen mai" trong Phan tich co du lieu)
+-- ============================================================
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'SINHNHAT'), tienGiam = 16950, tongThanhToan = 116050 WHERE maDon = 'DUA-20260002';
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'THANG9'),   tienGiam = 76400, tongThanhToan = 687600 WHERE maDon = 'DUA-20260005';
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'NEWUSER'),  tienGiam = 50000, tongThanhToan = 355000 WHERE maDon = 'DUA-20260019';
+UPDATE orders SET promotionId = (SELECT id FROM Promotions WHERE maCode = 'SINHNHAT'), tienGiam = 26250, tongThanhToan = 168750 WHERE maDon = 'DUA-20260021';
+GO
+
+PRINT '====================================================';
+PRINT ' Gan voucher cho don hang hoan tat!';
+PRINT '====================================================';
+GO
+
+-- ============================================================
+-- Backfill Products.hinhAnhChinh tu anh cua bien the mac dinh
+-- (INSERT Products o tren khong set cot nay, chi ProductVariants
+-- moi co anh — cac trang admin/client hien anh dai dien san pham
+-- (VD: /admin/san-pham) doc truc tiep hinhAnhChinh nen can co du lieu).
+-- ============================================================
+UPDATE p
+SET p.hinhAnhChinh = pv.hinhAnh
+FROM Products p
+CROSS APPLY (
+    SELECT TOP 1 hinhAnh FROM ProductVariants
+    WHERE productId = p.id AND hinhAnh IS NOT NULL
+    ORDER BY isDefault DESC, id ASC
+) pv
+WHERE p.hinhAnhChinh IS NULL;
+GO
+
+PRINT '====================================================';
+PRINT ' Da backfill hinhAnhChinh cho tat ca san pham!';
 PRINT '====================================================';
 GO
 

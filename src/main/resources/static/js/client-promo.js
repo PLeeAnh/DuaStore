@@ -118,7 +118,7 @@
     }
 
     /* ── Phân trang voucher (max 3/trang) ── */
-    var PROMO_PER_PAGE = 3;
+    var PROMO_PER_PAGE = 4;
     var promoCurrentPage = 0;
 
     function getVisibleItems() {

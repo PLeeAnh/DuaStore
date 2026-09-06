@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net/thymeleaf/layout"
+      layout:decorate="~{layout/admin/base}">
+    <head>
+        <title>Yêu cầu khóa tài khoản</title>
+    </head>
+    <body>
+    <th:block layout:fragment="breadcrumb">
+        <li class="breadcrumb-item"><a th:href="@{/admin/khach-hang}">Khách hàng</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Yêu cầu khóa tài khoản</li>
+    </th:block>
+    <div layout:fragment="content">
+
+        <div class="adm-detail-hero">
+            <div class="d-flex align-items-start gap-3">
+                <div class="adm-icon-48">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h4>Yêu cầu khóa tài khoản</h4>
+                    <div class="adm-detail-meta">ADMIN/STAFF khóa một tài khoản khách hàng thật (không phải bot) sẽ tạo yêu cầu ở đây — cần bạn duyệt thì mới có hiệu lực.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="adm-table-wrap">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Khách hàng</th>
+                            <th>Người yêu cầu</th>
+                            <th>Lý do</th>
+                            <th>Thời gian</th>
+                            <th class="text-end" style="width:280px">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="req : ${requests}">
+                            <td>
+                                <a th:if="${userById.get(req.userId)} != null"
+                                   th:href="@{/admin/khach-hang/{id}(id=${req.userId})}" class="text-decoration-none">
+                                    <strong th:text="${userById.get(req.userId).hoTen}">Khách hàng</strong>
+                                </a>
+                                <span th:if="${userById.get(req.userId)} == null" class="text-muted">#<span th:text="${req.userId}"></span></span>
+                            </td>
+                            <td th:text="${userById.get(req.requestedBy) != null ? userById.get(req.requestedBy).hoTen : '#' + req.requestedBy}">Admin</td>
+                            <td th:text="${req.reason}">Lý do</td>
+                            <td class="small text-muted" th:text="${#temporals.format(req.requestedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/yeu-cau-khoa-tk/{id}/approve(id=${req.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check-lg"></i> Đồng ý khóa
+                                    </button>
+                                </form>
+                                <form th:action="@{/admin/yeu-cau-khoa-tk/{id}/reject(id=${req.id})}" method="post" class="d-inline"
+                                      onsubmit="return dsPromptRejectNote(this)">
+                                    <input type="hidden" name="note" class="js-reject-note" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-x-lg"></i> Từ chối
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(requests)}">
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="bi bi-check2-circle fs-2 d-block mb-2"></i>
+                                Không có yêu cầu nào đang chờ duyệt.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="extra-script">
+        <script>
+            function dsPromptRejectNote(form) {
+                var note = prompt('Lý do từ chối (không bắt buộc):') || '';
+                form.querySelector('.js-reject-note').value = note.trim();
+                return true;
+            }
+        </script>
+    </th:block>
+</body>
+</html>

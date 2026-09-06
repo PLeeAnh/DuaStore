@@ -110,6 +110,12 @@ public class AdminProductController {
         model.addAttribute("categoryMap", productService.getCategoryMap(cats));
         model.addAttribute("totalStock", productService.getTotalStockMap(productPage.getContent()));
 
+        Map<Integer, Long> categoryProductCounts = new HashMap<>();
+        for (Object[] row : productRepository.countProductsByDanhMuc()) {
+            if (row[0] != null) categoryProductCounts.put((Integer) row[0], (Long) row[1]);
+        }
+        model.addAttribute("categoryProductCounts", categoryProductCounts);
+
         Map<String, Object> filterParams = new HashMap<>();
         if (keyword != null) filterParams.put("keyword", keyword);
         if (danhMuc != null) filterParams.put("danhMuc", danhMuc);
@@ -286,7 +292,8 @@ public class AdminProductController {
                     "Admin " + getCurrentAdminName() + " đã thêm sản phẩm mới: " + saved.getTenSanPham(),
                     "PRODUCT", saved.getId(),
                     "/admin/san-pham/chi-tiet/" + saved.getId(),
-                    "Xem sản phẩm"
+                    "Xem sản phẩm",
+                    com.duastore.config.security.PermissionEnum.PRODUCT_READ
             );
         }
         ra.addFlashAttribute("successMsg", "Thêm sản phẩm thành công");
@@ -481,7 +488,8 @@ public class AdminProductController {
                     "Sản phẩm " + product.getTenSanPham() + " vừa hết hàng!",
                     "PRODUCT", product.getId(),
                     "/admin/san-pham/sua/" + product.getId(),
-                    "Xem sản phẩm"
+                    "Xem sản phẩm",
+                    com.duastore.config.security.PermissionEnum.PRODUCT_READ
             );
         }
 

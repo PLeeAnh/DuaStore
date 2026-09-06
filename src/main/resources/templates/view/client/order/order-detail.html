@@ -22,6 +22,14 @@
                                     <small class="text-muted" th:text="${#temporals.format(order.ngayDat, 'dd/MM/yyyy HH:mm')}"></small>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
+                                    <a th:if="${order.trangThaiDon == 'CHO_XAC_NHAN' and order.trangThaiTT == 'CHUA_THANH_TOAN' and order.phuongThucTT == 'CHUYEN_KHOAN'}"
+                                       th:href="@{/checkout/chuyen-khoan/{id}(id=${order.id})}" class="ds-btn ds-btn-fill ds-btn-sm">
+                                        <i class="bi bi-qr-code me-1"></i>Tiếp tục thanh toán
+                                    </a>
+                                    <a th:if="${order.trangThaiDon == 'CHO_XAC_NHAN' and order.trangThaiTT == 'CHUA_THANH_TOAN' and order.phuongThucTT == 'SEPAY_QR'}"
+                                       th:href="@{/checkout/sepay/qr/{id}(id=${order.id})}" class="ds-btn ds-btn-fill ds-btn-sm">
+                                        <i class="bi bi-qr-code me-1"></i>Tiếp tục thanh toán
+                                    </a>
                                     <button th:if="${order.trangThaiDon == 'CHO_XAC_NHAN'}" type="button" class="ds-btn ds-btn-outline ds-btn-sm" data-bs-toggle="modal" data-bs-target="#cancelReasonModal">
                                         <i class="bi bi-x-circle me-1"></i>Hủy đơn
                                     </button>
@@ -52,6 +60,15 @@
                         </div>
                     </div>
 
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-4"
+                         th:if="${order.trangThaiDon == 'DA_HUY' and order.trangThaiTT == 'DA_THANH_TOAN'}">
+                        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                        <div>
+                            <strong>Đơn hàng đã hủy nhưng hệ thống ghi nhận đã thanh toán.</strong>
+                            Shop sẽ liên hệ với bạn để hoàn tiền trực tiếp (không tự động hoàn qua hệ thống). Nếu chưa được liên hệ trong 24 giờ, vui lòng chủ động liên hệ hotline hoặc trang liên hệ để được hỗ trợ.
+                        </div>
+                    </div>
+
                     <div class="ds-card mb-4">
                         <div class="ds-card-body">
                             <h6 class="fw-bold">Thông tin giao hàng</h6>
@@ -75,6 +92,16 @@
                                             <span class="badge bg-secondary rounded-1 px-2" style="font-size:.7rem">×<span th:text="${item.soLuong}"></span></span>
                                         </div>
                                         <span class="fw-semibold fmt-price" th:text="${#numbers.formatDecimal(item.thanhTien, 0, 'POINT', 0, 'POINT')} + '₫'"></span>
+                                    </div>
+                                    <div class="mt-2" th:if="${canReviewOrder}">
+                                        <a th:if="${!reviewedProductIds.contains(item.productId)}"
+                                           th:href="@{/san-pham/{id}(id=${item.productId})} + '#reviews-section'"
+                                           class="ds-btn ds-btn-outline ds-btn-sm">
+                                            <i class="bi bi-star me-1"></i>Đánh giá sản phẩm
+                                        </a>
+                                        <span th:if="${reviewedProductIds.contains(item.productId)}" class="small text-success">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Đã đánh giá
+                                        </span>
                                     </div>
                                 </div>
                             </div>

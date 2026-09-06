@@ -29,9 +29,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF' ORDER BY n.createdAt DESC")
     List<Notification> findStaffNotifications();
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isActive = true AND n.targetRole = 'STAFF' AND n.id > :readMaxId")
-    long countUnreadStaffNotifications(Integer readMaxId);
+@Query("SELECT n FROM Notification n WHERE n.isActive = true AND (n.targetRole = 'STAFF' OR (n.targetRole IS NULL AND n.userId IS NULL)) ORDER BY n.createdAt DESC")
+    Page<Notification> findAdminNotifications(Pageable pageable);
 
     @Query("SELECT n FROM Notification n WHERE n.isActive = true AND (n.targetRole = 'STAFF' OR (n.targetRole IS NULL AND n.userId IS NULL)) ORDER BY n.createdAt DESC")
-    Page<Notification> findAdminNotifications(Pageable pageable);
+    List<Notification> findAdminNotificationsList();
 }

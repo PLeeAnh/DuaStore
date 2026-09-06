@@ -52,6 +52,9 @@ public class ContactMessage {
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
+    @Column(name = "is_resolved", nullable = false)
+    private Boolean isResolved = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -63,6 +66,9 @@ public class ContactMessage {
         }
         if (isRead == null) {
             isRead = false;
+        }
+        if (isResolved == null) {
+            isResolved = false;
         }
     }
 

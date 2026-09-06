@@ -42,70 +42,34 @@
         </div>
 
         <!-- ═════ KPI CARDS ═════ -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-diagram-3"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${totalVariants}">0</div>
-                            <div class="adm-stat-label">Tổng biến thể</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng biến thể</div>
+                <div class="rv-stat-value" th:text="${totalVariants}">0</div>
             </div>
-            <div class="col-md-4 col-6">
-                <div class="adm-stat adm-stat-warning">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${lowStockVariants}">0</div>
-                            <div class="adm-stat-label">Cần nhập hàng</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Cần nhập hàng</div>
+                <div class="rv-stat-value rv-stat-warning" th:text="${lowStockVariants}">0</div>
             </div>
-            <div class="col-md-4 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
-                            <i class="bi bi-boxes"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${totalStockAll}">0</div>
-                            <div class="adm-stat-label">Tổng tồn kho</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng tồn kho</div>
+                <div class="rv-stat-value" th:text="${totalStockAll}">0</div>
             </div>
         </div>
 
         <!-- Search + Filter -->
-        <div class="adm-card mb-4">
-            <div class="adm-card-body">
-                <form method="get" class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <input type="text" name="keyword" class="form-control"
-                               placeholder="Tên biến thể..." th:value="${keyword}"
-                               data-autosubmit="300" />
-                    </div>
-                    <div class="col-md-3">
-                        <select name="lowStock" class="form-select" onchange="this.form.submit()">
-                            <option value="" th:selected="${!lowStock}">Tất cả tồn kho</option>
-                            <option value="1" th:selected="${lowStock}">Tồn kho thấp (≤20)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex gap-1">
-                        <a th:href="@{/admin/san-pham/bien-the}" class="btn btn-outline-secondary w-100">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                        </a>
-                    </div>
-                </form>
-            </div>
+        <div class="pd-toolbar-wrap">
+            <form method="get" class="pd-toolbar-form">
+                <div class="rv-search pd-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="keyword" placeholder="Tên biến thể..." th:value="${keyword}" data-autosubmit="300" />
+                </div>
+                <select name="lowStock" class="form-select searchable-select adm-filter-select" onchange="this.form.submit()">
+                    <option value="" th:selected="${!lowStock}">Tất cả tồn kho</option>
+                    <option value="1" th:selected="${lowStock}">Tồn kho thấp (≤20)</option>
+                </select>
+                <a th:href="@{/admin/san-pham/bien-the}" class="rv-link pd-clear-link">Xoá lọc</a>
+            </form>
         </div>
 
         <!-- Variant Card Grid -->

@@ -23,13 +23,22 @@ function showAuthError(el) { if (el) el.classList.add('show'); }
 function hideAuthError(el) { if (el) el.classList.remove('show'); }
 
 document.addEventListener('DOMContentLoaded', function() {
-/* ── Login error param ── */
+/* ── Login error param (đăng nhập Google thất bại, khi popup bị chặn nên chạy full-page) ── */
 var urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('loginError')) {
 var loginEl = document.getElementById('loginModal'); if (!loginEl) return;
         var m = new bootstrap.Modal(loginEl);
         m.show();
-        showAuthError(document.getElementById('loginServerError'));
+        var errEl = document.getElementById('loginServerError');
+        if (errEl) {
+            var kind = urlParams.get('loginError');
+            var metaEl = document.getElementById('ds-login-error-message');
+            var span = errEl.querySelector('span');
+            if (span) span.textContent = (metaEl && metaEl.content) || (kind === 'locked'
+                ? 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.'
+                : 'Đăng nhập Google thất bại. Vui lòng thử lại.');
+        }
+        showAuthError(errEl);
         }
 
 /* ── Blur validation: show error when field loses focus and empty ── */
@@ -83,10 +92,14 @@ var email = document.getElementById('forgotEmail')?.value.trim() || '';
 });
         }
 
-/* ── Send code buttons ── */
+/* ── Send code buttons (đăng ký dùng /api/auth/send-code, quên mật khẩu
+   dùng /api/auth/send-reset-code — 2 endpoint khác nhau vì send-code chặn
+   email đã tồn tại (đúng cho đăng ký), còn quên mật khẩu thì email luôn
+   phải tồn tại sẵn) ── */
 document.querySelectorAll('.ds-auth-code-inline').forEach(function(btn) {
 btn.addEventListener('click', function() {
 var modal = this.closest('.modal');
+        var isForgot = modal && modal.id === 'forgotPasswordModal';
         var field = modal ? modal.querySelector('input[type="email"]') : this.closest('.ds-auth-field')?.querySelector('input[type="email"]');
         var emailField = field || document.getElementById('regEmail') || document.getElementById('forgotEmail');
         var email = emailField?.value.trim();
@@ -95,68 +108,57 @@ var errEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
         if (errEl) { errEl.querySelector('span').textContent = 'Email không hợp lệ'; errEl.classList.add('show'); }
 return;
         }
-var orig = this.textContent;
         this.disabled = true;
         this.textContent = 'Đang gửi...';
-        fetch('/api/auth/send-code', {
-        method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
-        }).then(function(r) { return r.json(); }).then(function(data) {
-if (data.dev_code) {
-        var statusEl = emailField?.closest('.mb-3')?.querySelector('.ds-auth-status') || document.getElementById('codeStatus');
-        if (statusEl) { statusEl.textContent = 'Mã: ' + data.dev_code; statusEl.style.display = ''; }
-        }
-        if (data.success) {
-btn.textContent = 'Đã gửi';
-        setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 5000);
+        var self = this;
+        var endpoint = isForgot ? '/api/auth/send-reset-code' : '/api/auth/send-code';
+        DuaStore.api.post(endpoint, { email: email }).then(function(result) {
+        var data = result.data || {};
+        if (result.ok && data.success) {
+self.textContent = 'Đã gửi';
+        setTimeout(function() { self.textContent = 'Gửi'; self.disabled = false; }, 5000);
         } else {
-btn.textContent = 'Thử lại';
-        var errMsg = data.error || 'Gửi mã thất bại';
+self.textContent = 'Thử lại';
+        var errMsg = data.error || result.message || 'Gửi mã thất bại';
         var emailErr = emailField?.closest('.mb-3')?.querySelector('.ds-auth-error');
         if (emailErr) { emailErr.querySelector('span').textContent = errMsg; emailErr.classList.add('show'); }
-setTimeout(function() { btn.textContent = 'Gửi'; btn.disabled = false; }, 3000);
+setTimeout(function() { self.textContent = 'Gửi'; self.disabled = false; }, 3000);
         }
         });
         });
         });
-        /* ── Forgot password submit ── */
+        /* ── Forgot password submit — xác thực mã OTP và đổi mật khẩu trong 1
+           request duy nhất trên server (POST /quen-mat-khau/xac-nhan) ── */
         document.getElementById('forgotForm')?.addEventListener('submit', function(e) {
 e.preventDefault();
         var email = document.getElementById('forgotEmail')?.value.trim();
         var code = document.getElementById('forgotCode')?.value.trim();
         var pass = document.getElementById('forgotPass')?.value.trim();
+        var confirmPass = document.getElementById('forgotConfirmPass')?.value.trim();
         var btn = document.getElementById('forgotSubmitBtn');
         if (!email || !code || !pass) return;
+        if (pass !== confirmPass) {
+        var confirmErr = document.getElementById('forgotConfirmError');
+        if (confirmErr) { confirmErr.querySelector('span').textContent = 'Mật khẩu xác nhận không khớp'; confirmErr.classList.add('show'); }
+        return;
+        }
         btn.disabled = true;
         btn.textContent = 'Đang xử lý...';
-        fetch('/api/auth/verify-code', {
-        method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, code: code })
-        }).then(function(r) { return r.json(); }).then(function(data) {
-if (data.success) {
-fetch('/quen-mat-khau', {
-method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ email: email, password: pass })
-        }).then(function(r) { return r.text(); }).then(function() {
+        DuaStore.api.post('/quen-mat-khau/xac-nhan', { email: email, code: code, password: pass }).then(function(result) {
+        var data = result.data || {};
+        if (result.ok && data.success) {
 btn.textContent = 'Thành công!';
         setTimeout(function() {
         bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal'))?.hide();
                 showLoginPopup();
         }, 1000);
-        });
         } else {
 var errEl = document.getElementById('forgotCodeError');
-        if (errEl) { errEl.querySelector('span').textContent = 'Mã xác thực không đúng'; errEl.classList.add('show'); }
+        if (errEl) { errEl.querySelector('span').textContent = data.error || result.message || 'Mã xác thực không đúng'; errEl.classList.add('show'); }
 btn.disabled = false;
-        btn.textContent = 'OK';
+        btn.textContent = 'Xác nhận';
         }
-}).catch(function() {
-btn.disabled = false;
-        btn.textContent = 'OK';
-        });
+});
         });
 });
 
@@ -246,8 +248,15 @@ function updateMinusButtonState(itemId) {
     var minusBtn = document.querySelector('#popup-qty-' + itemId)?.closest('.ds-qty-selector')?.querySelector('.ds-qty-minus');
     if (!minusBtn) return;
     var qty = parseInt(document.getElementById('popup-qty-' + itemId)?.value) || 1;
-    minusBtn.style.opacity = qty <= 1 ? '0.35' : '1';
+    minusBtn.disabled = qty <= 1;
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('#cart-popup .popup-item .ds-qty-val').forEach(function (input) {
+        var minusBtn = input.closest('.ds-qty-selector')?.querySelector('.ds-qty-minus');
+        if (minusBtn) minusBtn.disabled = (parseInt(input.value) || 1) <= 1;
+    });
+});
 
 function updatePopupQty(itemId, delta) {
         const qtyInput = document.getElementById('popup-qty-' + itemId);
@@ -560,7 +569,57 @@ function switchEpTab(tab, el) {
         if (el) el.classList.add('active');
 document.getElementById('epActivityContent').classList.toggle('d-none', tab !== 'activity');
         document.getElementById('epWishlistContent').classList.toggle('d-none', tab !== 'wishlist');
+        document.getElementById('epVoucherContent').classList.toggle('d-none', tab !== 'voucher');
         if (tab === 'activity') loadEpActivity();
+        if (tab === 'voucher') loadEpVoucher();
+}
+
+function loadEpVoucher() {
+        var loading = document.getElementById('epVoucherLoading');
+        var listDiv = document.getElementById('epVoucherList');
+        if (!loading) return;
+        loading.classList.remove('d-none');
+        loading.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Đang tải...';
+        listDiv.classList.add('d-none');
+        fetch('/api/vi-voucher/available')
+        .then(function (r) {
+        if (r.redirected || !r.ok) { throw new Error('session-expired'); }
+                return r.json();
+        })
+        .then(function (vouchers) {
+        loading.classList.add('d-none');
+                if (!vouchers || !vouchers.length) {
+        loading.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-ticket" style="font-size:1.5rem;"></i><p class="mt-1 mb-0 small">Chưa có voucher nào</p></div>';
+                loading.classList.remove('d-none');
+                return;
+                }
+        var html = '<div class="d-flex flex-column gap-2">';
+                vouchers.forEach(function (v) {
+        var stubAmt = v.loaiGiam === 'PHAN_TRAM' ? v.giaTriGiam + '%' : Math.round(v.giaTriGiam || 0).toLocaleString('vi-VN');
+                var stubUnit = v.loaiGiam === 'PHAN_TRAM' ? 'giảm giá' : 'đồng';
+                var minOrder = v.donHangToiThieu && v.donHangToiThieu > 0
+        ? 'Đơn từ ' + Math.round(v.donHangToiThieu).toLocaleString('vi-VN') + '₫'
+                : 'Không giới hạn đơn tối thiểu';
+                html += '<div class="svp-ticket">' +
+        '<div class="svp-ticket-stub"><span class="amt">' + stubAmt + '</span><span class="unit">' + stubUnit + '</span></div>' +
+                '<div class="svp-ticket-divider"></div>' +
+                '<div class="svp-ticket-body">' +
+                '<div class="svp-ticket-title">' + (v.tenChuongTrinh || v.maCode) + '</div>' +
+                '<span class="svp-ticket-code">' + v.maCode + '</span>' +
+                '<div class="svp-ticket-meta">' + minOrder + '</div>' +
+                '</div></div>';
+                });
+        html += '</div>';
+        listDiv.innerHTML = html;
+                listDiv.classList.remove('d-none');
+        })
+        .catch(function (err) {
+        if (err && err.message === 'session-expired') {
+        loading.innerHTML = '<div class="text-center py-4 text-muted small">Phiên đăng nhập đã hết hạn. <a href="/dang-nhap" class="fw-semibold">Đăng nhập lại</a></div>';
+        } else {
+        loading.innerHTML = '<div class="text-center py-4 text-muted small">Không thể tải voucher</div>';
+        }
+        });
 }
 
 function loadEpActivity() {
@@ -569,7 +628,10 @@ function loadEpActivity() {
         var reviewsDiv = document.getElementById('epActivityReviews');
         if (!loading || ordersDiv.dataset.loaded) return;
         fetch('/tai-khoan/api/hoat-dong')
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+        if (r.redirected || !r.ok) { throw new Error('session-expired'); }
+                return r.json();
+        })
         .then(function(data) {
         loading.classList.add('d-none');
                 if (data.orders && data.orders.length) {
@@ -597,8 +659,12 @@ function loadEpActivity() {
                 }
         ordersDiv.dataset.loaded = 'true';
                 })
-        .catch(function() {
+        .catch(function(err) {
+        if (err && err.message === 'session-expired') {
+        loading.innerHTML = '<div class="text-center py-4 text-muted small">Phiên đăng nhập đã hết hạn. <a href="/dang-nhap" class="fw-semibold">Đăng nhập lại</a></div>';
+        } else {
         loading.innerHTML = '<div class="text-center py-4 text-muted small">Không thể tải hoạt động</div>';
+        }
                 });
 }
 

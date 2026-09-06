@@ -93,6 +93,10 @@ public class ContactController {
                         + "<p style=\"white-space:pre-wrap;background:#f8fafc;border-left:4px solid #1D4ED8;padding:12px 16px;border-radius:6px;\">"
                         + htmlEscape(noiDung.trim()) + "</p></div>");
             }
+            String contactPhone = siteSettingService.getValue("store_phone");
+            if (contactPhone == null || contactPhone.isBlank()) {
+                contactPhone = SiteSettingService.STORE_DEFAULTS.getOrDefault("store_phone", "0901 234 567");
+            }
             asyncEmailService.sendRaw(email.trim(),
                     "[DuaStore] Cảm ơn bạn đã liên hệ",
                     "<div style=\"font-family:Arial,sans-serif;padding:20px;\">"
@@ -101,7 +105,7 @@ public class ContactController {
                     + "<p>Chúng tôi đã nhận được tin nhắn của bạn. DuaStore sẽ phản hồi trong thời gian sớm nhất.</p>"
                     + "<p style=\"background:#f8fafc;border-left:4px solid #1D4ED8;padding:12px 16px;border-radius:6px;white-space:pre-wrap;\">"
                     + htmlEscape(noiDung.trim()) + "</p>"
-                    + "<p style=\"color:#64748b;\">Mọi thắc mắc vui lòng liên hệ <b>0983595240</b>.</p></div>");
+                    + "<p style=\"color:#64748b;\">Mọi thắc mắc vui lòng liên hệ <b>" + htmlEscape(contactPhone) + "</b>.</p></div>");
         }
 
         ra.addFlashAttribute("successMsg", "Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất.");

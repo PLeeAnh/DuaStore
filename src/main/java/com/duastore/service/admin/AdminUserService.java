@@ -121,7 +121,27 @@ public class AdminUserService {
         user.setIsActive(
                 !user.getIsActive()
         );
+        if (user.getIsActive()) {
+            user.setLockReason(null);
+        }
 
+        userRepository.save(user);
+    }
+
+    /** Khóa tài khoản kèm lý do — dùng khi khóa được áp dụng thực sự (trực tiếp hoặc sau khi duyệt). */
+    public void lock(Integer id, String reason, User currentAdmin) {
+        User user = getUserById(id);
+        validateStatusChange(user, false, currentAdmin);
+        user.setIsActive(false);
+        user.setLockReason(reason);
+        userRepository.save(user);
+    }
+
+    public void unlock(Integer id, User currentAdmin) {
+        User user = getUserById(id);
+        validateStatusChange(user, true, currentAdmin);
+        user.setIsActive(true);
+        user.setLockReason(null);
         userRepository.save(user);
     }
 

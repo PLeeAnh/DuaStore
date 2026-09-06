@@ -97,6 +97,21 @@ public class FlashSaleService {
         return flashSaleItemRepository.save(item);
     }
 
+    /**
+     * Kiểm tra biến thể có đang được áp dụng ở 1 Flash Sale KHÁC (đang chạy) hay không —
+     * dùng để cảnh báo admin trước khi thêm, vì hệ thống KHÔNG cộng dồn % giảm giữa nhiều
+     * Flash Sale trùng biến thể: {@link com.duastore.repository.FlashSaleItemRepository#findBestActiveByVariantId}
+     * chỉ lấy ĐÚNG 1 kết quả duy nhất cho mỗi biến thể (ưu tiên theo priority cao hơn, nếu
+     * bằng nhau thì Flash Sale tạo sau/id lớn hơn thắng) — Flash Sale còn lại vẫn tồn tại
+     * trong DB nhưng không có tác dụng gì với biến thể đó cho tới khi cái kia kết thúc.
+     */
+    @Transactional(readOnly = true)
+    public FlashSaleItem findOverlappingActiveItem(Integer variantId, Integer excludeFlashSaleId, java.time.LocalDateTime now) {
+        return flashSaleItemRepository.findBestActiveByVariantId(variantId, now)
+                .filter(i -> !i.getFlashSale().getId().equals(excludeFlashSaleId))
+                .orElse(null);
+    }
+
     public void deleteItem(Integer itemId) {
         FlashSaleItem item = flashSaleItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm flash sale"));

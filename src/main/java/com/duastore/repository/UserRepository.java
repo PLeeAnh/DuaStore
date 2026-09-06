@@ -61,14 +61,14 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
             + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
-            + "AND (:role IS NULL OR :role MEMBER OF u.roles)",
+            + "AND (:role IS NULL OR EXISTS (SELECT 1 FROM u.roles rr WHERE rr.name = :role))",
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u WHERE "
             + "(:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
             + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
-            + "AND (:role IS NULL OR :role MEMBER OF u.roles)")
+            + "AND (:role IS NULL OR EXISTS (SELECT 1 FROM u.roles rr WHERE rr.name = :role))")
     Page<User> searchByKeywordAndStatus(@Param("keyword") String keyword,
             @Param("status") String status,
             @Param("role") String role,
@@ -81,7 +81,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
             + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
             + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city)) "
-            + "AND (:role IS NULL OR :role MEMBER OF u.roles)",
+            + "AND (:role IS NULL OR EXISTS (SELECT 1 FROM u.roles rr WHERE rr.name = :role))",
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u "
             + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
@@ -89,7 +89,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "OR LOWER(u.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) "
             + "AND (:status IS NULL OR (:status = 'active' AND u.isActive = true) OR (:status = 'inactive' AND u.isActive = false)) "
             + "AND (:city IS NULL OR u.id IN (SELECT a.userId FROM Address a WHERE a.tinhThanh = :city)) "
-            + "AND (:role IS NULL OR :role MEMBER OF u.roles)")
+            + "AND (:role IS NULL OR EXISTS (SELECT 1 FROM u.roles rr WHERE rr.name = :role))")
     Page<User> searchByKeywordStatusAndCity(@Param("keyword") String keyword,
             @Param("status") String status,
             @Param("city") String city,
@@ -109,7 +109,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "OR (:spendingTier = 'new' AND (u.id NOT IN "
             + "(SELECT DISTINCT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH')) "
             + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000)))) "
-            + "AND (:role IS NULL OR :role MEMBER OF u.roles)",
+            + "AND (:role IS NULL OR EXISTS (SELECT 1 FROM u.roles rr WHERE rr.name = :role))",
             countQuery = "SELECT COUNT(DISTINCT u) FROM User u "
             + "WHERE (:keyword IS NULL OR LOWER(u.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) "
             + "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) "
@@ -123,7 +123,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             + "OR (:spendingTier = 'new' AND (u.id NOT IN "
             + "(SELECT DISTINCT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH')) "
             + "OR u.id IN (SELECT o.user.id FROM Order o WHERE o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH') GROUP BY o.user.id HAVING SUM(o.tongThanhToan) < 2000000)))) "
-            + "AND (:role IS NULL OR :role MEMBER OF u.roles)")
+            + "AND (:role IS NULL OR EXISTS (SELECT 1 FROM u.roles rr WHERE rr.name = :role))")
     Page<User> searchByKeywordStatusAndSpending(@Param("keyword") String keyword,
             @Param("status") String status,
             @Param("spendingTier") String spendingTier,

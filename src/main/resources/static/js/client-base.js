@@ -82,29 +82,6 @@
         document.body.appendChild(overlay);
     }
 
-    /* Footer map */
-    var mapEl = document.getElementById('footerMap');
-    if (mapEl) {
-        function initFooterMap() {
-            var lat = parseFloat(mapEl.dataset.lat) || 20.8565;
-            var lng = parseFloat(mapEl.dataset.lng) || 106.6756;
-            var map = L.map(mapEl, { center: [lat, lng], zoom: 14, zoomControl: true, attributionControl: false, dragging: true, scrollWheelZoom: true });
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-            L.marker([lat, lng]).addTo(map);
-        }
-        if (typeof L !== 'undefined') {
-            initFooterMap();
-        } else {
-            var cssLink = document.createElement('link');
-            cssLink.rel = 'stylesheet';
-            cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            document.head.appendChild(cssLink);
-            var script = document.createElement('script');
-            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            script.onload = initFooterMap;
-            document.body.appendChild(script);
-        }
-    }
 })();
 
 /* Search suggestions */

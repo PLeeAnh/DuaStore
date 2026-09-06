@@ -56,6 +56,14 @@ import java.util.stream.Collectors;
  */
 public class CheckoutController {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CheckoutController.class);
+
+    // Mã đơn luôn có dạng "DH" + 12 ký tự hex viết hoa (xem OrderService.generateMaDon).
+    // SePay tu tach field "code" tu noi dung chuyen khoan theo mau nhan dien rieng cua ho,
+    // co the khong nhan ra dinh dang mã đơn tuy chinh cua minh -> can fallback do bằng regex
+    // tren field "content" (noi dung chuyen khoan goc, luon chua ma don vi minh tu sinh QR).
+    private static final java.util.regex.Pattern MA_DON_PATTERN = java.util.regex.Pattern.compile("DH[0-9A-F]{12}");
+
     private final OrderService orderService;
     private final CartService cartService;
     private final AddressRepository addressRepository;
@@ -144,17 +152,22 @@ public class CheckoutController {
                 ? new BigDecimal("10000")
                 : multiCarrierShippingService.calculateFeeForCarrier("GHN", addresses.get(0), subtotal);
 
-        // Auto-apply best promotion
+        // Auto-apply best promotion — chỉ chọn mã THỰC SỰ áp dụng được lúc đặt hàng
+        // (loại trừ biến thể Flash Sale không cộng dồn được, xem findBestPromo)
         List<Promotion> activePromotions = getActivePromotions();
-        Promotion bestPromo = findBestPromo(activePromotions, subtotal, phiShip);
+        Promotion bestPromo = findBestPromo(activePromotions, cartItems, phiShip);
         BigDecimal tienGiam = BigDecimal.ZERO;
         String autoPromoCode = null;
         if (bestPromo != null) {
-            tienGiam = orderService.calculateDiscount(bestPromo, subtotal, phiShip);
+            BigDecimal eligibleAmount = orderService.resolveEligibleAmountForCart(bestPromo, cartItems, Map.of());
+            tienGiam = orderService.calculateDiscount(bestPromo, eligibleAmount, phiShip);
             autoPromoCode = bestPromo.getMaCode();
-            // Calculate per-item discounted prices
+            // Calculate per-item discounted prices — bỏ qua item Flash Sale vì mã này
+            // không cộng dồn được với giá Flash Sale (giữ nguyên giá Flash Sale hiển thị)
             for (CartItemDTO item : cartItems) {
-                if (item.getGiaBan() != null) {
+                boolean isFlashExcluded = "FLASH_SALE".equals(item.getNguonGia())
+                        && !Boolean.TRUE.equals(bestPromo.getStackable());
+                if (item.getGiaBan() != null && !isFlashExcluded) {
                     if ("PHAN_TRAM".equals(bestPromo.getLoaiGiam())) {
                         BigDecimal discountPct = bestPromo.getGiaTriGiam();
                         BigDecimal discountedPrice = item.getGiaBan()
@@ -163,8 +176,8 @@ public class CheckoutController {
                         item.setGiaBanSauGiam(discountedPrice);
                     } else {
                         // For fixed-amount, apply proportional discount
-                        if (tienGiam.compareTo(BigDecimal.ZERO) > 0 && subtotal.compareTo(BigDecimal.ZERO) > 0) {
-                            BigDecimal ratio = item.getGiaBan().multiply(tienGiam).divide(subtotal, java.math.RoundingMode.HALF_UP);
+                        if (tienGiam.compareTo(BigDecimal.ZERO) > 0 && eligibleAmount.compareTo(BigDecimal.ZERO) > 0) {
+                            BigDecimal ratio = item.getGiaBan().multiply(tienGiam).divide(eligibleAmount, java.math.RoundingMode.HALF_UP);
                             item.setGiaBanSauGiam(item.getGiaBan().subtract(ratio));
                         }
                     }
@@ -302,7 +315,8 @@ public class CheckoutController {
                         "Khách hàng đã đặt đơn hàng mới: " + order.getMaDon(),
                         "ORDER", order.getId(),
                         "/admin/don-hang",
-                        order.getMaDon()
+                        order.getMaDon(),
+                        com.duastore.config.security.PermissionEnum.ORDER_READ
                 );
             } catch (Exception e) {
                 // notifyStaff đã log lỗi, không break flow chính
@@ -310,7 +324,9 @@ public class CheckoutController {
 
             // Email xac nhan gui BAT DONG BO (best-effort) — khong bao gio chan/khong tao
             // tinh huong "guu don thanh cong nhung vi email loi nen bi huy don" nua.
-            if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT())) {
+            // Bo qua CHUYEN_KHOAN va SEPAY_QR: 2 don nay chua thanh toan luc tao, email
+            // chi gui 1 lan khi thanh toan thuc su duoc xac nhan.
+            if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT()) && !"SEPAY_QR".equals(order.getPhuongThucTT())) {
                 asyncEmailService.sendOrderSuccess(order);
             }
             asyncEmailService.notifyStaffNewOrder(order);
@@ -341,11 +357,12 @@ public class CheckoutController {
         return promos;
     }
 
-    private BigDecimal calcAutoDiscount(BigDecimal subtotal, BigDecimal phiShip) {
+    private BigDecimal calcAutoDiscount(List<CartItemDTO> cartItems, BigDecimal phiShip) {
         List<Promotion> activePromotions = getActivePromotions();
-        Promotion bestPromo = findBestPromo(activePromotions, subtotal, phiShip);
+        Promotion bestPromo = findBestPromo(activePromotions, cartItems, phiShip);
         if (bestPromo != null) {
-            return orderService.calculateDiscount(bestPromo, subtotal, phiShip);
+            BigDecimal eligible = orderService.resolveEligibleAmountForCart(bestPromo, cartItems, Map.of());
+            return orderService.calculateDiscount(bestPromo, eligible, phiShip);
         }
         return BigDecimal.ZERO;
     }
@@ -368,7 +385,7 @@ public class CheckoutController {
         BigDecimal phiShip = addresses.isEmpty()
                 ? new BigDecimal("10000")
 : multiCarrierShippingService.calculateFeeForCarrier("GHN", addresses.get(0), subtotal);
-        BigDecimal tienGiam = calcAutoDiscount(subtotal, phiShip);
+        BigDecimal tienGiam = calcAutoDiscount(cartItems, phiShip);
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("addresses", addresses);
         model.addAttribute("subtotal", subtotal);
@@ -384,7 +401,7 @@ public class CheckoutController {
         model.addAttribute("userVouchers", userId != null ? voucherWalletService.getAvailableVouchers(userId) : List.of());
         model.addAttribute("bankInfo", paymentService.getBankInfo());
         List<Promotion> activePromotions = getActivePromotions();
-        Promotion bestPromo = findBestPromo(activePromotions, subtotal, phiShip);
+        Promotion bestPromo = findBestPromo(activePromotions, cartItems, phiShip);
         model.addAttribute("bestPromo", bestPromo);
         Map<String, String> paymentSettings = siteSettingService.getGroup("payment");
         Map<String, Boolean> paymentMethods = new HashMap<>();
@@ -398,14 +415,27 @@ public class CheckoutController {
         model.addAttribute("carrierGHTKEnabled", "1".equals(shippingSettings.getOrDefault("carrier_ghtk_enabled", "1")));
     }
 
-    private Promotion findBestPromo(List<Promotion> promos, BigDecimal subtotal, BigDecimal phiShip) {
+    /**
+     * Chỉ tự động chọn khuyến mãi nếu nó THỰC SỰ áp dụng được khi đặt hàng — tính theo
+     * "số tiền đủ điều kiện" (loại trừ biến thể đang Flash Sale không cộng dồn được,
+     * giống hệt logic ở OrderService.resolveEligibleAmount) thay vì cả subtotal thô,
+     * để tránh trường hợp trang xem trước gợi ý 1 mã nhưng lúc đặt hàng lại bị từ chối.
+     */
+    private Promotion findBestPromo(List<Promotion> promos, List<CartItemDTO> cartItems, BigDecimal phiShip) {
         BigDecimal maxPct = new BigDecimal("100");
         BigDecimal ship = phiShip != null ? phiShip : BigDecimal.ZERO;
+        Map<Integer, BigDecimal> eligibleByPromo = new HashMap<>();
+        for (Promotion p : promos) {
+            eligibleByPromo.put(p.getId(),
+                    orderService.resolveEligibleAmountForCart(p, cartItems, Map.of()));
+        }
         return promos.stream()
-                .filter(p -> p.getDonHangToiThieu() == null || subtotal.compareTo(p.getDonHangToiThieu()) >= 0)
+                .filter(p -> eligibleByPromo.get(p.getId()).compareTo(BigDecimal.ZERO) > 0)
+                .filter(p -> p.getDonHangToiThieu() == null
+                        || eligibleByPromo.get(p.getId()).compareTo(p.getDonHangToiThieu()) >= 0)
                 .filter(p -> !"PHAN_TRAM".equals(p.getLoaiGiam()) || p.getGiaTriGiam().compareTo(maxPct) <= 0)
                 .filter(p -> p.getSoLanDung() == null || p.getDaDung() < p.getSoLanDung())
-                .max(Comparator.comparing(p -> orderService.calculateDiscount(p, subtotal, ship)))
+                .max(Comparator.comparing(p -> orderService.calculateDiscount(p, eligibleByPromo.get(p.getId()), ship)))
                 .orElse(null);
     }
 
@@ -444,10 +474,20 @@ public class CheckoutController {
                         "Khách hàng vừa đặt đơn hàng mới: " + order.getMaDon(),
                         "ORDER", order.getId(),
                         "/admin/don-hang/" + order.getId(),
-                        order.getMaDon()
+                        order.getMaDon(),
+                        com.duastore.config.security.PermissionEnum.ORDER_READ
                 );
             } catch (Exception ignored) {
             }
+
+            // Email xac nhan gui BAT DONG BO (best-effort) — khong bao gio chan/khong tao
+            // tinh huong "gui don thanh cong nhung vi email loi nen bi huy don". Bo qua
+            // CHUYEN_KHOAN va SEPAY_QR vi 2 don nay chua thanh toan luc tao — email chi gui
+            // 1 lan khi thanh toan thuc su duoc xac nhan (xem xacNhanChuyenKhoan / SePay IPN).
+            if (!"CHUYEN_KHOAN".equals(order.getPhuongThucTT()) && !"SEPAY_QR".equals(order.getPhuongThucTT())) {
+                asyncEmailService.sendOrderSuccess(order);
+            }
+            asyncEmailService.notifyStaffNewOrder(order);
 
             res.put("success", true);
             res.put("orderId", order.getId());
@@ -500,8 +540,16 @@ public class CheckoutController {
                 res.put("message", "Mã giảm giá không tồn tại hoặc đã ngừng hoạt động");
                 return ResponseEntity.ok(res);
             }
-            orderService.validatePromotion(promo, subtotal);
-            BigDecimal tienGiam = orderService.calculateDiscount(promo, subtotal);
+            // Tính theo số tiền THỰC SỰ đủ điều kiện (loại trừ biến thể Flash Sale không
+            // cộng dồn được) — giống hệt kiểm tra lúc đặt hàng thật, để không báo "áp dụng
+            // thành công" ở đây rồi lại bị từ chối khi bấm Đặt hàng.
+            Integer userId = getUserId();
+            List<CartItemDTO> cartItems = userId != null ? cartService.getItems(userId) : List.of();
+            BigDecimal eligibleAmount = cartItems.isEmpty()
+                    ? subtotal
+                    : orderService.resolveEligibleAmountForCart(promo, cartItems, Map.of());
+            orderService.validatePromotion(promo, eligibleAmount);
+            BigDecimal tienGiam = orderService.calculateDiscount(promo, eligibleAmount);
             res.put("success", true);
             res.put("tienGiam", tienGiam);
             res.put("message", "Áp dụng mã thành công! Giảm "
@@ -534,6 +582,7 @@ public class CheckoutController {
             model.addAttribute("accountName", paymentService.getAccountName());
             model.addAttribute("bankName", paymentService.getBankName());
             model.addAttribute("title", "Thanh toán chuyển khoản");
+            model.addAttribute("bodyClass", "ds-checkout-page");
             return "view/client/payment";
         } catch (RuntimeException e) {
             return "redirect:/";
@@ -569,7 +618,8 @@ public class CheckoutController {
                             "Khách hàng đã xác nhận thanh toán cho đơn hàng: " + order.getMaDon(),
                             "ORDER", order.getId(),
                             "/admin/don-hang/" + order.getId(),
-                            order.getMaDon()
+                            order.getMaDon(),
+                            com.duastore.config.security.PermissionEnum.ORDER_READ
                     );
                 } catch (Exception ignored) {
                 }
@@ -623,7 +673,8 @@ public class CheckoutController {
             model.addAttribute("accountNumber", sepayService.getBankAccount());
             model.addAttribute("accountName", sepayService.getBankHolder());
             model.addAttribute("title", "Thanh toán QR (VietQR)");
-            return "view/client/payment";
+            model.addAttribute("bodyClass", "ds-checkout-page");
+            return "view/client/sepay-qr";
         } catch (RuntimeException e) {
             return "redirect:/";
         }
@@ -642,6 +693,8 @@ public class CheckoutController {
         }
         try {
             String transferType = (String) body.getOrDefault("transferType", "");
+            log.info("SePay IPN nhan duoc: transferType={}, code={}, content={}, transferAmount={}",
+                    transferType, body.get("code"), body.get("content"), body.get("transferAmount"));
             if (!"in".equals(transferType)) {
                 response.put("success", true);
                 return ResponseEntity.ok(response);
@@ -649,12 +702,30 @@ public class CheckoutController {
             Number amountNum = (Number) body.get("transferAmount");
             long transferAmount = amountNum != null ? amountNum.longValue() : 0;
             String code = (String) body.getOrDefault("code", "");
-            if (code == null || code.isBlank()) {
-                response.put("success", true);
-                return ResponseEntity.ok(response);
+            String content = (String) body.getOrDefault("content", "");
+
+            Order order = null;
+            if (code != null && !code.isBlank()) {
+                try {
+                    order = orderService.getOrderByMaDon(code);
+                } catch (RuntimeException e) {
+                    order = null;
+                }
             }
-            Order order = orderService.getOrderByMaDon(code);
+            if (order == null && content != null && !content.isBlank()) {
+                java.util.regex.Matcher m = MA_DON_PATTERN.matcher(content.toUpperCase());
+                if (m.find()) {
+                    String extractedMaDon = m.group();
+                    log.info("SePay IPN: field 'code' khong khop don nao, thu bang ma don trich tu 'content': {}", extractedMaDon);
+                    try {
+                        order = orderService.getOrderByMaDon(extractedMaDon);
+                    } catch (RuntimeException e) {
+                        order = null;
+                    }
+                }
+            }
             if (order == null) {
+                log.warn("SePay IPN: khong tim thay don hang tu code='{}' hay content='{}'", code, content);
                 response.put("success", false);
                 response.put("message", "Order not found");
                 return ResponseEntity.ok(response);
@@ -678,14 +749,20 @@ public class CheckoutController {
                 response.put("message", "Amount mismatch");
                 return ResponseEntity.ok(response);
             }
-            orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
-            orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
-            try {
-                asyncEmailService.sendOrderSuccess(order);
-            } catch (Exception ignored) {
+            boolean justPaid = orderService.updatePaymentStatus(order.getId(), "DA_THANH_TOAN");
+            if (justPaid) {
+                orderStatusLogService.ghiLog(order, OrderEventType.PAYMENT_CONFIRMED, null, null, null, null);
+                log.info("SePay IPN: xac nhan thanh toan thanh cong cho don {}", order.getMaDon());
+                try {
+                    asyncEmailService.sendOrderSuccess(order);
+                } catch (Exception ignored) {
+                }
+            } else {
+                log.info("SePay IPN: don {} da duoc xu ly boi request truoc do (bo qua trung lap)", order.getMaDon());
             }
             response.put("success", true);
         } catch (Exception e) {
+            log.error("SePay IPN: loi khi xu ly webhook", e);
             response.put("success", false);
             response.put("message", e.getMessage());
         }

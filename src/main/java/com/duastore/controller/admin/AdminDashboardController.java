@@ -1,8 +1,10 @@
 package com.duastore.controller.admin;
 
 import com.duastore.model.Order;
+import com.duastore.service.admin.AdminAnalyticsService;
 import com.duastore.service.admin.AdminDashboardService;
 import com.duastore.service.admin.AdminVariantPredictionService;
+import com.duastore.util.PeriodRangeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -27,24 +29,34 @@ public class AdminDashboardController {
 
     private final AdminDashboardService dashboardService;
     private final AdminVariantPredictionService predictionService;
+    private final AdminAnalyticsService analyticsService;
 
     public AdminDashboardController(AdminDashboardService dashboardService,
-                                     AdminVariantPredictionService predictionService) {
+                                     AdminVariantPredictionService predictionService,
+                                     AdminAnalyticsService analyticsService) {
         this.dashboardService = dashboardService;
         this.predictionService = predictionService;
+        this.analyticsService = analyticsService;
     }
 
     @GetMapping("/admin")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).DASHBOARD_READ)")
     public String home(Model model,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String period,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
         try {
+            var range = PeriodRangeUtil.resolve(period, from, to);
             model.addAttribute("title", "dashboard");
+            model.addAttribute("activePeriod", (period != null && !period.isEmpty()) ? period : "this-month");
+            model.addAttribute("fromDate", range.from().toString());
+            model.addAttribute("toDate", range.to().toString());
             model.addAttribute("totalProducts", dashboardService.getTotalProducts());
             model.addAttribute("todayOrders", dashboardService.getTodayOrders());
-            model.addAttribute("totalOrders", dashboardService.getTotalOrders());
-            model.addAttribute("monthlyRevenue", dashboardService.getMonthlyRevenue());
+            model.addAttribute("totalOrders", analyticsService.getTotalOrders(range.from(), range.to()));
+            model.addAttribute("monthlyRevenue", analyticsService.getTotalRevenue(range.from(), range.to()));
             model.addAttribute("totalCustomers", dashboardService.getTotalCustomers());
             model.addAttribute("activePromotions", dashboardService.getActivePromotions());
 
@@ -76,7 +88,8 @@ public class AdminDashboardController {
             model.addAttribute("entityLabel", "đơn hàng");
 
             model.addAttribute("dailyRevenue", dashboardService.getDailyRevenueLast7Days());
-            model.addAttribute("topProducts", dashboardService.getTopSellingProducts(5));
+            model.addAttribute("topProducts", analyticsService.getTopSellingProducts(range.from(), range.to())
+                    .stream().limit(5).toList());
             model.addAttribute("lowStockCount", dashboardService.getLowStockCount());
             model.addAttribute("lowStockProducts", dashboardService.getLowStockProducts(8));
             model.addAttribute("urgentOrderCount", dashboardService.getUrgentOrderCount());
@@ -108,7 +121,7 @@ public class AdminDashboardController {
                 model.addAttribute("revenueGrowth", dashboardService.getRevenueGrowth());
                 model.addAttribute("monthlyRevenueData", dashboardService.getMonthlyRevenueLast12Months());
                 model.addAttribute("topProducts7Days", dashboardService.getTopSellingProductsLast7Days(5));
-                model.addAttribute("cancelRefundRate", dashboardService.getCancelRate());
+                model.addAttribute("cancelRate", dashboardService.getCancelRate());
             } catch (Exception e) {
                 log.error("Failed to load enhanced dashboard data", e);
             }

@@ -1,109 +1,5 @@
 window.appliedDiscount = parseInt(document.getElementById('discountDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
 
-function copyCode(btn) {
-    var code = btn.getAttribute('data-code');
-    if (!code) return;
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(code).then(function () {
-            if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã copy mã: ' + code); }
-        });
-    } else {
-        var ta = document.createElement('textarea');
-        ta.value = code;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã copy mã: ' + code); }
-    }
-}
-
-function openPromoModal() {
-    var modalEl = document.getElementById('promoModal');
-    bootstrap.Modal.getOrCreateInstance(modalEl).show();
-}
-function closePromoModal() {
-    var modalEl = document.getElementById('promoModal');
-    bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-}
-function selectPromo(el) {
-    var code = el.getAttribute('data-code');
-    document.querySelectorAll('#promoModal .promo-item').forEach(function (p) {
-        p.classList.remove('promo-selected');
-        p.style.borderColor = '';
-    });
-    el.classList.add('promo-selected');
-    el.style.borderColor = 'var(--ds-primary)';
-    applyPromoCode(code);
-}
-function copyCheckoutPromo() {
-    var labelEl = document.getElementById('checkoutPromoLabel');
-    if (!labelEl) return;
-    var code = labelEl.textContent.trim();
-    if (!code || code === 'Chọn hoặc nhập mã giảm giá') return;
-    navigator.clipboard.writeText(code).then(function () {
-        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.success('Đã sao chép mã: ' + code); }
-    }).catch(function () {
-        if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Sao chép thất bại'); }
-    });
-}
-function applyVoucherInput() {
-    var input = document.getElementById('promoVoucherInput');
-    var code = input.value.trim();
-    if (!code) return;
-    applyPromoCode(code);
-}
-function applyPromoCode(code) {
-    var labelEl = document.getElementById('checkoutPromoLabel');
-    var msgEl = document.getElementById('checkoutPromoMsg');
-    var copyBtn = document.getElementById('checkoutCopyPromo');
-    var promoDisplay = document.getElementById('checkoutPromoDisplay');
-    var subtotal = parseInt(document.getElementById('rawSubtotal').textContent) || 0;
-    var csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
-    var csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
-    document.getElementById('checkoutPromoInput').value = code;
-    if (promoDisplay) promoDisplay.style.display = '';
-    if (labelEl) { labelEl.textContent = code; labelEl.className = 'text-primary fw-semibold'; }
-    if (msgEl) msgEl.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
-    closePromoModal();
-    var headers = {'Content-Type': 'application/json'};
-    if (csrfHeader && csrfToken) headers[csrfHeader] = csrfToken;
-    fetch('/api/coupon/validate', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({maCode: code, subtotal})
-    }).then(function (r) {
-        if (r.status === 403) {
-            if (typeof showLoginPopup === 'function') showLoginPopup();
-            return null;
-        }
-        return r.json();
-    }).then(function (data) {
-        if (!data) return;
-        if (data.valid) {
-            if (msgEl) msgEl.innerHTML = '<span class="text-primary">&#10003; ' + data.message + '</span>';
-            window.appliedDiscount = parseInt(data.discount) || 0;
-            document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + 'đ';
-            document.getElementById('discountDisplay').className = 'text-danger';
-            if (copyBtn) copyBtn.style.display = '';
-        } else {
-            if (msgEl) msgEl.innerHTML = '<span class="text-danger">&#10007; ' + data.message + '</span>';
-            window.appliedDiscount = 0;
-            document.getElementById('discountDisplay').textContent = '0đ';
-            document.getElementById('discountDisplay').className = '';
-            if (copyBtn) copyBtn.style.display = 'none';
-            if (labelEl) { labelEl.textContent = ''; labelEl.className = ''; }
-            if (promoDisplay) promoDisplay.style.display = 'none';
-            document.getElementById('checkoutPromoInput').value = '';
-        }
-        updateTotal();
-    }).catch(function () {
-        if (msgEl) msgEl.innerHTML = '<span class="text-danger">Lỗi kết nối, vui lòng thử lại</span>';
-        if (promoDisplay) promoDisplay.style.display = 'none';
-        document.getElementById('checkoutPromoInput').value = '';
-    });
-}
-
 function updatePointsDiscount() {
     var input = document.getElementById('pointsToRedeem');
     var points = parseInt(input.value) || 0;
@@ -130,6 +26,108 @@ function updateTotal() {
     document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '₫';
 }
 
+/* ── Voucher picker modal (kieu Shopee) ── */
+function formatVoucherDiscount(v) {
+    if (v.loaiGiam === 'PHAN_TRAM') {
+        var pct = (v.giaTriGiam || 0);
+        var txt = 'Giảm ' + pct + '%';
+        if (v.giamToiDa) txt += ' (tối đa ' + Math.round(v.giamToiDa).toLocaleString('vi-VN') + '₫)';
+        return txt;
+    }
+    return 'Giảm ' + Math.round(v.giaTriGiam || 0).toLocaleString('vi-VN') + '₫';
+}
+
+function renderVoucherCard(v) {
+    var minOrder = v.donHangToiThieu && v.donHangToiThieu > 0
+        ? 'Đơn từ ' + Math.round(v.donHangToiThieu).toLocaleString('vi-VN') + '₫'
+        : 'Không giới hạn đơn tối thiểu';
+    var expiry = '';
+    if (v.expiredAt) {
+        var d = new Date(v.expiredAt);
+        expiry = ' · HSD ' + d.toLocaleDateString('vi-VN');
+    }
+    var stubAmt = v.loaiGiam === 'PHAN_TRAM'
+        ? v.giaTriGiam + '%'
+        : Math.round(v.giaTriGiam || 0).toLocaleString('vi-VN');
+    var stubUnit = v.loaiGiam === 'PHAN_TRAM' ? 'giảm giá' : 'đồng';
+    return '<div class="svp-ticket">' +
+        '<div class="svp-ticket-stub"><span class="amt">' + stubAmt + '</span><span class="unit">' + stubUnit + '</span></div>' +
+        '<div class="svp-ticket-divider"></div>' +
+        '<div class="svp-ticket-body">' +
+        '<div class="svp-ticket-title">' + (v.tenChuongTrinh || v.maCode) + '</div>' +
+        '<span class="svp-ticket-code">' + v.maCode + '</span>' +
+        '<div class="svp-ticket-meta">' + minOrder + expiry + '</div>' +
+        '</div>' +
+        '<div class="svp-ticket-actions">' +
+        '<button type="button" class="svp-ticket-apply" onclick="applyVoucherFromModal(\'' + v.maCode + '\')">Áp dụng</button>' +
+        '</div>' +
+        '</div>';
+}
+
+function loadVoucherPickerList() {
+    var listEl = document.getElementById('voucherPickerList');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="text-center text-muted py-4" id="voucherPickerLoading"><i class="bi bi-arrow-repeat me-1"></i>Đang tải voucher...</div>';
+    fetch('/api/vi-voucher/available')
+        .then(function (r) { return r.json(); })
+        .then(function (vouchers) {
+            if (!vouchers || !vouchers.length) {
+                listEl.innerHTML = '<div class="svp-ticket-empty">' +
+                    '<i class="bi bi-ticket-perforated"></i>' +
+                    'Bạn chưa lưu voucher nào<br>' +
+                    '<a href="/khuyen-mai" class="small fw-semibold" style="color:#2563eb;">Xem khuyến mãi đang có</a>' +
+                    '</div>';
+                return;
+            }
+            listEl.innerHTML = '<div class="shp-voucher-list-label">Voucher của bạn (' + vouchers.length + ')</div>' +
+                vouchers.map(renderVoucherCard).join('');
+        })
+        .catch(function () {
+            listEl.innerHTML = '<div class="svp-ticket-empty">Không thể tải danh sách voucher</div>';
+        });
+}
+
+function applyVoucherFromModal(maCode) {
+    maCode = (maCode || '').trim();
+    var errorEl = document.getElementById('voucherPickerError');
+    if (!maCode) {
+        errorEl.textContent = 'Vui lòng nhập hoặc chọn một voucher';
+        errorEl.classList.remove('d-none');
+        return;
+    }
+    var subtotal = parseInt(document.getElementById('rawSubtotal').textContent.replace(/[^0-9]/g, '')) || 0;
+    errorEl.classList.add('d-none');
+    var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').getAttribute('content') : null;
+    var csrfHeader = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').getAttribute('content') : null;
+    var headers = { 'Content-Type': 'application/json' };
+    if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+    fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ maCode: maCode, subtotal: subtotal })
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.valid) {
+                errorEl.textContent = data.message || 'Mã voucher không hợp lệ';
+                errorEl.classList.remove('d-none');
+                return;
+            }
+            document.getElementById('checkoutPromoInput').value = maCode;
+            window.appliedDiscount = Math.round(data.discount || 0);
+            document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + '₫';
+            document.getElementById('discountDisplay').classList.add('text-primary');
+            updateTotal();
+            var modalEl = document.getElementById('voucherPickerModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        })
+        .catch(function () {
+            errorEl.textContent = 'Lỗi kết nối, vui lòng thử lại';
+            errorEl.classList.remove('d-none');
+        });
+}
+
 function initPromoTimers() {
     document.querySelectorAll('.ds-promo-timer').forEach(function (timer) {
         var endStr = timer.getAttribute('data-end');
@@ -146,17 +144,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initPromoTimers();
     window.appliedDiscount = parseInt(document.getElementById('rawDiscount').textContent) || 0;
     window.pointsDiscount = 0;
-    if (window.appliedDiscount > 0) {
-        var copyBtn = document.getElementById('checkoutCopyPromo');
-        if (copyBtn) copyBtn.style.display = '';
-        var promoInput = document.getElementById('checkoutPromoInput');
-        var promoDisplay = document.getElementById('checkoutPromoDisplay');
-        var promoLabel = document.getElementById('checkoutPromoLabel');
-        if (promoInput && promoInput.value && promoDisplay && promoLabel) {
-            promoDisplay.style.display = '';
-            promoLabel.textContent = promoInput.value;
-        }
-    }
 
     /* ── Idempotency: khoa submit 1 lan, kem idempotencyKey cho checkout ── */
     var keyInput = document.getElementById('checkoutIdempotencyKey');
@@ -184,4 +171,9 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteAddress(parseInt(this.getAttribute('data-id')));
         });
     });
+
+    var voucherModalEl = document.getElementById('voucherPickerModal');
+    if (voucherModalEl) {
+        voucherModalEl.addEventListener('shown.bs.modal', loadVoucherPickerList);
+    }
 });

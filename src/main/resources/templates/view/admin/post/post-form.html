@@ -21,57 +21,84 @@
                 <span th:unless="${post.id != null}">Thêm bài viết</span>
             </h4>
         </div>
-        <div class="adm-form-wrap">
-            <form th:action="@{${formAction}}" th:object="${post}" method="post" data-dirty-bar enctype="multipart/form-data" class="row g-3">
-                <input type="hidden" th:field="*{id}" />
-                <div class="col-md-8">
-                    <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
-                    <input type="text" th:field="*{tieuDe}" class="form-control" required />
-                    <div th:if="${#fields.hasErrors('tieuDe')}" th:errors="*{tieuDe}" class="text-danger small"></div>
+        <form th:action="@{${formAction}}" th:object="${post}" method="post" data-dirty-bar enctype="multipart/form-data">
+            <input type="hidden" th:field="*{id}" />
+
+            <!-- Card: Thông tin cơ bản -->
+            <div class="adm-card">
+                <div class="adm-card-header">
+                    <span><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</span>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Tác giả</label>
-                    <input type="hidden" th:field="*{tacGiaId}" />
-                    <input type="text" class="form-control" th:value="${tacGiaName}" readonly />
+                <div class="adm-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{tieuDe}" class="form-control" required />
+                            <div th:if="${#fields.hasErrors('tieuDe')}" th:errors="*{tieuDe}" class="text-danger small"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tác giả</label>
+                            <input type="hidden" th:field="*{tacGiaId}" />
+                            <input type="text" class="form-control" th:value="${tacGiaName}" readonly />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Danh mục</label>
+                            <select th:field="*{danhMucId}" class="form-select searchable-select" placeholder="Tìm danh mục...">
+                                <option value="">-- Chọn danh mục --</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"></option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Danh mục</label>
-                    <select th:field="*{danhMucId}" class="form-select searchable-select">
-                        <option value="">-- Chọn danh mục --</option>
-                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.tenDanhMuc}"></option>
-                    </select>
+            </div>
+
+            <!-- Card: Nội dung -->
+            <div class="adm-card mt-4">
+                <div class="adm-card-header">
+                    <span><i class="bi bi-file-text me-2"></i>Nội dung</span>
                 </div>
-                <div class="col-12">
-                    <label class="form-label">Nội dung</label>
+                <div class="adm-card-body">
                     <textarea th:field="*{noiDung}" class="form-control" rows="15" id="noiDung"></textarea>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Ảnh đại diện</label>
-                    <input type="file" th:name="hinhAnhFile" class="form-control" />
-                    <div th:if="${post.hinhAnh != null}" class="mt-2">
-                        <img th:src="@{${post.hinhAnh}}" alt="Thumb" style="width:80px;height:80px;object-fit:cover;border-radius:4px;" />
-                        <small class="text-muted d-block" th:text="${post.hinhAnh}"></small>
+            </div>
+
+            <!-- Card: Ảnh & Trạng thái -->
+            <div class="adm-card mt-4">
+                <div class="adm-card-header">
+                    <span><i class="bi bi-image me-2"></i>Ảnh &amp; Trạng thái</span>
+                </div>
+                <div class="adm-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ảnh đại diện</label>
+                            <input type="file" th:name="hinhAnhFile" class="form-control" />
+                            <div th:if="${post.hinhAnh != null}" class="mt-2">
+                                <img th:src="@{${post.hinhAnh}}" alt="Thumb" style="width:80px;height:80px;object-fit:cover;border-radius:4px;" />
+                                <small class="text-muted d-block" th:text="${post.hinhAnh}"></small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Trạng thái</label>
+                            <select th:field="*{trangThai}" class="form-select">
+                                <option value="NHAP">Nháp</option>
+                                <option value="XUAT_BAN">Xuất bản</option>
+                                <option value="AN">Ẩn</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" th:field="*{featured}" id="postFeatured" />
+                                <label class="form-check-label" for="postFeatured">Bài viết nổi bật <small class="text-muted">(hiển thị mục nổi bật trên trang blog)</small></label>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Trạng thái</label>
-                    <select th:field="*{trangThai}" class="form-select">
-                        <option value="NHAP">Nháp</option>
-                        <option value="XUAT_BAN">Xuất bản</option>
-                        <option value="AN">Ẩn</option>
-                    </select>
-                </div>
-                <div class="col-md-6 d-flex align-items-end pb-1">
-                    <div class="form-check form-switch">
-                        <input type="checkbox" class="form-check-input" th:field="*{featured}" id="postFeatured" />
-                        <label class="form-check-label" for="postFeatured">Bài viết nổi bật <small class="text-muted">(hiển thị mục nổi bật trên trang blog)</small></label>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
-                </div>
-            </form>
-        </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="javascript:history.back()" class="btn btn-secondary">Hủy</a>
+            </div>
+        </form>
     </div>
     <th:block layout:fragment="extra-script">
         <script th:src="@{/js/admin-post.js(v=1)}"></script>

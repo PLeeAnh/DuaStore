@@ -29,7 +29,7 @@ function openReviewImage(el) {
 
 function showReviewImage() {
     var modal = new bootstrap.Modal(document.getElementById('reviewImageModal'));
-    document.getElementById('reviewImagePreview').src = reviewImageGroup[reviewImageIndex];
+    document.getElementById('reviewImageLightbox').src = reviewImageGroup[reviewImageIndex];
     document.getElementById('prevImgBtn').style.display = reviewImageGroup.length > 1 ? '' : 'none';
     document.getElementById('nextImgBtn').style.display = reviewImageGroup.length > 1 ? '' : 'none';
     modal.show();
@@ -37,7 +37,7 @@ function showReviewImage() {
 
 function changeReviewImage(dir) {
     reviewImageIndex = (reviewImageIndex + dir + reviewImageGroup.length) % reviewImageGroup.length;
-    document.getElementById('reviewImagePreview').src = reviewImageGroup[reviewImageIndex];
+    document.getElementById('reviewImageLightbox').src = reviewImageGroup[reviewImageIndex];
 }
 
 function previewReviewImages(input) {

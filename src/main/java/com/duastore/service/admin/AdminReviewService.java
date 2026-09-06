@@ -48,6 +48,33 @@ public class AdminReviewService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Review> searchAdmin(String keyword, Boolean isApproved, Integer maxScore, boolean unanswered, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return reviewsRepository.searchAdmin(keyword, isApproved, maxScore, unanswered, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public double getOverallAverageRating() {
+        Double avg = reviewsRepository.getOverallAverageRating();
+        return avg != null ? avg : 0.0;
+    }
+
+    @Transactional(readOnly = true)
+    public long countUnanswered() {
+        return reviewsRepository.countUnanswered();
+    }
+
+    @Transactional(readOnly = true)
+    public long countLowRating() {
+        return reviewsRepository.countByDanhGiaLessThanEqual(2);
+    }
+
+    @Transactional(readOnly = true)
+    public long countHidden() {
+        return reviewsRepository.countByIsApprovedFalse();
+    }
+
+    @Transactional(readOnly = true)
     public Review getReviewById(Integer id) {
         return reviewsRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đánh giá"));

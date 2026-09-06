@@ -28,6 +28,61 @@
             </div>
         </div>
 
+        <!-- ═════ BỘ LỌC THỜI GIAN (áp dụng cho Đơn/Doanh thu/Top sản phẩm) — dùng chung component với trang Phân tích ═════ -->
+        <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">
+            <div class="adm-daterange" id="admDashboardDateRange">
+                <button type="button" class="adm-daterange-btn active">
+                    <i class="bi bi-calendar-range"></i>
+                    <span th:switch="${activePeriod}">
+                        <span th:case="'today'">Hôm nay</span>
+                        <span th:case="'yesterday'">Hôm qua</span>
+                        <span th:case="'last-7'">7 ngày qua</span>
+                        <span th:case="'last-30'">30 ngày qua</span>
+                        <span th:case="'this-week'">Tuần này</span>
+                        <span th:case="'this-month'">Tháng này</span>
+                        <span th:case="'last-month'">Tháng trước</span>
+                        <span th:case="'this-quarter'">Quý này</span>
+                        <span th:case="'last-quarter'">Quý trước</span>
+                        <span th:case="'this-year'">Năm nay</span>
+                        <span th:case="'last-year'">Năm trước</span>
+                        <span th:case="*" th:text="${fromDate} + ' → ' + ${toDate}">Tuỳ chỉnh</span>
+                    </span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div class="adm-daterange-popover" style="display:none">
+                    <div class="adm-daterange-presets">
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'today'} ? 'active'" data-period="today">Hôm nay</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'yesterday'} ? 'active'" data-period="yesterday">Hôm qua</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-7'} ? 'active'" data-period="last-7">7 ngày qua</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-30'} ? 'active'" data-period="last-30">30 ngày qua</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-week'} ? 'active'" data-period="this-week">Tuần này</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-month'} ? 'active'" data-period="this-month">Tháng này</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-month'} ? 'active'" data-period="last-month">Tháng trước</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-quarter'} ? 'active'" data-period="this-quarter">Quý này</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-quarter'} ? 'active'" data-period="last-quarter">Quý trước</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'this-year'} ? 'active'" data-period="this-year">Năm nay</button>
+                        <button type="button" class="adm-daterange-preset" th:classappend="${activePeriod == 'last-year'} ? 'active'" data-period="last-year">Năm trước</button>
+                    </div>
+                    <div class="adm-daterange-inputs">
+                        <div>
+                            <label class="small text-muted mb-1 d-block">Từ ngày</label>
+                            <input type="date" data-role="from" th:value="${fromDate}" class="form-control form-control-sm"/>
+                        </div>
+                        <div>
+                            <label class="small text-muted mb-1 d-block">Đến ngày</label>
+                            <input type="date" data-role="to" th:value="${toDate}" class="form-control form-control-sm"/>
+                        </div>
+                    </div>
+                    <div class="adm-daterange-error" style="display:none">"Đến ngày" phải sau "Từ ngày"</div>
+                    <div class="adm-daterange-actions">
+                        <button type="button" class="adm-daterange-clear">Bỏ chọn</button>
+                        <button type="button" class="adm-daterange-apply">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+            <a th:href="@{/admin/phan-tich(period=${activePeriod})}" class="btn btn-sm btn-outline-primary ms-auto"><i class="bi bi-graph-up me-1"></i>Xem báo cáo chi tiết</a>
+        </div>
+
         <div th:if="${dashboardError}" class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle me-1"></i>
             <span th:text="${dashboardError}"></span>
@@ -53,7 +108,7 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                         <a th:href="@{/admin/don-hang}" class="text-decoration-none" th:if="${urgentOrderCount > 0}">
                             <span class="badge bg-danger fs-6 me-2" th:text="${urgentOrderCount}"></span> đơn chờ xác nhận trên 48h
                         </a>
-                        <a th:href="@{/admin/phan-tich?period=this-month#products}" class="text-decoration-none" th:if="${smartAlertCount > 0}">
+                        <a th:href="@{/admin/phan-tich(period='this-month',tab='products')}" class="text-decoration-none" th:if="${smartAlertCount > 0}">
                             <span class="badge bg-warning text-dark fs-6 me-2" th:text="${smartAlertCount}"></span> biến thể cần nhập hàng
                         </a>
                     </div>
@@ -99,15 +154,15 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
             <div class="col-6 col-xl-2">
                 <div class="adm-stat p-3" style="border-left:3px solid #7c3aed">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="adm-stat-lbl">Đơn tháng</span>
+                        <span class="adm-stat-lbl" th:text="${activePeriod == 'this-month'} ? 'Đơn tháng' : 'Đơn trong kỳ'">Đơn tháng</span>
                         <div class="adm-stat-icon adm-stat-icon-purple">
                             <i class="bi bi-receipt"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.ordersThisMonth : totalOrders} ?: 0" style="color:#7c3aed">0</div>
+                    <div class="adm-stat-val" th:text="${totalOrders} ?: 0" style="color:#7c3aed">0</div>
                     <div class="adm-text-xs-muted">
                         <span>Đã giao: <span th:text="${deliveredOrders} ?: 0"></span></span>
-                        <span th:if="${statComparison != null}" th:classappend="${#strings.startsWith(statComparison.ordersChange, '+')} ? 'text-success' : 'text-danger'" class="ms-1">
+                        <span th:if="${statComparison != null and activePeriod == 'this-month'}" th:classappend="${#strings.startsWith(statComparison.ordersChange, '+')} ? 'text-success' : 'text-danger'" class="ms-1">
                             <span th:text="${statComparison.ordersChange}"></span>
                         </span>
                     </div>
@@ -117,14 +172,14 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
             <div class="col-6 col-xl-2">
                 <div class="adm-stat p-3" style="border-left:3px solid #2563eb">
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="adm-stat-lbl">Doanh thu tháng</span>
+                        <span class="adm-stat-lbl" th:text="${activePeriod == 'this-month'} ? 'Doanh thu tháng' : 'Doanh thu trong kỳ'">Doanh thu tháng</span>
                         <div class="adm-stat-icon adm-stat-icon-blue">
                             <i class="bi bi-currency-exchange"></i>
                         </div>
                     </div>
-                    <div class="adm-stat-val" th:text="${statComparison != null ? statComparison.revenueThisMonth : monthlyRevenue} ?: '--'" style="color:#2563eb">--</div>
+                    <div class="adm-stat-val" th:text="${monthlyRevenue} ?: '--'" style="color:#2563eb">--</div>
                     <div class="adm-text-xs-muted">
-                        <span th:text="${revenueGrowth}"></span>
+                        <span th:if="${activePeriod == 'this-month'}" th:text="${revenueGrowth}"></span>
                     </div>
                 </div>
             </div>
@@ -180,7 +235,7 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
             <div class="col-12 col-lg-4">
                 <div class="adm-table-wrap p-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top sản phẩm (tháng)</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>Top sản phẩm <span th:text="${activePeriod == 'this-month'} ? '(tháng)' : '(trong kỳ)'">(tháng)</span></h6>
                     </div>
                     <div class="d-flex flex-column gap-2" th:if="${not #lists.isEmpty(topProducts)}">
                         <div th:each="tp, iter : ${topProducts}" class="d-flex align-items-center gap-2">
@@ -198,7 +253,7 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                 <div class="adm-table-wrap p-3 mt-3" th:if="${not #lists.isEmpty(smartAlerts)}">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="mb-0 fw-bold text-warning"><i class="bi bi-graph-up-arrow me-2"></i>Dự báo tồn kho thông minh</h6>
-                        <a th:href="@{/admin/phan-tich?period=this-month#products}" class="small">Chi tiết</a>
+                        <a th:href="@{/admin/phan-tich(period='this-month',tab='products')}" class="small">Chi tiết</a>
                     </div>
                     <div class="d-flex flex-column gap-2">
                         <div th:each="s : ${smartAlerts}" class="d-flex align-items-center gap-2 p-2 rounded" style="background:var(--ef-bg)">
@@ -355,13 +410,13 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                     <div class="d-flex flex-column gap-2">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="adm-text-sm">Đã hủy</span>
-                            <span class="badge bg-danger" th:text="${cancelRefundRate.cancelled} ?: 0">0</span>
+                            <span class="badge bg-danger" th:text="${cancelRate.cancelled} ?: 0">0</span>
                         </div>
                         <hr class="my-1"/>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-bold adm-text-sm">Tỉ lệ</span>
-                            <span class="badge" th:classappend="${cancelRefundRate.cancelled > 0} ? 'bg-danger' : 'bg-success'"
-                                  th:text="${cancelRefundRate.rate} ?: '0%'">0%</span>
+                            <span class="badge" th:classappend="${cancelRate.cancelled > 0} ? 'bg-danger' : 'bg-success'"
+                                  th:text="${cancelRate.rate} ?: '0%'">0%</span>
                         </div>
                     </div>
                 </div>
@@ -390,6 +445,20 @@ ALTER TABLE Products ADD minPrice DECIMAL(12,0) NULL;
                   th:attr="data-label=${mr.label}, data-value=${mr.revenue}"></span>
         </div>
         <script th:src="@{/js/admin-dashboard.js}"></script>
+        <script th:src="@{/js/admin-daterange.js(v=2)}"></script>
+        <script th:inline="javascript">
+            initAdmDateRange('admDashboardDateRange', {
+                onPreset: function (period) {
+                    window.location.href = '/admin?period=' + period;
+                },
+                onApply: function (from, to) {
+                    window.location.href = '/admin?from=' + from + '&to=' + to;
+                },
+                onClear: function () {
+                    window.location.href = '/admin?period=this-month';
+                }
+            });
+        </script>
     </div>
     </th:block>
 

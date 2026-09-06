@@ -144,7 +144,6 @@ function addToCart(productId, variantId, quantity) {
             if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
                 DuaStore.toast.success('Đã thêm vào giỏ hàng');
             }
-            setTimeout(saveGuestCartToLS, 100);
         }
     }).catch(function (error) {
         console.error('Lỗi giỏ hàng: ', error);
@@ -191,8 +190,15 @@ function addToCartFromWishlist(productId, variantId) {
             var existingEl = document.getElementById('cart-item-' + resolvedVariantId);
             if (existingEl) {
                 var qtyInput = existingEl.querySelector('#popup-qty-' + resolvedVariantId);
-                if (qtyInput)
+                if (qtyInput) {
                     qtyInput.value = parseInt(qtyInput.value) + 1;
+                    var psExisting = existingEl.querySelector('#popup-price-' + resolvedVariantId);
+                    if (psExisting) {
+                        var unitExisting = parseInt(psExisting.getAttribute('data-price')) || rawPrice;
+                        psExisting.textContent = (unitExisting * parseInt(qtyInput.value)).toLocaleString('vi-VN') + '₫';
+                    }
+                    updateMinusBtnState(resolvedVariantId);
+                }
             } else {
                 var cartContainer = document.getElementById('cart-items-container');
                 if (cartContainer) {
@@ -203,18 +209,21 @@ function addToCartFromWishlist(productId, variantId) {
                     var priceFmt = rawPrice.toLocaleString('vi-VN') + '₫';
                     var html = '<div class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" id="cart-item-' + resolvedVariantId + '" data-productid="' + productId + '">' +
                             '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
-                            '<div class="popup-item-info flex-grow-1">' +
-                            '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + productName + '</a>' +
-                            '<div class="d-flex align-items-center">' +
-                            '<div class="input-group input-group-sm" style="width:85px;">' +
-                            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + resolvedVariantId + ',-1)">-</button>' +
-                            '<input class="form-control text-center py-0 px-1" type="number" min="1" id="popup-qty-' + resolvedVariantId + '" value="1" />' +
-                            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + resolvedVariantId + ',1)">+</button>' +
+                            '<div class="popup-item-info flex-grow-1 min-w-0">' +
+                            '<div class="d-flex justify-content-between align-items-start">' +
+                            '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold text-decoration-none" style="max-width:150px;font-size:0.9rem;">' + productName + '</a>' +
+                            '<span class="text-primary fw-semibold popup-item-price flex-shrink-0 ms-2" id="popup-price-' + resolvedVariantId + '" data-price="' + rawPrice + '" style="font-size:0.85rem;">' + priceFmt + '</span>' +
                             '</div>' +
-                            '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + resolvedVariantId + '" data-price="' + rawPrice + '">' + priceFmt + '</span>' +
+                            '<div class="small text-muted mb-2" style="font-size:0.8rem;">&nbsp;</div>' +
+                            '<div class="d-flex align-items-center justify-content-between">' +
+                            '<div class="ds-qty-selector">' +
+                            '<button class="ds-qty-btn ds-qty-minus" type="button" disabled onclick="updatePopupQty(' + resolvedVariantId + ',-1)"><svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>' +
+                            '<input type="text" class="ds-qty-val" id="popup-qty-' + resolvedVariantId + '" value="1" onchange="validatePopupQty(' + resolvedVariantId + ', this)" />' +
+                            '<button class="ds-qty-btn ds-qty-plus" type="button" onclick="updatePopupQty(' + resolvedVariantId + ',1)"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>' +
+                            '</div>' +
+                            '<button class="btn-delete-item text-muted border-0 bg-transparent p-0" onclick="removeCartItem(' + resolvedVariantId + ')" title="Xóa khỏi giỏ" style="line-height:1;"><i class="bi bi-trash text-danger" style="font-size:.85rem;"></i></button>' +
                             '</div>' +
                             '</div>' +
-                            '<button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" onclick="removeCartItem(' + resolvedVariantId + ')"><i class="bi bi-trash text-danger"></i></button>' +
                             '</div>';
                     cartContainer.insertAdjacentHTML('beforeend', html);
                 }
@@ -335,7 +344,6 @@ function removeCartItem(cartItemId) {
         if (data.success) {
             if (typeof updateCartBadge === 'function')
                 updateCartBadge(data.cartCount);
-            setTimeout(saveGuestCartToLS, 100);
             if (data.remainingItems === 0 && pid) {
                 document.querySelectorAll('.ds-product-card[data-productid="' + pid + '"]').forEach(function (card) {
                     var b = card.querySelector('.ds-card-add-cart');
@@ -355,10 +363,10 @@ function removeCartItem(cartItemId) {
 
 /* ═══ UPDATE POPUP QTY (+/- số lượng) ═══ */
 function updateMinusBtnState(variantId) {
-    var minusBtn = document.querySelector('#popup-qty-' + variantId)?.closest('.input-group, .ds-qty-selector')?.querySelector('.btn-outline-secondary, .ds-qty-minus');
+    var minusBtn = document.querySelector('#popup-qty-' + variantId)?.closest('.ds-qty-selector')?.querySelector('.ds-qty-minus');
     if (!minusBtn) return;
     var qty = parseInt(document.getElementById('popup-qty-' + variantId)?.value) || 1;
-    minusBtn.style.opacity = qty <= 1 ? '0.35' : '1';
+    minusBtn.disabled = qty <= 1;
 }
 
 function updatePopupQty(variantId, delta) {
@@ -398,7 +406,6 @@ function updatePopupQty(variantId, delta) {
         if (data.success) {
             if (typeof updateCartBadge === 'function')
                 updateCartBadge(data.cartCount);
-            setTimeout(saveGuestCartToLS, 100);
         } else if (data.message && data.message.indexOf('dang nhap') !== -1) {
             if (typeof showLoginPopup === 'function')
                 showLoginPopup();
@@ -449,79 +456,12 @@ function setPopupQty(variantId) {
     }).catch(function () {});
 }
 
-/* ═══ LOCALSTORAGE GUEST CART PERSISTENCE ═══ */
-function saveGuestCartToLS() {
-    var items = [];
-    document.querySelectorAll('#cart-items-container .popup-item').forEach(function(el) {
-        var id = el.id.replace('cart-item-', '');
-        var qtyEl = el.querySelector('input[id^="popup-qty-"]');
-        var priceEl = el.querySelector('.popup-item-price');
-        var nameEl = el.querySelector('a');
-        var imgEl = el.querySelector('img');
-        items.push({
-            variantId: parseInt(id) || id,
-            productId: parseInt(el.dataset.productid) || 0,
-            qty: qtyEl ? parseInt(qtyEl.value) || 1 : 1,
-            price: priceEl ? parseInt(priceEl.dataset.price) || 0 : 0,
-            name: nameEl ? nameEl.textContent : '',
-            img: imgEl ? imgEl.src : ''
-        });
-    });
-    try { localStorage.setItem('ds_guest_cart', JSON.stringify(items)); } catch(e) {}
-}
-
-function restoreGuestCartFromLS() {
-    var raw;
-    try { raw = localStorage.getItem('ds_guest_cart'); } catch(e) {}
-    if (!raw) return;
-    var items;
-    try { items = JSON.parse(raw); } catch(e) { return; }
-    if (!items || !items.length) return;
-    var container = document.getElementById('cart-items-container');
-    if (!container) return;
-    var existing = container.querySelectorAll('.popup-item').length;
-    if (existing > 0) return;
-    var emptyMsg = container.querySelector('.text-center.text-muted');
-    if (emptyMsg) emptyMsg.remove();
-    items.forEach(function(item) {
-        var imgHtml = item.img
-            ? '<img src="' + item.img + '" class="w-100 h-100 object-fit-cover" alt="SP">'
-            : '<i class="bi bi-box-seam text-secondary"></i>';
-        var priceFmt = (item.price * item.qty).toLocaleString('vi-VN') + '₫';
-        var html = '<div class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" id="cart-item-' + item.variantId + '" data-productid="' + item.productId + '">' +
-            '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
-            '<div class="popup-item-info flex-grow-1">' +
-            '<a href="/san-pham/' + item.productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + item.name + '</a>' +
-            '<div class="d-flex align-items-center">' +
-            '<div class="input-group input-group-sm" style="width:85px;">' +
-            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + item.variantId + ',-1)">-</button>' +
-            '<input class="form-control text-center py-0 px-1" type="number" min="1" id="popup-qty-' + item.variantId + '" value="' + item.qty + '" />' +
-            '<button class="btn btn-outline-secondary px-2 py-0" onclick="updatePopupQty(' + item.variantId + ',1)">+</button>' +
-            '</div>' +
-            '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + item.variantId + '" data-price="' + item.price + '">' + priceFmt + '</span>' +
-            '</div>' +
-            '</div>' +
-            '<button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" onclick="removeCartItem(' + item.variantId + ')"><i class="bi bi-trash text-danger"></i></button>' +
-            '</div>';
-        container.insertAdjacentHTML('beforeend', html);
-    });
-    var totalQty = items.reduce(function(sum, i) { return sum + i.qty; }, 0);
-    if (typeof updateCartBadge === 'function') updateCartBadge(totalQty);
-    if (!document.querySelector('#cart-popup .mt-2.pt-2')) {
-        var popup = document.getElementById('cart-popup');
-        if (popup) {
-            var div = document.createElement('div');
-            div.className = 'mt-2 pt-2';
-            div.innerHTML = '<a href="/checkout" class="btn btn-danger w-100 fw-semibold py-2">Thanh toán tất cả</a>';
-            popup.appendChild(div);
-        }
-    }
-}
-
-// Auto-restore on DOMContentLoaded
-document.addEventListener('DOMContentLoaded', function() {
-    restoreGuestCartFromLS();
-});
+/* Dọn key localStorage cũ (lỗi): trước đây mọi thao tác giỏ hàng (kể cả khi đã
+   đăng nhập) đều lưu snapshot popup vào key này, rồi tự động chèn lại bất cứ
+   khi nào popup trống — khiến dữ liệu giỏ hàng cũ hiện lại dù DB đã trống/khác
+   tài khoản. Server-rendered popup (Thymeleaf) đã là nguồn dữ liệu đúng, nên
+   xoá hẳn key rác này một lần cho các trình duyệt đã từng bị lưu. */
+try { localStorage.removeItem('ds_guest_cart'); } catch (e) {}
 
 /* ═══ HELPERS ═══ */
 function getActiveVariant(card) {
@@ -564,25 +504,30 @@ function addCartPopupItem(card, productId, variantId, qty) {
             var ps = existing.querySelector('#popup-price-' + variantId);
             if (ps)
                 ps.textContent = (rawPrice * newQty).toLocaleString('vi-VN') + '₫';
+            updateMinusBtnState(variantId);
         }
         return;
     }
 
+    var lineTotalFmt = (rawPrice * qty).toLocaleString('vi-VN') + 'đ';
+    var minusDisabled = qty <= 1 ? ' disabled' : '';
     var html = '<div class="popup-item d-flex align-items-start mb-3 pb-3 border-bottom" id="cart-item-' + variantId + '" data-productid="' + productId + '">' +
             '<div style="width:50px;height:50px;background:#e5e5e5;border-radius:4px;margin-right:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">' + imgHtml + '</div>' +
-            '<div class="popup-item-info flex-grow-1">' +
-            '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold" style="max-width:180px;font-size:0.9rem;">' + productName + '</a>' +
+            '<div class="popup-item-info flex-grow-1 min-w-0">' +
+            '<div class="d-flex justify-content-between align-items-start">' +
+            '<a href="/san-pham/' + productId + '" class="text-truncate d-block text-dark fw-semibold text-decoration-none" style="max-width:150px;font-size:0.9rem;">' + productName + '</a>' +
+            '<span class="text-primary fw-semibold popup-item-price flex-shrink-0 ms-2" id="popup-price-' + variantId + '" data-price="' + rawPrice + '" style="font-size:0.85rem;">' + lineTotalFmt + '</span>' +
+            '</div>' +
             '<div class="small text-muted mb-2" style="font-size:0.8rem;">' + variantName + '</div>' +
             '<div class="d-flex align-items-center justify-content-between">' +
             '<div class="ds-qty-selector">' +
-            '<button class="ds-qty-btn ds-qty-minus" type="button" onclick="updatePopupQty(' + variantId + ',-1)"><svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>' +
+            '<button class="ds-qty-btn ds-qty-minus" type="button"' + minusDisabled + ' onclick="updatePopupQty(' + variantId + ',-1)"><svg width="9" height="2" viewBox="0 0 9 2" fill="none"><path d="M0 1H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>' +
             '<input type="text" class="ds-qty-val" data-stock="' + stock + '" id="popup-qty-' + variantId + '" value="' + qty + '" onchange="validatePopupQty(' + variantId + ', this)" />' +
             '<button class="ds-qty-btn ds-qty-plus" type="button" onclick="updatePopupQty(' + variantId + ',1)"><svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M4.5 0V9M0 4.5H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></button>' +
             '</div>' +
-            '<span class="text-danger fw-semibold ms-auto popup-item-price" id="popup-price-' + variantId + '" data-price="' + rawPrice + '">' + priceFmt + '</span>' +
+            '<button class="btn-delete-item text-muted border-0 bg-transparent p-0" onclick="removeCartItem(' + variantId + ')" title="Xóa khỏi giỏ" style="line-height:1;"><i class="bi bi-trash text-danger" style="font-size:.85rem;"></i></button>' +
             '</div>' +
             '</div>' +
-            '<button class="btn-delete-item ms-2 text-muted border-0 bg-transparent" onclick="removeCartItem(' + variantId + ')"><i class="bi bi-trash text-danger"></i></button>' +
             '</div>';
     container.insertAdjacentHTML('beforeend', html);
 

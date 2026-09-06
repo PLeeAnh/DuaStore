@@ -426,6 +426,31 @@
             </div>
         </div>
 
+        <!-- Payment Confirm Modal -->
+        <div class="modal fade" id="paymentConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h6 class="modal-title"><i class="bi bi-cash-coin text-warning me-2"></i>Xác nhận thanh toán</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-2 small">Đơn hàng đang ghi nhận <strong>chưa thanh toán</strong>. Xác nhận khách đã thanh toán đơn này?</p>
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="paymentConfirmDontShow">
+                            <label class="form-check-label small text-muted" for="paymentConfirmDontShow">
+                                Không hỏi lại trong phiên này
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Huỷ</button>
+                        <button type="button" class="btn btn-success btn-sm" id="paymentConfirmPaid">Xác nhận đã thanh toán</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Product Quick-View Modal -->
         <div class="modal fade" id="productQuickViewModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -448,8 +473,9 @@
         <script th:inline="javascript">
             window.orderId = [[${order.id}]];
             window.currentStep = [[${currentStep}]];
+            window.currentPaymentStatus = [[${order.trangThaiTT}]];
         </script>
-        <script th:src="@{/js/admin-order.js(v=1)}"></script>
+        <script th:src="@{/js/admin-order.js(v=3)}"></script>
     </th:block>
 </body>
 </html>

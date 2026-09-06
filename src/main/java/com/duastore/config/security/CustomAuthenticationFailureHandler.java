@@ -41,7 +41,10 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
             locked = true;
             message = "Tài khoản tạm khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau 15 phút.";
         } else if (exception instanceof org.springframework.security.authentication.DisabledException) {
-            message = "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.";
+            String reason = user != null ? user.getLockReason() : null;
+            message = (reason != null && !reason.isBlank())
+                    ? "Tài khoản của bạn đã bị khóa. Lý do: " + reason
+                    : "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.";
         } else {
             int remaining = MAX_FAILED_ATTEMPTS;
             if (user != null) {

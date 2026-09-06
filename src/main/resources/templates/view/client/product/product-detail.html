@@ -101,64 +101,22 @@
                             </div>
 
                             <div class="mb-2">
-                                <!-- Flash sale banner -->
-                                <div th:if="${flashEvent != null}" class="d-flex align-items-center gap-2 mb-2">
-                                    <span class="badge" style="background:#2563EB;font-size:.8rem;padding:4px 10px;">
-                                        <i class="bi bi-lightning-charge-fill me-1"></i>FLASH SALE
-                                    </span>
-                                    <span class="small text-danger fw-semibold">
-                                        <th:block th:with="dItem=${defaultVariant != null ? variantFlashMap.get(defaultVariant.id) : null}">
-                                            <th:block th:if="${dItem != null}">
-                                                Giảm <span th:text="${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 'POINT')}">99</span>% – Còn <span th:text="${dItem.soLuongConLai}">0</span> suất
-                                            </th:block>
-                                            <th:block th:unless="${dItem != null}">Đang diễn ra trên một số biến thể</th:block>
-                                        </th:block>
-                                    </span>
-                                    <div class="ds-flash-timer" th:data-end="${#strings.concat(#temporals.format(flashEvent.ngayKetThuc, 'yyyy-MM-dd'), 'T', #temporals.format(flashEvent.ngayKetThuc, 'HH:mm:ss'))}"
-                                         style="position:static;display:inline-flex;font-size:.75rem;padding:2px 10px;">
-                                        <i class="bi bi-clock me-1"></i>
-                                        <span class="flash-countdown">--:--:--</span>
-                                    </div>
-                                </div>
+                                <!-- Chỉ hiện giá + % giảm (nếu có) — không hiện ruy băng "FLASH SALE"/đếm ngược/số
+                                     suất còn lại ở đây nữa. Thông tin Flash Sale chi tiết (đếm ngược, số suất...)
+                                     chỉ nên tập trung ở trang /khuyen-mai để tránh rối và dễ lệch dữ liệu khi có
+                                     nhiều biến thể/nhiều chương trình cùng lúc; ở đây khách chỉ cần biết giá cuối
+                                     cùng và mức giảm là bao nhiêu. -->
                                 <span id="productPrice" class="fw-bold" style="font-size:1.85rem;color:#2563eb;letter-spacing:-.02em">
-                                    <th:block th:if="${flashEvent != null and minPrice != null and maxPrice != null}">
-                                        <th:block th:with="dItem=${defaultVariant != null ? variantFlashMap.get(defaultVariant.id) : null}">
-                                            <th:block th:if="${minPrice == maxPrice}"
-                                                       th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
-                                            <th:block th:unless="${minPrice == maxPrice}">
-                                                <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')}">12.750</span>₫
-                                            </th:block>
-                                            <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">
-                                                <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
-                                                <th:block th:unless="${minPrice == maxPrice}">
-                                                    <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
-                                                </th:block>
-                                            </span>
-                                            <span th:if="${dItem != null}" class="badge ms-2" style="background:#2563EB;font-size:.75rem;vertical-align:middle;"
-                                                  th:text="'-' + ${#numbers.formatDecimal((dItem.giaGoc - dItem.giaSale) * 100 / dItem.giaGoc, 0, 'POINT', 0, 'POINT')} + '%'">-99%</span>
-                                        </th:block>
+                                    <th:block th:if="${defaultDiscountPct != null}">
+                                        <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')}">12.750</span>₫
+                                        <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;"
+                                              th:text="${#numbers.formatDecimal(defaultOriginalPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</span>
+                                        <span class="badge ms-2" style="background:#8b5cf6;font-size:.75rem;vertical-align:middle;"
+                                              th:text="'-' + ${defaultDiscountPct} + '%'">-15%</span>
                                     </th:block>
-                                    <th:block th:if="${flashEvent == null and bestPercentagePromo != null and minPrice != null and maxPrice != null}">
-                                        <th:block th:if="${minPrice == maxPrice}"
-                                                   th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')} + '₫'">12.750₫</th:block>
-                                        <th:block th:unless="${minPrice == maxPrice}">
-                                            <span th:text="${#numbers.formatDecimal(promoDiscountedPrice, 0, 'POINT', 0, 'POINT')}">12.750</span>₫
-                                        </th:block>
-                                        <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">
-                                            <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
-                                            <th:block th:unless="${minPrice == maxPrice}">
-                                                <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
-                                            </th:block>
-                                        </span>
-                                        <span class="badge ms-2" style="background:#8b5cf6;font-size:.75rem;vertical-align:middle;" th:text="'-' + ${#numbers.formatDecimal(bestPercentagePromo.giaTriGiam, 0, 'POINT', 0, 'POINT')} + '%'">-15%</span>
-                                    </th:block>
-                                    <th:block th:if="${flashEvent == null and bestPercentagePromo == null and minPrice != null and maxPrice != null}">
-                                        <th:block th:if="${minPrice == maxPrice}" th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
-                                        <th:block th:unless="${minPrice == maxPrice}">
-                                            <span th:text="${#numbers.formatDecimal(minPrice, 0, 'POINT', 0, 'POINT')}">15.000</span>₫ – <span th:text="${#numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT')}">45.000</span>₫
-                                        </th:block>
-                                    </th:block>
-                                    <th:block th:if="${minPrice == null}">Liên hệ</th:block>
+                                    <th:block th:if="${defaultDiscountPct == null and defaultOriginalPrice != null}"
+                                               th:text="${#numbers.formatDecimal(defaultOriginalPrice, 0, 'POINT', 0, 'POINT')} + '₫'">15.000₫</th:block>
+                                    <th:block th:if="${defaultOriginalPrice == null}">Liên hệ</th:block>
                                 </span>
                             </div>
 
@@ -189,9 +147,7 @@
                                                 th:classappend="${(v.soLuongTon <= 0 ? ' out-of-stock' : (v.isDefault ? ' active' : '')) + (#lists.size(entry.value) == 1 ? ' variant-single' : '')}"
                                                 th:data-variant-id="${v.id}"
                                                 th:data-price="${variantBestPriceMap.get(v.id)}"
-                                                th:data-original="${v.giaKhuyenMai != null ? v.giaGoc : ''}"
-                                                th:data-promo-price="${variantPromoPriceMap.get(v.id)}"
-                                                th:data-flash-price="${variantFlashMap != null and variantFlashMap.get(v.id) != null ? variantFlashMap.get(v.id).giaSale : ''}"
+                                                th:data-original="${v.giaGoc}"
                                                 th:data-image="${v.hinhAnh ?: product.hinhAnhChinh}"
                                                 th:data-stock="${v.soLuongTon}"
                                                 th:data-volume="${v.dungTich}"
@@ -382,8 +338,8 @@
                             <a th:href="@{/san-pham/{id}(id=${rp.id})}" class="text-decoration-none">
                                 <div class="related-card">
                                     <div class="img-wrap">
-                                        <img th:src="@{${rp.hinhAnhChinh != null ? rp.hinhAnhChinh : '/images/placeholder.png'}}"
-                                             th:alt="${rp.tenSanPham}" loading="lazy" />
+                                        <img th:src="@{${rp.hinhAnhChinh != null ? rp.hinhAnhChinh : (relatedImages != null and relatedImages.get(rp.id) != null ? relatedImages.get(rp.id) : '/images/placeholder.png')}}"
+                                             th:alt="${rp.tenSanPham}" loading="lazy" onerror="this.src='/images/placeholder.png'" />
                                     </div>
                                     <div class="card-body">
                                         <div class="card-title" th:text="${rp.tenSanPham}">Tên SP</div>
@@ -411,7 +367,7 @@
         </div>
 
     <th:block layout:fragment="extra-script">
-        <script th:src="@{/js/client-product-detail.js(v=1)}"></script>
+        <script th:src="@{/js/client-product-detail.js(v=2)}"></script>
 
     <script th:inline="javascript">
             let selectedVariantId = null;
@@ -471,7 +427,6 @@
                 el.classList.add('active');
 
                 selectedVariantId = parseInt(el.dataset.variantId);
-                selectedPrice = parseInt(el.dataset.price);
                 selectedStock = parseInt(el.dataset.stock);
                 const qtyInput = document.getElementById('qtyInput');
 
@@ -486,32 +441,27 @@
                     selectedDisplay.innerHTML = 'Đã chọn: <strong>' + display + '</strong>';
                 }
 
-                // Update price (promo-discounted / flash-sale if applicable)
-                const flashPrice = el.dataset.flashPrice ? parseInt(el.dataset.flashPrice) : 0;
-                const hasFlash = flashPrice > 0 && flashPrice < selectedPrice;
-                const hasPromo = promoPct > 0;
-                const effectivePrice = hasFlash
-                    ? flashPrice
-                    : hasPromo
-                        ? (el.dataset.promoPrice ? parseInt(el.dataset.promoPrice) : Math.round(selectedPrice * (100 - promoPct) / 100))
-                        : selectedPrice;
+                // Update price — dùng thẳng 2 con số server đã tính sẵn cho ĐÚNG biến thể
+                // này (data-original = giá gốc thật, data-price = giá cuối cùng đã áp mọi
+                // khuyến mãi/flash sale gộp lại) thay vì tự suy luận lại ở client bằng
+                // promoPct chung — cách cũ so sánh nhầm flash-price với giá ĐÃ giảm (thay
+                // vì giá gốc) nên hầu như luôn tính sai. Không phân biệt nguồn giảm giá
+                // (khuyến mãi hay flash sale) ở trang này — chỉ hiện giá cuối + % giảm.
+                const originalPrice = parseInt(el.dataset.original) || 0;
+                const finalPrice = parseInt(el.dataset.price) || 0;
+                selectedPrice = finalPrice;
+                const hasDiscount = originalPrice > 0 && finalPrice < originalPrice;
                 const priceEl = document.getElementById('productPrice');
                 if (priceEl) {
-                    if (hasFlash) {
-                        const flashPct = Math.round((selectedPrice - flashPrice) * 100 / selectedPrice);
-                        priceEl.innerHTML = effectivePrice.toLocaleString('vi-VN') + '₫'
+                    if (hasDiscount) {
+                        const pct = Math.round((originalPrice - finalPrice) * 100 / originalPrice);
+                        priceEl.innerHTML = finalPrice.toLocaleString('vi-VN') + '₫'
                                 + ' <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">'
-                                + selectedPrice.toLocaleString('vi-VN') + '₫</span>'
-                                + ' <span class="badge" style="background:#dc2626;font-size:.75rem;vertical-align:middle;">-'
-                                + flashPct + '%</span>';
-                    } else if (hasPromo) {
-                        priceEl.innerHTML = effectivePrice.toLocaleString('vi-VN') + '₫'
-                                + ' <span class="text-decoration-line-through text-muted ms-2" style="font-size:1.2rem;">'
-                                + selectedPrice.toLocaleString('vi-VN') + '₫</span>'
-                                + ' <span class="badge" style="background:#8b5cf6;font-size:.75rem;vertical-align:middle;">-'
-                                + promoPct + '%</span>';
+                                + originalPrice.toLocaleString('vi-VN') + '₫</span>'
+                                + ' <span class="badge ms-2" style="background:#8b5cf6;font-size:.75rem;vertical-align:middle;">-'
+                                + pct + '%</span>';
                     } else {
-                        priceEl.textContent = effectivePrice.toLocaleString('vi-VN') + '₫';
+                        priceEl.textContent = finalPrice.toLocaleString('vi-VN') + '₫';
                     }
                 }
 
@@ -570,7 +520,7 @@
                 const buyBtn = document.getElementById('buyNowBtn');
                 if (buyBtn) {
                     buyBtn.disabled = selectedStock <= 0;
-                    buyBtn.innerHTML = 'Mua ngay - ' + effectivePrice.toLocaleString('vi-VN') + '₫';
+                    buyBtn.innerHTML = 'Mua ngay - ' + finalPrice.toLocaleString('vi-VN') + '₫';
                     if (cartBtn)
                         cartBtn.disabled = selectedStock <= 0;
                 }
@@ -877,7 +827,7 @@
                     <div class="position-relative text-center">
                         <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 z-1" data-bs-dismiss="modal" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"></button>
                         <button type="button" class="position-absolute start-0 top-50 translate-middle-y btn btn-dark btn-sm rounded-circle" id="prevImgBtn" style="margin-left:-10px;z-index:10;width:40px;height:40px;display:flex;align-items:center;justify-content:center;" onclick="changeReviewImage(-1)">&lsaquo;</button>
-                        <img id="reviewImagePreview" src="" alt="Preview" style="max-width:90vw;max-height:85vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5);" />
+                        <img id="reviewImageLightbox" src="" alt="Preview" style="max-width:90vw;max-height:85vh;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.5);" />
                         <button type="button" class="position-absolute end-0 top-50 translate-middle-y btn btn-dark btn-sm rounded-circle" id="nextImgBtn" style="margin-right:-10px;z-index:10;width:40px;height:40px;display:flex;align-items:center;justify-content:center;" onclick="changeReviewImage(1)">&rsaquo;</button>
                     </div>
                 </div>

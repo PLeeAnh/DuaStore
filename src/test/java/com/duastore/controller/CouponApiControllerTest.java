@@ -52,7 +52,7 @@ class CouponApiControllerTest {
 
     @Test
     void validateCoupon_success_returns200() throws Exception {
-        when(orderService.validateCouponForApi(any(), any()))
+        when(orderService.validateCouponForApi(any(), any(), any()))
                 .thenReturn(Map.of("valid", true, "discount", 50000, "message", "Áp dụng mã thành công"));
 
         String body = "{\"maCode\":\"TEST10\",\"subtotal\":500000}";
@@ -88,7 +88,7 @@ class CouponApiControllerTest {
 
     @Test
     void validateCoupon_nullMaCode_returns200() throws Exception {
-        when(orderService.validateCouponForApi(any(), any()))
+        when(orderService.validateCouponForApi(any(), any(), any()))
                 .thenReturn(Map.of("valid", false, "message", "Mã giảm giá không tồn tại"));
 
         String body = "{\"maCode\":null,\"subtotal\":500000}";

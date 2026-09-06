@@ -1,5 +1,6 @@
 package com.duastore.service;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.LinkedAccount;
 import com.duastore.model.User;
 import com.duastore.repository.LinkedAccountRepository;
@@ -96,7 +97,7 @@ public class LinkedAccountService {
         newSession.setAttribute("userPhoneVisible", target.getPhoneVisible());
         newSession.setAttribute("userEmailMarketing", target.getEmailMarketing());
 
-        String role = target.getRoles().stream().findFirst().map(r -> r.getName()).orElse("USER");
+        String role = SecurityUtil.resolvePrimaryRoleName(target.getRoles());
         newSession.setAttribute("userRole", role);
 
         List<SimpleGrantedAuthority> authorities = target.getRoles().stream()

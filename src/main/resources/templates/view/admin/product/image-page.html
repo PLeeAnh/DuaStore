@@ -44,45 +44,18 @@
         </div>
 
         <!-- ═══════ KPI CARDS ═══════ -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#DBEAFE;color:#2563EB">
-                            <i class="bi bi-box-seam"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${productsWithImages + productsWithoutImages}">0</div>
-                            <div class="adm-stat-label">Tổng sản phẩm</div>
-                        </div>
-                    </div>
-                </div>
+        <div class="rv-stat-grid">
+            <div class="rv-stat">
+                <div class="rv-stat-label">Tổng sản phẩm</div>
+                <div class="rv-stat-value" th:text="${productsWithImages + productsWithoutImages}">0</div>
             </div>
-            <div class="col-md-4 col-6">
-                <div class="adm-stat">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#D1FAE5;color:#059669">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${productsWithImages}">0</div>
-                            <div class="adm-stat-label">Đã có ảnh</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat">
+                <div class="rv-stat-label">Đã có ảnh</div>
+                <div class="rv-stat-value" th:text="${productsWithImages}">0</div>
             </div>
-            <div class="col-md-4 col-6">
-                <div class="adm-stat adm-stat-warning" role="button" data-filter="missing">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="adm-stat-icon" style="background:#FEF3C7;color:#D97706">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </div>
-                        <div>
-                            <div class="adm-stat-value" th:text="${productsWithoutImages}">0</div>
-                            <div class="adm-stat-label">Thiếu ảnh</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="rv-stat" role="button" id="statMissingImages" style="cursor:pointer">
+                <div class="rv-stat-label">Thiếu ảnh</div>
+                <div class="rv-stat-value rv-stat-warning" th:text="${productsWithoutImages}">0</div>
             </div>
         </div>
 
@@ -172,6 +145,28 @@
 
     <th:block layout:fragment="extra-script">
         <script th:src="@{/js/admin-product.js}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                function applyImageFilter(value) {
+                    document.querySelectorAll('#imageGrid > [data-image-count]').forEach(function (card) {
+                        var count = parseInt(card.getAttribute('data-image-count'), 10) || 0;
+                        var show = value === 'all' || (value === 'has' && count > 0) || (value === 'missing' && count === 0);
+                        card.style.display = show ? '' : 'none';
+                    });
+                }
+                document.querySelectorAll('input[name="imageFilter"]').forEach(function (radio) {
+                    radio.addEventListener('change', function () { applyImageFilter(radio.value); });
+                });
+                var statMissing = document.getElementById('statMissingImages');
+                if (statMissing) {
+                    statMissing.addEventListener('click', function () {
+                        var radio = document.getElementById('filterMissing');
+                        radio.checked = true;
+                        applyImageFilter('missing');
+                    });
+                }
+            });
+        </script>
     </th:block>
 </body>
 </html>

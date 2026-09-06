@@ -15,12 +15,14 @@ import com.duastore.repository.UserVoucherRepository;
 import com.duastore.repository.WishlistRepository;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.BannerService;
+import com.duastore.model.FlashSaleItem;
 import com.duastore.service.PricingService;
 import com.duastore.service.PricingService.FlashSaleOffer;
 import com.duastore.service.SiteSettingService;
 import com.duastore.service.client.CategoryService;
 import com.duastore.service.client.ProductService;
 import com.duastore.repository.ReviewsRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -141,8 +143,14 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public String home(Model model, HttpSession session) {
         model.addAttribute("title", "Trang chủ");
+
+        Object loginErrorMessage = session.getAttribute("loginErrorMessage");
+        if (loginErrorMessage != null) {
+            model.addAttribute("loginErrorMessage", loginErrorMessage);
+            session.removeAttribute("loginErrorMessage");
+        }
 
         // Read homepage section settings
         int promoLimit = parseInt(siteSettingService.getValue("hp_3_limit"), 6);
@@ -377,32 +385,6 @@ public class HomeController {
         // ─ Chiến dịch khuyến mãi: nhóm sản phẩm theo từng chiến dịch (4 cột) ─
         // Chỉ các chiến dịch giảm giá sản phẩm (PHAN_TRAM) mới hiển thị sản phẩm;
         // voucher theo đơn hàng (FREESHIP/SO_TIEN...) không gán sản phẩm.
-        // QUAN TRỌNG: chỉ coi là "chiến dịch có chủ đề" (hiện thành card riêng)
-        // những khuyến mãi có targetType = CATEGORY/PRODUCT (admin đã chọn rõ
-        // sản phẩm/danh mục áp dụng). Khuyến mãi targetType = ALL/trống áp dụng
-        // cho MỌI sản phẩm đang giảm giá — không có chủ đề thật sự, nên đưa vào
-        // đây sẽ khiến tiêu đề chiến dịch (vd "Khai trương ... giảm 15%") bị gán
-        // nhầm với các sản phẩm không liên quan gì đến chủ đề đó.
-        List<Promotion> campaignPromotions = activePromotions.stream()
-                .filter(p -> "PHAN_TRAM".equals(p.getLoaiGiam()))
-                .filter(p -> p.getTargetType() != null
-                        && !p.getTargetType().isBlank()
-                        && !"ALL".equalsIgnoreCase(p.getTargetType())
-                        && p.getTargetIds() != null && !p.getTargetIds().isBlank())
-                .limit(8)
-                .toList();
-        model.addAttribute("campaignPromotions", campaignPromotions);
-        model.addAttribute("campaignItemsPerPage", Math.min(4, Math.max(campaignPromotions.size(), 1)));
-        Map<Integer, List<Product>> campaignProductsMap = new HashMap<>();
-        for (Promotion promo : campaignPromotions) {
-            List<Product> prods = discountedProducts.stream()
-                    .filter(p -> isPromotionApplicableToProduct(promo, p))
-                    .limit(4)
-                    .toList();
-            campaignProductsMap.put(promo.getId(), prods);
-        }
-        model.addAttribute("campaignProductsMap", campaignProductsMap);
-
         // Filter promotions applicable to each product
         Map<Integer, Promotion> productBestPercentagePromoMap = new HashMap<>();
         Map<Integer, Promotion> productBestFixedPromoMap = new HashMap<>();
@@ -453,6 +435,16 @@ public class HomeController {
         Map<Integer, BigDecimal> promoPriceMap = new HashMap<>();
         Map<Integer, BigDecimal> variantPromoPriceMap = new HashMap<>();
         Map<Integer, Integer> bestDiscountMap = new HashMap<>();
+        // Giá gốc THỰC SỰ khớp với promoPriceMap/bestDiscountMap để hiển thị gạch ngang —
+        // khi flash sale thắng thì phải lấy giaGoc của CHÍNH flash item đó (fsGiaGoc), không
+        // được lấy giaGoc của biến thể "first" (khác biến thể) như trước, tránh so 1 giá với
+        // 1 giá gốc của biến thể khác → % hiển thị sai/không khớp.
+        Map<Integer, BigDecimal> originalPriceMap = new HashMap<>();
+        // Ruy băng "FLASH SALE" (đếm ngược) chỉ hiện khi flash sale THỰC SỰ là mức giá đang
+        // áp dụng — trước đây hiện bất cứ khi nào sản phẩm CÓ flash sale trên 1 biến thể nào
+        // đó, dù giá hiển thị thực tế lại đang giảm theo khuyến mãi khác (đồng hồ đếm ngược
+        // theo hạn flash sale không liên quan gì tới giá đang thấy) — gây cảm giác "giả/ảo".
+        Map<Integer, Boolean> hasFlashMap = new HashMap<>();
 
         for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
             Integer productId = entry.getKey();
@@ -466,6 +458,8 @@ public class HomeController {
             // Start with best price = base price, discount = 0
             BigDecimal bestPrice = giaGoc;
             int bestPct = 0;
+            BigDecimal originalPriceForDisplay = giaGoc;
+            boolean hasFlash = false;
 
             // 1) Variant discount (giaKhuyenMai)
             if (first.getGiaKhuyenMai() != null && first.getGiaKhuyenMai().compareTo(bestPrice) < 0) {
@@ -498,7 +492,7 @@ public class HomeController {
                 }
             }
 
-            // 3) Flash sale discount (overrides everything)
+            // 3) Flash sale discount (overrides everything, only if it ACTUALLY beats the price so far)
             PricingService.FlashSaleOffer offer = flashSaleMap.get(productId);
             if (offer != null) {
                 BigDecimal fsPrice = offer.giaSale();
@@ -509,12 +503,16 @@ public class HomeController {
                                     .divide(fsGiaGoc, 0, java.math.RoundingMode.HALF_UP).intValue()
                             : 0;
                     bestPrice = fsPrice;
-                    bestPct = Math.max(bestPct, pct);
+                    bestPct = pct;
+                    originalPriceForDisplay = fsGiaGoc;
+                    hasFlash = true;
                 }
             }
 
             promoPriceMap.put(productId, bestPrice);
             bestDiscountMap.put(productId, bestPct);
+            originalPriceMap.put(productId, originalPriceForDisplay);
+            hasFlashMap.put(productId, hasFlash);
 
             // Per-variant promo map for detail use
             for (ProductVariant pv : pvList) {
@@ -542,20 +540,27 @@ public class HomeController {
         model.addAttribute("promoPriceMap", promoPriceMap);
         model.addAttribute("variantPromoPriceMap", variantPromoPriceMap);
         model.addAttribute("bestDiscountMap", bestDiscountMap);
+        model.addAttribute("originalPriceMap", originalPriceMap);
+        model.addAttribute("hasFlashMap", hasFlashMap);
 
         // Per-variant best price (flash sale + promo + base)
+        // Lưu ý: phải tra flash sale theo TỪNG biến thể (variantId), không được lấy giá
+        // flash sale rẻ nhất của SẢN PHẨM (flashSaleMap theo productId) rồi áp cho mọi
+        // biến thể khác — trước đây bug này khiến biến thể 750ml hiện giá flash sale
+        // của biến thể 50ml dù không hề nằm trong đợt Flash Sale đó.
+        Map<Integer, FlashSaleItem> variantFlashItemMap = pricingService.loadActiveFlashSaleItemMap(
+                variantsMap.values().stream().flatMap(List::stream).map(ProductVariant::getId).toList());
         Map<Integer, BigDecimal> variantBestPriceMap = new HashMap<>();
-        for (Map.Entry<Integer, List<ProductVariant>> entry : variantsMap.entrySet()) {
-            Integer productId = entry.getKey();
-            PricingService.FlashSaleOffer offer = flashSaleMap.get(productId);
-            for (ProductVariant pv : entry.getValue()) {
+        for (List<ProductVariant> pvs : variantsMap.values()) {
+            for (ProductVariant pv : pvs) {
                 BigDecimal pvBase = pv.getGiaKhuyenMai() != null ? pv.getGiaKhuyenMai() : pv.getGiaGoc();
                 if (pvBase == null) continue;
                 BigDecimal best = pvBase;
-                // Flash sale
-                if (offer != null) {
-                    BigDecimal fsPrice = offer.giaSale();
-                    if (fsPrice.compareTo(best) < 0) best = fsPrice;
+                // Flash sale — chỉ áp nếu ĐÚNG biến thể này đang có flash sale
+                FlashSaleItem fsItem = variantFlashItemMap.get(pv.getId());
+                if (fsItem != null) {
+                    BigDecimal fsPrice = fsItem.getGiaSale();
+                    if (fsPrice != null && fsPrice.compareTo(best) < 0) best = fsPrice;
                 }
                 // Promo
                 BigDecimal promoPrice = variantPromoPriceMap.get(pv.getId());

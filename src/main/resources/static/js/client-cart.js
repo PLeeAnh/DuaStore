@@ -1,5 +1,10 @@
 var _removedItems = {};
 
+function updateCartLineMinusState(item, qty) {
+    var minus = item.querySelector('.ds-qty-minus');
+    if (minus) minus.disabled = (qty <= 1);
+}
+
 function updateQty(variantId, delta) {
     if (typeof DuaStore === 'undefined' || !DuaStore.api || !DuaStore.toast) return;
 
@@ -38,6 +43,7 @@ function updateQty(variantId, delta) {
         localStorage.setItem('cartViewed', 'true');
         input.value = newQty;
         input.setAttribute('data-max', data.stock || max);
+        updateCartLineMinusState(item, newQty);
 
         var unitPriceEl = item.querySelector('.ds-cart-unit-price');
         if (unitPriceEl) {
@@ -63,6 +69,7 @@ function setQty(variantId, inputEl) {
     inputEl.value = newQty;
 
     var item = inputEl.closest('.ds-cart-item');
+    if (item) updateCartLineMinusState(item, newQty);
 
     DuaStore.api.post('/api/cart/update', {
         variantId: variantId,
@@ -289,4 +296,10 @@ function checkPromoHint(currentTotal) {
     } else { hint.style.display = 'none'; }
 }
 
-document.addEventListener('DOMContentLoaded', function () { updateSelectedTotal(); });
+document.addEventListener('DOMContentLoaded', function () {
+    updateSelectedTotal();
+    document.querySelectorAll('.ds-cart-item').forEach(function (item) {
+        var qty = parseInt(item.querySelector('.ds-qty-val')?.value) || 1;
+        updateCartLineMinusState(item, qty);
+    });
+});

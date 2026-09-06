@@ -2,10 +2,14 @@ package com.duastore.controller.client;
 
 import com.duastore.model.Role;
 import com.duastore.model.User;
+import com.duastore.repository.PromotionRepository;
 import com.duastore.repository.RoleRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.service.NotificationHelper;
 import com.duastore.service.VerificationCodeService;
+import com.duastore.service.client.VoucherWalletService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -30,22 +34,36 @@ import java.util.Set;
  */
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    // CHAOMOI10 (không dùng NEWUSER): NEWUSER co targetType=ALL, tung gay loi hien
+    // giam gia tren TOAN BO trang san pham cho MOI khach (khong phan biet da nhan
+    // voucher hay chua) — xem comment trong DuaStore_Database.sql giai thich ly do
+    // NEWUSER bi vo hieu hoa (isActive=0) tu truoc. CHAOMOI10 dung targetType=PRODUCT
+    // voi danh sach san pham cu the nen khong co rui ro nay.
+    private static final String NEW_USER_VOUCHER_CODE = "CHAOMOI10";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final VerificationCodeService verifyCodeService;
     private final NotificationHelper notificationHelper;
+    private final PromotionRepository promotionRepository;
+    private final VoucherWalletService voucherWalletService;
 
     public AuthController(UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             RoleRepository roleRepository,
             VerificationCodeService verifyCodeService,
-            NotificationHelper notificationHelper) {
+            NotificationHelper notificationHelper,
+            PromotionRepository promotionRepository,
+            VoucherWalletService voucherWalletService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.roleRepository = roleRepository;
         this.verifyCodeService = verifyCodeService;
         this.notificationHelper = notificationHelper;
+        this.promotionRepository = promotionRepository;
+        this.voucherWalletService = voucherWalletService;
     }
 
     @GetMapping("/oauth2/success")
@@ -113,12 +131,23 @@ public class AuthController {
                 "Khach hang moi: " + savedUser.getHoTen() + " (" + savedUser.getEmail() + ")",
                 null, null,
                 "/admin/khach-hang/" + savedUser.getId(),
-                "Xem khach hang"
+                "Xem khach hang",
+                com.duastore.config.security.PermissionEnum.CUSTOMER_READ
         );
         verifyCodeService.delete(req.getEmail());
+        grantNewUserVoucher(savedUser.getId());
 
         ra.addFlashAttribute("successMsg", "Đăng ký thành công! Vui lòng đăng nhập.");
         return "redirect:/dang-nhap";
+    }
+
+    private void grantNewUserVoucher(Integer userId) {
+        try {
+            promotionRepository.findByMaCodeIgnoreCase(NEW_USER_VOUCHER_CODE)
+                    .ifPresent(promo -> voucherWalletService.saveVoucher(userId, promo.getId()));
+        } catch (Exception e) {
+            log.warn("Khong the cap voucher NEWUSER cho user {}: {}", userId, e.getMessage());
+        }
     }
 
     public static class RegisterRequest {
