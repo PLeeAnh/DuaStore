@@ -2,6 +2,16 @@
 # Chay: mo PowerShell trong thu muc project, go: .\start-dev.ps1
 
 $cloudflared = "C:\Program Files (x86)\cloudflared\cloudflared.exe"
+if (-not (Test-Path $cloudflared)) {
+    $onPath = Get-Command cloudflared.exe -ErrorAction SilentlyContinue
+    if ($onPath) {
+        $cloudflared = $onPath.Source
+    } else {
+        Write-Host "Khong tim thay cloudflared.exe (da thu: '$cloudflared' va PATH he thong)." -ForegroundColor Red
+        Write-Host "Cai dat tai: https://github.com/cloudflare/cloudflared/releases (chon file .exe cho Windows)." -ForegroundColor Red
+        exit 1
+    }
+}
 $logFile = "$env:TEMP\cloudflared.log"
 
 Write-Host "== 1. Khoi dong Spring Boot server (nen) ==" -ForegroundColor Cyan
