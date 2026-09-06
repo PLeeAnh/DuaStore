@@ -1,0 +1,28 @@
+# ============================================================
+# DuaStore — Mẫu cấu hình LOCAL (dành cho mỗi máy dev)
+# Copy file này thành "application-local.properties" (cùng thư mục)
+# rồi điền thông tin SQL Server thật của máy bạn.
+#
+# File "application-local.properties" đã có trong .gitignore — KHÔNG
+# commit lên Git. Đây là cách ĐƠN GIẢN NHẤT để chạy được project,
+# không cần set biến môi trường DB_USERNAME/DB_PASSWORD/REMEMBER_ME_KEY
+# trên Windows (spring.profiles.active=local trong application.properties
+# sẽ tự nạp file này vì tên trùng với profile "local").
+# ============================================================
+
+# === SQL Server — sửa theo tài khoản/máy của bạn ===
+spring.datasource.username=sa
+spring.datasource.password=your_sqlserver_password
+
+# === Bắt buộc: khóa bí mật cho "Ghi nhớ đăng nhập" — điền chuỗi bất kỳ ===
+duastore.remember-me.key=doi-chuoi-nay-thanh-bat-ky-gi-cung-duoc
+
+# === Google OAuth2 (tùy chọn — bỏ trống nếu không cần đăng nhập Google) ===
+# Tạo tại https://console.cloud.google.com/ -> APIs & Services -> Credentials
+# Redirect URI: http://localhost:8080/login/oauth2/code/google
+spring.security.oauth2.client.registration.google.client-id=
+spring.security.oauth2.client.registration.google.client-secret=
+
+# === Gmail SMTP (tùy chọn — bỏ trống nếu không cần gửi email) ===
+spring.mail.username=
+spring.mail.password=
