@@ -1,6 +1,7 @@
 package com.duastore.controller.client;
 
 import com.duastore.config.security.SecurityUtil;
+import com.duastore.model.Promotion;
 import com.duastore.model.UserVoucher;
 import com.duastore.model.VoucherStatus;
 import com.duastore.service.client.VoucherWalletService;
@@ -10,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -58,6 +61,31 @@ public class VoucherWalletController {
         model.addAttribute("availableCount", voucherWalletService.countAvailable(userId));
         model.addAttribute("title", "vi-voucher");
         return "view/client/voucher/wallet";
+    }
+
+    @GetMapping("/api/vi-voucher/available")
+    @ResponseBody
+    public List<Map<String, Object>> availableVouchers(Principal principal) {
+        if (principal == null) {
+            return List.of();
+        }
+        Integer userId = securityUtil.getCurrentUserId();
+        return voucherWalletService.getAvailableVouchers(userId).stream()
+                .map(this::toVoucherCardMap)
+                .toList();
+    }
+
+    private Map<String, Object> toVoucherCardMap(UserVoucher uv) {
+        Promotion p = uv.getPromotion();
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("maCode", p.getMaCode());
+        m.put("tenChuongTrinh", p.getTenChuongTrinh());
+        m.put("loaiGiam", p.getLoaiGiam());
+        m.put("giaTriGiam", p.getGiaTriGiam());
+        m.put("giamToiDa", p.getGiamToiDa());
+        m.put("donHangToiThieu", p.getDonHangToiThieu());
+        m.put("expiredAt", uv.getExpiredAt());
+        return m;
     }
 
     @PostMapping("/api/vi-voucher/luu/{promotionId}")

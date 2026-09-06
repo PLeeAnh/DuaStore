@@ -78,64 +78,6 @@
                     <div class="ds-slider-dots"></div>
                 </section>
 
-                <!-- CHIẾN DỊCH KHUYẾN MÃI (voucher cards) -->
-                <section class="ds-section-card ds-discount-section sr-up ds-slider-section ds-slider-single"
-                         th:if="${not #lists.isEmpty(campaignPromotions)}" data-items-per-page="4">
-                    <div class="ds-discount-header">
-                        <h2 class="ds-discount-title"><i class="bi bi-fire"></i> Đang diễn ra chiến dịch khuyến mãi</h2>
-                        <a th:href="@{/khuyen-mai}" class="ds-link-more">Xem tất cả voucher <i class="bi bi-arrow-right"></i></a>
-                    </div>
-                    <div class="ds-slider-wrap">
-                        <button class="ds-slider-arrow ds-slider-arrow-prev" type="button" aria-label="Trước"><i class="bi bi-chevron-left"></i></button>
-                        <div class="ds-slider-viewport">
-                            <div class="ds-slider-track">
-
-                                <div th:each="promo : ${campaignPromotions}" class="ds-discount-item ds-campaign-card"
-                                     th:data-promo-id="${promo.id}" th:data-promo-code="${promo.maCode}"
-                                     onclick="claimHomePromo(this.getAttribute('data-promo-id'), this.getAttribute('data-promo-code'))">
-                                    <div class="dc_work_group">
-                                        <span class="ds-promo-expiring-badge"
-                                              th:if="${promo.denNgay != null and promo.denNgay.isBefore(T(java.time.LocalDateTime).now().plusDays(3))}">
-                                            <i class="bi bi-hourglass-split"></i>Sắp hết hạn
-                                        </span>
-                                        <div class="dc_work_group_title">
-                                            <i class="bi bi-ticket-perforated" style="color:var(--ds-primary);font-size:.95rem;"></i>
-                                            <h3 th:text="${promo.tenChuongTrinh}">Tên chương trình</h3>
-                                        </div>
-                                        <div class="ds-browse-list ds-promo-body">
-                                            <div class="ds-promo-value" th:classappend="${'PHAN_TRAM'.equals(promo.loaiGiam)} ? 'ds-promo-value-pct' : 'ds-promo-value-money'">
-                                                <span class="ds-promo-value-main">
-                                                    <span th:if="${'PHAN_TRAM'.equals(promo.loaiGiam)}"
-                                                          th:text="${'- ' + #numbers.formatDecimal(promo.giaTriGiam, 0, 'POINT', 0, 'POINT') + '%'}">-15%</span>
-                                                    <span th:unless="${'PHAN_TRAM'.equals(promo.loaiGiam)}"
-                                                          th:text="${'- ' + #numbers.formatDecimal(promo.giaTriGiam, 0, 'POINT', 0, 'POINT') + 'đ'}">-50.000đ</span>
-                                                </span>
-                                                <span class="ds-promo-value-max" th:if="${promo.giamToiDa != null}"
-                                                      th:text="${'Giảm tối đa ' + #numbers.formatDecimal(promo.giamToiDa, 0, 'POINT', 0, 'POINT') + 'đ'}">Giảm tối đa 100.000đ</span>
-                                                <span class="ds-promo-value-type" th:text="${'PHAN_TRAM'.equals(promo.loaiGiam)} ? 'Voucher giảm %' : 'Voucher giảm tiền'">Voucher</span>
-                                            </div>
-                                            <div class="ds-promo-conds">
-                                                <span class="ds-promo-cond" th:if="${promo.donHangToiThieu != null and promo.donHangToiThieu > 0}">
-                                                    <i class="bi bi-cart3"></i> Đơn từ <strong th:text="${#numbers.formatDecimal(promo.donHangToiThieu, 0, 'POINT', 0, 'POINT') + 'đ'}">0đ</strong>
-                                                </span>
-                                                <span class="ds-promo-cond">
-                                                    <i class="bi bi-calendar3"></i> HSD: <strong th:text="${#temporals.format(promo.denNgay, 'dd/MM/yyyy')}">31/12/2026</strong>
-                                                </span>
-                                            </div>
-                                            <div class="ds-promo-code-row">
-                                                <span class="vc2-code" th:text="${promo.maCode}">CODE</span>
-                                                <button type="button" class="vc2-copy" th:data-code="${promo.maCode}" onclick="event.stopPropagation(); copyDetailCode()">Sao chép</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                        <button class="ds-slider-arrow ds-slider-arrow-next" type="button" aria-label="Tiếp"><i class="bi bi-chevron-right"></i></button>
-                    </div>
-                </section>
-
                 <!-- SẢN PHẨM NỔI BẬT -->
                 <section class="ds-section-card sr-up" th:if="${(themeSettings.get('hp_5_active') == null or themeSettings.get('hp_5_active') != '0') and not #lists.isEmpty(featuredProducts)}">
                     <div class="ds-product-grid-v2" th:style="'--cols:' + ${productColumns}">

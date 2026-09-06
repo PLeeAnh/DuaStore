@@ -569,7 +569,57 @@ function switchEpTab(tab, el) {
         if (el) el.classList.add('active');
 document.getElementById('epActivityContent').classList.toggle('d-none', tab !== 'activity');
         document.getElementById('epWishlistContent').classList.toggle('d-none', tab !== 'wishlist');
+        document.getElementById('epVoucherContent').classList.toggle('d-none', tab !== 'voucher');
         if (tab === 'activity') loadEpActivity();
+        if (tab === 'voucher') loadEpVoucher();
+}
+
+function loadEpVoucher() {
+        var loading = document.getElementById('epVoucherLoading');
+        var listDiv = document.getElementById('epVoucherList');
+        if (!loading) return;
+        loading.classList.remove('d-none');
+        loading.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Đang tải...';
+        listDiv.classList.add('d-none');
+        fetch('/api/vi-voucher/available')
+        .then(function (r) {
+        if (r.redirected || !r.ok) { throw new Error('session-expired'); }
+                return r.json();
+        })
+        .then(function (vouchers) {
+        loading.classList.add('d-none');
+                if (!vouchers || !vouchers.length) {
+        loading.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-ticket" style="font-size:1.5rem;"></i><p class="mt-1 mb-0 small">Chưa có voucher nào</p></div>';
+                loading.classList.remove('d-none');
+                return;
+                }
+        var html = '<div class="d-flex flex-column gap-2">';
+                vouchers.forEach(function (v) {
+        var stubAmt = v.loaiGiam === 'PHAN_TRAM' ? v.giaTriGiam + '%' : Math.round(v.giaTriGiam || 0).toLocaleString('vi-VN');
+                var stubUnit = v.loaiGiam === 'PHAN_TRAM' ? 'giảm giá' : 'đồng';
+                var minOrder = v.donHangToiThieu && v.donHangToiThieu > 0
+        ? 'Đơn từ ' + Math.round(v.donHangToiThieu).toLocaleString('vi-VN') + '₫'
+                : 'Không giới hạn đơn tối thiểu';
+                html += '<div class="svp-ticket">' +
+        '<div class="svp-ticket-stub"><span class="amt">' + stubAmt + '</span><span class="unit">' + stubUnit + '</span></div>' +
+                '<div class="svp-ticket-divider"></div>' +
+                '<div class="svp-ticket-body">' +
+                '<div class="svp-ticket-title">' + (v.tenChuongTrinh || v.maCode) + '</div>' +
+                '<span class="svp-ticket-code">' + v.maCode + '</span>' +
+                '<div class="svp-ticket-meta">' + minOrder + '</div>' +
+                '</div></div>';
+                });
+        html += '</div>';
+        listDiv.innerHTML = html;
+                listDiv.classList.remove('d-none');
+        })
+        .catch(function (err) {
+        if (err && err.message === 'session-expired') {
+        loading.innerHTML = '<div class="text-center py-4 text-muted small">Phiên đăng nhập đã hết hạn. <a href="/dang-nhap" class="fw-semibold">Đăng nhập lại</a></div>';
+        } else {
+        loading.innerHTML = '<div class="text-center py-4 text-muted small">Không thể tải voucher</div>';
+        }
+        });
 }
 
 function loadEpActivity() {

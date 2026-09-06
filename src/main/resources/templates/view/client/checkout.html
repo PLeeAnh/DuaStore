@@ -229,9 +229,10 @@
                                     </div>
                                 </div>
 
-                                <a th:href="@{/khuyen-mai}" class="shp-discount-link">
-                                    <i class="bi bi-ticket-perforated-fill"></i> Xem mã giảm giá tại trang Khuyến mãi
-                                </a>
+                                <button type="button" class="shp-discount-link" data-bs-toggle="modal" data-bs-target="#voucherPickerModal">
+                                    <i class="bi bi-ticket-perforated-fill"></i> Chọn voucher giảm giá
+                                    <i class="bi bi-chevron-right ms-auto"></i>
+                                </button>
 
                                 <div class="shp-cost">
                                     <div class="shp-cost-row">
@@ -252,22 +253,6 @@
                                         <span>Giảm giá</span>
                                         <span th:text="${tienGiam != null and tienGiam > 0 ? '-' + #numbers.formatDecimal(tienGiam, 0, 'POINT', 0, 'POINT') + '₫' : '0₫'}" id="discountDisplay"
                                               th:classappend="${tienGiam != null and tienGiam > 0} ? 'text-primary' : ''"></span>
-                                    </div>
-                                    <div th:if="${loyaltyBalance != null and loyaltyBalance > 0}" class="shp-points">
-                                        <div class="shp-cost-row">
-                                            <span><i class="bi bi-star-fill me-1"></i>Điểm tích lũy</span>
-                                            <span class="text-primary fw-semibold" th:text="${loyaltyBalance} + ' điểm'"></span>
-                                        </div>
-                                        <div class="shp-points-input">
-                                            <input type="number" class="shp-input" id="pointsToRedeem"
-                                                   name="pointsToRedeem" min="0" th:attr="max=${loyaltyBalance}" value="0"
-                                                   placeholder="0" onchange="updatePointsDiscount()" />
-                                            <button type="button" class="shp-points-max" onclick="useMaxPoints()">Dùng tất cả</button>
-                                        </div>
-                                        <div class="shp-cost-row shp-cost-row-delivery">
-                                            <span class="text-muted" th:text="${loyaltyRedeemRate != null ? '100 điểm = ' + #numbers.formatDecimal(loyaltyRedeemRate * 100, 0, 'POINT', 0, 'POINT') + '₫' : ''}"></span>
-                                            <span id="pointsDiscountDisplay">Giảm 0₫</span>
-                                        </div>
                                     </div>
                                     <div class="shp-cost-total">
                                         <span>Tổng cộng</span>
@@ -505,12 +490,36 @@
                 </div>
             </div>
 
+            <!-- Voucher Picker Modal (kiểu Shopee) -->
+            <div class="modal fade" id="voucherPickerModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header border-0 pb-2">
+                            <h5 class="fw-bold modal-title"><i class="bi bi-ticket-perforated-fill me-2 text-primary"></i>Chọn Voucher</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body pt-1">
+                            <div class="shp-voucher-manual-entry">
+                                <input type="text" id="voucherManualCode" class="form-control form-control-sm rounded-3" placeholder="Nhập mã voucher" autocomplete="off" />
+                                <button type="button" class="ds-btn ds-btn-outline ds-btn-sm" onclick="applyVoucherFromModal(document.getElementById('voucherManualCode').value)">Áp dụng</button>
+                            </div>
+                            <div id="voucherPickerError" class="shp-voucher-error d-none"></div>
+                            <div id="voucherPickerList" class="shp-voucher-list">
+                                <div class="text-center text-muted py-4" id="voucherPickerLoading">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Đang tải voucher...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <th:block layout:fragment="extra-script">
                 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <span id="rawSubtotal" style="display:none" th:text="${subtotal}"></span>
 <span id="rawDiscount" style="display:none" th:text="${tienGiam}"></span>
 <span id="rawRedeemRate" style="display:none" th:text="${loyaltyRedeemRate}"></span>
-                <script th:src="@{/js/client-checkout.js(v=2)}"></script>
+                <script th:src="@{/js/client-checkout.js(v=5)}"></script>
                 <script>
                     window.storeLat = [[${storeLat}]];
                     window.storeLng = [[${storeLng}]];

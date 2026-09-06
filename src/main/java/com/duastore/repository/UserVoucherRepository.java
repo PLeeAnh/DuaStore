@@ -46,8 +46,8 @@ public interface UserVoucherRepository extends JpaRepository<UserVoucher, Intege
             + "WHERE uv.expiredAt < :now AND uv.status = 'AVAILABLE'")
     int expireVouchers(@Param("now") LocalDateTime now);
 
-    @Query("SELECT uv FROM UserVoucher uv WHERE uv.userId = :userId AND uv.status = 'AVAILABLE' "
-            + "AND (uv.expiredAt IS NULL OR uv.expiredAt >= :now)")
+    @Query("SELECT uv FROM UserVoucher uv JOIN FETCH uv.promotion p WHERE uv.userId = :userId AND uv.status = 'AVAILABLE' "
+            + "AND (uv.expiredAt IS NULL OR uv.expiredAt >= :now) AND p.isActive = true")
     List<UserVoucher> findAvailableByUserId(@Param("userId") Integer userId,
             @Param("now") LocalDateTime now);
 

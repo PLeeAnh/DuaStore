@@ -26,6 +26,108 @@ function updateTotal() {
     document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '₫';
 }
 
+/* ── Voucher picker modal (kieu Shopee) ── */
+function formatVoucherDiscount(v) {
+    if (v.loaiGiam === 'PHAN_TRAM') {
+        var pct = (v.giaTriGiam || 0);
+        var txt = 'Giảm ' + pct + '%';
+        if (v.giamToiDa) txt += ' (tối đa ' + Math.round(v.giamToiDa).toLocaleString('vi-VN') + '₫)';
+        return txt;
+    }
+    return 'Giảm ' + Math.round(v.giaTriGiam || 0).toLocaleString('vi-VN') + '₫';
+}
+
+function renderVoucherCard(v) {
+    var minOrder = v.donHangToiThieu && v.donHangToiThieu > 0
+        ? 'Đơn từ ' + Math.round(v.donHangToiThieu).toLocaleString('vi-VN') + '₫'
+        : 'Không giới hạn đơn tối thiểu';
+    var expiry = '';
+    if (v.expiredAt) {
+        var d = new Date(v.expiredAt);
+        expiry = ' · HSD ' + d.toLocaleDateString('vi-VN');
+    }
+    var stubAmt = v.loaiGiam === 'PHAN_TRAM'
+        ? v.giaTriGiam + '%'
+        : Math.round(v.giaTriGiam || 0).toLocaleString('vi-VN');
+    var stubUnit = v.loaiGiam === 'PHAN_TRAM' ? 'giảm giá' : 'đồng';
+    return '<div class="svp-ticket">' +
+        '<div class="svp-ticket-stub"><span class="amt">' + stubAmt + '</span><span class="unit">' + stubUnit + '</span></div>' +
+        '<div class="svp-ticket-divider"></div>' +
+        '<div class="svp-ticket-body">' +
+        '<div class="svp-ticket-title">' + (v.tenChuongTrinh || v.maCode) + '</div>' +
+        '<span class="svp-ticket-code">' + v.maCode + '</span>' +
+        '<div class="svp-ticket-meta">' + minOrder + expiry + '</div>' +
+        '</div>' +
+        '<div class="svp-ticket-actions">' +
+        '<button type="button" class="svp-ticket-apply" onclick="applyVoucherFromModal(\'' + v.maCode + '\')">Áp dụng</button>' +
+        '</div>' +
+        '</div>';
+}
+
+function loadVoucherPickerList() {
+    var listEl = document.getElementById('voucherPickerList');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="text-center text-muted py-4" id="voucherPickerLoading"><i class="bi bi-arrow-repeat me-1"></i>Đang tải voucher...</div>';
+    fetch('/api/vi-voucher/available')
+        .then(function (r) { return r.json(); })
+        .then(function (vouchers) {
+            if (!vouchers || !vouchers.length) {
+                listEl.innerHTML = '<div class="svp-ticket-empty">' +
+                    '<i class="bi bi-ticket-perforated"></i>' +
+                    'Bạn chưa lưu voucher nào<br>' +
+                    '<a href="/khuyen-mai" class="small fw-semibold" style="color:#2563eb;">Xem khuyến mãi đang có</a>' +
+                    '</div>';
+                return;
+            }
+            listEl.innerHTML = '<div class="shp-voucher-list-label">Voucher của bạn (' + vouchers.length + ')</div>' +
+                vouchers.map(renderVoucherCard).join('');
+        })
+        .catch(function () {
+            listEl.innerHTML = '<div class="svp-ticket-empty">Không thể tải danh sách voucher</div>';
+        });
+}
+
+function applyVoucherFromModal(maCode) {
+    maCode = (maCode || '').trim();
+    var errorEl = document.getElementById('voucherPickerError');
+    if (!maCode) {
+        errorEl.textContent = 'Vui lòng nhập hoặc chọn một voucher';
+        errorEl.classList.remove('d-none');
+        return;
+    }
+    var subtotal = parseInt(document.getElementById('rawSubtotal').textContent.replace(/[^0-9]/g, '')) || 0;
+    errorEl.classList.add('d-none');
+    var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').getAttribute('content') : null;
+    var csrfHeader = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').getAttribute('content') : null;
+    var headers = { 'Content-Type': 'application/json' };
+    if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+    fetch('/api/coupon/validate', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ maCode: maCode, subtotal: subtotal })
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.valid) {
+                errorEl.textContent = data.message || 'Mã voucher không hợp lệ';
+                errorEl.classList.remove('d-none');
+                return;
+            }
+            document.getElementById('checkoutPromoInput').value = maCode;
+            window.appliedDiscount = Math.round(data.discount || 0);
+            document.getElementById('discountDisplay').textContent = '-' + window.appliedDiscount.toLocaleString('vi-VN') + '₫';
+            document.getElementById('discountDisplay').classList.add('text-primary');
+            updateTotal();
+            var modalEl = document.getElementById('voucherPickerModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        })
+        .catch(function () {
+            errorEl.textContent = 'Lỗi kết nối, vui lòng thử lại';
+            errorEl.classList.remove('d-none');
+        });
+}
+
 function initPromoTimers() {
     document.querySelectorAll('.ds-promo-timer').forEach(function (timer) {
         var endStr = timer.getAttribute('data-end');
@@ -69,4 +171,9 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteAddress(parseInt(this.getAttribute('data-id')));
         });
     });
+
+    var voucherModalEl = document.getElementById('voucherPickerModal');
+    if (voucherModalEl) {
+        voucherModalEl.addEventListener('shown.bs.modal', loadVoucherPickerList);
+    }
 });

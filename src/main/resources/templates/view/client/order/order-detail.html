@@ -60,6 +60,15 @@
                         </div>
                     </div>
 
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-4"
+                         th:if="${order.trangThaiDon == 'DA_HUY' and order.trangThaiTT == 'DA_THANH_TOAN'}">
+                        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                        <div>
+                            <strong>Đơn hàng đã hủy nhưng hệ thống ghi nhận đã thanh toán.</strong>
+                            Shop sẽ liên hệ với bạn để hoàn tiền trực tiếp (không tự động hoàn qua hệ thống). Nếu chưa được liên hệ trong 24 giờ, vui lòng chủ động liên hệ hotline hoặc trang liên hệ để được hỗ trợ.
+                        </div>
+                    </div>
+
                     <div class="ds-card mb-4">
                         <div class="ds-card-body">
                             <h6 class="fw-bold">Thông tin giao hàng</h6>

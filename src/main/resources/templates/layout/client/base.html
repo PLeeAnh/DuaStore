@@ -54,7 +54,7 @@
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Inter'}" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Roboto'}" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap"/>
     <link rel="stylesheet" th:if="${themeSettings.get('theme_font') == 'Be Vietnam Pro'}" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap"/>
-<link rel="stylesheet" th:href="@{/css/style.css(v=38)}"/>
+<link rel="stylesheet" th:href="@{/css/style.css(v=41)}"/>
 <link rel="stylesheet" th:href="@{/assets/theme/ds-theme.css(v=1)}"/>
 
     <script defer th:src="@{/js/main.js(v=3)}"></script>
@@ -68,7 +68,7 @@
     <script defer th:src="@{/js/modules/wishlist.js(v=1)}"></script>
     <script defer th:src="@{/js/guest-cart.js(v=2)}"></script>
     <script defer th:src="@{/js/modules/cart.js(v=8)}"></script>
-    <script defer th:src="@{/js/modules/promotion.js(v=1)}"></script>
+    <script defer th:src="@{/js/modules/promotion.js(v=2)}"></script>
     <script defer th:src="@{/js/modules/checkout.js(v=13)}"></script>
     <th:block layout:fragment="extra-head"></th:block>
     <style th:if="${customCss}" th:utext="${customCss}"></style>
@@ -304,7 +304,7 @@
                                     <div class="fw-semibold text-truncate" th:text="${session.userName}" style="color:var(--ds-text);font-size:0.9rem;">User</div>
                                 </div>
                             </div>
-                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="bi bi-pencil"></i> Sửa hồ sơ</a>
+                            <a class="ds-popup-link" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"><i class="bi bi-clock-history"></i> Hoạt động</a>
                             <div class="ds-popup-link d-flex align-items-center justify-content-between cursor-pointer dropdown" data-bs-toggle="dropdown">
                                 <span><span class="status-dot" id="popupStatusDot" th:classappend="${session.userStatus == 'ONLINE'} ? 'status-online' : (${session.userStatus == 'AWAY'} ? 'status-away' : (${session.userStatus == 'DND'} ? 'status-dnd' : 'status-invisible'))"></span><span id="popupStatusLabel" th:text="${session.userStatus == 'ONLINE'} ? 'Trực tuyến' : (${session.userStatus == 'AWAY'} ? 'Tạm vắng' : (${session.userStatus == 'DND'} ? 'Không làm phiền' : 'Ẩn'))">Trực tuyến</span></span>
                                 <div>
@@ -555,6 +555,9 @@
                                 <li class="nav-item" role="presentation">
                                     <a class="nav-link" id="epTabWishlist" href="javascript:;" onclick="switchEpTab('wishlist', this)">Yêu thích</a>
                                 </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="epTabVoucher" href="javascript:;" onclick="switchEpTab('voucher', this)">Ví Voucher</a>
+                                </li>
                             </ul>
                         </div>
                         <div class="p-3">
@@ -578,6 +581,14 @@
                                     <div class="flex-grow-1 min-w-0">
                                         <a th:href="@{/san-pham/{id}(id=${item.productId})}" class="text-truncate d-block small fw-semibold text-dark text-decoration-none" th:text="${item.tenSanPham}">Tên SP</a>
                                     </div>
+                                </div>
+                            </div>
+                            <!-- Tab: Ví Voucher -->
+                            <div id="epVoucherContent" class="d-none">
+                                <div class="text-center py-4 text-muted" id="epVoucherLoading"><i class="bi bi-arrow-repeat me-1"></i>Đang tải...</div>
+                                <div id="epVoucherList" class="d-none"></div>
+                                <div class="text-end mt-2">
+                                    <a th:href="@{/vi-voucher}" class="small fw-semibold" style="color:#2563eb;text-decoration:none;">Xem tất cả <i class="bi bi-chevron-right" style="font-size:.65rem;"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -1005,7 +1016,7 @@
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script th:src="@{/js/client-base.js(v=4)}"></script>
 
-<script th:src="@{/js/base-ui.js(v=13)}"></script>
+<script th:src="@{/js/base-ui.js(v=16)}"></script>
 <script th:src="@{/js/popup-banner.js}"></script>
 <script th:src="@{/js/modules/tracker.js}"></script>
 <!-- Save Bar -->

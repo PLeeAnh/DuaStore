@@ -1331,7 +1331,11 @@ INSERT INTO Promotions (maCode, tenChuongTrinh, loaiGiam, giaTriGiam, donHangToi
     ('SINHNHAT',  N'Quà sinh nhật thành viên',          'PHAN_TRAM', 15, 0,      100000, 500, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
     ('VIP100K',   N'Giảm 100k cho đơn VIP từ 1 triệu',  'SO_TIEN',   100000, 1000000, NULL, 100, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
     ('COMBO30',   N'Combo giảm 30% danh mục ly & cốc',  'PHAN_TRAM', 30, 100000, 150000, 200, '2026-01-01', '2026-12-31', 'ALL', NULL, 0),
-    ('CUOINAM',   N'Ưu đãi cuối năm - Giảm 25%',        'PHAN_TRAM', 25, 200000, 150000, 400, '2026-10-01', '2026-12-31', 'ALL', NULL, 0);
+    ('CUOINAM',   N'Ưu đãi cuối năm - Giảm 25%',        'PHAN_TRAM', 25, 200000, 150000, 400, '2026-10-01', '2026-12-31', 'ALL', NULL, 0),
+    -- Voucher chao mung tu dong cap khi dang ky tai khoan (xem AuthController.grantNewUserVoucher).
+    -- Dung targetType=PRODUCT (khong phai ALL) de tranh lai lo hien giam gia toan site
+    -- cho MOI khach nhu NEWUSER da tung gay (xem comment o tren).
+    ('CHAOMOI10', N'Chào mừng thành viên mới - Giảm 10%', 'PHAN_TRAM', 10, 100000, 30000, NULL, '2026-01-01', '2027-12-31', 'PRODUCT', '1,2,3,4,5,6', 1);
 
 INSERT INTO orders (maDon, userId, addressId, snapTenNguoiNhan, snapSoDienThoai, snapDiaChi,
     tienHang, phiVanChuyen, tienGiam, tongThanhToan,

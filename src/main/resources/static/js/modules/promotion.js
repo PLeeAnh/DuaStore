@@ -88,8 +88,9 @@ function openDetailModal(promoId) {
                     relSection.style.display = 'none';
                 }
 
-                el('dm-footer-action').innerHTML =
-                        '<button class="ds-btn ds-btn-fill" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận voucher</button>';
+                el('dm-footer-action').innerHTML = d.ownedInWallet
+                        ? '<button class="ds-btn ds-btn-fill" disabled style="opacity:.6;cursor:not-allowed;"><i class="bi bi-check-circle-fill me-1"></i>Đã nhận</button>'
+                        : '<button class="ds-btn ds-btn-fill" onclick="saveVoucherFromDetail(' + d.id + ')"><i class="bi bi-wallet2 me-1"></i>Nhận voucher</button>';
 
                 if (typeof bootstrap === 'undefined') {
                     if (typeof DuaStore !== 'undefined' && DuaStore.toast) { DuaStore.toast.error('Không thể hiển thị popup: Bootstrap chưa được tải'); }
@@ -151,8 +152,13 @@ function saveVoucherFromDetail(promoId) {
     var header = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
     fetch('/api/vi-voucher/luu/' + promoId, {method: 'POST', headers: {[header]: token}})
             .then(function (r) {
-                if (handleUnauthorized(r))
+                if (handleUnauthorized(r)) {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Nhận voucher';
+                    }
                     return null;
+                }
                 return r.json();
             })
             .then(function (data) {

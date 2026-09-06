@@ -1,5 +1,6 @@
 package com.duastore.controller.client;
 
+import com.duastore.config.security.SecurityUtil;
 import com.duastore.model.FlashSale;
 import com.duastore.model.Product;
 import com.duastore.model.ProductVariant;
@@ -8,6 +9,7 @@ import com.duastore.repository.FlashSaleRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ProductVariantRepository;
 import com.duastore.repository.PromotionRepository;
+import com.duastore.repository.UserVoucherRepository;
 import com.duastore.service.PricingService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,17 +36,23 @@ public class PromotionController {
     private final ProductVariantRepository variantRepository;
     private final FlashSaleRepository flashSaleRepository;
     private final PricingService pricingService;
+    private final UserVoucherRepository userVoucherRepository;
+    private final SecurityUtil securityUtil;
 
     public PromotionController(PromotionRepository promotionRepository,
             ProductRepository productRepository,
             ProductVariantRepository variantRepository,
             FlashSaleRepository flashSaleRepository,
-            PricingService pricingService) {
+            PricingService pricingService,
+            UserVoucherRepository userVoucherRepository,
+            SecurityUtil securityUtil) {
         this.promotionRepository = promotionRepository;
         this.productRepository = productRepository;
         this.variantRepository = variantRepository;
         this.flashSaleRepository = flashSaleRepository;
         this.pricingService = pricingService;
+        this.userVoucherRepository = userVoucherRepository;
+        this.securityUtil = securityUtil;
     }
 
     @GetMapping("/khuyen-mai")
@@ -131,7 +139,13 @@ public class PromotionController {
             if (pvList.isEmpty()) {
                 continue;
             }
-            ProductVariant first = pvList.get(0);
+            // Dung dung bien the mac dinh (isDefault=true) de dai dien cho gia san pham —
+            // truoc day lay pvList.get(0) (thu tu ngau nhien tu groupingBy) khien card co
+            // the hien gia cua 1 bien the phu re nhat thay vi bien the mac dinh that su.
+            ProductVariant first = pvList.stream()
+                    .filter(ProductVariant::isDefault)
+                    .findFirst()
+                    .orElse(pvList.get(0));
             BigDecimal giaGoc = first.getGiaGoc();
             if (giaGoc == null) {
                 giaGoc = BigDecimal.ZERO;
@@ -245,6 +259,10 @@ public class PromotionController {
             result.put("targetType", p.getTargetType() != null ? p.getTargetType() : "Tất cả");
             result.put("savedCount", p.getSavedCount() != null ? p.getSavedCount() : 0);
             result.put("related", related);
+            Integer userId = securityUtil.getCurrentUserId();
+            boolean ownedInWallet = userId != null
+                    && userVoucherRepository.existsByUserIdAndPromotionId(userId, id);
+            result.put("ownedInWallet", ownedInWallet);
             result.put("success", true);
         } catch (Exception e) {
             result.put("success", false);

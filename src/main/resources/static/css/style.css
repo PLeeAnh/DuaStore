@@ -7229,6 +7229,69 @@ a {
         grid-template-columns:1fr;
     }
 }
+
+/* ── Vi Voucher: ticket-style redesign ── */
+.vw-tabs{ border-bottom: 2px solid #eef1f5; gap: 4px; }
+.vw-tabs .nav-link{
+    border: none; color: #64748b; font-weight: 600; font-size: .86rem;
+    padding: 10px 16px; border-radius: 10px 10px 0 0; transition: background .15s, color .15s;
+}
+.vw-tabs .nav-link:hover{ color: var(--ds-primary); background: #f8fafc; }
+.vw-tabs .nav-link.active{
+    color: var(--ds-primary); background: #eff6ff;
+    border-bottom: 2px solid var(--ds-primary); margin-bottom: -2px;
+}
+.vw-tabs .nav-link .badge{ background: var(--ds-primary) !important; }
+
+.vw-hero{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:22px 24px; border-radius:16px; margin-bottom:24px;
+    background:var(--ds-grad-primary); color:#fff;
+    box-shadow:0 10px 30px -12px rgba(2,132,199,.4);
+}
+.vw-hero-icon{
+    width:52px; height:52px; border-radius:50%; flex-shrink:0;
+    background:rgba(255,255,255,.18); display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem;
+}
+.vw-hero-title{ font-weight:800; font-size:1.3rem; margin:0; }
+.vw-hero-sub{ font-size:.85rem; opacity:.92; margin:2px 0 0; }
+.vw-hero-stat{ margin-left:auto; text-align:right; }
+.vw-hero-stat .n{ font-size:1.7rem; font-weight:800; line-height:1; }
+.vw-hero-stat .l{ font-size:.72rem; opacity:.85; text-transform:uppercase; letter-spacing:.05em; }
+
+.vw-ticket{
+    display:flex; background:#fff; border-radius:14px; overflow:hidden;
+    box-shadow:0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.18);
+    border:1px solid #eef1f5; height:100%; transition:transform .15s, box-shadow .15s;
+}
+.vw-ticket:hover{ transform:translateY(-3px); box-shadow:0 16px 32px -14px rgba(2,132,199,.22); }
+.vw-ticket.is-inactive{ filter:grayscale(.35); opacity:.75; }
+.vw-ticket-stub{
+    width:104px; flex-shrink:0; color:#fff; position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:14px 6px; text-align:center;
+    background:var(--ds-grad-primary);
+}
+.vw-ticket.is-inactive .vw-ticket-stub{ background:#94a3b8; }
+.vw-ticket-stub .amt{ font-size:1.35rem; font-weight:800; line-height:1.15; word-break:break-word; }
+.vw-ticket-stub .unit{ font-size:.64rem; opacity:.9; margin-top:3px; text-transform:uppercase; letter-spacing:.04em; }
+.vw-ticket-divider{
+    width:0; flex-shrink:0; align-self:stretch; margin:10px 0;
+    border-left:2px dashed rgba(148,163,184,.55);
+}
+.vw-ticket-body{ flex:1; min-width:0; padding:14px 14px 12px; display:flex; flex-direction:column; }
+.vw-ticket-status{ display:inline-flex; align-items:center; gap:5px; font-size:.68rem; font-weight:600; color:#64748b; margin-bottom:4px; }
+.vw-ticket-title{ font-size:.9rem; font-weight:700; color:#1e293b; line-height:1.3; margin-bottom:5px; }
+.vw-ticket-code{
+    display:inline-flex; align-self:flex-start; font-size:.68rem; font-weight:700; letter-spacing:.04em;
+    color:var(--ds-primary); background:#eff6ff; border:1px dashed rgba(2,132,199,.35);
+    border-radius:6px; padding:2px 8px; margin-bottom:8px;
+}
+.vw-ticket-meta{ font-size:.72rem; color:#94a3b8; display:flex; flex-direction:column; gap:2px; margin-bottom:auto; }
+.vw-ticket-meta strong{ color:#475569; }
+.vw-ticket-actions{ display:flex; gap:8px; margin-top:10px; }
+
 .detail-section{
     background:#f8fafc;
     border:1px solid #e5e7eb;
@@ -9301,6 +9364,57 @@ body.ds-checkout-page .ds-footer { display: none !important; }
     transition: background .15s, border-color .15s;
 }
 .shp-discount-link:hover { background: #eff6ff; border-color: #2563eb; }
+
+/* ── Voucher picker modal (kieu Shopee) ── */
+.shp-voucher-manual-entry {
+    display: flex; gap: 8px; margin-bottom: 16px; padding: 10px;
+    background: #f8fafc; border-radius: 12px; border: 1px solid #eef1f5;
+}
+.shp-voucher-manual-entry input {
+    flex: 1; border: 1px solid #dbe4ee; border-radius: 8px;
+}
+.shp-voucher-manual-entry input:focus { border-color: var(--ds-primary); box-shadow: 0 0 0 3px rgba(2,132,199,.12); }
+.shp-voucher-error {
+    background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+    border-radius: 8px; padding: 8px 12px; font-size: .82rem; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+}
+.shp-voucher-list { display: flex; flex-direction: column; gap: 12px; }
+.shp-voucher-list-label {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: #94a3b8; margin: 2px 0 -2px;
+}
+
+.svp-ticket {
+    display: flex; align-items: stretch; background: #fff; border-radius: 12px;
+    overflow: hidden; border: 1px solid #eef1f5;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: box-shadow .15s, border-color .15s;
+}
+.svp-ticket:hover { border-color: rgba(2,132,199,.3); box-shadow: 0 6px 16px -8px rgba(2,132,199,.25); }
+.svp-ticket-stub {
+    width: 76px; flex-shrink: 0; color: #fff; background: var(--ds-grad-primary);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 8px 4px; text-align: center;
+}
+.svp-ticket-stub .amt { font-size: 1.02rem; font-weight: 800; line-height: 1.15; word-break: break-word; }
+.svp-ticket-stub .unit { font-size: .56rem; opacity: .9; text-transform: uppercase; letter-spacing: .03em; margin-top: 2px; }
+.svp-ticket-divider { width: 0; flex-shrink: 0; align-self: stretch; margin: 8px 0; border-left: 2px dashed rgba(148,163,184,.5); }
+.svp-ticket-body { flex: 1; min-width: 0; padding: 9px 10px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.svp-ticket-title { font-size: .8rem; font-weight: 700; color: #1e293b; line-height: 1.25; }
+.svp-ticket-code {
+    align-self: flex-start; font-size: .62rem; font-weight: 700; letter-spacing: .03em;
+    color: var(--ds-primary); background: #eff6ff; border-radius: 5px; padding: 1px 6px; margin: 2px 0;
+}
+.svp-ticket-meta { font-size: .68rem; color: #94a3b8; }
+.svp-ticket-actions { display: flex; align-items: center; padding: 0 10px; flex-shrink: 0; }
+.svp-ticket-apply {
+    font-size: .74rem; font-weight: 700; color: #fff; background: var(--ds-grad-primary);
+    border: none; border-radius: 8px; padding: 7px 14px; white-space: nowrap;
+    box-shadow: 0 3px 10px -4px rgba(2,132,199,.5); transition: filter .15s;
+}
+.svp-ticket-apply:hover { filter: brightness(1.08); }
+.svp-ticket-empty { text-align: center; color: #94a3b8; padding: 28px 10px; }
+.svp-ticket-empty i { font-size: 1.8rem; opacity: .5; display: block; margin-bottom: 8px; }
 
 /* ── Cost summary ── */
 .shp-cost { margin-top: 6px; }
