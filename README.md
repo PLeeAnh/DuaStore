@@ -128,17 +128,19 @@ src/main/resources/db/DuaStore_Database.sql
 
 Script này sẽ tự tạo database `DuaStore`, toàn bộ 44 bảng, các index, 3 view hỗ trợ và **dữ liệu mẫu ban đầu** (vai trò, quyền hạn, tài khoản demo, danh mục, sản phẩm, khuyến mãi, bài viết...). Đây là **nguồn schema duy nhất** của dự án — ứng dụng chạy với `spring.jpa.hibernate.ddl-auto=validate` nên bắt buộc schema phải khớp 100% với script này.
 
-**Bước 2: Khai báo biến môi trường**
+**Bước 2: Khai báo cấu hình local (cách đơn giản nhất — khuyến nghị)**
 
-Tạo file `src/main/resources/application-secrets.properties` từ file mẫu:
+Tạo file `src/main/resources/application-local.properties` từ file mẫu:
 
 ```bash
-cp src/main/resources/application-secrets.properties.example src/main/resources/application-secrets.properties
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
 ```
 
-Sau đó điền thông tin thật của bạn (mật khẩu SQL Server, Google OAuth2 client id/secret nếu muốn dùng đăng nhập Google, tài khoản Gmail SMTP nếu muốn gửi email, thông tin ngân hàng nhận thanh toán VietQR...). File này đã được liệt kê trong `.gitignore` nên sẽ không bị đưa lên Git.
+Mở file vừa tạo và sửa `spring.datasource.username`/`spring.datasource.password` theo tài khoản SQL Server thật của máy bạn, điền `duastore.remember-me.key` bất kỳ. File này khớp với `spring.profiles.active=local` khai báo ở đầu `application.properties` nên Spring Boot sẽ tự nạp — **không cần set biến môi trường nào cả**, chỉ cần copy + sửa vài dòng là chạy được. File đã có trong `.gitignore` nên sẽ không bị đưa lên Git.
 
-Ngoài ra, các biến bắt buộc sau cần được set qua biến môi trường (hoặc IDE run configuration):
+> ⚠️ Nếu bỏ qua bước này, ứng dụng sẽ báo lỗi `Could not resolve placeholder 'DB_USERNAME'` (hoặc `REMEMBER_ME_KEY`) khi khởi động và không chạy được — đây là lỗi phổ biến nhất khi lần đầu setup dự án.
+
+**Cách khác (thay vì dùng file trên):** set trực tiếp các biến môi trường sau qua OS hoặc IDE run configuration — dùng khi deploy hoặc không muốn dùng file `application-local.properties`:
 
 | Biến môi trường | Ý nghĩa |
 |---|---|
@@ -146,6 +148,8 @@ Ngoài ra, các biến bắt buộc sau cần được set qua biến môi trư�
 | `DB_PASSWORD` | Mật khẩu SQL Server |
 | `REMEMBER_ME_KEY` | Chuỗi bí mật bất kỳ dùng cho "Ghi nhớ đăng nhập" |
 | `DB_URL` *(tuỳ chọn)* | JDBC URL, mặc định `jdbc:sqlserver://localhost:1433;databaseName=DuaStore;...` |
+
+Ngoài ra, nếu muốn dùng đăng nhập Google / gửi email / thanh toán VietQR với thông tin thật, có thể tạo thêm file `src/main/resources/application-secrets.properties` từ `application-secrets.properties.example` (tùy chọn, không bắt buộc để chạy được app).
 
 **Bước 3: Chạy ứng dụng**
 
