@@ -681,6 +681,11 @@ function setDefaultAddress(id) {
             .then(function (result) {
                 if (result.ok && result.data.success)
                     location.reload();
+                else if (result.data && result.data.message)
+                    DuaStore.toast.error(result.data.message);
+            })
+            .catch(function () {
+                DuaStore.toast.error('Không thể đặt mặc định');
             });
 }
 function deleteAddress(id) {
@@ -690,6 +695,11 @@ function deleteAddress(id) {
             .then(function (result) {
                 if (result.ok && result.data.success)
                     location.reload();
+                else if (result.data && result.data.message)
+                    DuaStore.toast.error(result.data.message);
+            })
+            .catch(function () {
+                DuaStore.toast.error('Không thể xóa địa chỉ');
             });
 }
 

@@ -32,7 +32,7 @@ public class SavedCartItem {
     @Column(nullable = false)
     private Integer soLuong = 1;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 38, scale = 2)
     private BigDecimal giaLuu;
 
     @Column(updatable = false)

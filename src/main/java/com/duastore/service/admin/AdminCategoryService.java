@@ -314,14 +314,15 @@ public class AdminCategoryService {
     public List<TreeNodeDto> getFlatTree(Map<Integer, Long> productCountMap) {
         List<Category> roots = getTree();
         List<TreeNodeDto> result = new ArrayList<>();
-        buildFlatTree(roots, 0, null, productCountMap, result);
+        buildFlatTree(roots, 0, null, null, productCountMap, result);
         return result;
     }
 
-    private void buildFlatTree(List<Category> nodes, int level, String parentPath, Map<Integer, Long> productCountMap, List<TreeNodeDto> result) {
+    private void buildFlatTree(List<Category> nodes, int level, Integer parentId, String parentPath, Map<Integer, Long> productCountMap, List<TreeNodeDto> result) {
         for (Category cat : nodes) {
             TreeNodeDto dto = new TreeNodeDto();
             dto.setId(cat.getId());
+            dto.setParentId(parentId);
             String path = parentPath != null ? parentPath + " › " + cat.getTenDanhMuc() : cat.getTenDanhMuc();
             dto.setFullPath(path);
             dto.setTenDanhMuc(cat.getTenDanhMuc());
@@ -334,7 +335,7 @@ public class AdminCategoryService {
             dto.setChildCount(countRecursiveChildren(cat));
             result.add(dto);
             if (!cat.getChildren().isEmpty()) {
-                buildFlatTree(cat.getChildren(), level + 1, path, productCountMap, result);
+                buildFlatTree(cat.getChildren(), level + 1, cat.getId(), path, productCountMap, result);
             }
         }
     }

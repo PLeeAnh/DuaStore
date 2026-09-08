@@ -168,9 +168,9 @@
                                     <li><a class="dropdown-item" th:href="@{/admin/bien-the/bulk-edit/{id}(id=${p.id})}"><i class="bi bi-pencil-square"></i>Sửa hàng loạt</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form th:action="@{/admin/san-pham/xoa/{id}(id=${p.id})}" method="post" class="d-block">
-                                            <button type="submit" class="dropdown-item text-danger" data-confirm="Xóa sản phẩm này?"><i class="bi bi-trash"></i>Xóa</button>
-                                        </form>
+                                        <button type="button" class="dropdown-item text-danger"
+                                                th:data-action="@{/admin/san-pham/xoa/{id}(id=${p.id})}"
+                                                data-confirm="Xóa sản phẩm này?"><i class="bi bi-trash"></i>Xóa</button>
                                     </li>
                                 </ul>
                             </div>

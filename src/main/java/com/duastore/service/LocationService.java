@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.InputStream;
@@ -23,13 +24,20 @@ public class LocationService {
     private static final Logger log = LoggerFactory.getLogger(LocationService.class);
     private static final String BASE = "https://provinces.open-api.vn/api";
     private static final String DATA_FILE = "static/data/provinces.json";
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = createRestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final Map<String, List<Map<String, Object>>> districtCache = new ConcurrentHashMap<>();
     private final Map<String, List<Map<String, Object>>> wardCache = new ConcurrentHashMap<>();
     private List<Map<String, Object>> provinceList;
     private boolean fileLoaded = false;
+
+    private static RestTemplate createRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5000);
+        factory.setReadTimeout(10000);
+        return new RestTemplate(factory);
+    }
 
     @PostConstruct
     public void init() {

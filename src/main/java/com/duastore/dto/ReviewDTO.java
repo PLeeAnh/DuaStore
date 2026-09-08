@@ -25,4 +25,6 @@ public class ReviewDTO {
     private List<String> hinhAnhList;
     private boolean isApproved;
     private LocalDateTime ngayTao;
+    private String replyContent;
+    private LocalDateTime replyAt;
 }

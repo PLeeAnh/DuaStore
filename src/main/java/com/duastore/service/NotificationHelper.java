@@ -47,16 +47,6 @@ public class NotificationHelper {
     }
 
     /**
-     * @deprecated Dung ban co requiredPermission — khong truyen quyen se hien thi cho
-     * TAT CA ADMIN/STAFF/PRODUCT_OWNER du khong lien quan nghiep vu cua ho.
-     */
-    @Deprecated
-    @Transactional
-    public void notifyStaff(String content, String linkType, Integer linkId, String linkUrl, String linkLabel) {
-        notifyStaff(content, linkType, linkId, linkUrl, linkLabel, null);
-    }
-
-    /**
      * @param requiredPermission Quyen can co de THAY thong bao nay (xem PermissionEnum,
      *        vd "ORDER_READ") — chi nguoi co quyen do (hoac PRODUCT_OWNER, luon thay tat
      *        ca) moi thay. Dung tien to "ROLE:" (vd "ROLE:PRODUCT_OWNER") de gioi han

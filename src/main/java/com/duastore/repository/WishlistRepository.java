@@ -17,10 +17,6 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
     @EntityGraph(attributePaths = {"product"})
     List<Wishlist> findByUserIdOrderByNgayThemDesc(Integer userId);
 
-    Optional<Wishlist> findByUserIdAndProductId(Integer userId, Integer productId);
-
-    boolean existsByUserIdAndProductId(Integer userId, Integer productId);
-
     void deleteByUserIdAndProductId(Integer userId, Integer productId);
 
     @Query("SELECT w.productId FROM Wishlist w WHERE w.userId = ?1")
@@ -36,4 +32,8 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
     List<Object[]> findMostLiked(Pageable pageable);
 
     long countByProductId(Integer productId);
+
+    boolean existsByUserIdAndProductId(Integer userId, Integer productId);
+
+    Optional<Wishlist> findByUserIdAndProductId(Integer userId, Integer productId);
 }

@@ -26,6 +26,7 @@
   V10: Them 3 bang moi (StockMovements, ReviewReplies, ContactReplies) va cot
        severity cho CustomerNotes. Xoa bang RefundRequests (tinh nang refund da bo).
 
+
 File nay la NGUON SCRIPT DUY NHAT cho DB san pham (khong con schema.sql /
   application-ddlgen.properties). App runtime co
   spring.jpa.hibernate.ddl-auto=validate nen script phai khop 100% voi @Entity.
@@ -957,135 +958,6 @@ GO
 -- ============================================================
 -- BUOC 4: SEED DU LIEU MAU
 -- ============================================================
--- SEED: RBAC (roles / permissions / role_permissions / user_roles)
--- ============================================================
--- Danh sach permission khop CHINH XAC 1:1 voi PermissionEnum.java trong code
--- (80 quyen: moi module/action trong enum deu co dong INSERT tuong ung).
--- ============================================================
-GO
-
-GO
-
--- PRODUCT_OWNER (chu so huu) duoc gan TOAN BO permission (bypass)
-GO
-
--- ADMIN duoc gan TOAN BO permission (khong bypass)
-GO
-
--- STAFF duoc gan quyen xu ly don hang, san pham, danh gia, khach hang, tin nhan
-GO
-
--- Tai khoan mac dinh
--- Mat khau "admin@123" - hash BCrypt duoi day DA duoc verify thuc te (bcrypt.checkpw)
-GO
-
--- ============================================================
--- SEED: Tai khoan test cho ca 4 vai tro (de kiem thu phan quyen)
--- Mat khau tat ca deu la "admin@123" (dung chung hash da verify o tren)
--- ============================================================
-GO
-
--- Gan vai tro: admin -> PRODUCT_OWNER (toan quyen), nguyenvan -> USER
-GO
-
--- Gan vai tro cho cac tai khoan test moi (4 vai tro, de kiem thu phan quyen)
-
-GO
-
--- Seed: mac dinh moi user co phuong thuc dang nhap PASSWORD
-GO
-
--- ============================================================
--- SEED: Danh muc + San pham mau
--- ============================================================
-
-GO
-
--- Danh muc con bo sung (danh muc goc con it, tach nho de de duyet hon)
-GO
-
--- Anh dai dien danh muc (hien tren trang chu / mega-menu)
-GO
-
-GO
-
-GO
-
--- ============================================================
--- SEED: 18 san pham moi (anh thuc te trong uploads/, ten/mo ta
--- duoc phan tich truc tiep tu ten file anh)
--- ============================================================
-GO
-
-GO
-
--- Cac ma khuyen mai "toan bo" (targetType='ALL' HOAC NULL — ca 2 deu roi vao nhanh
--- "default -> true" trong resolveEligibleAmount/isPromotionApplicableToProduct, tuc ap
--- dung cho MOI san pham) bi VO HIEU HOA (isActive=0): kho kiem soat, tung gay le pricing
--- kho hieu (vd COMBO30 tu dong ap vao ca hang Flash Sale luc checkout; KHAIHANG tu dong
--- hien -15% tren MOI trang san pham, ke ca hang da het/hang test). Rieng loaiGiam=PHAN_TRAM
--- voi targetType rong la nguy hiem nhat vi con bi chon lam "bestPercentagePromo" hien
--- thang len gia san pham. Van giu lai dong INSERT (chi doi isActive=0) thay vi xoa han,
--- vi UserVouchers/orders phia duoi con FK tham chieu toi.
-
-GO
-
--- ============================================================
--- SEED: Du lieu phong phu cho 5 tai khoan USER moi (dia chi,
--- yeu thich, gio hang, danh gia, don hang, voucher) de kiem thu
--- ============================================================
-GO
-
--- Wishlist: moi user them 2 san pham (tron ca hang cu va hang moi)
-GO
-
--- Gio hang: moi user co 1-2 mon dang de trong gio
-GO
-
--- Danh gia san pham (mix da duyet / cho duyet, de kiem thu trang quan ly danh gia)
-GO
-
--- Don hang: 1 don moi cho tung user moi + 1 don them cho nguyenvan,
--- da dang trang thai de kiem thu trang quan ly don hang
-GO
-
-GO
-
--- Voucher da luu vao vi cua mot so user (kiem thu trang "Vi voucher")
-GO
-
--- ============================================================
--- SEED BO SUNG: nang cac bang phu len toi thieu 50 dong/bang
--- (Addresses, Wishlists, CartItems, Reviews, UserVouchers) de
--- co du lieu phong phu hon khi kiem thu.
--- ============================================================
--- Addresses: moi khach hang co them ~8 dia chi giao hang khac nhau
-GO
-
--- Wishlists: moi khach hang them yeu thich them ~9 san pham (bo qua trung voi du lieu da co)
-GO
-
--- CartItems: moi khach hang co them vai bien the dang de trong gio (bo qua trung)
-GO
-
--- Reviews: moi khach hang danh gia them ~9 san pham, noi dung xoay vong cho da dang
-GO
-
--- UserVouchers: luu them voucher vao vi cho tung khach hang (toi da moi nguoi x moi promotion 1 lan)
-GO
-
-PRINT 'Seed du lieu co ban hoan tat!';
-GO
-
--- ============================================================
--- SEED: SiteSettings (cau hinh mac dinh - TOAN BO BAT)
--- ============================================================
-GO
-
-PRINT 'SiteSettings seed hoan tat!';
-GO
-
--- ============================================================
 -- BUOC 5: VIEW HO TRO
 -- ============================================================
 CREATE VIEW vw_DoanhThu AS
@@ -1139,13 +1011,6 @@ ORDER BY ngayTao DESC
 OFFSET 0 ROWS;
 GO
 
-PRINT '====================================================';
-PRINT ' DuaStore Database - San sang su dung!';
-PRINT ' Tong so bang  : 44 (gom 2 bang join: role_permissions, user_roles)';
-PRINT ' Views         : vw_DoanhThu, vw_ProductPrice, vw_PostsPublished';
-PRINT ' 4 vai tro     : PRODUCT_OWNER, ADMIN, STAFF, USER';
-PRINT ' Tai khoan admin: admin / admin@123 (vai tro PRODUCT_OWNER)';
-PRINT '====================================================';
 
 -- ============================================================
 -- NANG CAP DB CU (chi chay khi DB da tao TU BAN SCRIPT CU):
@@ -1199,11 +1064,9 @@ BEGIN
             FOREIGN KEY (userId) REFERENCES users;
     END
 
-    PRINT 'user_auth_providers: da nang cap sang cot camelCase (userId, linkedAt)';
 END
 ELSE
 BEGIN
-    PRINT 'user_auth_providers: khong ton tai (bo qua buoc nang cap)';
 END
 GO
 
@@ -1214,7 +1077,6 @@ IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'CustomerNotes')
     AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('CustomerNotes') AND name = 'severity')
 BEGIN
     ALTER TABLE CustomerNotes ADD severity nvarchar(20) NOT NULL DEFAULT 'INFO';
-    PRINT 'CustomerNotes: da them cot severity';
 END
 GO
 
@@ -1244,7 +1106,6 @@ BEGIN
         FOREIGN KEY (orderId) REFERENCES orders;
     CREATE INDEX IX_StockMovements_variantId ON StockMovements(variantId);
     CREATE INDEX IX_StockMovements_createdAt ON StockMovements(createdAt);
-    PRINT 'StockMovements: da tao bang';
 END
 GO
 
@@ -1266,7 +1127,6 @@ BEGIN
     ALTER TABLE ReviewReplies ADD CONSTRAINT FK_ReviewReplies_createdBy
         FOREIGN KEY (createdBy) REFERENCES users;
     CREATE INDEX IX_ReviewReplies_reviewId ON ReviewReplies(reviewId);
-    PRINT 'ReviewReplies: da tao bang';
 END
 GO
 
@@ -1288,7 +1148,6 @@ BEGIN
     ALTER TABLE ContactReplies ADD CONSTRAINT FK_ContactReplies_createdBy
         FOREIGN KEY (createdBy) REFERENCES users;
     CREATE INDEX IX_ContactReplies_contactId ON ContactReplies(contactId);
-    PRINT 'ContactReplies: da tao bang';
 END
 GO
 
@@ -1315,7 +1174,6 @@ BEGIN
     CREATE INDEX IX_PageViews_UserTime ON PageViews(userId, createdAt DESC);
     ALTER TABLE PageViews ADD CONSTRAINT FK_PageViews_userId
         FOREIGN KEY (userId) REFERENCES users;
-    PRINT 'PageViews: da tao bang';
 END
 GO
 
@@ -1324,94 +1182,299 @@ GO
 -- ============================================================
 
 -- ---------- FlashSales ----------
+    (1, 10, DATEADD(DAY,-2,GETDATE()), DATEADD(DAY,3,GETDATE()),  N'Flash Sale Cuối Tuần', N'Giảm giá sốc cuối tuần cho các sản phẩm thủy tinh cao cấp'),
+    (1, 8,  DATEADD(DAY,-5,GETDATE()), DATEADD(DAY,5,GETDATE()),  N'Sale Giữa Tháng', N'Ưu đãi giữa tháng dành cho khách hàng thân thiết'),
+    (0, 5,  DATEADD(DAY,-30,GETDATE()),DATEADD(DAY,-20,GETDATE()),N'Khai Trương Tháng 9', N'Chương trình khai trương chi nhánh mới'),
+    (1, 7,  GETDATE(),                 DATEADD(DAY,7,GETDATE()),  N'Sale Đón Trung Thu', N'Ưu đãi mùa Trung Thu cho bộ sưu tập bình hoa và ly'),
+    (0, 6,  DATEADD(DAY,20,GETDATE()), DATEADD(DAY,25,GETDATE()), N'Flash Sale Black Friday', N'Sự kiện giảm giá lớn nhất năm'),
+    (0, 4,  DATEADD(DAY,60,GETDATE()), DATEADD(DAY,65,GETDATE()), N'Sale Tất Niên', N'Chương trình khuyến mãi cuối năm dành cho mọi khách hàng');
 GO
 
 -- ---------- FlashSaleItems (phan bo bien the vao 3 flash sale con hieu luc) ----------
+SELECT fs.id, pv.id, pv.giaGoc, CAST(pv.giaGoc * 0.75 AS numeric(12,0)), 20, (pv.id % 10), 1
+FROM FlashSales fs
+CROSS JOIN ProductVariants pv
+WHERE fs.tenChuongTrinh = N'Flash Sale Cuối Tuần' AND pv.id % 3 = 0
+UNION ALL
+SELECT fs.id, pv.id, pv.giaGoc, CAST(pv.giaGoc * 0.8 AS numeric(12,0)), 15, (pv.id % 8), 1
+FROM FlashSales fs
+CROSS JOIN ProductVariants pv
+WHERE fs.tenChuongTrinh = N'Sale Giữa Tháng' AND pv.id % 3 = 1
+UNION ALL
+SELECT fs.id, pv.id, pv.giaGoc, CAST(pv.giaGoc * 0.7 AS numeric(12,0)), 25, (pv.id % 12), 1
+FROM FlashSales fs
+CROSS JOIN ProductVariants pv
+WHERE fs.tenChuongTrinh = N'Sale Đón Trung Thu' AND pv.id % 3 = 2;
 GO
 
 -- ---------- linked_accounts (lien ket tai khoan phu) ----------
+SELECT (SELECT id FROM users WHERE username='tranthib'), (SELECT id FROM users WHERE username='nguyenvan'), DATEADD(DAY,-40,GETDATE())
+UNION ALL
+SELECT (SELECT id FROM users WHERE username='nguyenvan'), (SELECT id FROM users WHERE username='tranthib'), DATEADD(DAY,-40,GETDATE())
+UNION ALL
+SELECT (SELECT id FROM users WHERE username='admin'), (SELECT id FROM users WHERE username='admin2'), DATEADD(DAY,-90,GETDATE())
+UNION ALL
+SELECT (SELECT id FROM users WHERE username='staff2'), (SELECT id FROM users WHERE username='staff1'), DATEADD(DAY,-15,GETDATE());
 GO
 
 -- ---------- Notifications ----------
 -- (a) Thong bao ca nhan cho khach hang theo don hang cua ho
+SELECT 1, o.id, o.userId, DATEADD(HOUR, -(o.id*3), GETDATE()), 'ORDER', NULL,
+       '/tai-khoan/don-hang/' + CAST(o.id AS nvarchar(10)),
+       N'Đơn hàng ' + o.maDon + N' đã chuyển sang trạng thái: ' +
+       CASE o.trangThaiDon
+           WHEN 'CHO_XAC_NHAN' THEN N'Chờ xác nhận'
+           WHEN 'DA_XAC_NHAN' THEN N'Đã xác nhận'
+           WHEN 'DANG_GIAO' THEN N'Đang giao'
+           WHEN 'DA_GIAO' THEN N'Đã giao'
+           WHEN 'DA_HOAN_THANH' THEN N'Hoàn thành'
+           WHEN 'DA_HUY' THEN N'Đã hủy'
+       END,
+       N'Xem đơn hàng'
+FROM orders o;
 GO
 
 -- (b) Thong bao broadcast cho STAFF (don moi, danh gia moi, san pham sap het hang)
+    (1, 1, NULL, DATEADD(DAY,-1,GETDATE()), 'ORDER', 'STAFF', '/admin/don-hang', N'Khách hàng đã đặt đơn hàng mới: DUA-20260001', N'Xem đơn hàng'),
+    (1, 8, NULL, DATEADD(DAY,-2,GETDATE()), 'ORDER', 'STAFF', '/admin/don-hang', N'Khách hàng vừa đặt đơn hàng mới: DUA-20260013', N'Xem đơn hàng'),
+    (1, NULL, NULL, DATEADD(DAY,-3,GETDATE()), NULL, 'STAFF', '/admin/khach-hang', N'Khach hang moi: Tran Thi Binh (tranthib@duastore.vn)', N'Xem khách hàng'),
+    (1, 1, NULL, DATEADD(DAY,-4,GETDATE()), 'PRODUCT', 'STAFF', '/admin/san-pham/sua/1', N'⚠️ Sản phẩm "Chai Thủy Tinh Đựng Rượu Tròn" sắp hết hàng (còn 3)', N'Xem sản phẩm'),
+    (1, NULL, NULL, DATEADD(DAY,-5,GETDATE()), NULL, 'STAFF', '/admin/don-hang?trangThai=CHO_XAC_NHAN', N'⚠️ Có 2 đơn hàng chờ xác nhận quá 24 giờ!', N'Xem đơn hàng'),
+    (1, 20, NULL, DATEADD(DAY,-6,GETDATE()), 'PRODUCT', 'STAFF', '/admin/danh-gia', N'Co danh gia moi cho san pham Ly Highball Thuy Tinh Cao Cap can duyet', N'Xem đánh giá'),
+    (1, 3, NULL, DATEADD(DAY,-7,GETDATE()), 'PROMOTION', 'STAFF', '/admin/khuyen-mai', N'Admin admin đã tạo khuyến mãi: Sinh Nhật DuaStore', N'Xem khuyến mãi'),
+    (1, 7, NULL, DATEADD(DAY,-8,GETDATE()), 'PRODUCT', 'STAFF', '/admin/san-pham/sua/7', N'Sản phẩm Bình Chiết Rượu Vang vừa hết hàng!', N'Xem sản phẩm');
 GO
 
 -- (c) Thong bao ca nhan he thong khac (khuyen mai, gio hang, san pham moi)
+SELECT 1, NULL, u.id, DATEADD(DAY,-(u.id), GETDATE()), 'CART', NULL, '/gio-hang', N'🛒 Bạn còn sản phẩm trong giỏ hàng! Quay lại để hoàn tất đặt hàng.', N'Đến giỏ hàng'
+FROM users u WHERE u.username IN ('nguyenvan','tranthib','lehoangc','phamthid','vominhe','dangthif')
+UNION ALL
+SELECT 1, 7, u.id, DATEADD(DAY,-(u.id+2), GETDATE()), 'PRODUCT', NULL, '/san-pham/7', N'Sản phẩm mới: Bình Chiết Rượu Vang', NULL
+FROM users u WHERE u.username IN ('nguyenvan','tranthib','lehoangc');
 GO
 
 -- ---------- order_notes (ghi chu noi bo cua admin/staff cho don hang) ----------
 -- Luu y: users.id co dinh theo thu tu insert trong script nay (staff1=11, staff2=12, staff3=13, admin=1)
+SELECT a.adminId, o.id, DATEADD(HOUR, -(o.id*2), GETDATE()), a.tag, a.noiDung
+FROM orders o
+CROSS APPLY (VALUES
+    (11, N'Kho', N'Đã kiểm tra tồn kho, đủ hàng để xuất đơn.'),
+    (12, N'CSKH', N'Đã gọi điện xác nhận địa chỉ giao hàng với khách.'),
+    (13, N'Hệ thống', N'Đơn hàng được đồng bộ tự động từ website.'),
+    (1,  N'Kế toán', N'Đã đối soát thanh toán, khớp với hóa đơn.')
+) AS a(adminId, tag, noiDung)
+WHERE o.id % 4 = (CASE a.tag WHEN N'Kho' THEN 1 WHEN N'CSKH' THEN 2 WHEN N'Hệ thống' THEN 3 ELSE 0 END);
 GO
 
 -- ---------- ProductImages (thu vien anh cho tung san pham, tu anh cac bien the) ----------
+SELECT 1, pv.productId, ROW_NUMBER() OVER (PARTITION BY pv.productId ORDER BY pv.id) - 1, GETDATE(), pv.hinhAnh
+FROM ProductVariants pv
+WHERE pv.hinhAnh IS NOT NULL;
 GO
 
 -- ---------- SavedCartItems (luu de mua sau) ----------
+SELECT ISNULL(pv.giaKhuyenMai, pv.giaGoc), pv.productId, 1, u.id, pv.id, DATEADD(DAY,-(pv.id%10), GETDATE())
+FROM users u
+CROSS APPLY (SELECT TOP 2 id, productId, giaGoc, giaKhuyenMai FROM ProductVariants WHERE id % 6 = (u.id % 6) ORDER BY id) pv
+WHERE u.username IN ('nguyenvan','tranthib','lehoangc','phamthid','vominhe','dangthif');
 GO
 
 -- ---------- ProductViews (lich su xem san pham) ----------
+SELECT p.id, u.id, DATEADD(HOUR, -((p.id * u.id) % 200), GETDATE())
+FROM users u
+CROSS JOIN Products p
+WHERE u.username IN ('nguyenvan','tranthib','lehoangc','phamthid','vominhe','dangthif')
+  AND p.id % 4 <> (u.id % 4);
 GO
 
 -- ---------- UserActivityLogs (nhat ky hoat dong) ----------
+SELECT u.id, DATEADD(HOUR, -(ROW_NUMBER() OVER (PARTITION BY u.id ORDER BY a.activityType)) * 5, GETDATE()),
+       '192.168.1.' + CAST((u.id * 7) % 254 + 1 AS nvarchar(10)), a.activityType, a.description
+FROM users u
+CROSS JOIN (VALUES
+    ('LOGIN', N'Đăng nhập thành công'),
+    ('LOGOUT', N'Đăng xuất khỏi hệ thống'),
+    ('UPDATE_PROFILE', N'Cập nhật thông tin cá nhân'),
+    ('CHANGE_PASSWORD', N'Đổi mật khẩu tài khoản'),
+    ('VIEW_ORDER', N'Xem chi tiết đơn hàng')
+) AS a(activityType, description);
 GO
 
 -- ---------- contact_messages ----------
+    (1, 0, DATEADD(DAY,-20,GETDATE()), 'DON_HANG',  N'Nguyễn Văn An', 'nguyenvan@duastore.vn', N'Đơn hàng của tôi bao giờ giao tới ạ? Đặt đã 3 ngày rồi.'),
+    (1, 0, DATEADD(DAY,-19,GETDATE()), 'SAN_PHAM',  N'Trần Thị Bình', 'tranthib@duastore.vn', N'Sản phẩm bình hoa pha lê có màu khác ngoài trong suốt không shop?'),
+    (1, 0, DATEADD(DAY,-18,GETDATE()), 'GIAO_HANG', N'Lê Hoàng Cường', 'lehoangc@duastore.vn', N'Shop có giao hàng ngoài giờ hành chính không ạ?'),
+    (0, 0, DATEADD(DAY,-17,GETDATE()), 'THANH_TOAN',N'Phạm Thị Dung', 'phamthid@duastore.vn', N'Tôi chuyển khoản rồi nhưng đơn vẫn báo chưa thanh toán.'),
+    (1, 0, DATEADD(DAY,-16,GETDATE()), 'KHIEU_NAI', N'Võ Minh Đức', 'vominhe@duastore.vn', N'Ly thủy tinh nhận được bị nứt ở đáy, tôi muốn đổi trả.'),
+    (0, 0, DATEADD(DAY,-15,GETDATE()), 'HOP_TAC',   N'Đặng Thị Phương', 'dangthif@duastore.vn', N'Tôi muốn hợp tác làm đại lý phân phối sản phẩm của shop.'),
+    (1, 0, DATEADD(DAY,-14,GETDATE()), 'KHAC',      N'Hoàng Văn Nam', 'hoangvannam@gmail.com', N'Cho tôi hỏi cửa hàng có chi nhánh ở Đà Nẵng không?'),
+    (0, 1, DATEADD(DAY,-13,GETDATE()), 'RAC',       N'Spam Bot', 'spam123@fakemail.com', N'Click here to win a free prize now!!! www.spam-link.fake'),
+    (1, 0, DATEADD(DAY,-12,GETDATE()), 'DON_HANG',  N'Nguyễn Thị Hoa', 'hoanguyen@gmail.com', N'Đơn DUA-20260002 giao thiếu 1 sản phẩm so với đặt hàng.'),
+    (1, 0, DATEADD(DAY,-11,GETDATE()), 'SAN_PHAM',  N'Bùi Văn Sơn', 'buivanson@gmail.com', N'Chai thủy tinh 750ml nắp bạc có phải hàng nhập khẩu không ạ?'),
+    (0, 0, DATEADD(DAY,-10,GETDATE()), 'GIAO_HANG', N'Đỗ Thị Lan', 'dothilan@gmail.com', N'Phí ship về Cần Thơ là bao nhiêu vậy shop?'),
+    (1, 0, DATEADD(DAY,-9,GETDATE()),  'THANH_TOAN',N'Ngô Văn Tài', 'ngovantai@gmail.com', N'Shop có hỗ trợ thanh toán trả góp qua thẻ tín dụng không?'),
+    (1, 0, DATEADD(DAY,-8,GETDATE()),  'KHIEU_NAI', N'Vũ Thị Mai', 'vuthimai@gmail.com', N'Nhân viên giao hàng thái độ không tốt, mong shop nhắc nhở.'),
+    (0, 0, DATEADD(DAY,-7,GETDATE()),  'HOP_TAC',   N'Công ty TNHH Thủy Tinh Việt', 'contact@thuytinhviet.vn', N'Chúng tôi muốn đặt hàng sỉ số lượng lớn, xin báo giá.'),
+    (1, 0, DATEADD(DAY,-6,GETDATE()),  'KHAC',      N'Trịnh Văn Hùng', 'trinhvanhung@gmail.com', N'Cửa hàng có chương trình tích điểm thành viên không ạ?'),
+    (0, 1, DATEADD(DAY,-5,GETDATE()),  'RAC',       N'Casino Win', 'winbig@fakecasino.net', N'Bạn đã trúng thưởng 100 triệu đồng, bấm vào đây để nhận!'),
+    (1, 0, DATEADD(DAY,-4,GETDATE()),  'DON_HANG',  N'Lý Thị Kim', 'lythikim@gmail.com', N'Tôi muốn hủy đơn DUA-20260014 vì đặt nhầm số lượng.'),
+    (1, 0, DATEADD(DAY,-3,GETDATE()),  'SAN_PHAM',  N'Phan Văn Đạt', 'phanvandat@gmail.com', N'Bộ tách trà thủy tinh có kèm khay đựng không shop?'),
+    (0, 0, DATEADD(DAY,-2,GETDATE()),  'GIAO_HANG', N'Mai Thị Thu', 'maithithu@gmail.com', N'Có thể đổi địa chỉ giao hàng sau khi đã đặt không ạ?'),
+    (1, 0, DATEADD(DAY,-1,GETDATE()),  'KHAC',      N'Đinh Văn Long', 'dinhvanlong@gmail.com', N'Cảm ơn shop, sản phẩm rất đẹp và đóng gói cẩn thận!');
 GO
 
 -- ---------- popup_banners ----------
+    (1, NULL, DATEADD(DAY,-10,GETDATE()), DATEADD(DAY,-1,GETDATE()), 'EVERY_VISIT', N'Chào mừng đến với DuaStore!', '/images/products/binh-hoa-pha-le-1000ml.jpg', '/khuyen-mai'),
+    (1, 60,   DATEADD(DAY,-5,GETDATE()),  DATEADD(DAY,-1,GETDATE()), 'ONCE_PER_SESSION', N'Flash Sale Cuối Tuần - Giảm đến 25%', '/images/products/ly-vang-350ml-bo6.jpg', '/san-pham'),
+    (0, NULL, DATEADD(DAY,-30,GETDATE()), DATEADD(DAY,-20,GETDATE()),'EVERY_VISIT', N'Khai Trương Chi Nhánh Mới', '/images/products/bo-binh-hoa-mau-800ml.jpg', '/lien-he');
 GO
 
 -- ---------- user_settings ----------
+SELECT u.id, s.settingKey, s.settingValue
+FROM users u
+CROSS JOIN (VALUES
+    ('theme', 'light'),
+    ('email_notifications', 'true'),
+    ('sms_notifications', 'false')
+) AS s(settingKey, settingValue);
 GO
 
 -- ---------- CustomerNotes (ghi chu cham soc khach hang cua admin/staff) ----------
+SELECT u.id, n.content, n.createdBy, DATEADD(DAY,-(u.id), GETDATE())
+FROM users u
+CROSS APPLY (VALUES
+    (N'Khách hàng thân thiết, thường mua vào cuối tuần.', N'admin'),
+    (N'Ưu tiên gọi điện xác nhận trước khi giao vì hay đổi địa chỉ.', N'staff1'),
+    (N'Đã từng khiếu nại về vận chuyển, cần chăm sóc kỹ.', N'staff2')
+) AS n(content, createdBy)
+WHERE u.username IN ('nguyenvan','tranthib','lehoangc','phamthid','vominhe','dangthif')
+  AND (u.id + LEN(n.content)) % 3 = 0;
 GO
 
 -- ---------- CustomerTags ----------
+SELECT u.id, t.tag, DATEADD(DAY,-(u.id*2), GETDATE())
+FROM users u
+CROSS APPLY (VALUES (N'VIP'), (N'Thân thiết'), (N'Mua nhiều'), (N'Khách mới')) AS t(tag)
+WHERE u.username IN ('nguyenvan','tranthib','lehoangc','phamthid','vominhe','dangthif')
+  AND (u.id + LEN(t.tag)) % 4 < 2;
 GO
 
 -- ---------- PriceHistory (lich su thay doi gia) ----------
+SELECT pv.id, pv.tenBienThe, pv.productId, p.tenSanPham,
+       CAST(pv.giaGoc * 1.1 AS numeric(18,2)), CAST(pv.giaGoc AS numeric(18,2)),
+       (SELECT id FROM users WHERE username='admin'), DATEADD(DAY,-(pv.id), GETDATE()), N'Điều chỉnh giá thủ công'
+FROM ProductVariants pv
+JOIN Products p ON p.id = pv.productId
+WHERE pv.id % 2 = 0;
 GO
 
 -- ---------- footer_links ----------
+    (N'Giới thiệu',            '/gioi-thieu',      1, 1, 1, GETDATE()),
+    (N'Liên hệ',                '/lien-he',         2, 1, 1, GETDATE()),
+    (N'Tuyển dụng',             '/tuyen-dung',      3, 1, 1, GETDATE()),
+    (N'Chính sách đổi trả',     '/chinh-sach-doi-tra', 1, 1, 2, GETDATE()),
+    (N'Chính sách bảo mật',     '/chinh-sach-bao-mat', 2, 1, 2, GETDATE()),
+    (N'Chính sách vận chuyển',  '/chinh-sach-van-chuyen', 3, 1, 2, GETDATE()),
+    (N'Câu hỏi thường gặp',     '/faq',             1, 1, 3, GETDATE()),
+    (N'Hướng dẫn mua hàng',     '/huong-dan-mua-hang', 2, 1, 3, GETDATE()),
+    (N'Kênh hỗ trợ khách hàng', '/ho-tro',          3, 1, 3, GETDATE()),
+    (N'Theo dõi đơn hàng',      '/tai-khoan/don-hang', 4, 1, 3, GETDATE());
 GO
 
 -- ---------- LoyaltyTransactions (diem thuong khach hang) ----------
+SELECT o.userId, CAST(o.tongThanhToan / 10000 AS int), CAST(o.tongThanhToan / 10000 AS int), 'EARNED', o.id,
+       N'Tích điểm từ đơn hàng ' + o.maDon, DATEADD(DAY,-1, o.ngayDat)
+FROM orders o
+WHERE o.trangThaiDon = 'DA_HOAN_THANH'
+UNION ALL
+SELECT u.id, -50, 100, 'REDEEMED', NULL, N'Đổi điểm lấy voucher giảm giá', DATEADD(DAY,-3,GETDATE())
+FROM users u WHERE u.username IN ('nguyenvan','tranthib')
+UNION ALL
+SELECT u.id, 20, 120, 'ADJUSTED', NULL, N'Điều chỉnh điểm thưởng do sai lệch hệ thống', DATEADD(DAY,-2,GETDATE())
+FROM users u WHERE u.username = 'lehoangc'
+UNION ALL
+SELECT u.id, -30, 0, 'EXPIRED', NULL, N'Điểm thưởng hết hạn sử dụng', DATEADD(DAY,-60,GETDATE())
+FROM users u WHERE u.username = 'phamthid';
 GO
 
 -- ---------- LoyaltyBalances (backfill so du hien tai tu dong cuoi cua LoyaltyTransactions,
 -- giu dung "so du hien tai" ma he thong da hien thi truoc gio — xem findCurrentBalanceByUserId) ----------
+SELECT lt.userId, lt.balance
+FROM LoyaltyTransactions lt
+WHERE lt.id = (SELECT MAX(lt2.id) FROM LoyaltyTransactions lt2 WHERE lt2.userId = lt.userId);
 GO
 
 -- ---------- ReviewImages (thu vien anh danh gia) ----------
+SELECT r.id, pv.hinhAnh, 0
+FROM Reviews r
+JOIN Products p ON p.id = r.productId
+CROSS APPLY (SELECT TOP 1 hinhAnh FROM ProductVariants WHERE productId = p.id AND hinhAnh IS NOT NULL ORDER BY id) pv
+WHERE r.id % 4 = 0;
 GO
 
 -- ---------- StockMovements (nhap/xuat kho) ----------
 -- Nhap kho ban dau cho tat ca bien the
+SELECT pv.id, pv.soLuongTon, 'IN', NULL, (SELECT id FROM users WHERE username='staff1'),
+       N'Nhập kho ban đầu', 0, pv.soLuongTon, DATEADD(DAY,-90,GETDATE())
+FROM ProductVariants pv;
 GO
 -- Xuat kho theo don hang thuc te (order_items)
+SELECT oi.variantId, -oi.soLuong, 'OUT', oi.orderId, (SELECT id FROM users WHERE username='staff2'),
+       N'Xuất kho cho đơn hàng ' + o.maDon, pv.soLuongTon + oi.soLuong, pv.soLuongTon, o.ngayDat
+FROM order_items oi
+JOIN orders o ON o.id = oi.orderId
+JOIN ProductVariants pv ON pv.id = oi.variantId
+WHERE oi.variantId IS NOT NULL;
 GO
 -- Dieu chinh kho (kiem ke)
+SELECT pv.id, -1, 'ADJUST', NULL, (SELECT id FROM users WHERE username='admin'),
+       N'Điều chỉnh sau kiểm kê kho', pv.soLuongTon + 1, pv.soLuongTon, DATEADD(DAY,-15,GETDATE())
+FROM ProductVariants pv
+WHERE pv.id % 7 = 0;
 GO
 
 -- ---------- ReviewReplies (phan hoi danh gia tu admin/staff) ----------
+SELECT r.id, N'Cảm ơn bạn đã tin tưởng và ủng hộ DuaStore! Chúng tôi rất vui khi sản phẩm làm bạn hài lòng.',
+       (SELECT id FROM users WHERE username='staff3'), DATEADD(DAY,-(r.id % 20), GETDATE())
+FROM Reviews r
+WHERE r.isApproved = 1 AND r.danhGia >= 4 AND r.id % 5 = 0
+UNION ALL
+SELECT r.id, N'Cảm ơn phản hồi của bạn. Shop rất tiếc vì trải nghiệm chưa tốt, vui lòng liên hệ hotline để được hỗ trợ đổi trả nhé!',
+       (SELECT id FROM users WHERE username='staff4'), DATEADD(DAY,-(r.id % 15), GETDATE())
+FROM Reviews r
+WHERE r.isApproved = 1 AND r.danhGia <= 3 AND r.id % 6 = 0;
 GO
 
 -- ---------- ContactReplies (phan hoi tin nhan lien he) ----------
+SELECT cm.id, N'Chào ' + cm.hoTen + N', cảm ơn bạn đã liên hệ DuaStore. Chúng tôi đã tiếp nhận và sẽ phản hồi trong thời gian sớm nhất.',
+       (SELECT id FROM users WHERE username='staff5'), DATEADD(HOUR,4,cm.created_at)
+FROM contact_messages cm
+WHERE cm.is_spam = 0 AND cm.is_read = 1;
 GO
 
 -- ---------- PageViews (theo doi truy cap / conversion funnel) ----------
 IF NOT EXISTS (SELECT 1 FROM PageViews)
 BEGIN
+    SELECT 'sess-' + CAST(u.id AS nvarchar(10)) + '-' + CAST(p.id AS nvarchar(10)), 'PAGE_VIEW',
+           '/san-pham/' + CAST(p.id AS nvarchar(10)), p.id, u.id, NULL,
+           DATEADD(HOUR, -((u.id * p.id) % 300), GETDATE())
+    FROM users u
+    CROSS JOIN Products p
+    WHERE u.username IN ('nguyenvan','tranthib','lehoangc','phamthid','vominhe','dangthif')
+      AND p.id % 3 = (u.id % 3)
+    UNION ALL
+    SELECT 'sess-anon-' + CAST(p.id AS nvarchar(10)) + '-' + s.suffix, 'PAGE_VIEW',
+           '/san-pham/' + CAST(p.id AS nvarchar(10)), p.id, NULL, NULL,
+           DATEADD(HOUR, -(p.id * 5), GETDATE())
+    FROM Products p
+    CROSS APPLY (VALUES ('a'), ('b')) AS s(suffix)
+    UNION ALL
+    SELECT 'sess-checkout-' + CAST(o.id AS nvarchar(10)), 'CHECKOUT_COMPLETE', '/thanh-toan/thanh-cong',
+           NULL, o.userId, N'{"orderId":' + CAST(o.id AS nvarchar(10)) + '}', o.ngayDat
+    FROM orders o;
 END
 GO
 
-PRINT '====================================================';
-PRINT ' Seed du lieu bo sung (22 bang) hoan tat!';
-PRINT '====================================================';
 GO
 
 -- ============================================================
@@ -1420,27 +1483,93 @@ GO
 -- ============================================================
 
 -- ---------- order_assignments (phan cong don hang cho admin/staff) ----------
+SELECT
+    CASE (o.id % 5) WHEN 0 THEN 11 WHEN 1 THEN 12 WHEN 2 THEN 13 WHEN 3 THEN 14 ELSE 15 END,
+    o.id,
+    DATEADD(HOUR, -(o.id*2+1), GETDATE()),
+    CASE WHEN o.trangThaiDon IN ('DA_GIAO','DA_HOAN_THANH','DA_HUY') THEN 'HOAN_THANH' ELSE 'DANG_XU_LY' END
+FROM orders o;
 GO
 
 -- ---------- order_status_logs (lich su chuyen trang thai don hang) ----------
+SELECT o.userId, o.id, DATEADD(HOUR,-(o.id*3), GETDATE()), 'CREATE_ORDER', NULL, 'CHO_XAC_NHAN', N'Khách hàng đặt đơn hàng ' + o.maDon
+FROM orders o
+UNION ALL
+SELECT
+    CASE (o.id % 5) WHEN 0 THEN 11 WHEN 1 THEN 12 WHEN 2 THEN 13 WHEN 3 THEN 14 ELSE 15 END,
+    o.id, DATEADD(HOUR,-(o.id*2), GETDATE()), 'ASSIGN_ADMIN', NULL, NULL,
+    N'Phân đơn cho nhân viên xử lý'
+FROM orders o
+UNION ALL
+SELECT
+    CASE (o.id % 5) WHEN 0 THEN 11 WHEN 1 THEN 12 WHEN 2 THEN 13 WHEN 3 THEN 14 ELSE 15 END,
+    o.id, DATEADD(HOUR,-(o.id), GETDATE()), 'STATUS_CHANGE', 'CHO_XAC_NHAN', o.trangThaiDon,
+    N'Cập nhật trạng thái đơn hàng ' + o.maDon
+FROM orders o
+WHERE o.trangThaiDon <> 'CHO_XAC_NHAN' AND o.trangThaiDon <> 'DA_HUY'
+UNION ALL
+SELECT
+    CASE (o.id % 5) WHEN 0 THEN 11 WHEN 1 THEN 12 WHEN 2 THEN 13 WHEN 3 THEN 14 ELSE 15 END,
+    o.id, DATEADD(HOUR,-(o.id), GETDATE()), 'CANCEL_ORDER', 'CHO_XAC_NHAN', 'DA_HUY',
+    N'Đơn hàng bị hủy theo yêu cầu'
+FROM orders o
+WHERE o.trangThaiDon = 'DA_HUY'
+UNION ALL
+SELECT o.userId, o.id, DATEADD(HOUR,-(o.id), GETDATE()), 'PAYMENT_CONFIRMED', 'CHUA_THANH_TOAN', 'DA_THANH_TOAN',
+       N'Xác nhận thanh toán thành công'
+FROM orders o
+WHERE o.trangThaiTT = 'DA_THANH_TOAN';
 GO
 
 -- ---------- admin_action_logs (nhat ky thao tac cua admin/staff) ----------
+SELECT
+    CASE (o.id % 5) WHEN 0 THEN 11 WHEN 1 THEN 12 WHEN 2 THEN 13 WHEN 3 THEN 14 ELSE 15 END,
+    o.id, DATEADD(HOUR,-(o.id), GETDATE()), 'PHAN_DON', '192.168.1.' + CAST((o.id%254)+1 AS nvarchar(10)),
+    'ORDER', NULL, N'Đã phân đơn', N'Tự động phân đơn ' + o.maDon + N' cho nhân viên xử lý'
+FROM orders o
+UNION ALL
+SELECT
+    CASE (o.id % 5) WHEN 0 THEN 11 WHEN 1 THEN 12 WHEN 2 THEN 13 WHEN 3 THEN 14 ELSE 15 END,
+    o.id, DATEADD(HOUR,-(o.id+1), GETDATE()), 'CAP_NHAT_TRANG_THAI', '192.168.1.' + CAST((o.id%254)+1 AS nvarchar(10)),
+    'ORDER', 'CHO_XAC_NHAN', o.trangThaiDon, N'Cập nhật trạng thái đơn hàng ' + o.maDon
+FROM orders o
+WHERE o.trangThaiDon <> 'CHO_XAC_NHAN'
+UNION ALL
+SELECT 1, u.id, DATEADD(DAY,-(u.id), GETDATE()), 'TAO_USER', '127.0.0.1', 'USER', NULL, u.username,
+       N'Tạo tài khoản mới ' + u.hoTen
+FROM users u
+WHERE u.username IN ('staff1','staff2','staff3','staff4','staff5','admin2','admin3')
+UNION ALL
+SELECT 1, r.id, DATEADD(DAY,-100,GETDATE()), 'TAO_ROLE', '127.0.0.1', 'ROLE', NULL, r.name,
+       N'Khởi tạo vai trò hệ thống ' + r.name
+FROM roles r
+UNION ALL
+SELECT 1, p.id, DATEADD(DAY,-(p.id % 30), GETDATE()), 'SUA_SAN_PHAM', '127.0.0.1', 'PRODUCT', NULL, p.tenSanPham,
+       N'Cập nhật thông tin sản phẩm ' + p.tenSanPham
+FROM Products p
+WHERE p.id % 4 = 0
+UNION ALL
+SELECT
+    CASE WHEN r.userId % 2 = 0 THEN 12 ELSE 13 END,
+    r.id, DATEADD(DAY,-(r.id % 20), GETDATE()), 'DUYET_DANH_GIA', '127.0.0.1', 'REVIEW', N'CHO_DUYET', N'DA_DUYET',
+    N'Duyệt đánh giá sản phẩm'
+FROM Reviews r
+WHERE r.isApproved = 1 AND r.id % 6 = 0;
 GO
 
-PRINT '====================================================';
-PRINT ' Seed nhat ky he thong (3 bang) hoan tat!';
-PRINT '====================================================';
 GO
 
 -- ============================================================
 -- BUOC 8: Phan lai san pham vao cac danh muc con moi (them phong phu)
 -- ============================================================
+    WHERE tenSanPham IN (N'Bình Hoa Pha Lê Cắt Cạnh', N'Bình Hoa Pha Lê', N'Bình Pha Lê Pasabahce Nhập Khẩu');
+    WHERE tenSanPham IN (N'Bình Chiết Rượu Vang', N'Bình Thủy Tinh Decanter Hario');
+    WHERE tenSanPham IN (N'Hũ Thủy Tinh Hình Trái Bí', N'Hũ Thủy Tinh Nắp Cài Kín Hơi', N'Hũ Thủy Tinh Sọc');
+    WHERE tenSanPham = N'Bình Thủy Tinh Ngâm Rượu';
+    WHERE tenSanPham IN (N'Bộ Ly Thủy Tinh Màu 1', N'Bộ Ly Thủy Tinh Màu 2');
+    WHERE tenSanPham = N'Ly Thủy Tinh Dạng Trụ Tròn Họa Tiết Sọc';
 GO
 
-PRINT '====================================================';
-PRINT ' Bo sung 5 danh muc con + phan lai san pham hoan tat!';
-PRINT '====================================================';
 GO
 
 -- ============================================================
@@ -1449,9 +1578,6 @@ GO
 -- ============================================================
 GO
 
-PRINT '====================================================';
-PRINT ' Gan voucher cho don hang hoan tat!';
-PRINT '====================================================';
 GO
 
 -- ============================================================
@@ -1460,10 +1586,15 @@ GO
 -- moi co anh — cac trang admin/client hien anh dai dien san pham
 -- (VD: /admin/san-pham) doc truc tiep hinhAnhChinh nen can co du lieu).
 -- ============================================================
+SET p.hinhAnhChinh = pv.hinhAnh
+FROM Products p
+CROSS APPLY (
+    SELECT TOP 1 hinhAnh FROM ProductVariants
+    WHERE productId = p.id AND hinhAnh IS NOT NULL
+    ORDER BY isDefault DESC, id ASC
+) pv
+WHERE p.hinhAnhChinh IS NULL;
 GO
 
-PRINT '====================================================';
-PRINT ' Da backfill hinhAnhChinh cho tat ca san pham!';
-PRINT '====================================================';
 GO
 

@@ -16,7 +16,7 @@ public class PaymentService {
     }
 
     public String getBankCode() {
-        return siteSettingService.getValue("payment_bank_code", "MBB");
+        return siteSettingService.getValue("payment_bank_code", "MB");
     }
 
     public String getAccountNumber() {

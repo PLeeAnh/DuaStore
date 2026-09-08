@@ -122,13 +122,13 @@
             </div>
             <div th:unless="${#lists.isEmpty(flatTree)}" class="adm-card p-3">
                 <ul class="category-tree">
-                    <th:block th:replace=":: tree-node-list(${flatTree}, 0)"></th:block>
+                    <th:block th:replace="~{:: tree-node-list(${flatTree}, 0, null)}"></th:block>
                 </ul>
             </div>
 
-            <!-- recursive fragment: renders all nodes at a given level -->
-            <th:block th:fragment="tree-node-list(tree, level)">
-                <th:block th:each="node : ${tree}" th:if="${node.level == level}">
+            <!-- recursive fragment: renders nodes at a given level whose actual parent matches parentId -->
+            <th:block th:fragment="tree-node-list(tree, level, parentId)">
+                <th:block th:each="node : ${tree}" th:if="${node.level == level and node.parentId == parentId}">
                     <li>
                         <div class="tree-node" th:classappend="${node.level == 0 ? ' tree-root-node' : ''}">
                             <span th:if="${node.hasChildren}" class="tree-toggle collapsed" th:attr="data-target='children-' + ${node.id}"><i class="bi bi-chevron-down"></i></span>
@@ -162,7 +162,7 @@
                             </div>
                         </div>
                         <ul class="tree-children d-none" th:if="${node.hasChildren}" th:id="'children-' + ${node.id}">
-                            <th:block th:replace=":: tree-node-list(${tree}, ${level + 1})"></th:block>
+                            <th:block th:replace="~{:: tree-node-list(${tree}, ${level + 1}, ${node.id})}"></th:block>
                         </ul>
                     </li>
                 </th:block>

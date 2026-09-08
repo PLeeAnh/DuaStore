@@ -97,8 +97,12 @@ function confirmDeleteCategoryImage(btn) {
                         var btnText = document.getElementById('categoryImageBtnText');
                         if (btnText)
                             btnText.textContent = 'Thêm ảnh';
+                        DuaStore.toast.success('Đã xóa ảnh danh mục');
+                    } else {
+                        DuaStore.toast.error('Xóa ảnh thất bại');
                     }
-                });
+                })
+                .catch(() => DuaStore.toast.error('Lỗi kết nối'));
         modal.hide();
         confirmBtn.removeEventListener('click', handler);
     };

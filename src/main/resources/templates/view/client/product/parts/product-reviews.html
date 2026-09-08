@@ -77,6 +77,15 @@
                                  onclick="openReviewImage(this)" />
                         </div>
                     </div>
+                    <div th:if="${r.replyContent != null and !r.replyContent.isBlank()}"
+                         class="mt-2 p-2 rounded-3" style="background:#f8fafc;border-left:3px solid #2563eb;">
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <i class="bi bi-shop" style="color:#2563eb;font-size:.85rem;"></i>
+                            <span class="fw-semibold" style="font-size:.8rem;color:#2563eb;">DuaStore đã trả lời</span>
+                            <span th:if="${r.replyAt}" class="text-muted ms-auto" style="font-size:.75rem;" th:text="${#temporals.format(r.replyAt, 'dd/MM/yyyy')}">01/01/2025</span>
+                        </div>
+                        <p class="mb-0" style="font-size:.85rem;color:#334155;" th:text="${r.replyContent}">Phản hồi</p>
+                    </div>
                 </div>
             </div>
         </div>

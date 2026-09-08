@@ -33,8 +33,6 @@ public interface UserVoucherRepository extends JpaRepository<UserVoucher, Intege
 
     void deleteByPromotionId(Integer promotionId);
 
-    long countByUserIdAndStatus(Integer userId, VoucherStatus status);
-
     @Query("SELECT uv FROM UserVoucher uv WHERE uv.userId = :userId "
             + "AND uv.expiredAt BETWEEN :now AND :soon AND uv.status = 'AVAILABLE'")
     List<UserVoucher> findExpiringSoon(@Param("userId") Integer userId,
@@ -64,6 +62,8 @@ public interface UserVoucherRepository extends JpaRepository<UserVoucher, Intege
 
     @Query("SELECT uv.promotion.id, COUNT(uv) FROM UserVoucher uv WHERE uv.status = 'USED' GROUP BY uv.promotion.id ORDER BY COUNT(uv) DESC")
     List<Object[]> countUsedGroupByPromotionId(Pageable pageable);
+
+    long countByUserIdAndStatus(Integer userId, VoucherStatus status);
 
     /**
      * Tru 1 luot dung voucher mot cach nguyen tu — chong khach double-submit checkout

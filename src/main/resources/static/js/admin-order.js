@@ -20,20 +20,24 @@
     }
 
     function showErrorToast(msg) {
-        var el = document.getElementById('errorToast');
-        if (!el) {
-            el = document.createElement('div');
-            el.id = 'errorToast';
-            el.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5';
-            el.style.zIndex = '9999';
-            document.body.appendChild(el);
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.error(msg);
+        } else {
+            var el = document.getElementById('errorToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'errorToast';
+                el.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5';
+                el.style.zIndex = '9999';
+                document.body.appendChild(el);
+            }
+            el.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>' + msg +
+                    '<button type="button" class="btn-close ms-3" data-bs-dismiss="alert"></button>';
+            el.classList.remove('d-none');
+            setTimeout(function () {
+                el.classList.add('d-none');
+            }, 6000);
         }
-        el.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>' + msg +
-                '<button type="button" class="btn-close ms-3" data-bs-dismiss="alert"></button>';
-        el.classList.remove('d-none');
-        setTimeout(function () {
-            el.classList.add('d-none');
-        }, 6000);
     }
 
     function doUpdate(status, trangThaiTT, node) {

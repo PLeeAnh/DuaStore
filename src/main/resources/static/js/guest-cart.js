@@ -78,8 +78,16 @@ window.DuaStore = window.DuaStore || {};
                 if (typeof updateCartBadge === 'function') {
                     updateCartBadge(result.data.cartCount, true);
                 }
+            } else if (result && result.data && result.data.message) {
+                if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                    DuaStore.toast.error(result.data.message);
+                }
             }
             return result;
+        }).catch(function () {
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.error('Lỗi gộp giỏ hàng');
+            }
         });
     }
 

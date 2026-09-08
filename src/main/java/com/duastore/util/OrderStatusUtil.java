@@ -41,10 +41,6 @@ public final class OrderStatusUtil {
         return ORDERED_STATUSES.size();
     }
 
-    public static boolean isCompletedOrder(String code) {
-        return "DA_GIAO".equals(code) || "DA_HOAN_THANH".equals(code);
-    }
-
     public static String getBadgeClass(OrderEventType eventType) {
         if (eventType == null) {
             return "bg-secondary";

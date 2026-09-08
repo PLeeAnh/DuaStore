@@ -85,11 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ── Submit form qua AJAX kèm toast mặc định nếu controller không flash ── */
     window.__dsConfirmForm = null;
-    function dsSubmitFormWithFeedback(f) {
+    function dsSubmitFormWithFeedback(f, urlOverride) {
         if (!f) return;
         window.__dsPendingDefaultToast = f.getAttribute('data-success-msg') || 'Thao tác thành công';
         var fd = new FormData(f);
-        var url = f.getAttribute('action');
+        var url = urlOverride || f.getAttribute('action');
         var method = f.getAttribute('method') || 'post';
         fetch(url, { method: method.toUpperCase(), body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) {
@@ -152,16 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
             var form = btn.closest('form');
             if (!form) return;
             e.preventDefault();
-            
+            var urlOverride = btn.getAttribute('data-action') || null;
+
             // Check if user has checked "don't show again" for this specific action
             var confirmKey = btn.getAttribute('data-confirm-key') || 'default';
             var storageKey = 'ds_confirm_dont_show_' + confirmKey;
             if (sessionStorage.getItem('ds_confirm_dont_show_' + confirmKey) === 'true') {
-                dsSubmitFormWithFeedback(form); // Auto submit, don't show modal
+                dsSubmitFormWithFeedback(form, urlOverride); // Auto submit, don't show modal
                 return;
             }
-            
+
             window.__dsConfirmForm = form;
+            window.__dsConfirmUrl = urlOverride;
             var msgEl = document.getElementById('confirmModalMessage');
             if (msgEl) msgEl.textContent = msg;
             
@@ -201,8 +203,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (window.__dsConfirmForm) {
-                dsSubmitFormWithFeedback(window.__dsConfirmForm);
+                dsSubmitFormWithFeedback(window.__dsConfirmForm, window.__dsConfirmUrl);
                 window.__dsConfirmForm = null;
+                window.__dsConfirmUrl = null;
             }
             confirmModal.hide();
         });
@@ -413,6 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     var form = btn.closest('form');
                     if (!form) return;
                     window.__dsConfirmForm = form;
+                    window.__dsConfirmUrl = btn.getAttribute('data-action') || null;
                     var msgEl = document.getElementById('confirmModalMessage');
                     if (msgEl) msgEl.textContent = btn.getAttribute('data-confirm');
                     if (window.__confirmModal) {
@@ -426,8 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
             var confirmBtn = document.getElementById('confirmModalConfirm');
             if (confirmBtn) confirmBtn.onclick = function () {
                 if (window.__dsConfirmForm) {
-                    dsSubmitFormWithFeedback(window.__dsConfirmForm);
+                    dsSubmitFormWithFeedback(window.__dsConfirmForm, window.__dsConfirmUrl);
                     window.__dsConfirmForm = null;
+                    window.__dsConfirmUrl = null;
                 }
             };
         }
