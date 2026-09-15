@@ -60,7 +60,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/wishlist/**", "/api/cart/**", "/address/api/**", "/api/vi-voucher/**", "/api/thong-bao/**", "/api/coupon/**").authenticated()
                 .requestMatchers("/checkout/sepay/**").permitAll()
                 .requestMatchers("/gio-hang", "/checkout/**", "/tai-khoan/**", "/don-hang/**", "/wishlist/**").authenticated()
-                .anyRequest().permitAll()
+                .requestMatchers("/", "/san-pham/**", "/bai-viet/**", "/lien-he", "/tra-cuu", "/khuyen-mai",
+                        "/dang-nhap", "/dang-ky", "/quen-mat-khau", "/dat-lai-mat-khau",
+                        "/css/**", "/js/**", "/images/**", "/fonts/**", "/favicon.ico",
+                        "/api/auth/**", "/error").permitAll()
+                .anyRequest().denyAll()
                 )
                 .formLogin(login -> login
                 .loginPage("/dang-nhap")

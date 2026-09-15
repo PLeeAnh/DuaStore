@@ -253,7 +253,9 @@ public class CheckoutController {
             @RequestParam Integer addressId) {
         Map<String, Object> res = new HashMap<>();
         try {
+            Integer userId = getUserId();
             Address address = addressRepository.findById(addressId)
+                    .filter(a -> userId != null && userId.equals(a.getUserId()))
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
             BigDecimal fee = multiCarrierShippingService.calculateFeeForCarrier("GHN", address, null);
             res.put("fee", fee);
@@ -272,7 +274,9 @@ public class CheckoutController {
             @RequestParam(required = false) BigDecimal subtotal) {
         Map<String, Object> res = new HashMap<>();
         try {
+            Integer userId = getUserId();
             Address address = addressRepository.findById(addressId)
+                    .filter(a -> userId != null && userId.equals(a.getUserId()))
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy địa chỉ"));
             List<CarrierQuote> quotes = multiCarrierShippingService.getQuotes(address, subtotal);
             res.put("quotes", quotes);
@@ -455,8 +459,8 @@ public class CheckoutController {
             res.put("message", "Dữ liệu không hợp lệ");
             return ResponseEntity.ok(res);
         }
-        validateCheckoutRequest(req);
         try {
+            validateCheckoutRequest(req);
             int pointsToRedeem = req.getPointsToRedeem() != null ? req.getPointsToRedeem() : 0;
             Set<Integer> selectedSet = req.getSelectedIds() != null && !req.getSelectedIds().isEmpty()
                     ? new HashSet<>(req.getSelectedIds()) : null;

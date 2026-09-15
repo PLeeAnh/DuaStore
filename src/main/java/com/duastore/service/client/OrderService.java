@@ -809,8 +809,22 @@ public class OrderService {
         result.put("ownedInWallet", ownedInWallet);
 
         try {
-            validatePromotion(promo, tienHang);
-            BigDecimal discount = calculateDiscount(promo, tienHang);
+            // Tinh theo so tien THUC SU du dieu kien (loai tru bien the dang Flash Sale
+            // khong cong don duoc voi ma khong stackable) — giong het kiem tra luc dat
+            // hang that (resolveEligibleAmount trong processCheckout), tranh tinh trang
+            // o day bao "ap dung thanh cong" nhung luc bam Dat hang lai bi am tham bo qua
+            // ma (vi 1 hoac nhieu san pham trong gio dang o gia Flash Sale).
+            List<CartItemDTO> cartItems = userId != null ? cartService.getItems(userId) : List.of();
+            BigDecimal eligibleAmount = cartItems.isEmpty()
+                    ? tienHang
+                    : resolveEligibleAmountForCart(promo, cartItems, Map.of());
+            if (!cartItems.isEmpty() && eligibleAmount.compareTo(BigDecimal.ZERO) == 0
+                    && !Boolean.TRUE.equals(promo.getStackable())
+                    && cartItems.stream().anyMatch(ci -> "FLASH_SALE".equals(ci.getNguonGia()))) {
+                throw new RuntimeException("Mã này không áp dụng được cho sản phẩm đang Flash Sale trong giỏ hàng");
+            }
+            validatePromotion(promo, eligibleAmount);
+            BigDecimal discount = calculateDiscount(promo, eligibleAmount);
             result.put("valid", true);
             result.put("discount", discount);
             result.put("message", "Áp dụng mã thành công! Giảm " + formatDiscount(promo, discount));

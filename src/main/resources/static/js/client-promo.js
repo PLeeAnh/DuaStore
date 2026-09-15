@@ -209,14 +209,54 @@
         }
     };
 
-    /* ── Nhận voucher ── */
+    /* ── Nhận voucher — goi API that de luu vao vi, khong chi hien toast gia ── */
     window.claimPromo = function(code) {
-        var modal = document.getElementById('detailModal');
-        if (modal) {
-            var bsModal = bootstrap.Modal.getInstance(modal);
-            if (bsModal) bsModal.hide();
+        var footerBtn = document.querySelector('#dm-footer-action .ds-btn-fill');
+        var promoId = document.querySelector('.ds-promo-item[data-ma="' + code + '"]');
+        var id = promoId ? promoId.getAttribute('data-id') : null;
+        if (!id) {
+            showToast('Không xác định được voucher, vui lòng thử lại');
+            return;
         }
-        showToast('Đã nhận khuyến mãi "' + code + '" thành công!');
+        if (footerBtn) {
+            footerBtn.disabled = true;
+            footerBtn.textContent = 'Đang xử lý...';
+        }
+        var token = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').getAttribute('content') : '';
+        var header = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').getAttribute('content') : 'X-CSRF-TOKEN';
+        var headers = {};
+        headers[header] = token;
+        fetch('/api/vi-voucher/luu/' + id, { method: 'POST', headers: headers })
+            .then(function (r) {
+                if (r.status === 401 || r.status === 403) {
+                    if (typeof showLoginPopup === 'function') showLoginPopup();
+                    if (footerBtn) { footerBtn.disabled = false; footerBtn.textContent = 'Nhận voucher'; }
+                    return null;
+                }
+                return r.json();
+            })
+            .then(function (data) {
+                if (!data) return;
+                if (data.success) {
+                    var modal = document.getElementById('detailModal');
+                    if (modal) {
+                        var bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) bsModal.hide();
+                    }
+                    showToast(data.message || ('Đã nhận voucher "' + code + '" thành công!'));
+                } else {
+                    if (footerBtn) { footerBtn.disabled = false; footerBtn.textContent = 'Nhận voucher'; }
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                        DuaStore.toast.error(data.message || 'Không thể nhận voucher');
+                    }
+                }
+            })
+            .catch(function () {
+                if (footerBtn) { footerBtn.disabled = false; footerBtn.textContent = 'Nhận voucher'; }
+                if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                    DuaStore.toast.error('Lỗi kết nối, vui lòng thử lại');
+                }
+            });
     };
 
     function showToast(msg) {

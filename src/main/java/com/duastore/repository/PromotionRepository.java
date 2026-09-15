@@ -37,8 +37,6 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
     @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND (p.tuNgay IS NULL OR p.tuNgay <= :now) AND (p.denNgay IS NULL OR p.denNgay >= :now) ORDER BY p.priority DESC, p.id DESC")
     Page<Promotion> findActiveNow(LocalDateTime now, Pageable pageable);
 
-    List<Promotion> findByIsActiveTrue();
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Promotion p WHERE p.id = :id")
     Optional<Promotion> findByIdWithLock(Integer id);
@@ -54,9 +52,11 @@ public interface PromotionRepository extends JpaRepository<Promotion, Integer> {
     @Query("SELECT p FROM Promotion p WHERE p.isActive = true AND p.denNgay >= :now ORDER BY p.priority DESC, p.savedCount DESC")
     List<Promotion> findFeaturedPromotions(@Param("now") LocalDateTime now, Pageable pageable);
 
+    long countByIsActiveFalse();
+
     long countByIsActiveTrue();
 
-    long countByIsActiveFalse();
+    List<Promotion> findByIsActiveTrue();
 
     /**
      * Claim 1 luot dung ma khuyen mai mot cach NGUYEN TU — thay the cho pattern

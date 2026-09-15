@@ -1,0 +1,1515 @@
+﻿{
+    "version":  "V10",
+    "importOrder":  [
+                        "roles",
+                        "permissions",
+                        "role_permissions",
+                        "users",
+                        "user_roles",
+                        "user_auth_providers",
+                        "Categories",
+                        "Products",
+                        "ProductVariants",
+                        "ProductImages",
+                        "Promotions",
+                        "Addresses",
+                        "orders",
+                        "order_items",
+                        "order_notes",
+                        "order_assignments",
+                        "order_status_logs",
+                        "admin_action_logs",
+                        "PostCategories",
+                        "Posts",
+                        "Wishlists",
+                        "banners",
+                        "store_info",
+                        "CartItems",
+                        "Reviews",
+                        "ReviewImages",
+                        "ReviewReplies",
+                        "UserVouchers",
+                        "SiteSettings",
+                        "FlashSales",
+                        "FlashSaleItems",
+                        "linked_accounts",
+                        "Notifications",
+                        "StockMovements",
+                        "ContactReplies",
+                        "ProductViews",
+                        "UserActivityLogs",
+                        "contact_messages",
+                        "popup_banners",
+                        "user_settings",
+                        "CustomerNotes",
+                        "CustomerTags",
+                        "PriceHistory",
+                        "footer_links",
+                        "LoyaltyTransactions",
+                        "LoyaltyBalances",
+                        "SavedCartItems",
+                        "PageViews"
+                    ],
+    "tables":  {
+                   "roles":  [
+                                 {
+                                     "name":  "PRODUCT_OWNER",
+                                     "moTa":  "Chủ sở hữu sản phẩm - toàn quyền hệ thống"
+                                 },
+                                 {
+                                     "name":  "ADMIN",
+                                     "moTa":  "Quản trị viên được gán quyền cụ thể"
+                                 },
+                                 {
+                                     "name":  "STAFF",
+                                     "moTa":  "Nhân viên xử lý đơn hàng, sản phẩm, đánh giá"
+                                 },
+                                 {
+                                     "name":  "USER",
+                                     "moTa":  "Khách hàng"
+                                 }
+                             ],
+                   "permissions":  [
+                                       {
+                                           "module":  "DASHBOARD",
+                                           "moTa":  "Xem trang tổng quan",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "PRODUCT",
+                                           "moTa":  "Thêm sản phẩm",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "PRODUCT",
+                                           "moTa":  "Xem sản phẩm",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "PRODUCT",
+                                           "moTa":  "Sửa sản phẩm",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "PRODUCT",
+                                           "moTa":  "Xóa sản phẩm",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "ORDER",
+                                           "moTa":  "Xem đơn hàng",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "ORDER",
+                                           "moTa":  "Cập nhật đơn hàng",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "USER",
+                                           "moTa":  "Xem người dùng",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "USER",
+                                           "moTa":  "Sửa người dùng",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "USER",
+                                           "moTa":  "Thêm người dùng",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "CATEGORY",
+                                           "moTa":  "Thêm danh mục",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "CATEGORY",
+                                           "moTa":  "Xem danh mục",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "CATEGORY",
+                                           "moTa":  "Sửa danh mục",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "CATEGORY",
+                                           "moTa":  "Xóa danh mục",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "PROMOTION",
+                                           "moTa":  "Thêm khuyến mãi",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "PROMOTION",
+                                           "moTa":  "Xem khuyến mãi",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "PROMOTION",
+                                           "moTa":  "Sửa khuyến mãi",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "PROMOTION",
+                                           "moTa":  "Xóa khuyến mãi",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "REVIEW",
+                                           "moTa":  "Xem đánh giá",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "REVIEW",
+                                           "moTa":  "Duyệt đánh giá",
+                                           "action":  "APPROVE"
+                                       },
+                                       {
+                                           "module":  "REVIEW",
+                                           "moTa":  "Ẩn đánh giá",
+                                           "action":  "HIDE"
+                                       },
+                                       {
+                                           "module":  "REVIEW",
+                                           "moTa":  "Xóa đánh giá",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "POST",
+                                           "moTa":  "Thêm bài viết",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "POST",
+                                           "moTa":  "Xem bài viết",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "POST",
+                                           "moTa":  "Sửa bài viết",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "POST",
+                                           "moTa":  "Xóa bài viết",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "VARIANT",
+                                           "moTa":  "Thêm biến thể",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "VARIANT",
+                                           "moTa":  "Xem biến thể",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "VARIANT",
+                                           "moTa":  "Sửa biến thể",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "VARIANT",
+                                           "moTa":  "Xóa biến thể",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "ROLE",
+                                           "moTa":  "Thêm vai trò",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "ROLE",
+                                           "moTa":  "Xem vai trò",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "ROLE",
+                                           "moTa":  "Sửa vai trò",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "ROLE",
+                                           "moTa":  "Xóa vai trò",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "NOTIFICATION",
+                                           "moTa":  "Tạo thông báo",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "NOTIFICATION",
+                                           "moTa":  "Xem thông báo",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "NOTIFICATION",
+                                           "moTa":  "Sửa thông báo",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "NOTIFICATION",
+                                           "moTa":  "Xóa thông báo",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "AUDIT_LOG",
+                                           "moTa":  "Xem nhật ký hệ thống",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "STORE",
+                                           "moTa":  "Thêm địa chỉ cửa hàng",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "STORE",
+                                           "moTa":  "Xem địa chỉ cửa hàng",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "STORE",
+                                           "moTa":  "Sửa địa chỉ cửa hàng",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "STORE",
+                                           "moTa":  "Xóa địa chỉ cửa hàng",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "BANNER",
+                                           "moTa":  "Thêm banner",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "BANNER",
+                                           "moTa":  "Xem banner",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "BANNER",
+                                           "moTa":  "Sửa banner",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "BANNER",
+                                           "moTa":  "Xóa banner",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "CUSTOMER",
+                                           "moTa":  "Xem khách hàng",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "CUSTOMER",
+                                           "moTa":  "Sửa khách hàng",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "HOMEPAGE",
+                                           "moTa":  "Xem cấu hình trang chủ",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "HOMEPAGE",
+                                           "moTa":  "Sửa cấu hình trang chủ",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "APPEARANCE",
+                                           "moTa":  "Xem giao diện",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "APPEARANCE",
+                                           "moTa":  "Sửa giao diện",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "ANALYTICS",
+                                           "moTa":  "Xem phân tích",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "EMAIL_SETTING",
+                                           "moTa":  "Xem cấu hình email",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "EMAIL_SETTING",
+                                           "moTa":  "Sửa cấu hình email",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "PAYMENT_SETTING",
+                                           "moTa":  "Xem cấu hình thanh toán",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "PAYMENT_SETTING",
+                                           "moTa":  "Sửa cấu hình thanh toán",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "SHIPPING_SETTING",
+                                           "moTa":  "Xem cấu hình vận chuyển",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "SHIPPING_SETTING",
+                                           "moTa":  "Sửa cấu hình vận chuyển",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "POST_CATEGORY",
+                                           "moTa":  "Thêm danh mục bài viết",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "POST_CATEGORY",
+                                           "moTa":  "Xem danh mục bài viết",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "POST_CATEGORY",
+                                           "moTa":  "Sửa danh mục bài viết",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "POST_CATEGORY",
+                                           "moTa":  "Xóa danh mục bài viết",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "FLASH_SALE",
+                                           "moTa":  "Thêm chương trình flash sale",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "FLASH_SALE",
+                                           "moTa":  "Xem chương trình flash sale",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "FLASH_SALE",
+                                           "moTa":  "Sửa chương trình flash sale",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "FLASH_SALE",
+                                           "moTa":  "Xóa chương trình flash sale",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "FOOTER_LINK",
+                                           "moTa":  "Thêm link chân trang",
+                                           "action":  "CREATE"
+                                       },
+                                       {
+                                           "module":  "FOOTER_LINK",
+                                           "moTa":  "Xem link chân trang",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "FOOTER_LINK",
+                                           "moTa":  "Sửa link chân trang",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "FOOTER_LINK",
+                                           "moTa":  "Xóa link chân trang",
+                                           "action":  "DELETE"
+                                       },
+                                       {
+                                           "module":  "PRICE_HISTORY",
+                                           "moTa":  "Xem lịch sử giá",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "LOYALTY",
+                                           "moTa":  "Xem tích điểm khách hàng",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "LOYALTY",
+                                           "moTa":  "Sửa tích điểm khách hàng",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "ALERT",
+                                           "moTa":  "Xem cảnh báo",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "ALERT",
+                                           "moTa":  "Sửa cảnh báo",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "CONTACT_MESSAGE",
+                                           "moTa":  "Xem tin nhắn liên hệ",
+                                           "action":  "READ"
+                                       },
+                                       {
+                                           "module":  "CONTACT_MESSAGE",
+                                           "moTa":  "Sửa tin nhắn liên hệ",
+                                           "action":  "UPDATE"
+                                       },
+                                       {
+                                           "module":  "CONTACT_MESSAGE",
+                                           "moTa":  "Xóa tin nhắn liên hệ",
+                                           "action":  "DELETE"
+                                       }
+                                   ],
+                   "role_permissions":  [
+                                            {
+                                                "permission_ref":  "DASHBOARD_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ORDER_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ORDER_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "USER_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "USER_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "USER_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_APPROVE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_HIDE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "AUDIT_LOG_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CUSTOMER_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CUSTOMER_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "HOMEPAGE_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "HOMEPAGE_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "APPEARANCE_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "APPEARANCE_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ANALYTICS_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "EMAIL_SETTING_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "EMAIL_SETTING_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PAYMENT_SETTING_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PAYMENT_SETTING_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "SHIPPING_SETTING_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "SHIPPING_SETTING_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_CREATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "PRICE_HISTORY_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "LOYALTY_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "LOYALTY_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ALERT_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "ALERT_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_READ",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_UPDATE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_DELETE",
+                                                "role_ref":  "PRODUCT_OWNER"
+                                            },
+                                            {
+                                                "permission_ref":  "DASHBOARD_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ORDER_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ORDER_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "USER_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "USER_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "USER_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PROMOTION_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_APPROVE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_HIDE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ROLE_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "NOTIFICATION_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "AUDIT_LOG_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "STORE_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "BANNER_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CUSTOMER_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CUSTOMER_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "HOMEPAGE_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "HOMEPAGE_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "APPEARANCE_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "APPEARANCE_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ANALYTICS_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "EMAIL_SETTING_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "EMAIL_SETTING_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PAYMENT_SETTING_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PAYMENT_SETTING_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "SHIPPING_SETTING_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "SHIPPING_SETTING_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "POST_CATEGORY_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FLASH_SALE_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_CREATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "FOOTER_LINK_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "PRICE_HISTORY_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "LOYALTY_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "LOYALTY_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ALERT_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "ALERT_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_READ",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_UPDATE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_DELETE",
+                                                "role_ref":  "ADMIN"
+                                            },
+                                            {
+                                                "permission_ref":  "DASHBOARD_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_CREATE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "PRODUCT_UPDATE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "ORDER_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "ORDER_UPDATE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "CATEGORY_UPDATE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_APPROVE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "REVIEW_HIDE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_CREATE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "VARIANT_UPDATE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "CUSTOMER_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "CUSTOMER_UPDATE",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_READ",
+                                                "role_ref":  "STAFF"
+                                            },
+                                            {
+                                                "permission_ref":  "CONTACT_MESSAGE_UPDATE",
+                                                "role_ref":  "STAFF"
+                                            }
+                                        ],
+                   "users":  [
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "admin",
+                                     "email":  "admin@duastore.vn",
+                                     "soDienThoai":  "0901234567",
+                                     "hoTen":  "Quản Trị Viên"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "nguyenvan",
+                                     "email":  "nguyen@gmail.com",
+                                     "soDienThoai":  "0912345678",
+                                     "hoTen":  "Nguyễn Văn An"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "owner2",
+                                     "email":  "owner2@duastore.vn",
+                                     "soDienThoai":  "0930000001",
+                                     "hoTen":  "Phạm Văn Chu"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "owner3",
+                                     "email":  "owner3@duastore.vn",
+                                     "soDienThoai":  "0930000002",
+                                     "hoTen":  "Lê Thị Hằng"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "owner4",
+                                     "email":  "owner4@duastore.vn",
+                                     "soDienThoai":  "0930000003",
+                                     "hoTen":  "Trần Văn Kiệt"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "admin2",
+                                     "email":  "admin2@duastore.vn",
+                                     "soDienThoai":  "0931000001",
+                                     "hoTen":  "Nguyễn Thị Quyên"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "admin3",
+                                     "email":  "admin3@duastore.vn",
+                                     "soDienThoai":  "0931000002",
+                                     "hoTen":  "Trần Văn Quang"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "admin4",
+                                     "email":  "admin4@duastore.vn",
+                                     "soDienThoai":  "0931000003",
+                                     "hoTen":  "Lê Thị Huệ"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "admin5",
+                                     "email":  "admin5@duastore.vn",
+                                     "soDienThoai":  "0931000004",
+                                     "hoTen":  "Phạm Văn Tài"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "admin6",
+                                     "email":  "admin6@duastore.vn",
+                                     "soDienThoai":  "0931000005",
+                                     "hoTen":  "Võ Thị Ngân"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "staff1",
+                                     "email":  "staff1@duastore.vn",
+                                     "soDienThoai":  "0932000001",
+                                     "hoTen":  "Bùi Văn Nhân"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "staff2",
+                                     "email":  "staff2@duastore.vn",
+                                     "soDienThoai":  "0932000002",
+                                     "hoTen":  "Đỗ Thị Thảo"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "staff3",
+                                     "email":  "staff3@duastore.vn",
+                                     "soDienThoai":  "0932000003",
+                                     "hoTen":  "Ngô Văn Lộc"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "staff4",
+                                     "email":  "staff4@duastore.vn",
+                                     "soDienThoai":  "0932000004",
+                                     "hoTen":  "Đặng Thị Yến"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "staff5",
+                                     "email":  "staff5@duastore.vn",
+                                     "soDienThoai":  "0932000005",
+                                     "hoTen":  "Hoàng Văn Phong"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "tranthib",
+                                     "email":  "tranthib@gmail.com",
+                                     "soDienThoai":  "0913456789",
+                                     "hoTen":  "Trần Thị Bình"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "lehoangc",
+                                     "email":  "lehoangc@gmail.com",
+                                     "soDienThoai":  "0914567890",
+                                     "hoTen":  "Lê Hoàng Cường"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "phamthid",
+                                     "email":  "phamthid@gmail.com",
+                                     "soDienThoai":  "0915678901",
+                                     "hoTen":  "Phạm Thị Dung"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "vominhe",
+                                     "email":  "vominhe@gmail.com",
+                                     "soDienThoai":  "0916789012",
+                                     "hoTen":  "Võ Minh Đức"
+                                 },
+                                 {
+                                     "password":  "$2a$10$nVW/exPWTVtztHe0.kxk7exU6sktiHM86HuRE60PtuEZM/tORbImO",
+                                     "isActive":  true,
+                                     "username":  "dangthif",
+                                     "email":  "dangthif@gmail.com",
+                                     "soDienThoai":  "0917890123",
+                                     "hoTen":  "Đặng Thị Phương"
+                                 }
+                             ],
+                   "user_roles":  [
+                                      {
+                                          "user_ref":  "admin",
+                                          "role_ref":  "PRODUCT_OWNER"
+                                      },
+                                      {
+                                          "user_ref":  "owner2",
+                                          "role_ref":  "PRODUCT_OWNER"
+                                      },
+                                      {
+                                          "user_ref":  "owner3",
+                                          "role_ref":  "PRODUCT_OWNER"
+                                      },
+                                      {
+                                          "user_ref":  "owner4",
+                                          "role_ref":  "PRODUCT_OWNER"
+                                      },
+                                      {
+                                          "user_ref":  "admin2",
+                                          "role_ref":  "ADMIN"
+                                      },
+                                      {
+                                          "user_ref":  "admin3",
+                                          "role_ref":  "ADMIN"
+                                      },
+                                      {
+                                          "user_ref":  "admin4",
+                                          "role_ref":  "ADMIN"
+                                      },
+                                      {
+                                          "user_ref":  "admin5",
+                                          "role_ref":  "ADMIN"
+                                      },
+                                      {
+                                          "user_ref":  "admin6",
+                                          "role_ref":  "ADMIN"
+                                      },
+                                      {
+                                          "user_ref":  "staff1",
+                                          "role_ref":  "STAFF"
+                                      },
+                                      {
+                                          "user_ref":  "staff2",
+                                          "role_ref":  "STAFF"
+                                      },
+                                      {
+                                          "user_ref":  "staff3",
+                                          "role_ref":  "STAFF"
+                                      },
+                                      {
+                                          "user_ref":  "staff4",
+                                          "role_ref":  "STAFF"
+                                      },
+                                      {
+                                          "user_ref":  "staff5",
+                                          "role_ref":  "STAFF"
+                                      },
+                                      {
+                                          "user_ref":  "nguyenvan",
+                                          "role_ref":  "USER"
+                                      },
+                                      {
+                                          "user_ref":  "tranthib",
+                                          "role_ref":  "USER"
+                                      },
+                                      {
+                                          "user_ref":  "lehoangc",
+                                          "role_ref":  "USER"
+                                      },
+                                      {
+                                          "user_ref":  "phamthid",
+                                          "role_ref":  "USER"
+                                      },
+                                      {
+                                          "user_ref":  "vominhe",
+                                          "role_ref":  "USER"
+                                      },
+                                      {
+                                          "user_ref":  "dangthif",
+                                          "role_ref":  "USER"
+                                      }
+                                  ],
+                   "user_auth_providers":  [
+                                               {
+                                                   "user_ref":  "admin",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "nguyenvan",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "owner2",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "owner3",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "owner4",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "admin2",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "admin3",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "admin4",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "admin5",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "admin6",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "staff1",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "staff2",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "staff3",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "staff4",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "staff5",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "tranthib",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "lehoangc",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "phamthid",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "vominhe",
+                                                   "provider":  "PASSWORD"
+                                               },
+                                               {
+                                                   "user_ref":  "dangthif",
+                                                   "provider":  "PASSWORD"
+                                               }
+                                           ]
+               }
+}

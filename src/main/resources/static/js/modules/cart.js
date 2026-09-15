@@ -452,8 +452,16 @@ function setPopupQty(variantId) {
     }).then(handleCartApiResponse).then(function (data) {
         if (data && data.success && typeof updateCartBadge === 'function') {
             updateCartBadge(data.cartCount);
+        } else if (data && !data.success) {
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.error(data.message || 'Cập nhật thất bại');
+            }
         }
-    }).catch(function () {});
+    }).catch(function () {
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+            DuaStore.toast.error('Lỗi cập nhật giỏ hàng');
+        }
+    });
 }
 
 /* Dọn key localStorage cũ (lỗi): trước đây mọi thao tác giỏ hàng (kể cả khi đã

@@ -72,6 +72,10 @@ public class AdminVariantController {
     @PostMapping("/them-moi")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_CREATE)")
     public String create(@Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
+        if (dto.getGiaKhuyenMai() != null && dto.getGiaGoc() != null
+                && dto.getGiaKhuyenMai().compareTo(dto.getGiaGoc()) >= 0) {
+            result.rejectValue("giaKhuyenMai", "error", "Giá khuyến mãi phải nhỏ hơn giá gốc");
+        }
         if (result.hasErrors()) {
             model.addAttribute("variant", dto);
             model.addAttribute("title", "san-pham");
@@ -118,6 +122,10 @@ public class AdminVariantController {
     @PostMapping("/sua/{id}")
     @PreAuthorize("@sec.hasPermission(T(com.duastore.config.security.PermissionEnum).VARIANT_UPDATE)")
     public String edit(@PathVariable Integer id, @Valid ProductVariantFormDTO dto, BindingResult result, Model model, RedirectAttributes ra) {
+        if (dto.getGiaKhuyenMai() != null && dto.getGiaGoc() != null
+                && dto.getGiaKhuyenMai().compareTo(dto.getGiaGoc()) >= 0) {
+            result.rejectValue("giaKhuyenMai", "error", "Giá khuyến mãi phải nhỏ hơn giá gốc");
+        }
         if (result.hasErrors()) {
             model.addAttribute("variant", dto);
             model.addAttribute("title", "san-pham");

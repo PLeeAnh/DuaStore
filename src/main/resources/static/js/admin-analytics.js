@@ -45,6 +45,9 @@
                 errorDiv.textContent = 'Lỗi kết nối, vui lòng thử lại.';
                 errorDiv.style.display = 'block';
             }
+            if (typeof DuaStore !== 'undefined' && DuaStore.toast) {
+                DuaStore.toast.error('Lỗi kết nối, vui lòng thử lại');
+            }
         })
         .finally(function () {
             if (btn) {

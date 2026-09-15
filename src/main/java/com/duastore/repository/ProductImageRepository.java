@@ -16,8 +16,8 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Inte
     @Query("SELECT pi FROM ProductImage pi WHERE pi.productId IN :productIds AND pi.isActive = true ORDER BY pi.sortOrder ASC, pi.createdAt ASC")
     List<ProductImage> findByProductIdInAndIsActiveTrue(@Param("productIds") List<Integer> productIds);
 
-    long countByIsActiveTrue();
-
     @Query("SELECT COUNT(DISTINCT pi.productId) FROM ProductImage pi WHERE pi.isActive = true")
     long countProductsWithImages();
+
+    long countByIsActiveTrue();
 }

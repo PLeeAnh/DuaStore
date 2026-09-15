@@ -14,5 +14,7 @@ public interface ReviewReplyRepository extends JpaRepository<ReviewReply, Intege
 
     List<ReviewReply> findByReviewIdOrderByCreatedAtAsc(Integer reviewId);
 
+    List<ReviewReply> findByReviewIdInOrderByCreatedAtAsc(List<Integer> reviewIds);
+
     long countByReviewId(Integer reviewId);
 }

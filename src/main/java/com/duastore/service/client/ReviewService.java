@@ -7,6 +7,8 @@ import com.duastore.model.ReviewImage;
 import com.duastore.repository.OrderItemRepository;
 import com.duastore.repository.ProductRepository;
 import com.duastore.repository.ReviewImageRepository;
+import com.duastore.model.ReviewReply;
+import com.duastore.repository.ReviewReplyRepository;
 import com.duastore.repository.ReviewsRepository;
 import com.duastore.repository.UserRepository;
 import com.duastore.model.User;
@@ -34,6 +36,7 @@ public class ReviewService {
 
     private final ReviewsRepository reviewsRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final ReviewReplyRepository reviewReplyRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
@@ -42,6 +45,7 @@ public class ReviewService {
 
     public ReviewService(ReviewsRepository reviewsRepository,
             ReviewImageRepository reviewImageRepository,
+            ReviewReplyRepository reviewReplyRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
             OrderItemRepository orderItemRepository,
@@ -49,6 +53,7 @@ public class ReviewService {
             FileUploadService fileUploadService) {
         this.reviewsRepository = reviewsRepository;
         this.reviewImageRepository = reviewImageRepository;
+        this.reviewReplyRepository = reviewReplyRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.orderItemRepository = orderItemRepository;
@@ -82,10 +87,15 @@ public class ReviewService {
         userRepository.findAllById(userIds).forEach(u -> userNames.put(u.getId(), u.getHoTen()));
 
         Map<Integer, List<String>> reviewImages = new HashMap<>();
+        Map<Integer, ReviewReply> latestReplies = new HashMap<>();
         if (!reviews.isEmpty()) {
-            List<ReviewImage> allImages = reviewImageRepository.findByReviewIdIn(reviews.stream().map(Review::getId).toList());
+            List<Integer> reviewIds = reviews.stream().map(Review::getId).toList();
+            List<ReviewImage> allImages = reviewImageRepository.findByReviewIdIn(reviewIds);
             for (ReviewImage img : allImages) {
                 reviewImages.computeIfAbsent(img.getReviewId(), k -> new java.util.ArrayList<>()).add(img.getImageUrl());
+            }
+            for (ReviewReply reply : reviewReplyRepository.findByReviewIdInOrderByCreatedAtAsc(reviewIds)) {
+                latestReplies.put(reply.getReviewId(), reply);
             }
         }
 
@@ -101,6 +111,11 @@ public class ReviewService {
             dto.setHinhAnhList(reviewImages.getOrDefault(r.getId(), List.of()));
             dto.setTenSanPham(productNames.get(r.getProductId()));
             dto.setHoTen(userNames.get(r.getUserId()));
+            ReviewReply reply = latestReplies.get(r.getId());
+            if (reply != null) {
+                dto.setReplyContent(reply.getContent());
+                dto.setReplyAt(reply.getCreatedAt());
+            }
             return dto;
         });
     }
@@ -116,6 +131,12 @@ public class ReviewService {
         dto.setNgayTao(review.getNgayTao());
         dto.setHinhAnhList(reviewImageRepository.findByReviewIdOrderBySortOrderAsc(review.getId())
                 .stream().map(ReviewImage::getImageUrl).toList());
+        List<ReviewReply> replies = reviewReplyRepository.findByReviewIdOrderByCreatedAtAsc(review.getId());
+        if (!replies.isEmpty()) {
+            ReviewReply latest = replies.get(replies.size() - 1);
+            dto.setReplyContent(latest.getContent());
+            dto.setReplyAt(latest.getCreatedAt());
+        }
 
         productRepository.findById(review.getProductId())
                 .ifPresent(p -> dto.setTenSanPham(p.getTenSanPham()));

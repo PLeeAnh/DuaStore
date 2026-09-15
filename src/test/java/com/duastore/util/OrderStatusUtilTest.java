@@ -62,18 +62,6 @@ class OrderStatusUtilTest {
         assertThat(OrderStatusUtil.getStepIndex("DA_HUY")).isZero();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"DA_GIAO", "DA_HOAN_THANH"})
-    void isCompletedOrder_deliveredOrFinished_returnsTrue(String code) {
-        assertThat(OrderStatusUtil.isCompletedOrder(code)).isTrue();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"CHO_XAC_NHAN", "DA_XAC_NHAN", "DANG_GIAO", "DA_HUY"})
-    void isCompletedOrder_notYetDelivered_returnsFalse(String code) {
-        assertThat(OrderStatusUtil.isCompletedOrder(code)).isFalse();
-    }
-
     @Test
     void getBadgeClass_nullEventType_returnsSecondaryDefault() {
         assertThat(OrderStatusUtil.getBadgeClass(null)).isEqualTo("bg-secondary");

@@ -146,30 +146,44 @@ public class AdminVariantService {
 
             BigDecimal oldPrice = v.getGiaGoc();
 
-            if (entry.containsKey("giaBan")) {
-                Object giaBanObj = entry.get("giaBan");
-                if (giaBanObj instanceof Number) {
-                    v.setGiaGoc(new BigDecimal(((Number) giaBanObj).doubleValue()));
-                }
+            // Chan du lieu bay (gia/ton kho am) — bulkUpdate lam viec truc tiep tren
+            // Map<String,Object> tho, khong di qua @Valid cua ProductVariantFormDTO nhu
+            // save() don le, nen phai tu kiem tra o day. Kiem tra HET truoc khi gan bat
+            // ky field nao vao entity dang quan ly (v) — v da duoc load trong transaction
+            // nen Hibernate se tu dong flush moi thay doi da gan (dirty checking) du
+            // khong goi save(), vi vay khong duoc gan roi moi "continue" nua chung, se
+            // gay cap nhat nua voi (vd gia hop le da gan nhung ton kho am bi bo qua).
+            BigDecimal newGiaBan = v.getGiaGoc();
+            Integer newSoLuong = v.getSoLuongTon();
+            BigDecimal newGiaVon = v.getGiaVon();
+            Integer newThreshold = v.getLowStockThreshold();
+            boolean invalid = false;
+
+            if (entry.containsKey("giaBan") && entry.get("giaBan") instanceof Number giaBanObj) {
+                newGiaBan = new BigDecimal(giaBanObj.doubleValue());
+                if (newGiaBan.compareTo(BigDecimal.ZERO) <= 0) invalid = true;
             }
-            if (entry.containsKey("soLuongTon")) {
-                Object soLuongObj = entry.get("soLuongTon");
-                if (soLuongObj instanceof Number) {
-                    v.setSoLuongTon(((Number) soLuongObj).intValue());
-                }
+            if (entry.containsKey("soLuongTon") && entry.get("soLuongTon") instanceof Number soLuongObj) {
+                newSoLuong = soLuongObj.intValue();
+                if (newSoLuong < 0) invalid = true;
             }
-            if (entry.containsKey("giaVon")) {
-                Object giaVonObj = entry.get("giaVon");
-                if (giaVonObj instanceof Number) {
-                    v.setGiaVon(new BigDecimal(((Number) giaVonObj).doubleValue()));
-                }
+            if (entry.containsKey("giaVon") && entry.get("giaVon") instanceof Number giaVonObj) {
+                newGiaVon = new BigDecimal(giaVonObj.doubleValue());
+                if (newGiaVon.compareTo(BigDecimal.ZERO) < 0) invalid = true;
             }
-            if (entry.containsKey("lowStockThreshold")) {
-                Object thresholdObj = entry.get("lowStockThreshold");
-                if (thresholdObj instanceof Number) {
-                    v.setLowStockThreshold(((Number) thresholdObj).intValue());
-                }
+            if (entry.containsKey("lowStockThreshold") && entry.get("lowStockThreshold") instanceof Number thresholdObj) {
+                newThreshold = thresholdObj.intValue();
+                if (newThreshold < 0) invalid = true;
             }
+            if (invalid) {
+                skippedIds.add(id);
+                continue;
+            }
+
+            v.setGiaGoc(newGiaBan);
+            v.setSoLuongTon(newSoLuong);
+            v.setGiaVon(newGiaVon);
+            v.setLowStockThreshold(newThreshold);
 
             variantRepository.save(v);
             pricingService.recalculateMinPrice(v.getProductId());

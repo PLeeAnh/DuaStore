@@ -9,7 +9,8 @@ function addTag() {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'tag=' + encodeURIComponent(tag)
     }).then(function(r) { return r.json(); }).then(function(d) {
-        if (d.error) { if (window.dsToast) dsToast('error', d.error); return; }
+        if (d.error) { if (typeof DuaStore !== 'undefined' && DuaStore.toast) DuaStore.toast.error(d.error); return; }
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) DuaStore.toast.success('Đã thêm thẻ');
         var list = document.getElementById('tagList');
         var span = document.createElement('span');
         span.className = 'badge rounded-pill text-bg-primary d-inline-flex align-items-center gap-1';
@@ -42,6 +43,8 @@ function addNote() {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: 'content=' + encodeURIComponent(content) + '&severity=' + encodeURIComponent(severity)
     }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d.error) { if (typeof DuaStore !== 'undefined' && DuaStore.toast) DuaStore.toast.error(d.error); return; }
+        if (typeof DuaStore !== 'undefined' && DuaStore.toast) DuaStore.toast.success('Đã thêm ghi chú');
         var list = document.getElementById('noteList');
         var div = document.createElement('div');
         var borderClass = d.severity === 'DANGER' ? 'border-danger' : (d.severity === 'WARN' ? 'border-warning' : 'border-primary');

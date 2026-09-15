@@ -43,6 +43,7 @@ public class UserVoucher {
     @Column(nullable = false, length = 15)
     private VoucherStatus status = VoucherStatus.AVAILABLE;
 
+    @Column(precision = 38, scale = 2)
     private BigDecimal totalSaved = BigDecimal.ZERO;
 
     @PrePersist

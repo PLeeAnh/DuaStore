@@ -859,12 +859,12 @@ public class ProductController {
         boolean isAjax = "XMLHttpRequest".equals(httpRequest.getHeader("X-Requested-With"));
         Integer userId = securityUtil.getCurrentUserId();
         if (userId == null) {
-            if (isAjax) return java.util.Map.of("success", false, "message", "Vui long dang nhap de danh gia");
+            if (isAjax) return ajaxResult(false, "Vui long dang nhap de danh gia");
             ra.addFlashAttribute("errorMsg", "Vui long dang nhap de danh gia");
             return "redirect:/dang-nhap";
         }
         if (result.hasErrors()) {
-            if (isAjax) return java.util.Map.of("success", false, "message", "Vui long nhap day du thong tin danh gia");
+            if (isAjax) return ajaxResult(false, "Vui long nhap day du thong tin danh gia");
             ra.addFlashAttribute("errorMsg", "Vui long nhap day du thong tin danh gia");
             return "redirect:/san-pham/" + id;
         }
@@ -878,7 +878,7 @@ public class ProductController {
                     }
                 }
             } catch (Exception e) {
-                if (isAjax) return java.util.Map.of("success", false, "message", "Loi upload anh: " + e.getMessage());
+                if (isAjax) return ajaxResult(false, "Loi upload anh: " + e.getMessage());
                 ra.addFlashAttribute("errorMsg", "Loi upload anh: " + e.getMessage());
                 return "redirect:/san-pham/" + id;
             }
@@ -894,13 +894,26 @@ public class ProductController {
                     "Duyet danh gia",
                     com.duastore.config.security.PermissionEnum.REVIEW_READ
             );
-            if (isAjax) return java.util.Map.of("success", true, "message", "Cam on ban da danh gia!");
+            if (isAjax) return ajaxResult(true, "Cam on ban da danh gia!");
             ra.addFlashAttribute("successMsg", "Cam on ban da danh gia!");
         } catch (Exception e) {
-            if (isAjax) return java.util.Map.of("success", false, "message", e.getMessage());
+            if (isAjax) return ajaxResult(false, e.getMessage());
             ra.addFlashAttribute("errorMsg", e.getMessage());
         }
         return "redirect:/san-pham/" + id;
+    }
+
+    /**
+     * Tra ve JSON that su cho nhanh AJAX cua submitReview() — bat buoc boc trong
+     * ResponseEntity vi phuong thuc khong co @ResponseBody (kieu tra ve Object dung
+     * chung voi nhanh redirect String); khong boc thi Spring hieu nham Map la model
+     * va lay duong dan request lam ten view, gay loi resolve template.
+     */
+    private org.springframework.http.ResponseEntity<java.util.Map<String, Object>> ajaxResult(boolean success, String message) {
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("success", success);
+        body.put("message", message != null ? message : "Da xay ra loi, vui long thu lai");
+        return org.springframework.http.ResponseEntity.ok(body);
     }
 
     // ── API for variant switching (AJAX) ──

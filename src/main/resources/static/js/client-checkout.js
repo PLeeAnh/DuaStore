@@ -23,7 +23,13 @@ function updateTotal() {
     var subtotal = parseInt(document.getElementById('rawSubtotal').textContent.replace(/[^0-9]/g, '')) || 0;
     var fee = parseInt(document.getElementById('shipFeeDisplay').textContent.replace(/[^0-9]/g, '')) || 0;
     var total = subtotal + fee - (window.appliedDiscount || 0) - (window.pointsDiscount || 0);
-    document.getElementById('totalDisplay').textContent = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '₫';
+    var totalText = (total < 0 ? 0 : total).toLocaleString('vi-VN') + '₫';
+    document.getElementById('totalDisplay').textContent = totalText;
+    // Thanh tong thu gon (mobile/sticky toggle) chi duoc render 1 lan luc tai trang
+    // (Thymeleaf, server-side) — khong tu dong cap nhat khi ap voucher/diem, phai
+    // dong bo thu cong o day de khop voi totalDisplay.
+    var toggleTotalEl = document.querySelector('.shp-aside-toggle-total');
+    if (toggleTotalEl) toggleTotalEl.textContent = totalText;
 }
 
 /* ── Voucher picker modal (kieu Shopee) ── */

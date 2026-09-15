@@ -63,56 +63,40 @@
         <appender-ref ref="ERROR_FILE"/>
     </root>
 
-    <!-- SQL Logger -->
-    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
-        <appender-ref ref="SQL_FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
+    <!-- ===== Profile: local (dev) ===== -->
+    <springProfile name="local">
+        <logger name="com.duastore" level="DEBUG" additivity="false">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE" additivity="false">
+            <appender-ref ref="SQL_FILE"/>
+        </logger>
+        <logger name="org.springframework.security" level="DEBUG" additivity="false">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+    </springProfile>
 
-    <logger name="org.hibernate.orm.jdbc.bind" level="TRACE" additivity="false">
-        <appender-ref ref="SQL_FILE"/>
-    </logger>
-
-    <!-- Spring Security Logger -->
-    <logger name="org.springframework.security" level="DEBUG" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-
-    <!-- Application Loggers -->
-    <logger name="com.duastore" level="DEBUG" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-
-    <!-- Sepay Logger -->
-    <logger name="com.duastore.service.SepayService" level="DEBUG" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-
-    <!-- Flash Sale Logger -->
-    <logger name="com.duastore.service.PricingService" level="DEBUG" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-
-    <!-- Order Service Logger -->
-    <logger name="com.duastore.service.client.OrderService" level="DEBUG" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-
-    <!-- Security Logger -->
-    <logger name="com.duastore.config.security" level="DEBUG" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
+    <!-- ===== Profile: production (default) ===== -->
+    <springProfile name="!local">
+        <logger name="com.duastore" level="WARN" additivity="false">
+            <appender-ref ref="FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
+        </logger>
+        <logger name="org.hibernate.SQL" level="WARN" additivity="false">
+            <appender-ref ref="FILE"/>
+        </logger>
+        <logger name="org.hibernate.orm.jdbc.bind" level="OFF" additivity="false"/>
+        <logger name="org.springframework.security" level="WARN" additivity="false">
+            <appender-ref ref="FILE"/>
+        </logger>
+    </springProfile>
 
     <!-- Hibernate Logger -->
     <logger name="org.hibernate" level="WARN" additivity="false">

@@ -18,9 +18,14 @@ function deleteGalleryImage(imageId, btn) {
     const handler = function () {
         fetch('/admin/san-pham/xoa-anh/' + imageId, {method: 'POST', headers: getCsrfHeaders()})
                 .then(r => {
-                    if (r.ok)
+                    if (r.ok) {
                         btn.parentElement.remove();
-                });
+                        DuaStore.toast.success('Đã xóa ảnh');
+                    } else {
+                        DuaStore.toast.error('Xóa ảnh thất bại');
+                    }
+                })
+                .catch(() => DuaStore.toast.error('Lỗi kết nối'));
         modal.hide();
         confirmBtn.removeEventListener('click', handler);
     };
@@ -54,8 +59,12 @@ function confirmDeleteMainImage(btn) {
                         const changeBtn = card.querySelector('label .bi-arrow-repeat');
                         if (changeBtn)
                             changeBtn.parentElement.querySelector('span').textContent = 'Thêm ảnh';
+                        DuaStore.toast.success('Đã xóa ảnh đại diện');
+                    } else {
+                        DuaStore.toast.error('Xóa ảnh thất bại');
                     }
-                });
+                })
+                .catch(() => DuaStore.toast.error('Lỗi kết nối'));
         modal.hide();
         confirmBtn.removeEventListener('click', handler);
     };
@@ -209,6 +218,7 @@ function generateDescription() {
     })
     .catch(() => {
         status.textContent = '\u274c Lỗi, vui lòng thử lại';
+        DuaStore.toast.error('Tạo mô tả tự động thất bại');
     })
     .finally(() => {
         btn.disabled = false;

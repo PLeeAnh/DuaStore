@@ -261,6 +261,7 @@
                         storeImagesInput.value = urls.join(',');
                         storeImagesInput.dispatchEvent(new Event('input', {bubbles: true}));
                         refreshGallery();
+                        if (typeof DuaStore !== 'undefined' && DuaStore.toast) DuaStore.toast.success('Đã tải ảnh lên');
                     }
                 })
                 .catch(function(){
@@ -272,6 +273,7 @@
                         storeImagesInput.dispatchEvent(new Event('input', {bubbles: true}));
                         refreshGallery();
                     }
+                    if (typeof DuaStore !== 'undefined' && DuaStore.toast) DuaStore.toast.error('Tải ảnh thất bại');
                 });
         });
         this.value = '';
